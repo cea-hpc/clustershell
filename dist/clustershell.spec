@@ -13,7 +13,7 @@ BuildRoot: %{_tmppath}/%{name}-buildroot
 Prefix: %{_prefix}
 BuildArchitectures: noarch
 Vendor: Stephane Thiell <stephane.thiell@cea.fr>
-Url: http://lustre-shine.sourceforge.net/
+Url: http://clustershell.sourceforge.net/
 
 %description
 ClusterShell is a event-based python library to execute commands on local
@@ -27,11 +27,12 @@ worker mechanisms.
 python setup.py build
 
 %install
-python setup.py install --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+python setup.py install --single-version-externally-managed --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
+
 
