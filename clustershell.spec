@@ -16,7 +16,7 @@ Vendor: Stephane Thiell <stephane.thiell@cea.fr>
 Url: http://clustershell.sourceforge.net/
 
 %description
-ClusterShell is a event-based python library to execute commands on local
+ClusterShell is an event-based python library to execute commands on local
 or distant cluster nodes in parallel depending on the selected engine and
 worker mechanisms.
 
