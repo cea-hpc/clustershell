@@ -107,7 +107,6 @@ class _NodeSetPatternIterator:
                 yield pat, pad, begin, end
 
 
-
 class _NodeRangeSet:
     """
     Helper class to efficiently deal with range sets.
@@ -126,6 +125,7 @@ class _NodeRangeSet:
         assert start <= stop, "Confused: please provide ordered node index ranges"
         new_ranges = []
         rgpad = pad
+
         for rgstart, rgstop, rgpad in self.ranges:
             # Concatenate ranges...
             if start > rgstop + 1 or stop < rgstart - 1:
@@ -143,6 +143,31 @@ class _NodeRangeSet:
         new_ranges.append((start, stop, pad or rgpad))
         new_ranges.sort()
         self.ranges = new_ranges
+
+    def intersection(self, start, stop, pad):
+        assert start <= stop, "Confused: please provide ordered node index ranges"
+        results = []
+        rgpad = pad
+        start_orig, stop_orig = start, stop
+
+        for rgstart, rgstop, rgpad in self.ranges:
+            if start > rgstop + 1 or stop < rgstart - 1:
+                # out of range, ignore
+                continue
+            elif start < rgstart:
+                start = rgstart
+                if stop > rgstop:
+                    stop = rgstop
+            elif stop > rgstop:
+                stop = rgstop
+            else:
+                # We're fully in
+                pass
+            if start <= stop:
+                results.append((start, stop, pad or rgpad))
+            start, stop = start_orig, stop_orig
+
+        return results
 
 
 class NodeSet:
@@ -183,6 +208,10 @@ class NodeSet:
                 cnt += 1
         return cnt
 
+    def first(self):
+        for item in self:
+            return item
+
     # Get range-based pattern
     def as_ranges(self):
         """
@@ -214,27 +243,54 @@ class NodeSet:
         "Provided for completeness."
         return list(self)
 
+    def _other_to_str(self, other):
+        if isinstance(other, NodeSet):
+            return other.as_ranges()
+        else:
+            # if type(other) is str:
+            return str(other)
+
+    def _add_range(self, pat, pad, start, stop):
+
+        # Get dict entry or create a new one if needed.
+        s = self.patterns.setdefault(pat, _NodeRangeSet())
+
+        # Add new range in corresponding range set.
+        s.add(start, stop, pad)
+
     def add(self, other):
         """
         Add new pattern string : node, comma separated nodes, or pdsh-like pattern.
         """
-        if isinstance(other, NodeSet):
-            pattern = other.as_ranges()
-        elif type(other) is str:
-            pattern = str(other)
+        pattern = self._other_to_str(other)
 
         for pat, pad, start, stop in _NodeSetPatternIterator(pattern):
-
-            # Get dict entry or create a new one if needed.
-            s = self.patterns.setdefault(pat, _NodeRangeSet())
-
-            # Add new range in corresponding range set.
-            s.add(start, stop, pad)
+            self._add_range(pat, pad, start, stop)
 
     def __add__(self, other):
         self_copy = copy.deepcopy(self)
         self_copy.add(other)
         return self_copy
+
+    def intersection(self, other):
+        """
+        Calc intersection of NodeSets and return new 
+        """
+        pattern = self._other_to_str(other)
+
+        ns = NodeSet()
+
+        for pat, pad, start, stop in _NodeSetPatternIterator(pattern):
+
+            # Get dict entry if it exists, otherwise, no intersect for this range.
+            s = self.patterns.get(pat)
+            if s:
+                for istart, istop, ipad in s.intersection(start, stop, pad):
+                    ns._add_range(pat, ipad, istart, istop)
+        
+        self.patterns = ns.patterns
+
+        return len(self.patterns)
 
 
 def expand_nodes(pat):
@@ -244,10 +300,10 @@ def expand_nodes(pat):
 # Sand box
 
 
-"""
 
 if __name__ == '__main__':
 
+    """
     nl = NodeSet("cors115,cors[116-119]")
     print nl.as_ranges()
     print nl.as_list()
@@ -289,6 +345,12 @@ if __name__ == '__main__':
 
     for n in NodeSet("cors-mgr,cors[1-1000000]"):
         print n
-"""
 
+    nl1 = NodeSet("cors[1132-3183]")
+    nl2 = NodeSet("cors[70,72,80-159]")
+
+    print nl1.intersection(nl2)
+    print nl1.as_ranges()
+
+    """
 

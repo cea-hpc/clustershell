@@ -5,6 +5,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+
 VERS=$1
 PKGNAME=clustershell-$VERS
 
@@ -24,5 +25,5 @@ cp -v lib/ClusterShell/Worker/*.py "$TMPDIR/lib/ClusterShell/Worker/"
 cd "$TMPDIR/.."
 
 tar -czf $PKGNAME.tar.gz $PKGNAME
-rpmbuild -tb $PKGNAME.tar.gz
+rpmbuild -ta $PKGNAME.tar.gz
 

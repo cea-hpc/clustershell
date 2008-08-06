@@ -55,6 +55,12 @@ class WorkerPdsh(Worker):
         else:
             raise WorkerBadArgumentException()
 
+        if len(nodes) > 32:
+            mod = len(nodes) % 32
+        else:
+            mod = 0
+
+        self.pcmdnum = min(256, len(nodes) + mod)
         self.fid = None
         self.buf = ""
         self.buffers = {}
@@ -72,14 +78,19 @@ class WorkerPdsh(Worker):
         #for node in self.nodes:
         self.invoke_ev_start()
 
-        # XXX self.nodes_cs() or range-based list ?
         if self.command:
             # Build pdsh command
-            cmd = "/usr/bin/pdsh -b -w '%s' '%s'" % (self.nodes_cs(), self.command)
+            cmd = "/usr/bin/pdsh -b -f %d -w '%s' '%s'" % \
+                    (self.pcmdnum, \
+                    self.nodes.as_ranges(), \
+                    self.command)
             #print "PDSH : %s" % cmd
         else:
             # Build pdcp command
-            cmd = "/usr/bin/pdcp -b -w '%s' '%s' '%s'" % (self.nodes_cs(), self.source, self.dest)
+            cmd = "/usr/bin/pdcp -b -f %d -w '%s' '%s' '%s'" % \
+                    (self.pcmdnum, \
+                    self.nodes.as_ranges(), \
+                    self.source, self.dest)
             #print "PDCP : %s" % cmd
 
         try:
@@ -198,7 +209,6 @@ class WorkerPdsh(Worker):
             result[NodeSet.fromlist(l)] = rc
 
         return result
-
 
     def nodes_cs(self):
         result = ""

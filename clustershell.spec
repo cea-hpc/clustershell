@@ -1,6 +1,6 @@
 %define name clustershell
-%define version 0.6
-%define release 1
+%define version 0.9
+%define release 2
 
 Summary: ClusterShell Python framework
 Name: %{name}
@@ -12,6 +12,7 @@ Group: Development/Libraries
 BuildRoot: %{_tmppath}/%{name}-buildroot
 Prefix: %{_prefix}
 BuildArchitectures: noarch
+Requires: pdsh
 Vendor: Stephane Thiell <stephane.thiell@cea.fr>
 Url: http://clustershell.sourceforge.net/
 
