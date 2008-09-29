@@ -1,5 +1,6 @@
 # NodeSet.py -- Cluster shell nodeset representation
 # Copyright (C) 2007, 2008 CEA
+# Author: S. Thiell
 #
 # This file is part of shine
 #
@@ -19,26 +20,293 @@
 #
 # $Id: NodeSet.py 26 2008-03-26 09:40:38Z st-cea $
 
+"""
+NodeSet
+
+A module to deal efficiently with pdsh-like rangesets and nodesets.
+
+Usage example:
+
+    nodeset = NodeSet("cluster[1-30]")
+    nodeset.add("cluster32")
+    nodeset.sub("cluster[2-5]")
+    print nodeset
+    for node in nodeset:
+        print node
+"""
+
 import copy
 import re
 
-class _NodeSetPatternIterator:
-    """
-    NodeSet helper iterator class.
-    """
-    def __init__(self, pattern):
-        self.single_node_re = re.compile("(\D+)(\d+)*(\S+)*")
-        self.pat = pattern
+class RangeSetException(Exception):
+    """used by RangeSet"""
+    pass
 
+class RangeSetParseError(RangeSetException):
+    """used by RangeSet when a parse cannot be done"""
+    pass
+
+class NodeSetException(Exception):
+    """used by NodeSet"""
+    pass
+
+class NodeSetParseError(NodeSetException):
+    """used by NodeSet when a parse cannot be done"""
+    pass
+
+
+class RangeSet:
+    """
+    Advanced range sets.
+
+    RangeSet creation examples:
+        rset = RangeSet()            # empty RangeSet
+        rset = RangeSet("5,10-42")   # contains 5, 10 to 42
+        rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
+     
+    """
+    def __init__(self, pattern=None):
+        """
+        Initialize RangeSet with optional pdsh-like string pattern.
+        """
+        self.length = 0
+        self.ranges = []
+
+        if pattern is not None:
+
+            # Comma separated ranges
+            if pattern.find(',') < 0:
+                subranges = [pattern]
+            else:
+                subranges = pattern.split(',')
+
+            for subrange in subranges:
+                if subrange.find('/') < 0:
+                    step = 1
+                else:
+                    subrange, step = subrange.split('/', 1)
+
+                try:
+                    step = int(step)
+                except ValueError:
+                    raise RangeSetParseError(step)
+
+                if subrange.find('-') < 0:
+                    if step != 1:
+                        raise RangeSetParseError(step)
+                    begin = end = subrange
+                else:
+                    begin, end = subrange.split('-', 1)
+
+                # compute padding and return node range info tuple
+                try:
+                    if int(begin) != 0:
+                        begins = begin.lstrip("0")
+                    else:
+                        begins = begin
+                    if len(begin) - len(begins) > 0:
+                        pad = len(begin)
+                    else:
+                        pad = 0
+                    start = int(begins)
+                    if int(end) != 0:
+                        ends = end.lstrip("0")
+                    else:
+                        ends = end
+                    stop = int(ends)
+                except ValueError:
+                    raise RangeSetParseError()
+
+                # check preconditions
+                if start > stop or step < 1:
+                    raise RangeSetParseError()
+
+                self.add_range(start, stop, step, pad)
+        
     def __iter__(self):
         """
-        Iterate over node rangesets.
+        Iterate over each item in RangeSet.
         """
-        while self.pat:
+        for start, stop, step, pad in self.ranges:
+            for i in range(start, stop + 1, step):
+                yield "%*d" % (pad, i)
+
+    def __len__(self):
+        """
+        Get the number of items in RangeSet.
+        """
+
+        #### TEMPORARY ####
+        cnt = 0
+        for start, stop, step, pad in self.ranges:
+            cnt += (stop - start)/step + 1
+        #### TEMPORARY ####
+
+        assert cnt == self.length
+
+        return self.length
+
+    def __str__(self):
+        """
+        Get range-based string.
+        """
+        cnt = 0
+        s = ""
+        for start, stop, step, pad in self.ranges:
+            assert pad != None
+            if cnt > 0:
+                s += ","
+            if start == stop:
+                s += "%0*d" % (pad, start)
+            else:
+                assert step >= 0, "Internal error: step < 0"
+                if step == 1:
+                    s += "%0*d-%0*d" % (pad, start, pad, stop)
+                else:
+                    s += "%0*d-%0*d/%d" % (pad, start, pad, stop, step)
+            cnt += stop - start + 1
+        return s
+
+    def _expand(self):
+        """
+        Expand all items. Internal use.
+        """
+        items = []
+        pad = 0
+        for rgstart, rgstop, rgstep, rgpad in self.ranges:
+            items += range(rgstart, rgstop + 1, rgstep)
+            pad = pad or rgpad
+        return items, pad
+
+    def _fold(self, items, pad):
+        """
+        Fold items as ranges and group them by step.
+        Returns: (ranges, total_length)
+        """
+        cnt, k, m, istart, rg = 0, -1, 0, None, []
+
+        # iterate over items and regroup them using steps
+        for i in items:
+            if i > k:
+                cnt += 1
+                if istart is None:
+                    istart = k = i
+                elif m > 0: # check step length (m)
+                    if m != i - k:
+                        if m == 1 or k - istart > m:
+                            rg.append((istart, k, m, pad))
+                            istart = k = i
+                        else:
+                            rg.append((istart, istart, 1, pad))
+                            istart = k
+                m = i - k
+                k = i
+
+        # finishing
+        if istart is not None: # istart might be 0
+            if m > 0:
+                if m == 1 or k - istart > m:
+                    rg.append((istart, k, m, pad))
+                else:
+                    rg.append((istart, istart, 1, pad))
+                    rg.append((k, k, 1, pad))
+            else:
+                rg.append((istart, istart, 1, pad))
+
+        return rg, cnt
+
+    def add_range(self, start, stop, step=1, pad=0):
+        """
+        Add a range (start, stop, step and padding length) to RangeSet.
+        """
+        assert start <= stop, "Confused: please provide ordered node index ranges"
+        assert step != None
+        assert step > 0
+        assert pad != None
+        assert pad >= 0
+
+        self.ranges, self.length = self._add_range_exfold(start, stop, step, pad)
+
+    def _add_range_exfold(self, start, stop, step, pad):
+        """
+        Add range expanding then folding all items.
+        """
+        assert start <= stop, "Confused: please provide ordered node index ranges"
+        assert step > 0
+        assert pad != None
+        assert pad >= 0
+
+        items, rgpad = self._expand()
+        items += range(start, stop + 1, step)
+        items.sort()
+
+        return self._fold(items, pad or rgpad)
+
+    def add(self, rangeset):
+        """
+        Add provided RangeSet.
+        """
+        for start, stop, step, pad in rangeset.ranges:
+            self.add_range(start, stop, step, pad)
+
+    def sub(self, rangeset):
+        """
+        Sub (exclude) provided RangeSet.
+        """
+        self.ranges, self.length = self._sub_exfold(rangeset)
+
+    def _sub_exfold(self, rangeset):
+        """
+        Calc sub/exclusion with the expand/fold method.
+        """
+        # expand both rangesets
+        items1, pad1 = self._expand()
+        items2, pad2 = rangeset._expand()
+
+        # create a temporary dict with keys from items2
+        iset = dict.fromkeys(items2)
+
+        # fold items that are in both sets
+        return self._fold([e for e in items1 if e not in iset], pad1 or pad2)
+
+    def intersect(self, rangeset):
+        """
+        Intersection with provided RangeSet.
+        """
+        self.ranges, self.length = self._intersect_exfold(rangeset)
+
+    def _intersect_exfold(self, rangeset):
+        """
+        Calc intersection with the expand/fold method.
+        """
+        # expand both rangesets
+        items1, pad1 = self._expand()
+        items2, pad2 = rangeset._expand()
+
+        # create a temporary dict with keys from items2
+        iset = dict.fromkeys(items2)
+
+        # fold items that are in both sets
+        return self._fold([e for e in items1 if e in iset], pad1 or pad2)
+
+
+def _NodeSetParse(ns):
+    """
+    Internal RangeSet generator for NodeSet or nodeset string pattern parsing.
+    """
+    # is ns a NodeSet instance?
+    if isinstance(ns, NodeSet):
+        for pat, rangeset in ns.patterns.iteritems():
+            yield pat, rangeset
+    # or is ns a string?
+    elif type(ns) is str:
+        single_node_re = None
+        pat = str(ns)
+        while pat is not None:
 
             # What's first: a simple node or a pattern of nodes?
-            comma_idx = self.pat.find(',')
-            bracket_idx = self.pat.find('[')
+            comma_idx = pat.find(',')
+            bracket_idx = pat.find('[')
 
             # Check if the comma is after the bracket, or if there
             # is no comma at all but some brackets.
@@ -48,138 +316,87 @@ class _NodeSetPatternIterator:
 
                 # Fill prefix, range and suffix from pattern
                 # eg. "forbin[3,4-10]-ilo" -> "forbin", "3,4-10", "-ilo"
-                pfx, sfx = self.pat.split('[', 1)
-                rg, sfx = sfx.split(']', 1)
+                pfx, sfx = pat.split('[', 1)
+
+                if len(pfx) == 0 or pfx.find('%') >= 0:
+                    raise NodeSetParseError()
+
+                try:
+                    rg, sfx = sfx.split(']', 1)
+                except ValueError:
+                    raise NodeSetParseError()
 
                 # Check if we have a next comma-separated node or pattern
                 if sfx.find(',') < 0:
-                    self.pat = None
+                    pat = None
                 else:
-                    sfx, self.pat = sfx.split(',', 1)
+                    sfx, pat = sfx.split(',', 1)
 
                 # Process comma-separated ranges
-                if rg.find(',') < 0:
-                    subranges = [rg]
-                else:
-                    subranges = rg.split(',')
+                try:
+                    rset = RangeSet(rg)
+                except RangeSetParseError:
+                    raise NodeSetParseError()
 
-                for subrange in subranges:
-                    if subrange.find('-') < 0:
-                        begin = end = subrange
-                    else:
-                        begin, end = subrange.split('-', 1)
-
-                    # Compute padding and return node range info tuple
-                    begins = begin.lstrip("0")
-                    if len(begin) - len(begins) > 0:
-                        pad = len(begin)
-                    else:
-                        pad = 0
-                    begin = int(begin)
-                    end = int(end)
-                    yield "%s%%s%s" % (pfx, sfx), pad, begin, end
+                yield "%s%%s%s" % (pfx, sfx), rset
             else:
                 # In this case, either there is no comma and no bracket, or the
                 # bracket is after the comma, then just return the node.
                 if comma_idx < 0:
-                    node = self.pat
-                    self.pat = None # break next time
+                    node = pat
+                    pat = None # break next time
                 else:
-                    node, self.pat = self.pat.split(',', 1)
+                    node, pat = pat.split(',', 1)
+
+                if len(node) == 0 or node.find('%') >= 0:
+                    raise NodeSetParseError()
+
                 #
                 # single node parsing
                 #
-                mo = self.single_node_re.match(node)
+                if single_node_re is None:
+                    single_node_re = re.compile("(\D+)(\d+)*(\S+)*")
+
+                mo = single_node_re.match(node)
+                if not mo:
+                    raise NodeSetParseError()
                 pfx, idx, sfx = mo.groups()
                 sfx = sfx or ""
                 if idx:
-                    pat = "%s%%s%s" % (pfx, sfx)
-                    idxs = idx.lstrip("0")
-                    begin = int(idx)
-                    if len(idx) - len(idxs) > 0:
-                        pad = len(idx)
-                    else:
-                        pad = 0
+                    try:
+                        rset = RangeSet(idx)
+                    except RangeSetParseError:
+                        raise NodeSetParseError()
+                    p = "%s%%s%s" % (pfx, sfx)
+                    yield p, rset
                 else:
                     # undefined pad means no node index
-                    pat, begin, pad = pfx, 0, None
-                end = begin # single node
-                yield pat, pad, begin, end
-
-
-class _NodeRangeSet:
-    """
-    Helper class to efficiently deal with range sets.
-    """
-    def __init__(self):
-        self.ranges = []
-
-    def __iter__(self):
-        for start, stop, pad in self.ranges:
-            yield start, stop, pad
-
-    def __str__(self):
-        return str(self.ranges)
-
-    def add(self, start, stop, pad):
-        assert start <= stop, "Confused: please provide ordered node index ranges"
-        new_ranges = []
-        rgpad = pad
-
-        for rgstart, rgstop, rgpad in self.ranges:
-            # Concatenate ranges...
-            if start > rgstop + 1 or stop < rgstart - 1:
-                # out of range, no change
-                new_ranges.append((rgstart, rgstop, rgpad))
-            elif start < rgstart:
-                if stop < rgstop:
-                    stop = rgstop
-            elif stop > rgstop:
-                start = rgstart
-            else:
-                # Already in, nothing to do!
-                return
-        # Add (possibly modified) new ranges
-        new_ranges.append((start, stop, pad or rgpad))
-        new_ranges.sort()
-        self.ranges = new_ranges
-
-    def intersection(self, start, stop, pad):
-        assert start <= stop, "Confused: please provide ordered node index ranges"
-        results = []
-        rgpad = pad
-        start_orig, stop_orig = start, stop
-
-        for rgstart, rgstop, rgpad in self.ranges:
-            if start > rgstop + 1 or stop < rgstart - 1:
-                # out of range, ignore
-                continue
-            elif start < rgstart:
-                start = rgstart
-                if stop > rgstop:
-                    stop = rgstop
-            elif stop > rgstop:
-                stop = rgstop
-            else:
-                # We're fully in
-                pass
-            if start <= stop:
-                results.append((start, stop, pad or rgpad))
-            start, stop = start_orig, stop_orig
-
-        return results
-
+                    yield pfx, None
 
 class NodeSet:
     """
-    Public iterable class of nodes with node ranges support.
+    Iterable class of nodes with node ranges support.
+
+    NodeSet creation examples:
+        nodeset = NodeSet()                         # empty NodeSet
+        nodeset = NodeSet("clustername3")           # contains only clustername3
+        nodeset = NodeSet("clustername[5,10-42]")
+        nodeset = NodeSet("clustername[0-10/2]")
+        nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
     """
     def __init__(self, pattern=None):
+        """
+        Initialize a NodeSet. If no pattern is specified, an empty NodeSet is created.
+        """
+        self.length = 0
         self.patterns = {}
-        if pattern:
+        if pattern is not None:
             self.add(pattern)
 
     def fromlist(cls, l):
+        """
+        Class method that returns a new NodeSet with nodes from provided list.
+        """
         inst = NodeSet()
         for pat in l:
             inst.add(pat)
@@ -190,167 +407,148 @@ class NodeSet:
         """
         Iterate over concret nodes.
         """
-        for pat, rangesets in self.patterns.iteritems():
-            for start, stop, pad in rangesets:
-                if pad is not None:
+        for pat, rangeset in self.patterns.iteritems():
+            if rangeset:
+                for start, stop, step, pad in rangeset.ranges:
                     while start <= stop:
                         yield pat % ("%0*d" % (pad, start))
                         start += 1
-                else:
-                    yield pat
+            else:
+                yield pat
 
     def __len__(self):
+        """
+        Get the number of nodes in NodeSet.
+        """
         cnt = 0
-        for pat, rangesets in self.patterns.iteritems():
-            for start, stop, pad in rangesets:
-                if pad is not None:
-                    cnt += stop - start
+        for  rangeset in self.patterns.itervalues():
+            if rangeset:
+                cnt += len(rangeset)
+            else:
                 cnt += 1
         return cnt
 
-    def first(self):
-        for item in self:
-            return item
-
-    # Get range-based pattern
-    def as_ranges(self):
+    def __str__(self):
         """
         Get pdsh-like, ranges-based pattern of node list.
         """
         result = ""
-        for pat, rangesets in self.patterns.iteritems():
-            cnt = 0
-            s = ""
-            for start, stop, pad in rangesets:
-                if pad is not None:
-                    if cnt > 0:
-                        s += ","
-                    if start == stop:
-                        s += "%0*d" % (pad, start)
-                    else:
-                        s += "%0*d-%0*d" % (pad, start, pad, stop)
-                    cnt += stop - start + 1
-            if cnt > 1:
-                s = "[" + s + "]"
-            if cnt > 0:
+        for pat, rangeset in self.patterns.iteritems():
+            if rangeset:
+                s = str(rangeset)
+                cnt = len(rangeset)
+                if cnt > 1:
+                    s = "[" + s + "]"
                 result += pat % s
             else:
                 result += pat
             result += ","
         return result[:-1]
-        
-    def as_list(self):
-        "Provided for completeness."
-        return list(self)
 
-    def _other_to_str(self, other):
-        if isinstance(other, NodeSet):
-            return other.as_ranges()
+    def _add_rangeset(self, pat, rangeset):
+        """
+        Add a rangeset to a new or existing pattern.
+        """
+        # get patterns dict entry
+        pat_e = self.patterns.get(pat)
+
+        if pat_e:
+            # don't play with prefix - if there is a value, there is a rangeset.
+            assert rangeset != None
+
+            # add rangeset in corresponding pattern rangeset
+            pat_e.add(rangeset)
         else:
-            # if type(other) is str:
-            return str(other)
+            # create new pattern (with possibly rangeset=None)
+            self.patterns[pat] = rangeset
 
-    def _add_range(self, pat, pad, start, stop):
-
-        # Get dict entry or create a new one if needed.
-        s = self.patterns.setdefault(pat, _NodeRangeSet())
-
-        # Add new range in corresponding range set.
-        s.add(start, stop, pad)
-
-    def add(self, other):
+    def add(self, ns):
         """
         Add new pattern string : node, comma separated nodes, or pdsh-like pattern.
         """
-        pattern = self._other_to_str(other)
-
-        for pat, pad, start, stop in _NodeSetPatternIterator(pattern):
-            self._add_range(pat, pad, start, stop)
+        for pat, rangeset in _NodeSetParse(ns):
+            self._add_rangeset(pat, rangeset)
 
     def __add__(self, other):
+        """
+        Implement the + operator. See add().
+        """
         self_copy = copy.deepcopy(self)
         self_copy.add(other)
         return self_copy
 
-    def intersection(self, other):
+    def __sub__(self, other):
         """
-        Calc intersection of NodeSets and return new 
+        Implement the - operator. See sub().
         """
-        pattern = self._other_to_str(other)
+        self_copy = copy.deepcopy(self)
+        self_copy.sub(other)
+        return self_copy
 
-        ns = NodeSet()
+    def intersect(self, ns):
+        """
+        Calc intersection of NodeSets (modifies current NodeSet)
+        """
+        if ns is self:
+            return
 
-        for pat, pad, start, stop in _NodeSetPatternIterator(pattern):
+        tmp_ns = NodeSet()
 
-            # Get dict entry if it exists, otherwise, no intersect for this range.
-            s = self.patterns.get(pat)
-            if s:
-                for istart, istop, ipad in s.intersection(start, stop, pad):
-                    ns._add_range(pat, ipad, istart, istop)
-        
-        self.patterns = ns.patterns
+        for pat, irangeset in _NodeSetParse(ns):
+            rangeset = self.patterns.get(pat)
+            if rangeset:
+                rs = copy.copy(rangeset)
+                rs.intersect(irangeset)
+                tmp_ns._add_rangeset(pat, rs)
 
-        return len(self.patterns)
+        # Substitute 
+        self.patterns = tmp_ns.patterns
+
+    def sub(self, ns):
+        """
+        Exclude NodeSet (modifies current NodeSet)
+        """
+        # the purge of each empty pattern is done afterward to allow self = ns
+        purge_patterns = []
+
+        # iterate first over exclude nodeset rangesets which is usually smaller
+        for pat, erangeset in _NodeSetParse(ns):
+            # if pattern is found, deal with it
+            rangeset = self.patterns.get(pat)
+            if rangeset:
+                # sub rangeset
+                rangeset.sub(erangeset)
+                # check if no range left and add pattern to purge list
+                if len(rangeset) == 0:
+                    purge_patterns.append(pat)
+            else:
+                # unnumbered node exclusion
+                if self.patterns.has_key(pat):
+                    purge_patterns.append(pat)
+
+        for pat in purge_patterns:
+            del self.patterns[pat]
 
 
-def expand_nodes(pat):
+def NodeSetExpand(pat):
+    """
+    Commodity function that expands a pdsh-like pattern into a list of nodes.
+    """
     return list(NodeSet(pat))
 
+def NodeSetFold(pat):
+    """
+    Commodity function that clean dups and fold provided pattern with ranges and "/step" support.
+    """
+    return str(NodeSet(pat))
 
-# Sand box
 
+# doctest
 
+def _test():
+    import doctest
+    doctest.testmod()
 
 if __name__ == '__main__':
-
-    """
-    nl = NodeSet("cors115,cors[116-119]")
-    print nl.as_ranges()
-    print nl.as_list()
-
-    print list(nl)
-
-    print expand_nodes("cors007,cors[001-002]")
-
-    nl = NodeSet()
-    nl.add("cws-cors")
-    nl.add("cors007,cors[001-002]")
-    nl2 = nl + "cors008"
-    nl.add("cors007-ipmi")
-    nl.add("cors007-ib0")
-    nl.add("cors117")
-    nl.add("cors117-ipmi")
-    nl.add("cors34-ib0")
-    nl.add("cors117-ib0")
-    nl.add("cors116-ib0")
-    nl.add("cors0113-ib0")
-    nl.add("cors114-ib0")
-    nl.add("cors1")
-    nl.add("cors5")
-    nl.add("cors[3-8]")
-    nl.add("cors[9-80]")
-    nl.add("cors[034-234]")
-    nl.add("cors[3-8]-ipmi")
-    nl.add("cors[9-80]-ipmi")
-    nl.add("cors[032-134]")
-    nl.add("cors[135-140]")
-
-    print nl.as_ranges()
-    print list(nl)
-
-    print "---"
-    print nl2.as_ranges()
-    print list(nl2)
-
-
-    for n in NodeSet("cors-mgr,cors[1-1000000]"):
-        print n
-
-    nl1 = NodeSet("cors[1132-3183]")
-    nl2 = NodeSet("cors[70,72,80-159]")
-
-    print nl1.intersection(nl2)
-    print nl1.as_ranges()
-
-    """
+    _test()
 
