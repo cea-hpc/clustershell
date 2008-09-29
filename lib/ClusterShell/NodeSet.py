@@ -27,6 +27,7 @@ A module to deal efficiently with pdsh-like rangesets and nodesets.
 
 Usage example:
 
+    from ClusterShell.NodeSet import NodeSet
     nodeset = NodeSet("cluster[1-30]")
     nodeset.add("cluster32")
     nodeset.sub("cluster[2-5]")
@@ -372,6 +373,7 @@ def _NodeSetParse(ns):
                 else:
                     # undefined pad means no node index
                     yield pfx, None
+
 
 class NodeSet:
     """
