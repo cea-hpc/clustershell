@@ -16,7 +16,7 @@ from ClusterShell.NodeSet import RangeSet
 from ClusterShell.NodeSet import RangeSetParseError
 
 
-class RangeSetErrorTests(unittest.TestCase):
+class RangeSetErrorTest(unittest.TestCase):
 
     def _testRS(self, r, exc):
         try:
@@ -51,5 +51,5 @@ class RangeSetErrorTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetErrorTests)
+    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetErrorTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

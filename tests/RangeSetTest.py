@@ -15,7 +15,7 @@ sys.path.append('../lib')
 from ClusterShell.NodeSet import RangeSet
 
 
-class RangeSetTests(unittest.TestCase):
+class RangeSetTest(unittest.TestCase):
 
     def _testRS(self, test, res, length):
         r1 = RangeSet(test)
@@ -179,5 +179,5 @@ class RangeSetTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTests)
+    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

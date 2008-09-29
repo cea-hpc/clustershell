@@ -16,7 +16,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.NodeSet import NodeSetParseError
 
 
-class NodeSetErrorTests(unittest.TestCase):
+class NodeSetErrorTest(unittest.TestCase):
 
     def _testNS(self, pattern, exc):
         try:
@@ -62,5 +62,5 @@ class NodeSetErrorTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetErrorTests)
+    suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetErrorTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
