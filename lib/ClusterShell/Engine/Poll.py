@@ -20,7 +20,6 @@
 # $Id: EnginePdsh.py 11 2008-01-11 15:19:44Z st-cea $
 
 from Engine import Engine
-from ClusterShell.Worker.Pdsh import WorkerPdsh
 
 import select
 import os
