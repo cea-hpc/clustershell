@@ -15,7 +15,7 @@ sys.path.append('../lib')
 from ClusterShell.NodeSet import NodeSet
 
 
-class NodeSetTests(unittest.TestCase):
+class NodeSetTest(unittest.TestCase):
 
     def _assertNode(self, nodeset, nodename, length):
         self.assertEqual(str(nodeset), nodename)
@@ -499,5 +499,5 @@ class NodeSetTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetTests)
+    suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
