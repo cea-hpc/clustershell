@@ -104,35 +104,35 @@ class RangeSetTest(unittest.TestCase):
 
     def testSubStep(self):
         """test more sub of ranges (with step)"""
-        # case 1 no exfold, no sub
+        # case 1 no sub
         r1 = RangeSet("4-34/2")
         r2 = RangeSet("3-33/2")
         r1.sub(r2)
         self.assertEqual(str(r1), "4-34/2")
         self.assertEqual(len(r1), 16)
 
-        # case 2 no exfold, sub left
+        # case 2 sub left
         r1 = RangeSet("4-34/2")
         r2 = RangeSet("2-14/2")
         r1.sub(r2)
         self.assertEqual(str(r1), "16-34/2")
         self.assertEqual(len(r1), 10)
         
-        # case 3 no exfold, sub right
+        # case 3 sub right
         r1 = RangeSet("4-34/2")
         r2 = RangeSet("28-52/2")
         r1.sub(r2)
         self.assertEqual(str(r1), "4-26/2")
         self.assertEqual(len(r1), 12)
         
-        # case 4 no exfold, sub with ranges split
+        # case 4 sub with ranges split
         r1 = RangeSet("4-34/2")
         r2 = RangeSet("12-18/2")
         r1.sub(r2)
         self.assertEqual(str(r1), "4-10/2,20-34/2")
         self.assertEqual(len(r1), 12)
 
-        # case 5+ exfold subs
+        # case 5+ more tricky subs
         r1 = RangeSet("4-34/2")
         r2 = RangeSet("28-55")
         r1.sub(r2)
@@ -174,7 +174,6 @@ class RangeSetTest(unittest.TestCase):
         r1.sub(r2)
         self.assertEqual(str(r1), "1-37/3,43-52/3,58-67/3,73-100/3")
         self.assertEqual(len(r1), 31)
-
 
 
 
