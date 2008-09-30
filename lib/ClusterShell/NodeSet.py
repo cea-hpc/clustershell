@@ -65,6 +65,7 @@ class RangeSet:
         rset = RangeSet("5,10-42")   # contains 5, 10 to 42
         rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
      
+    Also, RangeSet provides add(), intersect() and sub() (exclusion) methods.
     """
     def __init__(self, pattern=None):
         """
@@ -385,6 +386,8 @@ class NodeSet:
         nodeset = NodeSet("clustername[5,10-42]")
         nodeset = NodeSet("clustername[0-10/2]")
         nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
+
+    Also, NodeSet provides add(), intersect() and sub() (exclusion) methods. 
     """
     def __init__(self, pattern=None):
         """
