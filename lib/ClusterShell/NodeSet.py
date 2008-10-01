@@ -304,6 +304,9 @@ def _NodeSetParse(ns):
     elif type(ns) is str:
         single_node_re = None
         pat = str(ns)
+        # avoid misformatting
+        if pat.find('%') >= 0:
+            pat = pat.replace('%', '%%')
         while pat is not None:
 
             # What's first: a simple node or a pattern of nodes?
@@ -320,9 +323,6 @@ def _NodeSetParse(ns):
                 # eg. "forbin[3,4-10]-ilo" -> "forbin", "3,4-10", "-ilo"
                 pfx, sfx = pat.split('[', 1)
 
-                if len(pfx) == 0 or pfx.find('%') >= 0:
-                    raise NodeSetParseError()
-
                 try:
                     rg, sfx = sfx.split(']', 1)
                 except ValueError:
@@ -333,6 +333,10 @@ def _NodeSetParse(ns):
                     pat = None
                 else:
                     sfx, pat = sfx.split(',', 1)
+
+                # pfx + sfx cannot be empty
+                if len(pfx) + len(sfx) == 0:
+                    raise NodeSetParseError()
 
                 # Process comma-separated ranges
                 try:
@@ -350,20 +354,23 @@ def _NodeSetParse(ns):
                 else:
                     node, pat = pat.split(',', 1)
 
-                if len(node) == 0 or node.find('%') >= 0:
+                if len(node) == 0:
                     raise NodeSetParseError()
 
-                #
                 # single node parsing
-                #
                 if single_node_re is None:
-                    single_node_re = re.compile("(\D+)(\d+)*(\S+)*")
+                    single_node_re = re.compile("(\D+)*(\d+)*(\S+)*")
 
                 mo = single_node_re.match(node)
                 if not mo:
                     raise NodeSetParseError()
                 pfx, idx, sfx = mo.groups()
-                sfx = sfx or ""
+                pfx, sfx = pfx or "", sfx or ""
+
+                # pfx+sfx cannot be empty
+                if len(pfx) + len(sfx) == 0:
+                    raise NodeSetParseError()
+
                 if idx:
                     try:
                         rset = RangeSet(idx)
