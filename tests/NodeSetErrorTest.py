@@ -58,7 +58,7 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova6,", NodeSetParseError)
         self._testNS("nova6[", NodeSetParseError)
         #self._testNS("nova6]", NodeSetParseError)
-        self._testNS("nova%s", NodeSetParseError)
+        #self._testNS("nova%s", NodeSetParseError)
 
 
 if __name__ == '__main__':

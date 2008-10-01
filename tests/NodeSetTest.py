@@ -32,6 +32,27 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("supercluster0")
         self._assertNode(nodeset, "supercluster0", 1)
 
+    def testNoPrefix(self):
+        """test node without prefix"""
+        nodeset = NodeSet("0cluster")
+        self._assertNode(nodeset, "0cluster", 1)
+        nodeset = NodeSet("[0]cluster")
+        self._assertNode(nodeset, "0cluster", 1)
+
+    def testDigitInPrefix(self):
+        """test digit in prefix"""
+        nodeset = NodeSet("clu-0-3")
+        self._assertNode(nodeset, "clu-0-3", 1)
+        nodeset = NodeSet("clu-0-[3-23]")
+        self.assertEqual(str(nodeset), "clu-0-[3-23]")
+
+    def testNodeWithPercent(self):
+        """test nodename with % character"""
+        nodeset = NodeSet("cluster%s3")
+        self._assertNode(nodeset, "cluster%s3", 1)
+        nodeset = NodeSet("clust%ser[3-30]")
+        self.assertEqual(str(nodeset), "clust%ser[3-30]")
+
     def testNodeEightPad(self):
         """test padding feature"""
         nodeset = NodeSet("cluster008")
@@ -469,6 +490,19 @@ class NodeSetTest(unittest.TestCase):
         for i in range(1120, 1131):
             nodeset.sub(NodeSet("yellow%d" % i))
         nodeset.sub(NodeSet("yellow[131-160]"))
+        self.assertEqual(len(nodeset), 0)
+
+    def testSubsAndAddsMore(self):
+        """test add() and sub() methods together (with other digit in prefix)"""
+        nodeset = NodeSet("clu-3-[120-160]")
+        self.assertEqual(len(nodeset), 41)
+        for i in range(120, 131):
+            nodeset.sub(NodeSet("clu-3-[%d]" % i))
+            nodeset.add(NodeSet("clu-3-[%d]" % (i + 1000)))
+        self.assertEqual(len(nodeset), 41)
+        for i in range(1120, 1131):
+            nodeset.sub(NodeSet("clu-3-[%d]" % i))
+        nodeset.sub(NodeSet("clu-3-[131-160]"))
         self.assertEqual(len(nodeset), 0)
 
     def testSubUnknownNodes(self):
