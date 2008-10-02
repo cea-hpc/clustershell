@@ -1,7 +1,7 @@
 # WorkerPdsh.py -- ClusterShell pdsh worker with poll()
 # Copyright (C) 2007, 2008 CEA
 #
-# This file is part of shine
+# This file is part of ClusterShell
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -29,10 +29,84 @@ import os
 import popen2
 
 
-class _Msg:
-    def __init__(self):
-        self.buf = ""
-        self.rc = 0
+class _MsgTreeElem:
+    """
+    Helper class used to build a messages tree. Here, the main advantages of a messages tree are:
+    (1) low memory consumption especially on a cluster when all nodes return similar messages,
+    (2) gathering of messages is done (almost) automatically.
+
+    Note: a `node' is a host node here, not a tree node (called `element')
+    """
+    def __init__(self, msg=None, parent=None):
+        """
+        Initialize message tree element.
+        """
+        # structure
+        self.parent = parent
+        self.children = {}
+        # content
+        self.msg = msg
+        self.nodes = None
+
+    def _add_node(self, nodename):
+        """
+        Add a node to this element.
+        """
+        if not self.nodes:
+            self.nodes = NodeSet(nodename)
+        else:
+            self.nodes.add(nodename)
+    
+    def _remove_node(self, nodename):
+        """
+        Remove a node from this element (used when moving it to a child).
+        """
+        if self.nodes:
+            self.nodes.sub(nodename)
+        
+    def add_child(self, msg, nodename):
+        """
+        A new message line is coming, add msg and node.
+        """
+        # remove node from parent (self)
+        self._remove_node(nodename)
+
+        # add node to child
+        elem = self.children.setdefault(msg, _MsgTreeElem(msg, self))
+        elem._add_node(nodename)
+        return elem
+
+    def get_leaves(self):
+        leaves = []
+        for elem in self.children.itervalues():
+            if len(elem.children) == 0:
+                leaves.append(elem)
+            else:
+                leaves += elem.get_leaves()
+        return leaves
+    
+    def message(self):
+        """
+        Get the whole message buffer from this tree element.
+        """
+        msg = ""
+
+        # no msg in root elem
+        if not self.msg:
+            return msg
+
+        # build reverse msg
+        rev_msgs = [self.msg]
+        parent = self.parent
+        while parent and parent.msg:
+            rev_msgs.append(parent.msg)
+            parent = parent.parent
+
+        # reverse to get well ordered buffer
+        for i in range(len(rev_msgs)-1, -1, -1):
+            msg += rev_msgs[i]
+        
+        return msg
 
 
 class WorkerPdsh(Worker):
@@ -63,9 +137,17 @@ class WorkerPdsh(Worker):
         self.pcmdnum = min(256, len(nodes) + mod)
         self.fid = None
         self.buf = ""
-        self.buffers = {}
         self.last_nn = None
         self.last_msg = None
+
+        # root of msg tree
+        self._msg_root = _MsgTreeElem()
+        # dict of nodes to msg tree elem
+        self._d_msg_nodes = {}
+        # dict of nodes to retcode
+        self._d_rc_nodes = {}
+        # dict of retcode to NodeSet
+        self._d_rc = {}
 
     def __iter__(self):
         for line in self.fid.fromchild:
@@ -82,14 +164,14 @@ class WorkerPdsh(Worker):
             # Build pdsh command
             cmd = "/usr/bin/pdsh -b -f %d -w '%s' '%s'" % \
                     (self.pcmdnum, \
-                    self.nodes.as_ranges(), \
+                    self.nodes, \
                     self.command)
             #print "PDSH : %s" % cmd
         else:
             # Build pdcp command
             cmd = "/usr/bin/pdcp -b -f %d -w '%s' '%s' '%s'" % \
                     (self.pcmdnum, \
-                    self.nodes.as_ranges(), \
+                    self.nodes, \
                     self.source, self.dest)
             #print "PDCP : %s" % cmd
 
@@ -137,9 +219,9 @@ class WorkerPdsh(Worker):
                         words  = line.split()
                         # Set return code for nodename of worker
                         if self.mode == 'pdsh' and words[7].isdigit():
-                            self.set_node_rc(nn=words[1][:-1], rc=int(words[7]))
+                            self.set_node_rc(words[1][:-1], int(words[7]))
                         elif self.mode == 'pdcp':
-                            self.set_node_rc(nn=words[1][:-1], rc=errno.ENOENT)
+                            self.set_node_rc(words[1][:-1], errno.ENOENT)
 
                     except:
                         print "exception in pdsh@"
@@ -148,7 +230,7 @@ class WorkerPdsh(Worker):
                     #        
                     # split pdsh reply "nodename: msg"
                     nodename, msgline = line.split(': ', 1)
-                    self.add_node_msg(nodename, msgline)
+                    self.add_node_msgline(nodename, msgline)
                     self.invoke_ev_read()
             else:
                 # keep partial line in buffer
@@ -167,48 +249,69 @@ class WorkerPdsh(Worker):
     def get_last_read(self):
         return self.last_nn, self.last_msg
 
-    def add_node_msg(self, nn, msg):
-        self.last_nn, self.last_msg = nn, msg[:-1]
-        if nn not in self.buffers:
-            self.buffers[nn] = _Msg()
-        self.buffers[nn].buf += msg
+    def add_node_msgline(self, nodename, msg):
+        """
+        Update last_* and add node message line to messages tree.
+        """
+        self.last_nn, self.last_msg = nodename, msg[:-1]
 
-    def set_node_rc(self, nn, rc):
-        if nn not in self.buffers:
-            self.buffers[nn] = _Msg()
-        self.buffers[nn].rc = rc
+        # try first to get current element in msgs tree
+        e_msg = self._d_msg_nodes.get(nodename)
+        if not e_msg:
+            # node not found (first msg from it)
+            e_msg = self._msg_root
 
-    def read_node_buffer(self, nn):
-        return self.buffers.get(nn, _Msg()).buf
+        # add child msg and update dict
+        self._d_msg_nodes[nodename] = e_msg.add_child(msg, nodename)
 
-    def get_node_rc(self, nn):
-        return self.buffers.get(nn, _Msg()).rc
+    def set_node_rc(self, nodename, rc):
+        # dict by nodename
+        self._d_rc_node[nodename] = rc
 
-    def gather(self):
-        gbuf, result = {}, {}
+        # dict by rc
+        e = self._d_rc.get(rc)
+        if e is None:
+            self._d_rc[rc] = NodeSet(nodename)
+        else:
+            self._d_rc[rc].add(nodename)
 
-        # Group by buffer
-        for n, m in self.buffers.iteritems():
-            gbuf.setdefault(m.buf, []).append(n)
+    def read_node_buffer(self, nodename):
+        e_msg = self._d_msg_nodes.get(nodename)
+        if not e_msg:
+            return ""
+        
+        return e_msg.message()
 
-        # Reverse dict
-        for b, l in gbuf.iteritems():
-            result[NodeSet.fromlist(l)] = b
+    def get_node_rc(self, nodename):
+        try:
+            return self._d_rc_nodes[nodename]
+        except:
+            # XXX
+            raise
 
-        return result
+    def iterbuffers(self):
+        """
+        Iterate over (NodeSet, buffer).
+        Use this iterator to get worker result buffers.
+        """
+        for e in self._msg_root.get_leaves():
+            yield e.nodes, e.message()
 
-    def gather_rc(self):
-        gbuf, result = {}, {}
+    def iterbuffers_by_node(self):
+        """
+        Iterate over (nodename, buffer).
+        Use this iterator to get worker result buffers.
+        """
+        for n, e in self._d_msg_nodes.iteritems():
+            yield n, e.message()
 
-        # Group by rc
-        for n, m in self.buffers.iteritems():
-            gbuf.setdefault(m.rc, []).append(n)
+    def iterretcode(self):
+        for rc, nodeset in self._d_rc.iteritems():
+            yield nodeset, rc
 
-        # Reverse dict
-        for rc, l in gbuf.iteritems():
-            result[NodeSet.fromlist(l)] = rc
-
-        return result
+    def iterretcode_by_node(self):
+        for nodename, rc in self._d_rc_nodes.iteritems():
+            yield nodename, rc
 
     def nodes_cs(self):
         result = ""
