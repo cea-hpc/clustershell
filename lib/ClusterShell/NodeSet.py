@@ -45,15 +45,35 @@ class RangeSetException(Exception):
 
 class RangeSetParseError(RangeSetException):
     """used by RangeSet when a parse cannot be done"""
-    pass
+    def __init__(self, subrange, message):
+        # faulty subrange; this allows you to target the error
+        self.message = "%s : \"%s\"" % (message, subrange)
+
 
 class NodeSetException(Exception):
     """used by NodeSet"""
-    pass
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
 
 class NodeSetParseError(NodeSetException):
     """used by NodeSet when a parse cannot be done"""
-    pass
+    def __init__(self, part, message):
+        # faulty part; this allows you to target the error
+        self.part = part
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+class NodeSetParseRangeError(NodeSetParseError):
+    """used by NodeSet when bad range is encountered during a a parse"""
+    def __init__(self, rset_exc):
+        # faulty part; this allows you to target the error
+        self.message = rset_exc.message
 
 
 class RangeSet:
@@ -85,20 +105,21 @@ class RangeSet:
             for subrange in subranges:
                 if subrange.find('/') < 0:
                     step = 1
+                    baserange = subrange
                 else:
-                    subrange, step = subrange.split('/', 1)
+                    baserange, step = subrange.split('/', 1)
 
                 try:
                     step = int(step)
                 except ValueError:
-                    raise RangeSetParseError(step)
+                    raise RangeSetParseError(subrange, "cannot convert string to integer")
 
-                if subrange.find('-') < 0:
+                if baserange.find('-') < 0:
                     if step != 1:
-                        raise RangeSetParseError(step)
-                    begin = end = subrange
+                        raise RangeSetParseError(subrange, "invalid step usage")
+                    begin = end = baserange
                 else:
-                    begin, end = subrange.split('-', 1)
+                    begin, end = baserange.split('-', 1)
 
                 # compute padding and return node range info tuple
                 try:
@@ -117,11 +138,11 @@ class RangeSet:
                         ends = end
                     stop = int(ends)
                 except ValueError:
-                    raise RangeSetParseError()
+                    raise RangeSetParseError(subrange, "cannot convert string to integer")
 
                 # check preconditions
                 if start > stop or step < 1:
-                    raise RangeSetParseError()
+                    raise RangeSetParseError(subrange, "invalid values in range")
 
                 self.add_range(start, stop, step, pad)
         
@@ -326,7 +347,7 @@ def _NodeSetParse(ns):
                 try:
                     rg, sfx = sfx.split(']', 1)
                 except ValueError:
-                    raise NodeSetParseError()
+                    raise NodeSetParseError(pat, "missing bracket")
 
                 # Check if we have a next comma-separated node or pattern
                 if sfx.find(',') < 0:
@@ -336,13 +357,13 @@ def _NodeSetParse(ns):
 
                 # pfx + sfx cannot be empty
                 if len(pfx) + len(sfx) == 0:
-                    raise NodeSetParseError()
+                    raise NodeSetParseError(pat, "empty node name")
 
                 # Process comma-separated ranges
                 try:
                     rset = RangeSet(rg)
-                except RangeSetParseError:
-                    raise NodeSetParseError()
+                except RangeSetParseError, e:
+                    raise NodeSetParseRangeError(e)
 
                 yield "%s%%s%s" % (pfx, sfx), rset
             else:
@@ -355,7 +376,7 @@ def _NodeSetParse(ns):
                     node, pat = pat.split(',', 1)
 
                 if len(node) == 0:
-                    raise NodeSetParseError()
+                    raise NodeSetParseError(pat, "empty node name")
 
                 # single node parsing
                 if single_node_re is None:
@@ -363,19 +384,19 @@ def _NodeSetParse(ns):
 
                 mo = single_node_re.match(node)
                 if not mo:
-                    raise NodeSetParseError()
+                    raise NodeSetParseError(pat, "parse error")
                 pfx, idx, sfx = mo.groups()
                 pfx, sfx = pfx or "", sfx or ""
 
                 # pfx+sfx cannot be empty
                 if len(pfx) + len(sfx) == 0:
-                    raise NodeSetParseError()
+                    raise NodeSetParseError(pat, "empty node name")
 
                 if idx:
                     try:
                         rset = RangeSet(idx)
-                    except RangeSetParseError:
-                        raise NodeSetParseError()
+                    except RangeSetParseError, e:
+                        raise NodeSetParseRangeError(e)
                     p = "%s%%s%s" % (pfx, sfx)
                     yield p, rset
                 else:

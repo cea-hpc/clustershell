@@ -14,16 +14,17 @@ sys.path.append('../lib')
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.NodeSet import NodeSetParseError
+from ClusterShell.NodeSet import NodeSetParseRangeError
 
 
 class NodeSetErrorTest(unittest.TestCase):
 
-    def _testNS(self, pattern, exc):
+    def _testNS(self, pattern, expected_exc):
         try:
             nodeset = NodeSet(pattern)
             print nodeset
         except NodeSetParseError, e:
-            self.assertEqual(NodeSetParseError, exc)
+            self.assertEqual(e.__class__, expected_exc)
             return
         except:
             raise
@@ -33,21 +34,21 @@ class NodeSetErrorTest(unittest.TestCase):
     def testBadRangeUsages(self):
         """test parse errors in range"""
         self._testNS("", NodeSetParseError)
-        self._testNS("nova[]", NodeSetParseError)
-        self._testNS("nova[-]", NodeSetParseError)
-        self._testNS("nova[A]", NodeSetParseError)
-        self._testNS("nova[2-5/a]", NodeSetParseError)
-        self._testNS("nova[3/2]", NodeSetParseError)
-        self._testNS("nova[3-/2]", NodeSetParseError)
-        self._testNS("nova[-3/2]", NodeSetParseError)
-        self._testNS("nova[-/2]", NodeSetParseError)
-        self._testNS("nova[4-a/2]", NodeSetParseError)
-        self._testNS("nova[4-3/2]", NodeSetParseError)
-        self._testNS("nova[4-5/-2]", NodeSetParseError)
-        self._testNS("nova[4-2/-2]", NodeSetParseError)
-        self._testNS("nova[004-002]", NodeSetParseError)
-        self._testNS("nova[3-59/2,102a]", NodeSetParseError)
-        self._testNS("nova[3-59/2,,102]", NodeSetParseError)
+        self._testNS("nova[]", NodeSetParseRangeError)
+        self._testNS("nova[-]", NodeSetParseRangeError)
+        self._testNS("nova[A]", NodeSetParseRangeError)
+        self._testNS("nova[2-5/a]", NodeSetParseRangeError)
+        self._testNS("nova[3/2]", NodeSetParseRangeError)
+        self._testNS("nova[3-/2]", NodeSetParseRangeError)
+        self._testNS("nova[-3/2]", NodeSetParseRangeError)
+        self._testNS("nova[-/2]", NodeSetParseRangeError)
+        self._testNS("nova[4-a/2]", NodeSetParseRangeError)
+        self._testNS("nova[4-3/2]", NodeSetParseRangeError)
+        self._testNS("nova[4-5/-2]", NodeSetParseRangeError)
+        self._testNS("nova[4-2/-2]", NodeSetParseRangeError)
+        self._testNS("nova[004-002]", NodeSetParseRangeError)
+        self._testNS("nova[3-59/2,102a]", NodeSetParseRangeError)
+        self._testNS("nova[3-59/2,,102]", NodeSetParseRangeError)
 
     def testBadUsages(self):
         """test other parse errors"""
