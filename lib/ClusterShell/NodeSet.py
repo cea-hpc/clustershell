@@ -41,7 +41,12 @@ import re
 
 class RangeSetException(Exception):
     """used by RangeSet"""
-    pass
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
 
 class RangeSetParseError(RangeSetException):
     """used by RangeSet when a parse cannot be done"""
@@ -64,10 +69,6 @@ class NodeSetParseError(NodeSetException):
         # faulty part; this allows you to target the error
         self.part = part
         self.message = message
-
-    def __str__(self):
-        return self.message
-
 
 class NodeSetParseRangeError(NodeSetParseError):
     """used by NodeSet when bad range is encountered during a a parse"""
