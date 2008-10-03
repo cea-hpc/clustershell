@@ -80,7 +80,7 @@ class _MsgTreeElem:
         """
         Iterate over tree leaves.
         """
-        estack = self.children.values()
+        estack = [ self ]
 
         # iterate
         while len(estack) > 0:
@@ -88,7 +88,7 @@ class _MsgTreeElem:
             if len(elem.children) > 0:
                 estack += elem.children.values()
             else:
-                # leaf elem
+                # leaf
                 yield elem
             
     
