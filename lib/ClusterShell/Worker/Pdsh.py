@@ -91,22 +91,22 @@ class _MsgTreeElem:
         """
         msg = ""
 
-        # no msg in root elem
+        # no msg in root element
         if not self.msg:
             return msg
-
-        # build reverse msg
-        rev_msgs = [self.msg]
+        
+        # build list of msg (reversed)
+        rmsgs = [self.msg]
         parent = self.parent
         while parent and parent.msg:
-            rev_msgs.append(parent.msg)
+            rmsgs.append(parent.msg)
             parent = parent.parent
 
-        # reverse to get well ordered buffer
-        for i in range(len(rev_msgs)-1, -1, -1):
-            msg += rev_msgs[i]
-        
-        return msg
+        # reverse
+        rmsgs.reverse()
+
+        # concat buffers
+        return ''.join(rmsgs)
 
 
 class WorkerPdsh(Worker):
@@ -266,7 +266,7 @@ class WorkerPdsh(Worker):
 
     def set_node_rc(self, nodename, rc):
         # dict by nodename
-        self._d_rc_node[nodename] = rc
+        self._d_rc_nodes[nodename] = rc
 
         # dict by rc
         e = self._d_rc.get(rc)
