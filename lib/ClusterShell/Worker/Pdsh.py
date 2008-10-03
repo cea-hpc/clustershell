@@ -76,14 +76,21 @@ class _MsgTreeElem:
         elem._add_node(nodename)
         return elem
 
-    def get_leaves(self):
-        leaves = []
-        for elem in self.children.itervalues():
-            if len(elem.children) == 0:
-                leaves.append(elem)
+    def iterleaves(self):
+        """
+        Iterate over tree leaves.
+        """
+        estack = self.children.values()
+
+        # iterate
+        while len(estack) > 0:
+            elem = estack.pop()
+            if len(elem.children) > 0:
+                estack += elem.children.values()
             else:
-                leaves += elem.get_leaves()
-        return leaves
+                # leaf elem
+                yield elem
+            
     
     def message(self):
         """
@@ -294,7 +301,7 @@ class WorkerPdsh(Worker):
         Iterate over (NodeSet, buffer).
         Use this iterator to get worker result buffers.
         """
-        for e in self._msg_root.get_leaves():
+        for e in self._msg_root.iterleaves():
             yield e.nodes, e.message()
 
     def iterbuffers_by_node(self):
