@@ -24,14 +24,28 @@
 NodeSet
 
 A module to deal efficiently with pdsh-like rangesets and nodesets.
+Instances of RangeSet and NodeSet both provide similar operations than the
+builtin set() type and Set object.
+   [ See http://www.python.org/doc/lib/set-objects.html ]
 
 Usage example:
 
+    # Import NodeSet class
     from ClusterShell.NodeSet import NodeSet
+
+    # Create a new nodeset from pdsh-like pattern
     nodeset = NodeSet("cluster[1-30]")
-    nodeset.add("cluster32")
-    nodeset.sub("cluster[2-5]")
+
+    # Add cluster32 to nodeset
+    nodeset.update("cluster32")
+
+    # Remove from nodeset
+    nodeset.difference_update("cluster[2-5]")
+
+    # Print nodeset as a pdsh-like pattern
     print nodeset
+
+    # Iterate over node names in nodeset
     for node in nodeset:
         print node
 """
@@ -86,7 +100,8 @@ class RangeSet:
         rset = RangeSet("5,10-42")   # contains 5, 10 to 42
         rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
      
-    Also, RangeSet provides add(), intersect() and sub() (exclusion) methods.
+    Also, RangeSet provides update(), intersection_update() and difference_update()
+    (exclusion) methods.
     """
     def __init__(self, pattern=None):
         """
@@ -205,7 +220,7 @@ class RangeSet:
     def _fold(self, items, pad):
         """
         Fold items as ranges and group them by step.
-        Returns: (ranges, total_length)
+        Return: (ranges, total_length)
         """
         cnt, k, m, istart, rg = 0, -1, 0, None, []
 
@@ -266,14 +281,14 @@ class RangeSet:
 
         return self._fold(items, pad or rgpad)
 
-    def add(self, rangeset):
+    def update(self, rangeset):
         """
         Add provided RangeSet.
         """
         for start, stop, step, pad in rangeset.ranges:
             self.add_range(start, stop, step, pad)
 
-    def sub(self, rangeset):
+    def difference_update(self, rangeset):
         """
         Sub (exclude) provided RangeSet.
         """
@@ -293,7 +308,7 @@ class RangeSet:
         # fold items that are in both sets
         return self._fold([e for e in items1 if e not in iset], pad1 or pad2)
 
-    def intersect(self, rangeset):
+    def intersection_update(self, rangeset):
         """
         Intersection with provided RangeSet.
         """
@@ -405,7 +420,7 @@ def _NodeSetParse(ns):
                     yield pfx, None
 
 
-class NodeSet:
+class NodeSet(object):
     """
     Iterable class of nodes with node ranges support.
 
@@ -416,7 +431,8 @@ class NodeSet:
         nodeset = NodeSet("clustername[0-10/2]")
         nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
 
-    Also, NodeSet provides add(), intersect() and sub() (exclusion) methods. 
+    Also, NodeSet provides update(), intersection_update() and difference_update()
+    (exclusion) methods. 
     """
     def __init__(self, pattern=None):
         """
@@ -425,7 +441,7 @@ class NodeSet:
         self.length = 0
         self.patterns = {}
         if pattern is not None:
-            self.add(pattern)
+            self.update(pattern)
 
     def fromlist(cls, l):
         """
@@ -491,67 +507,121 @@ class NodeSet:
             assert rangeset != None
 
             # add rangeset in corresponding pattern rangeset
-            pat_e.add(rangeset)
+            pat_e.update(rangeset)
         else:
             # create new pattern (with possibly rangeset=None)
             self.patterns[pat] = rangeset
 
-    def add(self, ns):
+    def union(self, other):
         """
-        Add new pattern string : node, comma separated nodes, or pdsh-like pattern.
+        s.union(t) returns a new set with elements from both s and t.
         """
-        for pat, rangeset in _NodeSetParse(ns):
+        self_copy = copy.deepcopy(self)
+        self_copy.update(other)
+        return self_copy
+
+    def __or__(self, other):
+        """
+        Implements the | operator. So s | t returns a new set with elements from
+        both s and t.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.union(other)
+
+    def update(self, other):
+        """
+        s.update(t) returns nodeset s with elements added from t.
+        """
+        for pat, rangeset in _NodeSetParse(other):
             self._add_rangeset(pat, rangeset)
 
-    def __add__(self, other):
+    def __ior__(self, other):
         """
-        Implement the + operator. See add().
+        Implements the |= operator. So s |= t returns nodeset s with elements added
+        from t.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.update(other)
+
+    def intersection(self, other):
+        """
+        s.intersection(t) returns a new set with elements common to s and t.
         """
         self_copy = copy.deepcopy(self)
-        self_copy.add(other)
+        self_copy.intersection_update(other)
         return self_copy
 
-    def __sub__(self, other):
+    def __and__(self, other):
         """
-        Implement the - operator. See sub().
+        Implements the & operator. So s & t returns a new set with elements common
+        to s and t.
         """
-        self_copy = copy.deepcopy(self)
-        self_copy.sub(other)
-        return self_copy
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.intersection(other)
 
-    def intersect(self, ns):
+    def intersection_update(self, other):
         """
-        Calc intersection of NodeSets (modifies current NodeSet)
+        s.intersection_update(t) returns nodeset s keeping only elements also
+        found in t.
         """
-        if ns is self:
+        if other is self:
             return
 
         tmp_ns = NodeSet()
 
-        for pat, irangeset in _NodeSetParse(ns):
+        for pat, irangeset in _NodeSetParse(other):
             rangeset = self.patterns.get(pat)
             if rangeset:
                 rs = copy.copy(rangeset)
-                rs.intersect(irangeset)
+                rs.intersection_update(irangeset)
                 tmp_ns._add_rangeset(pat, rs)
 
         # Substitute 
         self.patterns = tmp_ns.patterns
 
-    def sub(self, ns):
+    def __iand__(self, other):
         """
-        Exclude NodeSet (modifies current NodeSet)
+        Implements the &= operator. So s &= t returns nodeset s keeping only elements
+        also found in t.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.intersection_update(other)
+
+    def difference(self, other):
+        """
+        s.difference(t) returns a new set with elements in s but not in t.
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.difference_update(other)
+        return self_copy
+
+    def __sub__(self, other):
+        """
+        Implement the - operator. So s - t returns a new set with elements in s
+        but not in t.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.difference(other)
+
+    def difference_update(self, other):
+        """
+        s.difference_update(t) returns nodeset s after removing elements found in t.
         """
         # the purge of each empty pattern is done afterward to allow self = ns
         purge_patterns = []
 
         # iterate first over exclude nodeset rangesets which is usually smaller
-        for pat, erangeset in _NodeSetParse(ns):
+        for pat, erangeset in _NodeSetParse(other):
             # if pattern is found, deal with it
             rangeset = self.patterns.get(pat)
             if rangeset:
                 # sub rangeset
-                rangeset.sub(erangeset)
+                rangeset.difference_update(erangeset)
                 # check if no range left and add pattern to purge list
                 if len(rangeset) == 0:
                     purge_patterns.append(pat)
@@ -563,14 +633,23 @@ class NodeSet:
         for pat in purge_patterns:
             del self.patterns[pat]
 
+    def __isub__(self, other):
+        """
+        Implement the -= operator. So s -= t returns nodeset s after removing elements
+        found in t.
+        """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.difference_update(other)
 
-def NodeSetExpand(pat):
+
+def expand(pat):
     """
     Commodity function that expands a pdsh-like pattern into a list of nodes.
     """
     return list(NodeSet(pat))
 
-def NodeSetFold(pat):
+def fold(pat):
     """
     Commodity function that clean dups and fold provided pattern with ranges and "/step" support.
     """
