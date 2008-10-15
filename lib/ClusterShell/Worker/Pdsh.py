@@ -57,29 +57,20 @@ class WorkerPdsh(Worker):
 
         self.fid = None
         self.buf = ""
-        self.last_nn = None
+        self.last_node = None
         self.last_msg = None
-
-        """
-        # root of msg tree
-        self._msg_root = _MsgTreeElem()
-        # dict of nodes to msg tree elem
-        self._d_msg_nodes = {}
-        # dict of nodes to retcode
-        self._d_rc_nodes = {}
-        # dict of retcode to NodeSet
-        self._d_rc = {}
-        """
 
     def __iter__(self):
         for line in self.fid.fromchild:
             yield line
 
-    def start(self):
+    def _start(self):
+        """
+        Starts worker, initializes buffers and prepares command.
+        """
         # Initialize worker read buffer
-        self.clearbuf()
+        self._clearbuf()
 
-        #for node in self.nodes:
         self._invoke_ev_start()
 
         if self.command is not None:
@@ -103,7 +94,9 @@ class WorkerPdsh(Worker):
             cmd_l.append("'%s'" % self.command)
 
             cmd = ' '.join(cmd_l)
-            print "PDSH : %s" % cmd
+
+            if self.info.get("debug", False):
+                print "PDSH: %s" % cmd
         else:
             # Build pdcp command
             cmd = "/usr/bin/pdcp -b -f %d -w '%s' '%s' '%s'" % \
@@ -121,26 +114,33 @@ class WorkerPdsh(Worker):
             raise e
         return self
 
-    def fileno(self):
+    def _fileno(self):
         return self.fid.fromchild.fileno()
 
-    def read(self, size=-1):
+    def _read(self, size=-1):
         return self.fid.fromchild.read(size)
 
-    def close(self):
+    def _close(self):
+        # rc code default to 0 for all nodes
+        for nodename in self.nodes:
+            self.engine.set_rc((self, nodename), 0, override=False)
+
+        # close
         rc = self.fid.fromchild.close()
         self._invoke_ev_close()
         return rc
 
-    def handle_read(self):
+    def _handle_read(self):
+        debug = self.info.get("debug", False)
         # read a chunk
-        readbuf = self.read()
+        readbuf = self._read()
         assert len(readbuf) > 0, "poll() POLLIN event flag but no data to read"
-        buf = self.getbuf() + readbuf
+        buf = self._getbuf() + readbuf
         lines = buf.splitlines(True)
-        self.clearbuf()
+        self._clearbuf()
         for line in lines:
-            #print "LINE %s" % line,
+            if debug:
+                print "LINE: %s" % line,
             if line.endswith('\n'):
                 if line.startswith("pdsh@") or line.startswith("pdcp@") or line.startswith("sending "):
                     try:
@@ -168,8 +168,7 @@ class WorkerPdsh(Worker):
                             self._set_node_rc(words[1][:-1], errno.ENOENT)
 
                     except:
-                        print "exception in pdsh@"
-                        raise
+                        raise WorkerError()
                 else:
                     #        
                     # split pdsh reply "nodename: msg"
@@ -178,34 +177,34 @@ class WorkerPdsh(Worker):
                     self._invoke_ev_read()
             else:
                 # keep partial line in buffer
-                self.setbuf(line)
+                self._setbuf(line)
                 # will break here
 
-    def getbuf(self):
+    def _getbuf(self):
         return self.buf
 
-    def setbuf(self, buf):
+    def _setbuf(self, buf):
         self.buf = buf
 
-    def clearbuf(self):
+    def _clearbuf(self):
         self.buf = ""
 
     def _add_node_msgline(self, nodename, msg):
         """
         Update last_* and add node message line to messages tree.
         """
-        self.last_nn, self.last_msg = nodename, msg[:-1]
+        self.last_node, self.last_msg = nodename, msg[:-1]
 
         self.engine.add_msg((self, nodename), msg)
 
     def _set_node_rc(self, nodename, rc):
-        self.engine.set_key_rc(nodename, rc)
+        self.engine.set_rc((self, nodename), rc)
 
     def last_buffer(self):
         """
         Get last (node, buffer) in an EventHandler.
         """
-        return self.last_nn, self.last_msg
+        return self.last_node, self.last_msg
 
     def node_buffer(self, nodename):
         """
@@ -221,43 +220,29 @@ class WorkerPdsh(Worker):
 
     def iter_buffers(self):
         """
-        Returns an iterator over available buffers with associated NodeSet.
+        Returns an iterator over available buffers and associated NodeSet.
         """
         for msg, keys in self.engine.iter_messages_by_worker(self):
             yield msg, NodeSet.fromlist(keys)
 
     def iter_node_buffers(self):
         """
-        Returns an iterator over nodes and associated buffers.
+        Returns an iterator over each node and associated buffer.
         """
         # Get iterator from underlying engine.
         return self.engine.iter_key_messages_by_worker(self)
 
     def iter_retcodes(self):
         """
-        Returns an iterator over return codes with associated NodeSet.
+        Returns an iterator over return codes and associated NodeSet.
         """
         for rc, keys in self.engine.iter_retcodes_by_worker(self):
             yield rc, NodeSet.fromlist(keys)
 
     def iter_node_retcodes(self):
         """
+        Returns an iterator over each node and associated return code.
         """
         # Get iterator from underlying engine.
         return self.engine.iter_key_retcodes_by_worker(self)
 
-    """
-    def iter_retcodes(self):
-        for rc, nodeset in self._d_rc.iteritems():
-            yield nodeset, rc
-
-    def iter_retcodes_by_node(self):
-        for nodename, rc in self._d_rc_nodes.iteritems():
-            yield nodename, rc
-    """
-
-    def nodes_cs(self):
-        result = ""
-        for n in self.nodes:
-            result += "%s," % n
-        return result[:-1]

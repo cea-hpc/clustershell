@@ -22,6 +22,25 @@
 
 from sets import Set
 
+class EngineError(Exception):
+    """
+    Base engine error exception.
+    """
+    pass
+
+class EngineTimeoutError(EngineError):
+    """
+    Raised when a timeout is encountered.
+    """
+    pass
+
+class EngineInProgressError(EngineError):
+    """
+    Raised on operation in progress, for example the results are
+    not available yet.
+    """
+    pass
+
 class _MsgTreeElem:
     """
     Helper class used to build a messages tree. Advantages are:
@@ -115,7 +134,7 @@ class _MsgTreeElem:
 
 class Engine:
     """
-    Interface for ClusterShell engine. Subclass must implements a runloop listening
+    Interface for ClusterShell engine. Subclass must implement a runloop listening
     for workers events.
     """
 
@@ -138,32 +157,36 @@ class Engine:
         # dict of return codes to sources
         self._d_rc_sources = {}
 
+        # keep max rc
+        self._max_rc = 0
+
     def add(self, worker):
         """
         Add worker to engine.
         """
-        worker.set_engine(self)
+        worker._set_engine(self)
         self.worker_list.append(worker)
 
-    def reset(self):
-        """
-        Reset engine, clear its worker list.
-        """
-        self.worker_list = []
-    
     def run(self, timeout):
+        """
+        Run engine in calling thread."
+        """
+        self._runloop(timeout)
+
+        # clear engine worker list
+        self.worker_list = []
+
+    def _runloop(self, timeout):
         """
         Run engine in calling thread.
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    """
-    def read(self):
+    def exited(self):
+        """
+        Returns True if the engine has exited the runloop once.
+        """
         raise NotImplementedError("Derived classes must implement.")
-
-    def retcode(self):
-        raise NotImplementedError("Derived classes must implement.")
-    """
 
     def join(self):
         """
@@ -184,10 +207,13 @@ class Engine:
         # add child msg and update dict
         self._d_source_msg[source] = e_msg.add_msg(source, msg)
 
-    def set_rc(self, source, rc):
+    def set_rc(self, source, rc, override=True):
         """
         Add a worker return code associated with a source.
         """
+        if not override and self._d_source_rc.has_key(source):
+            return
+
         # store rc by source
         self._d_source_rc[source] = rc
 
@@ -197,6 +223,10 @@ class Engine:
             self._d_rc_sources[rc] = Set([source])
         else:
             self._d_rc_sources[rc].add(source)
+        
+        # update max rc
+        if rc > self._max_rc:
+            self._max_rc = rc
 
     def message_by_source(self, source):
         """
@@ -223,12 +253,6 @@ class Engine:
         for e in self._msg_root:
             yield e.message(), [t[1] for t in e.sources if t[0] is worker]
 
-    def retcode_by_source(self, source):
-        """
-        Get a return code by its source (worker, key).
-        """
-        return self._d_source_msg.get(source, 0)
-
     def iter_key_messages_by_worker(self, worker):
         """
         Returns an iterator over key, message for a specific worker.
@@ -236,11 +260,23 @@ class Engine:
         for (w, k), e in self._d_source_msg.iteritems():
             if w is worker:
                 yield k, e.message()
-    
+ 
+    def retcode_by_source(self, source):
+        """
+        Get a return code by its source (worker, key).
+        """
+        if not self.exited:
+            raise EngineInProgressError()
+
+        return self._d_source_msg.get(source, 0)
+   
     def iter_retcodes(self):
         """
         Returns an iterator over return codes and keys list.
         """
+        if not self.exited:
+            raise EngineInProgressError()
+
         # Use the items iterator for the underlying dict.
         for rc, src in self._d_rc_sources.iteritems():
             yield rc, [t[1] for t in src]
@@ -249,8 +285,19 @@ class Engine:
         """
         Returns an iterator over return codes and keys list for a specific worker.
         """
+        if not self.exited:
+            raise EngineInProgressError()
+
         # Use the items iterator for the underlying dict.
         for rc, src in self._d_rc_sources.iteritems():
             yield rc, [t[1] for t in src if t[0] is worker]
 
+    def max_retcode(self):
+        """
+        Get max return code encountered during last run.
+        """
+        if not self.exited:
+            raise EngineInProgressError()
+
+        return self._max_rc
 

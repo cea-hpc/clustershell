@@ -19,10 +19,11 @@
 #
 # $Id: EnginePdsh.py 11 2008-01-11 15:19:44Z st-cea $
 
-from Engine import Engine
+from Engine import *
 
-import select
 import os
+import select
+import sys
 import thread
 
 
@@ -45,38 +46,34 @@ class EnginePoll(Engine):
             raise
         self.workers = {}
         self.dictout = {}
-        self.running = False
+        self.exited = False
         self.run_lock = thread.allocate_lock()
         self.start_lock = thread.allocate_lock()
         self.start_lock.acquire()
 
-    """
-    def add_msg(self, worker, nodename, msg):
-        worker.add_node_msg(nodename, msg)
-    """
-
-    def set_rc(self, worker, nodename, retcode):
-        worker.set_node_rc(nodename, retcode)
-    
     def register(self, worker):
-        """Register a worker for input I/O"""
-        fd = worker.fileno()
+        """
+        Register a worker for input I/O
+        """
+        fd = worker._fileno()
         self.polling.register(fd, select.POLLIN)
         self.workers[fd] = worker
 
     def unregister(self, worker):
-        """Unregister a worker"""
-        fd = worker.fileno()
+        """
+        Unregister a worker
+        """
+        fd = worker._fileno()
         self.polling.unregister(fd)
         del self.workers[fd]
-        worker.close()
+        worker._close()
 
     def add(self, worker):
         Engine.add(self, worker)
-        if self.running:
+        if self.run_lock.locked():
             self.register(worker.start())
 
-    def run(self, timeout):
+    def _runloop(self, timeout):
         """
         Pdsh engine run(): start workers and properly get replies
         """
@@ -85,14 +82,13 @@ class EnginePoll(Engine):
 
         # Start workers and register them in the poll()-based engine
         for worker in self.worker_list:
-            self.register(worker.start())
+            self.register(worker._start())
 
         if timeout == 0:
             timeout = -1
 
         status = self.run_lock.acquire(0)
         assert status == True, "cannot acquire run lock"
-        self.running = True
 
         self.start_lock.release()
 
@@ -105,8 +101,7 @@ class EnginePoll(Engine):
 
                 # No event means timed out
                 if len(evlist) == 0:
-                    print "error timeout"
-                    return
+                    raise EngineTimeoutError()
 
                 for fd, event in evlist:
 
@@ -115,46 +110,36 @@ class EnginePoll(Engine):
 
                     # check for poll error
                     if event & select.POLLERR:
-                        print "POLLERR"
+                        print >> sys.stderr, "EnginePoll: POLLERR"
                         self.unregister(worker)
                         continue
 
                     if event & select.POLLIN:
-                        worker.handle_read()
+                        worker._handle_read()
 
                     # check for hung hup (EOF)
                     if event & select.POLLHUP:
-                        #print "POLLHUP"
                         self.unregister(worker)
                         continue
 
                     assert event & select.POLLIN, "poll() returned without data to read"
         finally:
-            self.running = False
+            self.exited = True
+            self.start_lock.acquire()
             self.run_lock.release()
 
+    def exited(self):
+        """
+        Returns True if the engine has exited the runloop once.
+        """
+        return not self.running and self.exited
+
     def join(self):
-        print "join"
+        """
+        Block calling thread until runloop has finished.
+        """
         self.start_lock.acquire()
         self.start_lock.release()
         self.run_lock.acquire()
         self.run_lock.release()
-
-    """
-    def read(self, node):
-        result = ""
-        for worker in node.wl:
-            if worker in self.worker_list:
-                result += worker.read_node_buffer(str(node))
-        return result
-
-    def retcode(self, node):
-        result = 0
-        for worker in node.wl:
-            if worker in self.worker_list:
-                rc = worker.get_node_rc(str(node))
-                if rc > result:
-                    result = rc
-        return result
-    """
 

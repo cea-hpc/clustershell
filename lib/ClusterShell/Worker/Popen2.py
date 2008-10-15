@@ -23,7 +23,7 @@
 """
 WorkerPopen2
 
-ClusterShell worker
+ClusterShell worker for local commands.
 """
 
 from ClusterShell.NodeSet import NodeSet
@@ -34,25 +34,23 @@ import os
 import popen2
 
 
-class _Msg:
-    """
-    """
-    def __init__(self):
-        self.buf = ""
-        self.rc = 0
-
-
 class WorkerPopen2(Worker):
+    """
+    Implements the Worker interface.
+    """
 
     def __init__(self, command, key, handler, info):
+        """
+        Initialize Popen2 worker
+        """
         Worker.__init__(self, handler, info)
         self.command = command
         if not self.command:
             raise WorkerBadArgumentException()
         self.fid = None
         self.buf = ""
-        self.msg = None 
         self.last_msg = None
+        self.rc = None
         self.key = key or self
 
     def __iter__(self):
@@ -60,13 +58,17 @@ class WorkerPopen2(Worker):
             yield line
 
     def set_key(self, key):
+        """
+        Source key for Popen2 worker is free for use. This method is a
+        way to set such a custom source key for this worker.
+        """
         self.key = key
 
-    def start(self):
+    def _start(self):
         """
-        Start worker.
+        Start worker. Implements worker interface.
         """
-        self.clearbuf()             # initialize worker read buffer
+        self._clearbuf()             # initialize worker read buffer
         self._invoke_ev_start()
         try:
             # Launch process in non-blocking mode
@@ -77,74 +79,84 @@ class WorkerPopen2(Worker):
             raise e
         return self
 
-    def fileno(self):
+    def _fileno(self):
         return self.fid.fromchild.fileno()
 
-    def read(self, size=-1):
+    def _read(self, size=-1):
         return self.fid.fromchild.read(size)
 
-    def close(self):
+    def _close(self):
         status = self.fid.wait()
         if os.WIFEXITED(status):
-            self.set_rc(os.WEXITSTATUS(status))
+            self._set_rc(os.WEXITSTATUS(status))
         else:
-            self.set_rc(0)
+            self._set_rc(0)
 
         self.fid.tochild.close()
         self.fid.fromchild.close()
         self._invoke_ev_close()
 
-    def handle_read(self):
+    def _handle_read(self):
+        debug = self.info.get("debug", False)
         # read a chunk
-        readbuf = self.read()
+        readbuf = self._read()
         assert len(readbuf) > 0, "poll() POLLIN event flag but no data to read"
-        buf = self.getbuf() + readbuf
+        buf = self._getbuf() + readbuf
         lines = buf.splitlines(True)
-        self.clearbuf()
+        self._clearbuf()
         for line in lines:
-
-            #print "LINE %s" % line
-
+            if debug:
+                print "LINE %s" % line,
             if line.endswith('\n'):
-
-                self.add_msg(line)
+                self._add_msg(line)
                 self._invoke_ev_read()
             else:
                 # keep partial line in buffer
-                self.setbuf(line)
+                self._setbuf(line)
                 # will break here
 
-    def getbuf(self):
+    def _getbuf(self):
         return self.buf
 
-    def setbuf(self, buf):
+    def _setbuf(self, buf):
         self.buf = buf
 
-    def clearbuf(self):
+    def _clearbuf(self):
         self.buf = ""
 
-    def get_last_read(self):
+    def last_read(self):
+        """
+        Read last msg, useful in an EventHandler.
+        """
         return self.last_msg
 
-    def add_msg(self, msg):
+    def _add_msg(self, msg):
+        """
+        Add a message.
+        """
+        # add last msg to local buffer
         self.last_msg = msg[:-1]
-        if not self.msg:
-            self.msg = _Msg()
-        self.msg.buf += msg
 
+        # tell engine
         self.engine.add_msg((self, self.key), msg)
 
-    def set_rc(self, rc):
-        if not self.msg:
-            self.msg = _Msg()
-        self.msg.rc = rc
+    def _set_rc(self, rc):
+        """
+        Set return code.
+        """
+        self.rc = rc
 
-    def read_buffer(self):
-        return self.msg.buf
+    def read(self):
+        """
+        Read worker buffer.
+        """
+        for key, msg in self.engine.iter_key_messages_by_worker(self):
+            assert key == self.key
+            return msg
 
-    def get_rc(self):
+    def retcode(self):
         ## raise if not exited
 
-        return self.msg.rc
+        return self.rc
 
    

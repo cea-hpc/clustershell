@@ -73,10 +73,10 @@ class Task(object):
         task.resume()
     """
 
-    DEFAULT_INFO_FANOUT = 32
-    DEFAULT_CONNECT_TIMEOUT = 10
-    DEFAULT_COMMAND_TIMEOUT = 0
-
+    _default_info = { "debug"           : False,
+                      "fanout"          : 32,
+                      "connect_timeout" : 10,
+                      "command_timeout" : 0 }
     _tasks = {}
 
     def __new__(cls, thread_id=None):
@@ -99,7 +99,7 @@ class Task(object):
 
             # first time called
 
-            self._info = {}
+            self._info = self.__class__._default_info.copy()
             self.engine = EnginePoll(self._info)
             self.timeout = 0
             self.l_run = None
@@ -118,7 +118,6 @@ class Task(object):
 
         self.l_run.acquire()
         self.engine.run(self.timeout)
-        self.reset()
 
         print "thread exited (id=0x%x)" % thread.get_ident()
 
@@ -142,13 +141,13 @@ class Task(object):
             task.shell(command [, key=key] [, handler=handler])
 
         Distant usage:
-            task.shell(command, nodes=nodeset [, handle=handler])
+            task.shell(command, nodes=nodeset [, handler=handler])
         """
 
         handler = kwargs.get("handler", None)
 
-        if "nodes" in kwargs:
-            assert "key" not in kwargs, "'key' argument not supported for distant command"
+        if kwargs.get("nodes", None):
+            assert kwargs.get("key", None) is None, "'key' argument not supported for distant command"
             worker =  WorkerPdsh(kwargs["nodes"], command=command, handler=handler, info=self._info)
         else:
             worker = WorkerPopen2(command, key=kwargs.get("key", None), handler=handler, info=self._info)
@@ -185,7 +184,6 @@ class Task(object):
             self.l_run.release()
         else:
             self.engine.run(timeout)
-            self.reset()
 
     def join(self):
         """
@@ -203,16 +201,11 @@ class Task(object):
                 task.join()
     wait = classmethod(wait)
 
-    def reset(self):
-        self.engine.reset()
-
-    """
-    def read(self, node):
-        return self.engine.read(node)
-    """
-
-    def retcode(self, node):
-        return self.engine.retcode(node)
+    def max_retcode(self):
+        """
+        Get max return code encountered during last run.
+        """
+        return self.engine.max_retcode()
 
     def iter_buffers(self):
         """
