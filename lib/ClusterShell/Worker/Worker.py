@@ -19,33 +19,60 @@
 #
 # $Id: Worker.py 7 2007-12-20 14:52:31Z st-cea $
 
+"""
+Worker
+
+Base class worker
+"""
+
 from ClusterShell.Event import EventHandler
+
 
 class WorkerBadArgumentException(Exception):
     pass
 
 class Worker:
+    """
+    Worker Interface
+    """
     
-    def __init__(self, handler):
+    def __init__(self, handler, info):
+        """
+        Initializer.
+        """
         self.eh = handler
+        self.info = info
+        self.engine = None
 
-    def invoke_ev_start(self):
+    def last_read(self):
+        """
+        Get last read message from event handler.
+        """
+        raise NotImplementedError("Derived classes must implement.")
+
+    def set_engine(self, engine):
+        self.engine = engine
+
+    def handle_read(self):
+        raise NotImplementedError("Derived classes must implement.")
+
+    def _invoke_ev_start(self):
         if self.eh:
             self.eh._invoke(self, EventHandler.START)
 
-    def invoke_ev_open(self):
+    def _invoke_ev_open(self):
         if self.eh:
             self.eh._invoke(self, EventHandler.OPEN)
 
-    def invoke_ev_read(self):
+    def _invoke_ev_read(self):
         if self.eh:
             self.eh._invoke(self, EventHandler.READ)
 
-    def invoke_ev_write(self):
+    def _invoke_ev_write(self):
         if self.eh:
             self.eh._invoke(self, EventHandler.WRITE)
 
-    def invoke_ev_close(self):
+    def _invoke_ev_close(self):
         if self.eh:
             self.eh._invoke(self, EventHandler.CLOSE)
 

@@ -449,7 +449,7 @@ class NodeSet(object):
         """
         inst = NodeSet()
         for pat in l:
-            inst.add(pat)
+            inst.update(pat)
         return inst
     fromlist = classmethod(fromlist)
 

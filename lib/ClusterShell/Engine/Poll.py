@@ -23,12 +23,20 @@ from Engine import Engine
 
 import select
 import os
+import thread
 
 
 class EnginePoll(Engine):
+    """
+    Poll Engine
 
-    def __init__(self):
-        Engine.__init__(self)
+    ClusterShell engine using the select.poll mechanism (Linux poll() syscall).
+    """
+    def __init__(self, info):
+        """
+        Initialize Engine.
+        """
+        Engine.__init__(self, info)
         try:
             # Get a polling object
             self.polling = select.poll()
@@ -38,9 +46,14 @@ class EnginePoll(Engine):
         self.workers = {}
         self.dictout = {}
         self.running = False
+        self.run_lock = thread.allocate_lock()
+        self.start_lock = thread.allocate_lock()
+        self.start_lock.acquire()
 
+    """
     def add_msg(self, worker, nodename, msg):
         worker.add_node_msg(nodename, msg)
+    """
 
     def set_rc(self, worker, nodename, retcode):
         worker.set_node_rc(nodename, retcode)
@@ -77,43 +90,57 @@ class EnginePoll(Engine):
         if timeout == 0:
             timeout = -1
 
+        status = self.run_lock.acquire(0)
+        assert status == True, "cannot acquire run lock"
         self.running = True
 
-        # Run main event loop
-        while len(self.workers) > 0:
+        self.start_lock.release()
 
-            # Wait for I/O
-            evlist = self.polling.poll(timeout * 1000)
+        try:
+            # Run main event loop
+            while len(self.workers) > 0:
 
-            # No event means timed out
-            if len(evlist) == 0:
-                print "error timeout"
-                return
+                # Wait for I/O
+                evlist = self.polling.poll(timeout * 1000)
 
-            for fd, event in evlist:
+                # No event means timed out
+                if len(evlist) == 0:
+                    print "error timeout"
+                    return
 
-                # Get worker object
-                worker = self.workers[fd]
+                for fd, event in evlist:
 
-                # check for poll error
-                if event & select.POLLERR:
-                    print "POLLERR"
-                    self.unregister(worker)
-                    continue
+                    # Get worker object
+                    worker = self.workers[fd]
 
-                if event & select.POLLIN:
-                    worker.handle_read()
+                    # check for poll error
+                    if event & select.POLLERR:
+                        print "POLLERR"
+                        self.unregister(worker)
+                        continue
 
-                # check for hung hup (EOF)
-                if event & select.POLLHUP:
-                    #print "POLLHUP"
-                    self.unregister(worker)
-                    continue
+                    if event & select.POLLIN:
+                        worker.handle_read()
 
-                assert event & select.POLLIN, "poll() returned without data to read"
+                    # check for hung hup (EOF)
+                    if event & select.POLLHUP:
+                        #print "POLLHUP"
+                        self.unregister(worker)
+                        continue
 
-        self.running = False
+                    assert event & select.POLLIN, "poll() returned without data to read"
+        finally:
+            self.running = False
+            self.run_lock.release()
 
+    def join(self):
+        print "join"
+        self.start_lock.acquire()
+        self.start_lock.release()
+        self.run_lock.acquire()
+        self.run_lock.release()
+
+    """
     def read(self, node):
         result = ""
         for worker in node.wl:
@@ -129,4 +156,5 @@ class EnginePoll(Engine):
                 if rc > result:
                     result = rc
         return result
+    """
 

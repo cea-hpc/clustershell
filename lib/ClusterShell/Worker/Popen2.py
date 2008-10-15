@@ -1,7 +1,7 @@
 # WorkerPopen2.py -- Local shell worker
 # Copyright (C) 2007, 2008 CEA
 #
-# This file is part of shine
+# This file is part of ClusterShell
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,6 +19,13 @@
 #
 # $Id: WorkerPopen2.py 24 2008-03-19 14:02:13Z st-cea $
 
+
+"""
+WorkerPopen2
+
+ClusterShell worker
+"""
+
 from ClusterShell.NodeSet import NodeSet
 from Worker import Worker
 
@@ -28,6 +35,8 @@ import popen2
 
 
 class _Msg:
+    """
+    """
     def __init__(self):
         self.buf = ""
         self.rc = 0
@@ -35,8 +44,8 @@ class _Msg:
 
 class WorkerPopen2(Worker):
 
-    def __init__(self, command, handler):
-        Worker.__init__(self, handler)
+    def __init__(self, command, key, handler, info):
+        Worker.__init__(self, handler, info)
         self.command = command
         if not self.command:
             raise WorkerBadArgumentException()
@@ -44,17 +53,21 @@ class WorkerPopen2(Worker):
         self.buf = ""
         self.msg = None 
         self.last_msg = None
+        self.key = key or self
 
     def __iter__(self):
         for line in self.fid.fromchild:
             yield line
 
+    def set_key(self, key):
+        self.key = key
+
     def start(self):
-        # Initialize worker read buffer
-        self.clearbuf()
-
-        self.invoke_ev_start()
-
+        """
+        Start worker.
+        """
+        self.clearbuf()             # initialize worker read buffer
+        self._invoke_ev_start()
         try:
             # Launch process in non-blocking mode
             self.fid = popen2.Popen4(self.command)
@@ -76,9 +89,10 @@ class WorkerPopen2(Worker):
             self.set_rc(os.WEXITSTATUS(status))
         else:
             self.set_rc(0)
+
         self.fid.tochild.close()
         self.fid.fromchild.close()
-        self.invoke_ev_close()
+        self._invoke_ev_close()
 
     def handle_read(self):
         # read a chunk
@@ -88,10 +102,13 @@ class WorkerPopen2(Worker):
         lines = buf.splitlines(True)
         self.clearbuf()
         for line in lines:
+
             #print "LINE %s" % line
+
             if line.endswith('\n'):
+
                 self.add_msg(line)
-                self.invoke_ev_read()
+                self._invoke_ev_read()
             else:
                 # keep partial line in buffer
                 self.setbuf(line)
@@ -115,6 +132,8 @@ class WorkerPopen2(Worker):
             self.msg = _Msg()
         self.msg.buf += msg
 
+        self.engine.add_msg((self, self.key), msg)
+
     def set_rc(self, rc):
         if not self.msg:
             self.msg = _Msg()
@@ -124,6 +143,8 @@ class WorkerPopen2(Worker):
         return self.msg.buf
 
     def get_rc(self):
+        ## raise if not exited
+
         return self.msg.rc
 
    
