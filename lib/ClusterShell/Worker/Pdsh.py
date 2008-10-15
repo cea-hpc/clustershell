@@ -37,8 +37,8 @@ import popen2
 
 class WorkerPdsh(Worker):
 
-    def __init__(self, nodes, handler, info, **kwargs):
-        Worker.__init__(self, handler, info)
+    def __init__(self, nodes, handler, task, **kwargs):
+        Worker.__init__(self, handler, task)
         self.nodes = NodeSet(nodes)
         if kwargs.has_key('command'):
             # PDSH
@@ -78,15 +78,15 @@ class WorkerPdsh(Worker):
 
             cmd_l = [ "/usr/bin/pdsh", "-b" ]
 
-            fanout = self.info.get("fanout", 0)
+            fanout = self._task.info("fanout", 0)
             if fanout > 0:
                 cmd_l.append("-f %d" % fanout)
 
-            connect_timeout = self.info.get("connect_timeout", 0)
+            connect_timeout = self._task.info("connect_timeout", 0)
             if connect_timeout > 0:
                 cmd_l.append("-t %d" % connect_timeout)
 
-            command_timeout = self.info.get("command_timeout", 0)
+            command_timeout = self._task.info("command_timeout", 0)
             if command_timeout > 0:
                 cmd_l.append("-u %d" % command_timeout)
 
@@ -95,7 +95,7 @@ class WorkerPdsh(Worker):
 
             cmd = ' '.join(cmd_l)
 
-            if self.info.get("debug", False):
+            if self._task.info("debug", False):
                 print "PDSH: %s" % cmd
         else:
             # Build pdcp command
@@ -131,7 +131,7 @@ class WorkerPdsh(Worker):
         return rc
 
     def _handle_read(self):
-        debug = self.info.get("debug", False)
+        debug = self._task.info("debug", False)
         # read a chunk
         readbuf = self._read()
         assert len(readbuf) > 0, "poll() POLLIN event flag but no data to read"
@@ -200,7 +200,7 @@ class WorkerPdsh(Worker):
     def _set_node_rc(self, nodename, rc):
         self.engine.set_rc((self, nodename), rc)
 
-    def last_buffer(self):
+    def last_read(self):
         """
         Get last (node, buffer) in an EventHandler.
         """

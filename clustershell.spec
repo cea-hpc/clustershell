@@ -1,6 +1,6 @@
 %define name clustershell
-%define version 0.9
-%define release 2
+%define version 0.91
+%define release 1
 
 Summary: ClusterShell Python framework
 Name: %{name}

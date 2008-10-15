@@ -39,11 +39,11 @@ class WorkerPopen2(Worker):
     Implements the Worker interface.
     """
 
-    def __init__(self, command, key, handler, info):
+    def __init__(self, command, key, handler, task):
         """
         Initialize Popen2 worker
         """
-        Worker.__init__(self, handler, info)
+        Worker.__init__(self, handler, task)
         self.command = command
         if not self.command:
             raise WorkerBadArgumentException()
@@ -97,7 +97,7 @@ class WorkerPopen2(Worker):
         self._invoke_ev_close()
 
     def _handle_read(self):
-        debug = self.info.get("debug", False)
+        debug = self._task.info("debug", False)
         # read a chunk
         readbuf = self._read()
         assert len(readbuf) > 0, "poll() POLLIN event flag but no data to read"

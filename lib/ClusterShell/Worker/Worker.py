@@ -46,13 +46,19 @@ class Worker:
     Base class Worker.
     """
     
-    def __init__(self, handler, info):
+    def __init__(self, handler, task):
         """
         Initializer. Should be called from derived classes.
         """
         self.eh = handler
-        self.info = info
         self.engine = None
+        self._task = task
+
+    def task(self):
+        """
+        Return worker's task.
+        """
+        return self._task
 
     def last_read(self):
         """

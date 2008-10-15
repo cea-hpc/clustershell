@@ -121,11 +121,11 @@ class Task(object):
 
         print "thread exited (id=0x%x)" % thread.get_ident()
 
-    def info(self, info_key):
+    def info(self, info_key, def_val=None):
         """
         Return per-task information.
         """
-        return self._info.get(info_key)
+        return self._info.get(info_key, def_val)
 
     def set_info(self, info_key, value):
         """
@@ -148,9 +148,9 @@ class Task(object):
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, "'key' argument not supported for distant command"
-            worker =  WorkerPdsh(kwargs["nodes"], command=command, handler=handler, info=self._info)
+            worker =  WorkerPdsh(kwargs["nodes"], command=command, handler=handler, task=self)
         else:
-            worker = WorkerPopen2(command, key=kwargs.get("key", None), handler=handler, info=self._info)
+            worker = WorkerPopen2(command, key=kwargs.get("key", None), handler=handler, task=self)
 
         # Schedule task for this new shell worker.
         self.engine.add(worker)
@@ -164,7 +164,7 @@ class Task(object):
         assert nodes != None, "local copy not supported"
 
         # Start new Pdcp worker (supported by WorkerPdsh)
-        worker = WorkerPdsh(nodes, source=source, dest=dest, handler=handler, info=self._info)
+        worker = WorkerPdsh(nodes, source=source, dest=dest, handler=handler, task=self)
 
         # Schedule task for this new copy worker.
         self.engine.add(worker)
