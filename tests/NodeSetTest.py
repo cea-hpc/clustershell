@@ -17,46 +17,54 @@ from ClusterShell.NodeSet import NodeSet
 
 class NodeSetTest(unittest.TestCase):
 
-    def _assertNode(self, nodeset, nodename, length):
+    def _assertNode(self, nodeset, nodename):
         self.assertEqual(str(nodeset), nodename)
         self.assertEqual(list(nodeset), [ nodename ])
-        self.assertEqual(len(nodeset), length)
+        self.assertEqual(len(nodeset), 1)
 
     def testUnnumberedNode(self):
         """test unnumbered node"""
         nodeset = NodeSet("cws-machin")
-        self._assertNode(nodeset, "cws-machin", 1)
+        self._assertNode(nodeset, "cws-machin")
 
     def testNodeZero(self):
         """test node0"""
         nodeset = NodeSet("supercluster0")
-        self._assertNode(nodeset, "supercluster0", 1)
+        self._assertNode(nodeset, "supercluster0")
 
     def testNoPrefix(self):
         """test node without prefix"""
         nodeset = NodeSet("0cluster")
-        self._assertNode(nodeset, "0cluster", 1)
+        self._assertNode(nodeset, "0cluster")
         nodeset = NodeSet("[0]cluster")
-        self._assertNode(nodeset, "0cluster", 1)
+        self._assertNode(nodeset, "0cluster")
+
+    def testFromListConstructor(self):
+        """test NodeSet.fromlist constructor"""
+        nodeset = NodeSet.fromlist([ "cluster33" ])
+        self._assertNode(nodeset, "cluster33")
+        nodeset = NodeSet.fromlist([ "cluster0", "cluster1", "cluster2", "cluster5", "cluster8", "cluster4", "cluster3" ])
+        self.assertEqual(str(nodeset), "cluster[0-5,8]")
+        self.assertEqual(len(nodeset), 7)
 
     def testDigitInPrefix(self):
         """test digit in prefix"""
         nodeset = NodeSet("clu-0-3")
-        self._assertNode(nodeset, "clu-0-3", 1)
+        self._assertNode(nodeset, "clu-0-3")
         nodeset = NodeSet("clu-0-[3-23]")
         self.assertEqual(str(nodeset), "clu-0-[3-23]")
 
     def testNodeWithPercent(self):
         """test nodename with % character"""
         nodeset = NodeSet("cluster%s3")
-        self._assertNode(nodeset, "cluster%s3", 1)
+        self._assertNode(nodeset, "cluster%s3")
         nodeset = NodeSet("clust%ser[3-30]")
         self.assertEqual(str(nodeset), "clust%ser[3-30]")
 
     def testNodeEightPad(self):
         """test padding feature"""
         nodeset = NodeSet("cluster008")
-        self._assertNode(nodeset, "cluster008", 1)
+        self._assertNode(nodeset, "cluster008")
 
     def testNodeRangeIncludingZero(self):
         """test node range including zero"""
@@ -68,12 +76,12 @@ class NodeSetTest(unittest.TestCase):
     def testSingle(self):
         """test single cluster node"""
         nodeset = NodeSet("cluster115")
-        self._assertNode(nodeset, "cluster115", 1)
+        self._assertNode(nodeset, "cluster115")
 
     def testSingleNodeInRange(self):
         """test single cluster node in range"""
         nodeset = NodeSet("cluster[115]")
-        self._assertNode(nodeset, "cluster115", 1)
+        self._assertNode(nodeset, "cluster115")
 
     def testRange(self):
         """test simple range"""
