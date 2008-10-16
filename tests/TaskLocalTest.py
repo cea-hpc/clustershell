@@ -21,6 +21,7 @@ import socket
 
 import thread
 
+
 class TaskLocalTest(unittest.TestCase):
 
     def testSimpleCommand(self):
@@ -35,6 +36,7 @@ class TaskLocalTest(unittest.TestCase):
 
     def testSimpleDualTask(self):
         """test simple task doing 2 sequential jobs"""
+
         task0 = task_self()
         self.assert_(task0 != None)
         worker1 = task0.shell("/bin/hostname")
@@ -100,7 +102,52 @@ class TaskLocalTest(unittest.TestCase):
         fanout = task.info("fanout")
         self.assertEqual(fanout, Task._default_info["fanout"])
 
+    def testSimpleCommandTimeout(self):
+        """test simple command timeout"""
+        task = task_self()
+        self.assert_(task != None)
 
+        # init worker
+        worker = task.shell("/bin/sleep 30")
+        self.assert_(worker != None)
+
+        try:
+            # run task
+            task.resume(3)
+        except TimeoutError:
+            pass
+        else:
+            self.fail("did not detect timeout")
+
+    def testSimpleCommandNoTimeout(self):
+        """test simple command exiting before timeout"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # init worker
+        worker = task.shell("/bin/sleep 3")
+        self.assert_(worker != None)
+
+        try:
+            # run task
+            task.resume(5)
+        except TimeoutError:
+            self.fail("did detect timeout")
+
+    def testSimpleCommandNoTimeout(self):
+        """test simple command exiting just before timeout"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # init worker
+        worker = task.shell("/bin/usleep 900000")
+        self.assert_(worker != None)
+
+        try:
+            # run task
+            task.resume(1)
+        except TimeoutError:
+            self.fail("did detect timeout")
 
 
 if __name__ == '__main__':

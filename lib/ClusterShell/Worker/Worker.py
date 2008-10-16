@@ -74,13 +74,20 @@ class Worker:
 
     def _start(self):
         """
-        Start worker. Derived classes must implement.
+        Starts worker and returns worker instance.
+        Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _fileno(self):
+    def fileno(self):
         """
-        Returns fileno of Worker. Derived classes must implement.
+        Returns the file descriptor as an integer.
+        """
+        raise NotImplementedError("Derived classes must implement.")
+    
+    def closed(self):
+        """
+        Returns True if the underlying file object is closed.
         """
         raise NotImplementedError("Derived classes must implement.")
 

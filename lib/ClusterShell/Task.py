@@ -44,12 +44,16 @@ Simple example of use:
 
 """
 
+from Engine.Engine import EngineTimeoutError
 from Engine.Poll import EnginePoll
 from Worker.Pdsh import WorkerPdsh
 from Worker.Popen2 import WorkerPopen2
 
 import thread
 
+
+class TimeoutError(Exception):
+    pass
 
 class Task(object):
     """
@@ -183,7 +187,10 @@ class Task(object):
             self.timeout = timeout
             self.l_run.release()
         else:
-            self.engine.run(timeout)
+            try:
+                self.engine.run(timeout)
+            except EngineTimeoutError:
+                raise TimeoutError()
 
     def join(self):
         """

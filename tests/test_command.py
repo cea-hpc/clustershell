@@ -15,6 +15,9 @@ def testHuge():
     for i in range(0, 100000):
         print "huge! ",
 
+def testCmpOut():
+    print "abcdefghijklmnopqrstuvwxyz"
+
 if __name__ == '__main__':
     rc = 0
     test = None
@@ -29,6 +32,8 @@ if __name__ == '__main__':
         if k in ("-t", "--test"):
             if v == "huge":
                 test = testHuge
+            elif v == "cmp_out":
+                test = testCmpOut
         elif k in ("-r", "--rc"):
             rc = int(v)
         elif k in ("-h", "--help"):

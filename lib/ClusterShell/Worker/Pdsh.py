@@ -114,8 +114,11 @@ class WorkerPdsh(Worker):
             raise e
         return self
 
-    def _fileno(self):
+    def fileno(self):
         return self.fid.fromchild.fileno()
+    
+    def closed(self):
+        return self.fid.fromchild.closed
 
     def _read(self, size=-1):
         return self.fid.fromchild.read(size)

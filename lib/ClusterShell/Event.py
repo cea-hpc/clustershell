@@ -23,7 +23,7 @@ import sys
 
 class EventHandler:
     """
-    Class for managing Worker Event handlers.
+    Base class EventHandler.
     """
     
     START = 0

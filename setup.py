@@ -21,7 +21,7 @@
 from distutils.core import setup
 
 setup(name='ClusterShell',
-      version='1.0rc1',
+      version='0.93',
       license='GPL',
       description='ClusterShell library',
       author='Stephane Thiell',

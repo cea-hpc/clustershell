@@ -34,12 +34,6 @@ class EngineTimeoutError(EngineError):
     """
     pass
 
-class EngineInProgressError(EngineError):
-    """
-    Raised on operation in progress, for example the results are
-    not available yet.
-    """
-    pass
 
 class _MsgTreeElem:
     """
@@ -171,12 +165,13 @@ class Engine:
         """
         Run engine in calling thread."
         """
-        self._runloop(timeout)
+        try:
+            self.runloop(timeout)
+        finally:
+            # in any case, clear engine worker list
+            self.worker_list = []
 
-        # clear engine worker list
-        self.worker_list = []
-
-    def _runloop(self, timeout):
+    def runloop(self, timeout):
         """
         Run engine in calling thread.
         """
@@ -265,18 +260,12 @@ class Engine:
         """
         Get a return code by its source (worker, key).
         """
-        if not self.exited:
-            raise EngineInProgressError()
-
         return self._d_source_msg.get(source, 0)
    
     def iter_retcodes(self):
         """
         Returns an iterator over return codes and keys list.
         """
-        if not self.exited:
-            raise EngineInProgressError()
-
         # Use the items iterator for the underlying dict.
         for rc, src in self._d_rc_sources.iteritems():
             yield rc, [t[1] for t in src]
@@ -285,9 +274,6 @@ class Engine:
         """
         Returns an iterator over return codes and keys list for a specific worker.
         """
-        if not self.exited:
-            raise EngineInProgressError()
-
         # Use the items iterator for the underlying dict.
         for rc, src in self._d_rc_sources.iteritems():
             yield rc, [t[1] for t in src if t[0] is worker]
@@ -296,8 +282,5 @@ class Engine:
         """
         Get max return code encountered during last run.
         """
-        if not self.exited:
-            raise EngineInProgressError()
-
         return self._max_rc
 

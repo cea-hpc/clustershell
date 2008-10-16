@@ -32,6 +32,7 @@ from Worker import Worker
 import fcntl
 import os
 import popen2
+import signal
 
 
 class WorkerPopen2(Worker):
@@ -79,18 +80,29 @@ class WorkerPopen2(Worker):
             raise e
         return self
 
-    def _fileno(self):
+    def fileno(self):
         return self.fid.fromchild.fileno()
+
+    def closed(self):
+        return self.fid.fromchild.closed
 
     def _read(self, size=-1):
         return self.fid.fromchild.read(size)
 
     def _close(self):
-        status = self.fid.wait()
-        if os.WIFEXITED(status):
-            self._set_rc(os.WEXITSTATUS(status))
+        status = self.fid.poll()
+        if status == -1:
+            # process not exited yet
+            os.kill(self.fid.pid, signal.SIGKILL)
         else:
-            self._set_rc(0)
+            self._set_rc(status)
+            """
+
+            if os.WIFEXITED(status):
+                self._set_rc(os.WEXITSTATUS(status))
+            else:
+                self._set_rc(0)
+            """
 
         self.fid.tochild.close()
         self.fid.fromchild.close()
@@ -155,8 +167,8 @@ class WorkerPopen2(Worker):
             return msg
 
     def retcode(self):
-        ## raise if not exited
-
+        """
+        Return return code or None if command is still in progress.
+        """
         return self.rc
-
    
