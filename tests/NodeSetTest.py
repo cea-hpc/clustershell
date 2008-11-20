@@ -377,6 +377,13 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 72)
         self.assertEqual(str(nodeset), "red[78-149]")
 
+    def testIntersectReturnNothing(self):
+        """test nodes intersect that returns empty NodeSet"""
+        nodeset = NodeSet("blue43")
+        self.assertEqual(len(nodeset), 1)
+        nodeset.intersection_update("blue42")
+        self.assertEqual(len(nodeset), 0)
+
     def testSimpleDifferences(self):
         """test difference_update() method (simple)"""
         # nodeset-based subs

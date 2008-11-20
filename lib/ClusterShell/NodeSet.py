@@ -21,7 +21,7 @@
 # $Id: NodeSet.py 26 2008-03-26 09:40:38Z st-cea $
 
 """
-NodeSet
+Cluster node set.
 
 A module to deal efficiently with pdsh-like rangesets and nodesets.
 Instances of RangeSet and NodeSet both provide similar operations than the
@@ -61,7 +61,6 @@ class RangeSetException(Exception):
     def __str__(self):
         return self.message
 
-
 class RangeSetParseError(RangeSetException):
     """used by RangeSet when a parse cannot be done"""
     def __init__(self, subrange, message):
@@ -100,15 +99,24 @@ class RangeSet:
         rset = RangeSet("5,10-42")   # contains 5, 10 to 42
         rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
      
-    Also, RangeSet provides update(), intersection_update() and difference_update()
-    (exclusion) methods.
+    Also, RangeSet provides update(), intersection_update() and
+    difference_update() (exclusion) methods.
     """
-    def __init__(self, pattern=None):
+    def __init__(self, pattern=None, autostep=None):
         """
-        Initialize RangeSet with optional pdsh-like string pattern.
+        Initialize RangeSet with optional pdsh-like string pattern and
+        autostep threshold.
         """
-        self.length = 0
-        self.ranges = []
+        if autostep is None:
+            # disabled by default for pdsh compat (+inf)
+            self._autostep = 1E400
+        else:
+            # - 1 because user means node count, but we means
+            # real steps.
+            self._autostep = int(autostep) - 1
+
+        self._length = 0
+        self._ranges = []
 
         if pattern is not None:
 
@@ -128,11 +136,13 @@ class RangeSet:
                 try:
                     step = int(step)
                 except ValueError:
-                    raise RangeSetParseError(subrange, "cannot convert string to integer")
+                    raise RangeSetParseError(subrange,
+                            "cannot convert string to integer")
 
                 if baserange.find('-') < 0:
                     if step != 1:
-                        raise RangeSetParseError(subrange, "invalid step usage")
+                        raise RangeSetParseError(subrange,
+                                "invalid step usage")
                     begin = end = baserange
                 else:
                     begin, end = baserange.split('-', 1)
@@ -154,11 +164,13 @@ class RangeSet:
                         ends = end
                     stop = int(ends)
                 except ValueError:
-                    raise RangeSetParseError(subrange, "cannot convert string to integer")
+                    raise RangeSetParseError(subrange,
+                            "cannot convert string to integer")
 
                 # check preconditions
                 if start > stop or step < 1:
-                    raise RangeSetParseError(subrange, "invalid values in range")
+                    raise RangeSetParseError(subrange,
+                            "invalid values in range")
 
                 self.add_range(start, stop, step, pad)
         
@@ -166,7 +178,7 @@ class RangeSet:
         """
         Iterate over each item in RangeSet.
         """
-        for start, stop, step, pad in self.ranges:
+        for start, stop, step, pad in self._ranges:
             for i in range(start, stop + 1, step):
                 yield "%*d" % (pad, i)
 
@@ -174,16 +186,7 @@ class RangeSet:
         """
         Get the number of items in RangeSet.
         """
-
-        #### TEMPORARY ####
-        cnt = 0
-        for start, stop, step, pad in self.ranges:
-            cnt += (stop - start)/step + 1
-        #### TEMPORARY ####
-
-        assert cnt == self.length
-
-        return self.length
+        return self._length
 
     def __str__(self):
         """
@@ -191,7 +194,7 @@ class RangeSet:
         """
         cnt = 0
         s = ""
-        for start, stop, step, pad in self.ranges:
+        for start, stop, step, pad in self._ranges:
             assert pad != None
             if cnt > 0:
                 s += ","
@@ -212,7 +215,7 @@ class RangeSet:
         """
         items = []
         pad = 0
-        for rgstart, rgstop, rgstep, rgpad in self.ranges:
+        for rgstart, rgstop, rgstep, rgpad in self._ranges:
             items += range(rgstart, rgstop + 1, rgstep)
             pad = pad or rgpad
         return items, pad
@@ -232,8 +235,14 @@ class RangeSet:
                     istart = k = i
                 elif m > 0: # check step length (m)
                     if m != i - k:
-                        if m == 1 or k - istart > m:
+                        if m == 1 or k - istart >= self._autostep * m:
+                            # add one range with possible autostep
                             rg.append((istart, k, m, pad))
+                            istart = k = i
+                        elif k - istart > m:
+                            # stepped without autostep
+                            for j in range(istart, k + m, m):
+                                rg.append((j, j, 1, pad))
                             istart = k = i
                         else:
                             rg.append((istart, istart, 1, pad))
@@ -244,8 +253,13 @@ class RangeSet:
         # finishing
         if istart is not None: # istart might be 0
             if m > 0:
-                if m == 1 or k - istart > m:
+                if m == 1 or k - istart >= self._autostep * m:
+                    # add one range with possible autostep
                     rg.append((istart, k, m, pad))
+                elif k - istart > m:
+                    # stepped without autostep
+                    for j in range(istart, k + m, m):
+                        rg.append((j, j, 1, pad))
                 else:
                     rg.append((istart, istart, 1, pad))
                     rg.append((k, k, 1, pad))
@@ -258,19 +272,30 @@ class RangeSet:
         """
         Add a range (start, stop, step and padding length) to RangeSet.
         """
-        assert start <= stop, "Confused: please provide ordered node index ranges"
+        assert start <= stop, "please provide ordered node index ranges"
         assert step != None
         assert step > 0
         assert pad != None
         assert pad >= 0
 
-        self.ranges, self.length = self._add_range_exfold(start, stop, step, pad)
+        if self._length == 0:
+            # first add optimization
+            stop_adjust = stop - (stop - start) % step
+            if step == 1 or stop_adjust - start >= self._autostep * step:
+                self._ranges = [ (start, stop_adjust, step, pad) ]
+            else:
+                for j in range(start, stop_adjust + step, step):
+                    self._ranges.append((j, j, step, pad))
+            self._length = (stop_adjust - start) / step + 1
+        else:
+            self._ranges, self._length = self._add_range_exfold(start, stop, step,
+                                                              pad)
 
     def _add_range_exfold(self, start, stop, step, pad):
         """
         Add range expanding then folding all items.
         """
-        assert start <= stop, "Confused: please provide ordered node index ranges"
+        assert start <= stop, "please provide ordered node index ranges"
         assert step > 0
         assert pad != None
         assert pad >= 0
@@ -285,14 +310,14 @@ class RangeSet:
         """
         Add provided RangeSet.
         """
-        for start, stop, step, pad in rangeset.ranges:
+        for start, stop, step, pad in rangeset._ranges:
             self.add_range(start, stop, step, pad)
 
     def difference_update(self, rangeset):
         """
         Sub (exclude) provided RangeSet.
         """
-        self.ranges, self.length = self._sub_exfold(rangeset)
+        self._ranges, self._length = self._sub_exfold(rangeset)
 
     def _sub_exfold(self, rangeset):
         """
@@ -312,7 +337,7 @@ class RangeSet:
         """
         Intersection with provided RangeSet.
         """
-        self.ranges, self.length = self._intersect_exfold(rangeset)
+        self._ranges, self._length = self._intersect_exfold(rangeset)
 
     def _intersect_exfold(self, rangeset):
         """
@@ -329,13 +354,13 @@ class RangeSet:
         return self._fold([e for e in items1 if e in iset], pad1 or pad2)
 
 
-def _NodeSetParse(ns):
+def _NodeSetParse(ns, autostep):
     """
     Internal RangeSet generator for NodeSet or nodeset string pattern parsing.
     """
     # is ns a NodeSet instance?
     if isinstance(ns, NodeSet):
-        for pat, rangeset in ns.patterns.iteritems():
+        for pat, rangeset in ns._patterns.iteritems():
             yield pat, rangeset
     # or is ns a string?
     elif type(ns) is str:
@@ -377,7 +402,7 @@ def _NodeSetParse(ns):
 
                 # Process comma-separated ranges
                 try:
-                    rset = RangeSet(rg)
+                    rset = RangeSet(rg, autostep)
                 except RangeSetParseError, e:
                     raise NodeSetParseRangeError(e)
 
@@ -410,7 +435,7 @@ def _NodeSetParse(ns):
 
                 if idx:
                     try:
-                        rset = RangeSet(idx)
+                        rset = RangeSet(idx, autostep)
                     except RangeSetParseError, e:
                         raise NodeSetParseRangeError(e)
                     p = "%s%%s%s" % (pfx, sfx)
@@ -425,29 +450,31 @@ class NodeSet(object):
     Iterable class of nodes with node ranges support.
 
     NodeSet creation examples:
-        nodeset = NodeSet()                         # empty NodeSet
-        nodeset = NodeSet("clustername3")           # contains only clustername3
+        nodeset = NodeSet()                     # empty NodeSet
+        nodeset = NodeSet("clustername3")       # contains only clustername3
         nodeset = NodeSet("clustername[5,10-42]")
         nodeset = NodeSet("clustername[0-10/2]")
         nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
 
-    Also, NodeSet provides update(), intersection_update() and difference_update()
-    (exclusion) methods. 
+    Also, NodeSet provides update(), intersection_update() and
+    difference_update() (exclusion) methods. 
     """
-    def __init__(self, pattern=None):
+    def __init__(self, pattern=None, autostep=None):
         """
-        Initialize a NodeSet. If no pattern is specified, an empty NodeSet is created.
+        Initialize a NodeSet. If no pattern is specified, an empty NodeSet is
+        created.
         """
-        self.length = 0
-        self.patterns = {}
+        self._autostep = autostep
+        self._length = 0
+        self._patterns = {}
         if pattern is not None:
             self.update(pattern)
 
-    def fromlist(cls, l):
+    def fromlist(cls, l, autostep=None):
         """
         Class method that returns a new NodeSet with nodes from provided list.
         """
-        inst = NodeSet()
+        inst = NodeSet(autostep=autostep)
         for pat in l:
             inst.update(pat)
         return inst
@@ -457,12 +484,12 @@ class NodeSet(object):
         """
         Iterate over concret nodes.
         """
-        for pat, rangeset in self.patterns.iteritems():
+        for pat, rangeset in self._patterns.iteritems():
             if rangeset:
-                for start, stop, step, pad in rangeset.ranges:
+                for start, stop, step, pad in rangeset._ranges:
                     while start <= stop:
                         yield pat % ("%0*d" % (pad, start))
-                        start += 1
+                        start += step
             else:
                 yield pat
 
@@ -471,7 +498,7 @@ class NodeSet(object):
         Get the number of nodes in NodeSet.
         """
         cnt = 0
-        for  rangeset in self.patterns.itervalues():
+        for  rangeset in self._patterns.itervalues():
             if rangeset:
                 cnt += len(rangeset)
             else:
@@ -483,7 +510,7 @@ class NodeSet(object):
         Get pdsh-like, ranges-based pattern of node list.
         """
         result = ""
-        for pat, rangeset in self.patterns.iteritems():
+        for pat, rangeset in self._patterns.iteritems():
             if rangeset:
                 s = str(rangeset)
                 cnt = len(rangeset)
@@ -500,17 +527,17 @@ class NodeSet(object):
         Add a rangeset to a new or existing pattern.
         """
         # get patterns dict entry
-        pat_e = self.patterns.get(pat)
+        pat_e = self._patterns.get(pat)
 
         if pat_e:
-            # don't play with prefix - if there is a value, there is a rangeset.
+            # don't play with prefix: if there is a value, there is a rangeset.
             assert rangeset != None
 
             # add rangeset in corresponding pattern rangeset
             pat_e.update(rangeset)
         else:
             # create new pattern (with possibly rangeset=None)
-            self.patterns[pat] = rangeset
+            self._patterns[pat] = rangeset
 
     def union(self, other):
         """
@@ -522,8 +549,8 @@ class NodeSet(object):
 
     def __or__(self, other):
         """
-        Implements the | operator. So s | t returns a new set with elements from
-        both s and t.
+        Implements the | operator. So s | t returns a new set with elements
+        from both s and t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -533,13 +560,13 @@ class NodeSet(object):
         """
         s.update(t) returns nodeset s with elements added from t.
         """
-        for pat, rangeset in _NodeSetParse(other):
+        for pat, rangeset in _NodeSetParse(other, self._autostep):
             self._add_rangeset(pat, rangeset)
 
     def __ior__(self, other):
         """
-        Implements the |= operator. So s |= t returns nodeset s with elements added
-        from t.
+        Implements the |= operator. So s |= t returns nodeset s with elements
+        added from t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -555,8 +582,8 @@ class NodeSet(object):
 
     def __and__(self, other):
         """
-        Implements the & operator. So s & t returns a new set with elements common
-        to s and t.
+        Implements the & operator. So s & t returns a new set with elements
+        common to s and t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -572,20 +599,22 @@ class NodeSet(object):
 
         tmp_ns = NodeSet()
 
-        for pat, irangeset in _NodeSetParse(other):
-            rangeset = self.patterns.get(pat)
+        for pat, irangeset in _NodeSetParse(other, self._autostep):
+            rangeset = self._patterns.get(pat)
             if rangeset:
                 rs = copy.copy(rangeset)
                 rs.intersection_update(irangeset)
-                tmp_ns._add_rangeset(pat, rs)
+                # ignore pattern if empty rangeset
+                if len(rs) > 0:
+                    tmp_ns._add_rangeset(pat, rs)
 
         # Substitute 
-        self.patterns = tmp_ns.patterns
+        self._patterns = tmp_ns._patterns
 
     def __iand__(self, other):
         """
-        Implements the &= operator. So s &= t returns nodeset s keeping only elements
-        also found in t.
+        Implements the &= operator. So s &= t returns nodeset s keeping only
+        elements also found in t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -610,15 +639,16 @@ class NodeSet(object):
 
     def difference_update(self, other):
         """
-        s.difference_update(t) returns nodeset s after removing elements found in t.
+        s.difference_update(t) returns nodeset s after removing elements found
+        in t.
         """
         # the purge of each empty pattern is done afterward to allow self = ns
         purge_patterns = []
 
         # iterate first over exclude nodeset rangesets which is usually smaller
-        for pat, erangeset in _NodeSetParse(other):
+        for pat, erangeset in _NodeSetParse(other, self._autostep):
             # if pattern is found, deal with it
-            rangeset = self.patterns.get(pat)
+            rangeset = self._patterns.get(pat)
             if rangeset:
                 # sub rangeset
                 rangeset.difference_update(erangeset)
@@ -627,16 +657,16 @@ class NodeSet(object):
                     purge_patterns.append(pat)
             else:
                 # unnumbered node exclusion
-                if self.patterns.has_key(pat):
+                if self._patterns.has_key(pat):
                     purge_patterns.append(pat)
 
         for pat in purge_patterns:
-            del self.patterns[pat]
+            del self._patterns[pat]
 
     def __isub__(self, other):
         """
-        Implement the -= operator. So s -= t returns nodeset s after removing elements
-        found in t.
+        Implement the -= operator. So s -= t returns nodeset s after removing
+        elements found in t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -651,7 +681,8 @@ def expand(pat):
 
 def fold(pat):
     """
-    Commodity function that clean dups and fold provided pattern with ranges and "/step" support.
+    Commodity function that clean dups and fold provided pattern with ranges
+    and "/step" support.
     """
     return str(NodeSet(pat))
 
