@@ -35,9 +35,8 @@ Options:
     --autostep=<number>, -a <number>
         Specify auto step threshold number when folding nodesets.
         If not specified, auto step is disabled.
-        Example: autostep=3, "node2 node4 node6" folds in node[2,4,6]
-                 autostep=4, "node2 node4 node6" folds in node[2-6/2]
-
+        Example: autostep=4, "node2 node4 node6" folds in node[2,4,6]
+                 autostep=3, "node2 node4 node6" folds in node[2-6/2]
     --exclude=<nodeset>, -x <nodeset>
         Exclude provided node or nodeset from result. Can be specified
         several times.
@@ -100,7 +99,7 @@ def runNodeSetCommand(args):
         elif k in ("-x", "--exclude"):
             excludes.update(v)
 
-    if command is None:
+    if command is None or len(args) < 1:
         print __doc__
         sys.exit(1)
 

@@ -91,13 +91,13 @@ def runClush(args):
     
     for buffer, nodeset in worker.iter_buffers():
         print "----------------"
-        print NodeSet.fromlist(nodeset)
+        print NodeSet.fromlist(nodeset, autostep=3)
         print "----------------"
         print "", buffer,
 
     for rc, nodeset in worker.iter_retcodes():
         if rc != 0:
-            ns = NodeSet.fromlist(nodeset)
+            ns = NodeSet.fromlist(nodeset, autostep=3)
             print "clush: %s: exited with exit code %s" % (ns, rc)
 
     sys.exit(task.max_retcode())
