@@ -19,11 +19,18 @@
 #
 # $Id: EnginePdsh.py 11 2008-01-11 15:19:44Z st-cea $
 
+"""
+A poll() based ClusterShell engine.
+"""
+
 from Engine import *
 
+import errno
 import os
 import select
+import signal
 import sys
+import time
 import thread
 
 
@@ -31,7 +38,8 @@ class EnginePoll(Engine):
     """
     Poll Engine
 
-    ClusterShell engine using the select.poll mechanism (Linux poll() syscall).
+    ClusterShell engine using the select.poll mechanism (Linux poll()
+    syscall).
     """
     def __init__(self, info):
         """
@@ -39,119 +47,97 @@ class EnginePoll(Engine):
         """
         Engine.__init__(self, info)
         try:
-            # Get a polling object
+            # get a polling object
             self.polling = select.poll()
-        except:
-            print >> sys.stderr, "Fatal error: select.poll() not supported?"
+        except AttributeError:
+            print >> sys.stderr, "Error: select.poll() not supported"
             raise
-
-        # keep track of registered workers
-        self.workers = {}
 
         # runloop-has-exited flag
         self.exited = False
 
-        # thread stuffs
-        self.run_lock = thread.allocate_lock()
-        self.start_lock = thread.allocate_lock()
-        self.start_lock.acquire()
-
     def register(self, worker):
         """
-        Register a worker (listen for input events).
+        Register a worker.
         """
-        self.workers[worker.fileno()] = worker
+        # call base class method
+        Engine.register(self, worker)
+
+        # add file-object worker to polling system
         self.polling.register(worker, select.POLLIN)
 
     def unregister(self, worker):
         """
-        Unregister a worker
+        Unregister a worker.
         """
+        # remove file-object worker from polling system
         self.polling.unregister(worker)
-        del self.workers[worker.fileno()]
-        worker._close()
 
-    def start_workers(self):
-        """
-        # Start workers and register them in the poll()-based engine.
-        """
-        for worker in self.worker_list:
-            self.register(worker._start())
-
-    def stop_workers(self):
-        """
-        Stop all workers. This method is used in case of timeout.
-        """
-        for worker in self.worker_list:
-            if not worker.closed():
-                self.unregister(worker)
-
-    def add(self, worker):
-        """
-        Add a worker to engine.
-        """
-        Engine.add(self, worker)
-
-        if self.run_lock.locked():
-            self.register(worker._start())
+        # call base class method
+        Engine.unregister(self, worker)
 
     def runloop(self, timeout):
         """
         Pdsh engine run(): start workers and properly get replies
         """
-
-        # Start workers
-        self.start_workers()
-
         if timeout == 0:
             timeout = -1
 
-        status = self.run_lock.acquire(0)
-        assert status == True, "cannot acquire run lock"
+        start_time = time.time()
 
-        self.start_lock.release()
+        # run main event loop...
+        while len(self.reg_workers) > 0:
+            try:
+                timeo = self.timerq.expire_relative()
+                if timeout > 0 and timeo >= timeout:
+                    # task timeout may invalidate workers timeout
+                    self.timerq.clear()
+                    timeo = timeout
+                elif timeo == -1:
+                    timeo = timeout
 
-        try:
-            # Run main event loop
-            while len(self.workers) > 0:
+                evlist = self.polling.poll(timeo * 1000.0 + 1.0)
 
-                # Wait for I/O
-                evlist = self.polling.poll(timeout * 1000)
+            except select.error, (ex_errno, ex_strerror):
+                # might get interrupted by a signal
+                if ex_errno == errno.EINTR:
+                    continue
+                elif ex_errno == errno.EINVAL:
+                    print >>sys.stderr, \
+                            "EnginePoll: please increase RLIMIT_NOFILE"
+                raise
 
-                # No event means timed out
-                if len(evlist) == 0:
-                    raise EngineTimeoutError()
+            # check for empty evlist which means poll() timed out
+            if len(evlist) == 0:
 
-                for fd, event in evlist:
+                # task timeout
+                if len(self.timerq) == 0:
+                    raise EngineTimeoutException()
 
-                    # get worker instance
-                    worker = self.workers[fd]
+                # workers timeout
+                assert self.timerq.expired()
 
-                    # check for poll error
-                    if event & select.POLLERR:
-                        print >> sys.stderr, "EnginePoll: POLLERR"
-                        self.unregister(worker)
-                        continue
+                while self.timerq.expired():
+                    self.remove(self.timerq.pop(), did_timeout=True)
 
-                    if event & select.POLLIN:
-                        worker._handle_read()
+            for fd, event in evlist:
 
-                    # check for hung hup (EOF)
-                    if event & select.POLLHUP:
-                        self.unregister(worker)
-                        continue
+                # get worker instance
+                worker = self.reg_workers[fd]
 
-                    assert event & select.POLLIN, "poll() returned without data to read"
+                # check for poll error condition of some sort
+                if event & select.POLLERR:
+                    print >> sys.stderr, "EnginePoll: POLLERR"
+                    self.remove(worker)
+                    continue
 
-        finally:
+                # check for data to read
+                if event & select.POLLIN:
+                    worker._handle_read()
 
-            # unregister all workers
-            self.stop_workers()
-            self.exited = True
-
-            # change to idle state
-            self.start_lock.acquire()
-            self.run_lock.release()
+                # check for end of stream
+                if event & select.POLLHUP:
+                    self.remove(worker)
 
     def exited(self):
         """

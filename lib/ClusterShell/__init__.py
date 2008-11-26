@@ -19,4 +19,15 @@
 #
 # $Id$
 
-version = 0.9
+"""
+ClusterShell Python Library
+
+ClusterShell is a python event-based python library to execute commands
+on local or distant cluster nodes in parallel depending on the selected
+engine and worker mechanisms.
+
+Please see: ClusterShell.NodeSet
+            ClusterShell.Task
+"""
+
+version = 1.0

@@ -21,8 +21,6 @@
 # $Id: Task.py 7 2007-12-20 14:52:31Z st-cea $
 
 """
-Task
-
 ClusterShell Task module.
 
 Simple example of use:
@@ -44,8 +42,10 @@ Simple example of use:
 
 """
 
-from Engine.Engine import EngineTimeoutError
+from Engine.Engine import EngineAbortException
+from Engine.Engine import EngineTimeoutException
 from Engine.Poll import EnginePoll
+from Worker.File import WorkerFile
 from Worker.Pdsh import WorkerPdsh
 from Worker.Popen2 import WorkerPopen2
 
@@ -72,8 +72,8 @@ class Task(object):
     Add command to execute in a distant node in task with:
         task.shell("/bin/hostname", nodes="tiger[1-20]")
 
-    Run task in its associated thread (will block only if the calling thread
-    is the associated thread:
+    Run task in its associated thread (will block only if the calling
+    thread is the associated thread:
         task.resume()
     """
 
@@ -85,8 +85,9 @@ class Task(object):
 
     def __new__(cls, thread_id=None):
         """
-        For task bound to a specific thread, this class acts like a "thread singleton", so
-        new style class is used and new object are only instantiated if needed.
+        For task bound to a specific thread, this class acts like a
+        "thread singleton", so new style class is used and new object
+        are only instantiated if needed.
         """
         if thread_id:                       # a thread identifier is a nonzero integer
             if thread_id not in cls._tasks:
@@ -142,46 +143,69 @@ class Task(object):
         Schedule a shell command for local or distant execution.
 
         Local usage:
-            task.shell(command [, key=key] [, handler=handler])
+            task.shell(command [, key=key] [, handler=handler]
+                    [, timeout=secs])
 
         Distant usage:
-            task.shell(command, nodes=nodeset [, handler=handler])
+            task.shell(command, nodes=nodeset [, handler=handler]
+                    [, timeout=secs])
         """
 
         handler = kwargs.get("handler", None)
+        timeo = kwargs.get("timeout", None)
 
         if kwargs.get("nodes", None):
-            assert kwargs.get("key", None) is None, "'key' argument not supported for distant command"
-            worker =  WorkerPdsh(kwargs["nodes"], command=command, handler=handler, task=self)
+            assert kwargs.get("key", None) is None, \
+                    "'key' argument not supported for distant command"
+            worker =  WorkerPdsh(kwargs["nodes"], command=command, \
+                    handler=handler, timeout=timeo, task=self)
         else:
-            worker = WorkerPopen2(command, key=kwargs.get("key", None), handler=handler, task=self)
+            worker = WorkerPopen2(command, key=kwargs.get("key", None), \
+                    handler=handler, timeout=timeo, task=self)
 
-        # Schedule task for this new shell worker.
+        # schedule task for this new shell worker
         self.engine.add(worker)
 
         return worker
 
-    def copy(self, source, dest, nodes, handler=None):
+    def copy(self, source, dest, nodes, **kwargs):
         """
         Copy local file to distant nodes.
         """
         assert nodes != None, "local copy not supported"
 
-        # Start new Pdcp worker (supported by WorkerPdsh)
-        worker = WorkerPdsh(nodes, source=source, dest=dest, handler=handler, task=self)
+        handler = kwargs.get("handler", None)
+        timeo = kwargs.get("timeout", None)
 
-        # Schedule task for this new copy worker.
+        # create a new Pdcp worker (supported by WorkerPdsh)
+        worker = WorkerPdsh(nodes, source=source, dest=dest, handler=handler, timeout=timeo, task=self)
+
+        # schedule task for this new copy worker
+        self.engine.add(worker)
+
+        return worker
+
+    def file(self, file, key=None, handler=None, timeout=None):
+        """
+        Listen on file object.
+        """
+        # create a File worker
+        worker = WorkerFile(file=file, key=key, handler=handler, timeout=timeout, task=self)
+
+        # schedule task for the file worker
         self.engine.add(worker)
 
         return worker
 
     def resume(self, timeout=0):
         """
-        Resume task. If task is task_self(), workers are executed in the calling thread so this
-        method will block until workers have finished. This is always the case for a
-        single-threaded application (eg. which doesn't create other Task() instance than task_self()).
-        Otherwise, the current thread doesn't block. In that case, you may then want to call
-        task_wait() to wait for completion.
+        Resume task. If task is task_self(), workers are executed in
+        the calling thread so this method will block until workers have
+        finished. This is always the case for a single-threaded
+        application (eg. which doesn't create other Task() instance
+        than task_self()). Otherwise, the current thread doesn't block.
+        In that case, you may then want to call task_wait() to wait for
+        completion.
         """
         if self.l_run:
             self.timeout = timeout
@@ -189,24 +213,31 @@ class Task(object):
         else:
             try:
                 self.engine.run(timeout)
-            except EngineTimeoutError:
+            except EngineTimeoutException:
                 raise TimeoutError()
+            except EngineAbortException:
+                pass
+            except:
+                raise
+
+    def abort(self):
+        """
+        Abort a task.
+        """
+        self.engine.abort()
 
     def join(self):
         """
-        Suspend execution of the calling thread until the target task terminates, unless the target
-        task has already terminated.
+        Suspend execution of the calling thread until the target task
+        terminates, unless the target task has already terminated.
         """
         self.engine.join()
 
-    def wait(cls, from_thread_id):
+    def workers(self):
         """
-        Class method that blocks calling thread until all tasks have finished.
+        Get active workers (as an iterable object).
         """
-        for thread_id, task in Task._tasks.iteritems():
-            if thread_id != from_thread_id:
-                task.join()
-    wait = classmethod(wait)
+        return self.engine.workers()
 
     def max_retcode(self):
         """
@@ -228,19 +259,32 @@ class Task(object):
         for k, rc in self.engine.iter_retcodes():
             yield list(k), rc
 
+    def wait(cls, from_thread_id):
+        """
+        Class method that blocks calling thread until all tasks have
+        finished.
+        """
+        for thread_id, task in Task._tasks.iteritems():
+            if thread_id != from_thread_id:
+                task.join()
+    wait = classmethod(wait)
+
+
 
 def task_self():
     """
-    Get the Task instance bound to the current thread. This function provided as a convenience
-    is available in the top-level ClusterShell.Task package namespace.
+    Get the Task instance bound to the current thread. This function
+    provided as a convenience is available in the top-level
+    ClusterShell.Task package namespace.
     """
     return Task(thread_id=thread.get_ident())
 
 def task_wait():
     """
-    Suspend execution of the calling thread until all tasks terminate, unless all tasks
-    have already terminated. This function is provided as a convenience and is available in the
-    top-level ClusterShell.Task package namespace.
+    Suspend execution of the calling thread until all tasks terminate,
+    unless all tasks have already terminated. This function is provided
+    as a convenience and is available in the top-level
+    ClusterShell.Task package namespace.
     """
     Task.wait(thread.get_ident())
 

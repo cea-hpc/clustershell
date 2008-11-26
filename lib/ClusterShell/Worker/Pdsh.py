@@ -37,8 +37,11 @@ import popen2
 
 class WorkerPdsh(Worker):
 
-    def __init__(self, nodes, handler, task, **kwargs):
-        Worker.__init__(self, handler, task)
+    def __init__(self, nodes, handler, timeout, task, **kwargs):
+        """
+        Initialize Pdsh worker instance.
+        """
+        Worker.__init__(self, handler, timeout, task)
         self.nodes = NodeSet(nodes)
         if kwargs.has_key('command'):
             # PDSH
@@ -66,16 +69,15 @@ class WorkerPdsh(Worker):
 
     def _start(self):
         """
-        Starts worker, initializes buffers and prepares command.
+        Start worker, initialize buffers, prepare command.
         """
         # Initialize worker read buffer
-        self._clearbuf()
+        self._buf = ""
 
-        self._invoke_ev_start()
+        self._invoke("ev_start")
 
         if self.command is not None:
             # Build pdsh command
-
             cmd_l = [ "/usr/bin/pdsh", "-b" ]
 
             fanout = self._task.info("fanout", 0)
@@ -99,12 +101,24 @@ class WorkerPdsh(Worker):
                 print "PDSH: %s" % cmd
         else:
             # Build pdcp command
-            cmd = "/usr/bin/pdcp -b -f %d -w '%s' '%s' '%s'" % \
-                    (self.pcmdnum, \
-                    self.nodes, \
-                    self.source, self.dest)
-            #print "PDCP : %s" % cmd
+            cmd_l = [ "/usr/bin/pdcp", "-b" ]
 
+            fanout = self._task.info("fanout", 0)
+            if fanout > 0:
+                cmd_l.append("-f %d" % fanout)
+
+            connect_timeout = self._task.info("connect_timeout", 0)
+            if connect_timeout > 0:
+                cmd_l.append("-t %d" % connect_timeout)
+
+            cmd_l.append("-w '%s'" % self.nodes)
+
+            cmd_l.append("'%s'" % self.source)
+            cmd_l.append("'%s'" % self.dest)
+            cmd = ' '.join(cmd_l)
+
+            if self._task.info("debug", False):
+                print "PDCP: %s" % cmd
         try:
             # Launch process in non-blocking mode
             self.fid = popen2.Popen4(cmd)
@@ -123,24 +137,24 @@ class WorkerPdsh(Worker):
     def _read(self, size=-1):
         return self.fid.fromchild.read(size)
 
-    def _close(self):
+    def _close(self, did_timeout):
         # rc code default to 0 for all nodes
         for nodename in self.nodes:
             self.engine.set_rc((self, nodename), 0, override=False)
 
         # close
         rc = self.fid.fromchild.close()
-        self._invoke_ev_close()
+        self._invoke("ev_close")
         return rc
 
     def _handle_read(self):
         debug = self._task.info("debug", False)
         # read a chunk
         readbuf = self._read()
-        assert len(readbuf) > 0, "poll() POLLIN event flag but no data to read"
-        buf = self._getbuf() + readbuf
+        assert len(readbuf) > 0, "_handle_read() called with no data to read"
+        buf = self._buf + readbuf
         lines = buf.splitlines(True)
-        self._clearbuf()
+        self._buf = ""
         for line in lines:
             if debug:
                 print "LINE: %s" % line,
@@ -163,8 +177,9 @@ class WorkerPdsh(Worker):
                         words  = line.split()
                         # Set return code for nodename of worker
                         if self.mode == 'pdsh':
-                            if len(words) == 4 and words[2] == "command" and words[3] == "timeout":
-                                pass
+                            if len(words) == 4 and words[2] == "command" and \
+                                words[3] == "timeout":
+                                    pass
                             elif len(words) == 8 and words[3] == "exited" and words[7].isdigit():
                                 self._set_node_rc(words[1][:-1], int(words[7]))
                         elif self.mode == 'pdcp':
@@ -177,20 +192,11 @@ class WorkerPdsh(Worker):
                     # split pdsh reply "nodename: msg"
                     nodename, msgline = line.split(': ', 1)
                     self._add_node_msgline(nodename, msgline)
-                    self._invoke_ev_read()
+                    self._invoke("ev_read")
             else:
                 # keep partial line in buffer
-                self._setbuf(line)
+                self._buf = line
                 # will break here
-
-    def _getbuf(self):
-        return self.buf
-
-    def _setbuf(self, buf):
-        self.buf = buf
-
-    def _clearbuf(self):
-        self.buf = ""
 
     def _add_node_msgline(self, nodename, msg):
         """
@@ -223,7 +229,8 @@ class WorkerPdsh(Worker):
 
     def iter_buffers(self):
         """
-        Returns an iterator over available buffers and associated NodeSet.
+        Returns an iterator over available buffers and associated
+        NodeSet.
         """
         for msg, keys in self.engine.iter_messages_by_worker(self):
             yield msg, NodeSet.fromlist(keys)

@@ -41,18 +41,20 @@ class WorkerBadArgumentError(WorkerError):
     pass
 
 
-class Worker:
+class Worker(object):
     """
     Base class Worker.
     """
     
-    def __init__(self, handler, task):
+    def __init__(self, handler, timeout, task):
         """
         Initializer. Should be called from derived classes.
         """
         self.eh = handler
         self.engine = None
+        self.timeout = timeout
         self._task = task
+        self.registered = False
 
     def task(self):
         """
@@ -74,7 +76,7 @@ class Worker:
 
     def _start(self):
         """
-        Starts worker and returns worker instance.
+        Starts worker and returns worker instance as a convenience.
         Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
@@ -85,13 +87,19 @@ class Worker:
         """
         raise NotImplementedError("Derived classes must implement.")
     
+    def abort(self):
+        """
+        Stop this worker.
+        """
+        self.engine.remove(self)
+
     def closed(self):
         """
         Returns True if the underlying file object is closed.
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _close(self):
+    def _close(self, did_timeout):
         """
         Close worker. Called by engine after worker has been unregistered.
         Derived classes must implement.
@@ -104,38 +112,7 @@ class Worker:
         """
         raise NotImplementedError("Derived classes must implement.")
     
-    def _invoke_ev_start(self):
-        """
-        Event handling
-        """
+    def _invoke(self, ev_type):
         if self.eh:
-            self.eh._invoke(self, EventHandler.START)
-
-    def _invoke_ev_open(self):
-        """
-        Event handling
-        """
-        if self.eh:
-            self.eh._invoke(self, EventHandler.OPEN)
-
-    def _invoke_ev_read(self):
-        """
-        Event handling
-        """
-        if self.eh:
-            self.eh._invoke(self, EventHandler.READ)
-
-    def _invoke_ev_write(self):
-        """
-        Event handling
-        """
-        if self.eh:
-            self.eh._invoke(self, EventHandler.WRITE)
-
-    def _invoke_ev_close(self):
-        """
-        Event handling
-        """
-        if self.eh:
-            self.eh._invoke(self, EventHandler.CLOSE)
+            self.eh._invoke(ev_type, self)
 

@@ -1,5 +1,6 @@
-# WorkerPopen2.py -- Local shell worker
-# Copyright (C) 2007, 2008 CEA
+# WorkerFile.py -- File ClusterShell worker
+# Copyright (C) 2008 CEA
+# Written by S. Thiell
 #
 # This file is part of ClusterShell
 #
@@ -17,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# $Id: WorkerPopen2.py 24 2008-03-19 14:02:13Z st-cea $
+# $Id$
 
 
 """
-WorkerPopen2
+WorkerFile
 
-ClusterShell worker for local commands.
+ClusterShell worker for file objects.
 """
 
 from ClusterShell.NodeSet import NodeSet
@@ -31,36 +32,25 @@ from Worker import Worker
 
 import fcntl
 import os
-import popen2
-import signal
+import sys
 
-
-class WorkerPopen2(Worker):
+class WorkerFile(Worker):
     """
     Implements the Worker interface.
     """
 
-    def __init__(self, command, key, handler, timeout, task):
+    def __init__(self, file, key, handler, timeout, task):
         """
-        Initialize Popen2 worker.
+        Initialize File worker.
         """
         Worker.__init__(self, handler, timeout, task)
-        self.command = command
-        if not self.command:
-            raise WorkerBadArgumentException()
-        self.fid = None
-        self.buf = ""
+        self._file = file
         self.last_msg = None
-        self.rc = None
         self.key = key or self
-
-    def __iter__(self):
-        for line in self.fid.fromchild:
-            yield line
 
     def set_key(self, key):
         """
-        Source key for Popen2 worker is free for use. This method is a
+        Source key for File worker is free for use. This method is a
         way to set such a custom source key for this worker.
         """
         self.key = key
@@ -69,46 +59,31 @@ class WorkerPopen2(Worker):
         """
         Start worker. Implements worker interface.
         """
-        assert self.fid is None
-
-        self.buf = ""                # initialize worker read buffer
-
-        # Launch process in non-blocking mode
-        self.fid = popen2.Popen4(self.command)
-        fcntl.fcntl(self.fid.fromchild, fcntl.F_SETFL, os.O_NDELAY)
-
-        if self._task.info("debug", False):
-            print "POPEN2: %s" % self.command
-
+        # initialize worker read buffer
+        self.buf = ""
+        # save file f_flag
+        self.fl_save = fcntl.fcntl(self._file, fcntl.F_GETFL)
+        # turn stdin into non blocking mode
+        fcntl.fcntl(self._file, fcntl.F_SETFL, os.O_NDELAY)
         self._invoke("ev_start")
-
         return self
 
     def fileno(self):
-        return self.fid.fromchild.fileno()
+        return sys.stdin.fileno()
 
     def closed(self):
-        return self.fid.fromchild.closed
+        return sys.stdin.closed
 
     def _read(self, size=-1):
-        return self.fid.fromchild.read(size)
+        return sys.stdin.read(size)
 
-    def _close(self, did_timeout):
+    def _close(self, did_timeout=False):
         if did_timeout:
-            # check if process has terminated
-            status = self.fid.poll()
-            if status == -1:
-                # process is still running, kill it
-                os.kill(self.fid.pid, signal.SIGKILL)
-            # trigger timeout event
             self._invoke("ev_timeout")
-        else:
-            # close process / check if it has terminated
-            status = self.fid.wait()
-            self._set_rc(status)
-        self.fid.tochild.close()
-        self.fid.fromchild.close()
+
         self._invoke("ev_close")
+        # restore stdin f_flag
+        fcntl.fcntl(self._file, fcntl.F_SETFL, self.fl_save)
 
     def _handle_read(self):
         debug = self._task.info("debug", False)
@@ -120,7 +95,7 @@ class WorkerPopen2(Worker):
         self.buf = ""
         for line in lines:
             if debug:
-                print "LINE %s" % line,
+                print "LINE (File): %s" % line,
             if line.endswith('\n'):
                 self._add_msg(line)
                 self._invoke("ev_read")
@@ -149,7 +124,7 @@ class WorkerPopen2(Worker):
         """
         Set return code.
         """
-        self.rc = rc
+        pass
 
     def read(self):
         """
@@ -163,5 +138,5 @@ class WorkerPopen2(Worker):
         """
         Return return code or None if command is still in progress.
         """
-        return self.rc
+        return 0
    

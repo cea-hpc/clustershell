@@ -19,60 +19,55 @@
 #
 # $Id: Event.py 7 2007-12-20 14:52:31Z st-cea $
 
-import sys
+
+"""
+Event handler support
+
+EventHandler's derived classes may implement ev_* methods to listen on
+worker's events.
+"""
 
 class EventHandler:
     """
     Base class EventHandler.
     """
-    
-    START = 0
-    OPEN = 1
-    READ = 2
-    WRITE = 3
-    CLOSE = -1
-
-    def __init__(self):
-        self._ev_map = { self.START: self.ev_start,
-                         self.OPEN : self.ev_open,
-                         self.READ : self.ev_read,
-                         self.WRITE : self.ev_write,
-                         self.CLOSE : self.ev_close }
-    
-    def install(self, target, type):
+    def _invoke(self, ev_type, worker):
         """
-        Install a new event handler by adding an event target and type.
+        Invoke a specific event handler.
         """
-        try:
-            self._ev_map[type] = target
-        except AttributeError:
-            print >> sys.stderr, "Uninitialized EventHandler object."
-            raise
-
-    def remove(self, type=None):
-        """
-        Remove an installed event handler for the specified type.
-        """
-        if type:
-            del self._ev_map[type]
-        else:
-            self._ev_map.clear()
-
-    def _invoke(self, worker, type):
-        self._ev_map[type](worker)
+        ev_handler = getattr(self, ev_type)
+        ev_handler(worker)
 
     def ev_start(self, worker):
-        pass
-
-    def ev_open(self, worker):
+        """
+        Called to indicate that a worker is about to run.
+        """
         pass
 
     def ev_read(self, worker):
+        """
+        Called to indicate that a worker has data to read.
+        """
         pass
 
     def ev_write(self, worker):
+        """
+        Called to indicate that writing now on that worker will not
+        block (not supported).
+        """
         pass
 
     def ev_close(self, worker):
+        """
+        Called to indicate that a worker has finished (it may already
+        have failed on timeout).
+        """
+        pass
+
+    def ev_timeout(self, worker):
+        """
+        Called to indicate that a worker has timed out (worker specific
+        timeout only).
+        """
         pass
 

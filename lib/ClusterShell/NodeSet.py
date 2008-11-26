@@ -24,8 +24,8 @@
 Cluster node set.
 
 A module to deal efficiently with pdsh-like rangesets and nodesets.
-Instances of RangeSet and NodeSet both provide similar operations than the
-builtin set() type and Set object.
+Instances of RangeSet and NodeSet both provide similar operations than
+the builtin set() type and Set object.
    [ See http://www.python.org/doc/lib/set-objects.html ]
 
 Usage example:
@@ -288,8 +288,8 @@ class RangeSet:
                     self._ranges.append((j, j, step, pad))
             self._length = (stop_adjust - start) / step + 1
         else:
-            self._ranges, self._length = self._add_range_exfold(start, stop, step,
-                                                              pad)
+            self._ranges, self._length = self._add_range_exfold(start, stop, \
+                    step, pad)
 
     def _add_range_exfold(self, start, stop, step, pad):
         """
@@ -356,7 +356,8 @@ class RangeSet:
 
 def _NodeSetParse(ns, autostep):
     """
-    Internal RangeSet generator for NodeSet or nodeset string pattern parsing.
+    Internal RangeSet generator for NodeSet or nodeset string pattern
+    parsing.
     """
     # is ns a NodeSet instance?
     if isinstance(ns, NodeSet):
@@ -379,7 +380,8 @@ def _NodeSetParse(ns, autostep):
             # is no comma at all but some brackets.
             if bracket_idx >= 0 and (comma_idx > bracket_idx or comma_idx < 0):
 
-                # In this case, we have a pattern of potentially several nodes.
+                # In this case, we have a pattern of potentially several
+                # nodes.
 
                 # Fill prefix, range and suffix from pattern
                 # eg. "forbin[3,4-10]-ilo" -> "forbin", "3,4-10", "-ilo"
@@ -408,8 +410,9 @@ def _NodeSetParse(ns, autostep):
 
                 yield "%s%%s%s" % (pfx, sfx), rset
             else:
-                # In this case, either there is no comma and no bracket, or the
-                # bracket is after the comma, then just return the node.
+                # In this case, either there is no comma and no bracket,
+                # or the bracket is after the comma, then just return
+                # the node.
                 if comma_idx < 0:
                     node = pat
                     pat = None # break next time
@@ -450,8 +453,8 @@ class NodeSet(object):
     Iterable class of nodes with node ranges support.
 
     NodeSet creation examples:
-        nodeset = NodeSet()                     # empty NodeSet
-        nodeset = NodeSet("clustername3")       # contains only clustername3
+        nodeset = NodeSet()                   # empty NodeSet
+        nodeset = NodeSet("clustername3")     # contains only clustername3
         nodeset = NodeSet("clustername[5,10-42]")
         nodeset = NodeSet("clustername[0-10/2]")
         nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
@@ -461,8 +464,8 @@ class NodeSet(object):
     """
     def __init__(self, pattern=None, autostep=None):
         """
-        Initialize a NodeSet. If no pattern is specified, an empty NodeSet is
-        created.
+        Initialize a NodeSet. If no pattern is specified, an empty
+        NodeSet is created.
         """
         self._autostep = autostep
         self._length = 0
@@ -472,7 +475,8 @@ class NodeSet(object):
 
     def fromlist(cls, l, autostep=None):
         """
-        Class method that returns a new NodeSet with nodes from provided list.
+        Class method that returns a new NodeSet with nodes from
+        provided list.
         """
         inst = NodeSet(autostep=autostep)
         for pat in l:
@@ -530,7 +534,8 @@ class NodeSet(object):
         pat_e = self._patterns.get(pat)
 
         if pat_e:
-            # don't play with prefix: if there is a value, there is a rangeset.
+            # don't play with prefix: if there is a value, there is a
+            # rangeset.
             assert rangeset != None
 
             # add rangeset in corresponding pattern rangeset
@@ -549,8 +554,8 @@ class NodeSet(object):
 
     def __or__(self, other):
         """
-        Implements the | operator. So s | t returns a new set with elements
-        from both s and t.
+        Implements the | operator. So s | t returns a new set with
+        elements from both s and t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -565,8 +570,8 @@ class NodeSet(object):
 
     def __ior__(self, other):
         """
-        Implements the |= operator. So s |= t returns nodeset s with elements
-        added from t.
+        Implements the |= operator. So s |= t returns nodeset s with
+        elements added from t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -574,7 +579,8 @@ class NodeSet(object):
 
     def intersection(self, other):
         """
-        s.intersection(t) returns a new set with elements common to s and t.
+        s.intersection(t) returns a new set with elements common to s
+        and t.
         """
         self_copy = copy.deepcopy(self)
         self_copy.intersection_update(other)
@@ -582,8 +588,8 @@ class NodeSet(object):
 
     def __and__(self, other):
         """
-        Implements the & operator. So s & t returns a new set with elements
-        common to s and t.
+        Implements the & operator. So s & t returns a new set with
+        elements common to s and t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -591,8 +597,8 @@ class NodeSet(object):
 
     def intersection_update(self, other):
         """
-        s.intersection_update(t) returns nodeset s keeping only elements also
-        found in t.
+        s.intersection_update(t) returns nodeset s keeping only
+        elements also found in t.
         """
         if other is self:
             return
@@ -613,8 +619,8 @@ class NodeSet(object):
 
     def __iand__(self, other):
         """
-        Implements the &= operator. So s &= t returns nodeset s keeping only
-        elements also found in t.
+        Implements the &= operator. So s &= t returns nodeset s keeping
+        only elements also found in t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -622,7 +628,8 @@ class NodeSet(object):
 
     def difference(self, other):
         """
-        s.difference(t) returns a new set with elements in s but not in t.
+        s.difference(t) returns a new set with elements in s but not in
+        t.
         """
         self_copy = copy.deepcopy(self)
         self_copy.difference_update(other)
@@ -630,8 +637,8 @@ class NodeSet(object):
 
     def __sub__(self, other):
         """
-        Implement the - operator. So s - t returns a new set with elements in s
-        but not in t.
+        Implement the - operator. So s - t returns a new set with
+        elements in s but not in t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -639,8 +646,8 @@ class NodeSet(object):
 
     def difference_update(self, other):
         """
-        s.difference_update(t) returns nodeset s after removing elements found
-        in t.
+        s.difference_update(t) returns nodeset s after removing
+        elements found in t.
         """
         # the purge of each empty pattern is done afterward to allow self = ns
         purge_patterns = []
@@ -665,8 +672,8 @@ class NodeSet(object):
 
     def __isub__(self, other):
         """
-        Implement the -= operator. So s -= t returns nodeset s after removing
-        elements found in t.
+        Implement the -= operator. So s -= t returns nodeset s after
+        removing elements found in t.
         """
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -675,14 +682,15 @@ class NodeSet(object):
 
 def expand(pat):
     """
-    Commodity function that expands a pdsh-like pattern into a list of nodes.
+    Commodity function that expands a pdsh-like pattern into a list of
+    nodes.
     """
     return list(NodeSet(pat))
 
 def fold(pat):
     """
-    Commodity function that clean dups and fold provided pattern with ranges
-    and "/step" support.
+    Commodity function that clean dups and fold provided pattern with
+    ranges and "/step" support.
     """
     return str(NodeSet(pat))
 
