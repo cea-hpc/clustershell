@@ -22,54 +22,44 @@ import socket
 import thread
 
 
-did_start = False
-did_open = False
-did_read = False
-did_close = False
-
-did_start2 = False
-did_open2 = False
-did_read2 = False
-did_close2 = False
-
 class TestHandler(EventHandler):
 
     def __init__(self):
-        EventHandler.__init__(self)
+        self.reset_asserts()
+
+    def do_asserts_read_notimeout(self):
+        assert self.did_start, "ev_start not called"
+        assert self.did_read, "ev_read not called"
+        assert self.did_close, "ev_close not called"
+        assert not self.did_timeout, "ev_timeout called"
+
+    def do_asserts_timeout(self):
+        assert self.did_start, "ev_start not called"
+        assert not self.did_read, "ev_read called"
+        assert self.did_close, "ev_close not called"
+        assert self.did_timeout, "ev_timeout not called"
+
+    def reset_asserts(self):
+        self.did_start = False
+        self.did_open = False
+        self.did_read = False
+        self.did_close = False
+        self.did_timeout = False
 
     def ev_start(self, worker):
-        did_start = True
-
-    def ev_open(self, worker):
-        did_open = True
+        self.did_start = True
 
     def ev_read(self, worker):
-        did_read = True
+        self.did_read = True
         assert worker.last_read() == "abcdefghijklmnopqrstuvwxyz"
 
     def ev_close(self, worker):
-        did_close = True
-        assert worker.read().startswith("abcdefghijklmnopqrstuvwxyz")
+        self.did_close = True
+        if worker.read():
+            assert worker.read().startswith("abcdefghijklmnopqrstuvwxyz")
 
-
-class TestHandler2(EventHandler):
-
-    def __init__(self):
-        EventHandler.__init__(self)
-
-    def ev_start(self, worker):
-        did_start2 = True
-
-    def ev_open(self, worker):
-        did_open2 = True
-
-    def ev_read(self, worker):
-        did_read2 = True
-        r = worker.last_read()
-
-    def ev_close(self, worker):
-        did_close2 = True
-        r = worker.read()
+    def ev_timeout(self, worker):
+        self.did_timeout = True
 
 
 class TaskEventTest(unittest.TestCase):
@@ -78,39 +68,43 @@ class TaskEventTest(unittest.TestCase):
         """test simple event handler"""
         task = task_self()
         self.assert_(task != None)
-
+        eh = TestHandler()
         # init worker
-        worker = task.shell("./test_command.py --test=cmp_out", handler=TestHandler())
+        worker = task.shell("./test_command.py --test=cmp_out", handler=eh)
         self.assert_(worker != None)
         # run task
         task.resume()
+        eh.do_asserts_read_notimeout()
+        eh.reset_asserts()
+        # re-test
+        # init worker
+        worker = task.shell("./test_command.py --test=cmp_out", handler=eh)
+        self.assert_(worker != None)
+        # run task
+        task.resume()
+        eh.do_asserts_read_notimeout()
+        eh.reset_asserts()
 
-        self.assert_(not did_start, "ev_start not called")
-        self.assert_(not did_open, "ev_open not called")
-        self.assert_(not did_read, "ev_read not called")
-        self.assert_(not did_close, "ev_close not called")
 
 
-    def testSimpleEventHandlerWithTimeout(self):
+    def testSimpleEventHandlerWithTaskTimeout(self):
         """test simple event handler with timeout"""
         task = task_self()
         self.assert_(task != None)
 
+        eh = TestHandler()
         # init worker
-        worker = task.shell("/bin/sleep 3", handler=TestHandler2())
+        worker = task.shell("/bin/sleep 3", handler=eh)
         self.assert_(worker != None)
 
         try:
-            task.resume(1)
+            task.resume(2)
         except TimeoutError:
             pass
         else:
-            self.fail("did detect timeout")
+            self.fail("did not detect timeout")
 
-        self.assert_(not did_start2, "ev_start not called")
-        self.assert_(not did_open2, "ev_open not called")
-        self.assert_(not did_read2, "ev_read not called")
-        self.assert_(not did_close2, "ev_close not called")
+        eh.do_asserts_timeout()
        
 
 

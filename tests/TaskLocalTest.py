@@ -149,6 +149,42 @@ class TaskLocalTest(unittest.TestCase):
         except TimeoutError:
             self.fail("did detect timeout")
 
+    def testWorkersTimeout(self):
+        """test workers with timeout"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # init worker
+        worker = task.shell("/bin/sleep 6", timeout=3)
+        self.assert_(worker != None)
+
+        worker = task.shell("/bin/sleep 6", timeout=2)
+        self.assert_(worker != None)
+
+        try:
+            # run task
+            task.resume()
+        except TimeoutError:
+            self.fail("did detect timeout")
+
+    def testWorkersTimeout2(self):
+        """test workers with timeout (more)"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/bin/sleep 10", timeout=5)
+        self.assert_(worker != None)
+
+        worker = task.shell("/bin/sleep 10", timeout=3)
+        self.assert_(worker != None)
+
+        try:
+            # run task
+            task.resume()
+        except TimeoutError:
+            self.fail("did detect task timeout")
+
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)
