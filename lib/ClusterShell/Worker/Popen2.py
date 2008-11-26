@@ -54,10 +54,6 @@ class WorkerPopen2(Worker):
         self.rc = None
         self.key = key or self
 
-    def __iter__(self):
-        for line in self.fid.fromchild:
-            yield line
-
     def set_key(self, key):
         """
         Source key for Popen2 worker is free for use. This method is a
@@ -85,23 +81,38 @@ class WorkerPopen2(Worker):
         return self
 
     def fileno(self):
+        """
+        Returns the file descriptor as an integer.
+        """
         return self.fid.fromchild.fileno()
 
     def closed(self):
+        """
+        Returns True if the underlying file object is closed.
+        """
         return self.fid.fromchild.closed
 
     def _read(self, size=-1):
+        """
+        Read data from process.
+        """
         return self.fid.fromchild.read(size)
 
-    def _close(self, did_timeout):
-        if did_timeout:
+    def _close(self, force, timeout):
+        """
+        Close worker. Called by engine after worker has been
+        unregistered. This method should handle all termination types
+        (normal, forced or on timeout).
+        """
+        if force or timeout:
             # check if process has terminated
             status = self.fid.poll()
             if status == -1:
                 # process is still running, kill it
                 os.kill(self.fid.pid, signal.SIGKILL)
             # trigger timeout event
-            self._invoke("ev_timeout")
+            if timeout:
+                self._invoke("ev_timeout")
         else:
             # close process / check if it has terminated
             status = self.fid.wait()
@@ -111,6 +122,9 @@ class WorkerPopen2(Worker):
         self._invoke("ev_close")
 
     def _handle_read(self):
+        """
+        Engine is telling us a read is available.
+        """
         debug = self._task.info("debug", False)
         # read a chunk
         readbuf = self._read()

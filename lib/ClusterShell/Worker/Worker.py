@@ -99,9 +99,11 @@ class Worker(object):
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _close(self, did_timeout):
+    def _close(self, force, timeout):
         """
-        Close worker. Called by engine after worker has been unregistered.
+        Close worker. Called by engine after worker has been
+        unregistered. This method should handle all termination types
+        (normal, forced or on timeout).
         Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")

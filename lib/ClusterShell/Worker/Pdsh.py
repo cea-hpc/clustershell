@@ -33,6 +33,7 @@ import errno
 import fcntl
 import os
 import popen2
+import signal
 
 
 class WorkerPdsh(Worker):
@@ -62,10 +63,6 @@ class WorkerPdsh(Worker):
         self.buf = ""
         self.last_node = None
         self.last_msg = None
-
-    def __iter__(self):
-        for line in self.fid.fromchild:
-            yield line
 
     def _start(self):
         """
@@ -129,25 +126,52 @@ class WorkerPdsh(Worker):
         return self
 
     def fileno(self):
+        """
+        Returns the file descriptor as an integer.
+        """
         return self.fid.fromchild.fileno()
     
     def closed(self):
+        """
+        Returns True if the underlying file object is closed.
+        """
         return self.fid.fromchild.closed
 
     def _read(self, size=-1):
+        """
+        Read data from process.
+        """
         return self.fid.fromchild.read(size)
 
-    def _close(self, did_timeout):
+    def _close(self, force, timeout):
+        """
+        Close worker. Called by engine after worker has been
+        unregistered. This method should handle all termination types
+        (normal, forced or on timeout).
+        """
         # rc code default to 0 for all nodes
         for nodename in self.nodes:
             self.engine.set_rc((self, nodename), 0, override=False)
 
+        if force or timeout:
+            status = self.fid.poll()
+            if status == -1:
+                # process is still running, kill it
+                os.kill(self.fid.pid, signal.SIGKILL)
+            if timeout:
+                self._invoke("ev_timeout")
+        else:
+            self.fid.wait()
+
         # close
-        rc = self.fid.fromchild.close()
+        self.fid.tochild.close()
+        self.fid.fromchild.close()
         self._invoke("ev_close")
-        return rc
 
     def _handle_read(self):
+        """
+        Engine is telling us a read is available.
+        """
         debug = self._task.info("debug", False)
         # read a chunk
         readbuf = self._read()

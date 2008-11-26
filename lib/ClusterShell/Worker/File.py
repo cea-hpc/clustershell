@@ -32,7 +32,6 @@ from Worker import Worker
 
 import fcntl
 import os
-import sys
 
 class WorkerFile(Worker):
     """
@@ -63,29 +62,42 @@ class WorkerFile(Worker):
         self.buf = ""
         # save file f_flag
         self.fl_save = fcntl.fcntl(self._file, fcntl.F_GETFL)
-        # turn stdin into non blocking mode
+        # turn file object into non blocking mode
         fcntl.fcntl(self._file, fcntl.F_SETFL, os.O_NDELAY)
         self._invoke("ev_start")
         return self
 
     def fileno(self):
-        return sys.stdin.fileno()
+        """
+        Returns the file descriptor as an integer.
+        """
+        return self._file.fileno()
 
     def closed(self):
-        return sys.stdin.closed
+        """
+        Returns True if the underlying file object is closed.
+        """
+        return self._file.closed
 
     def _read(self, size=-1):
-        return sys.stdin.read(size)
+        return self._file.read(size)
 
-    def _close(self, did_timeout=False):
-        if did_timeout:
+    def _close(self, force, timeout):
+        """
+        Close worker. Called by engine after worker has been
+        unregistered. This method should handle all termination types
+        (normal, forced or on timeout).
+        """
+        if timeout:
             self._invoke("ev_timeout")
-
-        self._invoke("ev_close")
-        # restore stdin f_flag
+        # restore file f_flag
         fcntl.fcntl(self._file, fcntl.F_SETFL, self.fl_save)
+        self._invoke("ev_close")
 
     def _handle_read(self):
+        """
+        Engine is telling us a read is available.
+        """
         debug = self._task.info("debug", False)
         # read a chunk
         readbuf = self._read()
