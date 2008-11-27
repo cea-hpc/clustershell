@@ -23,6 +23,8 @@
 
 """
 Usage: clush [-d] [options] [-x|--exclude <nodeset>] -w|--nodes <nodeset> [cmd]
+
+Pdsh-like with integrated dshback command using the ClusterShell library.
 """
 
 import fcntl
@@ -42,15 +44,15 @@ import socket
 
 import pdb
 
-def prompt():
+def _prompt():
     sys.stdout.write("clush> ")
     sys.stdout.flush()
 
-def set_write_buffered():
+def _set_write_buffered():
     flag = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
     fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flag & ~os.O_NDELAY)
 
-def set_write_nonblocking():
+def _set_write_nonblocking():
     fcntl.fcntl(sys.stdout, fcntl.F_SETFL, os.O_NDELAY)
 
 class IShellHandler(EventHandler):
@@ -58,7 +60,7 @@ class IShellHandler(EventHandler):
         self.input_eh = None
 
     def ev_close(self, worker):
-        set_write_buffered()
+        _set_write_buffered()
         for buffer, nodeset in worker.iter_buffers():
             sys.stdout.write("----------------\n")
             sys.stdout.write(str(NodeSet.fromlist(nodeset, autostep=3)) + "\n")
@@ -68,8 +70,8 @@ class IShellHandler(EventHandler):
             if rc != 0:
                 ns = NodeSet.fromlist(nodeset, autostep=3)
                 sys.stdout.write("%s: exited with exit code %s\n" % (ns, rc))
-        prompt()
-        set_write_nonblocking()
+        _prompt()
+        _set_write_nonblocking()
         self.input_eh.shell_worker = None
 
 class IInputHandler(EventHandler):
@@ -80,7 +82,7 @@ class IInputHandler(EventHandler):
         self.shell_worker = None
 
     def ev_start(self, worker):
-        prompt()
+        _prompt()
 
     def ev_read(self, worker):
         if self.shell_worker is None:
@@ -89,7 +91,7 @@ class IInputHandler(EventHandler):
             if len(buf) > 0:
                 self.shell_worker = task.shell(buf, nodes=self.nodes, handler=self.shell_eh)
             else:
-                prompt()
+                _prompt()
 
 def runClush(args):
     try:
@@ -166,5 +168,5 @@ if __name__ == '__main__':
     try:
         runClush(sys.argv)
     except KeyboardInterrupt:
-        pass
+        print
 
