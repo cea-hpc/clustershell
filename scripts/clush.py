@@ -22,24 +22,80 @@
 
 
 """
-Usage: clush [-d] [options] [-x|--exclude <nodeset>] -w|--nodes <nodeset> <cmd>
+Usage: clush [-d] [options] [-x|--exclude <nodeset>] -w|--nodes <nodeset> [cmd]
 """
 
+import fcntl
 import getopt
+import os
 import sys
 
 sys.path.append('../lib')
 
 import ClusterShell
 
+from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 
 import socket
 
+import pdb
+
+def prompt():
+    sys.stdout.write("clush> ")
+    sys.stdout.flush()
+
+def set_write_buffered():
+    flag = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
+    fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flag & ~os.O_NDELAY)
+
+def set_write_nonblocking():
+    fcntl.fcntl(sys.stdout, fcntl.F_SETFL, os.O_NDELAY)
+
+class IShellHandler(EventHandler):
+    def __init__(self):
+        self.input_eh = None
+
+    def ev_close(self, worker):
+        set_write_buffered()
+        for buffer, nodeset in worker.iter_buffers():
+            sys.stdout.write("----------------\n")
+            sys.stdout.write(str(NodeSet.fromlist(nodeset, autostep=3)) + "\n")
+            sys.stdout.write("----------------\n")
+            sys.stdout.write(buffer)
+        for rc, nodeset in worker.iter_retcodes():
+            if rc != 0:
+                ns = NodeSet.fromlist(nodeset, autostep=3)
+                sys.stdout.write("%s: exited with exit code %s\n" % (ns, rc))
+        prompt()
+        set_write_nonblocking()
+        self.input_eh.shell_worker = None
+
+class IInputHandler(EventHandler):
+    def __init__(self, nodes, eh):
+        self.nodes = nodes
+        self.shell_eh = eh
+        self.shell_eh.input_eh = self
+        self.shell_worker = None
+
+    def ev_start(self, worker):
+        prompt()
+
+    def ev_read(self, worker):
+        if self.shell_worker is None:
+            task = task_self()
+            buf = worker.last_read()
+            if len(buf) > 0:
+                self.shell_worker = task.shell(buf, nodes=self.nodes, handler=self.shell_eh)
+            else:
+                prompt()
+
 def runClush(args):
     try:
-        opts, args = getopt.getopt(args[1:], "dhf:t:u:x:w:", ["debug", "help", "fanout=", "connect_timeout=", "command_timeout=", "exclude=", "nodes="])
+        opts, args = getopt.getopt(args[1:], "dhf:t:u:x:w:", ["debug", \
+                "help", "fanout=", "connect_timeout=", "command_timeout=", \
+                "exclude=", "nodes="])
     except getopt.error, msg:
         print msg
         print "Try `python %s -h' for more information." % args[0]
@@ -85,22 +141,30 @@ def runClush(args):
     if command_timeout:
         task.set_info("command_timeout", command_timeout)
 
-    worker = task.shell(' '.join(args), nodes=nodeset_base)
-    task.resume()
+    if len(args) == 0:
+        task.file(sys.stdin, handler=IInputHandler(nodeset_base, IShellHandler()))
+        task.resume()
+    else:
+        worker = task.shell(' '.join(args), nodes=nodeset_base)
 
-    
-    for buffer, nodeset in worker.iter_buffers():
-        print "----------------"
-        print NodeSet.fromlist(nodeset, autostep=3)
-        print "----------------"
-        print "", buffer,
+        task.resume()
 
-    for rc, nodeset in worker.iter_retcodes():
-        if rc != 0:
-            ns = NodeSet.fromlist(nodeset, autostep=3)
-            print "clush: %s: exited with exit code %s" % (ns, rc)
+        for buffer, nodeset in worker.iter_buffers():
+            print "----------------"
+            print NodeSet.fromlist(nodeset, autostep=3)
+            print "----------------"
+            print buffer,
 
-    sys.exit(task.max_retcode())
+        for rc, nodeset in worker.iter_retcodes():
+            if rc != 0:
+                ns = NodeSet.fromlist(nodeset, autostep=3)
+                print "clush: %s: exited with exit code %s" % (ns, rc)
+
+        sys.exit(task.max_retcode())
 
 if __name__ == '__main__':
-    runClush(sys.argv)
+    try:
+        runClush(sys.argv)
+    except KeyboardInterrupt:
+        pass
+

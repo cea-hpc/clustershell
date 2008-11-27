@@ -63,7 +63,7 @@ class WorkerFile(Worker):
         # save file f_flag
         self.fl_save = fcntl.fcntl(self._file, fcntl.F_GETFL)
         # turn file object into non blocking mode
-        fcntl.fcntl(self._file, fcntl.F_SETFL, os.O_NDELAY)
+        fcntl.fcntl(self._file.fileno(), fcntl.F_SETFL, os.O_NDELAY)
         self._invoke("ev_start")
         return self
 
@@ -91,8 +91,8 @@ class WorkerFile(Worker):
         if timeout:
             self._invoke("ev_timeout")
         # restore file f_flag
-        fcntl.fcntl(self._file, fcntl.F_SETFL, self.fl_save)
         self._invoke("ev_close")
+        fcntl.fcntl(self._file, fcntl.F_SETFL, self.fl_save)
 
     def _handle_read(self):
         """

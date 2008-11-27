@@ -44,6 +44,7 @@ Simple example of use:
 
 from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
+from Engine.Engine import EngineAlreadyRunningError
 from Engine.Poll import EnginePoll
 from Worker.File import WorkerFile
 from Worker.Pdsh import WorkerPdsh
@@ -51,9 +52,23 @@ from Worker.Popen2 import WorkerPopen2
 
 import thread
 
+class TaskException(Exception):
+    """
+    Base task exception.
+    """
 
-class TimeoutError(Exception):
-    pass
+class TimeoutError(TaskException):
+    """
+    Raised when the task timed out.
+    """
+
+class AlreadyRunningError(TaskException):
+    """
+    Raised when trying to resume an already running task.
+    """
+    def __str__(self):
+        return "current task already running"
+
 
 class Task(object):
     """
@@ -217,6 +232,8 @@ class Task(object):
                 raise TimeoutError()
             except EngineAbortException:
                 pass
+            except EngineAlreadyRunningError:
+                raise AlreadyRunningError()
             except:
                 raise
 

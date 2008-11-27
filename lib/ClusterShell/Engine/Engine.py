@@ -31,21 +31,23 @@ import time
 
 class EngineException(Exception):
     """
-    Base engine error exception.
+    Base engine exception.
     """
-    pass
 
 class EngineAbortException(EngineException):
     """
     Raised on user abort.
     """
-    pass
 
 class EngineTimeoutException(EngineException):
     """
     Raised when a timeout is encountered.
     """
-    pass
+
+class EngineAlreadyRunningError(EngineException):
+    """
+    Error raised when the engine is already running.
+    """
 
 
 class _MsgTreeElem:
@@ -280,7 +282,7 @@ class Engine:
         self._workers.remove(worker)
         if worker.registered:
             self.unregister(worker)
-            worker._close(did_timeout)
+            worker._close(force=False, timeout=did_timeout)
 
     def clear(self, did_timeout=False):
         """
@@ -291,7 +293,7 @@ class Engine:
             worker = self._workers.pop()
             if worker.registered:
                 self.unregister(worker)
-                worker._close(did_timeout)
+                worker._close(force=True, timeout=did_timeout)
 
     def register(self, worker):
         """
@@ -326,6 +328,9 @@ class Engine:
         """
         Run engine in calling thread.
         """
+        # change to running state
+        if not self.run_lock.acquire(0):
+            raise EngineAlreadyRunningError()
 
         # arm worker timers
         for worker in self._workers:
@@ -334,9 +339,7 @@ class Engine:
         # start workers now
         self.start_all()
 
-        # change to running state
-        status = self.run_lock.acquire(0)
-        assert status, "cannot acquire run lock"
+        # we're started
         self.start_lock.release()
 
         # note: try-except-finally not supported before python 2.5
@@ -442,7 +445,9 @@ class Engine:
         worker.
         """
         for e in self._msg_root:
-            yield e.message(), [t[1] for t in e.sources if t[0] is worker]
+            keys = [t[1] for t in e.sources if t[0] is worker]
+            if len(keys) > 0:
+                yield e.message(), keys
 
     def iter_key_messages_by_worker(self, worker):
         """
@@ -473,7 +478,9 @@ class Engine:
         """
         # Use the items iterator for the underlying dict.
         for rc, src in self._d_rc_sources.iteritems():
-            yield rc, [t[1] for t in src if t[0] is worker]
+            keys = [t[1] for t in src if t[0] is worker]
+            if len(keys) > 0:
+                yield rc, keys
 
     def max_retcode(self):
         """
