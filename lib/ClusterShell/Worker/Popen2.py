@@ -126,9 +126,11 @@ class WorkerPopen2(Worker):
         Engine is telling us a read is available.
         """
         debug = self._task.info("debug", False)
+
         # read a chunk
         readbuf = self._read()
         assert len(readbuf) > 0, "_handle_read() called with no data to read"
+
         buf = self.buf + readbuf
         lines = buf.splitlines(True)
         self.buf = ""
@@ -142,6 +144,7 @@ class WorkerPopen2(Worker):
                 # keep partial line in buffer
                 self.buf = line
                 # will break here
+        return True
 
     def last_read(self):
         """

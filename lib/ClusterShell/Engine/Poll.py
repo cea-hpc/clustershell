@@ -133,7 +133,9 @@ class EnginePoll(Engine):
 
                 # check for data to read
                 if event & select.POLLIN:
-                    worker._handle_read()
+                    if not worker._handle_read():
+                        self.remove(worker)
+                        continue
 
                 # check for end of stream
                 if event & select.POLLHUP:

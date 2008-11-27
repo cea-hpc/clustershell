@@ -80,6 +80,9 @@ class WorkerFile(Worker):
         return self._file.closed
 
     def _read(self, size=-1):
+        """
+        Read data from file object.
+        """
         return self._file.read(size)
 
     def _close(self, force, timeout):
@@ -99,9 +102,12 @@ class WorkerFile(Worker):
         Engine is telling us a read is available.
         """
         debug = self._task.info("debug", False)
+
         # read a chunk
         readbuf = self._read()
-        assert len(readbuf) > 0, "_handle_read() called with no data to read"
+        if len(readbuf) == 0:
+            return False
+
         buf = self.buf + readbuf
         lines = buf.splitlines(True)
         self.buf = ""
@@ -114,7 +120,8 @@ class WorkerFile(Worker):
             else:
                 # keep partial line in buffer
                 self.buf = line
-                # will break here
+
+        return True
 
     def last_read(self):
         """

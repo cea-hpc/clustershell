@@ -32,13 +32,11 @@ class WorkerError(Exception):
     """
     Base worker error exception.
     """
-    pass
 
 class WorkerBadArgumentError(WorkerError):
     """
     Raised when bad argument usage is encountered.
     """
-    pass
 
 
 class Worker(object):
@@ -111,6 +109,7 @@ class Worker(object):
     def _handle_read(self):
         """
         Engine is telling us a read is available.
+        Return False on EOF, True otherwise.
         """
         raise NotImplementedError("Derived classes must implement.")
     

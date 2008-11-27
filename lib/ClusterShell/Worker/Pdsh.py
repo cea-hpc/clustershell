@@ -173,9 +173,11 @@ class WorkerPdsh(Worker):
         Engine is telling us a read is available.
         """
         debug = self._task.info("debug", False)
+
         # read a chunk
         readbuf = self._read()
         assert len(readbuf) > 0, "_handle_read() called with no data to read"
+
         buf = self._buf + readbuf
         lines = buf.splitlines(True)
         self._buf = ""
@@ -221,6 +223,7 @@ class WorkerPdsh(Worker):
                 # keep partial line in buffer
                 self._buf = line
                 # will break here
+        return True
 
     def _add_node_msgline(self, nodename, msg):
         """
