@@ -19,9 +19,15 @@
 # $Id$
 
 from distutils.core import setup
+import os
+
+if not os.access('scripts/clush', os.F_OK):
+    os.symlink('clush.py', 'scripts/clush')
+if not os.access('scripts/nodeset', os.F_OK):
+    os.symlink('nodeset.py', 'scripts/nodeset')
 
 setup(name='ClusterShell',
-      version='0.93',
+      version='0.99',
       license='GPL',
       description='ClusterShell library',
       author='Stephane Thiell',
@@ -30,6 +36,8 @@ setup(name='ClusterShell',
       package_dir={'': 'lib'},
       packages=['ClusterShell',
                'ClusterShell.Engine',
-               'ClusterShell.Worker']
+               'ClusterShell.Worker'],
+      scripts=['scripts/clush',
+               'scripts/nodeset']
      )
 

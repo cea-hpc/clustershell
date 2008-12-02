@@ -48,6 +48,9 @@ def _prompt():
     sys.stdout.write("clush> ")
     sys.stdout.flush()
 
+#
+# temporary workaround methods
+#
 def _set_write_buffered():
     flag = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
     fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flag & ~os.O_NDELAY)

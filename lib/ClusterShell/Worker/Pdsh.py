@@ -234,6 +234,9 @@ class WorkerPdsh(Worker):
         self.engine.add_msg((self, nodename), msg)
 
     def _set_node_rc(self, nodename, rc):
+        """
+        Set node specific return code.
+        """
         self.engine.set_rc((self, nodename), rc)
 
     def last_read(self):
