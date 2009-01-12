@@ -116,7 +116,11 @@ class WorkerPopen2(Worker):
         else:
             # close process / check if it has terminated
             status = self.fid.wait()
-            self._set_rc(status)
+            if os.WIFEXITED(status):
+                self._set_rc(os.WEXITSTATUS(status))
+            else:
+                self._set_rc(255)
+
         self.fid.tochild.close()
         self.fid.fromchild.close()
         self._invoke("ev_close")
@@ -167,6 +171,7 @@ class WorkerPopen2(Worker):
         Set return code.
         """
         self.rc = rc
+        self.engine.set_rc((self, self.key), rc)
 
     def read(self):
         """

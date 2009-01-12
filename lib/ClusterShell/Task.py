@@ -264,17 +264,18 @@ class Task(object):
 
     def iter_buffers(self):
         """
-        Returns an iterator over buffers and associated keys list.
+        Iterate over buffers, returns a tuple (buffer, keys). For remote
+        workers (Ssh), keys are nodeset.
         """
         for m, k in self.engine.iter_messages():
             yield m, list(k)
             
     def iter_retcodes(self):
         """
-        Iterate over rc, returns key list and rc.
+        Iterate over return codes, returns a tuple (rc, keys).
         """
-        for k, rc in self.engine.iter_retcodes():
-            yield list(k), rc
+        for rc, k in self.engine.iter_retcodes():
+            yield rc, list(k)
 
     def wait(cls, from_thread_id):
         """

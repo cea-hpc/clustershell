@@ -184,6 +184,24 @@ class TaskLocalTest(unittest.TestCase):
         except TimeoutError:
             self.fail("did detect task timeout")
 
+    def testLocalRetcodes(self):
+        """test local return codes"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/bin/false")
+        task.shell("/bin/sh -c 'exit 2'")
+        task.shell("/bin/sh -c 'exit 3'")
+        task.shell("/bin/sh -c 'exit 4'")
+
+        task.resume()
+
+        for m, nodeset in task.iter_buffers():
+            print m, nodeset
+
+        for nodeset, rc in task.iter_retcodes():
+            print nodeset, rc
+
 
 
 if __name__ == '__main__':
