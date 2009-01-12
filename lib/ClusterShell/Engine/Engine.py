@@ -252,6 +252,16 @@ class Engine:
         self.run_lock = thread.allocate_lock()
         self.start_lock = thread.allocate_lock()
         self.start_lock.acquire()
+
+    def _reset(self):
+        """
+        Reset buffers and retcodes managment variables.
+        """
+        self._msg_root = _MsgTreeElem()
+        self._d_source_msg = {}
+        self._d_source_rc = {}
+        self._d_rc_sources = {}
+        self._max_rc = 0
  
     def workers(self):
         """
@@ -341,6 +351,9 @@ class Engine:
 
         # we're started
         self.start_lock.release()
+
+        # prepare msg and rc handling
+        self._reset()
 
         # note: try-except-finally not supported before python 2.5
         try:

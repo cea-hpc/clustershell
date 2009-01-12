@@ -189,19 +189,48 @@ class TaskLocalTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
 
-        task.shell("/bin/false")
-        task.shell("/bin/sh -c 'exit 2'")
-        task.shell("/bin/sh -c 'exit 3'")
-        task.shell("/bin/sh -c 'exit 4'")
+        # 0 ['worker0']
+        # 1 ['worker1']
+        # 2 ['worker2']
+        # 3 ['worker3bis', 'worker3']
+        # 4 ['worker4']
+        # 5 ['worker5bis', 'worker5']
+
+        task.shell("/bin/true", key="worker0")
+        task.shell("/bin/false", key="worker1")
+        task.shell("/bin/sh -c 'exit 1'", key="worker1bis")
+        task.shell("/bin/sh -c 'exit 2'", key="worker2")
+        task.shell("/bin/sh -c 'exit 3'", key="worker3")
+        task.shell("/bin/sh -c 'exit 3'", key="worker3bis")
+        task.shell("/bin/sh -c 'exit 4'", key="worker4")
+        task.shell("/bin/sh -c 'exit 5'", key="worker5")
+        task.shell("/bin/sh -c 'exit 5'", key="worker5bis")
 
         task.resume()
 
-        for m, nodeset in task.iter_buffers():
-            print m, nodeset
+        cnt = 6
+        for rc, keys in task.iter_retcodes():
+            cnt -= 1
+            if rc == 0:
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0] == "worker0" )
+            elif rc == 1:
+                self.assertEqual(len(keys), 2)
+                self.assert_(keys[0] == "worker1" or keys[0] == "worker1bis")
+            elif rc == 2:
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0] == "worker2" )
+            elif rc == 3:
+                self.assertEqual(len(keys), 2)
+                self.assert_(keys[0] == "worker3" or keys[0] == "worker3bis")
+            elif rc == 4:
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0] == "worker4" )
+            elif rc == 5:
+                self.assertEqual(len(keys), 2)
+                self.assert_(keys[0] == "worker5" or keys[0] == "worker5bis")
 
-        for nodeset, rc in task.iter_retcodes():
-            print nodeset, rc
-
+        self.assertEqual(cnt, 0)
 
 
 if __name__ == '__main__':
