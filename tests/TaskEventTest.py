@@ -10,7 +10,7 @@ import copy
 import sys
 import unittest
 
-sys.path.append('../lib')
+sys.path.insert(0, '../lib')
 
 import ClusterShell
 

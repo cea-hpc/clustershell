@@ -256,6 +256,26 @@ class Task(object):
         """
         return self.engine.workers()
 
+    def key_buffer(self, key):
+        """
+        Get buffer for a specific key. When the key is associated
+        to multiple workers, the resulting buffer will contain
+        all workers content that may overlap.
+        """
+        return "".join(self.engine.iter_messages_by_key(key))
+    
+    node_buffer = key_buffer
+
+    def key_retcode(self, key):
+        """
+        Return return code for a specific key. When the key is
+        associated to multiple workers, return the max return
+        code from these workers.
+        """
+        return max(self.engine.iter_retcodes_by_key(key))
+    
+    node_retcode = key_retcode
+
     def max_retcode(self):
         """
         Get max return code encountered during last run.

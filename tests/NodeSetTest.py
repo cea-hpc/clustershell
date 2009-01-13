@@ -10,7 +10,7 @@ import copy
 import sys
 import unittest
 
-sys.path.append('../lib')
+sys.path.insert(0, '../lib')
 
 from ClusterShell.NodeSet import NodeSet
 
@@ -148,7 +148,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(list(nodeset), [ "cluster0001-ipmi", "cluster0002-ipmi", "cluster1555-ipmi", "cluster1556-ipmi", "cluster1557-ipmi", "cluster1558-ipmi", "cluster1559-ipmi" ])
 
     def testVeryBigRange(self):
-        """test iterations with big range size"""
+        """test NodeSet iterations with big range size"""
         nodeset = NodeSet("bigcluster[1-1000000]")
         self.assertEqual(str(nodeset), "bigcluster[1-1000000]")
         self.assertEqual(len(nodeset), 1000000)
@@ -506,6 +506,27 @@ class NodeSetTest(unittest.TestCase):
         nodeset.difference_update(NodeSet("green"))
         self.assertEqual(len(nodeset), 4058)
 
+    def testGetItem(self):
+        """test NodeSet getitem()"""
+        nodeset = NodeSet("yeti[30,34-51,59-60]")
+        self.assertEqual(len(nodeset), 21)
+        self.assert_(nodeset[0] == "yeti30")
+        self.assert_(nodeset[1] == "yeti34")
+        self.assert_(nodeset[2] == "yeti35")
+        self.assert_(nodeset[3] == "yeti36")
+        self.assert_(nodeset[18] == "yeti51")
+        self.assert_(nodeset[19] == "yeti59")
+        self.assert_(nodeset[20] == "yeti60")
+
+    def testGetSlice(self):
+        """test NodeSet getslice()"""
+        nodeset = NodeSet("yeti[30,34-51,59-60]")
+        self.assertEqual(len(nodeset), 21)
+        self.assert_(nodeset[0:2] == [ "yeti30", "yeti34" ])
+        self.assert_(nodeset[1:3] == [ "yeti34", "yeti35" ])
+        self.assert_(nodeset[19:21] == [ "yeti59", "yeti60" ])
+        self.assert_(nodeset[20:22] == [ "yeti60" ])
+        self.assert_(nodeset[21:24] == [ ])
 
 
 if __name__ == '__main__':

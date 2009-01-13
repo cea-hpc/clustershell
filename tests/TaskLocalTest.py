@@ -10,7 +10,7 @@ import copy
 import sys
 import unittest
 
-sys.path.append('../lib')
+sys.path.insert(0, '../lib')
 
 import ClusterShell
 
@@ -185,7 +185,7 @@ class TaskLocalTest(unittest.TestCase):
             self.fail("did detect task timeout")
     
     def testLocalSingleLineBuffers(self):
-        """test local single line buffers gathering"""
+        """test task local single line buffers gathering"""
         task = task_self()
         self.assert_(task != None)
 
@@ -197,6 +197,8 @@ class TaskLocalTest(unittest.TestCase):
         task.shell("/bin/echo foobar", key="foobar3")
 
         task.resume()
+
+        self.assert_(task.key_buffer("foobar") == "foobar\n")
 
         cnt = 3
         for buf, keys in task.iter_buffers():
@@ -214,7 +216,7 @@ class TaskLocalTest(unittest.TestCase):
         self.assertEqual(cnt, 0)
 
     def testLocalBuffers(self):
-        """test local multi-lines buffers gathering"""
+        """test task local multi-lines buffers gathering"""
         task = task_self()
         self.assert_(task != None)
 
@@ -243,7 +245,7 @@ class TaskLocalTest(unittest.TestCase):
         self.assertEqual(cnt, 0)
 
     def testLocalRetcodes(self):
-        """test local return codes"""
+        """test task with local return codes"""
         task = task_self()
         self.assert_(task != None)
 
@@ -265,6 +267,8 @@ class TaskLocalTest(unittest.TestCase):
         task.shell("/bin/sh -c 'exit 5'", key="worker5bis")
 
         task.resume()
+
+        self.assert_(task.key_retcode("worker4") == 4)
 
         cnt = 6
         for rc, keys in task.iter_retcodes():

@@ -169,7 +169,7 @@ class _WorkerTimerQ:
 
     def __len__(self):
         """
-        Returns the number of active timers.
+        Return the number of active timers.
         """
         return len(self.timers)
 
@@ -189,7 +189,7 @@ class _WorkerTimerQ:
 
     def expire_relative(self):
         """
-        Returns next timer fire delay (relative time).
+        Return next timer fire delay (relative time).
         """
 
         if len(self.timers) > 0:
@@ -385,7 +385,7 @@ class Engine:
 
     def exited(self):
         """
-        Returns True if the engine has exited the runloop once.
+        Return True if the engine has exited the runloop once.
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -440,21 +440,29 @@ class Engine:
         """
         e_msg = self._d_source_msg.get(source)
 
-        if e_msg:
-            return e_msg.message()
-        else:
+        if e_msg is None:
             return None
+
+        return e_msg.message()
 
     def iter_messages(self):
         """
-        Returns an iterator over all messages and keys list.
+        Return an iterator over all messages and keys list.
         """
         for e in self._msg_root:
             yield e.message(), [t[1] for t in e.sources]
 
+    def iter_messages_by_key(self, key):
+        """
+        Return an iterator over stored messages for the given key.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if k == key:
+                yield e.message()
+
     def iter_messages_by_worker(self, worker):
         """
-        Returns an iterator over messages and keys list for a specific
+        Return an iterator over messages and keys list for a specific
         worker.
         """
         for e in self._msg_root:
@@ -464,7 +472,7 @@ class Engine:
 
     def iter_key_messages_by_worker(self, worker):
         """
-        Returns an iterator over key, message for a specific worker.
+        Return an iterator over key, message for a specific worker.
         """
         for (w, k), e in self._d_source_msg.iteritems():
             if w is worker:
@@ -478,15 +486,23 @@ class Engine:
    
     def iter_retcodes(self):
         """
-        Returns an iterator over return codes and keys list.
+        Return an iterator over return codes and keys list.
         """
         # Use the items iterator for the underlying dict.
         for rc, src in self._d_rc_sources.iteritems():
             yield rc, [t[1] for t in src]
 
+    def iter_retcodes_by_key(self, key):
+        """
+        Return an iterator over return codes for the given key.
+        """
+        for (w, k), rc in self._d_source_rc.iteritems():
+            if k == key:
+                yield rc
+
     def iter_retcodes_by_worker(self, worker):
         """
-        Returns an iterator over return codes and keys list for a
+        Return an iterator over return codes and keys list for a
         specific worker.
         """
         # Use the items iterator for the underlying dict.

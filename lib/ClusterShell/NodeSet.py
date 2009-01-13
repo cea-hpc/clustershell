@@ -526,6 +526,20 @@ class NodeSet(object):
             result += ","
         return result[:-1]
 
+    def __getitem__(self, i):
+        """
+        Return the node at index i. For convenience only, not
+        optimized as of version 1.0.
+        """
+        return list(self)[i]
+
+    def __getslice__(self, i, j):
+        """
+        Return the slice from index i to index j-1. For convenience
+        only, not optimized as of version 1.0.
+        """
+        return list(self)[i:j]
+
     def _add_rangeset(self, pat, rangeset):
         """
         Add a rangeset to a new or existing pattern.
