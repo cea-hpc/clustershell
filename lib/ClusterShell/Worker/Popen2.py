@@ -121,7 +121,7 @@ class WorkerPopen2(Worker):
                 # process exited normally
                 self._set_rc(os.WEXITSTATUS(status))
             elif os.WIFSIGNALED(status):
-                # if process was signaled, return 127 signum (bash-like)
+                # if process was signaled, return 128 + signum (bash-like)
                 self._set_rc(128 + os.WSTOPSIG(status))
             else:
                 # unknown condition
