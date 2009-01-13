@@ -259,6 +259,11 @@ class Task(object):
     def max_retcode(self):
         """
         Get max return code encountered during last run.
+
+        How retcodes work:
+          If the process exits normally, the return code is its exit
+          status. If the process is terminated by a signal, the return
+          code is 128 + signal number.
         """
         return self.engine.max_retcode()
 
@@ -273,6 +278,11 @@ class Task(object):
     def iter_retcodes(self):
         """
         Iterate over return codes, returns a tuple (rc, keys).
+
+        How retcodes work:
+          If the process exits normally, the return code is its exit
+          status. If the process is terminated by a signal, the return
+          code is 128 + signal number.
         """
         for rc, k in self.engine.iter_retcodes():
             yield rc, list(k)

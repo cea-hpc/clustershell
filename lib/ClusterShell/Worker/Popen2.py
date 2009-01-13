@@ -116,9 +116,15 @@ class WorkerPopen2(Worker):
         else:
             # close process / check if it has terminated
             status = self.fid.wait()
+            # get exit status
             if os.WIFEXITED(status):
+                # process exited normally
                 self._set_rc(os.WEXITSTATUS(status))
+            elif os.WIFSIGNALED(status):
+                # if process was signaled, return 127 signum (bash-like)
+                self._set_rc(128 + os.WSTOPSIG(status))
             else:
+                # unknown condition
                 self._set_rc(255)
 
         self.fid.tochild.close()

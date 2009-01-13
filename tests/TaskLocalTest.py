@@ -183,6 +183,64 @@ class TaskLocalTest(unittest.TestCase):
             task.resume()
         except TimeoutError:
             self.fail("did detect task timeout")
+    
+    def testLocalSingleLineBuffers(self):
+        """test local single line buffers gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/bin/echo foo", key="foo")
+        task.shell("/bin/echo bar", key="bar")
+        task.shell("/bin/echo bar", key="bar2")
+        task.shell("/bin/echo foobar", key="foobar")
+        task.shell("/bin/echo foobar", key="foobar2")
+        task.shell("/bin/echo foobar", key="foobar3")
+
+        task.resume()
+
+        cnt = 3
+        for buf, keys in task.iter_buffers():
+            cnt -= 1
+            if buf == "foo":
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0] == "foo")
+            elif buf == "bar":
+                self.assertEqual(len(keys), 2)
+                self.assert_(keys[0] == "bar")
+            elif buf == "foobar":
+                self.assertEqual(len(keys), 3)
+                self.assert_(keys[0] == "foobar")
+
+        self.assertEqual(cnt, 0)
+
+    def testLocalBuffers(self):
+        """test local multi-lines buffers gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/usr/bin/printf 'foo\nbar\n'", key="foobar")
+        task.shell("/usr/bin/printf 'foo\nbar\n'", key="foobar2")
+        task.shell("/usr/bin/printf 'foo\nbar\n'", key="foobar3")
+        task.shell("/usr/bin/printf 'foo\nfuu\n'", key="foofuu")
+        task.shell("/usr/bin/printf 'faa\nber\n'", key="faaber")
+        task.shell("/usr/bin/printf 'foo\nfuu\n'", key="foofuu2")
+
+        task.resume()
+
+        cnt = 3
+        for buf, keys in task.iter_buffers():
+            cnt -= 1
+            if buf == "faa\nber\n":
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0].startswith("faaber"))
+            elif buf == "foo\nfuu\n":
+                self.assertEqual(len(keys), 2)
+                self.assert_(keys[0].startswith("foofuu"))
+            elif buf == "foo\nbar\n":
+                self.assertEqual(len(keys), 3)
+                self.assert_(keys[0].startswith("foobar"))
+
+        self.assertEqual(cnt, 0)
 
     def testLocalRetcodes(self):
         """test local return codes"""
@@ -232,6 +290,10 @@ class TaskLocalTest(unittest.TestCase):
 
         self.assertEqual(cnt, 0)
 
+        # test max retcode API
+        self.assertEqual(task.max_retcode(), 5)
+
+    
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)
