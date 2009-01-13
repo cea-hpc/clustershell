@@ -538,7 +538,7 @@ class NodeSet(object):
         Return the slice from index i to index j-1. For convenience
         only, not optimized as of version 1.0.
         """
-        return list(self)[i:j]
+        return NodeSet.fromlist(list(self)[i:j])
 
     def _add_rangeset(self, pat, rangeset):
         """

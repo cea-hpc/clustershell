@@ -522,12 +522,16 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet getslice()"""
         nodeset = NodeSet("yeti[30,34-51,59-60]")
         self.assertEqual(len(nodeset), 21)
-        self.assert_(nodeset[0:2] == [ "yeti30", "yeti34" ])
-        self.assert_(nodeset[1:3] == [ "yeti34", "yeti35" ])
-        self.assert_(nodeset[19:21] == [ "yeti59", "yeti60" ])
-        self.assert_(nodeset[20:22] == [ "yeti60" ])
-        self.assert_(nodeset[21:24] == [ ])
-
+        self.assertEqual(len(nodeset[0:2]), 2)
+        self.assertEqual(str(nodeset[0:2]), "yeti[30,34]")
+        self.assertEqual(len(nodeset[1:3]), 2)
+        self.assertEqual(str(nodeset[1:3]), "yeti[34-35]")
+        self.assertEqual(len(nodeset[19:21]), 2)
+        self.assertEqual(str(nodeset[19:21]), "yeti[59-60]")
+        self.assertEqual(len(nodeset[20:22]), 1)
+        self.assertEqual(str(nodeset[20:22]), "yeti60")
+        self.assertEqual(len(nodeset[21:24]), 0)
+        self.assertEqual(str(nodeset[21:24]), "")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetTest)
