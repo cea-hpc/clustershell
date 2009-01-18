@@ -46,6 +46,10 @@ Options:
         Calculate nodesets intersection before processing command. This
         means that only nodes that are in every provided nodesets are
         used.
+    --xor, -X
+        Calculate symmetric difference (XOR) between two nodesets before
+        processing command. This means that nodes present in only one of
+        the nodesets are used.
     --quiet, -q
         Quiet mode, hide any parse error messages (on stderr).
 """
@@ -64,17 +68,17 @@ def runNodeSetCommand(args):
     """
     autostep = None
     command = None
-    intersect = False
+    preprocess = None
     quiet = False
     excludes = NodeSet()
 
     try:
-        opts, args = getopt.getopt(args[1:], "a:cefhiqx:", ["autostep=",
-            "count", "exclude=", "expand", "fold", "help", "intersection",
-            "quiet"])
+        opts, args = getopt.getopt(args[1:], "a:cefhiqx:X", ["autostep=",
+            "count", "expand", "fold", "help", "intersection", "quiet",
+            "exclude=", "xor"])
     except getopt.error, msg:
-        print msg
-        print "Try `%s -h' for more information." % args[0]
+        print >>sys.stderr, msg
+        print >>sys.stderr, "Try `%s -h' for more information." % args[0]
         sys.exit(2)
 
     for k, v in opts:
@@ -93,7 +97,15 @@ def runNodeSetCommand(args):
             print __doc__
             sys.exit(0)
         elif k in ("-i", "--intersection"):
-            intersect = True
+            if preprocess and preprocess != NodeSet.intersection_update:
+                print >>sys.stderr, "ERROR: Conflicting options."
+                sys.exit(2)
+            preprocess = NodeSet.intersection_update
+        elif k in ("-X", "--xor"):
+            if preprocess and preprocess != NodeSet.symmetric_difference_update:
+                print >>sys.stderr, "ERROR: Conflicting options."
+                sys.exit(2)
+            preprocess = NodeSet.symmetric_difference_update
         elif k in ("-q", "--quiet"):
             quiet = True
         elif k in ("-x", "--exclude"):
@@ -104,10 +116,10 @@ def runNodeSetCommand(args):
         sys.exit(1)
 
     try:
-        if intersect:
+        if preprocess:
             ns = NodeSet(args[0], autostep)
             for arg in args[1:]:
-                ns.intersection_update(arg)
+                preprocess(ns, arg)
         else:
             ns = NodeSet.fromlist(args, autostep)
     except NodeSetParseError, e:

@@ -736,6 +736,12 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 997)
         self.assertEqual(len(nodeset2), 2000)
 
+        # check that n ^ n returns empty NodeSet
+        nodeset = NodeSet("lounge[3-999]")
+        self.assertEqual(len(nodeset), 997)
+        result = nodeset ^ nodeset
+        self.assertEqual(len(result), 0)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetTest)
