@@ -1,5 +1,5 @@
 # WorkerPopen2.py -- Local shell worker
-# Copyright (C) 2007, 2008 CEA
+# Copyright (C) 2007, 2008, 2009 CEA
 #
 # This file is part of ClusterShell
 #

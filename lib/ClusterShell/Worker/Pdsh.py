@@ -1,5 +1,5 @@
 # WorkerPdsh.py -- ClusterShell pdsh worker with poll()
-# Copyright (C) 2007, 2008 CEA
+# Copyright (C) 2007, 2008, 2009 CEA
 # Written by S. Thiell
 #
 # This file is part of ClusterShell

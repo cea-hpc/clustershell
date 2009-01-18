@@ -1,5 +1,5 @@
 # WorkerFile.py -- File ClusterShell worker
-# Copyright (C) 2008 CEA
+# Copyright (C) 2008, 2009 CEA
 # Written by S. Thiell
 #
 # This file is part of ClusterShell
