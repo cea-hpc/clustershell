@@ -39,6 +39,7 @@ import ClusterShell
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
+from ClusterShell import version
 
 import socket
 
@@ -98,9 +99,9 @@ class IInputHandler(EventHandler):
 
 def runClush(args):
     try:
-        opts, args = getopt.getopt(args[1:], "dhf:t:u:x:w:", ["debug", \
+        opts, args = getopt.getopt(args[1:], "dhf:t:u:x:w:v", ["debug", \
                 "help", "fanout=", "connect_timeout=", "command_timeout=", \
-                "exclude=", "nodes="])
+                "exclude=", "nodes=", "version"])
     except getopt.error, msg:
         print msg
         print "Try `python %s -h' for more information." % args[0]
@@ -125,6 +126,9 @@ def runClush(args):
             connect_timeout = int(v)
         elif k in ("-u", "--command_timeout"):
             command_timeout = int(v)
+        elif k in ("-v", "--version"):
+            print version
+            sys.exit(0)
         elif k in ("-h", "--help"):
             print __doc__
             sys.exit(0)

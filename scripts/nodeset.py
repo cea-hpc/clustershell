@@ -52,6 +52,8 @@ Options:
         the nodesets are used.
     --quiet, -q
         Quiet mode, hide any parse error messages (on stderr).
+    --version, -v
+        Show version and exit.
 """
 
 import getopt
@@ -60,6 +62,7 @@ import sys
 sys.path.append('../lib')
 
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
+from ClusterShell import version
 
 
 def runNodeSetCommand(args):
@@ -73,9 +76,9 @@ def runNodeSetCommand(args):
     excludes = NodeSet()
 
     try:
-        opts, args = getopt.getopt(args[1:], "a:cefhiqx:X", ["autostep=",
+        opts, args = getopt.getopt(args[1:], "a:cefhiqvx:X", ["autostep=",
             "count", "expand", "fold", "help", "intersection", "quiet",
-            "exclude=", "xor"])
+            "version", "exclude=", "xor"])
     except getopt.error, msg:
         print >>sys.stderr, msg
         print >>sys.stderr, "Try `%s -h' for more information." % args[0]
@@ -101,15 +104,18 @@ def runNodeSetCommand(args):
                 print >>sys.stderr, "ERROR: Conflicting options."
                 sys.exit(2)
             preprocess = NodeSet.intersection_update
+        elif k in ("-q", "--quiet"):
+            quiet = True
+        elif k in ("-v", "--version"):
+            print version
+            sys.exit(0)
+        elif k in ("-x", "--exclude"):
+            excludes.update(v)
         elif k in ("-X", "--xor"):
             if preprocess and preprocess != NodeSet.symmetric_difference_update:
                 print >>sys.stderr, "ERROR: Conflicting options."
                 sys.exit(2)
             preprocess = NodeSet.symmetric_difference_update
-        elif k in ("-q", "--quiet"):
-            quiet = True
-        elif k in ("-x", "--exclude"):
-            excludes.update(v)
 
     if command is None or len(args) < 1:
         print __doc__
