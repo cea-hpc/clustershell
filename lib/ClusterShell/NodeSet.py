@@ -152,15 +152,16 @@ class RangeSet:
 
                 # compute padding and return node range info tuple
                 try:
+                    pad = 0
                     if int(begin) != 0:
                         begins = begin.lstrip("0")
+                        if len(begin) - len(begins) > 0:
+                            pad = len(begin)
+                        start = int(begins)
                     else:
-                        begins = begin
-                    if len(begin) - len(begins) > 0:
-                        pad = len(begin)
-                    else:
-                        pad = 0
-                    start = int(begins)
+                        if len(begin) > 1:
+                            pad = len(begin)
+                        start = 0
                     if int(end) != 0:
                         ends = end.lstrip("0")
                     else:
@@ -218,11 +219,44 @@ class RangeSet:
 
     def __contains__(self, elem):
         """
-        Is element contained in RangeSet?
+        Is element contained in RangeSet? Element can be either a
+        string with optional padding (eg. "002") or an integer
+        (obviously, no padding check is performed for integer).
+        """
+        # support str type with padding support, eg. `"003" in rangeset'
+        if type(elem) is str:
+            pad = 0
+            if int(elem) != 0:
+                selem = elem.lstrip("0")
+                if len(elem) - len(selem) > 0:
+                    pad = len(elem)
+                ielem = int(selem)
+            else:
+                if len(elem) > 1:
+                    pad = len(elem)
+                ielem = 0
+            return self._contains_with_padding(ielem, pad)
+        
+        # the following cast raises TypeError if elem is not an integer
+        return self._contains(int(elem))
+    
+    def _contains(self, ielem):
+        """
+        Contains subroutine that takes an integer.
         """
         for rgstart, rgstop, rgstep, rgpad in self._ranges:
-            if elem >= rgstart and elem <= rgstop and \
-                    (elem - rgstart) % rgstep == 0:
+            if ielem >= rgstart and ielem <= rgstop and \
+                    (ielem - rgstart) % rgstep == 0:
+                        return True
+        return False
+
+    def _contains_with_padding(self, ielem, pad):
+        """
+        Contains subroutine that takes an integer and a padding value.
+        """
+        for rgstart, rgstop, rgstep, rgpad in self._ranges:
+            if ielem >= rgstart and ielem <= rgstop and \
+                    pad == rgpad and (ielem - rgstart) % rgstep == 0:
                         return True
         return False
 
@@ -238,24 +272,10 @@ class RangeSet:
         """
         self._binary_sanity_check(rangeset)
 
-        # fast check for obvious cases
-        if len(self) > len(rangeset):
-            return False
-
-        # expand both rangesets
-        items1, pad1 = self._expand()
-        items2, pad2 = rangeset._expand()
-
-        # padding issue
-        if pad1 != pad2:
-            return False
-
-        # create a temporary dict with keys from items2
-        iset = dict.fromkeys(items2)
-
-        for e in items1:
-            if e not in iset:
-                return False
+        for start, stop, step, pad in self._ranges:
+            for i in range(start, stop + 1, step):
+                if not rangeset._contains_with_padding(i, pad):
+                    return False
         return True
 
     def issuperset(self, rangeset):
