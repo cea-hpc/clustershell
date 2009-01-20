@@ -1,0 +1,84 @@
+ -------------------------------
+ ClusterShell 1.0 Python Library
+ -------------------------------
+
+ClusterShell is an event-based python library to execute commands on local or
+distant cluster nodes in parallel depending on the selected engine and worker
+mechanisms.
+
+This is the source tarball. When possible, please use the RPM distribution.
+
+ -------------------
+ Requirements (v1.0)
+ -------------------
+
+ * Pdsh (a high-performance, parallel remote shell utility)
+
+    https://computing.llnl.gov/linux/pdsh.html
+
+ * Python 2.3+ with select.poll available (eg. Linux)
+
+ ------------------------
+ Installation from source
+ ------------------------
+
+In the source directory, please type :
+
+    # python setup.py install
+
+ ----------
+ Test Suite
+ ----------
+
+Regression testing scripts are available in the 'tests' directory:
+
+    $ cd tests
+    $ ./run_testsuite.py -vv
+
+ --------------
+ Documentation
+ -------------
+
+Local API documentation is available, just type:
+
+    $ pydoc ClusterShell
+
+Online API documentation (epydoc) is available here:
+
+    http://clustershell.sourceforge.net/csdoc
+
+ --------------------------
+ ClusterShell interactively
+ --------------------------
+
+Python 2.4.3 (#1, May 24 2008, 13:57:05) 
+[GCC 4.1.2 20070626 (Red Hat 4.1.2-14)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from ClusterShell.Task import task_self
+>>> from ClusterShell.NodeSet import NodeSet
+>>> task = task_self()
+>>> task.shell("/bin/uname -r", nodes="linux[4-6,32-39]")
+>>> task.resume()
+>>> for buf, key in task.iter_buffers():
+...     print NodeSet.fromlist(key), buf
+... 
+linux[32-39] 2.6.18-92.1.13.el5
+
+linux[4-6] 2.6.18-53.1.13.el5.l47
+
+ -----
+ Links
+ -----
+
+Main web site:
+
+    http://clustershell.sourceforge.net
+
+Sourceforge.net project page:
+
+    http://sourceforge.net/projects/clustershell
+
+ClusterShell was first created for Shine, the Lustre Administration Utility:
+
+    http://sourceforge.net/projects/lustre-shine
+
