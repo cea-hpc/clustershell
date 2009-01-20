@@ -1,8 +1,8 @@
 # NodeSet.py -- Cluster shell nodeset representation
-# Copyright (C) 2007, 2008 CEA
-# Author: S. Thiell
+# Copyright (C) 2007, 2008, 2009 CEA
+# Written by S. Thiell
 #
-# This file is part of shine
+# This file is part of ClusterShell
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -67,6 +67,9 @@ class RangeSetParseError(RangeSetException):
         # faulty subrange; this allows you to target the error
         self.message = "%s : \"%s\"" % (message, subrange)
 
+class RangeSetPaddingError(RangeSetException):
+    """used by RangeSet when a fatal padding incoherency occurs"""
+
 
 class NodeSetException(Exception):
     """used by NodeSet"""
@@ -99,8 +102,8 @@ class RangeSet:
         rset = RangeSet("5,10-42")   # contains 5, 10 to 42
         rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
      
-    Also, RangeSet provides update(), intersection_update() and
-    difference_update() (exclusion) methods.
+    Also, RangeSet provides methods like update(), intersection_update()
+    or difference_update(), which conform to the Python Set API.
     """
     def __init__(self, pattern=None, autostep=None):
         """
@@ -149,15 +152,16 @@ class RangeSet:
 
                 # compute padding and return node range info tuple
                 try:
+                    pad = 0
                     if int(begin) != 0:
                         begins = begin.lstrip("0")
+                        if len(begin) - len(begins) > 0:
+                            pad = len(begin)
+                        start = int(begins)
                     else:
-                        begins = begin
-                    if len(begin) - len(begins) > 0:
-                        pad = len(begin)
-                    else:
-                        pad = 0
-                    start = int(begins)
+                        if len(begin) > 1:
+                            pad = len(begin)
+                        start = 0
                     if int(end) != 0:
                         ends = end.lstrip("0")
                     else:
@@ -208,6 +212,107 @@ class RangeSet:
                     s += "%0*d-%0*d/%d" % (pad, start, pad, stop, step)
             cnt += stop - start + 1
         return s
+
+    # __repr__ is the same as __str__ as it is a valid expression that
+    # could be used to recreate a RangeSet with the same value
+    __repr__ = __str__
+
+    def __contains__(self, elem):
+        """
+        Is element contained in RangeSet? Element can be either a
+        string with optional padding (eg. "002") or an integer
+        (obviously, no padding check is performed for integer).
+        """
+        # support str type with padding support, eg. `"003" in rangeset'
+        if type(elem) is str:
+            pad = 0
+            if int(elem) != 0:
+                selem = elem.lstrip("0")
+                if len(elem) - len(selem) > 0:
+                    pad = len(elem)
+                ielem = int(selem)
+            else:
+                if len(elem) > 1:
+                    pad = len(elem)
+                ielem = 0
+            return self._contains_with_padding(ielem, pad)
+        
+        # the following cast raises TypeError if elem is not an integer
+        return self._contains(int(elem))
+    
+    def _contains(self, ielem):
+        """
+        Contains subroutine that takes an integer.
+        """
+        for rgstart, rgstop, rgstep, rgpad in self._ranges:
+            if ielem >= rgstart and ielem <= rgstop and \
+                    (ielem - rgstart) % rgstep == 0:
+                        return True
+        return False
+
+    def _contains_with_padding(self, ielem, pad):
+        """
+        Contains subroutine that takes an integer and a padding value.
+        """
+        for rgstart, rgstop, rgstep, rgpad in self._ranges:
+            if ielem >= rgstart and ielem <= rgstop and \
+                    pad == rgpad and (ielem - rgstart) % rgstep == 0:
+                        return True
+        return False
+
+    def _binary_sanity_check(self, other):
+        # check that the other argument to a binary operation is also
+        # a RangeSet, raising a TypeError otherwise.
+        if not isinstance(other, RangeSet):
+            raise TypeError, "Binary operation only permitted between RangeSets"
+
+    def issubset(self, rangeset):
+        """
+        Report whether another rangeset contains this rangeset.
+        """
+        self._binary_sanity_check(rangeset)
+
+        for start, stop, step, pad in self._ranges:
+            for i in range(start, stop + 1, step):
+                if not rangeset._contains_with_padding(i, pad):
+                    return False
+        return True
+
+    def issuperset(self, rangeset):
+        """
+        Report whether this rangeset contains another rangeset.
+        """
+        self._binary_sanity_check(rangeset)
+        return rangeset.issubset(self)
+
+    # inequality comparisons using the is-subset relation
+    __le__ = issubset
+    __ge__ = issuperset
+
+    def __lt__(self, other):
+        """
+        x.__lt__(y) <==> x<y
+        """
+        self._binary_sanity_check(other)
+        return len(self) < len(other) and self.issubset(other)
+
+    def __gt__(self, other):
+        """
+        x.__gt__(y) <==> x>y
+        """
+        self._binary_sanity_check(other)
+        return len(self) > len(other) and self.issuperset(other)
+
+    def __getitem__(self, i):
+        """
+        Return the element at index i.
+        """
+        length = 0
+        for start, stop, step, pad in self._ranges:
+            cnt =  (stop - start) / step + 1
+            if i < length + cnt:
+                return start + (i - length) * step
+            length += cnt
 
     def _expand(self):
         """
@@ -306,38 +411,73 @@ class RangeSet:
 
         return self._fold(items, pad or rgpad)
 
+    def union(self, other):
+        """
+        s.union(t) returns a new rangeset with elements from both s and t.
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.update(other)
+        return self_copy
+
+    def __or__(self, other):
+        """
+        Implements the | operator. So s | t returns a new rangeset with
+        elements from both s and t.
+        """
+        self._binary_sanity_check(other)
+        return self.union(other)
+
+    def add(self, elem):
+        """
+        Add element to RangeSet.
+        """
+        self.add_range(elem, elem, step=1, pad=0)
+
     def update(self, rangeset):
         """
-        Add provided RangeSet.
+        Update a rangeset with the union of itself and another.
         """
         for start, stop, step, pad in rangeset._ranges:
             self.add_range(start, stop, step, pad)
 
-    def difference_update(self, rangeset):
+    def __ior__(self, other):
         """
-        Sub (exclude) provided RangeSet.
+        Implements the |= operator. So s |= t returns rangeset s with
+        elements added from t. (Python version 2.5+ required)
         """
-        self._ranges, self._length = self._sub_exfold(rangeset)
+        self._binary_sanity_check(other)
+        return self.update(other)
 
-    def _sub_exfold(self, rangeset):
+    def intersection(self, rangeset):
         """
-        Calc sub/exclusion with the expand/fold method.
+        s.intersection(t) returns a new rangeset with elements common
+        to s and t.
         """
-        # expand both rangesets
-        items1, pad1 = self._expand()
-        items2, pad2 = rangeset._expand()
+        self_copy = copy.deepcopy(self)
+        self_copy.intersection_update(other)
+        return self_copy
 
-        # create a temporary dict with keys from items2
-        iset = dict.fromkeys(items2)
-
-        # fold items that are in both sets
-        return self._fold([e for e in items1 if e not in iset], pad1 or pad2)
+    def __and__(self, other):
+        """
+        Implements the & operator. So s & t returns a new rangeset with
+        elements common to s and t.
+        """
+        self._binary_sanity_check(other)
+        return self.intersection(other)
 
     def intersection_update(self, rangeset):
         """
         Intersection with provided RangeSet.
         """
         self._ranges, self._length = self._intersect_exfold(rangeset)
+
+    def __iand__(self, other):
+        """
+        Implements the &= operator. So s &= t returns rangeset s keeping
+        only elements also found in t. (Python version 2.5+ required)
+        """
+        self._binary_sanity_check(other)
+        return self.intersection_update(other)
 
     def _intersect_exfold(self, rangeset):
         """
@@ -352,6 +492,146 @@ class RangeSet:
 
         # fold items that are in both sets
         return self._fold([e for e in items1 if e in iset], pad1 or pad2)
+
+    def difference(self, rangeset):
+        """
+        s.difference(t) returns a new rangeset with elements in s but
+        not in t.
+        in t.
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.difference_update(other)
+        return self_copy
+
+    def __sub__(self, other):
+        """
+        Implement the - operator. So s - t returns a new rangeset with
+        elements in s but not in t.
+        """
+        self._binary_sanity_check(other)
+        return self.difference(other)
+
+    def difference_update(self, rangeset, strict=False):
+        """
+        s.difference_update(t) returns rangeset s after removing
+        elements found in t. If strict is True, raise KeyError
+        if an element cannot be removed.
+        """
+        self._ranges, self._length = self._sub_exfold(rangeset, strict)
+
+    def __isub__(self, other):
+        """
+        Implement the -= operator. So s -= t returns rangeset s after
+        removing elements found in t. (Python version 2.5+ required)
+        """
+        self._binary_sanity_check(other)
+        return self.difference_update(other)
+
+    def remove(self, elem):
+        """
+        Remove element elem from the RangeSet. Raise KeyError if elem
+        is not contained in the RangeSet.
+        """
+        items1, pad1 = self._expand()
+
+        try:
+            items1.remove(elem)
+        except ValueError, e:
+            raise KeyError, elem
+
+        self._ranges, self._length = self._fold(items1, pad1)
+
+    def _sub_exfold(self, rangeset, strict):
+        """
+        Calc sub/exclusion with the expand/fold method. If strict is
+        True, raise KeyError if the rangeset is not included.
+        """
+        # expand both rangesets
+        items1, pad1 = self._expand()
+        items2, pad2 = rangeset._expand()
+
+        # create a temporary dict with keys from items2
+        iset = dict.fromkeys(items2)
+
+        if strict:
+            # create a list of remaining items (lst) and update iset
+            lst = []
+            for e in items1:
+                if e not in iset:
+                    lst.append(e)
+                else:
+                    del iset[e]
+
+            # if iset is not empty, some elements were not removed
+            if len(iset) > 0:
+                # give the user an indication of the range that cannot be removed
+                missing = RangeSet()
+                missing._ranges, missing._length = self._fold(iset.keys(), pad2)
+                # repr(missing) is implicit here
+                raise KeyError, missing
+
+            return self._fold(lst, pad1 or pad2)
+        else:
+            # fold items that are in set 1 and not in set 2
+            return self._fold([e for e in items1 if e not in iset], pad1 or pad2)
+
+    def symmetric_difference(self, other):
+        """
+        s.symmetric_difference(t) returns the symmetric difference of
+        two rangesets as a new RangeSet.
+        
+        (ie. all elements that are in exactly one of the rangesets.)
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.symmetric_difference_update(other)
+        return self_copy
+
+    def __xor__(self, other):
+        """
+        Implement the ^ operator. So s ^ t returns a new rangeset with
+        elements that are in exactly one of the rangesets.
+        """
+        self._binary_sanity_check(other)
+        return self.symmetric_difference(other)
+
+    def symmetric_difference_update(self, rangeset):
+        """
+        s.symmetric_difference_update(t) returns rangeset s keeping all
+        elements that are in exactly one of the rangesets.
+        """
+        self._ranges, self._length = self._xor_exfold(rangeset)
+
+    def __ixor__(self, other):
+        """
+        Implement the ^= operator. So s ^= t returns rangeset s after
+        keeping all elements that are in exactly one of the rangesets.
+        (Python version 2.5+ required)
+        """
+        self._binary_sanity_check(other)
+        return self.symmetric_difference_update(other)
+
+    def _xor_exfold(self, rangeset):
+        """
+        Calc symmetric difference (xor).
+        """
+        # expand both rangesets
+        items1, pad1 = self._expand()
+        items2, pad2 = rangeset._expand()
+
+        if pad1 != pad2:
+            raise RangeSetPaddingError()
+        # same padding, we're clean...
+
+        # create a temporary dicts
+        iset1 = dict.fromkeys(items1)
+        iset2 = dict.fromkeys(items2)
+
+        # keep items that are in one list only
+        allitems = items1 + items2
+        lst = [e for e in allitems if not e in iset1 or not e in iset2]
+        lst.sort()
+
+        return self._fold(lst, pad1)
 
 
 def _NodeSetParse(ns, autostep):
@@ -459,8 +739,13 @@ class NodeSet(object):
         nodeset = NodeSet("clustername[0-10/2]")
         nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
 
-    Also, NodeSet provides update(), intersection_update() and
-    difference_update() (exclusion) methods. 
+    NodeSet provides methods like update(), intersection_update() or
+    difference_update() methods, which conform to the Python Set API.
+    However, unlike RangeSet or standard Set, NodeSet is somewhat not
+    so strict for convenience, and understands NodeSet instance or
+    NodeSet string as argument. Also, there is no strict definition of
+    one element, for example, it IS allowed to do:
+        nodeset.remove("blue[36-40]").
     """
     def __init__(self, pattern=None, autostep=None):
         """
@@ -526,6 +811,78 @@ class NodeSet(object):
             result += ","
         return result[:-1]
 
+    def __contains__(self, other):
+        """
+        Is node contained in NodeSet ?
+        """
+        return self.issuperset(other)
+
+    def _binary_sanity_check(self, other):
+        # check that the other argument to a binary operation is also
+        # a NodeSet, raising a TypeError otherwise.
+        if not isinstance(other, NodeSet):
+            raise TypeError, "Binary operation only permitted between NodeSets"
+
+    def issubset(self, other):
+        """
+        Report whether another nodeset contains this nodeset.
+        """
+        binary = None
+
+        # type check is needed for this case...
+        if isinstance(other, NodeSet):
+            binary = other
+        elif type(other) is str:
+            binary = NodeSet(other)
+        else:
+            raise TypeError, "Binary operation only permitted between NodeSets or string"
+
+        return binary.issuperset(self)
+        
+    def issuperset(self, other):
+        """
+        Report whether this nodeset contains another nodeset.
+        """
+        status = False
+        for pat, erangeset in _NodeSetParse(other, self._autostep):
+            rangeset = self._patterns.get(pat)
+            if rangeset:
+                status = rangeset.issuperset(erangeset)
+            else:
+                # might be an unnumbered node (key in dict but no value)
+                status = self._patterns.has_key(pat)
+        return status
+
+    # inequality comparisons using the is-subset relation
+    __le__ = issubset
+    __ge__ = issuperset
+
+    def __lt__(self, other):
+        """
+        x.__lt__(y) <==> x<y
+        """
+        return len(self) < len(other) and self.issubset(other)
+
+    def __gt__(self, other):
+        """
+        x.__gt__(y) <==> x>y
+        """
+        return len(self) > len(other) and self.issuperset(other)
+
+    def __getitem__(self, i):
+        """
+        Return the node at index i. For convenience only, not
+        optimized as of version 1.0.
+        """
+        return list(self)[i]
+
+    def __getslice__(self, i, j):
+        """
+        Return the slice from index i to index j-1. For convenience
+        only, not optimized as of version 1.0.
+        """
+        return NodeSet.fromlist(list(self)[i:j])
+
     def _add_rangeset(self, pat, rangeset):
         """
         Add a rangeset to a new or existing pattern.
@@ -554,12 +911,17 @@ class NodeSet(object):
 
     def __or__(self, other):
         """
-        Implements the | operator. So s | t returns a new set with
+        Implements the | operator. So s | t returns a new nodeset with
         elements from both s and t.
         """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
+        self._binary_sanity_check(other)
         return self.union(other)
+
+    def add(self, other):
+        """
+        Add node to NodeSet.
+        """
+        self.update(other)
 
     def update(self, other):
         """
@@ -571,10 +933,9 @@ class NodeSet(object):
     def __ior__(self, other):
         """
         Implements the |= operator. So s |= t returns nodeset s with
-        elements added from t.
+        elements added from t. (Python version 2.5+ required)
         """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
+        self._binary_sanity_check(other)
         return self.update(other)
 
     def intersection(self, other):
@@ -588,11 +949,10 @@ class NodeSet(object):
 
     def __and__(self, other):
         """
-        Implements the & operator. So s & t returns a new set with
+        Implements the & operator. So s & t returns a new nodeset with
         elements common to s and t.
         """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
+        self._binary_sanity_check(other)
         return self.intersection(other)
 
     def intersection_update(self, other):
@@ -620,16 +980,15 @@ class NodeSet(object):
     def __iand__(self, other):
         """
         Implements the &= operator. So s &= t returns nodeset s keeping
-        only elements also found in t.
+        only elements also found in t. (Python version 2.5+ required)
         """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
+        self._binary_sanity_check(other)
         return self.intersection_update(other)
 
     def difference(self, other):
         """
-        s.difference(t) returns a new set with elements in s but not in
-        t.
+        s.difference(t) returns a new NodeSet with elements in s but not
+        in t.
         """
         self_copy = copy.deepcopy(self)
         self_copy.difference_update(other)
@@ -637,17 +996,17 @@ class NodeSet(object):
 
     def __sub__(self, other):
         """
-        Implement the - operator. So s - t returns a new set with
+        Implement the - operator. So s - t returns a new nodeset with
         elements in s but not in t.
         """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
+        self._binary_sanity_check(other)
         return self.difference(other)
 
-    def difference_update(self, other):
+    def difference_update(self, other, strict=False):
         """
         s.difference_update(t) returns nodeset s after removing
-        elements found in t.
+        elements found in t. If strict is True, raise KeyError
+        if an element cannot be removed.
         """
         # the purge of each empty pattern is done afterward to allow self = ns
         purge_patterns = []
@@ -657,8 +1016,9 @@ class NodeSet(object):
             # if pattern is found, deal with it
             rangeset = self._patterns.get(pat)
             if rangeset:
-                # sub rangeset
-                rangeset.difference_update(erangeset)
+                # sub rangeset, raise KeyError if not found
+                rangeset.difference_update(erangeset, strict)
+
                 # check if no range left and add pattern to purge list
                 if len(rangeset) == 0:
                     purge_patterns.append(pat)
@@ -666,6 +1026,8 @@ class NodeSet(object):
                 # unnumbered node exclusion
                 if self._patterns.has_key(pat):
                     purge_patterns.append(pat)
+                elif strict:
+                    raise KeyError, pat
 
         for pat in purge_patterns:
             del self._patterns[pat]
@@ -673,11 +1035,86 @@ class NodeSet(object):
     def __isub__(self, other):
         """
         Implement the -= operator. So s -= t returns nodeset s after
-        removing elements found in t.
+        removing elements found in t. (Python version 2.5+ required)
         """
-        if not isinstance(other, self.__class__):
-            return NotImplemented
+        self._binary_sanity_check(other)
         return self.difference_update(other)
+
+    def remove(self, elem):
+        """
+        Remove element elem from the nodeset. Raise KeyError if elem
+        is not contained in the nodeset.
+        """
+        self.difference_update(elem, True)
+
+    def symmetric_difference(self, other):
+        """
+        s.symmetric_difference(t) returns the symmetric difference of
+        two nodesets as a new NodeSet.
+        
+        (ie. all nodes that are in exactly one of the nodesets.)
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.symmetric_difference_update(other)
+        return self_copy
+
+    def __xor__(self, other):
+        """
+        Implement the ^ operator. So s ^ t returns a new NodeSet with
+        nodes that are in exactly one of the nodesets.
+        """
+        self._binary_sanity_check(other)
+        return self.symmetric_difference(other)
+
+    def symmetric_difference_update(self, other):
+        """
+        s.symmetric_difference_update(t) returns nodeset s keeping all
+        nodes that are in exactly one of the nodesets.
+        """
+        binary = None
+
+        # type check is needed for this case...
+        if isinstance(other, NodeSet):
+            binary = other
+        elif type(other) is str:
+            binary = NodeSet(other)
+        else:
+            raise TypeError, "Binary operation only permitted between NodeSets or string"
+
+        purge_patterns = []
+
+        # iterate over our rangesets
+        for pat, rangeset in self._patterns.iteritems():
+            brangeset = binary._patterns.get(pat)
+            if brangeset:
+                rangeset.symmetric_difference_update(brangeset)
+            else:
+                if binary._patterns.has_key(pat):
+                    purge_patterns.append(pat)
+
+        # iterate over binary's rangesets
+        for pat, brangeset in binary._patterns.iteritems():
+            rangeset = self._patterns.get(pat)
+            if not rangeset and not self._patterns.has_key(pat):
+                self._add_rangeset(pat, brangeset)
+
+        # check for patterns cleanup
+        for pat, rangeset in self._patterns.iteritems():
+            if rangeset is not None and len(rangeset) == 0:
+                purge_patterns.append(pat)
+
+        # cleanup
+        for pat in purge_patterns:
+            del self._patterns[pat]
+
+    def __ixor__(self, other):
+        """
+        Implement the ^= operator. So s ^= t returns nodeset s after
+        keeping all nodes that are in exactly one of the nodesets.
+        (Python version 2.5+ required)
+        """
+        self._binary_sanity_check(other)
+        return self.symmetric_difference_update(other)
 
 
 def expand(pat):
