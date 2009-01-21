@@ -34,5 +34,4 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
-
-
+%doc LICENSE README

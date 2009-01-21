@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# $Id: Worker.py 7 2007-12-20 14:52:31Z st-cea $
+# $Id$
 
 """
 Worker
