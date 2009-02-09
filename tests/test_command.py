@@ -3,11 +3,12 @@
 # $Id$
 
 """
-test_command.py [--help] [--test=test] [--rc=retcode]
+test_command.py [--help] [--test=test] [--rc=retcode] [--timeout=timeout]
 """
 
 import getopt
 import sys
+import time
 import unittest
 
 
@@ -18,11 +19,17 @@ def testHuge():
 def testCmpOut():
     print "abcdefghijklmnopqrstuvwxyz"
 
+def testTimeout(howlong):
+    print "some buffer"
+    print "here..."
+    sys.stdout.flush()
+    time.sleep(howlong)
+
 if __name__ == '__main__':
     rc = 0
     test = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ht:r:", ["help", "test=", "rc="])
+        opts, args = getopt.getopt(sys.argv[1:], "ht:r:m:", ["help", "test=", "rc=", "timeout="])
     except getopt.error, msg:
         print msg
         print "Try `python %s -h' for more information." % sys.argv[0]
@@ -36,6 +43,8 @@ if __name__ == '__main__':
                 test = testCmpOut
         elif k in ("-r", "--rc"):
             rc = int(v)
+        elif k in ("-m", "--timeout"):
+            testTimeout(int(v))
         elif k in ("-h", "--help"):
             print __doc__
             sys.exit(0)

@@ -183,7 +183,7 @@ class TaskLocalTest(unittest.TestCase):
             task.resume()
         except TimeoutError:
             self.fail("did detect task timeout")
-    
+
     def testLocalSingleLineBuffers(self):
         """test task local single line buffers gathering"""
         task = task_self()
