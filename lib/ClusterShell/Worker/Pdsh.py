@@ -81,9 +81,14 @@ class WorkerPdsh(Worker):
             if fanout > 0:
                 cmd_l.append("-f %d" % fanout)
 
+            # Pdsh flag '-t' do not really works well. Better to use
+            # PDSH_SSH_ARGS_APPEND variable to transmit ssh ConnectTimeout
+            # flag.
             connect_timeout = self._task.info("connect_timeout", 0)
             if connect_timeout > 0:
-                cmd_l.append("-t %d" % connect_timeout)
+                cmd_l.insert(0, 
+                   "PDSH_SSH_ARGS_APPEND=\"-o ConnectTimeout=%d\"" %
+                   connect_timeout)
 
             command_timeout = self._task.info("command_timeout", 0)
             if command_timeout > 0:
