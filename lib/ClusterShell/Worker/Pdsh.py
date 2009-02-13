@@ -29,7 +29,7 @@ ClusterShell worker based on pdsh
 from ClusterShell.NodeSet import NodeSet
 
 from EngineClient import *
-from Worker import DistantWorker
+from Worker import DistantWorker, WorkerError
 
 import errno
 import fcntl
@@ -194,7 +194,11 @@ class WorkerPdsh(EngineClient,DistantWorker):
             if timeout:
                 self._invoke("ev_timeout")
         else:
-            self.fid.wait()
+            status = self.fid.wait()
+            if os.WIFEXITED(status):
+                rc = os.WEXITSTATUS(status)
+                if rc != 0:
+                    raise WorkerError("Cannot run pdsh (error %d)" % rc)
 
         # close
         self.fid.tochild.close()

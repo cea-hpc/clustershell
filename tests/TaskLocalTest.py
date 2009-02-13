@@ -211,7 +211,6 @@ class TaskLocalTest(unittest.TestCase):
                 self.assert_(keys[0] == "bar" or keys[1] == "bar")
             elif buf == "foobar":
                 self.assertEqual(len(keys), 3)
-                self.assertEqual(keys[0], "foobar")
 
         self.assertEqual(cnt, 0)
 
