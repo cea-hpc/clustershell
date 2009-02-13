@@ -1,4 +1,4 @@
-# WorkerPdsh.py -- ClusterShell pdsh worker with poll()
+# WorkerPdsh.py -- ClusterShell pdsh worker
 # Copyright (C) 2007, 2008, 2009 CEA
 # Written by S. Thiell
 #
@@ -23,11 +23,13 @@
 """
 WorkerPdsh
 
-ClusterShell worker
+ClusterShell worker based on pdsh
 """
 
 from ClusterShell.NodeSet import NodeSet
-from Worker import Worker
+
+from EngineClient import *
+from Worker import DistantWorker
 
 import errno
 import fcntl
@@ -36,14 +38,37 @@ import popen2
 import signal
 
 
-class WorkerPdsh(Worker):
+class WorkerPdsh(EngineClient,DistantWorker):
+    """
+    ClusterShell pdsh-based worker Class.
 
-    def __init__(self, nodes, handler, timeout, task, **kwargs):
+    Remote Shell (pdsh) usage example:
+        worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
+                        timeout=30, command="/bin/hostname")
+    Remote Copy (pdcp) usage example: 
+        worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
+                        timeout=30, source="/etc/my.conf",
+                        dest="/etc/my.conf")
+        ...
+        task.schedule(worker)   # schedule worker for execution
+        ...
+        task.resume()           # run
+
+    Known Limitations:
+        * write() is not supported by WorkerPdsh
+        * return codes == 0 are not garanteed when a timeout is used (rc > 0 are fine)
+    """
+
+    def __init__(self, nodes, handler, timeout, **kwargs):
         """
         Initialize Pdsh worker instance.
         """
-        Worker.__init__(self, handler, timeout, task)
+        DistantWorker.__init__(self, handler)
+        EngineClient.__init__(self, timeout, self)
+
         self.nodes = NodeSet(nodes)
+        self.closed_nodes = NodeSet()
+
         if kwargs.has_key('command'):
             # PDSH
             self.command = kwargs['command']
@@ -61,8 +86,9 @@ class WorkerPdsh(Worker):
 
         self.fid = None
         self.buf = ""
-        self.last_node = None
-        self.last_msg = None
+
+    def _engine_clients(self):
+        return [self]
 
     def _start(self):
         """
@@ -71,26 +97,24 @@ class WorkerPdsh(Worker):
         # Initialize worker read buffer
         self._buf = ""
 
-        self._invoke("ev_start")
-
         if self.command is not None:
             # Build pdsh command
             cmd_l = [ "/usr/bin/pdsh", "-b" ]
 
-            fanout = self._task.info("fanout", 0)
+            fanout = self.task.info("fanout", 0)
             if fanout > 0:
                 cmd_l.append("-f %d" % fanout)
 
             # Pdsh flag '-t' do not really works well. Better to use
             # PDSH_SSH_ARGS_APPEND variable to transmit ssh ConnectTimeout
             # flag.
-            connect_timeout = self._task.info("connect_timeout", 0)
+            connect_timeout = self.task.info("connect_timeout", 0)
             if connect_timeout > 0:
                 cmd_l.insert(0, 
-                   "PDSH_SSH_ARGS_APPEND=\"-o ConnectTimeout=%d\"" %
-                   connect_timeout)
+                    "PDSH_SSH_ARGS_APPEND=\"-o ConnectTimeout=%d\"" %
+                    connect_timeout)
 
-            command_timeout = self._task.info("command_timeout", 0)
+            command_timeout = self.task.info("command_timeout", 0)
             if command_timeout > 0:
                 cmd_l.append("-u %d" % command_timeout)
 
@@ -99,17 +123,17 @@ class WorkerPdsh(Worker):
 
             cmd = ' '.join(cmd_l)
 
-            if self._task.info("debug", False):
+            if self.task.info("debug", False):
                 print "PDSH: %s" % cmd
         else:
             # Build pdcp command
             cmd_l = [ "/usr/bin/pdcp", "-b" ]
 
-            fanout = self._task.info("fanout", 0)
+            fanout = self.task.info("fanout", 0)
             if fanout > 0:
                 cmd_l.append("-f %d" % fanout)
 
-            connect_timeout = self._task.info("connect_timeout", 0)
+            connect_timeout = self.task.info("connect_timeout", 0)
             if connect_timeout > 0:
                 cmd_l.append("-t %d" % connect_timeout)
 
@@ -119,34 +143,41 @@ class WorkerPdsh(Worker):
             cmd_l.append("'%s'" % self.dest)
             cmd = ' '.join(cmd_l)
 
-            if self._task.info("debug", False):
+            if self.task.info("debug", False):
                 print "PDCP: %s" % cmd
-        try:
-            # Launch process in non-blocking mode
-            self.fid = popen2.Popen4(cmd)
-            fl = fcntl.fcntl(self.fid.fromchild, fcntl.F_GETFL)
-            fcntl.fcntl(self.fid.fromchild, fcntl.F_SETFL, os.O_NDELAY)
-        except OSError, e:
-            raise e
+
+        self.fid = self._exec_nonblock(cmd)
+
+        self._update_on_start()
+
         return self
 
-    def fileno(self):
+    def reader_fileno(self):
         """
-        Returns the file descriptor as an integer.
+        Return the reader file descriptor as an integer.
         """
         return self.fid.fromchild.fileno()
     
-    def closed(self):
+    def writer_fileno(self):
         """
-        Returns True if the underlying file object is closed.
+        Return the writer file descriptor as an integer.
         """
-        return self.fid.fromchild.closed
+        return self.fid.tochild.fileno()
 
     def _read(self, size=-1):
         """
         Read data from process.
         """
-        return self.fid.fromchild.read(size)
+        result = self.fid.fromchild.read(size)
+        if result > 0:
+            self._set_reading()
+        return result
+
+    def write(self, buf):
+        """
+        Write data to process. Not supported with Pdsh worker.
+        """
+        raise EngineClientNotSupportedError("writing is not supported by pdsh worker")
 
     def _close(self, force, timeout):
         """
@@ -154,10 +185,6 @@ class WorkerPdsh(Worker):
         unregistered. This method should handle all termination types
         (normal, forced or on timeout).
         """
-        # rc code default to 0 for all nodes
-        for nodename in self.nodes:
-            self.engine.set_rc((self, nodename), 0, override=False)
-
         if force or timeout:
             status = self.fid.poll()
             if status == -1:
@@ -171,13 +198,21 @@ class WorkerPdsh(Worker):
         # close
         self.fid.tochild.close()
         self.fid.fromchild.close()
+
+        if timeout:
+            for node in (self.nodes - self.closed_nodes):
+                self._update_on_node_timeout(node)
+        else:
+            for node in (self.nodes - self.closed_nodes):
+                self._update_on_node_rc(node, 0)
+
         self._invoke("ev_close")
 
     def _handle_read(self):
         """
         Engine is telling us a read is available.
         """
-        debug = self._task.info("debug", False)
+        debug = self.task.info("debug", False)
 
         # read a chunk
         readbuf = self._read()
@@ -212,82 +247,27 @@ class WorkerPdsh(Worker):
                                 words[3] == "timeout":
                                     pass
                             elif len(words) == 8 and words[3] == "exited" and words[7].isdigit():
-                                self._set_node_rc(words[1][:-1], int(words[7]))
+                                self._update_on_node_rc(words[1][:-1],
+                                        int(words[7]))
                         elif self.mode == 'pdcp':
-                            self._set_node_rc(words[1][:-1], errno.ENOENT)
+                            self._update_on_node_rc(words[1][:-1], errno.ENOENT)
 
-                    except:
-                        raise WorkerError()
+                    except Exception, e:
+                        print >>sys.stderr, e
+                        raise EngineClientError()
                 else:
                     #        
                     # split pdsh reply "nodename: msg"
                     nodename, msgline = line.split(': ', 1)
-                    self._add_node_msgline(nodename, msgline)
-                    self._invoke("ev_read")
+                    self._update_on_node_msgline(nodename, msgline[:-1])
             else:
                 # keep partial line in buffer
                 self._buf = line
-                # will break here
-        return True
 
-    def _add_node_msgline(self, nodename, msg):
+    def _update_on_node_rc(self, node, rc):
         """
-        Update last_* and add node message line to messages tree.
+        Return code received from a node, update last* stuffs.
         """
-        self.last_node, self.last_msg = nodename, msg[:-1]
-
-        self.engine.add_msg((self, nodename), msg)
-
-    def _set_node_rc(self, nodename, rc):
-        """
-        Set node specific return code.
-        """
-        self.engine.set_rc((self, nodename), rc)
-
-    def last_read(self):
-        """
-        Get last (node, buffer) in an EventHandler.
-        """
-        return self.last_node, self.last_msg
-
-    def node_buffer(self, nodename):
-        """
-        Get specific node buffer.
-        """
-        return self.engine.message_by_source((self, nodename))
-        
-    def node_rc(self, nodename):
-        """
-        Get specific node return code.
-        """
-        return self.engine.rc_by_source((self, nodename))
-
-    def iter_buffers(self):
-        """
-        Returns an iterator over available buffers and associated
-        NodeSet.
-        """
-        for msg, keys in self.engine.iter_messages_by_worker(self):
-            yield msg, NodeSet.fromlist(keys)
-
-    def iter_node_buffers(self):
-        """
-        Returns an iterator over each node and associated buffer.
-        """
-        # Get iterator from underlying engine.
-        return self.engine.iter_key_messages_by_worker(self)
-
-    def iter_retcodes(self):
-        """
-        Returns an iterator over return codes and associated NodeSet.
-        """
-        for rc, keys in self.engine.iter_retcodes_by_worker(self):
-            yield rc, NodeSet.fromlist(keys)
-
-    def iter_node_retcodes(self):
-        """
-        Returns an iterator over each node and associated return code.
-        """
-        # Get iterator from underlying engine.
-        return self.engine.iter_key_retcodes_by_worker(self)
+        DistantWorker._update_on_node_rc(self, node, rc)
+        self.closed_nodes.add(node)
 

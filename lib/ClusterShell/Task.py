@@ -48,8 +48,13 @@ from Engine.Engine import EngineAlreadyRunningError
 from Engine.Poll import EnginePoll
 from Worker.File import WorkerFile
 from Worker.Pdsh import WorkerPdsh
+from Worker.Ssh import WorkerSsh
 from Worker.Popen2 import WorkerPopen2
 
+from MsgTree import MsgTreeElem
+from NodeSet import NodeSet
+
+from sets import Set
 import thread
 
 class TaskException(Exception):
@@ -124,6 +129,19 @@ class Task(object):
             self.timeout = 0
             self.l_run = None
 
+            # root of msg tree
+            self._msg_root = MsgTreeElem()
+            # dict of sources to msg tree elements
+            self._d_source_msg = {}
+            # dict of sources to return codes
+            self._d_source_rc = {}
+            # dict of return codes to sources
+            self._d_rc_sources = {}
+            # keep max rc
+            self._max_rc = 0
+            # keep timeout'd sources
+            self._timeout_sources = Set()
+
             # create new thread if needed
 
             if not thread_id:
@@ -172,14 +190,17 @@ class Task(object):
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \
                     "'key' argument not supported for distant command"
-            worker =  WorkerPdsh(kwargs["nodes"], command=command, \
-                    handler=handler, timeout=timeo, task=self)
-        else:
-            worker = WorkerPopen2(command, key=kwargs.get("key", None), \
-                    handler=handler, timeout=timeo, task=self)
 
-        # schedule task for this new shell worker
-        self.engine.add(worker)
+            # create ssh-based worker
+            worker = WorkerSsh(NodeSet(kwargs["nodes"]), handler=handler,
+                               timeout=timeo, command=command)
+        else:
+            # create popen2-based (local) worker
+            worker = WorkerPopen2(command, key=kwargs.get("key", None),
+                                  handler=handler, timeout=timeo)
+
+        # schedule worker for execution in this task
+        self.schedule(worker)
 
         return worker
 
@@ -193,10 +214,10 @@ class Task(object):
         timeo = kwargs.get("timeout", None)
 
         # create a new Pdcp worker (supported by WorkerPdsh)
-        worker = WorkerPdsh(nodes, source=source, dest=dest, handler=handler, timeout=timeo, task=self)
+        worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
+                timeout=timeo)
 
-        # schedule task for this new copy worker
-        self.engine.add(worker)
+        self.schedule(worker)
 
         return worker
 
@@ -211,6 +232,19 @@ class Task(object):
         self.engine.add(worker)
 
         return worker
+    
+    def schedule(self, worker):
+        """
+        Schedule a worker for execution. Only useful for manually
+        instantiated workers.
+        """
+
+        # bind worker to task self
+        worker._set_task(self)
+
+        # add worker clients to engine
+        for client in worker._engine_clients():
+            self.engine.add(client)
 
     def resume(self, timeout=0):
         """
@@ -227,6 +261,7 @@ class Task(object):
             self.l_run.release()
         else:
             try:
+                self._reset()
                 self.engine.run(timeout)
             except EngineTimeoutException:
                 raise TimeoutError()
@@ -262,7 +297,7 @@ class Task(object):
         to multiple workers, the resulting buffer will contain
         all workers content that may overlap.
         """
-        return "".join(self.engine.iter_messages_by_key(key))
+        return "".join(self._msg_iter_by_key(key))
     
     node_buffer = key_buffer
 
@@ -272,7 +307,7 @@ class Task(object):
         associated to multiple workers, return the max return
         code from these workers.
         """
-        return max(self.engine.iter_retcodes_by_key(key))
+        return max(self._rc_iter_by_key(key))
     
     node_retcode = key_retcode
 
@@ -285,15 +320,15 @@ class Task(object):
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.
         """
-        return self.engine.max_retcode()
+        return self._max_rc
 
     def iter_buffers(self):
         """
         Iterate over buffers, returns a tuple (buffer, keys). For remote
         workers (Ssh), keys are nodeset.
         """
-        for m, k in self.engine.iter_messages():
-            yield m, list(k)
+        for e in self._msg_root:
+            yield e.message(), [t[1] for t in e.sources]
             
     def iter_retcodes(self):
         """
@@ -304,8 +339,149 @@ class Task(object):
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.
         """
-        for rc, k in self.engine.iter_retcodes():
-            yield rc, list(k)
+        # Use the items iterator for the underlying dict.
+        for rc, src in self._d_rc_sources.iteritems():
+            yield rc, [t[1] for t in src]
+
+    def _reset(self):
+        """
+        Reset buffers and retcodes managment variables.
+        """
+        self._msg_root = MsgTreeElem()
+        self._d_source_msg = {}
+        self._d_source_rc = {}
+        self._d_rc_sources = {}
+        self._max_rc = 0
+        self._timeout_sources.clear()
+
+    def _msg_add(self, source, msg):
+        """
+        Add a worker message associated with a source.
+        """
+        # try first to get current element in msgs tree
+        e_msg = self._d_source_msg.get(source)
+        if not e_msg:
+            # key not found (first msg from it)
+            e_msg = self._msg_root
+
+        # add child msg and update dict
+        self._d_source_msg[source] = e_msg.add_msg(source, msg)
+
+    def _rc_set(self, source, rc, override=True):
+        """
+        Add a worker return code associated with a source.
+        """
+        if not override and self._d_source_rc.has_key(source):
+            return
+
+        # store rc by source
+        self._d_source_rc[source] = rc
+
+        # store source by rc
+        e = self._d_rc_sources.get(rc)
+        if e is None:
+            self._d_rc_sources[rc] = Set([source])
+        else:
+            self._d_rc_sources[rc].add(source)
+        
+        # update max rc
+        if rc > self._max_rc:
+            self._max_rc = rc
+
+    def _timeout_add(self, source):
+        """
+        Add a worker timeout associated with a source.
+        """
+        # store source in timeout set
+        self._timeout_sources.add(source)
+
+    def _msg_by_source(self, source):
+        """
+        Get a message by its source (worker, key).
+        """
+        e_msg = self._d_source_msg.get(source)
+
+        if e_msg is None:
+            return None
+
+        return e_msg.message()
+
+    def _msg_iter_by_key(self, key):
+        """
+        Return an iterator over stored messages for the given key.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if k == key:
+                yield e.message()
+
+    def _msg_iter_by_worker(self, worker):
+        """
+        Return an iterator over messages and keys list for a specific
+        worker.
+        """
+        for e in self._msg_root:
+            keys = [t[1] for t in e.sources if t[0] is worker]
+            if len(keys) > 0:
+                yield e.message(), keys
+
+    def _kmsg_iter_by_worker(self, worker):
+        """
+        Return an iterator over key, message for a specific worker.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if w is worker:
+                yield k, e.message()
+ 
+    def _rc_by_source(self, source):
+        """
+        Get a return code by its source (worker, key).
+        """
+        return self._d_source_msg.get(source, 0)
+   
+    def _rc_iter_by_key(self, key):
+        """
+        Return an iterator over return codes for the given key.
+        """
+        for (w, k), rc in self._d_source_rc.iteritems():
+            if k == key:
+                yield rc
+
+    def _rc_iter_by_worker(self, worker):
+        """
+        Return an iterator over return codes and keys list for a
+        specific worker.
+        """
+        # Use the items iterator for the underlying dict.
+        for rc, src in self._d_rc_sources.iteritems():
+            keys = [t[1] for t in src if t[0] is worker]
+            if len(keys) > 0:
+                yield rc, keys
+
+    def _krc_iter_by_worker(self, worker):
+        """
+        Return an iterator over key, rc for a specific worker.
+        """
+        for rc, (w, k) in self._d_rc_sources.iteritems():
+            if w is worker:
+                yield k, rc
+
+    def max_retcode(self):
+        """
+        Get max return code encountered during last run.
+        """
+        return self._max_rc
+
+    def iter_timeouts(self):
+        """
+        Iterate over timeout'd keys.
+        """
+        for (w, k) in self._timeout_sources:
+            yield k
+
+    def _iter_timeouts_by_worker(self, worker):
+        for (w, k) in self._timeout_sources:
+            if w is worker:
+                yield k
 
     def wait(cls, from_thread_id):
         """

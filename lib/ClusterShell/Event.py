@@ -40,34 +40,32 @@ class EventHandler:
 
     def ev_start(self, worker):
         """
-        Called to indicate that a worker is about to run.
+        Called to indicate that a worker has just started.
         """
-        pass
 
     def ev_read(self, worker):
         """
         Called to indicate that a worker has data to read.
         """
-        pass
 
-    def ev_write(self, worker):
+    def ev_written(self, worker):
         """
-        Called to indicate that writing now on that worker will not
-        block (not supported).
+        Called to indicate that writing has been done.
         """
-        pass
 
-    def ev_close(self, worker):
+    def ev_hup(self, worker):
         """
-        Called to indicate that a worker has finished (it may already
-        have failed on timeout).
+        Called to indicate that a worker's connection has been closed.
         """
-        pass
 
     def ev_timeout(self, worker):
         """
-        Called to indicate that a worker has timed out (worker specific
-        timeout only).
+        Called to indicate that a worker has timed out (worker timeout only).
         """
-        pass
+
+    def ev_close(self, worker):
+        """
+        Called to indicate that a worker has just finished (it may already
+        have failed on timeout).
+        """
 

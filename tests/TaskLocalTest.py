@@ -91,7 +91,7 @@ class TaskLocalTest(unittest.TestCase):
         # run task
         task.resume()
         self.assertEqual(worker.retcode(), 0)
-        self.assertEqual(len(worker.read()), 700000)
+        self.assertEqual(len(worker.read()), 699999)
 
     # task configuration
     def testTaskInfo(self):
@@ -198,20 +198,20 @@ class TaskLocalTest(unittest.TestCase):
 
         task.resume()
 
-        self.assert_(task.key_buffer("foobar") == "foobar\n")
+        self.assert_(task.key_buffer("foobar") == "foobar")
 
         cnt = 3
         for buf, keys in task.iter_buffers():
             cnt -= 1
             if buf == "foo":
                 self.assertEqual(len(keys), 1)
-                self.assert_(keys[0] == "foo")
+                self.assertEqual(keys[0], "foo")
             elif buf == "bar":
                 self.assertEqual(len(keys), 2)
-                self.assert_(keys[0] == "bar")
+                self.assert_(keys[0] == "bar" or keys[1] == "bar")
             elif buf == "foobar":
                 self.assertEqual(len(keys), 3)
-                self.assert_(keys[0] == "foobar")
+                self.assertEqual(keys[0], "foobar")
 
         self.assertEqual(cnt, 0)
 
@@ -268,7 +268,7 @@ class TaskLocalTest(unittest.TestCase):
 
         task.resume()
 
-        self.assert_(task.key_retcode("worker4") == 4)
+        self.assertEqual(task.key_retcode("worker4"), 4)
 
         cnt = 6
         for rc, keys in task.iter_retcodes():
