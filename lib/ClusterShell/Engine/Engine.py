@@ -511,6 +511,14 @@ class Engine:
             if len(keys) > 0:
                 yield rc, keys
 
+    def iter_key_retcodes_by_worker(self, worker):
+        """
+        Return an iterator over key, rc for a specific worker.
+        """
+        for rc, (w, k) in self._d_rc_sources.iteritems():
+            if w is worker:
+                yield k, rc
+
     def max_retcode(self):
         """
         Get max return code encountered during last run.
