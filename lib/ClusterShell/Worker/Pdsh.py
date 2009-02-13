@@ -27,7 +27,7 @@ ClusterShell worker
 """
 
 from ClusterShell.NodeSet import NodeSet
-from Worker import Worker
+from Worker import Worker, WorkerError
 
 import errno
 import fcntl
@@ -166,7 +166,11 @@ class WorkerPdsh(Worker):
             if timeout:
                 self._invoke("ev_timeout")
         else:
-            self.fid.wait()
+            status = self.fid.wait()
+            if os.WIFEXITED(status):
+                rc = os.WEXITSTATUS(status)
+                if rc != 0:
+                    raise WorkerError("Cannot run pdsh (error %d)" % rc)
 
         # close
         self.fid.tochild.close()
