@@ -56,7 +56,8 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
     Known Limitations:
         * write() is not supported by WorkerPdsh
-        * return codes == 0 are not garanteed when a timeout is used (rc > 0 are fine)
+        * return codes == 0 are not garanteed when a timeout is used (rc > 0
+          are fine)
     """
 
     def __init__(self, nodes, handler, timeout, **kwargs):
@@ -148,7 +149,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
         self.fid = self._exec_nonblock(cmd)
 
-        self._update_on_start()
+        self._on_start()
 
         return self
 
@@ -201,10 +202,10 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
         if timeout:
             for node in (self.nodes - self.closed_nodes):
-                self._update_on_node_timeout(node)
+                self._on_node_timeout(node)
         else:
             for node in (self.nodes - self.closed_nodes):
-                self._update_on_node_rc(node, 0)
+                self._on_node_rc(node, 0)
 
         self._invoke("ev_close")
 
@@ -247,10 +248,9 @@ class WorkerPdsh(EngineClient,DistantWorker):
                                 words[3] == "timeout":
                                     pass
                             elif len(words) == 8 and words[3] == "exited" and words[7].isdigit():
-                                self._update_on_node_rc(words[1][:-1],
-                                        int(words[7]))
+                                self._on_node_rc(words[1][:-1], int(words[7]))
                         elif self.mode == 'pdcp':
-                            self._update_on_node_rc(words[1][:-1], errno.ENOENT)
+                            self._on_node_rc(words[1][:-1], errno.ENOENT)
 
                     except Exception, e:
                         print >>sys.stderr, e
@@ -259,15 +259,15 @@ class WorkerPdsh(EngineClient,DistantWorker):
                     #        
                     # split pdsh reply "nodename: msg"
                     nodename, msgline = line.split(': ', 1)
-                    self._update_on_node_msgline(nodename, msgline[:-1])
+                    self._on_node_msgline(nodename, msgline[:-1])
             else:
                 # keep partial line in buffer
                 self._buf = line
 
-    def _update_on_node_rc(self, node, rc):
+    def _on_node_rc(self, node, rc):
         """
         Return code received from a node, update last* stuffs.
         """
-        DistantWorker._update_on_node_rc(self, node, rc)
+        DistantWorker._on_node_rc(self, node, rc)
         self.closed_nodes.add(node)
 

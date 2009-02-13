@@ -80,7 +80,7 @@ class Ssh(EngineClient):
 
         self.fid = self._exec_nonblock(cmd)
 
-        self.worker._update_on_start()
+        self.worker._on_start()
 
         return self
 
@@ -135,9 +135,9 @@ class Ssh(EngineClient):
         self.fid.fromchild.close()
 
         if rc >= 0:
-            self.worker._update_on_node_rc(self.key, rc)
+            self.worker._on_node_rc(self.key, rc)
         elif timeout:
-            self.worker._update_on_node_timeout(self.key)
+            self.worker._on_node_timeout(self.key)
 
         self.worker._check_fini()
 
@@ -161,7 +161,7 @@ class Ssh(EngineClient):
 
             if line.endswith('\n'):
                 msg = line[:-1]
-                self.worker._update_on_node_msgline(self.key, msg)
+                self.worker._on_node_msgline(self.key, msg)
             else:
                 # keep partial line in buffer
                 self._buf = line
@@ -282,12 +282,12 @@ class WorkerSsh(DistantWorker):
         self._invoke("ev_start")
         return self
 
-    def _update_on_node_rc(self, node, rc):
-        DistantWorker._update_on_node_rc(self, node, rc)
+    def _on_node_rc(self, node, rc):
+        DistantWorker._on_node_rc(self, node, rc)
         self._close_count += 1
 
-    def _update_on_node_timeout(self, node):
-        DistantWorker._update_on_node_timeout(self, node)
+    def _on_node_timeout(self, node):
+        DistantWorker._on_node_timeout(self, node)
         self._close_count += 1
         self._has_timeout = True
 

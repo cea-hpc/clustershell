@@ -291,58 +291,6 @@ class Task(object):
         """
         return self.engine.workers()
 
-    def key_buffer(self, key):
-        """
-        Get buffer for a specific key. When the key is associated
-        to multiple workers, the resulting buffer will contain
-        all workers content that may overlap.
-        """
-        return "".join(self._msg_iter_by_key(key))
-    
-    node_buffer = key_buffer
-
-    def key_retcode(self, key):
-        """
-        Return return code for a specific key. When the key is
-        associated to multiple workers, return the max return
-        code from these workers.
-        """
-        return max(self._rc_iter_by_key(key))
-    
-    node_retcode = key_retcode
-
-    def max_retcode(self):
-        """
-        Get max return code encountered during last run.
-
-        How retcodes work:
-          If the process exits normally, the return code is its exit
-          status. If the process is terminated by a signal, the return
-          code is 128 + signal number.
-        """
-        return self._max_rc
-
-    def iter_buffers(self):
-        """
-        Iterate over buffers, returns a tuple (buffer, keys). For remote
-        workers (Ssh), keys are nodeset.
-        """
-        for e in self._msg_root:
-            yield e.message(), [t[1] for t in e.sources]
-            
-    def iter_retcodes(self):
-        """
-        Iterate over return codes, returns a tuple (rc, keys).
-
-        How retcodes work:
-          If the process exits normally, the return code is its exit
-          status. If the process is terminated by a signal, the return
-          code is 128 + signal number.
-        """
-        # Use the items iterator for the underlying dict.
-        for rc, src in self._d_rc_sources.iteritems():
-            yield rc, [t[1] for t in src]
-
     def _reset(self):
         """
         Reset buffers and retcodes managment variables.
@@ -465,23 +413,98 @@ class Task(object):
             if w is worker:
                 yield k, rc
 
+    def _num_timeout_by_worker(self, worker):
+        """
+        Return the number of timed out "keys" for a specific worker.
+        """
+        return len([(w, k) for (w, k) in self._timeout_sources if w is worker])
+
+    def _iter_keys_timeout_by_worker(self, worker):
+        """
+        Iterate over timed out keys (ie. nodes) for a specific worker.
+        """
+        for (w, k) in self._timeout_sources:
+            if w is worker:
+                yield k
+
+    def key_buffer(self, key):
+        """
+        Get buffer for a specific key. When the key is associated
+        to multiple workers, the resulting buffer will contain
+        all workers content that may overlap.
+        """
+        return "".join(self._msg_iter_by_key(key))
+    
+    node_buffer = key_buffer
+
+    def key_retcode(self, key):
+        """
+        Return return code for a specific key. When the key is
+        associated to multiple workers, return the max return
+        code from these workers.
+        """
+        return max(self._rc_iter_by_key(key))
+    
+    node_retcode = key_retcode
+
+    def max_retcode(self):
+        """
+        Get max return code encountered during last run.
+
+        How retcodes work:
+          If the process exits normally, the return code is its exit
+          status. If the process is terminated by a signal, the return
+          code is 128 + signal number.
+        """
+        return self._max_rc
+
+    def iter_buffers(self):
+        """
+        Iterate over buffers, returns a tuple (buffer, keys). For remote
+        workers (Ssh), keys are list of nodes. In that case, you should use
+        NodeSet.fromlist(keys) to get a NodeSet instance (which is more
+        convenient and efficient):
+
+        Usage example:
+
+            for buffer, nodelist in task.iter_buffers():
+                print NodeSet.fromlist(nodelist)
+                print buffer
+        """
+        for e in self._msg_root:
+            yield e.message(), [t[1] for t in e.sources]
+            
+    def iter_retcodes(self):
+        """
+        Iterate over return codes, returns a tuple (rc, keys).
+
+        How retcodes work:
+          If the process exits normally, the return code is its exit
+          status. If the process is terminated by a signal, the return
+          code is 128 + signal number.
+        """
+        # Use the items iterator for the underlying dict.
+        for rc, src in self._d_rc_sources.iteritems():
+            yield rc, [t[1] for t in src]
+
     def max_retcode(self):
         """
         Get max return code encountered during last run.
         """
         return self._max_rc
 
-    def iter_timeouts(self):
+    def num_timeout(self):
         """
-        Iterate over timeout'd keys.
+        Return the number of timed out "keys" (ie. nodes).
+        """
+        return len(self._timeout_sources)
+
+    def iter_keys_timeout(self):
+        """
+        Iterate over timed out keys (ie. nodes).
         """
         for (w, k) in self._timeout_sources:
             yield k
-
-    def _iter_timeouts_by_worker(self, worker):
-        for (w, k) in self._timeout_sources:
-            if w is worker:
-                yield k
 
     def wait(cls, from_thread_id):
         """

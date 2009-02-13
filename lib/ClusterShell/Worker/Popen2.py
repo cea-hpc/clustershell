@@ -147,9 +147,9 @@ class WorkerPopen2(EngineClient,Worker):
         self.fid.fromchild.close()
 
         if rc >= 0:
-            self._update_on_rc(rc)
+            self._on_rc(rc)
         elif timeout:
-            self._update_on_timeout()
+            self._on_timeout()
 
         self._invoke("ev_close")
 
@@ -170,7 +170,7 @@ class WorkerPopen2(EngineClient,Worker):
             if debug:
                 print "LINE %s" % line,
             if line.endswith('\n'):
-                self._update_on_msgline(line[:-1])
+                self._on_msgline(line[:-1])
             else:
                 # keep partial line in buffer
                 self.buf = line
@@ -186,7 +186,7 @@ class WorkerPopen2(EngineClient,Worker):
         """
         return self.last_msg
 
-    def _update_on_msgline(self, msg):
+    def _on_msgline(self, msg):
         """
         Add a message.
         """
@@ -198,7 +198,7 @@ class WorkerPopen2(EngineClient,Worker):
 
         self._invoke("ev_read")
 
-    def _update_on_rc(self, rc):
+    def _on_rc(self, rc):
         """
         Set return code.
         """
@@ -207,7 +207,7 @@ class WorkerPopen2(EngineClient,Worker):
 
         self._invoke("ev_hup")
 
-    def _update_on_timeout(self):
+    def _on_timeout(self):
         """
         Update on timeout.
         """

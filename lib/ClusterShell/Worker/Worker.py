@@ -28,6 +28,7 @@ A worker is a generic object which provides "grouped" work in a specific task.
 """
 
 from ClusterShell.Event import EventHandler
+from ClusterShell.NodeSet import NodeSet
 
 
 class WorkerException(Exception):
@@ -105,7 +106,7 @@ class DistantWorker(Worker):
         self.last_rc = 0
         self.started = False
 
-    def _update_on_start(self):
+    def _on_start(self):
         """
         Starting
         """
@@ -113,7 +114,7 @@ class DistantWorker(Worker):
             self.started = True
             self._invoke("ev_start")
 
-    def _update_on_node_msgline(self, node, msg):
+    def _on_node_msgline(self, node, msg):
         """
         Message received from node, update last* stuffs.
         """
@@ -124,7 +125,7 @@ class DistantWorker(Worker):
 
         self._invoke("ev_read")
 
-    def _update_on_node_rc(self, node, rc):
+    def _on_node_rc(self, node, rc):
         """
         Return code received from a node, update last* stuffs.
         """
@@ -135,7 +136,7 @@ class DistantWorker(Worker):
 
         self._invoke("ev_hup")
 
-    def _update_on_node_timeout(self, node):
+    def _on_node_timeout(self, node):
         """
         Update on node timeout.
         """
@@ -191,4 +192,16 @@ class DistantWorker(Worker):
         Returns an iterator over each node and associated return code.
         """
         return self.task._krc_iter_by_worker(self)
+
+    def num_timeout(self):
+        """
+        Return the number of timed out "keys" (ie. nodes) for this worker.
+        """
+        return self.task._num_timeout_by_worker(self)
+
+    def iter_keys_timeout(self):
+        """
+        Iterate over timed out keys (ie. nodes) for a specific worker.
+        """
+        self.task._iter_keys_timeout_by_worker(self)
 
