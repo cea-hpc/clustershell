@@ -125,7 +125,7 @@ class EnginePoll(Engine):
         start_time = time.time()
 
         # run main event loop...
-        while len(self.reg_clients) > 0:
+        while len(self.reg_clients) > 0 or len(self.timerq) > 0:
             try:
                 timeo = self.timerq.expire_relative()
                 if timeout > 0 and timeo >= timeout:
@@ -145,19 +145,6 @@ class EnginePoll(Engine):
                     print >>sys.stderr, \
                             "EnginePoll: please increase RLIMIT_NOFILE"
                 raise
-
-            # check for empty evlist which means poll() timed out
-            if len(evlist) == 0:
-
-                # task timeout
-                if len(self.timerq) == 0:
-                    raise EngineTimeoutException()
-
-                # clients timeout
-                assert self.timerq.expired()
-
-                while self.timerq.expired():
-                    self.remove(self.timerq.pop(), did_timeout=True)
 
             for fd, event in evlist:
 
@@ -189,8 +176,6 @@ class EnginePoll(Engine):
                 # check for end of stream
                 if event & select.POLLHUP:
                     self.remove(client)
-                    #client._processing = False
-                    #return
 
                 # check for writing
                 if event & select.POLLOUT:
@@ -204,6 +189,13 @@ class EnginePoll(Engine):
                 # apply any changes occured during processing
                 if client.registered and client._iostate != iostate_sav:
                     self._modify(client, client._iostate, Engine.IOSTATE_ANY)
+
+            # check for task runloop timeout
+            if timeout > 0 and time.time() >= start_time + timeout:
+                raise EngineTimeoutException()
+
+            # process clients timeout
+            self.fire_timers()
 
     def exited(self):
         """

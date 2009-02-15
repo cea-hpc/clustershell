@@ -32,6 +32,8 @@ import fcntl
 import popen2
 import os
 
+from ClusterShell.Engine.Engine import EngineBaseTimer
+
 
 class EngineClientException(Exception):
     """Generic EngineClient exception."""
@@ -43,7 +45,7 @@ class EngineClientNotSupportedError(EngineClientError):
     """Operation not supported by EngineClient."""
 
 
-class EngineClient(object):
+class EngineClient(EngineBaseTimer):
     """
     Abstract class EngineClient.
     """
@@ -52,16 +54,24 @@ class EngineClient(object):
         """
         Initializer. Should be called from derived classes.
         """
+        EngineBaseTimer.__init__(self, timeout)
+
         # "engine-friendly"
         self._engine = None
         self._iostate = 0                   # what we want : read, write or both
         self._processing = False            # engine is working on us
 
         # read-only public
-        self.timeout = timeout              # needed by WorkerTimerQ
         self.registered = False             # registered on engine
 
         self.worker = worker
+
+    def _fire(self):
+        """
+        Fire timeout timer.
+        """
+        if self._engine:
+            self._engine.remove(self, did_timeout=True)
 
     def _set_engine(self, engine):
         """
@@ -90,7 +100,7 @@ class EngineClient(object):
     
     def abort(self):
         """
-        Stop this worker.
+        Stop this client.
         """
         if self._engine:
             self._engine.remove(self)

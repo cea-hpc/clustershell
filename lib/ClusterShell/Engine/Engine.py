@@ -49,17 +49,64 @@ class EngineAlreadyRunningError(EngineException):
     Error raised when the engine is already running.
     """
 
+class EngineBaseTimer:
+    """
+    Abstract class for ClusterShell's engine timer. Such a timer requires a
+    relative fire time (delay) in second (as float), and supports an optional
+    repeating interval in second (as float too).
+    """
 
-class _WorkerTimerQ:
+    def __init__(self, fire_relative, interval=-1.0):
+        self.fire_relative = fire_relative
+        self.interval = interval
+        self.armed = False
 
-    class _WorkerTimer:
+    def set_interval(self, interval):
         """
-        Helper class to represent a fire time. Allow to be used in an
-        heapq.
+        Set repeating interval (float value in seconds). You may use it safely
+        in an event handler (ev_timer).
+        """
+        self.interval = float(interval)
+
+    def _fire(self):
+        raise NotImplementedError("Derived classes must implement.")
+
+
+class EngineTimer(EngineBaseTimer):
+    """
+    Concrete class EngineTimer, used by task.timer().
+    """
+
+    def __init__(self, fire_relative, interval, handler):
+        EngineBaseTimer.__init__(self, fire_relative, interval)
+        self.eh = handler
+        assert self.eh != None, "An event handler is needed for timer."
+
+    def _fire(self):
+        self.eh._invoke("ev_timer", self)
+
+class _EngineTimerQ:
+
+    class _EngineArmedTimer:
+        """
+        Helper class that allows comparisons of fire times, to be easily used
+        in an heapq.
         """
         def __init__(self, client):
             self.client = client
-            self.fire_date = float(client.timeout) + time.time()
+            # arm timer
+            self.fire_date = float(client.fire_relative) + time.time()
+            self.client.armed = True
+
+        def disarm(self):
+            self.client.armed = False
+
+        def rearm(self):
+            self.fire_date += float(self.client.interval)
+            time_current = time.time()
+            if self.fire_date < time_current:
+                self.fire_date = time_current
+            self.client.armed = True
 
         def __cmp__(self, other):
             if self.fire_date < other.fire_date:
@@ -74,32 +121,66 @@ class _WorkerTimerQ:
         Initializer.
         """
         self.timers = []
+        self.armed_count = 0
 
     def __len__(self):
         """
         Return the number of active timers.
         """
-        return len(self.timers)
+        return self.armed_count
 
-    def push(self, client):
+    def insert(self, client):
         """
-        Add and arm a client's timer.
+        Insert and arm a client's timer.
         """
-        # arm only if timeout is set
-        if client.timeout > 0:
-            heapq.heappush(self.timers, _WorkerTimerQ._WorkerTimer(client))
+        # arm only if fire is set
+        if client.fire_relative > 0:
+            heapq.heappush(self.timers, _EngineTimerQ._EngineArmedTimer(client))
+            self.armed_count += 1
 
-    def pop(self):
+    def remove(self, client):
         """
-        Remove one timer in the queue and return its associated client.
+        Disarm client's timer. Current implementation doesn't really remove the
+        timer, but simply flags it as disarmed.
         """
-        return heapq.heappop(self.timers).client
+        if not client.armed:
+            return
+
+        if self.armed_count <= 0:
+            raise ValueError, "Engine client timer not found in timer queue"
+
+        client.armed = False
+        self.armed_count -= 1
+
+    def _dequeue_disarmed(self):
+        """
+        Dequeue disarmed timers (garbage collector).
+        """
+        while len(self.timers) > 0 and not self.timers[0].client.armed:
+            heapq.heappop(self.timers)
+
+    def fire(self):
+        """
+        Remove the smallest timer from the queue and fire its associated client.
+        Raise IndexError if the queue is empty.
+        """
+        self._dequeue_disarmed()
+
+        atimer = heapq.heappop(self.timers)
+        atimer.disarm()
+        atimer.client._fire()
+
+        if atimer.client.interval > 0.0:
+            atimer.rearm()
+            heapq.heappush(self.timers, atimer)
+        else:
+            self.armed_count -= 1
 
     def expire_relative(self):
         """
         Return next timer fire delay (relative time).
         """
-
+        self._dequeue_disarmed()
         if len(self.timers) > 0:
             return max(0., self.timers[0].fire_date - time.time())
 
@@ -109,6 +190,7 @@ class _WorkerTimerQ:
         """
         Has a timer expired?
         """
+        self._dequeue_disarmed()
         return len(self.timers) > 0 and \
             (self.timers[0].fire_date - time.time()) <= 1e-2
 
@@ -116,7 +198,6 @@ class _WorkerTimerQ:
         """
         Stop and clear all timers.
         """
-        del self.timers
         self.timers = []
 
 
@@ -147,8 +228,8 @@ class Engine:
         # note: len(self.reg_clients) <= configured fanout
         self.reg_clients = {}
 
-        # timer queue to handle clients timeout
-        self.timerq = _WorkerTimerQ()
+        # timer queue to handle both timers and clients timeout
+        self.timerq = _EngineTimerQ()
 
         # thread stuffs
         self.run_lock = thread.allocate_lock()
@@ -211,16 +292,41 @@ class Engine:
         client._iostate = Engine.IOSTATE_ANY
         client.registered = True
 
+        # start timeout timer
+        self.timerq.insert(client)
+
     def unregister(self, client):
         """
         Unregister a client. Subclasses that override this method should
         call base class method.
         """
         assert client.registered == True
+        
+        # remove timeout timer
+        self.timerq.remove(client)
 
         del self.reg_clients[client.writer_fileno()]
         del self.reg_clients[client.reader_fileno()]
         client.registered = False
+
+    def add_timer(self, timer):
+        """
+        Add engine timer.
+        """
+        self.timerq.insert(timer)
+
+    def remove_timer(self, timer):
+        """
+        Remove engine timer.
+        """
+        self.timerq.remove(timer)
+
+    def fire_timers(self):
+        """
+        Fire expired timers for processing.
+        """
+        while self.timerq.expired():
+            self.timerq.fire()
 
     def start_all(self):
         """
@@ -237,10 +343,6 @@ class Engine:
         # change to running state
         if not self.run_lock.acquire(0):
             raise EngineAlreadyRunningError()
-
-        # arm client timers
-        for client in self._clients:
-            self.timerq.push(client)
 
         # start clients now
         self.start_all()

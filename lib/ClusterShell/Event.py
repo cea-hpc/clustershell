@@ -31,12 +31,12 @@ class EventHandler:
     """
     Base class EventHandler.
     """
-    def _invoke(self, ev_type, worker):
+    def _invoke(self, ev_type, source):
         """
         Invoke a specific event handler.
         """
         ev_handler = getattr(self, ev_type)
-        ev_handler(worker)
+        ev_handler(source)
 
     def ev_start(self, worker):
         """
@@ -69,3 +69,7 @@ class EventHandler:
         have failed on timeout).
         """
 
+    def ev_timer(self, timer):
+        """
+        Handle firing timer.
+        """

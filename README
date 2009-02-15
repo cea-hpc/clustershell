@@ -1,5 +1,5 @@
  -------------------------------
- ClusterShell 1.0 Python Library
+ ClusterShell 1.1 Python Library
  -------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
@@ -9,14 +9,20 @@ mechanisms.
 This is the source tarball. When possible, please use the RPM distribution.
 
  -------------------
- Requirements (v1.0)
+ Requirements (v1.1)
  -------------------
 
- * Pdsh (a high-performance, parallel remote shell utility)
-
-    https://computing.llnl.gov/linux/pdsh.html
+ * OpenSSH (ssh/scp)
 
  * Python 2.3+ with select.poll available (eg. Linux)
+
+ ---------------
+ Optional (v1.1)
+ ---------------
+
+ * Optional: Pdsh (a high-performance, parallel remote shell utility)
+
+    https://computing.llnl.gov/linux/pdsh.html
 
  ------------------------
  Installation from source

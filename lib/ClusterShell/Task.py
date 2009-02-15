@@ -45,6 +45,7 @@ Simple example of use:
 from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
 from Engine.Engine import EngineAlreadyRunningError
+from Engine.Engine import EngineTimer
 from Engine.Poll import EnginePoll
 from Worker.File import WorkerFile
 from Worker.Pdsh import WorkerPdsh
@@ -121,9 +122,7 @@ class Task(object):
         Initialize a Task, creating a new thread if needed.
         """
         if not getattr(self, "engine", None):
-
             # first time called
-
             self._info = self.__class__._default_info.copy()
             self.engine = EnginePoll(self._info)
             self.timeout = 0
@@ -143,7 +142,6 @@ class Task(object):
             self._timeout_sources = Set()
 
             # create new thread if needed
-
             if not thread_id:
                 self.l_run = thread.allocate_lock()
                 self.l_run.acquire()
@@ -221,24 +219,22 @@ class Task(object):
 
         return worker
 
-    def file(self, file, key=None, handler=None, timeout=None):
+    def timer(self, fire, handler, interval=-1.0):
         """
-        Listen on file object.
+        Create task's timer.
         """
-        # create a File worker
-        worker = WorkerFile(file=file, key=key, handler=handler, timeout=timeout, task=self)
+        assert(fire >= 0.0, "timer's relative fire-time must be a positive \
+                floating number")
+        
+        timer = EngineTimer(fire, interval, handler)
+        self.engine.add_timer(timer)
+        return timer
 
-        # schedule task for the file worker
-        self.engine.add(worker)
-
-        return worker
-    
     def schedule(self, worker):
         """
         Schedule a worker for execution. Only useful for manually
         instantiated workers.
         """
-
         # bind worker to task self
         worker._set_task(self)
 
