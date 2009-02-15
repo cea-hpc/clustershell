@@ -267,6 +267,7 @@ class Engine:
         if client.registered:
             self.unregister(client)
             client._close(force=False, timeout=did_timeout)
+            self.start_all()
 
     def clear(self, did_timeout=False):
         """
@@ -330,11 +331,17 @@ class Engine:
 
     def start_all(self):
         """
-        Start and register all stopped clients.
+        Start and register all possible clients, in respect of task fanout.
         """
+        fanout = self.info["fanout"]
+        if fanout <= len(self.reg_clients):
+            return
+
         for client in self._clients:
             if not client.registered:
                 self.register(client._start())
+                if fanout <= len(self.reg_clients):
+                    break
     
     def run(self, timeout):
         """

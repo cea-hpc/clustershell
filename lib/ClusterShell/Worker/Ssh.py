@@ -272,16 +272,6 @@ class WorkerSsh(DistantWorker):
         """
         return self.clients
 
-    def _start(self):
-        """
-        Start worker, initialize buffers, prepare command.
-        """
-        for client in self.clients:
-            client._start()
-
-        self._invoke("ev_start")
-        return self
-
     def _on_node_rc(self, node, rc):
         DistantWorker._on_node_rc(self, node, rc)
         self._close_count += 1

@@ -263,6 +263,18 @@ class TaskDistantTest(unittest.TestCase):
         self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
         self.assertEqual(worker.node_buffer("localhost"), None)
 
+    def testLocalhostCommandFanout(self):
+        """test fanout with localhost commands"""
+        task = task_self()
+        self.assert_(task != None)
+        task.set_info("fanout", 2)
+        # init worker
+        for i in range(0, 10):
+            worker = task.shell("/bin/echo %d" % i, nodes='localhost')
+            self.assert_(worker != None)
+        # run task
+        task.resume()
+    
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
