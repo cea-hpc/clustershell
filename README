@@ -1,6 +1,6 @@
- -------------------------------
- ClusterShell 1.1 Python Library
- -------------------------------
+ ------------------------------------
+ ClusterShell 1.1-BETA Python Library
+ -------------------------=====------
 
 ClusterShell is an event-based python library to execute commands on local or
 distant cluster nodes in parallel depending on the selected engine and worker
@@ -16,13 +16,22 @@ This is the source tarball. When possible, please use the RPM distribution.
 
  * Python 2.3+ with select.poll available (eg. Linux)
 
- ---------------
- Optional (v1.1)
- ---------------
+ ------------------------
+ Supported Engine workers
+ ------------------------
 
- * Optional: Pdsh (a high-performance, parallel remote shell utility)
+ Two workers are supported as of version 1.1:
 
-    https://computing.llnl.gov/linux/pdsh.html
+ * Ssh (default, requires ssh): support writes, fanout and reliable timeouts
+
+ * Pdsh (optional, requires pdsh): read only, fanout, no reliable timeouts
+    Get pdsh @ https://computing.llnl.gov/linux/pdsh.html
+
+ Why the pdsh worker doesn't have "reliable timeout" support: when a timeout
+ value is used, pdsh shows no difference between a process returning rc=0 and
+ a process that timed out. It works for processes returning rc!=0 because pdsh
+ displays the return code. That's why it is now recommended to use the Ssh
+ worker when you want reliable timeout support.
 
  ------------------------
  Installation from source
