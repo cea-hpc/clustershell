@@ -45,9 +45,9 @@ class TaskTimerTest(unittest.TestCase):
             
         def ev_timer(self, timer):
             self.count += 1
-            timer.set_interval(timer.interval+0.1)
+            timer.set_nextfire(0.5)
             if self.count > 4:
-                timer.set_interval(-1)
+                timer.invalidate()
 
     def testSimpleRepeater(self):
         """test simple repeater timer"""

@@ -72,4 +72,6 @@ class EventHandler:
     def ev_timer(self, timer):
         """
         Handle firing timer.
+
+        @timer: The timer that is firing. 
         """

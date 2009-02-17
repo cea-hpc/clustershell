@@ -127,7 +127,7 @@ class EnginePoll(Engine):
         # run main event loop...
         while len(self.reg_clients) > 0 or len(self.timerq) > 0:
             try:
-                timeo = self.timerq.expire_relative()
+                timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
                     # task timeout may invalidate clients timeout
                     self.timerq.clear()

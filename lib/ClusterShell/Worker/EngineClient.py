@@ -57,7 +57,6 @@ class EngineClient(EngineBaseTimer):
         EngineBaseTimer.__init__(self, timeout)
 
         # "engine-friendly"
-        self._engine = None
         self._iostate = 0                   # what we want : read, write or both
         self._processing = False            # engine is working on us
 
@@ -72,12 +71,6 @@ class EngineClient(EngineBaseTimer):
         """
         if self._engine:
             self._engine.remove(self, did_timeout=True)
-
-    def _set_engine(self, engine):
-        """
-        Set engine, called by Engine.
-        """
-        self._engine = engine
 
     def _start(self):
         """
