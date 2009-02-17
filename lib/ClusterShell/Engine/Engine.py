@@ -225,8 +225,9 @@ class _EngineTimerQ:
         the timer, but simply flags it as disarmed.
         """
         if not client._timercase:
-            # invalidate fire_delay, needed when the timer is being fired
+            # if timer is being fire, invalidate its values
             client.fire_delay = 0
+            client.interval = 0
             return
 
         if self.armed_count <= 0:
