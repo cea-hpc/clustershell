@@ -413,7 +413,11 @@ class Task(object):
         """
         Return the number of timed out "keys" for a specific worker.
         """
-        return len([(w, k) for (w, k) in self._timeout_sources if w is worker])
+        cnt = 0
+        for (w, k) in self._timeout_sources:
+            if w is worker:
+                cnt += 1
+        return cnt
 
     def _iter_keys_timeout_by_worker(self, worker):
         """

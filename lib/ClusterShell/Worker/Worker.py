@@ -203,5 +203,5 @@ class DistantWorker(Worker):
         """
         Iterate over timed out keys (ie. nodes) for a specific worker.
         """
-        self.task._iter_keys_timeout_by_worker(self)
+        return self.task._iter_keys_timeout_by_worker(self)
 

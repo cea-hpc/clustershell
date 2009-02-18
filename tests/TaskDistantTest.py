@@ -178,6 +178,16 @@ class TaskDistantTest(unittest.TestCase):
         self.assertEqual(worker.node_buffer("localhost"), "alright")
         self.assertEqual(worker.num_timeout(), 1)
         self.assertEqual(task.num_timeout(), 1)
+        count = 0
+        for node in task.iter_keys_timeout():
+            count += 1
+            self.assertEqual(node, "localhost")
+        self.assertEqual(count, 1)
+        count = 0
+        for node in worker.iter_keys_timeout():
+            count += 1
+            self.assertEqual(node, "localhost")
+        self.assertEqual(count, 1)
 
     def testShellEventsWithTimeout(self):
         """test triggered events (with timeout) (more)"""
