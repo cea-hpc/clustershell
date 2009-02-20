@@ -111,8 +111,9 @@ class RangeSet:
         autostep threshold.
         """
         if autostep is None:
-            # disabled by default for pdsh compat (+inf)
-            self._autostep = 1E400
+            # disabled by default for pdsh compat (+inf is 1E400, but a bug in
+            # python 2.4 makes it impossible to be pickled, so we use less).
+            self._autostep = 1E100
         else:
             # - 1 because user means node count, but we means
             # real steps.
@@ -439,6 +440,13 @@ class RangeSet:
         """
         for start, stop, step, pad in rangeset._ranges:
             self.add_range(start, stop, step, pad)
+
+    def clear(self):
+        """
+        Remove all ranges from this rangeset.
+        """
+        self._ranges = []
+        self._length = 0
 
     def __ior__(self, other):
         """
@@ -899,7 +907,7 @@ class NodeSet(object):
             pat_e.update(rangeset)
         else:
             # create new pattern (with possibly rangeset=None)
-            self._patterns[pat] = rangeset
+            self._patterns[pat] = copy.copy(rangeset)
 
     def union(self, other):
         """
@@ -929,6 +937,13 @@ class NodeSet(object):
         """
         for pat, rangeset in _NodeSetParse(other, self._autostep):
             self._add_rangeset(pat, rangeset)
+
+    def clear(self):
+        """
+        Remove all nodes from this nodeset.
+        """
+        self._patterns.clear()
+        self._length = 0
 
     def __ior__(self, other):
         """
