@@ -11,7 +11,6 @@ Group: Development/Libraries
 BuildRoot: %{_tmppath}/%{name}-buildroot
 Prefix: %{_prefix}
 BuildArchitectures: noarch
-Requires: pdsh
 Vendor: Stephane Thiell <stephane.thiell@cea.fr>
 Url: http://clustershell.sourceforge.net/
 
