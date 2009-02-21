@@ -57,29 +57,67 @@ class EnginePoll(Engine):
         # runloop-has-exited flag
         self.exited = False
 
-    def register(self, worker):
+    def register(self, client):
         """
-        Register a worker.
+        Register a client.
         """
         # call base class method
-        Engine.register(self, worker)
+        Engine.register(self, client)
 
-        # add file-object worker to polling system
-        self.polling.register(worker, select.POLLIN)
+        # add file-object client to polling system
+        self.polling.register(client.reader_fileno(), select.POLLIN)
+        self.polling.register(client.writer_fileno(), select.POLLOUT)
 
-    def unregister(self, worker):
+    def unregister(self, client):
         """
-        Unregister a worker.
+        Unregister a client.
         """
-        # remove file-object worker from polling system
-        self.polling.unregister(worker)
+        # remove file-object client from polling system
+        self.polling.unregister(client.writer_fileno())
+        self.polling.unregister(client.reader_fileno())
 
         # call base class method
-        Engine.unregister(self, worker)
+        Engine.unregister(self, client)
+
+    def _modify(self, client, set, clear):
+        """
+        Modify event mask for a client.
+        """
+        client._iostate &= ~clear
+        client._iostate |= set
+
+        if client._processing:
+            # don't change poll flags while the client is being processed,
+            # but wait for post-process changes.
+            return
+
+        if ((set ^ clear) & Engine.IOSTATE_READING): # readable has changed
+            eventmask = 0
+            if set & Engine.IOSTATE_READING:
+                eventmask = select.POLLIN
+            self.polling.register(client.reader_fileno(), eventmask)
+
+        if ((set ^ clear) & Engine.IOSTATE_WRITING): # writable has changed
+            eventmask = 0
+            if set & Engine.IOSTATE_WRITING:
+                eventmask = select.POLLOUT
+            self.polling.register(client.writer_fileno(), eventmask)
+
+    def set_reading(self, client):
+        """
+        Set client reading state.
+        """
+        self._modify(client, Engine.IOSTATE_READING, 0)
+
+    def set_writing(self, client):
+        """
+        Set client writing state.
+        """
+        self._modify(client, Engine.IOSTATE_WRITING, 0)
 
     def runloop(self, timeout):
         """
-        Pdsh engine run(): start workers and properly get replies
+        Pdsh engine run(): start clients and properly get replies
         """
         if timeout == 0:
             timeout = -1
@@ -87,11 +125,11 @@ class EnginePoll(Engine):
         start_time = time.time()
 
         # run main event loop...
-        while len(self.reg_workers) > 0:
+        while len(self.reg_clients) > 0 or len(self.timerq) > 0:
             try:
-                timeo = self.timerq.expire_relative()
+                timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
-                    # task timeout may invalidate workers timeout
+                    # task timeout may invalidate clients timeout
                     self.timerq.clear()
                     timeo = timeout
                 elif timeo == -1:
@@ -108,39 +146,56 @@ class EnginePoll(Engine):
                             "EnginePoll: please increase RLIMIT_NOFILE"
                 raise
 
-            # check for empty evlist which means poll() timed out
-            if len(evlist) == 0:
-
-                # task timeout
-                if len(self.timerq) == 0:
-                    raise EngineTimeoutException()
-
-                # workers timeout
-                assert self.timerq.expired()
-
-                while self.timerq.expired():
-                    self.remove(self.timerq.pop(), did_timeout=True)
-
             for fd, event in evlist:
 
-                # get worker instance
-                worker = self.reg_workers[fd]
+                # get client instance
+                if not self.reg_clients.has_key(fd):
+                    continue
+
+                client = self.reg_clients[fd]
+
+                # save client's IO state before processing
+                iostate_sav = client._iostate
+                # process this client
+                client._processing = True
 
                 # check for poll error condition of some sort
                 if event & select.POLLERR:
-                    print >> sys.stderr, "EnginePoll: POLLERR"
-                    self.remove(worker)
+                    if client._iostate & Engine.IOSTATE_READING:
+                        client._iostate &= ~Engine.IOSTATE_WRITING
+                    else:
+                        self.remove(client)
                     continue
 
                 # check for data to read
                 if event & select.POLLIN:
-                    if not worker._handle_read():
-                        self.remove(worker)
-                        continue
+                    assert client._iostate & Engine.IOSTATE_READING
+                    client._iostate &= ~Engine.IOSTATE_READING
+                    client._handle_read()
 
                 # check for end of stream
                 if event & select.POLLHUP:
-                    self.remove(worker)
+                    self.remove(client)
+
+                # check for writing
+                if event & select.POLLOUT:
+                    assert client._iostate & Engine.IOSTATE_WRITING
+                    client._iostate &= ~Engine.IOSTATE_WRITING
+                    client._handle_write()
+
+                # post processing
+                client._processing = False
+
+                # apply any changes occured during processing
+                if client.registered and client._iostate != iostate_sav:
+                    self._modify(client, client._iostate, Engine.IOSTATE_ANY)
+
+            # check for task runloop timeout
+            if timeout > 0 and time.time() >= start_time + timeout:
+                raise EngineTimeoutException()
+
+            # process clients timeout
+            self.fire_timers()
 
     def exited(self):
         """
