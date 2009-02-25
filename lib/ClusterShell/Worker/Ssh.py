@@ -148,9 +148,13 @@ class Ssh(EngineClient):
         """
         debug = self.worker.task.info("debug", False)
 
-        # read a chunk
+        # read a chunk of data
         readbuf = self._read()
         assert len(readbuf) > 0, "_handle_read() called with no data to read"
+
+        # Current version of this worker implements line-buffered reads.
+        # If needed, we could easily provide direct, non-buffered, data
+        # reads in the future.
 
         buf = self._buf + readbuf
         lines = buf.splitlines(True)
@@ -158,9 +162,13 @@ class Ssh(EngineClient):
         for line in lines:
             if debug:
                 print "DEBUG: %s: %s" % (self.key, line),
-
             if line.endswith('\n'):
-                msg = line[:-1]
+                if line.endswith('\r\n'):
+                    msg = line[:-2] # trim CRLF
+                else:
+                    # trim LF
+                    msg = line[:-1] # trim LF
+                # full line
                 self.worker._on_node_msgline(self.key, msg)
             else:
                 # keep partial line in buffer

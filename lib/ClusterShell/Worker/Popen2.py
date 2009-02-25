@@ -170,7 +170,11 @@ class WorkerPopen2(EngineClient,Worker):
             if debug:
                 print "LINE %s" % line,
             if line.endswith('\n'):
-                self._on_msgline(line[:-1])
+                if line.endswith('\r\n'):
+                    msgline = line[:-2]
+                else:
+                    msgline = line[:-1]
+                self._on_msgline(msgline)
             else:
                 # keep partial line in buffer
                 self.buf = line

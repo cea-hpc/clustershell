@@ -262,8 +262,13 @@ class WorkerPdsh(EngineClient,DistantWorker):
                 else:
                     #        
                     # split pdsh reply "nodename: msg"
-                    nodename, msgline = line.split(': ', 1)
-                    self._on_node_msgline(nodename, msgline[:-1])
+                    nodename, msg = line.split(': ', 1)
+                    if msg.endswith('\n'):
+                        if msg.endswith('\r\n'):
+                            msgline = msg[:-2] # trim CRLF
+                        else:
+                            msgline = msg[:-1] # trim LF
+                    self._on_node_msgline(nodename, msgline)
             else:
                 # keep partial line in buffer
                 self._buf = line
