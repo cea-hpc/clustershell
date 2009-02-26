@@ -103,13 +103,13 @@ class MsgTreeElem:
         msg = ""
 
         # no msg in root element
-        if not self.msg:
+        if self.msg is None:
             return msg
         
         # build list of msg (reversed by design)
         rmsgs = [self.msg]
         parent = self.parent
-        while parent and parent.msg:
+        while parent and parent.msg is not None:
             rmsgs.append(parent.msg)
             parent = parent.parent
 
