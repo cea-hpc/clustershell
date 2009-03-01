@@ -125,7 +125,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
             cmd = ' '.join(cmd_l)
 
             if self.task.info("debug", False):
-                print "PDSH: %s" % cmd
+                self.task.info("print_debug")(self.task, "PDSH: %s" % cmd)
         else:
             # Build pdcp command
             cmd_l = [ "/usr/bin/pdcp", "-b" ]
@@ -145,7 +145,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
             cmd = ' '.join(cmd_l)
 
             if self.task.info("debug", False):
-                print "PDCP: %s" % cmd
+                self.task.info("print_debug")(self.task,"PDCP: %s" % cmd)
 
         self.fid = self._exec_nonblock(cmd)
 
@@ -218,6 +218,8 @@ class WorkerPdsh(EngineClient,DistantWorker):
         Engine is telling us a read is available.
         """
         debug = self.task.info("debug", False)
+        if debug:
+            print_debug = self.task.info("print_debug")
 
         # read a chunk
         readbuf = self._read()
@@ -228,7 +230,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
         self._buf = ""
         for line in lines:
             if debug:
-                print "LINE: %s" % line,
+                print_debug(self.task, "LINE: %s" % line[:-1])
             if line.endswith('\n'):
                 if line.startswith("pdsh@") or line.startswith("pdcp@") or line.startswith("sending "):
                     try:

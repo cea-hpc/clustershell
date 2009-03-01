@@ -56,17 +56,19 @@ class Ssh(EngineClient):
         """
         Start worker, initialize buffers, prepare command.
         """
+        task = self.worker.task
+
         # Initialize worker read buffer
         self._buf = ""
 
         # Build ssh command
         cmd_l = [ "ssh", "-a", "-x" ]
 
-        user = self.worker.task.info("ssh_user")
+        user = task.info("ssh_user")
         if user:
             cmd_l.append("-l %s" % user)
 
-        connect_timeout = self.worker.task.info("connect_timeout", 0)
+        connect_timeout = task.info("connect_timeout", 0)
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
@@ -75,8 +77,8 @@ class Ssh(EngineClient):
 
         cmd = ' '.join(cmd_l)
 
-        if self.worker.task.info("debug", False):
-            print "SSH: %s" % cmd
+        if task.info("debug", False):
+            task.info("print_debug")(task, "SSH: %s" % cmd)
 
         self.fid = self._exec_nonblock(cmd)
 
@@ -147,6 +149,8 @@ class Ssh(EngineClient):
         event indicating that a read is available.
         """
         debug = self.worker.task.info("debug", False)
+        if debug:
+            print_debug = self.worker.task.info("print_debug")
 
         # read a chunk of data
         readbuf = self._read()
@@ -160,14 +164,14 @@ class Ssh(EngineClient):
         lines = buf.splitlines(True)
         self._buf = ""
         for line in lines:
-            if debug:
-                print "DEBUG: %s: %s" % (self.key, line),
             if line.endswith('\n'):
                 if line.endswith('\r\n'):
                     msg = line[:-2] # trim CRLF
                 else:
                     # trim LF
                     msg = line[:-1] # trim LF
+                if debug:
+                    print_debug(self.worker.task, "%s: %s" % (self.key, msg))
                 # full line
                 self.worker._on_node_msgline(self.key, msg)
             else:
@@ -206,27 +210,29 @@ class Scp(Ssh):
         """
         Start worker, initialize buffers, prepare command.
         """
+        task = self.worker.task
+
         # Initialize worker read buffer
         self._buf = ""
 
         # Build scp command
         cmd_l = [ "scp" ]
 
-        connect_timeout = self.worker.task.info("connect_timeout", 0)
+        connect_timeout = task.info("connect_timeout", 0)
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
         cmd_l.append("'%s'" % self.source)
 
-        user = self.worker.task.info("ssh_user")
+        user = task.info("ssh_user")
         if user:
             cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
         else:
             cmd_l.append("'%s:%s'" % (self.key, self.dest))
         cmd = ' '.join(cmd_l)
 
-        if self.worker.task.info("debug", False):
-            print "SCP: %s" % cmd
+        if task.info("debug", False):
+            task.info("print_debug")(task, "SCP: %s" % cmd)
 
         self.fid = self._exec_nonblock(cmd)
 

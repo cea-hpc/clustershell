@@ -83,7 +83,8 @@ class WorkerPopen2(EngineClient,Worker):
         self.fid = self._exec_nonblock(self.command)
 
         if self.task.info("debug", False):
-            print "POPEN2: %s" % self.command
+            self.task.info("print_debug")(self.task,
+                    "POPEN2: %s" % self.command)
 
         self._invoke("ev_start")
 
@@ -158,6 +159,8 @@ class WorkerPopen2(EngineClient,Worker):
         Engine is telling us a read is available.
         """
         debug = self.task.info("debug", False)
+        if debug:
+            print_debug = self.task.info("print_debug")
 
         # read a chunk
         readbuf = self._read()
@@ -167,13 +170,13 @@ class WorkerPopen2(EngineClient,Worker):
         lines = buf.splitlines(True)
         self.buf = ""
         for line in lines:
-            if debug:
-                print "LINE %s" % line,
             if line.endswith('\n'):
                 if line.endswith('\r\n'):
                     msgline = line[:-2]
                 else:
                     msgline = line[:-1]
+                if debug:
+                    print_debug(self.task, "LINE %s" % msgline)
                 self._on_msgline(msgline)
             else:
                 # keep partial line in buffer

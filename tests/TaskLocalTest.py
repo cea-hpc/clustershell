@@ -22,6 +22,10 @@ import socket
 import thread
 
 
+def _test_print_debug(task, s):
+    # Use custom task info (prefix 'user_' is recommended)
+    task.set_info("user_print_debug_last", s)
+
 class TaskLocalTest(unittest.TestCase):
 
     def testSimpleCommand(self):
@@ -295,6 +299,26 @@ class TaskLocalTest(unittest.TestCase):
 
         # test max retcode API
         self.assertEqual(task.max_retcode(), 5)
+
+    def testCustomPrintDebug(self):
+        """test task with custom print debug callback"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # first test that simply changing print_debug doesn't enable debug
+        task.set_info("print_debug", _test_print_debug)
+        task.shell("/bin/true")
+        task.resume()
+        self.assertEqual(task.info("user_print_debug_last"), None)
+
+        # with debug enabled, it should work
+        task.set_info("debug", True)
+        task.shell("/bin/true")
+        task.resume()
+        self.assertEqual(task.info("user_print_debug_last"), "POPEN2: /bin/true")
+
+        # remove debug
+        task.set_info("debug", False)
 
     
 

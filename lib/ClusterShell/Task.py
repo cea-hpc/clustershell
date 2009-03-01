@@ -76,6 +76,14 @@ class AlreadyRunningError(TaskException):
         return "current task already running"
 
 
+def _task_print_debug(task, s):
+    """
+    Default task debug printing function. Cannot provide 'print'
+    directly as it is not a function (will be in Py3k!).
+    """
+    print s
+
+
 class Task(object):
     """
     Task to execute. May be bound to a specific thread.
@@ -99,6 +107,7 @@ class Task(object):
     """
 
     _default_info = { "debug"           : False,
+                      "print_debug"     : _task_print_debug,
                       "fanout"          : 32,
                       "connect_timeout" : 10,
                       "command_timeout" : 0 }
@@ -515,7 +524,6 @@ class Task(object):
             if thread_id != from_thread_id:
                 task.join()
     wait = classmethod(wait)
-
 
 
 def task_self():
