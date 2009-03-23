@@ -91,6 +91,11 @@ class Worker(object):
         """
         raise NotImplementedError("Derived classes must implement.")
 
+    def did_timeout(self):
+        """
+        Return True if this worker aborted due to timeout.
+        """
+        return self.task._num_timeout_by_worker(self) > 0
 
 class DistantWorker(Worker):
     """
