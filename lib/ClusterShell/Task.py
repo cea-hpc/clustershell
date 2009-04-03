@@ -130,10 +130,10 @@ class Task(object):
         """
         Initialize a Task, creating a new thread if needed.
         """
-        if not getattr(self, "engine", None):
+        if not getattr(self, "_engine", None):
             # first time called
             self._info = self.__class__._default_info.copy()
-            self.engine = EnginePoll(self._info)
+            self._engine = EnginePoll(self._info)
             self.timeout = 0
             self.l_run = None
 
@@ -162,7 +162,7 @@ class Task(object):
         print "thread started (id=0x%x)" % thread.get_ident()
 
         self.l_run.acquire()
-        self.engine.run(self.timeout)
+        self._engine.run(self.timeout)
 
         print "thread exited (id=0x%x)" % thread.get_ident()
 
@@ -232,11 +232,10 @@ class Task(object):
         """
         Create task's timer.
         """
-        assert(fire >= 0.0, "timer's relative fire-time must be a positive \
-                floating number")
+        assert fire >= 0.0, "timer's relative fire time must be a positive floating number"
         
         timer = EngineTimer(fire, interval, handler)
-        self.engine.add_timer(timer)
+        self._engine.add_timer(timer)
         return timer
 
     def schedule(self, worker):
@@ -249,7 +248,7 @@ class Task(object):
 
         # add worker clients to engine
         for client in worker._engine_clients():
-            self.engine.add(client)
+            self._engine.add(client)
 
     def resume(self, timeout=0):
         """
@@ -267,7 +266,7 @@ class Task(object):
         else:
             try:
                 self._reset()
-                self.engine.run(timeout)
+                self._engine.run(timeout)
             except EngineTimeoutException:
                 raise TimeoutError()
             except EngineAbortException:
@@ -281,20 +280,14 @@ class Task(object):
         """
         Abort a task.
         """
-        self.engine.abort()
+        self._engine.abort()
 
     def join(self):
         """
         Suspend execution of the calling thread until the target task
         terminates, unless the target task has already terminated.
         """
-        self.engine.join()
-
-    def workers(self):
-        """
-        Get active workers (as an iterable object).
-        """
-        return self.engine.workers()
+        self._engine.join()
 
     def _reset(self):
         """
@@ -367,15 +360,21 @@ class Task(object):
             if k == key:
                 yield e.message()
 
-    def _msg_iter_by_worker(self, worker):
+    def _msg_iter_by_worker(self, worker, match_keys=None):
         """
         Return an iterator over messages and keys list for a specific
-        worker.
+        worker and optional matching keys.
         """
-        for e in self._msg_root:
-            keys = [t[1] for t in e.sources if t[0] is worker]
-            if len(keys) > 0:
-                yield e.message(), keys
+        if match_keys:
+            for e in self._msg_root:
+                keys = [t[1] for t in e.sources if t[0] is worker and t[1] in match_keys]
+                if len(keys) > 0:
+                    yield e.message(), keys
+        else:
+            for e in self._msg_root:
+                keys = [t[1] for t in e.sources if t[0] is worker]
+                if len(keys) > 0:
+                    yield e.message(), keys
 
     def _kmsg_iter_by_worker(self, worker):
         """
@@ -399,16 +398,22 @@ class Task(object):
             if k == key:
                 yield rc
 
-    def _rc_iter_by_worker(self, worker):
+    def _rc_iter_by_worker(self, worker, match_keys=None):
         """
         Return an iterator over return codes and keys list for a
-        specific worker.
+        specific worker and optional matching keys.
         """
-        # Use the items iterator for the underlying dict.
-        for rc, src in self._d_rc_sources.iteritems():
-            keys = [t[1] for t in src if t[0] is worker]
-            if len(keys) > 0:
-                yield rc, keys
+        if match_keys:
+            # Use the items iterator for the underlying dict.
+            for rc, src in self._d_rc_sources.iteritems():
+                keys = [t[1] for t in src if t[0] is worker and t[1] in match_keys]
+                if len(keys) > 0:
+                    yield rc, keys
+        else:
+            for rc, src in self._d_rc_sources.iteritems():
+                keys = [t[1] for t in src if t[0] is worker]
+                if len(keys) > 0:
+                    yield rc, keys
 
     def _krc_iter_by_worker(self, worker):
         """
@@ -467,12 +472,14 @@ class Task(object):
         """
         return self._max_rc
 
-    def iter_buffers(self):
+    def iter_buffers(self, match_keys=None):
         """
         Iterate over buffers, returns a tuple (buffer, keys). For remote
         workers (Ssh), keys are list of nodes. In that case, you should use
         NodeSet.fromlist(keys) to get a NodeSet instance (which is more
         convenient and efficient):
+
+        Optional parameter match_keys add filtering on these keys.
 
         Usage example:
 
@@ -480,21 +487,34 @@ class Task(object):
                 print NodeSet.fromlist(nodelist)
                 print buffer
         """
-        for e in self._msg_root:
-            yield e.message(), [t[1] for t in e.sources]
+        if match_keys:
+            for e in self._msg_root:
+                keys = [t[1] for t in e.sources if t[1] in match_keys]
+                if keys:
+                    yield e.message(), keys
+        else:
+            for e in self._msg_root:
+                yield e.message(), [t[1] for t in e.sources]
             
-    def iter_retcodes(self):
+    def iter_retcodes(self, match_keys=None):
         """
         Iterate over return codes, returns a tuple (rc, keys).
+
+        Optional parameter match_keys add filtering on these keys.
 
         How retcodes work:
           If the process exits normally, the return code is its exit
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.
         """
-        # Use the items iterator for the underlying dict.
-        for rc, src in self._d_rc_sources.iteritems():
-            yield rc, [t[1] for t in src]
+        if match_keys:
+            # Use the items iterator for the underlying dict.
+            for rc, src in self._d_rc_sources.iteritems():
+                keys = [t[1] for t in src if t[1] in match_keys]
+                yield rc, keys
+        else:
+            for rc, src in self._d_rc_sources.iteritems():
+                yield rc, [t[1] for t in src]
 
     def max_retcode(self):
         """

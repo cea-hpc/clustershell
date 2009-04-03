@@ -88,6 +88,14 @@ class EngineBaseTimer:
         Invalidates a timer object, stopping it from ever firing again.
         """
         self._engine.timerq.invalidate(self)
+        self._engine = None
+
+    def is_valid(self):
+        """
+        Returns a boolean value that indicates whether an EngineTimer
+        object is valid and able to fire.
+        """
+        return self._engine != None
 
     def set_nextfire(self, fire_delay, interval=-1):
         """
@@ -108,6 +116,9 @@ class EngineBaseTimer:
         timers autorepeat or to use this method from the timer's own
         event handler callback (ie. from its ev_timer).
         """
+        if not self.is_valid():
+            raise EngineIllegalOperationError("Operation on invalid timer.")
+
         self.fire_delay = fire_delay
         self.interval = interval
         self._engine.timerq.reschedule(self)
@@ -284,7 +295,11 @@ class _EngineTimerQ:
         """
         Stop and clear all timers.
         """
+        for timer in self.timers:
+            timer.client.invalidate()
+
         self.timers = []
+        self.armed_count = 0
 
 
 class Engine:
@@ -422,6 +437,7 @@ class Engine:
         Start and register all possible clients, in respect of task fanout.
         """
         fanout = self.info["fanout"]
+        assert fanout > 0
         if fanout <= len(self.reg_clients):
             return
 

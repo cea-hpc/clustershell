@@ -171,12 +171,13 @@ class DistantWorker(Worker):
         """
         return self.task._rc_by_source((self, node))
 
-    def iter_buffers(self):
+    def iter_buffers(self, match_keys=None):
         """
         Returns an iterator over available buffers and associated
-        NodeSet.
+        NodeSet. If the optional parameter match_keys is defined, only
+        keys found in match_keys are returned.
         """
-        for msg, keys in self.task._msg_iter_by_worker(self):
+        for msg, keys in self.task._msg_iter_by_worker(self, match_keys):
             yield msg, NodeSet.fromlist(keys)
 
     def iter_node_buffers(self):
@@ -185,11 +186,13 @@ class DistantWorker(Worker):
         """
         return self.task._kmsg_iter_by_worker(self)
 
-    def iter_retcodes(self):
+    def iter_retcodes(self, match_keys=None):
         """
         Returns an iterator over return codes and associated NodeSet.
+        If the optional parameter match_keys is defined, only keys
+        found in match_keys are returned.
         """
-        for rc, keys in self.task._rc_iter_by_worker(self):
+        for rc, keys in self.task._rc_iter_by_worker(self, match_keys):
             yield rc, NodeSet.fromlist(keys)
 
     def iter_node_retcodes(self):
