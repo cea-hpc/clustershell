@@ -320,6 +320,60 @@ class TaskLocalTest(unittest.TestCase):
         # remove debug
         task.set_info("debug", False)
 
+    def testLocalRCBufferGathering(self):
+        """test task local rc+buffers gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar5")
+        task.shell("/usr/bin/printf 'foo\nbur\n' && exit 1", key="foobar2")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar3")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 5", key="foofuu")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 4", key="faaber")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 1", key="foofuu2")
+
+        task.resume()
+
+        cnt = 5
+        for rc, keys in task.iter_retcodes():
+            for buf, keys in task.iter_buffers(keys):
+                cnt -= 1
+                if buf == "foo\nbar\n":
+                    self.assert_(rc == 1 and rc == 4)
+                elif buf == "foo\nbur\n":
+                    self.assertEqual(rc, 1)
+                elif buf == "foo\nbuu\n":
+                    self.assertEqual(rc, 5)
+
+        self.assertEqual(cnt, 0)
+    
+    def testLocalBufferRCGathering(self):
+        """test task local buffers+rc gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar5")
+        task.shell("/usr/bin/printf 'foo\nbur\n' && exit 1", key="foobar2")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar3")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 5", key="foofuu")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 4", key="faaber")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 1", key="foofuu2")
+
+        task.resume()
+
+        cnt = 9
+        for buf, keys in task.iter_buffers():
+            for rc, keys in task.iter_retcodes(keys):
+                # same checks as testLocalRCBufferGathering
+                cnt -= 1
+                if buf == "foo\nbar\n":
+                    self.assert_(rc == 1 and rc == 4)
+                elif buf == "foo\nbur\n":
+                    self.assertEqual(rc, 1)
+                elif buf == "foo\nbuu\n":
+                    self.assertEqual(rc, 5)
+
+        self.assertEqual(cnt, 0)
     
 
 if __name__ == '__main__':
