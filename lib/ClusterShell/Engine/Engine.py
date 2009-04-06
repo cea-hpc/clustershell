@@ -296,7 +296,8 @@ class _EngineTimerQ:
         Stop and clear all timers.
         """
         for timer in self.timers:
-            timer.client.invalidate()
+            if timer.armed():
+                timer.client.invalidate()
 
         self.timers = []
         self.armed_count = 0
