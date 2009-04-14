@@ -13,8 +13,10 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
+from ClusterShell.Engine.Engine import EngineIllegalOperationError
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import *
+
 
 EV_START=0x01
 EV_READ=0x02
@@ -68,6 +70,27 @@ class TaskTimerTest(unittest.TestCase):
         # run task
         task.resume()
         self.assertEqual(test_handler.count, 5)
+
+    def testRepeaterInvalidatedTwice(self):
+        """test repeater timer invalidated two times"""
+        task = task_self()
+        self.assert_(task != None)
+        # init event handler for timer's callback
+        test_handler = self.__class__.TRepeaterTimerChecker()
+        timer1 = task.timer(1.0, interval=0.5, handler=test_handler)
+        self.assert_(timer1 != None)
+        # run task
+        task.resume()
+        self.assertEqual(test_handler.count, 5)
+
+        # force invalidation again (2d time), this should do nothing
+        timer1.invalidate()
+
+        # call handler one more time directly: set_nextfire should raise an error
+        self.assertRaises(EngineIllegalOperationError, test_handler.ev_timer, timer1)
+
+        # force invalidation again (3th), this should do nothing
+        timer1.invalidate()
 
     def launchSimplePrecisionTest(self, delay):
         task = task_self()

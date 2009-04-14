@@ -77,7 +77,7 @@ class EngineBaseTimer:
         """
         Bind to engine, called by Engine.
         """
-        if self._engine is not None:
+        if self._engine:
             # A timer can be registered to only one engine at a time.
             raise EngineIllegalOperationError("Already bound to engine.")
 
@@ -87,8 +87,9 @@ class EngineBaseTimer:
         """
         Invalidates a timer object, stopping it from ever firing again.
         """
-        self._engine.timerq.invalidate(self)
-        self._engine = None
+        if self._engine:
+            self._engine.timerq.invalidate(self)
+            self._engine = None
 
     def is_valid(self):
         """

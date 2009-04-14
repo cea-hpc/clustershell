@@ -27,7 +27,7 @@ if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
 setup(name='ClusterShell',
-      version='1.0.83',
+      version='1.0.84',
       license='GPL',
       description='ClusterShell library',
       author='Stephane Thiell',
