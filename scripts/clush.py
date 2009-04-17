@@ -24,13 +24,13 @@
 """
 Usage: clush [-d] [options] [-x|--exclude <nodeset>] -w|--nodes <nodeset> [cmd]
 
-Pdsh-like with integrated dshback command using the ClusterShell library.
+Pdsh-like with integrated dshbak command using the ClusterShell library.
 """
 
-import fcntl
 import getopt
 import os
 import sys
+import readline
 
 sys.path.append('../lib')
 
@@ -41,135 +41,159 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell import version
 
-import socket
-
-import pdb
-
-def _prompt():
-    sys.stdout.write("clush> ")
-    sys.stdout.flush()
-
 #
-# temporary workaround methods
+# TODO:
+#  - Supports timeout as task.resume(timeout= ), ev_timeout in OutputHandler 
+#  - Better handling of return codes
 #
-def _set_write_buffered():
-    flag = fcntl.fcntl(sys.stdout, fcntl.F_GETFL)
-    fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flag & ~os.O_NDELAY)
 
-def _set_write_nonblocking():
-    fcntl.fcntl(sys.stdout, fcntl.F_SETFL, os.O_NDELAY)
-
-class IShellHandler(EventHandler):
-    def __init__(self):
-        self.input_eh = None
-
-    def ev_close(self, worker):
-        _set_write_buffered()
-        for buffer, nodeset in worker.iter_buffers():
-            sys.stdout.write("----------------\n")
-            sys.stdout.write(str(NodeSet.fromlist(nodeset, autostep=3)) + "\n")
-            sys.stdout.write("----------------\n")
-            sys.stdout.write(buffer)
-        for rc, nodeset in worker.iter_retcodes():
-            if rc != 0:
-                ns = NodeSet.fromlist(nodeset, autostep=3)
-                sys.stdout.write("%s: exited with exit code %s\n" % (ns, rc))
-        _prompt()
-        _set_write_nonblocking()
-        self.input_eh.shell_worker = None
-
-class IInputHandler(EventHandler):
-    def __init__(self, nodes, eh):
-        self.nodes = nodes
-        self.shell_eh = eh
-        self.shell_eh.input_eh = self
-        self.shell_worker = None
-
-    def ev_start(self, worker):
-        _prompt()
-
+class OutputHandler(EventHandler):
     def ev_read(self, worker):
-        if self.shell_worker is None:
-            task = task_self()
-            buf = worker.last_read()
-            if len(buf) > 0:
-                self.shell_worker = task.shell(buf, nodes=self.nodes, handler=self.shell_eh)
-            else:
-                _prompt()
+        print "%s: %s" % worker.last_read()
+    def ev_hup(self, worker):
+        ns, rc = worker.last_retcode()
+        if rc > 0:
+            print "clush: %s: exited with retcode %d" % (ns, rc) 
+    def ev_timeout(self, worker):
+        print "clush: %s: timeout reached" % worker.last_node()
+        
+
+def display_buffers(worker):
+
+    # Display command output
+    for buffer, nodeset in worker.iter_buffers():
+        print "-" * 15
+        print NodeSet.fromlist(nodeset, autostep=3)
+        print "-" * 15
+        print buffer
+
+    # Display return code if not ok ( != 0)
+    for rc, nodeset in worker.iter_retcodes():
+        if rc != 0:
+            ns = NodeSet.fromlist(nodeset, autostep=3)
+            print "clush: %s: exited with exit code %s" % (ns, rc)
+
+def run_command(task, cmd, ns, gather, timeout):
+    """
+    Create and run the specified command line, displaying
+    results in a dshbak way if gathering is used.
+    """    
+
+    if gather:
+        worker = task.shell(cmd, nodes=ns, timeout=timeout)
+    else:
+        worker = task.shell(cmd, nodes=ns, handler=OutputHandler(), timeout=timeout)
+ 
+    task.resume()
+    if gather:
+       display_buffers(worker)
+   
+    return task.max_retcode()
+
+def interactive(task, ns, gather, timeout):
+   """Manage the interactive prompt to run command"""
+   rc = 0
+   cmd = ""
+   while cmd.lower() != "quit":
+        try:
+            cmd = raw_input("clush> ")
+        except EOFError:
+            print
+            break
+
+        if cmd.lower() != "quit":
+            rc = run_command(task, cmd, ns, gather, timeout)
+
+   return rc
+
+def usage(msg):
+    print "error: %s" % (msg)
+    print __doc__
+    sys.exit(2)
 
 def runClush(args):
-    try:
-        opts, args = getopt.getopt(args[1:], "dhf:t:u:x:w:v", ["debug", \
-                "help", "fanout=", "connect_timeout=", "command_timeout=", \
-                "exclude=", "nodes=", "version"])
-    except getopt.error, msg:
-        print msg
-        print "Try `python %s -h' for more information." % args[0]
-        sys.exit(2)
 
+    # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
     debug = False
     fanout = 0
     connect_timeout = 0
     command_timeout = 0
+    gather = True
 
-    for k, v in opts:
-        if k in ("-w", "--nodes"):
-            nodeset_base.update(v)
-        if k in ("-x", "--exclude"):
-            nodeset_exclude.update(v)
-        elif k in ("-d", "--debug"):
-            debug = True
-        elif k in ("-f", "--fanout"):
-            fanout = int(v)
-        elif k in ("-t", "--connect_timeout"):
-            connect_timeout = int(v)
-        elif k in ("-u", "--command_timeout"):
-            command_timeout = int(v)
-        elif k in ("-v", "--version"):
-            print version
-            sys.exit(0)
-        elif k in ("-h", "--help"):
-            print __doc__
-            sys.exit(0)
+    #
+    # Argument management
+    #
+    try:
+        opts, args = getopt.getopt(args[1:], "dDhf:t:u:x:w:v", ["debug", \
+                "help", "fanout=", "connect_timeout=", "command_timeout=", \
+                "exclude=", "nodes=", "version", "nogather"])
+    except getopt.error, msg:
+        usage(msg)
 
+    try:
+        for k, v in opts:
+            if k in ("-w", "--nodes"):
+                nodeset_base.update(v)
+            if k in ("-x", "--exclude"):
+                nodeset_exclude.update(v)
+            elif k in ("-d", "--debug"):
+                debug = True
+            elif k in ("-f", "--fanout"):
+                fanout = int(v)
+            elif k in ("-t", "--connect_timeout"):
+                connect_timeout = int(v)
+            elif k in ("-u", "--command_timeout"):
+                command_timeout = int(v)
+            elif k in ("-D", "--nogather"):
+                gather = False
+            elif k in ("-v", "--version"):
+                print "Version %s" % version
+                sys.exit(0)
+            elif k in ("-h", "--help"):
+                print __doc__
+                sys.exit(0)
+    except ValueError, e:
+        usage("Invalid argument: %s %s" % (k, v))
+
+    #
+    # Compute the nodeset
+    #
+
+    # De we have a exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)
-    
     if len(nodeset_base) < 1:
-        print __doc__
-        sys.exit(0)
+        usage("No node to run on.")
 
+    #
+    # Task management
+    #
+
+    timeout = 0
     task = task_self()
-
     if debug:
         task.set_info("debug", debug)
     if fanout:
         task.set_info("fanout", fanout)
     if connect_timeout:
         task.set_info("connect_timeout", connect_timeout)
+        timeout = connect_timeout
     if command_timeout:
         task.set_info("command_timeout", command_timeout)
+        timeout += timeout
 
+    # Either we have no more arguments, so use interactive mode
     if len(args) == 0:
-        task.file(sys.stdin, handler=IInputHandler(nodeset_base, IShellHandler()))
-        task.resume()
+
+        rc = interactive(task, nodeset_base, gather, timeout)
+
+    # If not, just prepare a command with the last args an run it
     else:
-        worker = task.shell(' '.join(args), nodes=nodeset_base)
 
-        task.resume()
+        rc = run_command(task, ' '.join(args), nodeset_base, gather, timeout)
 
-        for buffer, nodeset in worker.iter_buffers():
-            print "----------------"
-            print NodeSet.fromlist(nodeset, autostep=3)
-            print "----------------"
-            print buffer,
+    sys.exit(rc)
 
-        for rc, nodeset in worker.iter_retcodes():
-            if rc != 0:
-                ns = NodeSet.fromlist(nodeset, autostep=3)
-                print "clush: %s: exited with exit code %s" % (ns, rc)
-
-        sys.exit(task.max_retcode())
 
 if __name__ == '__main__':
     try:
