@@ -106,9 +106,9 @@ class DistantWorker(Worker):
     def __init__(self, handler):
         Worker.__init__(self, handler)
 
-        self.last_node = None
-        self.last_msg = None
-        self.last_rc = 0
+        self._last_node = None
+        self._last_msg = None
+        self._last_rc = 0
         self.started = False
 
     def _on_start(self):
@@ -123,8 +123,8 @@ class DistantWorker(Worker):
         """
         Message received from node, update last* stuffs.
         """
-        self.last_node = node
-        self.last_msg = msg
+        self._last_node = node
+        self._last_msg = msg
 
         self.task._msg_add((self, node), msg)
 
@@ -134,8 +134,8 @@ class DistantWorker(Worker):
         """
         Return code received from a node, update last* stuffs.
         """
-        self.last_node = node
-        self.last_rc = rc
+        self._last_node = node
+        self._last_rc = rc
 
         self.task._rc_set((self, node), rc)
 
@@ -145,19 +145,29 @@ class DistantWorker(Worker):
         """
         Update on node timeout.
         """
+        # Update _last_node to allow node resolution after ev_timeout.
+        self._last_node = node
+
         self.task._timeout_add((self, node))
+
+    def last_node(self):
+        """
+        Get last node, useful to get the node in an EventHandler
+        callback like ev_timeout().
+        """
+        return self._last_node
 
     def last_read(self):
         """
         Get last (node, buffer), useful in an EventHandler.ev_read()
         """
-        return self.last_node, self.last_msg
+        return self._last_node, self._last_msg
 
     def last_retcode(self):
         """
         Get last (node, rc), useful in an EventHandler.ev_hup()
         """
-        return self.last_node, self.last_rc
+        return self._last_node, self._last_rc
 
     def node_buffer(self, node):
         """
