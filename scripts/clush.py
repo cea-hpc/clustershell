@@ -53,12 +53,13 @@ class OutputHandler(EventHandler):
 
 def display_buffers(worker):
 
-    # Display command output
-    for buffer, nodeset in worker.iter_buffers():
-        print "-" * 15
-        print NodeSet.fromlist(nodeset, autostep=3)
-        print "-" * 15
-        print buffer
+    # Display command output, try to order buffers by rc
+    for rc, nodeset in worker.iter_retcodes():
+        for buffer, nodeset in worker.iter_buffers(nodeset):
+            print "-" * 15
+            print NodeSet.fromlist(nodeset, autostep=3)
+            print "-" * 15
+            print buffer
 
     # Display return code if not ok ( != 0)
     for rc, nodeset in worker.iter_retcodes():
