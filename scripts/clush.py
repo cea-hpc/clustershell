@@ -22,40 +22,33 @@
 
 
 """
-Usage: clush [-d] [options] [-x|--exclude <nodeset>] -w|--nodes <nodeset> [cmd]
-
 Pdsh-like with integrated dshbak command using the ClusterShell library.
 """
 
-import getopt
-import os
 import sys
 import readline
-
-sys.path.append('../lib')
-
-import ClusterShell
+from optparse import OptionParser
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import *
+from ClusterShell.Task import task_self
 from ClusterShell import version
 
-#
-# TODO:
-#  - Supports timeout as task.resume(timeout= ), ev_timeout in OutputHandler 
-#  - Better handling of return codes
-#
-
 class OutputHandler(EventHandler):
+    def __init__(self, label):
+        self._label = label
     def ev_read(self, worker):
-        print "%s: %s" % worker.last_read()
+        ns, buf = worker.last_read()
+        if self._label:
+          print "%s: %s" % (ns, buf)
+        else:
+          print "%s" % buf
     def ev_hup(self, worker):
         ns, rc = worker.last_retcode()
         if rc > 0:
-            print "clush: %s: exited with retcode %d" % (ns, rc) 
+            print "clush: %s: exited with exit code %d" % (ns, rc) 
     def ev_timeout(self, worker):
-        print "clush: %s: timeout reached" % worker.last_node()
+        print "clush: %s: command timeout" % worker.last_node()
         
 
 def display_buffers(worker):
@@ -73,7 +66,7 @@ def display_buffers(worker):
             ns = NodeSet.fromlist(nodeset, autostep=3)
             print "clush: %s: exited with exit code %s" % (ns, rc)
 
-def run_command(task, cmd, ns, gather, timeout):
+def run_command(task, cmd, ns, gather, timeout, label):
     """
     Create and run the specified command line, displaying
     results in a dshbak way if gathering is used.
@@ -82,7 +75,7 @@ def run_command(task, cmd, ns, gather, timeout):
     if gather:
         worker = task.shell(cmd, nodes=ns, timeout=timeout)
     else:
-        worker = task.shell(cmd, nodes=ns, handler=OutputHandler(), timeout=timeout)
+        worker = task.shell(cmd, nodes=ns, handler=OutputHandler(label), timeout=timeout)
  
     task.resume()
     if gather:
@@ -90,10 +83,11 @@ def run_command(task, cmd, ns, gather, timeout):
    
     return task.max_retcode()
 
-def interactive(task, ns, gather, timeout):
+def interactive(task, ns, gather, timeout, label):
    """Manage the interactive prompt to run command"""
    rc = 0
    cmd = ""
+   print "Enter 'quit' to leave this interactive mode"
    while cmd.lower() != "quit":
         try:
             cmd = raw_input("clush> ")
@@ -102,102 +96,98 @@ def interactive(task, ns, gather, timeout):
             break
 
         if cmd.lower() != "quit":
-            rc = run_command(task, cmd, ns, gather, timeout)
+            rc = run_command(task, cmd, ns, gather, timeout, label)
 
    return rc
-
-def usage(msg):
-    print "error: %s" % (msg)
-    print __doc__
-    sys.exit(2)
 
 def runClush(args):
 
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
-    debug = False
-    fanout = 0
-    connect_timeout = 0
-    command_timeout = 0
-    gather = True
 
     #
     # Argument management
     #
-    try:
-        opts, args = getopt.getopt(args[1:], "dDhf:t:u:x:w:v", ["debug", \
-                "help", "fanout=", "connect_timeout=", "command_timeout=", \
-                "exclude=", "nodes=", "version", "nogather"])
-    except getopt.error, msg:
-        usage(msg)
+    usage = "usage: %prog [options] -w RANGES command"
 
-    try:
-        for k, v in opts:
-            if k in ("-w", "--nodes"):
-                nodeset_base.update(v)
-            if k in ("-x", "--exclude"):
-                nodeset_exclude.update(v)
-            elif k in ("-d", "--debug"):
-                debug = True
-            elif k in ("-f", "--fanout"):
-                fanout = int(v)
-            elif k in ("-t", "--connect_timeout"):
-                connect_timeout = int(v)
-            elif k in ("-u", "--command_timeout"):
-                command_timeout = int(v)
-            elif k in ("-D", "--nogather"):
-                gather = False
-            elif k in ("-v", "--version"):
-                print "Version %s" % version
-                sys.exit(0)
-            elif k in ("-h", "--help"):
-                print __doc__
-                sys.exit(0)
-    except ValueError, e:
-        usage("Invalid argument: %s %s" % (k, v))
+    parser = OptionParser(usage, version="%%prog %s" % version)
+    parser.disable_interspersed_args()
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="output more messages for debugging purpose")
+
+    # Node selections
+    parser.add_option("-w", action="store", dest="nodes",
+                      help="node ranges where to run the command")
+    parser.add_option("-x", action="store", dest="exclude",
+                      help="exclude the node range from the node list")
+
+    parser.add_option("-N", action="store_false", dest="label", default=True,
+                      help="disable labeling of command line")
+    parser.add_option("-l", "--user", action="store", dest="user",
+                      help="execute remote command as user")
+    parser.add_option("-S", action="store_true", dest="maxrc",
+                      help="return the largest of command return codes")
+    parser.add_option("-b", "--dshbak", action="store_true", dest="gather",
+                      help="display results in a dshbak-like way")
+    parser.add_option("-f", "--fanout", action="store", dest="fanout", 
+                      help="use a specified fanout", type="int")
+
+    # Timeouts
+    parser.add_option("-t", "--connect_timeout", action="store", dest="connect_timeout", 
+                      help="limit time to connect to a node" ,type="int")
+    parser.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
+                      help="limit time for command to run on the node", type="int")
+
+    (options, args) = parser.parse_args()
 
     #
     # Compute the nodeset
     #
+    nodeset_base = NodeSet(options.nodes)
+    nodeset_exclude = NodeSet(options.exclude)
 
     # De we have a exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)
     if len(nodeset_base) < 1:
-        usage("No node to run on.")
+        parser.error('No node to run on.')
 
     #
     # Task management
     #
-
     timeout = 0
     task = task_self()
-    if debug:
-        task.set_info("debug", debug)
-    if fanout:
-        task.set_info("fanout", fanout)
-    if connect_timeout:
-        task.set_info("connect_timeout", connect_timeout)
-        timeout = connect_timeout
-    if command_timeout:
-        task.set_info("command_timeout", command_timeout)
-        timeout += timeout
+    if options.debug:
+        task.set_info("debug", options.debug)
+    if options.fanout:
+        task.set_info("fanout", options.fanout)
+    if options.user:
+        task.set_info("ssh_user", options.user)
+    if options.connect_timeout:
+        task.set_info("connect_timeout", options.connect_timeout)
+        timeout += options.connect_timeout
+    if options.command_timeout:
+        task.set_info("command_timeout", options.command_timeout)
+        timeout += options.command_timeout
 
     # Either we have no more arguments, so use interactive mode
     if len(args) == 0:
-
-        rc = interactive(task, nodeset_base, gather, timeout)
+        rc = interactive(task, nodeset_base, options.gather, timeout, options.label)
 
     # If not, just prepare a command with the last args an run it
     else:
+        rc = run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
 
-        rc = run_command(task, ' '.join(args), nodeset_base, gather, timeout)
-
-    sys.exit(rc)
-
+    # return the command retcode
+    if options.maxrc:
+        sys.exit(rc)
+    # return clush retcode
+    else:
+        sys.exit(0)
 
 if __name__ == '__main__':
     try:
         runClush(sys.argv)
     except KeyboardInterrupt:
-        print
+        print "Break."
 
