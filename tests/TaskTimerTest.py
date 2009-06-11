@@ -339,6 +339,38 @@ class TaskTimerTest(unittest.TestCase):
         task.resume()
         # test timer did fire one time
         self.assertEqual(test_eh.timer_count, 1)
+
+    def testAutocloseTimer(self):
+        """test timer autoclose (one autoclose timer)"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # Task should return immediately
+        test_handler = self.__class__.TSimpleTimerChecker()
+        timer_ac = task.timer(10.0, handler=test_handler, autoclose=True)
+        self.assert_(timer_ac != None)
+
+        # run task
+        task.resume()
+        self.assertEqual(test_handler.count, 0)
+    
+    def testAutocloseWithTwoTimers(self):
+        """test timer autoclose (two timers)"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # build 2 timers, one of 10 secs with autoclose,
+        # and one of 1 sec without autoclose.
+        # Task should return after 1 sec.
+        test_handler = self.__class__.TSimpleTimerChecker()
+        timer_ac = task.timer(10.0, handler=test_handler, autoclose=True)
+        self.assert_(timer_ac != None)
+        timer_noac = task.timer(1.0, handler=test_handler, autoclose=False)
+        self.assert_(timer_noac != None)
+
+        # run task
+        task.resume()
+        self.assertEqual(test_handler.count, 1)
     
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskTimerTest)
