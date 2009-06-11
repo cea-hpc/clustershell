@@ -375,6 +375,38 @@ class TaskLocalTest(unittest.TestCase):
 
         self.assertEqual(cnt, 0)
     
+    def testLocalWorkerWrites(self):
+        """test worker writes (i)"""
+        # Simple test: we write to a cat process and see if read matches.
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("cat")
+        # write first line
+        worker.write("foobar\n")
+        # write second line
+        worker.write("deadbeaf\n")
+        worker.set_write_eof()
+        task.resume()
+
+        self.assertEqual(worker.read(), "foobar\ndeadbeaf")
+
+    def testLocalWorkerWritesBcExample(self):
+        """test worker writes (ii)"""
+        # Other test: write a math statement to a bc process and check
+        # for the result.
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("bc -q")
+
+        # write statement
+        worker.write("2+2\n")
+        worker.set_write_eof()
+
+        # execute
+        task.resume()
+
+        # read result
+        self.assertEqual(worker.read(), "4")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)
