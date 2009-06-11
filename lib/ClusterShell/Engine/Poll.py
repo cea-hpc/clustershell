@@ -26,6 +26,8 @@ A poll() based ClusterShell engine.
 
 from Engine import *
 
+from ClusterShell.Worker.EngineClient import EngineClientEOF
+
 import errno
 import os
 import select
@@ -57,63 +59,38 @@ class EnginePoll(Engine):
         # runloop-has-exited flag
         self.exited = False
 
-    def register(self, client):
+    def _modify_specific(self, fd, event, setvalue):
         """
-        Register a client.
+        Engine-specific modifications after a interesting event change for
+        a file descriptor. Called automatically by Engine register/unregister and
+        set_events().  For the poll() engine, it reg/unreg or modifies the event mask
+        associated to a file descriptor.
         """
-        # call base class method
-        Engine.register(self, client)
+        self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event, setvalue))
 
-        # add file-object client to polling system
-        self.polling.register(client.reader_fileno(), select.POLLIN)
-        self.polling.register(client.writer_fileno(), select.POLLOUT)
-
-    def unregister(self, client):
-        """
-        Unregister a client.
-        """
-        # remove file-object client from polling system
-        self.polling.unregister(client.writer_fileno())
-        self.polling.unregister(client.reader_fileno())
-
-        # call base class method
-        Engine.unregister(self, client)
-
-    def _modify(self, client, set, clear):
-        """
-        Modify event mask for a client.
-        """
-        client._iostate &= ~clear
-        client._iostate |= set
-
-        if client._processing:
-            # don't change poll flags while the client is being processed,
-            # but wait for post-process changes.
-            return
-
-        if ((set ^ clear) & Engine.IOSTATE_READING): # readable has changed
+        if setvalue:
             eventmask = 0
-            if set & Engine.IOSTATE_READING:
+            if event == Engine.E_READABLE:
                 eventmask = select.POLLIN
-            self.polling.register(client.reader_fileno(), eventmask)
-
-        if ((set ^ clear) & Engine.IOSTATE_WRITING): # writable has changed
-            eventmask = 0
-            if set & Engine.IOSTATE_WRITING:
+            elif event == Engine.E_WRITABLE:
                 eventmask = select.POLLOUT
-            self.polling.register(client.writer_fileno(), eventmask)
+            self.polling.register(fd, eventmask)
+        else:
+            self.polling.unregister(fd)
 
     def set_reading(self, client):
         """
         Set client reading state.
         """
-        self._modify(client, Engine.IOSTATE_READING, 0)
+        # listen for readable events
+        self.modify(client, Engine.E_READABLE, 0)
 
     def set_writing(self, client):
         """
         Set client writing state.
         """
-        self._modify(client, Engine.IOSTATE_WRITING, 0)
+        # listen for writable events
+        self.modify(client, Engine.E_WRITABLE, 0)
 
     def runloop(self, timeout):
         """
@@ -125,7 +102,9 @@ class EnginePoll(Engine):
         start_time = time.time()
 
         # run main event loop...
-        while len(self.reg_clients) > 0 or len(self.timerq) > 0:
+        while self.evlooprefcnt > 0:
+            self._debug("LOOP evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
+                    (self.evlooprefcnt, self.reg_clients, len(self.timerq)))
             try:
                 timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
@@ -148,47 +127,56 @@ class EnginePoll(Engine):
 
             for fd, event in evlist:
 
+                if event == select.POLLNVAL:
+                    raise EngineException("Caught POLLNVAL on fd %d" % fd)
+
                 # get client instance
                 if not self.reg_clients.has_key(fd):
                     continue
 
                 client = self.reg_clients[fd]
 
-                # save client's IO state before processing
-                iostate_sav = client._iostate
                 # process this client
                 client._processing = True
 
                 # check for poll error condition of some sort
                 if event & select.POLLERR:
-                    if client._iostate & Engine.IOSTATE_READING:
-                        client._iostate &= ~Engine.IOSTATE_WRITING
-                    else:
-                        self.remove(client)
+                    self._debug("POLLERR %s" % client)
+                    self.unregister_writer(client)
+                    client.file_writer.close()
+                    client.file_writer = None
                     continue
 
                 # check for data to read
                 if event & select.POLLIN:
-                    assert client._iostate & Engine.IOSTATE_READING
-                    client._iostate &= ~Engine.IOSTATE_READING
-                    client._handle_read()
+                    assert client._events & Engine.E_READABLE
+                    self.modify(client, 0, Engine.E_READABLE)
+                    try:
+                        client._handle_read()
+                    except EngineClientEOF, e:
+                        self._debug("EngineClientEOF %s" % client)
+                        self.remove(client)
+                        continue
 
-                # check for end of stream
-                if event & select.POLLHUP:
+                # or check for end of stream (do not handle both at the same time
+                # because handle_read() may perform a partial read)
+                elif event & select.POLLHUP:
+                    self._debug("POLLHUP %s" % client)
                     self.remove(client)
 
                 # check for writing
                 if event & select.POLLOUT:
-                    assert client._iostate & Engine.IOSTATE_WRITING
-                    client._iostate &= ~Engine.IOSTATE_WRITING
+                    self._debug("POLLOUT %s" % client)
+                    assert client._events & Engine.E_WRITABLE
+                    self.modify(client, 0, Engine.E_WRITABLE)
                     client._handle_write()
 
                 # post processing
                 client._processing = False
 
                 # apply any changes occured during processing
-                if client.registered and client._iostate != iostate_sav:
-                    self._modify(client, client._iostate, Engine.IOSTATE_ANY)
+                if client.registered:
+                    self.set_events(client, client._new_events)
 
             # check for task runloop timeout
             if timeout > 0 and time.time() >= start_time + timeout:
@@ -196,6 +184,9 @@ class EnginePoll(Engine):
 
             # process clients timeout
             self.fire_timers()
+
+        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
+                (self.evlooprefcnt, self.reg_clients, len(self.timerq)))
 
     def exited(self):
         """

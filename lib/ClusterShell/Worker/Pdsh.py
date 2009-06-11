@@ -65,7 +65,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
         Initialize Pdsh worker instance.
         """
         DistantWorker.__init__(self, handler)
-        EngineClient.__init__(self, timeout, self)
+        EngineClient.__init__(self, self, timeout, kwargs.get('autoclose', False))
 
         self.nodes = NodeSet(nodes)
         self.closed_nodes = NodeSet()

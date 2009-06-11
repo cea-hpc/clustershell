@@ -193,6 +193,7 @@ class Task(object):
 
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
+        ac = kwargs.get("autoclose", False)
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \
@@ -200,11 +201,11 @@ class Task(object):
 
             # create ssh-based worker
             worker = WorkerSsh(NodeSet(kwargs["nodes"]), handler=handler,
-                               timeout=timeo, command=command)
+                               timeout=timeo, command=command, autoclose=ac)
         else:
             # create popen2-based (local) worker
             worker = WorkerPopen2(command, key=kwargs.get("key", None),
-                                  handler=handler, timeout=timeo)
+                                  handler=handler, timeout=timeo, autoclose=ac)
 
         # schedule worker for execution in this task
         self.schedule(worker)
@@ -228,13 +229,13 @@ class Task(object):
 
         return worker
 
-    def timer(self, fire, handler, interval=-1.0):
+    def timer(self, fire, handler, interval=-1.0, autoclose=False):
         """
         Create task's timer.
         """
         assert fire >= 0.0, "timer's relative fire time must be a positive floating number"
         
-        timer = EngineTimer(fire, interval, handler)
+        timer = EngineTimer(fire, interval, autoclose, handler)
         self._engine.add_timer(timer)
         return timer
 

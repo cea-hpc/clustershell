@@ -26,9 +26,10 @@ ClusterShell Ssh/Scp support
 This module implements OpenSSH engine client and task's worker.
 """
 
-from ClusterShell.NodeSet import NodeSet
-from EngineClient import EngineClient
+from EngineClient import EngineClient, EngineClientEOF
 from Worker import DistantWorker
+
+from ClusterShell.NodeSet import NodeSet
 
 import copy
 import errno
@@ -41,25 +42,23 @@ class Ssh(EngineClient):
     Ssh EngineClient.
     """
 
-    def __init__(self, node, command, timeout, worker):
+    def __init__(self, node, command, worker, timeout, autoclose=False):
         """
         Initialize Ssh EngineClient instance.
         """
-        EngineClient.__init__(self, timeout, worker)
+        EngineClient.__init__(self, worker, timeout, autoclose)
 
         self.key = copy.copy(node)
         self.command = command
         self.fid = None
-        self.sendbuf = ""
+        self.file_reader = None
+        self.file_writer = None
 
     def _start(self):
         """
         Start worker, initialize buffers, prepare command.
         """
         task = self.worker.task
-
-        # Initialize worker read buffer
-        self._buf = ""
 
         # Build ssh command
         cmd_l = [ "ssh", "-a", "-x" ]
@@ -81,6 +80,8 @@ class Ssh(EngineClient):
             task.info("print_debug")(task, "SSH: %s" % cmd)
 
         self.fid = self._exec_nonblock(cmd)
+        self.file_reader = self.fid.fromchild
+        self.file_writer = self.fid.tochild
 
         self.worker._on_start()
 
@@ -90,32 +91,28 @@ class Ssh(EngineClient):
         """
         Return the reader file descriptor as an integer.
         """
-        return self.fid.fromchild.fileno()
+        if self.file_reader:
+            return self.file_reader.fileno()
+        return None
     
     def writer_fileno(self):
         """
         Return the writer file descriptor as an integer.
         """
-        return self.fid.tochild.fileno()
+        if self.file_writer:
+            return self.file_writer.fileno()
+        return None
 
     def _read(self, size=-1):
         """
         Read data from process.
         """
-        result = self.fid.fromchild.read(size)
-        if result > 0:
-            self._set_reading()
+        result = self.file_reader.read(size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading()
         return result
 
-    def write(self, buf):
-        """
-        Write data to process.
-        """
-        result = os.write(self.writer_fileno(), buf)
-        # XXX check result
-        #print "Ssh write result=%s" % result
-        self._set_writing()
-    
     def _close(self, force, timeout):
         """
         Close client. Called by engine after the client has been
@@ -152,45 +149,11 @@ class Ssh(EngineClient):
         if debug:
             print_debug = self.worker.task.info("print_debug")
 
-        # read a chunk of data
-        readbuf = self._read()
-        assert len(readbuf) > 0, "_handle_read() called with no data to read"
-
-        # Current version of this worker implements line-buffered reads.
-        # If needed, we could easily provide direct, non-buffered, data
-        # reads in the future.
-
-        buf = self._buf + readbuf
-        lines = buf.splitlines(True)
-        self._buf = ""
-        for line in lines:
-            if line.endswith('\n'):
-                if line.endswith('\r\n'):
-                    msg = line[:-2] # trim CRLF
-                else:
-                    # trim LF
-                    msg = line[:-1] # trim LF
-                if debug:
-                    print_debug(self.worker.task, "%s: %s" % (self.key, msg))
-                # full line
-                self.worker._on_node_msgline(self.key, msg)
-            else:
-                # keep partial line in buffer
-                self._buf = line
-                # will break here
-
-    def _handle_write(self):
-        """
-        Handle a write notification. Called by the engine as the result of an
-        event indicating that a write can be performed now.
-        """
-        if len(self.sendbuf) > 0:
-            # XXX writing is still experimental!
-            #print "writing %s" % self.sendbuf
-            self.fid.tochild.write(self.sendbuf)
-            self.fid.tochild.flush()
-            self.sendbuf = ""
-            self._set_writing()
+        for msg in self._readlines():
+            if debug:
+                print_debug(self.worker.task, "%s: %s" % (self.key, msg))
+            # handle full msg line
+            self.worker._on_node_msgline(self.key, msg)
 
 
 class Scp(Ssh):
@@ -198,22 +161,22 @@ class Scp(Ssh):
     Scp EngineClient.
     """
 
-    def __init__(self, node, source, dest, timeout, worker):
+    def __init__(self, node, source, dest, worker, timeout):
         """
         Initialize Scp instance.
         """
-        Ssh.__init__(self, node, None, timeout, worker)
+        Ssh.__init__(self, node, None, worker, timeout)
         self.source = source
         self.dest = dest
+        self.fid = None
+        self.file_reader = None
+        self.file_writer = None
 
     def _start(self):
         """
         Start worker, initialize buffers, prepare command.
         """
         task = self.worker.task
-
-        # Initialize worker read buffer
-        self._buf = ""
 
         # Build scp command
         cmd_l = [ "scp" ]
@@ -235,6 +198,8 @@ class Scp(Ssh):
             task.info("print_debug")(task, "SCP: %s" % cmd)
 
         self.fid = self._exec_nonblock(cmd)
+        self.file_reader = self.fid.fromchild
+        self.file_writer = self.fid.tochild
 
         return self
 
@@ -267,16 +232,19 @@ class WorkerSsh(DistantWorker):
         self._close_count = 0
         self._has_timeout = False
 
+        autoclose = kwargs.get('autoclose', False)
+
         # Prepare underlying engine clients (ssh/scp processes)
         if kwargs.has_key('command'):
             # secure remote shell
             for node in self.nodes:
-                self.clients.append(Ssh(node, kwargs['command'], timeout, self))
+                self.clients.append(Ssh(node, kwargs['command'], self,
+                    timeout,autoclose))
         elif kwargs.has_key('source'):
             # secure copy
             for node in self.nodes:
-                self.clients.append(Scp(node, kwargs['source'],
-                    kwargs['dest'], timeout, self))
+                self.clients.append(Scp(node, kwargs['source'], kwargs['dest'],
+                    self, timeout))
         else:
             raise WorkerBadArgumentException()
 
@@ -301,4 +269,18 @@ class WorkerSsh(DistantWorker):
                 self._invoke("ev_timeout")
             self._invoke("ev_close")
 
+    def write(self, buf):
+        """
+        Write to worker clients.
+        """
+        for c in self.clients:
+            c._write(buf)
+
+    def set_write_eof(self):
+        """
+        Tell worker to close its writer file descriptor once flushed. Do not
+        perform writes after this call.
+        """
+        for c in self.clients:
+            c._set_write_eof()
 

@@ -27,6 +27,8 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
+from EngineClient import EngineClient, EngineClientEOF
+
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 
@@ -96,6 +98,7 @@ class Worker(object):
         Return True if this worker aborted due to timeout.
         """
         return self.task._num_timeout_by_worker(self) > 0
+
 
 class DistantWorker(Worker):
     """
@@ -222,4 +225,152 @@ class DistantWorker(Worker):
         Iterate over timed out keys (ie. nodes) for a specific worker.
         """
         return self.task._iter_keys_timeout_by_worker(self)
+
+
+class WorkerSimple(EngineClient,Worker):
+    """
+    Implements a simple Worker being itself an EngineClient.
+    """
+
+    def __init__(self, file_reader, file_writer, file_error, key, handler, timeout, autoclose=False):
+        """
+        Initialize worker.
+        """
+        Worker.__init__(self, handler)
+        EngineClient.__init__(self, self, timeout, autoclose)
+
+        self.last_msg = None
+        self.key = key or self
+        self.file_reader = file_reader
+        self.file_writer = file_writer
+        self.file_error = file_error
+
+    def _engine_clients(self):
+        """
+        Return a list of underlying engine clients.
+        """
+        return [self]
+
+    def set_key(self, key):
+        """
+        Source key for this worker is free for use. Use this method to
+        set the custom source key for this worker.
+        """
+        self.key = key
+
+    def _start(self):
+        """
+        Start worker.
+        """
+        self._invoke("ev_start")
+
+        return self
+
+    def reader_fileno(self):
+        """
+        Returns the reader file descriptor as an integer.
+        """
+        if self.file_reader:
+            return self.file_reader.fileno()
+
+        return None
+    
+    def writer_fileno(self):
+        """
+        Returns the writer file descriptor as an integer.
+        """
+        if self.file_writer:
+            return self.file_writer.fileno()
+        
+        return None
+    
+    def _read(self, size=4096):
+        """
+        Read data from process.
+        """
+        #result = self.file_reader.read(size)
+        result = self.file_reader.read(size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading()
+        return result
+
+    def _close(self, force, timeout):
+        """
+        Close worker. Called by engine after worker has been
+        unregistered. This method should handle all termination types
+        (normal, forced or on timeout).
+        """
+        if self.file_reader != None:
+            self.file_reader.close()
+        if self.file_writer != None:
+            self.file_writer.close()
+        if self.file_error != None:
+            self.file_error.close()
+
+        if timeout:
+            self._on_timeout()
+
+        self._invoke("ev_close")
+
+    def _handle_read(self):
+        """
+        Engine is telling us a read is available.
+        """
+        debug = self.task.info("debug", False)
+        if debug:
+            print_debug = self.task.info("print_debug")
+
+        for msg in self._readlines():
+            if debug:
+                print_debug(self.task, "LINE %s" % msg)
+            self._on_msgline(msg)
+
+    def last_read(self):
+        """
+        Read last msg, useful in an EventHandler.
+        """
+        return self.last_msg
+
+    def _on_msgline(self, msg):
+        """
+        Add a message.
+        """
+        # add last msg to local buffer
+        self.last_msg = msg
+
+        # update task
+        self.task._msg_add((self, self.key), msg)
+
+        self._invoke("ev_read")
+
+    def _on_timeout(self):
+        """
+        Update on timeout.
+        """
+        self.task._timeout_add((self, self.key))
+
+        # trigger timeout event
+        self._invoke("ev_timeout")
+
+    def read(self):
+        """
+        Read worker buffer.
+        """
+        for key, msg in self.task._kmsg_iter_by_worker(self):
+            assert key == self.key
+            return msg
+
+    def write(self, buf):
+        """
+        Write to worker.
+        """
+        self._write(buf)
+
+    def set_write_eof(self):
+        """
+        Tell worker to close its writer file descriptor once flushed. Do not
+        perform writes after this call.
+        """
+        self._set_write_eof()
 

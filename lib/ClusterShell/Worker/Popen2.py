@@ -28,8 +28,7 @@ ClusterShell worker for local commands.
 
 from ClusterShell.NodeSet import NodeSet
 
-from EngineClient import EngineClient
-from Worker import Worker
+from Worker import WorkerSimple
 
 import fcntl
 import os
@@ -37,40 +36,23 @@ import popen2
 import signal
 
 
-class WorkerPopen2(EngineClient,Worker):
+class WorkerPopen2(WorkerSimple):
     """
-    Implements the Worker interface.
+    Implements the Popen2 Worker.
     """
 
-    def __init__(self, command, key, handler, timeout):
+    def __init__(self, command, key, handler, timeout, autoclose=False):
         """
         Initialize Popen2 worker.
         """
-        Worker.__init__(self, handler)
-        EngineClient.__init__(self, timeout, self)
+        WorkerSimple.__init__(self, None, None, None, key, handler, timeout, autoclose)
 
         self.command = command
         if not self.command:
             raise WorkerBadArgumentException()
 
         self.fid = None
-        self.buf = ""
-        self.last_msg = None
         self.rc = None
-        self.key = key or self
-
-    def _engine_clients(self):
-        """
-        Return a list of underlying engine clients.
-        """
-        return [self]
-
-    def set_key(self, key):
-        """
-        Source key for Popen2 worker is free for use. This method is a
-        way to set such a custom source key for this worker.
-        """
-        self.key = key
 
     def _start(self):
         """
@@ -78,9 +60,9 @@ class WorkerPopen2(EngineClient,Worker):
         """
         assert self.fid is None
 
-        self.buf = ""                # initialize worker read buffer
-
         self.fid = self._exec_nonblock(self.command)
+        self.file_reader = self.fid.fromchild
+        self.file_writer = self.fid.tochild
 
         if self.task.info("debug", False):
             self.task.info("print_debug")(self.task,
@@ -89,33 +71,6 @@ class WorkerPopen2(EngineClient,Worker):
         self._invoke("ev_start")
 
         return self
-
-    def reader_fileno(self):
-        """
-        Returns the reader file descriptor as an integer.
-        """
-        return self.fid.fromchild.fileno()
-    
-    def writer_fileno(self):
-        """
-        Returns the writer file descriptor as an integer.
-        """
-        return self.fid.tochild.fileno()
-
-    def closed(self):
-        """
-        Returns True if the underlying file object is closed.
-        """
-        return self.fid.fromchild.closed
-
-    def _read(self, size=-1):
-        """
-        Read data from process.
-        """
-        result = self.fid.fromchild.read(size)
-        if result > 0:
-            self._set_reading()
-        return result
 
     def _close(self, force, timeout):
         """
@@ -154,57 +109,6 @@ class WorkerPopen2(EngineClient,Worker):
 
         self._invoke("ev_close")
 
-    def _handle_read(self):
-        """
-        Engine is telling us a read is available.
-        """
-        debug = self.task.info("debug", False)
-        if debug:
-            print_debug = self.task.info("print_debug")
-
-        # read a chunk
-        readbuf = self._read()
-        assert len(readbuf) > 0, "_handle_read() called with no data to read"
-
-        buf = self.buf + readbuf
-        lines = buf.splitlines(True)
-        self.buf = ""
-        for line in lines:
-            if line.endswith('\n'):
-                if line.endswith('\r\n'):
-                    msgline = line[:-2]
-                else:
-                    msgline = line[:-1]
-                if debug:
-                    print_debug(self.task, "LINE %s" % msgline)
-                self._on_msgline(msgline)
-            else:
-                # keep partial line in buffer
-                self.buf = line
-                # will break here
-        return True
-
-    def _handle_write(self):
-        pass
-
-    def last_read(self):
-        """
-        Read last msg, useful in an EventHandler.
-        """
-        return self.last_msg
-
-    def _on_msgline(self, msg):
-        """
-        Add a message.
-        """
-        # add last msg to local buffer
-        self.last_msg = msg
-
-        # update task
-        self.task._msg_add((self, self.key), msg)
-
-        self._invoke("ev_read")
-
     def _on_rc(self, rc):
         """
         Set return code.
@@ -213,23 +117,6 @@ class WorkerPopen2(EngineClient,Worker):
         self.task._rc_set((self, self.key), rc)
 
         self._invoke("ev_hup")
-
-    def _on_timeout(self):
-        """
-        Update on timeout.
-        """
-        self.task._timeout_add((self, self.key))
-
-        # trigger timeout event
-        self._invoke("ev_timeout")
-
-    def read(self):
-        """
-        Read worker buffer.
-        """
-        for key, msg in self.task._kmsg_iter_by_worker(self):
-            assert key == self.key
-            return msg
 
     def retcode(self):
         """

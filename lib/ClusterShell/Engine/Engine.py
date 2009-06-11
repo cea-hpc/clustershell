@@ -64,12 +64,13 @@ class EngineBaseTimer:
     See EngineTimer for more information about ClusterShell timers.
     """
 
-    def __init__(self, fire_delay, interval=-1.0):
+    def __init__(self, fire_delay, interval=-1.0, autoclose=False):
         """
         Create a base timer.
         """
         self.fire_delay = fire_delay
         self.interval = interval
+        self.autoclose = autoclose
         self._engine = None
         self._timercase = None
 
@@ -142,8 +143,8 @@ class EngineTimer(EngineBaseTimer):
     able to check if the timer's firing time has passed.
     """
 
-    def __init__(self, fire_delay, interval, handler):
-        EngineBaseTimer.__init__(self, fire_delay, interval)
+    def __init__(self, fire_delay, interval, autoclose, handler):
+        EngineBaseTimer.__init__(self, fire_delay, interval, autoclose)
         self.eh = handler
         assert self.eh != None, "An event handler is needed for timer."
 
@@ -200,10 +201,11 @@ class _EngineTimerQ:
             return self.client != None
             
 
-    def __init__(self):
+    def __init__(self, engine):
         """
         Initializer.
         """
+        self._engine = engine
         self.timers = []
         self.armed_count = 0
 
@@ -221,6 +223,8 @@ class _EngineTimerQ:
         if client.fire_delay > 0:
             heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
             self.armed_count += 1
+            if not client.autoclose:
+                self._engine.evlooprefcnt += 1
 
     def reschedule(self, client):
         """
@@ -247,6 +251,8 @@ class _EngineTimerQ:
 
         client._timercase.disarm()
         self.armed_count -= 1
+        if not client.autoclose:
+            self._engine.evlooprefcnt -= 1
 
     def _dequeue_disarmed(self):
         """
@@ -273,6 +279,8 @@ class _EngineTimerQ:
             heapq.heappush(self.timers, timercase)
         else:
             self.armed_count -= 1
+            if not client.autoclose:
+                self._engine.evlooprefcnt -= 1
 
     def nextfire_delay(self):
         """
@@ -310,12 +318,10 @@ class Engine:
     listening for client events.
     """
 
-    # Worker's IO state flags. Hopefully, I/O state handling is easy here, as
-    # reading and writing are not performed on the same file descriptor.
-    IOSTATE_NONE = 0x0
-    IOSTATE_READING = 0x1
-    IOSTATE_WRITING = 0x2
-    IOSTATE_ANY = 0x3
+    # Engine client I/O event interest bits
+    E_READABLE = 0x1
+    E_WRITABLE = 0x2
+    E_ANY = 0x3
 
     def __init__(self, info):
         """
@@ -332,7 +338,11 @@ class Engine:
         self.reg_clients = {}
 
         # timer queue to handle both timers and clients timeout
-        self.timerq = _EngineTimerQ()
+        self.timerq = _EngineTimerQ(self)
+
+        # reference count to the event loop (must include registered
+        # clients and timers configured WITHOUT autoclose)
+        self.evlooprefcnt = 0
 
         # thread stuffs
         self.run_lock = thread.allocate_lock()
@@ -365,6 +375,7 @@ class Engine:
         Remove a client from engine. Subclasses that override this
         method should call base class method.
         """
+        self._debug("REMOVE %s" % client)
         self._clients.discard(client)
 
         if client.registered:
@@ -389,36 +400,145 @@ class Engine:
         call base class method.
         """
         assert client in self._clients
-        assert client.registered == False
+        assert not client.registered
 
-        self.reg_clients[client.reader_fileno()] = client
-        self.reg_clients[client.writer_fileno()] = client
-        client._iostate = Engine.IOSTATE_ANY
+        rfd = client.reader_fileno()
+        wfd = client.writer_fileno()
+        assert rfd != None or wfd != None
+
+        self._debug("REG %s(r%s,w%s)(autoclose=%s)" % (client, rfd, wfd, client.autoclose))
+
+        client._events = 0
         client.registered = True
+
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+
+        if rfd != None:
+            self.reg_clients[rfd] = client
+            client._events |= Engine.E_READABLE
+            self.evlooprefcnt += refcnt_inc
+            self._modify_specific(rfd, Engine.E_READABLE, 1)
+        if wfd != None:
+            self.reg_clients[wfd] = client
+            client._events |= Engine.E_WRITABLE
+            self.evlooprefcnt += refcnt_inc
+            self._modify_specific(wfd, Engine.E_WRITABLE, 1)
+
+        client._new_events = client._events
 
         # start timeout timer
         self.timerq.schedule(client)
+
+    def unregister_writer(self, client):
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+
+        wfd = client.writer_fileno()
+        if wfd != None:
+            self._modify_specific(wfd, Engine.E_WRITABLE, 0)
+            client._events &= ~Engine.E_WRITABLE
+            del self.reg_clients[wfd]
+            self.evlooprefcnt -= refcnt_inc
 
     def unregister(self, client):
         """
         Unregister a client. Subclasses that override this method should
         call base class method.
         """
-        assert client.registered == True
+        # sanity check
+        assert client.registered
+        self._debug("UNREG %s" % client)
         
         # remove timeout timer
         self.timerq.invalidate(client)
+        
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+            
+        # clear interest events
+        rfd = client.reader_fileno()
+        if rfd != None:
+            if client._events & Engine.E_READABLE:
+                self._modify_specific(rfd, Engine.E_READABLE, 0)
+                client._events &= ~Engine.E_READABLE
+            del self.reg_clients[rfd]
+            self.evlooprefcnt -= refcnt_inc
 
-        del self.reg_clients[client.writer_fileno()]
-        del self.reg_clients[client.reader_fileno()]
-        client.registered = False
+        wfd = client.writer_fileno()
+        if wfd != None:
+            if client._events & Engine.E_WRITABLE:
+                self._modify_specific(wfd, Engine.E_WRITABLE, 0)
+                client._events &= ~Engine.E_WRITABLE
+            del self.reg_clients[wfd]
+            self.evlooprefcnt -= refcnt_inc
+
+        client._new_events = 0
+        client.registered = 0
+
+    def modify(self, client, set, clear):
+        """
+        Modify the next loop interest events bitset for a client.
+        """
+        self._debug("MODEV set:0x%x clear:0x%x %s" % (set, clear, client))
+        client._new_events &= ~clear
+        client._new_events |= set
+
+        if not client._processing:
+            self.set_events(client, client._new_events)
+
+    def set_events(self, client, new_events):
+        """
+        Set the active interest events bitset for a client.
+        """
+        assert not client._processing
+
+        self._debug("SETEV new_events:0x%x events:0x%x %s" % (new_events,
+            client._events, client))
+
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+
+        chgbits = new_events ^ client._events
+        if chgbits == 0:
+            return
+
+        # configure interest events as appropriate
+        rfd = client.reader_fileno()
+        if rfd != None:
+            if chgbits & Engine.E_READABLE:
+                status = new_events & Engine.E_READABLE
+                self._modify_specific(rfd, Engine.E_READABLE, status)
+                if status:
+                    client._events |= Engine.E_READABLE
+                else:
+                    client._events &= ~Engine.E_READABLE
+
+        wfd = client.writer_fileno()
+        if wfd != None:
+            if chgbits & Engine.E_WRITABLE:
+                status = new_events & Engine.E_WRITABLE
+                self._modify_specific(wfd, Engine.E_WRITABLE, status)
+                if status:
+                    client._events |= Engine.E_WRITABLE
+                else:
+                    client._events &= ~Engine.E_WRITABLE
+
+        client._new_events = client._events
 
     def add_timer(self, timer):
         """
         Add engine timer.
         """
         timer._set_engine(self)
-
         self.timerq.schedule(timer)
 
     def remove_timer(self, timer):
@@ -507,4 +627,8 @@ class Engine:
         # joined once run_lock is available
         self.run_lock.acquire()
         self.run_lock.release()
+
+    def _debug(self, s):
+        # library engine debugging hook
+        pass
 

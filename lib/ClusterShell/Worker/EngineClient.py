@@ -38,7 +38,10 @@ from ClusterShell.Engine.Engine import EngineBaseTimer
 class EngineClientException(Exception):
     """Generic EngineClient exception."""
 
-class EngineClientError(Exception):
+class EngineClientEOF(EngineClientException):
+    """EOF from client."""
+
+class EngineClientError(EngineClientException):
     """Base EngineClient error exception."""
 
 class EngineClientNotSupportedError(EngineClientError):
@@ -50,20 +53,28 @@ class EngineClient(EngineBaseTimer):
     Abstract class EngineClient.
     """
 
-    def __init__(self, timeout, worker):
+    def __init__(self, worker, timeout, autoclose):
         """
         Initializer. Should be called from derived classes.
         """
-        EngineBaseTimer.__init__(self, timeout)
+        EngineBaseTimer.__init__(self, timeout, -1, autoclose)
 
-        # "engine-friendly"
-        self._iostate = 0                   # what we want : read, write or both
+        # engine-friendly variables
+        self._events = 0                    # current configured set of interesting
+                                            # events (read, write) for client
+        self._new_events = 0                # new set of interesting events
+
         self._processing = False            # engine is working on us
 
         # read-only public
-        self.registered = False             # registered on engine
+        self.registered = False             # registered on engine or not
 
         self.worker = worker
+
+        # initialize read and write buffers
+        self._rbuf = ""
+        self._wbuf = ""
+        self._weof = False
 
     def _fire(self):
         """
@@ -74,7 +85,7 @@ class EngineClient(EngineBaseTimer):
 
     def _start(self):
         """
-        Starts worker and returns worker instance as a convenience.
+        Starts client and returns client instance as a convenience.
         Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
@@ -131,6 +142,16 @@ class EngineClient(EngineBaseTimer):
         Handle a write notification. Called by the engine as the result of an
         event indicating that a write can be performed now.
         """
+        if len(self._wbuf) > 0:
+            # write syscall
+            c = os.write(self.file_writer.fileno(), self._wbuf)
+            # dequeue written buffer
+            self._wbuf = self._wbuf[c:]
+            # check for possible ending
+            if self._weof:
+                self._close_writer()
+            else:
+                self._set_writing()
     
     def _exec_nonblock(self, command):
         """
@@ -144,4 +165,58 @@ class EngineClient(EngineBaseTimer):
         fl = fcntl.fcntl(fid.tochild, fcntl.F_GETFL)
         fcntl.fcntl(fid.tochild, fcntl.F_SETFL, os.O_NDELAY)
         return fid
+
+    def _readlines(self):
+        """
+        Utility method to read client lines
+        """
+        # read a chunk of data, may raise eof
+        readbuf = self._read()
+        assert len(readbuf) > 0, "assertion failed: len(readbuf) > 0"
+
+        # Current version implements line-buffered reads. If needed, we could
+        # easily provide direct, non-buffered, data reads in the future.
+
+        buf = self._rbuf + readbuf
+        lines = buf.splitlines(True)
+        self._rbuf = ""
+        for line in lines:
+            if line.endswith('\n'):
+                if line.endswith('\r\n'):
+                    yield line[:-2] # trim CRLF
+                else:
+                    # trim LF
+                    yield line[:-1] # trim LF
+            else:
+                # keep partial line in buffer
+                self._rbuf = line
+                # breaking here
+
+    def _write(self, buf):
+        """
+        Add some data to be written to the client.
+        """
+        fd = self.writer_fileno()
+        if fd:
+            assert not self.file_writer.closed
+            # TODO: write now if ready
+            self._wbuf += buf
+            self._set_writing()
+        else:
+            # bufferize until pipe is ready
+            self._wbuf += buf
+    
+    def _set_write_eof(self):
+        if self._wbuf or self.writer_fileno() == None:
+            # write is not fully performed yet
+            self._weof = True
+        else:
+            # sendq empty, close writer now
+            self._close_writer()
+
+    def _close_writer(self):
+        if self.file_writer and not self.file_writer.closed:
+            self._engine.unregister_writer(self)
+            self.file_writer.close()
+            self.file_writer = None
 
