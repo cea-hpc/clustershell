@@ -179,6 +179,20 @@ class RangeSet:
 
                 self.add_range(start, stop, step, pad)
         
+    def fromlist(cls, l, autostep=None):
+        """
+        Class method that returns a new RangeSet with ranges from
+        provided list.
+        """
+        inst = RangeSet(autostep=autostep)
+        for rg in l:
+            if isinstance(rg, RangeSet):
+                inst.update(rg)
+            else:
+                inst.update(RangeSet(rg))
+        return inst
+    fromlist = classmethod(fromlist)
+
     def __iter__(self):
         """
         Iterate over each item in RangeSet.
@@ -383,6 +397,7 @@ class RangeSet:
         assert step > 0
         assert pad != None
         assert pad >= 0
+        assert stop - start < 1e9, "range too large"
 
         if self._length == 0:
             # first add optimization
