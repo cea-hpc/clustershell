@@ -25,14 +25,28 @@
 Pdsh-like with integrated dshbak command using the ClusterShell library.
 """
 
-import sys
+import fcntl
+import os
 import readline
+import sys
+import signal
 from optparse import OptionParser
 
+sys.path.insert(0, '../lib')
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self
+from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell import version
+
+
+class StdInputHandler(EventHandler):
+    def __init__(self, worker):
+        self.master_worker = worker
+    def ev_read(self, worker):
+        self.master_worker.write(worker.last_read() + '\n')
+    def ev_close(self, worker):
+        self.master_worker.set_write_eof()
 
 class OutputHandler(EventHandler):
     def __init__(self, label):
@@ -77,8 +91,20 @@ def run_command(task, cmd, ns, gather, timeout, label):
         worker = task.shell(cmd, nodes=ns, timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns, handler=OutputHandler(label), timeout=timeout)
+
+    if not sys.stdin.isatty():
+        # Switch stdin to non blocking mode
+        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NDELAY)
+
+        # Create a simple worker attached to stdin in autoclose mode
+        worker_stdin = WorkerSimple(sys.stdin, None, None, None,
+                handler=StdInputHandler(worker), timeout=-1, autoclose=True)
+
+        # Add stdin worker to current task
+        task.schedule(worker_stdin)
  
     task.resume()
+
     if gather:
        display_buffers(worker)
    
@@ -101,7 +127,8 @@ def interactive(task, ns, gather, timeout, label):
 
    return rc
 
-def runClush(args):
+def clush_main(args):
+    """Main clush script function"""
 
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
@@ -148,7 +175,7 @@ def runClush(args):
     nodeset_base = NodeSet(options.nodes)
     nodeset_exclude = NodeSet(options.exclude)
 
-    # De we have a exclude list? (-x ...)
+    # De we have an exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
@@ -161,7 +188,7 @@ def runClush(args):
     if options.debug:
         task.set_info("debug", options.debug)
     if options.fanout:
-        task.set_info("fanout", options.fanout)
+        task.set_info("fanout", options.fanout * 2)
     if options.user:
         task.set_info("ssh_user", options.user)
     if options.connect_timeout:
@@ -172,10 +199,10 @@ def runClush(args):
         timeout += options.command_timeout
 
     # Either we have no more arguments, so use interactive mode
-    if len(args) == 0:
+    if not len(args):
         rc = interactive(task, nodeset_base, options.gather, timeout, options.label)
 
-    # If not, just prepare a command with the last args an run it
+    # If not, just prepare a command with the last args and run it
     else:
         rc = run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
 
@@ -188,7 +215,8 @@ def runClush(args):
 
 if __name__ == '__main__':
     try:
-        runClush(sys.argv)
+        clush_main(sys.argv)
     except KeyboardInterrupt:
-        print "Break."
+        print "Keyboard interrupt."
+        sys.exit(128 + signal.SIGINT)
 
