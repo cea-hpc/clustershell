@@ -337,6 +337,16 @@ class Engine:
         # note: len(self.reg_clients) <= configured fanout
         self.reg_clients = {}
 
+        # A boolean that indicates when reg_clients has changed, or when
+        # some client interest event mask has changed. It is set by the
+        # base class, and reset by each engine implementation.
+        # Engines often deal with I/O events in chunk, and some event
+        # may lead to change to some other "client interest event mask"
+        # or could even register or close other clients. When such
+        # changes are made, this boolean is set to True, allowing the
+        # engine implementation to reconsider their events got by chunk.
+        self.reg_clients_changed = False
+
         # timer queue to handle both timers and clients timeout
         self.timerq = _EngineTimerQ(self)
 
@@ -376,7 +386,7 @@ class Engine:
         method should call base class method.
         """
         self._debug("REMOVE %s" % client)
-        self._clients.discard(client)
+        self._clients.remove(client)
 
         if client.registered:
             self.unregister(client)
@@ -406,7 +416,8 @@ class Engine:
         wfd = client.writer_fileno()
         assert rfd != None or wfd != None
 
-        self._debug("REG %s(r%s,w%s)(autoclose=%s)" % (client, rfd, wfd, client.autoclose))
+        self._debug("REG %s(r%s,w%s)(autoclose=%s)" % (client.__class__.__name__,
+            rfd, wfd, client.autoclose))
 
         client._events = 0
         client.registered = True
@@ -418,11 +429,13 @@ class Engine:
 
         if rfd != None:
             self.reg_clients[rfd] = client
+            self.reg_clients_changed = True
             client._events |= Engine.E_READABLE
             self.evlooprefcnt += refcnt_inc
             self._modify_specific(rfd, Engine.E_READABLE, 1)
         if wfd != None:
             self.reg_clients[wfd] = client
+            self.reg_clients_changed = True
             client._events |= Engine.E_WRITABLE
             self.evlooprefcnt += refcnt_inc
             self._modify_specific(wfd, Engine.E_WRITABLE, 1)
@@ -433,6 +446,7 @@ class Engine:
         self.timerq.schedule(client)
 
     def unregister_writer(self, client):
+        self._debug("UNREG WRITER r%s,w%s" % (client.reader_fileno(), client.writer_fileno()))
         if client.autoclose:
             refcnt_inc = 0
         else:
@@ -443,6 +457,7 @@ class Engine:
             self._modify_specific(wfd, Engine.E_WRITABLE, 0)
             client._events &= ~Engine.E_WRITABLE
             del self.reg_clients[wfd]
+            self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
 
     def unregister(self, client):
@@ -452,7 +467,8 @@ class Engine:
         """
         # sanity check
         assert client.registered
-        self._debug("UNREG %s" % client)
+        self._debug("UNREG %s (r%s,w%s)" % (client.__class__.__name__,
+            client.reader_fileno(), client.writer_fileno()))
         
         # remove timeout timer
         self.timerq.invalidate(client)
@@ -469,6 +485,7 @@ class Engine:
                 self._modify_specific(rfd, Engine.E_READABLE, 0)
                 client._events &= ~Engine.E_READABLE
             del self.reg_clients[rfd]
+            self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         wfd = client.writer_fileno()
@@ -477,10 +494,11 @@ class Engine:
                 self._modify_specific(wfd, Engine.E_WRITABLE, 0)
                 client._events &= ~Engine.E_WRITABLE
             del self.reg_clients[wfd]
+            self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         client._new_events = 0
-        client.registered = 0
+        client.registered = False
 
     def modify(self, client, set, clear):
         """
@@ -491,6 +509,9 @@ class Engine:
         client._new_events |= set
 
         if not client._processing:
+            # modifying a non processing client?
+            self.reg_clients_has_changed = True
+            # apply new_events now
             self.set_events(client, client._new_events)
 
     def set_events(self, client, new_events):
@@ -560,11 +581,12 @@ class Engine:
         """
         fanout = self.info["fanout"]
         assert fanout > 0
-        if fanout <= len(self.reg_clients):
-            return
+        if fanout <= len(self.reg_clients) + 1: # +1 for possible writer client
+             return
 
         for client in self._clients:
             if not client.registered:
+                self._debug("START CLIENT %s" % client.__class__.__name__)
                 self.register(client._start())
                 if fanout <= len(self.reg_clients):
                     break
@@ -631,4 +653,3 @@ class Engine:
     def _debug(self, s):
         # library engine debugging hook
         pass
-

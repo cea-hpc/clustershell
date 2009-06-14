@@ -104,7 +104,7 @@ class EnginePoll(Engine):
         # run main event loop...
         while self.evlooprefcnt > 0:
             self._debug("LOOP evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
-                    (self.evlooprefcnt, self.reg_clients, len(self.timerq)))
+                    (self.evlooprefcnt, self.reg_clients.keys(), len(self.timerq)))
             try:
                 timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
@@ -114,6 +114,7 @@ class EnginePoll(Engine):
                 elif timeo == -1:
                     timeo = timeout
 
+                self.reg_clients_changed = False
                 evlist = self.polling.poll(timeo * 1000.0 + 1.0)
 
             except select.error, (ex_errno, ex_strerror):
@@ -127,8 +128,13 @@ class EnginePoll(Engine):
 
             for fd, event in evlist:
 
-                if event == select.POLLNVAL:
+                if event & select.POLLNVAL:
                     raise EngineException("Caught POLLNVAL on fd %d" % fd)
+
+                if self.reg_clients_changed:
+                    self._debug("REG CLIENTS CHANGED - Aborting current evlist")
+                    # Oops, reconsider evlist by calling poll() again.
+                    break
 
                 # get client instance
                 if not self.reg_clients.has_key(fd):
@@ -161,12 +167,14 @@ class EnginePoll(Engine):
                 # or check for end of stream (do not handle both at the same time
                 # because handle_read() may perform a partial read)
                 elif event & select.POLLHUP:
-                    self._debug("POLLHUP %s" % client)
+                    self._debug("POLLHUP fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
+                        client.reader_fileno(), client.writer_fileno()))
                     self.remove(client)
 
                 # check for writing
                 if event & select.POLLOUT:
-                    self._debug("POLLOUT %s" % client)
+                    self._debug("POLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
+                        client.reader_fileno(), client.writer_fileno()))
                     assert client._events & Engine.E_WRITABLE
                     self.modify(client, 0, Engine.E_WRITABLE)
                     client._handle_write()

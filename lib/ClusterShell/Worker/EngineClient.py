@@ -207,7 +207,7 @@ class EngineClient(EngineBaseTimer):
             self._wbuf += buf
     
     def _set_write_eof(self):
-        if self._wbuf or self.writer_fileno() == None:
+        if self._wbuf:
             # write is not fully performed yet
             self._weof = True
         else:
