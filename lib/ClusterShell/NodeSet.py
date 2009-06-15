@@ -361,9 +361,10 @@ class RangeSet:
                             istart = k = i
                         elif k - istart > m:
                             # stepped without autostep
-                            for j in range(istart, k + m, m):
+                            # be careful to let the last one "pending"
+                            for j in range(istart, k, m):
                                 rg.append((j, j, 1, pad))
-                            istart = k = i
+                            istart = k
                         else:
                             rg.append((istart, istart, 1, pad))
                             istart = k
@@ -674,6 +675,8 @@ def _NodeSetParse(ns, autostep):
         if pat.find('%') >= 0:
             pat = pat.replace('%', '%%')
         while pat is not None:
+            # Ignore whitespace(s) for convenience
+            pat = pat.lstrip()
 
             # What's first: a simple node or a pattern of nodes?
             comma_idx = pat.find(',')
@@ -701,6 +704,9 @@ def _NodeSetParse(ns, autostep):
                 else:
                     sfx, pat = sfx.split(',', 1)
 
+                # Ignore whitespace(s)
+                sfx = sfx.rstrip()
+
                 # pfx + sfx cannot be empty
                 if len(pfx) + len(sfx) == 0:
                     raise NodeSetParseError(pat, "empty node name")
@@ -721,13 +727,15 @@ def _NodeSetParse(ns, autostep):
                     pat = None # break next time
                 else:
                     node, pat = pat.split(',', 1)
+                # Ignore whitespace(s)
+                node = node.strip()
 
                 if len(node) == 0:
                     raise NodeSetParseError(pat, "empty node name")
 
                 # single node parsing
                 if single_node_re is None:
-                    single_node_re = re.compile("(\D+)*(\d+)*(\S+)*")
+                    single_node_re = re.compile("(\D*)(\d*)(.*)")
 
                 mo = single_node_re.match(node)
                 if not mo:

@@ -39,6 +39,13 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("[0]cluster")
         self._assertNode(nodeset, "0cluster")
 
+    def testWhitespacePrefix(self):
+        """test parsing ignoring whitespace"""
+        nodeset = NodeSet(" tigrou2 , tigrou7 , tigrou[5,9-11] ")
+        self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
+        nodeset = NodeSet("   tigrou2 ,    tigrou5,tigrou7 , tigrou[ 9   - 11 ]    ")
+        self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
+
     def testFromListConstructor(self):
         """test NodeSet.fromlist constructor"""
         nodeset = NodeSet.fromlist([ "cluster33" ])
