@@ -154,17 +154,18 @@ class Task(object):
             if not thread_id:
                 self.l_run = thread.allocate_lock()
                 self.l_run.acquire()
-                print "starting new thread"
                 tid = thread.start_new_thread(Task._start_thread, (self,))
                 self._tasks[tid] = self
 
     def _start_thread(self):
-        print "thread started (id=0x%x)" % thread.get_ident()
-
-        self.l_run.acquire()
-        self._engine.run(self.timeout)
-
-        print "thread exited (id=0x%x)" % thread.get_ident()
+        """New Task thread entry point."""
+        try:
+            while True:
+                self.l_run.acquire()
+                self._engine.run(self.timeout)
+        except:
+            # TODO: dispatch exceptions
+            raise
 
     def info(self, info_key, def_val=None):
         """
@@ -281,6 +282,7 @@ class Task(object):
         """
         Abort a task.
         """
+        assert task_self() == self, "Inter-task abort not implemented yet"
         self._engine.abort()
 
     def join(self):
