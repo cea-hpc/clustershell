@@ -71,6 +71,9 @@ class Ssh(EngineClient):
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
+        # Disable passphrase/password querying
+        cmd_l.append("-oBatchMode=yes")
+
         cmd_l.append("%s" % self.key)
         cmd_l.append("'%s'" % self.command)
 
