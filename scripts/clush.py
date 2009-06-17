@@ -22,20 +22,30 @@
 
 
 """
-Pdsh-like with integrated dshbak command using the ClusterShell library.
+Utility program to run commands on a cluster using the ClusterShell library.
+
+clush is a pdsh-like command which benefits from the ClusterShell library
+and its Ssh worker. It features an integrated output results gathering
+system (dshbak-like), can get node groups by running predefined external
+commands and can redirect lines read on its standard input to the remote
+commands.
+
+When no command are specified, clush runs interactively.
+
 """
 
 import fcntl
+import optparse
 import os
 import sys
 import signal
 import thread
-from optparse import OptionParser
+import ConfigParser
 
 sys.path.insert(0, '../lib')
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import Task, task_self, task_wait
+from ClusterShell.Task import Task, task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell import version
 
@@ -95,6 +105,52 @@ class GatherOutputHandler(EventHandler):
         if worker.task.info("USER_handle_SIGHUP"):
             os.kill(os.getpid(), signal.SIGHUP)
 
+class ClushConfigParser(ConfigParser.ConfigParser):
+    """Specialized ConfigParser class for clush.conf"""
+
+    def __init__(self, defaults={"fanout" : "32",
+                                 "connect_timeout" : "30",
+                                 "command_timeout" : "0"}):
+        ConfigParser.ConfigParser.__init__(self, defaults)
+        self.readfp(open('/etc/clustershell/clush.conf'))
+        self.read([os.path.expanduser('~/.clush.conf')])
+
+    def _config_error(self, section, option, e):
+        print >>sys.stderr, "ERROR (Config %s.%s):" % (section, option), e
+        sys.exit(1)
+
+    def getint(self, section, option):
+        try:
+            return ConfigParser.ConfigParser.getint(self, section, option)
+        except (ConfigParser.Error, TypeError, ValueError), e:
+            self._config_error(section, option, e)
+
+    def get_fanout(self):
+        return self.getint("Main", "fanout")
+    
+    def get_connect_timeout(self):
+        return self.getint("Main", "connect_timeout")
+
+    def get_command_timeout(self):
+        return self.getint("Main", "command_timeout")
+
+    def get_nodes_all_command(self):
+        section = "External"
+        option = "nodes_all"
+        try:
+            return self.get(section, option)
+        except ConfigParser.Error, e:
+            self._config_error(section, option, e)
+
+    def get_nodes_group_command(self, group):
+        section = "External"
+        option = "nodes_group"
+        try:
+            return self.get(section, option, 0, { "group" : group })
+        except ConfigParser.Error, e:
+            self._config_error(section, option, e)
+
+
 def signal_handler(signum, frame):
     """Signal handler used for main thread notification"""
     if signum == signal.SIGHUP:
@@ -114,6 +170,7 @@ def readline_setup():
         readline.read_history_file(get_history_file())
     except IOError:
         pass
+
 
 def ttyloop(task, nodeset, gather, timeout, label):
     """Manage the interactive prompt to run command"""
@@ -199,22 +256,37 @@ def clush_main(args):
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
 
+    try:
+        config = ClushConfigParser()
+    except IOError, e:
+        print >>sys.stderr, "WARNING", e
+        config = None
+
     #
     # Argument management
     #
-    usage = "usage: %prog [options] -w RANGES command"
+    usage = "%prog [options] command"
 
-    parser = OptionParser(usage, version="%%prog %s" % version)
+    parser = optparse.OptionParser(usage, version="%%prog %s" % version)
     parser.disable_interspersed_args()
 
+    # Node selections
+    optgrp = optparse.OptionGroup(parser, "Selecting target nodes")
+    optgrp.add_option("-w", action="store", dest="nodes",
+                      help="nodes where to run the command")
+    optgrp.add_option("-x", action="store", dest="exclude",
+                      help="exclude nodes from the node list")
+    optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
+                      help="run command on all nodes")
+    optgrp.add_option("-g", "--group", action="store", dest="group",
+                      help="run command on a group of nodes")
+
+    parser.add_option_group(optgrp)
+
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                      help="output informative messages")
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
-
-    # Node selections
-    parser.add_option("-w", action="store", dest="nodes",
-                      help="node ranges where to run the command")
-    parser.add_option("-x", action="store", dest="exclude",
-                      help="exclude the node range from the node list")
 
     parser.add_option("-N", action="store_false", dest="label", default=True,
                       help="disable labeling of command line")
@@ -235,16 +307,51 @@ def clush_main(args):
 
     (options, args) = parser.parse_args()
 
+    # Early debug flag check
+    debug = options.debug or False
+
     #
     # Compute the nodeset
     #
     nodeset_base = NodeSet(options.nodes)
     nodeset_exclude = NodeSet(options.exclude)
 
-    # De we have an exclude list? (-x ...)
+    # Do we have nodes group?
+    task = task_self()
+    if debug:
+        task.set_info("debug", options.debug)
+    if options.nodes_all:
+        if config:
+            command = config.get_nodes_all_command()
+            task.shell(command, key="all")
+        else:
+            print >>sys.stderr, "ERROR: -a specified but nodes_all external command not found, see man clush.conf(5)"
+            os_.exit(1)
+
+    if options.group:
+        if config:
+            command = config.get_nodes_group_command(options.group)
+            task.shell(command, key="group")
+        else:
+            print >>sys.stderr, "ERROR: -g specified but nodes_group external command not found, see man clush.conf(5)"
+            os_.exit(1)
+
+    # Run needed external commands
+    task.resume()
+
+    for buf, keys in task.iter_buffers():
+        for line in buf.splitlines():
+            if debug:
+                print "Nodes from option %s: %s" % (','.join(keys), buf)
+            nodeset_base.add(line)
+
+    # Do we have an exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
+
+    if debug:
+        print "Final NodeSet is %s" % nodeset_base
 
     #
     # Task management
@@ -260,26 +367,38 @@ def clush_main(args):
         task.set_info("USER_handle_SIGHUP", True)
     else:
         # Perform everything in main thread.
-        task = task_self()
         task.set_info("USER_handle_SIGHUP", False)
 
     timeout = 0
-    if options.debug:
-        task.set_info("debug", options.debug)
+    if debug:
+        task.set_info("debug", debug)
     if options.fanout:
         task.set_info("fanout", options.fanout * 2)
+    elif config:
+        task.set_info("fanout", config.get_fanout() * 2)
     if options.user:
         task.set_info("ssh_user", options.user)
     if options.connect_timeout:
         task.set_info("connect_timeout", options.connect_timeout)
         timeout += options.connect_timeout
+    elif config:
+        task.set_info("connect_timeout", config.get_connect_timeout())
     if options.command_timeout:
         task.set_info("command_timeout", options.command_timeout)
         timeout += options.command_timeout
-            
+    elif config:
+        task.set_info("command_timeout", config.get_command_timeout())
+
     # Configure custom task related status
     task.set_info("USER_interactive", len(args) == 0)
     task.set_info("USER_running", False)
+
+    if options.verbose or debug:
+        print "clush: nodeset=%s fanout=%d connect_timeout=%d " \
+                "command_timeout=%d command=\"%s\"" %  (nodeset_base,
+                        task.info("fanout")/2,
+                        task.info("connect_timeout"),
+                        task.info("command_timeout"), ' '.join(args))
 
     if not task.info("USER_interactive"):
         run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
