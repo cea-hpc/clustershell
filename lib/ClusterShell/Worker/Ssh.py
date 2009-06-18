@@ -61,7 +61,7 @@ class Ssh(EngineClient):
         task = self.worker.task
 
         # Build ssh command
-        cmd_l = [ "ssh", "-a", "-x" ]
+        cmd_l = [ task.info("ssh_path") or "ssh", "-a", "-x"  ]
 
         user = task.info("ssh_user")
         if user:
@@ -73,6 +73,11 @@ class Ssh(EngineClient):
 
         # Disable passphrase/password querying
         cmd_l.append("-oBatchMode=yes")
+
+        # Add custom ssh options
+        ssh_options = task.info("ssh_options")
+        if ssh_options:
+            cmd_l.append(ssh_options)
 
         cmd_l.append("%s" % self.key)
         cmd_l.append("'%s'" % self.command)
