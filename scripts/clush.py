@@ -49,6 +49,9 @@ from ClusterShell.Task import Task, task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell import version
 
+VERB = 1
+DEBUG = 2
+
 class UpdatePromptException(Exception):
     """Exception used by the signal handler"""
 
@@ -105,34 +108,79 @@ class GatherOutputHandler(EventHandler):
         if worker.task.info("USER_handle_SIGHUP"):
             os.kill(os.getpid(), signal.SIGHUP)
 
-class ClushConfigParser(ConfigParser.ConfigParser):
-    """Specialized ConfigParser class for clush.conf"""
+class ClushConfigError(Exception):
+    """Exception used by the signal handler"""
+    def __init__(self, section, option, msg):
+        self.section = section
+        self.option = option
+        self.msg = msg
 
-    def __init__(self, defaults={"fanout" : "32",
-                                 "connect_timeout" : "30",
-                                 "command_timeout" : "0"}):
-        ConfigParser.ConfigParser.__init__(self, defaults)
-        self.readfp(open('/etc/clustershell/clush.conf'))
-        self.read([os.path.expanduser('~/.clush.conf')])
+    def __str__(self):
+        return "ERROR (Config %s.%s): %s" % (self.section, self.option, self.msg)
 
-    def _config_error(self, section, option, e):
-        print >>sys.stderr, "ERROR (Config %s.%s):" % (section, option), e
-        sys.exit(1)
+class ClushConfig(ConfigParser.ConfigParser):
+    """Config class for clush (specialized ConfigParser)"""
+
+    defaults = { "fanout" : "64",
+                 "connect_timeout" : "30",
+                 "command_timeout" : "0",
+                 "history_size" : "100",
+                 "verbosity" : "0" }
+
+    def __init__(self, overrides):
+        ConfigParser.ConfigParser.__init__(self, ClushConfig.defaults)
+        self.read(['/etc/clustershell/clush.conf', os.path.expanduser('~/.clush.conf')])
+        if not self.has_section("Main"):
+            self.add_section("Main")
+
+    def verbose_print(self, level, message):
+        if self.get_verbosity() >= level:
+            print message
+
+    def set_main(self, option, value):
+        self.set("Main", option, str(value))
 
     def getint(self, section, option):
         try:
             return ConfigParser.ConfigParser.getint(self, section, option)
         except (ConfigParser.Error, TypeError, ValueError), e:
-            self._config_error(section, option, e)
+            raise ClushConfigError(section, option, e)
+
+    def getfloat(self, section, option):
+        try:
+            return ConfigParser.ConfigParser.getfloat(self, section, option)
+        except (ConfigParser.Error, TypeError, ValueError), e:
+            raise ClushConfigError(section, option, e)
+
+    def _get_optional(self, section, option):
+        try:
+            return self.get(section, option)
+        except ConfigParser.Error, e:
+            pass
+
+    def get_verbosity(self):
+        try:
+            return self.getint("Main", "verbosity")
+        except ClushConfigError:
+            return 0
 
     def get_fanout(self):
         return self.getint("Main", "fanout")
     
     def get_connect_timeout(self):
-        return self.getint("Main", "connect_timeout")
+        return self.getfloat("Main", "connect_timeout")
 
     def get_command_timeout(self):
-        return self.getint("Main", "command_timeout")
+        return self.getfloat("Main", "command_timeout")
+
+    def get_ssh_user(self):
+        return self._get_optional("Main", "ssh_user")
+
+    def get_ssh_path(self):
+        return self._get_optional("Main", "ssh_path")
+
+    def get_ssh_options(self):
+        return self._get_optional("Main", "ssh_options")
 
     def get_nodes_all_command(self):
         section = "External"
@@ -140,7 +188,7 @@ class ClushConfigParser(ConfigParser.ConfigParser):
         try:
             return self.get(section, option)
         except ConfigParser.Error, e:
-            self._config_error(section, option, e)
+            raise ClushConfigError(section, option, e)
 
     def get_nodes_group_command(self, group):
         section = "External"
@@ -148,13 +196,14 @@ class ClushConfigParser(ConfigParser.ConfigParser):
         try:
             return self.get(section, option, 0, { "group" : group })
         except ConfigParser.Error, e:
-            self._config_error(section, option, e)
+            raise ClushConfigError(section, option, e)
 
 
 def signal_handler(signum, frame):
     """Signal handler used for main thread notification"""
     if signum == signal.SIGHUP:
         raise UpdatePromptException()
+
 
 def get_history_file():
     """Turn the history file path"""
@@ -170,7 +219,6 @@ def readline_setup():
         readline.read_history_file(get_history_file())
     except IOError:
         pass
-
 
 def ttyloop(task, nodeset, gather, timeout, label):
     """Manage the interactive prompt to run command"""
@@ -256,12 +304,6 @@ def clush_main(args):
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
 
-    try:
-        config = ClushConfigParser()
-    except IOError, e:
-        print >>sys.stderr, "WARNING", e
-        config = None
-
     #
     # Argument management
     #
@@ -307,8 +349,24 @@ def clush_main(args):
 
     (options, args) = parser.parse_args()
 
-    # Early debug flag check
-    debug = options.debug or False
+    #
+    # Load config file
+    #
+    config = ClushConfig(options)
+
+    # Apply command line overrides
+    if options.verbose:
+        config.set_main("verbosity", VERB)
+    if options.debug:
+        config.set_main("verbosity", DEBUG)
+    if options.fanout:
+        config.set_main("fanout", overrides.fanout)
+    if options.user:
+        self.set_main("ssh_user", overrides.user)
+    if options.connect_timeout:
+        self.set_main("connect_timeout", overrides.connect_timeout)
+    if options.command_timeout:
+        self.set_main("command_timeout", overrides.command_timeout)
 
     #
     # Compute the nodeset
@@ -318,31 +376,20 @@ def clush_main(args):
 
     # Do we have nodes group?
     task = task_self()
-    if debug:
-        task.set_info("debug", options.debug)
+    task.set_info("debug", config.get_verbosity() > 1)
     if options.nodes_all:
-        if config:
-            command = config.get_nodes_all_command()
-            task.shell(command, key="all")
-        else:
-            print >>sys.stderr, "ERROR: -a specified but nodes_all external command not found, see man clush.conf(5)"
-            os_.exit(1)
-
+        command = config.get_nodes_all_command()
+        task.shell(command, key="all")
     if options.group:
-        if config:
-            command = config.get_nodes_group_command(options.group)
-            task.shell(command, key="group")
-        else:
-            print >>sys.stderr, "ERROR: -g specified but nodes_group external command not found, see man clush.conf(5)"
-            os_.exit(1)
+        command = config.get_nodes_group_command(options.group)
+        task.shell(command, key="group")
 
     # Run needed external commands
     task.resume()
 
     for buf, keys in task.iter_buffers():
         for line in buf.splitlines():
-            if debug:
-                print "Nodes from option %s: %s" % (','.join(keys), buf)
+            config.verbose_print(DEBUG, "Nodes from option %s: %s" % (','.join(keys), buf))
             nodeset_base.add(line)
 
     # Do we have an exclude list? (-x ...)
@@ -350,8 +397,7 @@ def clush_main(args):
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
 
-    if debug:
-        print "Final NodeSet is %s" % nodeset_base
+    config.verbose_print(DEBUG, "Final NodeSet is %s" % nodeset_base)
 
     #
     # Task management
@@ -370,35 +416,35 @@ def clush_main(args):
         task.set_info("USER_handle_SIGHUP", False)
 
     timeout = 0
-    if debug:
-        task.set_info("debug", debug)
-    if options.fanout:
-        task.set_info("fanout", options.fanout * 2)
-    elif config:
-        task.set_info("fanout", config.get_fanout() * 2)
-    if options.user:
-        task.set_info("ssh_user", options.user)
-    if options.connect_timeout:
-        task.set_info("connect_timeout", options.connect_timeout)
-        timeout += options.connect_timeout
-    elif config:
-        task.set_info("connect_timeout", config.get_connect_timeout())
-    if options.command_timeout:
-        task.set_info("command_timeout", options.command_timeout)
-        timeout += options.command_timeout
-    elif config:
-        task.set_info("command_timeout", config.get_command_timeout())
+    task.set_info("debug", config.get_verbosity() > 1)
+    task.set_info("fanout", config.get_fanout() * 2)
+
+    ssh_user = config.get_ssh_user()
+    if ssh_user:
+        task.set_info("ssh_user", ssh_user)
+    ssh_path = config.get_ssh_path()
+    if ssh_path:
+        task.set_info("ssh_path", ssh_path)
+    ssh_options = config.get_ssh_options()
+    if ssh_options:
+        task.set_info("ssh_options", ssh_options)
+
+    connect_timeout = config.get_connect_timeout()
+    task.set_info("connect_timeout", connect_timeout)
+    timeout += connect_timeout
+    command_timeout = config.get_command_timeout()
+    task.set_info("command_timeout", command_timeout)
+    timeout += command_timeout
 
     # Configure custom task related status
     task.set_info("USER_interactive", len(args) == 0)
     task.set_info("USER_running", False)
 
-    if options.verbose or debug:
-        print "clush: nodeset=%s fanout=%d connect_timeout=%d " \
-                "command_timeout=%d command=\"%s\"" %  (nodeset_base,
+    config.verbose_print(VERB, "clush: nodeset=%s fanout=%d [timeout conn=%d " \
+            "cmd=%d] command=\"%s\"" %  (nodeset_base,
                         task.info("fanout")/2,
                         task.info("connect_timeout"),
-                        task.info("command_timeout"), ' '.join(args))
+                        task.info("command_timeout"), ' '.join(args)))
 
     if not task.info("USER_interactive"):
         run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
@@ -423,4 +469,7 @@ if __name__ == '__main__':
         print "Keyboard interrupt."
         # Use os._exit to avoid threads cleanup
         os._exit(128 + signal.SIGINT)
+    except ClushConfigError, e:
+        print >>sys.stderr, e
+        sys.exit(1)
 
