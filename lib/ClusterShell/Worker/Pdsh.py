@@ -100,7 +100,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
         if self.command is not None:
             # Build pdsh command
-            cmd_l = [ "/usr/bin/pdsh", "-b" ]
+            cmd_l = [ self.task.info("pdsh_path") or "pdsh", "-b" ]
 
             fanout = self.task.info("fanout", 0)
             if fanout > 0:
@@ -128,7 +128,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
                 self.task.info("print_debug")(self.task, "PDSH: %s" % cmd)
         else:
             # Build pdcp command
-            cmd_l = [ "/usr/bin/pdcp", "-b" ]
+            cmd_l = [ self.task.info("pdcp_path") or "pdcp", "-b" ]
 
             fanout = self.task.info("fanout", 0)
             if fanout > 0:

@@ -187,11 +187,24 @@ class Scp(Ssh):
         task = self.worker.task
 
         # Build scp command
-        cmd_l = [ "scp" ]
+        cmd_l = [ task.info("scp_path") or "scp" ]
+
+        user = task.info("scp_user") or task.info("ssh_user")
+        if user:
+            cmd_l.append("-l %s" % user)
 
         connect_timeout = task.info("connect_timeout", 0)
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
+
+        # Disable passphrase/password querying
+        cmd_l.append("-oBatchMode=yes")
+
+        # Add custom scp options
+        for key in [ "ssh_options", "scp_options" ]:
+            ssh_options = task.info(key)
+            if ssh_options:
+                cmd_l.append(ssh_options)
 
         cmd_l.append("'%s'" % self.source)
 
