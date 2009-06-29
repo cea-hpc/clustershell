@@ -153,7 +153,7 @@ def run_nodeset(args):
             if not preprocess:
                 preprocess = class_set.update
                 for arg in args:
-                    preprocess(ns, class_set(arg))
+                    preprocess(ns, class_set(arg, autostep=autostep))
 
         if read_stdin:
             # Read standard input when argument is missing or when
@@ -164,7 +164,7 @@ def run_nodeset(args):
             for line in sys.stdin.readlines():
                 line = line[0:line.find('#')].strip()
                 for node in line.split():
-                    preprocess(ns, class_set(node))
+                    preprocess(ns, class_set(node, autostep=autostep))
 
         # Finally, remove excluding nodes
         if excludes:

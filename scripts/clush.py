@@ -44,7 +44,7 @@ import ConfigParser
 
 sys.path.insert(0, '../lib')
 from ClusterShell.Event import EventHandler
-from ClusterShell.NodeSet import NodeSet
+from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.Task import Task, task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell import version
@@ -69,15 +69,24 @@ class DirectOutputHandler(EventHandler):
     def __init__(self, label):
         self._label = label
     def ev_read(self, worker):
-        ns, buf = worker.last_read()
+        t = worker.last_read()
+        if type(t) is tuple:
+            ns, buf = worker.last_read()
+        else:
+            buf = worker.last_read()
         if self._label:
           print "%s: %s" % (ns, buf)
         else:
           print "%s" % buf
     def ev_hup(self, worker):
-        ns, rc = worker.last_retcode()
+        if hasattr(worker, "last_retcode"):
+            ns, rc = worker.last_retcode()
+        else:
+            ns = "local"
+            rc = worker.retcode()
         if rc > 0:
             print "clush: %s: exited with exit code %d" % (ns, rc) 
+
     def ev_timeout(self, worker):
         print "clush: %s: command timeout" % worker.last_node()
     def ev_close(self, worker):
@@ -215,6 +224,8 @@ def readline_setup():
     named .clush_history
     """
     import readline
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer_delims("")
     try:
         readline.read_history_file(get_history_file())
     except IOError:
@@ -222,19 +233,28 @@ def readline_setup():
 
 def ttyloop(task, nodeset, gather, timeout, label):
     """Manage the interactive prompt to run command"""
+    has_readline = False
     if task.info("USER_interactive"):
-        import readline
         assert sys.stdin.isatty()
-        readline_setup()
+        readline_avail = False
+        try:
+            import readline
+            readline_setup()
+            readline_avail = True
+        except ImportError:
+            pass
         print "Enter 'quit' to leave this interactive mode"
 
     rc = 0
     ns = NodeSet(nodeset)
+    ns_info = True
     cmd = ""
     while task.info("USER_running") or cmd.lower() != 'quit':
         try:
             if task.info("USER_interactive") and not task.info("USER_running"):
-                print "Working with nodes: %s" % ns
+                if ns_info:
+                    print "Working with nodes: %s" % ns
+                    ns_info = False
                 prompt = "clush> "
             else:
                 prompt = ""
@@ -260,16 +280,29 @@ def ttyloop(task, nodeset, gather, timeout, label):
                     "clush: in progress(%d): %s%s" % (len(ns_reg), ns_reg, pending)
         else:
             cmdl = cmd.lower()
-            if cmdl.startswith('+'):
-                ns.add(cmdl[1:])
-            elif cmdl.startswith('-'):
-                ns.remove(cmdl[1:])
-            elif cmdl.startswith('='):
-                ns = NodeSet(cmdl[1:])
+            try:
+                ns_info = True
+                if cmdl.startswith('+'):
+                    ns.add(cmdl[1:])
+                elif cmdl.startswith('-'):
+                    ns.difference_update(cmdl[1:])
+                elif cmdl.startswith('@'):
+                    ns = NodeSet(cmdl[1:])
+                elif not cmdl.startswith('?'): # if ?, just print ns_info
+                    ns_info = False
+            except NodeSetParseError:
+                print >>sys.stderr, "clush: nodeset parse error (ignoring)"
+
+            if ns_info:
+                continue
+
+            if cmdl.startswith('!'):
+                run_command(task, cmd[1:], None, gather, timeout, None)
             elif cmdl != "quit":
                 if not cmd:
                     continue
-                readline.write_history_file(get_history_file())
+                if readline_avail:
+                    readline.write_history_file(get_history_file())
                 run_command(task, cmd, ns, gather, timeout, label)
     return rc
 
