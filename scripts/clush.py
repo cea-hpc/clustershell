@@ -43,6 +43,10 @@ import thread
 import ConfigParser
 
 sys.path.insert(0, '../lib')
+
+import warnings
+warnings.simplefilter('ignore', DeprecationWarning)
+
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.Task import Task, task_self
@@ -66,7 +70,7 @@ class StdInputHandler(EventHandler):
 
 class DirectOutputHandler(EventHandler):
     """Direct output event handler class."""
-    def __init__(self, label):
+    def __init__(self, label=None):
         self._label = label
     def ev_read(self, worker):
         t = worker.last_read()
@@ -213,7 +217,6 @@ def signal_handler(signum, frame):
     if signum == signal.SIGHUP:
         raise UpdatePromptException()
 
-
 def get_history_file():
     """Turn the history file path"""
     return os.path.join(os.environ["HOME"], ".clush_history")
@@ -260,6 +263,7 @@ def ttyloop(task, nodeset, gather, timeout, label):
                 prompt = ""
             cmd = raw_input(prompt)
         except EOFError:
+            print
             return
         except UpdatePromptException:
             if task.info("USER_interactive"):
@@ -283,7 +287,7 @@ def ttyloop(task, nodeset, gather, timeout, label):
             try:
                 ns_info = True
                 if cmdl.startswith('+'):
-                    ns.add(cmdl[1:])
+                    ns.update(cmdl[1:])
                 elif cmdl.startswith('-'):
                     ns.difference_update(cmdl[1:])
                 elif cmdl.startswith('@'):
@@ -306,10 +310,22 @@ def ttyloop(task, nodeset, gather, timeout, label):
                 run_command(task, cmd, ns, gather, timeout, label)
     return rc
 
+def bind_stdin(worker):
+    assert not sys.stdin.isatty()
+    # Switch stdin to non blocking mode
+    fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NDELAY)
+
+    # Create a simple worker attached to stdin in autoclose mode
+    worker_stdin = WorkerSimple(sys.stdin, None, None, None,
+            handler=StdInputHandler(worker), timeout=-1, autoclose=True)
+
+    # Add stdin worker to the same task than given worker
+    worker.task.schedule(worker_stdin)
+
 def run_command(task, cmd, ns, gather, timeout, label):
     """
     Create and run the specified command line, displaying
-    results in a dshbak way if gathering is used.
+    results in a dshbak way when gathering is used.
     """    
     task.set_info("USER_running", True)
 
@@ -319,16 +335,18 @@ def run_command(task, cmd, ns, gather, timeout, label):
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label), timeout=timeout)
 
     if not sys.stdin.isatty():
-        # Switch stdin to non blocking mode
-        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NDELAY)
-
-        # Create a simple worker attached to stdin in autoclose mode
-        worker_stdin = WorkerSimple(sys.stdin, None, None, None,
-                handler=StdInputHandler(worker), timeout=-1, autoclose=True)
-
-        # Add stdin worker to current task
-        task.schedule(worker_stdin)
+        bind_stdin(worker)
  
+    task.resume()
+
+def run_copy(task, source, dest, ns, timeout):
+    """
+    run copy command
+    """
+    task.set_info("USER_running", True)
+
+    worker = task.copy(source, dest, ns, handler=DirectOutputHandler(), timeout=timeout)
+
     task.resume()
 
 def clush_main(args):
@@ -371,6 +389,12 @@ def clush_main(args):
                       help="return the largest of command return codes")
     parser.add_option("-b", "--dshbak", action="store_true", dest="gather",
                       help="display results in a dshbak-like way")
+    # Copy
+    parser.add_option("-c", "--copy", action="store", dest="source_path",
+                      help="copy local file or directory to the nodes")
+    parser.add_option("--dest", action="store", dest="dest_path",
+                      help="destination file or directory on the nodes")
+
     parser.add_option("-f", "--fanout", action="store", dest="fanout", 
                       help="use a specified fanout", type="int")
 
@@ -467,20 +491,37 @@ def clush_main(args):
     timeout += connect_timeout
     command_timeout = config.get_command_timeout()
     task.set_info("command_timeout", command_timeout)
-    timeout += command_timeout
+    if connect_timeout < 1e-3 or command_timeout < 1e-3:
+        timeout = 0
+    else:
+        timeout += command_timeout
 
     # Configure custom task related status
-    task.set_info("USER_interactive", len(args) == 0)
+    task.set_info("USER_interactive", len(args) == 0 and not options.source_path)
     task.set_info("USER_running", False)
 
+    if options.source_path and not options.dest_path:
+        options.dest_path = options.source_path
+
+    if options.source_path:
+        if not options.dest_path:
+            options.dest_path = options.source_path
+        op = "copy source=%s dest=%s" % (options.source_path, options.dest_path)
+    else:
+        op = "command=\"%s\"" % ' '.join(args)
+
     config.verbose_print(VERB, "clush: nodeset=%s fanout=%d [timeout conn=%d " \
-            "cmd=%d] command=\"%s\"" %  (nodeset_base,
-                        task.info("fanout")/2,
-                        task.info("connect_timeout"),
-                        task.info("command_timeout"), ' '.join(args)))
+            "cmd=%d] %s" %  (nodeset_base, task.info("fanout")/2,
+                task.info("connect_timeout"),
+                task.info("command_timeout"), op))
 
     if not task.info("USER_interactive"):
-        run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
+        if options.source_path:
+            if not options.dest_path:
+                options.dest_path = options.source_path
+            run_copy(task, options.source_path, options.dest_path, nodeset_base, 0)
+        else:
+            run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
 
     if stdin_isatty:
         ttyloop(task, nodeset_base, options.gather, timeout, options.label)
