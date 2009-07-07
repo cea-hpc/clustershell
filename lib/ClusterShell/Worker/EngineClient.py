@@ -63,8 +63,8 @@ class EngineClient(EngineBaseTimer):
         self._events = 0                    # current configured set of interesting
                                             # events (read, write) for client
         self._new_events = 0                # new set of interesting events
-
         self._processing = False            # engine is working on us
+        self._weof = False                  # write-ends notification
 
         # read-only public
         self.registered = False             # registered on engine or not
@@ -74,7 +74,6 @@ class EngineClient(EngineBaseTimer):
         # initialize read and write buffers
         self._rbuf = ""
         self._wbuf = ""
-        self._weof = False
 
     def _fire(self):
         """
@@ -207,11 +206,9 @@ class EngineClient(EngineBaseTimer):
             self._wbuf += buf
     
     def _set_write_eof(self):
-        if self._wbuf:
-            # write is not fully performed yet
-            self._weof = True
-        else:
-            # sendq empty, close writer now
+        self._weof = True
+        if not self._wbuf:
+            # sendq empty, try to close writer now
             self._close_writer()
 
     def _close_writer(self):
