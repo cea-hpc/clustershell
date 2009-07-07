@@ -55,17 +55,17 @@ import re
 
 class RangeSetException(Exception):
     """used by RangeSet"""
-    def __init__(self, message):
-        self.message = message
+    def __init__(self, msg):
+        self.msg = msg
 
     def __str__(self):
-        return self.message
+        return self.msg
 
 class RangeSetParseError(RangeSetException):
     """used by RangeSet when a parse cannot be done"""
-    def __init__(self, subrange, message):
+    def __init__(self, subrange, msg):
         # faulty subrange; this allows you to target the error
-        self.message = "%s : \"%s\"" % (message, subrange)
+        self.msg = "%s : \"%s\"" % (msg, subrange)
 
 class RangeSetPaddingError(RangeSetException):
     """used by RangeSet when a fatal padding incoherency occurs"""
@@ -73,24 +73,24 @@ class RangeSetPaddingError(RangeSetException):
 
 class NodeSetException(Exception):
     """used by NodeSet"""
-    def __init__(self, message):
-        self.message = message
+    def __init__(self, msg):
+        self.msg = msg
 
     def __str__(self):
-        return self.message
+        return self.msg
 
 class NodeSetParseError(NodeSetException):
     """used by NodeSet when a parse cannot be done"""
-    def __init__(self, part, message):
+    def __init__(self, part, msg):
         # faulty part; this allows you to target the error
         self.part = part
-        self.message = message
+        self.msg = msg
 
 class NodeSetParseRangeError(NodeSetParseError):
     """used by NodeSet when bad range is encountered during a a parse"""
     def __init__(self, rset_exc):
         # faulty part; this allows you to target the error
-        self.message = rset_exc.message
+        self.msg = rset_exc.msg
 
 
 class RangeSet:
