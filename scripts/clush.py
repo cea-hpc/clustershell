@@ -53,8 +53,10 @@ from ClusterShell.Task import Task, task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell import version
 
-VERB = 1
-DEBUG = 2
+VERB_QUIET = 0
+VERB_STD = 1
+VERB_VERB = 2
+VERB_DEBUG = 3
 
 class UpdatePromptException(Exception):
     """Exception used by the signal handler"""
@@ -101,7 +103,15 @@ class DirectOutputHandler(EventHandler):
 
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
+    def __init__(self, runtimer):
+        self.runtimer = runtimer
+
     def ev_close(self, worker):
+
+        if self.runtimer:
+            # Invalidate runtimer
+            self.runtimer.eh.finalize(worker.task.info("USER_interactive"))
+
         # Display command output, try to order buffers by rc
         for rc, nodeset in worker.iter_retcodes():
             for buffer, nodeset in worker.iter_buffers(nodeset):
@@ -121,6 +131,34 @@ class GatherOutputHandler(EventHandler):
         if worker.task.info("USER_handle_SIGHUP"):
             os.kill(os.getpid(), signal.SIGHUP)
 
+class RunTimer(EventHandler):
+    def __init__(self, task, total):
+        self.task = task
+        self.total = total
+        self.cnt_last = -1
+        self.tslen = len(str(self.total))
+
+    def ev_timer(self, timer):
+        self.update()
+
+    def update(self):
+        clients = self.task._engine.clients()
+        cnt = len(clients)
+        if cnt != self.cnt_last:
+            self.cnt_last = cnt
+            # display completed/total clients
+            sys.stderr.write('clush: %*d/%*d\r' % (self.tslen, self.total - cnt,
+                self.tslen, self.total))
+
+    def finalize(self, cr):
+        # display completed/total clients
+        fmt = 'clush: %*d/%*d'
+        if cr:
+            fmt += '\n'
+        else:
+            fmt += '\r'
+        sys.stderr.write(fmt % (self.tslen, self.total, self.tslen, self.total))
+
 class ClushConfigError(Exception):
     """Exception used by the signal handler"""
     def __init__(self, section, option, msg):
@@ -138,7 +176,7 @@ class ClushConfig(ConfigParser.ConfigParser):
                  "connect_timeout" : "30",
                  "command_timeout" : "0",
                  "history_size" : "100",
-                 "verbosity" : "0" }
+                 "verbosity" : "%d" % VERB_STD }
 
     def __init__(self, overrides):
         ConfigParser.ConfigParser.__init__(self, ClushConfig.defaults)
@@ -234,7 +272,7 @@ def readline_setup():
     except IOError:
         pass
 
-def ttyloop(task, nodeset, gather, timeout, label):
+def ttyloop(task, nodeset, gather, timeout, label, verbosity):
     """Manage the interactive prompt to run command"""
     has_readline = False
     if task.info("USER_interactive"):
@@ -246,7 +284,8 @@ def ttyloop(task, nodeset, gather, timeout, label):
             readline_avail = True
         except ImportError:
             pass
-        print "Enter 'quit' to leave this interactive mode"
+        if verbosity >= VERB_STD:
+            print "Enter 'quit' to leave this interactive mode"
 
     rc = 0
     ns = NodeSet(nodeset)
@@ -301,13 +340,13 @@ def ttyloop(task, nodeset, gather, timeout, label):
                 continue
 
             if cmdl.startswith('!'):
-                run_command(task, cmd[1:], None, gather, timeout, None)
+                run_command(task, cmd[1:], None, gather, timeout, None, verbosity)
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                run_command(task, cmd, ns, gather, timeout, label)
+                run_command(task, cmd, ns, gather, timeout, label, verbosity)
     return rc
 
 def bind_stdin(worker):
@@ -322,7 +361,7 @@ def bind_stdin(worker):
     # Add stdin worker to the same task than given worker
     worker.task.schedule(worker_stdin)
 
-def run_command(task, cmd, ns, gather, timeout, label):
+def run_command(task, cmd, ns, gather, timeout, label, verbosity):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
@@ -330,7 +369,11 @@ def run_command(task, cmd, ns, gather, timeout, label):
     task.set_info("USER_running", True)
 
     if gather:
-        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(), timeout=timeout)
+        runtimer = None
+        if verbosity == VERB_STD or verbosity == VERB_VERB:
+            # Create a ClusterShell timer used to display the number of completed commands
+            runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3., autoclose=True)
+        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(runtimer), timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label), timeout=timeout)
 
@@ -376,8 +419,10 @@ def clush_main(args):
 
     parser.add_option_group(optgrp)
 
+    parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
+                      help="be quiet, print essential output only")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
-                      help="output informative messages")
+                      help="be verbose, print informative messages")
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
 
@@ -412,10 +457,12 @@ def clush_main(args):
     config = ClushConfig(options)
 
     # Apply command line overrides
+    if options.quiet:
+        config.set_main("verbosity", VERB_QUIET)
     if options.verbose:
-        config.set_main("verbosity", VERB)
+        config.set_main("verbosity", VERB_VERB)
     if options.debug:
-        config.set_main("verbosity", DEBUG)
+        config.set_main("verbosity", VERB_DEBUG)
     if options.fanout:
         config.set_main("fanout", overrides.fanout)
     if options.user:
@@ -454,7 +501,7 @@ def clush_main(args):
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
 
-    config.verbose_print(DEBUG, "Final NodeSet is %s" % nodeset_base)
+    config.verbose_print(VERB_DEBUG, "Final NodeSet is %s" % nodeset_base)
 
     #
     # Task management
@@ -473,7 +520,7 @@ def clush_main(args):
         task.set_info("USER_handle_SIGHUP", False)
 
     timeout = 0
-    task.set_info("debug", config.get_verbosity() > 1)
+    task.set_info("debug", config.get_verbosity() >= VERB_DEBUG)
     task.set_info("fanout", config.get_fanout() * 2)
 
     ssh_user = config.get_ssh_user()
@@ -510,7 +557,7 @@ def clush_main(args):
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
-    config.verbose_print(VERB, "clush: nodeset=%s fanout=%d [timeout conn=%d " \
+    config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout conn=%d " \
             "cmd=%d] %s" %  (nodeset_base, task.info("fanout")/2,
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
@@ -521,10 +568,12 @@ def clush_main(args):
                 options.dest_path = options.source_path
             run_copy(task, options.source_path, options.dest_path, nodeset_base, 0)
         else:
-            run_command(task, ' '.join(args), nodeset_base, options.gather, timeout, options.label)
+            run_command(task, ' '.join(args), nodeset_base, options.gather,
+                    timeout, options.label, config.get_verbosity())
 
     if stdin_isatty:
-        ttyloop(task, nodeset_base, options.gather, timeout, options.label)
+        ttyloop(task, nodeset_base, options.gather, timeout, options.label,
+                config.get_verbosity())
     elif task.info("USER_interactive"):
         print >>sys.stderr, "ERROR: interactive mode requires a tty"
         os_.exit(1)
