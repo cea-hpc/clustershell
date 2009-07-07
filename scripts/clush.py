@@ -109,7 +109,6 @@ class GatherOutputHandler(EventHandler):
     def ev_close(self, worker):
 
         if self.runtimer:
-            # Invalidate runtimer
             self.runtimer.eh.finalize(worker.task.info("USER_interactive"))
 
         # Display command output, try to order buffers by rc
