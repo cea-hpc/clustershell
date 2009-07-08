@@ -1,0 +1,125 @@
+============
+ clush.conf
+============
+
+------------------------------
+Configuration file for `clush`
+------------------------------
+
+:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+:Date:   2009-07-08
+:Copyright: CeCILL-C V1
+:Version: 1.1
+:Manual section: 5
+:Manual group: ClusterShell User Manual
+
+
+DESCRIPTION
+===========
+
+``clush``\(1) obtains configuration options from the following sources in the
+following order:
+
+ 1. command-line options
+ 2. user configuration file (*~/.clush.conf*)
+ 3. system-wide configuration file (*/etc/clustershell/clush.conf*)
+
+For each parameter, the first obtained value will be used.
+
+The configuration file has a format in the style of RFC 822 composed
+of two sections which may be present in any order. The section names are:
+
+Main
+  Program options definition
+External
+  External commands definition
+
+
+[Main]
+------
+Configuration parameters of the ``Main`` section are described below.
+
+fanout
+  Size of the sliding window of ssh connectors.
+connect_timeout
+  Timeout in seconds to allow a connection to establish. This parameter is
+  passed to ssh. If set to *0*, no timeout occurs.
+command_timeout
+  Timeout in seconds to allow a command to complete since the connection has
+  been established. This parameter is passed to ssh.  In addition, the
+  ClusterShell library ensures that any commands complete in less than
+  ( connect_timeout + command_timeout ). If set to *0*, no timeout occurs.
+history_size
+  Set the maximum number of history entries saved in the GNU readline history
+  list. Negative values imply unlimited history file size.
+verbosity
+  Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more (debug).
+ssh_user
+  Set the ssh user to use for remote connection (default is to not specify).
+ssh_path
+  Set the ssh binary path to use for remote connection (default is
+  `/usr/bin/ssh`).
+ssh_options
+  Set additional options to pass to the underlying ssh command.
+
+[External]
+----------
+The ``External`` section defines external commands whose output will be
+used by ``clush``, for example, to perform host selection:
+
+nodes_all
+  This parameter defines a command line to retrieve all available cluster(s)
+  nodes as a valid NodeSet string. This command will be called by ``clush``
+  when option *-a* is used.
+nodes_group
+  This parameter defines a command line to retrieve cluster nodes associated
+  to a given group as a valid NodeSet string. This command will be called by
+  ``clush`` when option *-g group* is used. The variable *%(group)s*, which
+  should be present in the command line, is resolved before the execution of
+  the command.
+
+
+
+EXAMPLES
+===========
+
+Simple configuration file on a cluster where all nodes are defined
+in */etc/machines* and node groups are defined in netgroups. Note
+the use of the ``nodeset`` utility command which is also provided
+with ClusterShell.
+
+*clush.conf*
+------------
+
+| [Main]
+| fanout: 128
+| connect_timeout: 15
+| command_timeout: 0
+| history_size: 100
+| 
+| [External]
+| nodes_all:   /usr/bin/nodeset -f < /etc/machines
+| nodes_group: /path/to/mygetgroup %(group)s | /usr/bin/nodeset -f
+
+
+For example, if you create a file `/etc/clustershell/groups` containing `group`: `nodes` lines, you could configure `nodes_group` as follow:
+
+| nodes_group: awk -F: '/^%(group)s:/ {print $2}' /etc/clustershell/groups | nodeset -f 
+
+
+FILES
+=====
+
+*~/.clush.conf*
+  This is the per-user configuration file.
+
+*/etc/clustershell/clush.conf*
+  System-wide configuration file.
+
+SEE ALSO
+========
+
+``clush``\(1), ``nodeset``\(1)
+
+http://clustershell.sourceforge.net/
+

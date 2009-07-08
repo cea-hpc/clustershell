@@ -1,0 +1,4 @@
+Files found in this directory are text files in reStructuredText format (Markup Syntax of Docutils).
+We use rst1man.py to convert them to roff man pages.
+
+See: http://docutils.sourceforge.net/rst.html

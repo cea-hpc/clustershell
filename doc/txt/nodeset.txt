@@ -1,0 +1,119 @@
+=========
+ nodeset
+=========
+
+-----------------------------------
+compute advanced nodeset operations
+-----------------------------------
+
+:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+:Date:   2009-07-08
+:Copyright: CeCILL-C V1
+:Version: 1.1
+:Manual section: 1
+:Manual group: ClusterShell User Manual
+
+
+SYNOPSIS
+========
+
+``nodeset`` [ options ] [ command ]
+
+DESCRIPTION
+===========
+The ``nodeset`` command is an utility command provided with the ClusterShell
+library which implements some features of the NodeSet class.
+
+OPTIONS
+=======
+
+Commands:
+    --count, -c <nodeset> [nodeset ...]
+        Return the number of nodes in nodesets.
+    --expand, -e <nodeset> [nodeset ...]
+        Expand nodesets to separate nodes.
+    --fold, -f <nodeset> [nodeset ...]
+        Compact/fold nodesets (or separate nodes) into one nodeset.
+Options:
+    --autostep=<number>, -a <number>
+        Specify auto step threshold number when folding nodesets.
+        If not specified, auto step is disabled.
+        Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2]
+    --exclude=<nodeset>, -x <nodeset>
+        Exclude provided node or nodeset from result. Can be specified
+        several times.
+    --intersection, -i
+        Calculate nodesets intersection before processing command. This
+        means that only nodes that are in every provided nodesets are
+        used.
+    --xor, -X
+        Calculate symmetric difference (XOR) between two nodesets before
+        processing command. This means that nodes present in only one of
+        the nodesets are used.
+    --rangeset, -R
+        Switch to RangeSet instead of NodeSet. Useful when working on
+        numerical cluster ranges, eg. 1,5,18-31.
+    --quiet, -q
+        Quiet mode, hide any parse error messages (on stderr).
+    --version, -v
+        Show ClusterShell version and exit.
+
+
+For a short explanation of these options, see ``-h, --help``.
+
+
+EXIT STATUS
+===========
+
+An exit status of zero indicates success of the ``nodeset`` command. A non-zero
+exit status indicates failure.
+
+EXAMPLES
+===========
+
+Getting the node count
+  :$ nodeset -c node[0-7,32-159]:
+  
+  | 136
+  
+  :$ nodeset -c node[0-7,32-159] node[160-163]:
+  
+  | 140
+
+Folding nodesets
+  :$ nodeset -f node[0-7,32-159] node[160-163]:
+  
+  | node[0-7,32-163]
+
+Expanding nodesets
+  :$ nodeset -e node[160-163]:
+
+  | node160 node161 node162 node163
+
+Excluding nodes from nodeset
+  :$ nodeset -x node33 -f node[32-159]:
+
+  | node[32,34-159]
+
+Computing nodesets intersection
+  :$ nodeset -i -f node[32-159] node[0-7,20-21,32,156-159]:
+
+  | node[32,156-159]
+
+Computing nodesets symmetric difference (xor)
+  :$ nodeset --xor -f node[33-159] node[32-33,156-159]:
+
+  | node[32,34-155]
+
+
+SEE ALSO
+========
+
+``clush``\(1)
+
+BUG REPORTS
+===========
+
+Use the following URL to submit a bug report or feedback:
+  http://clustershell.sourceforge.net/bugreport.php
+
