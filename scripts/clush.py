@@ -498,7 +498,7 @@ def clush_main(args):
 
     for buf, keys in task.iter_buffers():
         for line in buf.splitlines():
-            config.verbose_print(DEBUG, "Nodes from option %s: %s" % (','.join(keys), buf))
+            config.verbose_print(VERB_DEBUG, "Nodes from option %s: %s" % (','.join(keys), buf))
             nodeset_base.add(line)
 
     # Do we have an exclude list? (-x ...)
