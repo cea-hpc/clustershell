@@ -49,7 +49,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 /usr/share/vim/vim%{vim_version}/syntax/clush.vim
 /usr/share/vim/vim%{vim_version}/ftdetect/clush.vim
-%doc LICENSE README
+%doc LICENSE README ChangeLog
 %doc %{_mandir}/man1/clush.1.gz
 %doc %{_mandir}/man1/nodeset.1.gz
 %doc %{_mandir}/man5/clush.conf.5.gz
