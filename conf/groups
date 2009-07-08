@@ -1,0 +1,5 @@
+oss: example4 example5
+mds: example6
+io: example[4-6]
+compute: example[32-159]
+gpu: example[156-159]

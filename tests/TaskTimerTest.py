@@ -282,15 +282,16 @@ class TaskTimerTest(unittest.TestCase):
         # init worker
         worker = task.shell("/bin/uname -r", handler=test_eh)
         self.assert_(worker != None)
-        worker = task.shell("/bin/sleep 4", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 5", nodes='localhost', handler=test_eh)
         self.assert_(worker != None)
         # init timer
-        timer = task.timer(3.0, interval=0.5, handler=test_eh)
+        timer = task.timer(4.0, interval=0.5, handler=test_eh)
         self.assert_(timer != None)
         test_eh.timer = timer
         # run task
         task.resume()
         # test timer didn't fire, invalidated in a worker's event handler
+        self.assert_(test_eh.flags & EV_READ)
         self.assert_(not test_eh.flags & EV_TIMER)
 
     class TEventHandlerTimerOtherSetNextFire(EventHandler):

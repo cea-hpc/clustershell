@@ -1,0 +1,36 @@
+1.1 beta6 [Wed Jul 8 2009]
+	* clush.py: major improvements (added write support, better interactive
+	mode with readline, launch task in separate thread to let the main thread
+	blocking tty input, added Enter key press support during run, added node
+	groups support (-a and -g) using external commands defined in clush.conf,
+	added --copy toggle to clush to copy files to the cluster nodes, added -q
+	option, added progress indicator when clush is called with gather option
+	-b)
+	* doc: added man pages for clush and nodeset commands
+	* clush.vim: added vim syntax files for clush.conf
+	* Engine.py: minor write support fix
+
+1.1 beta5 - LUG'09 live update
+	* update last_node so that user can call worker.last_node() in an ev_timeout handler callback
+	* update clush.py script with new 1.1 changes (thanks to Aurelien)
+
+1.1 beta4
+	* bug fix in timers when invalidated two times
+
+1.1 beta3
+	* bugs fix in timers
+	* added EngineTimer.is_valid() method to check if a timer is still valid
+	* added optional `match_keys' parameter in Task and Worker iter_buffers() and iter_retcodes() methods
+
+1.1 beta2
+	* added Worker.did_timeout() method to check if a worker has timed out (useful for Popen2 workers, other use DistantWorker.num_timeout()).
+
+1.1 beta1
+	* added NodeSet.clear() and RangeSet.clear() methods
+	* added workaround to allow NodeSet to be propertly pickled (+inf floating number pickle bug with python 2.4)
+	* bug fix : don't keep a reference on internel RangeSet when creating a NodeSet from another one
+
+1.1 beta0
+	* new Ssh-based engine's worker, with fanout support, thus removing ClusterShell mandatory pdsh dependency
+	* timer/repeater support
+	* some internal design changes
