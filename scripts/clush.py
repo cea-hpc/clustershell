@@ -415,38 +415,44 @@ def clush_main(args):
                       help="run command on all nodes")
     optgrp.add_option("-g", "--group", action="store", dest="group",
                       help="run command on a group of nodes")
-
     parser.add_option_group(optgrp)
 
-    parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
+    # Output behaviour
+    optgrp = optparse.OptionGroup(parser, "Output behaviour")
+    optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
                       help="be quiet, print essential output only")
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+    optgrp.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="be verbose, print informative messages")
-    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+    optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
 
-    parser.add_option("-N", action="store_false", dest="label", default=True,
+    optgrp.add_option("-N", action="store_false", dest="label", default=True,
                       help="disable labeling of command line")
-    parser.add_option("-l", "--user", action="store", dest="user",
-                      help="execute remote command as user")
-    parser.add_option("-S", action="store_true", dest="maxrc",
+    optgrp.add_option("-S", action="store_true", dest="maxrc",
                       help="return the largest of command return codes")
-    parser.add_option("-b", "--dshbak", action="store_true", dest="gather",
+    optgrp.add_option("-b", "--dshbak", action="store_true", dest="gather",
                       help="display results in a dshbak-like way")
+    parser.add_option_group(optgrp)
+
     # Copy
-    parser.add_option("-c", "--copy", action="store", dest="source_path",
+    optgrp = optparse.OptionGroup(parser, "File copying")
+    optgrp.add_option("-c", "--copy", action="store", dest="source_path",
                       help="copy local file or directory to the nodes")
-    parser.add_option("--dest", action="store", dest="dest_path",
+    optgrp.add_option("--dest", action="store", dest="dest_path",
                       help="destination file or directory on the nodes")
+    parser.add_option_group(optgrp)
 
-    parser.add_option("-f", "--fanout", action="store", dest="fanout", 
+    # Ssh options
+    optgrp = optparse.OptionGroup(parser, "Ssh options")
+    optgrp.add_option("-l", "--user", action="store", dest="user",
+                      help="execute remote command as user")
+    optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
                       help="use a specified fanout", type="int")
-
-    # Timeouts
-    parser.add_option("-t", "--connect_timeout", action="store", dest="connect_timeout", 
+    optgrp.add_option("-t", "--connect_timeout", action="store", dest="connect_timeout", 
                       help="limit time to connect to a node" ,type="int")
-    parser.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
+    optgrp.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
                       help="limit time for command to run on the node", type="int")
+    parser.add_option_group(optgrp)
 
     (options, args) = parser.parse_args()
 
@@ -575,7 +581,7 @@ def clush_main(args):
                 config.get_verbosity())
     elif task.info("USER_interactive"):
         print >>sys.stderr, "ERROR: interactive mode requires a tty"
-        os_.exit(1)
+        os._exit(1)
 
     # return the command retcode
     if options.maxrc:
