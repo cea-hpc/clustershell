@@ -635,6 +635,26 @@ class NodeSetTest(unittest.TestCase):
         for node in nodeset:
             self.assert_(node in nodeset)
 
+    def testContainsUsingPadding(self):
+        """test NodeSet contains() when using padding"""
+        nodeset = NodeSet("white[001,030]")
+        nodeset.add("white113")
+        self.assert_(NodeSet("white30") not in nodeset)
+        self.assert_(NodeSet("white030") in nodeset)
+        # case: nodeset without padding info is compared to a
+        # padding-initialized range
+        self.assert_(NodeSet("white113") in nodeset)
+        self.assert_(NodeSet("white[001,113]") in nodeset)
+        self.assert_(NodeSet("gene0113") not in NodeSet("gene[001,030,113]"))
+        self.assert_(NodeSet("gene0113") in NodeSet("gene[0001,0030,0113]"))
+        self.assert_(NodeSet("gene0113") not in NodeSet("gene[098-113]"))
+        self.assert_(NodeSet("gene0113") in NodeSet("gene[0098-0113]"))
+        # case: len(str(ielem)) >= rgpad
+        nodeset = NodeSet("white[01,099]")
+        nodeset.add("white100")
+        nodeset.add("white1000")
+        self.assert_(NodeSet("white1000") in nodeset)
+
     def testIsSuperSet(self):
         """test NodeSet issuperset()"""
         nodeset = NodeSet("tronic[0036-1630]")

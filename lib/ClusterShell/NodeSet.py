@@ -270,8 +270,11 @@ class RangeSet:
         Contains subroutine that takes an integer and a padding value.
         """
         for rgstart, rgstop, rgstep, rgpad in self._ranges:
+            # for each ranges, check for inclusion + padding matching
+            # + step matching
             if ielem >= rgstart and ielem <= rgstop and \
-                    pad == rgpad and (ielem - rgstart) % rgstep == 0:
+                    (pad == rgpad or (pad == 0 and len(str(ielem)) >= rgpad)) and \
+                    (ielem - rgstart) % rgstep == 0:
                         return True
         return False
 
