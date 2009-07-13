@@ -59,7 +59,6 @@ from Engine.Engine import EngineTimeoutException
 from Engine.Engine import EngineAlreadyRunningError
 from Engine.Engine import EngineTimer
 from Engine.Poll import EnginePoll
-from Worker.File import WorkerFile
 from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
 from Worker.Popen2 import WorkerPopen2
