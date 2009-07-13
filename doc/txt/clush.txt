@@ -84,6 +84,8 @@ Interactive session
       remove nodes from current nodeset
     clush> !COMMAND
       execute COMMAND on the local system
+    clush> =
+      toggle the ouput format (gathered or standard mode)
 
   To leave an interactive session, type ``quit`` or Control-D.
 

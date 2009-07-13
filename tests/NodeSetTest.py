@@ -650,7 +650,7 @@ class NodeSetTest(unittest.TestCase):
         self.assert_(NodeSet("gene0113") not in NodeSet("gene[098-113]"))
         self.assert_(NodeSet("gene0113") in NodeSet("gene[0098-0113]"))
         # case: len(str(ielem)) >= rgpad
-        nodeset = NodeSet("white[01,099]")
+        nodeset = NodeSet("white[001,099]")
         nodeset.add("white100")
         nodeset.add("white1000")
         self.assert_(NodeSet("white1000") in nodeset)

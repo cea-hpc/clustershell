@@ -338,6 +338,15 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                     ns.difference_update(cmdl[1:])
                 elif cmdl.startswith('@'):
                     ns = NodeSet(cmdl[1:])
+                elif cmdl == '=':
+                    gather = not gather
+                    if verbosity >= VERB_STD:
+                        if gather:
+                            print "Switching to gathered output format"
+                        else:
+                            print "Switching to standard output format"
+                    ns_info = False
+                    continue
                 elif not cmdl.startswith('?'): # if ?, just print ns_info
                     ns_info = False
             except NodeSetParseError:

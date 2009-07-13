@@ -64,7 +64,6 @@ class EngineClient(EngineBaseTimer):
                                             # events (read, write) for client
         self._new_events = 0                # new set of interesting events
         self._processing = False            # engine is working on us
-        self._weof = False                  # write-ends notification
 
         # read-only public
         self.registered = False             # registered on engine or not
@@ -74,6 +73,7 @@ class EngineClient(EngineBaseTimer):
         # initialize read and write buffers
         self._rbuf = ""
         self._wbuf = ""
+        self._weof = False                  # write-ends notification
 
     def _fire(self):
         """
@@ -147,7 +147,7 @@ class EngineClient(EngineBaseTimer):
             # dequeue written buffer
             self._wbuf = self._wbuf[c:]
             # check for possible ending
-            if self._weof:
+            if self._weof and not self._wbuf:
                 self._close_writer()
             else:
                 self._set_writing()

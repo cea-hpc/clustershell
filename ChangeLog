@@ -1,3 +1,15 @@
+1.1 rc1
+	* clush.py: added '=' special command in interactive mode to toggle
+	output format
+	* Engine/Engine.h: register writer fd even if set_writer_eof() has
+	been called.
+	* Worker/EngineClient.h: don't close writer when woef is True when
+	some data remains in write buf.
+	* NodeSet.py: fixed a NodeSet.__contains__() issue, sometimes it did
+	not match (only when padding was used), eg. "node113" in
+	"node[030,113]" didn't work.
+	* clush.py: added workaround to replace raw_input() which is not
+	interruptible in Python 2.3
 1.1 beta6 [Wed Jul 8 2009]
 	* clush.py: major improvements (added write support, better interactive
 	mode with readline, launch task in separate thread to let the main thread
@@ -8,7 +20,8 @@
 	-b)
 	* doc: added man pages for clush and nodeset commands
 	* clush.vim: added vim syntax files for clush.conf
-	* Engine.py: minor write support fix
+	* Engine.py: added write support to workers
+	* Worker: created a base class WorkerSimple()
 
 1.1 beta5 - LUG'09 live update
 	* update last_node so that user can call worker.last_node() in an ev_timeout handler callback

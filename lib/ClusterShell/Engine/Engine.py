@@ -433,7 +433,7 @@ class Engine:
             client._events |= Engine.E_READABLE
             self.evlooprefcnt += refcnt_inc
             self._modify_specific(rfd, Engine.E_READABLE, 1)
-        if wfd != None and not client._weof:
+        if wfd != None:
             self.reg_clients[wfd] = client
             self.reg_clients_changed = True
             client._events |= Engine.E_WRITABLE
