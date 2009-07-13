@@ -37,7 +37,7 @@ mkdir -vp "$TMPDIR"/doc/man/{man1,man5}
 mkdir -vp "$TMPDIR"/doc/extras/vim/{ftdetect,syntax}
 
 cp -v clustershell.spec setup.cfg setup.py "$TMPDIR/"
-cp -v LICENSE README ChangeLog "$TMPDIR/"
+cp -v README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt "$TMPDIR/"
 cp -v lib/ClusterShell/*.py "$TMPDIR/lib/ClusterShell"
 cp -v lib/ClusterShell/Engine/*.py "$TMPDIR/lib/ClusterShell/Engine/"
 cp -v lib/ClusterShell/Worker/*.py "$TMPDIR/lib/ClusterShell/Worker/"

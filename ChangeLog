@@ -2,6 +2,8 @@
 
 	* Version 1.1 RC 1 released.
 
+	* Changed license to CeCILL-C (http://www.cecill.info).
+
 	* clush.py (ttyloop): (feature) added '=' special command in
 	interactive mode to toggle output format mode (standard/gathered).
 
