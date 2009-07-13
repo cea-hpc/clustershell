@@ -1,6 +1,6 @@
- ------------------------------------
- ClusterShell 1.1-BETA Python Library
- -------------------------=====------
+ ----------------------------------
+ ClusterShell 1.1-RC Python Library
+ ----------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
 distant cluster nodes in parallel depending on the selected engine and worker
