@@ -498,13 +498,13 @@ def clush_main(args):
     if options.debug:
         config.set_main("verbosity", VERB_DEBUG)
     if options.fanout:
-        config.set_main("fanout", overrides.fanout)
+        config.set_main("fanout", options.fanout)
     if options.user:
-        self.set_main("ssh_user", overrides.user)
+        self.set_main("ssh_user", options.user)
     if options.connect_timeout:
-        self.set_main("connect_timeout", overrides.connect_timeout)
+        self.set_main("connect_timeout", options.connect_timeout)
     if options.command_timeout:
-        self.set_main("command_timeout", overrides.command_timeout)
+        self.set_main("command_timeout", options.command_timeout)
 
     #
     # Compute the nodeset
