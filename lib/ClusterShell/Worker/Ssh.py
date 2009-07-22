@@ -92,14 +92,12 @@ class Ssh(EngineClient):
             cmd_l.append(ssh_options)
 
         cmd_l.append("%s" % self.key)
-        cmd_l.append("'%s'" % self.command)
-
-        cmd = ' '.join(cmd_l)
+        cmd_l.append("%s" % self.command)
 
         if task.info("debug", False):
-            task.info("print_debug")(task, "SSH: %s" % cmd)
+            task.info("print_debug")(task, "SSH: %s" % ' '.join(cmd_l))
 
-        self.fid = self._exec_nonblock(cmd)
+        self.fid = self._exec_nonblock(cmd_l)
         self.file_reader = self.fid.fromchild
         self.file_writer = self.fid.tochild
 

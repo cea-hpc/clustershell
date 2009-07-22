@@ -315,7 +315,7 @@ class TaskLocalTest(unittest.TestCase):
         task.set_info("debug", True)
         task.shell("/bin/true")
         task.resume()
-        self.assertEqual(task.info("user_print_debug_last"), "POPEN2: /bin/true")
+        self.assertEqual(task.info("user_print_debug_last"), "POPEN2: [/bin/sh,-c,/bin/true]")
 
         # remove debug
         task.set_info("debug", False)
@@ -407,6 +407,26 @@ class TaskLocalTest(unittest.TestCase):
 
         # read result
         self.assertEqual(worker.read(), "4")
+
+    def testEscape(self):
+        """test local worker (ssh) cmd with escaped variable"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'")
+        # execute
+        task.resume()
+        # read result
+        self.assertEqual(worker.read(), "$CSTEST")
+
+    def testEscape2(self):
+        """test local worker (ssh) cmd with non-escaped variable"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'")
+        # execute
+        task.resume()
+        # read result
+        self.assertEqual(worker.read(), "foobar")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)

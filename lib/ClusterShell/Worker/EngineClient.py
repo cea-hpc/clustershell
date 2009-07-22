@@ -165,13 +165,13 @@ class EngineClient(EngineBaseTimer):
             else:
                 self._set_writing()
     
-    def _exec_nonblock(self, command):
+    def _exec_nonblock(self, commandlist):
         """
         Utility method to launch a command with stdin/stdout file
         descriptors configured in non-blocking mode.
         """
         # Launch process in non-blocking mode
-        fid = popen2.Popen4(command)
+        fid = popen2.Popen4(commandlist)
         fl = fcntl.fcntl(fid.fromchild, fcntl.F_GETFL)
         fcntl.fcntl(fid.fromchild, fcntl.F_SETFL, os.O_NDELAY)
         fl = fcntl.fcntl(fid.tochild, fcntl.F_GETFL)

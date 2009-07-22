@@ -72,13 +72,13 @@ class WorkerPopen2(WorkerSimple):
         """
         assert self.fid is None
 
-        self.fid = self._exec_nonblock(self.command)
+        cmdlist = ['/bin/sh', '-c', self.command]
+        self.fid = self._exec_nonblock(cmdlist)
         self.file_reader = self.fid.fromchild
         self.file_writer = self.fid.tochild
 
         if self.task.info("debug", False):
-            self.task.info("print_debug")(self.task,
-                    "POPEN2: %s" % self.command)
+            self.task.info("print_debug")(self.task, "POPEN2: [%s]" % ','.join(cmdlist))
 
         self._invoke("ev_start")
 
