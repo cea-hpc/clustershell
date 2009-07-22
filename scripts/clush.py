@@ -473,14 +473,16 @@ def clush_main(args):
 
     # Ssh options
     optgrp = optparse.OptionGroup(parser, "Ssh options")
-    optgrp.add_option("-l", "--user", action="store", dest="user",
-                      help="execute remote command as user")
     optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
                       help="use a specified fanout", type="int")
+    optgrp.add_option("-l", "--user", action="store", dest="user",
+                      help="execute remote command as user")
+    optgrp.add_option("-o", "--options", action="store", dest="options",
+                      help="can be used to give ssh options")
     optgrp.add_option("-t", "--connect_timeout", action="store", dest="connect_timeout", 
-                      help="limit time to connect to a node" ,type="int")
+                      help="limit time to connect to a node" ,type="float")
     optgrp.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
-                      help="limit time for command to run on the node", type="int")
+                      help="limit time for command to run on the node", type="float")
     parser.add_option_group(optgrp)
 
     (options, args) = parser.parse_args()
@@ -500,11 +502,13 @@ def clush_main(args):
     if options.fanout:
         config.set_main("fanout", options.fanout)
     if options.user:
-        self.set_main("ssh_user", options.user)
+        config.set_main("ssh_user", options.user)
+    if options.options:
+        config.set_main("ssh_options", options.options)
     if options.connect_timeout:
-        self.set_main("connect_timeout", options.connect_timeout)
+        config.set_main("connect_timeout", options.connect_timeout)
     if options.command_timeout:
-        self.set_main("command_timeout", options.command_timeout)
+        config.set_main("command_timeout", options.command_timeout)
 
     #
     # Compute the nodeset
@@ -553,7 +557,6 @@ def clush_main(args):
         # Perform everything in main thread.
         task.set_info("USER_handle_SIGHUP", False)
 
-    timeout = 0
     task.set_info("debug", config.get_verbosity() >= VERB_DEBUG)
     task.set_info("fanout", config.get_fanout() * 2)
 
@@ -569,13 +572,11 @@ def clush_main(args):
 
     connect_timeout = config.get_connect_timeout()
     task.set_info("connect_timeout", connect_timeout)
-    timeout += connect_timeout
+    timeout = connect_timeout
     command_timeout = config.get_command_timeout()
     task.set_info("command_timeout", command_timeout)
-    if connect_timeout < 1e-3 or command_timeout < 1e-3:
-        timeout = 0
-    else:
-        timeout += command_timeout
+    if command_timeout > 1e-3:
+        timeout = command_timeout
 
     # Configure custom task related status
     task.set_info("USER_interactive", len(args) == 0 and not options.source_path)
@@ -591,8 +592,8 @@ def clush_main(args):
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
-    config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout conn=%d " \
-            "cmd=%d] %s" %  (nodeset_base, task.info("fanout")/2,
+    config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout conn=%.1f " \
+            "cmd=%.1f] %s" %  (nodeset_base, task.info("fanout")/2,
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 

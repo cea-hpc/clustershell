@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2009-07-08
+:Date:   2009-07-22
 :Copyright: CeCILL-C V1
 :Version: 1.1
 :Manual section: 1
@@ -119,16 +119,21 @@ File copying:
   -c SOURCE_PATH, --copy=SOURCE_PATH
                       copy local file or directory to the nodes
   --dest=DEST_PATH    destination file or directory on the nodes
+                      (optional -- the same path as source path
+                      when not specified)
 
 Ssh options:
-  -l USER, --user=USER
-                      execute remote command as user
   -f FANOUT, --fanout=FANOUT
                       use a specified fanout
+  -l USER, --user=USER
+                      execute remote command as user
+  -o OPTIONS, --options=OPTIONS
+                      can be used to give ssh options
   -t CONNECT_TIMEOUT, --connect_timeout=CONNECT_TIMEOUT
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
+
 
 For a short explanation of these options, see ``-h, --help``.
 

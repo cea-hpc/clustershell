@@ -1,3 +1,16 @@
+2009-07-22 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.1 RC 2 released.
+
+	* clush.py: change -u timeout behavior, if set it's now the timeout value
+	passed to task.shell() (and not connect_timeout + command_timeout).
+
+	* clush.py: add -o options to pass custom ssh options (#24).
+
+	* Worker/Ssh.py: simple quote escape fix (trac ticket #25)
+
+	* clush.py: fix options issue when using -f, -u or -t.
+
 2009-07-13 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.1 RC 1 released.
