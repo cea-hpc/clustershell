@@ -1,25 +1,37 @@
 #!/usr/bin/env python
-# Copyright (C) 2008, 2009 CEA
-# Written by S. Thiell
 #
-# This file is part of ClusterShell
+# Copyright CEA/DAM/DIF (2008, 2009)
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of the ClusterShell library.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This software is governed by the CeCILL-C license under French law and
+# abiding by the rules of distribution of free software.  You can  use,
+# modify and/ or redistribute the software under the terms of the CeCILL-C
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info".
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+#
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or
+# data to be ensured and,  more generally, to use and operate it in the
+# same conditions as regards security.
+#
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL-C license and that you accept its terms.
 #
 # $Id$
-
 
 """
 Usage: nodeset [options] [command]
@@ -50,22 +62,27 @@ Options:
         Calculate symmetric difference (XOR) between two nodesets before
         processing command. This means that nodes present in only one of
         the nodesets are used.
+    --rangeset, -R
+        Switch to RangeSet instead of NodeSet. Useful when working on
+        numerical cluster ranges, eg. 1,5,18-31.
     --quiet, -q
         Quiet mode, hide any parse error messages (on stderr).
     --version, -v
-        Show version and exit.
+        Show ClusterShell version and exit.
 """
 
 import getopt
+import signal
 import sys
 
-sys.path.append('../lib')
+sys.path.insert(0, '../lib')
 
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
+from ClusterShell.NodeSet import RangeSet, RangeSetParseError
 from ClusterShell import version
 
 
-def runNodeSetCommand(args):
+def run_nodeset(args):
     """
     Main script function.
     """
@@ -73,17 +90,27 @@ def runNodeSetCommand(args):
     command = None
     preprocess = None
     quiet = False
-    excludes = NodeSet()
+    class_set = NodeSet
 
+    # Parse command options using getopt
     try:
-        opts, args = getopt.getopt(args[1:], "a:cefhiqvx:X", ["autostep=",
+        opts, args = getopt.getopt(args[1:], "a:cefhiqvx:RX", ["autostep=",
             "count", "expand", "fold", "help", "intersection", "quiet",
-            "version", "exclude=", "xor"])
+            "rangeset", "version", "exclude=", "xor"])
     except getopt.error, msg:
         print >>sys.stderr, msg
         print >>sys.stderr, "Try `%s -h' for more information." % args[0]
         sys.exit(2)
 
+    # Search for RangeSet switch in options
+    for opt in [ "-R", "--rangeset" ]:
+        if opt in [k for k, v in opts]:
+            class_set = RangeSet
+
+    # Initialize excludes set
+    excludes = class_set()
+
+    # Parse other options
     for k, v in opts:
         if k in ("-a", "--autostep"):
             try:
@@ -100,48 +127,83 @@ def runNodeSetCommand(args):
             print __doc__
             sys.exit(0)
         elif k in ("-i", "--intersection"):
-            if preprocess and preprocess != NodeSet.intersection_update:
+            if preprocess and preprocess != class_set.intersection_update:
                 print >>sys.stderr, "ERROR: Conflicting options."
                 sys.exit(2)
-            preprocess = NodeSet.intersection_update
+            preprocess = class_set.intersection_update
         elif k in ("-q", "--quiet"):
             quiet = True
         elif k in ("-v", "--version"):
             print version
             sys.exit(0)
         elif k in ("-x", "--exclude"):
-            excludes.update(v)
+            excludes.update(class_set(v))
         elif k in ("-X", "--xor"):
-            if preprocess and preprocess != NodeSet.symmetric_difference_update:
+            if preprocess and preprocess != class_set.symmetric_difference_update:
                 print >>sys.stderr, "ERROR: Conflicting options."
                 sys.exit(2)
-            preprocess = NodeSet.symmetric_difference_update
+            preprocess = class_set.symmetric_difference_update
 
-    if command is None or len(args) < 1:
+    # Check for command presence
+    if not command:
+        print >>sys.stderr, "ERROR: no command specified."
         print __doc__
         sys.exit(1)
 
     try:
-        if preprocess:
-            ns = NodeSet(args[0], autostep)
-            for arg in args[1:]:
-                preprocess(ns, arg)
-        else:
-            ns = NodeSet.fromlist(args, autostep)
-    except NodeSetParseError, e:
-        if not quiet:
-            print >>sys.stderr, "NodeSet parse error:", e
-        sys.exit(1)
-    else:
-        ns.difference_update(excludes)
+        # Check for nodeset argument(s)
+        read_stdin = len(args) < 1
+        ns = class_set(autostep=autostep)
+
+        if len(args):
+            if '-' in args:
+                # Special argument '-' means read from stdin
+                read_stdin = True
+                args.remove('-')
+        if len(args):
+            # Parse arguments
+            if not preprocess:
+                preprocess = class_set.update
+                for arg in args:
+                    preprocess(ns, class_set(arg, autostep=autostep))
+
+        if read_stdin:
+            # Read standard input when argument is missing or when
+            # the special argument '-' is specified.
+            if not preprocess:
+                preprocess = class_set.update
+            # Support multi-lines and multi-nodesets per line
+            for line in sys.stdin.readlines():
+                line = line[0:line.find('#')].strip()
+                for node in line.split():
+                    preprocess(ns, class_set(node, autostep=autostep))
+
+        # Finally, remove excluding nodes
+        if excludes:
+            ns.difference_update(excludes)
+        # Display result according to command choice
         if command == "expand":
             print " ".join(ns)
         elif command == "fold":
             print ns
         else:
             print len(ns)
-
-    sys.exit(0)
+    except (NodeSetParseError, RangeSetParseError), e:
+        if not quiet:
+            print >>sys.stderr, "%s parse error:" % class_set.__name__, e
+            # In some case, NodeSet might report the part of the string
+            # that causes problem.  For RangeSet it is always included
+            # in the error message.
+            if hasattr(e, 'part') and e.part:
+                print >>sys.stderr, ">>", e.part
+        sys.exit(1)
 
 if __name__ == '__main__':
-    runNodeSetCommand(sys.argv)
+    try:
+        run_nodeset(sys.argv)
+    except AssertionError, e:
+        print >>sys.stderr, "ERROR:", e
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.exit(128 + signal.SIGINT)
+    sys.exit(0)

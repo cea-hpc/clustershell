@@ -22,6 +22,10 @@ import socket
 import thread
 
 
+def _test_print_debug(task, s):
+    # Use custom task info (prefix 'user_' is recommended)
+    task.set_info("user_print_debug_last", s)
+
 class TaskLocalTest(unittest.TestCase):
 
     def testSimpleCommand(self):
@@ -91,7 +95,7 @@ class TaskLocalTest(unittest.TestCase):
         # run task
         task.resume()
         self.assertEqual(worker.retcode(), 0)
-        self.assertEqual(len(worker.read()), 700000)
+        self.assertEqual(len(worker.read()), 699999)
 
     # task configuration
     def testTaskInfo(self):
@@ -198,20 +202,19 @@ class TaskLocalTest(unittest.TestCase):
 
         task.resume()
 
-        self.assert_(task.key_buffer("foobar") == "foobar\n")
+        self.assert_(task.key_buffer("foobar") == "foobar")
 
         cnt = 3
         for buf, keys in task.iter_buffers():
             cnt -= 1
             if buf == "foo":
                 self.assertEqual(len(keys), 1)
-                self.assert_(keys[0] == "foo")
+                self.assertEqual(keys[0], "foo")
             elif buf == "bar":
                 self.assertEqual(len(keys), 2)
-                self.assert_(keys[0] == "bar")
+                self.assert_(keys[0] == "bar" or keys[1] == "bar")
             elif buf == "foobar":
                 self.assertEqual(len(keys), 3)
-                self.assert_(keys[0] == "foobar")
 
         self.assertEqual(cnt, 0)
 
@@ -268,7 +271,7 @@ class TaskLocalTest(unittest.TestCase):
 
         task.resume()
 
-        self.assert_(task.key_retcode("worker4") == 4)
+        self.assertEqual(task.key_retcode("worker4"), 4)
 
         cnt = 6
         for rc, keys in task.iter_retcodes():
@@ -297,7 +300,133 @@ class TaskLocalTest(unittest.TestCase):
         # test max retcode API
         self.assertEqual(task.max_retcode(), 5)
 
+    def testCustomPrintDebug(self):
+        """test task with custom print debug callback"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # first test that simply changing print_debug doesn't enable debug
+        task.set_info("print_debug", _test_print_debug)
+        task.shell("/bin/true")
+        task.resume()
+        self.assertEqual(task.info("user_print_debug_last"), None)
+
+        # with debug enabled, it should work
+        task.set_info("debug", True)
+        task.shell("/bin/true")
+        task.resume()
+        self.assertEqual(task.info("user_print_debug_last"), "POPEN2: [/bin/sh,-c,/bin/true]")
+
+        # remove debug
+        task.set_info("debug", False)
+
+    def testLocalRCBufferGathering(self):
+        """test task local rc+buffers gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar5")
+        task.shell("/usr/bin/printf 'foo\nbur\n' && exit 1", key="foobar2")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar3")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 5", key="foofuu")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 4", key="faaber")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 1", key="foofuu2")
+
+        task.resume()
+
+        cnt = 5
+        for rc, keys in task.iter_retcodes():
+            for buf, keys in task.iter_buffers(keys):
+                cnt -= 1
+                if buf == "foo\nbar\n":
+                    self.assert_(rc == 1 and rc == 4)
+                elif buf == "foo\nbur\n":
+                    self.assertEqual(rc, 1)
+                elif buf == "foo\nbuu\n":
+                    self.assertEqual(rc, 5)
+
+        self.assertEqual(cnt, 0)
     
+    def testLocalBufferRCGathering(self):
+        """test task local buffers+rc gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar5")
+        task.shell("/usr/bin/printf 'foo\nbur\n' && exit 1", key="foobar2")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 1", key="foobar3")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 5", key="foofuu")
+        task.shell("/usr/bin/printf 'foo\nbar\n' && exit 4", key="faaber")
+        task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 1", key="foofuu2")
+
+        task.resume()
+
+        cnt = 9
+        for buf, keys in task.iter_buffers():
+            for rc, keys in task.iter_retcodes(keys):
+                # same checks as testLocalRCBufferGathering
+                cnt -= 1
+                if buf == "foo\nbar\n":
+                    self.assert_(rc == 1 and rc == 4)
+                elif buf == "foo\nbur\n":
+                    self.assertEqual(rc, 1)
+                elif buf == "foo\nbuu\n":
+                    self.assertEqual(rc, 5)
+
+        self.assertEqual(cnt, 0)
+    
+    def testLocalWorkerWrites(self):
+        """test worker writes (i)"""
+        # Simple test: we write to a cat process and see if read matches.
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("cat")
+        # write first line
+        worker.write("foobar\n")
+        # write second line
+        worker.write("deadbeaf\n")
+        worker.set_write_eof()
+        task.resume()
+
+        self.assertEqual(worker.read(), "foobar\ndeadbeaf")
+
+    def testLocalWorkerWritesBcExample(self):
+        """test worker writes (ii)"""
+        # Other test: write a math statement to a bc process and check
+        # for the result.
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("bc -q")
+
+        # write statement
+        worker.write("2+2\n")
+        worker.set_write_eof()
+
+        # execute
+        task.resume()
+
+        # read result
+        self.assertEqual(worker.read(), "4")
+
+    def testEscape(self):
+        """test local worker (ssh) cmd with escaped variable"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'")
+        # execute
+        task.resume()
+        # read result
+        self.assertEqual(worker.read(), "$CSTEST")
+
+    def testEscape2(self):
+        """test local worker (ssh) cmd with non-escaped variable"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'")
+        # execute
+        task.resume()
+        # read result
+        self.assertEqual(worker.read(), "foobar")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)

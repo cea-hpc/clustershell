@@ -1,26 +1,42 @@
-# Engine.py -- Base class for ClusterShell engine
-# Copyright (C) 2007, 2008, 2009 CEA
 #
-# This file is part of ClusterShell
+# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of the ClusterShell library.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This software is governed by the CeCILL-C license under French law and
+# abiding by the rules of distribution of free software.  You can  use,
+# modify and/ or redistribute the software under the terms of the CeCILL-C
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info".
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+#
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or
+# data to be ensured and,  more generally, to use and operate it in the
+# same conditions as regards security.
+#
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL-C license and that you accept its terms.
 #
 # $Id$
 
 """
-Interface of underlying Task's engine.
+Interface of underlying Task's Engine.
+
+An Engine implements a loop your thread enters and uses to call event handlers
+in response to incoming events (from workers, timers, etc.).
 """
 
 from sets import Set
@@ -44,114 +60,126 @@ class EngineTimeoutException(EngineException):
     Raised when a timeout is encountered.
     """
 
-class EngineAlreadyRunningError(EngineException):
+class EngineIllegalOperationError(EngineException):
+    """
+    Error raised when an illegal operation has been performed.
+    """
+
+class EngineAlreadyRunningError(EngineIllegalOperationError):
     """
     Error raised when the engine is already running.
     """
 
 
-class _MsgTreeElem:
+class EngineBaseTimer:
     """
-    Helper class used to build a messages tree. Advantages are:
-    (1) low memory consumption especially on a cluster when all nodes
-    return similar messages,
-    (2) gathering of messages is done (almost) automatically.
+    Abstract class for ClusterShell's engine timer. Such a timer
+    requires a relative fire time (delay) in seconds (as float), and
+    supports an optional repeating interval in seconds (as float too).
+
+    See EngineTimer for more information about ClusterShell timers.
     """
-    def __init__(self, msg=None, parent=None):
-        """
-        Initialize message tree element.
-        """
-        # structure
-        self.parent = parent
-        self.children = {}
-        # content
-        self.msg = msg
-        self.sources = None
-   
-    def __iter__(self):
-        """
-        Iterate over tree key'd elements.
-        """
-        estack = [ self ]
 
-        while len(estack) > 0:
-            elem = estack.pop()
-            if len(elem.children) > 0:
-                estack += elem.children.values()
-            if elem.sources and len(elem.sources) > 0:
-                yield elem
-    
-    def _add_source(self, source):
+    def __init__(self, fire_delay, interval=-1.0, autoclose=False):
         """
-        Add source tuple (worker, key) to this element.
+        Create a base timer.
         """
-        if not self.sources:
-            self.sources = source.copy()
-        else:
-            self.sources.union_update(source)
-    
-    def _remove_source(self, source):
-        """
-        Remove a source tuple (worker, key) from this element.
-        It's used when moving it to a child.
-        """
-        if self.sources:
-            self.sources.difference_update(source)
-        
-    def add_msg(self, source, msg):
-        """
-        A new message line is coming, add it to the tree.
-        source is a tuple identifying the message source
-        """
-        if self.sources and len(self.sources) == 1:
-            # do it quick when only one source is attached
-            src = self.sources
-            self.sources = None
-        else:
-            # remove source from parent (self)
-            src = Set([ source ])
-            self._remove_source(src)
+        self.fire_delay = fire_delay
+        self.interval = interval
+        self.autoclose = autoclose
+        self._engine = None
+        self._timercase = None
 
-        # add msg elem to child
-        elem = self.children.setdefault(msg, _MsgTreeElem(msg, self))
-        # add source to elem
-        elem._add_source(src)
-        return elem
-
-    def message(self):
+    def _set_engine(self, engine):
         """
-        Get the whole message buffer from this tree element.
+        Bind to engine, called by Engine.
         """
-        msg = ""
+        if self._engine:
+            # A timer can be registered to only one engine at a time.
+            raise EngineIllegalOperationError("Already bound to engine.")
 
-        # no msg in root element
-        if not self.msg:
-            return msg
-        
-        # build list of msg (reversed by design)
-        rmsgs = [self.msg]
-        parent = self.parent
-        while parent and parent.msg:
-            rmsgs.append(parent.msg)
-            parent = parent.parent
+        self._engine = engine
 
-        # reverse the list
-        rmsgs.reverse()
+    def invalidate(self):
+        """
+        Invalidates a timer object, stopping it from ever firing again.
+        """
+        if self._engine:
+            self._engine.timerq.invalidate(self)
+            self._engine = None
 
-        # concat buffers
-        return ''.join(rmsgs)
+    def is_valid(self):
+        """
+        Returns a boolean value that indicates whether an EngineTimer
+        object is valid and able to fire.
+        """
+        return self._engine != None
+
+    def set_nextfire(self, fire_delay, interval=-1):
+        """
+        Set the next firing delay in seconds for an EngineTimer object.
+
+        The optional paramater `interval' sets the firing interval
+        of the timer. If not specified, the timer fires once and then
+        is automatically invalidated.
+
+        Time values are expressed in second using floating point
+        values. Precision is implementation (and system) dependent.
+
+        It is safe to call this method from the task owning this
+        timer object, in any event handlers, anywhere.
+
+        However, resetting a timer's next firing time may be a
+        relatively expensive operation. It is more efficient to let
+        timers autorepeat or to use this method from the timer's own
+        event handler callback (ie. from its ev_timer).
+        """
+        if not self.is_valid():
+            raise EngineIllegalOperationError("Operation on invalid timer.")
+
+        self.fire_delay = fire_delay
+        self.interval = interval
+        self._engine.timerq.reschedule(self)
+
+    def _fire(self):
+        raise NotImplementedError("Derived classes must implement.")
 
 
-class _WorkerTimerQ:
+class EngineTimer(EngineBaseTimer):
+    """
+    Concrete class EngineTimer
 
-    class _WorkerTimer:
+    An EngineTimer object represents a timer bound to an engine that
+    fires at a preset time in the future. Timers can fire either only
+    once or repeatedly at fixed time intervals. Repeating timers can
+    also have their next firing time manually adjusted.
+
+    A timer is not a real-time mechanism; it fires when the task's
+    underlying engine to which the timer has been added is running and
+    able to check if the timer's firing time has passed.
+    """
+
+    def __init__(self, fire_delay, interval, autoclose, handler):
+        EngineBaseTimer.__init__(self, fire_delay, interval, autoclose)
+        self.eh = handler
+        assert self.eh != None, "An event handler is needed for timer."
+
+    def _fire(self):
+        self.eh._invoke("ev_timer", self)
+
+class _EngineTimerQ:
+
+    class _EngineTimerCase:
         """
-        Helper class to represent a fire time. Allow to be used in an
-        heapq.
+        Helper class that allows comparisons of fire times, to be easily used
+        in an heapq.
         """
-        def __init__(self, worker):
-            self.worker = worker
-            self.fire_date = float(worker.timeout) + time.time()
+        def __init__(self, client):
+            self.client = client
+            self.client._timercase = self
+            # arm timer (first time)
+            assert self.client.fire_delay > 0
+            self.fire_date = self.client.fire_delay + time.time()
 
         def __cmp__(self, other):
             if self.fire_date < other.fire_date:
@@ -161,37 +189,120 @@ class _WorkerTimerQ:
             else:
                 return 0
 
-    def __init__(self):
+        def arm(self, client):
+            assert client != None
+            self.client = client
+            self.client._timercase = self
+            # setup next firing date
+            time_current = time.time()
+            if self.client.fire_delay > 0:
+                self.fire_date = self.client.fire_delay + time_current
+            else:
+                interval = float(self.client.interval)
+                assert interval > 0
+                self.fire_date += interval
+                # If the firing time is delayed so far that it passes one
+                # or more of the scheduled firing times, reschedule the
+                # timer for the next scheduled firing time in the future.
+                while self.fire_date < time_current:
+                    self.fire_date += interval
+
+        def disarm(self):
+            client = self.client
+            client._timercase = None
+            self.client = None
+            return client
+
+        def armed(self):
+            return self.client != None
+            
+
+    def __init__(self, engine):
         """
         Initializer.
         """
+        self._engine = engine
         self.timers = []
+        self.armed_count = 0
 
     def __len__(self):
         """
         Return the number of active timers.
         """
-        return len(self.timers)
+        return self.armed_count
 
-    def push(self, worker):
+    def schedule(self, client):
         """
-        Add and arm a worker's timer.
+        Insert and arm a client's timer.
         """
-        # arm only if timeout is set
-        if worker.timeout > 0:
-            heapq.heappush(self.timers, _WorkerTimerQ._WorkerTimer(worker))
+        # arm only if fire is set
+        if client.fire_delay > 0:
+            heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
+            self.armed_count += 1
+            if not client.autoclose:
+                self._engine.evlooprefcnt += 1
 
-    def pop(self):
+    def reschedule(self, client):
         """
-        Remove one timer in the queue and return its associated worker.
+        Re-insert client's timer.
         """
-        return heapq.heappop(self.timers).worker
+        if client._timercase:
+            self.invalidate(client)
+            self._dequeue_disarmed()
+            self.schedule(client)
 
-    def expire_relative(self):
+    def invalidate(self, client):
+        """
+        Invalidate client's timer. Current implementation doesn't really remove
+        the timer, but simply flags it as disarmed.
+        """
+        if not client._timercase:
+            # if timer is being fire, invalidate its values
+            client.fire_delay = 0
+            client.interval = 0
+            return
+
+        if self.armed_count <= 0:
+            raise ValueError, "Engine client timer not found in timer queue"
+
+        client._timercase.disarm()
+        self.armed_count -= 1
+        if not client.autoclose:
+            self._engine.evlooprefcnt -= 1
+
+    def _dequeue_disarmed(self):
+        """
+        Dequeue disarmed timers (sort of garbage collection).
+        """
+        while len(self.timers) > 0 and not self.timers[0].armed():
+            heapq.heappop(self.timers)
+
+    def fire(self):
+        """
+        Remove the smallest timer from the queue and fire its associated client.
+        Raise IndexError if the queue is empty.
+        """
+        self._dequeue_disarmed()
+
+        timercase = heapq.heappop(self.timers)
+        client = timercase.disarm()
+        
+        client.fire_delay = 0
+        client._fire()
+
+        if client.fire_delay > 0 or client.interval > 0:
+            timercase.arm(client)
+            heapq.heappush(self.timers, timercase)
+        else:
+            self.armed_count -= 1
+            if not client.autoclose:
+                self._engine.evlooprefcnt -= 1
+
+    def nextfire_delay(self):
         """
         Return next timer fire delay (relative time).
         """
-
+        self._dequeue_disarmed()
         if len(self.timers) > 0:
             return max(0., self.timers[0].fire_date - time.time())
 
@@ -201,6 +312,7 @@ class _WorkerTimerQ:
         """
         Has a timer expired?
         """
+        self._dequeue_disarmed()
         return len(self.timers) > 0 and \
             (self.timers[0].fire_date - time.time()) <= 1e-2
 
@@ -208,14 +320,24 @@ class _WorkerTimerQ:
         """
         Stop and clear all timers.
         """
-        del self.timers
+        for timer in self.timers:
+            if timer.armed():
+                timer.client.invalidate()
+
         self.timers = []
+        self.armed_count = 0
+
 
 class Engine:
     """
-    Interface for ClusterShell engine. Subclass must implement a runloop
-    listening for workers events.
+    Interface for ClusterShell engine. Subclasses have to implement a runloop
+    listening for client events.
     """
+
+    # Engine client I/O event interest bits
+    E_READABLE = 0x1
+    E_WRITABLE = 0x2
+    E_ANY = 0x3
 
     def __init__(self, info):
         """
@@ -224,115 +346,267 @@ class Engine:
         # take a reference on info dict
         self.info = info
 
-        # keep track of all workers
-        self._workers = Set()
+        # keep track of all clients
+        self._clients = Set()
 
-        # keep track of registered workers in a dict where keys are fileno
-        self.reg_workers = {}
+        # keep track of registered clients in a dict where keys are fileno
+        # note: len(self.reg_clients) <= configured fanout
+        self.reg_clients = {}
 
-        # timer queue to handle workers timeout
-        self.timerq = _WorkerTimerQ()
+        # A boolean that indicates when reg_clients has changed, or when
+        # some client interest event mask has changed. It is set by the
+        # base class, and reset by each engine implementation.
+        # Engines often deal with I/O events in chunk, and some event
+        # may lead to change to some other "client interest event mask"
+        # or could even register or close other clients. When such
+        # changes are made, this boolean is set to True, allowing the
+        # engine implementation to reconsider their events got by chunk.
+        self.reg_clients_changed = False
 
-        # root of msg tree
-        self._msg_root = _MsgTreeElem()
+        # timer queue to handle both timers and clients timeout
+        self.timerq = _EngineTimerQ(self)
 
-        # dict of sources to msg tree elements
-        self._d_source_msg = {}
-
-        # dict of sources to return codes
-        self._d_source_rc = {}
-
-        # dict of return codes to sources
-        self._d_rc_sources = {}
-
-        # keep max rc
-        self._max_rc = 0
+        # reference count to the event loop (must include registered
+        # clients and timers configured WITHOUT autoclose)
+        self.evlooprefcnt = 0
 
         # thread stuffs
         self.run_lock = thread.allocate_lock()
         self.start_lock = thread.allocate_lock()
         self.start_lock.acquire()
 
-    def _reset(self):
+    def clients(self):
         """
-        Reset buffers and retcodes managment variables.
+        Get a copy of clients set.
         """
-        self._msg_root = _MsgTreeElem()
-        self._d_source_msg = {}
-        self._d_source_rc = {}
-        self._d_rc_sources = {}
-        self._max_rc = 0
- 
-    def workers(self):
-        """
-        Get a copy of workers set.
-        """
-        return self._workers.copy()
+        return self._clients.copy()
 
-    def add(self, worker):
+    def add(self, client):
         """
-        Add a worker to engine. Subclasses that override this method
+        Add a client to engine. Subclasses that override this method
         should call base class method.
         """
         # bind to engine
-        worker._set_engine(self)
+        client._set_engine(self)
 
-        # add to workers set
-        self._workers.add(worker)
+        # add to clients set
+        self._clients.add(client)
 
         if self.run_lock.locked():
             # in-fly add if running
-            self.register(worker._start())
+            self.register(client._start())
 
-    def remove(self, worker, did_timeout=False):
+    def remove(self, client, did_timeout=False):
         """
-        Remove a worker from engine. Subclasses that override this
+        Remove a client from engine. Subclasses that override this
         method should call base class method.
         """
-        self._workers.remove(worker)
-        if worker.registered:
-            self.unregister(worker)
-            worker._close(force=False, timeout=did_timeout)
+        self._debug("REMOVE %s" % client)
+        self._clients.remove(client)
+
+        if client.registered:
+            self.unregister(client)
+            client._close(force=False, timeout=did_timeout)
+            self.start_all()
 
     def clear(self, did_timeout=False):
         """
-        Remove all workers. Subclasses that override this method should
+        Remove all clients. Subclasses that override this method should
         call base class method.
         """
-        while len(self._workers) > 0:
-            worker = self._workers.pop()
-            if worker.registered:
-                self.unregister(worker)
-                worker._close(force=True, timeout=did_timeout)
+        while len(self._clients) > 0:
+            client = self._clients.pop()
+            if client.registered:
+                self.unregister(client)
+                client._close(force=True, timeout=did_timeout)
 
-    def register(self, worker):
+    def register(self, client):
         """
-        Register a worker. Subclasses that override this method should
+        Register a client. Subclasses that override this method should
         call base class method.
         """
-        assert worker in self._workers
-        assert worker.registered == False
+        assert client in self._clients
+        assert not client.registered
 
-        self.reg_workers[worker.fileno()] = worker
-        worker.registered = True
+        rfd = client.reader_fileno()
+        wfd = client.writer_fileno()
+        assert rfd != None or wfd != None
 
-    def unregister(self, worker):
+        self._debug("REG %s(r%s,w%s)(autoclose=%s)" % (client.__class__.__name__,
+            rfd, wfd, client.autoclose))
+
+        client._events = 0
+        client.registered = True
+
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+
+        if rfd != None:
+            self.reg_clients[rfd] = client
+            self.reg_clients_changed = True
+            client._events |= Engine.E_READABLE
+            self.evlooprefcnt += refcnt_inc
+            self._modify_specific(rfd, Engine.E_READABLE, 1)
+        if wfd != None:
+            self.reg_clients[wfd] = client
+            self.reg_clients_changed = True
+            client._events |= Engine.E_WRITABLE
+            self.evlooprefcnt += refcnt_inc
+            self._modify_specific(wfd, Engine.E_WRITABLE, 1)
+
+        client._new_events = client._events
+
+        # start timeout timer
+        self.timerq.schedule(client)
+
+    def unregister_writer(self, client):
+        self._debug("UNREG WRITER r%s,w%s" % (client.reader_fileno(), client.writer_fileno()))
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+
+        wfd = client.writer_fileno()
+        if wfd != None:
+            if client._events & Engine.E_WRITABLE:
+                self._modify_specific(wfd, Engine.E_WRITABLE, 0)
+                client._events &= ~Engine.E_WRITABLE
+            del self.reg_clients[wfd]
+            self.reg_clients_changed = True
+            self.evlooprefcnt -= refcnt_inc
+
+    def unregister(self, client):
         """
-        Unregister a worker. Subclasses that override this method should
+        Unregister a client. Subclasses that override this method should
         call base class method.
         """
-        assert worker.registered == True
+        # sanity check
+        assert client.registered
+        self._debug("UNREG %s (r%s,w%s)" % (client.__class__.__name__,
+            client.reader_fileno(), client.writer_fileno()))
+        
+        # remove timeout timer
+        self.timerq.invalidate(client)
+        
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+            
+        # clear interest events
+        rfd = client.reader_fileno()
+        if rfd != None:
+            if client._events & Engine.E_READABLE:
+                self._modify_specific(rfd, Engine.E_READABLE, 0)
+                client._events &= ~Engine.E_READABLE
+            del self.reg_clients[rfd]
+            self.reg_clients_changed = True
+            self.evlooprefcnt -= refcnt_inc
 
-        del self.reg_workers[worker.fileno()]
-        worker.registered = False
+        wfd = client.writer_fileno()
+        if wfd != None:
+            if client._events & Engine.E_WRITABLE:
+                self._modify_specific(wfd, Engine.E_WRITABLE, 0)
+                client._events &= ~Engine.E_WRITABLE
+            del self.reg_clients[wfd]
+            self.reg_clients_changed = True
+            self.evlooprefcnt -= refcnt_inc
+
+        client._new_events = 0
+        client.registered = False
+
+    def modify(self, client, set, clear):
+        """
+        Modify the next loop interest events bitset for a client.
+        """
+        self._debug("MODEV set:0x%x clear:0x%x %s" % (set, clear, client))
+        client._new_events &= ~clear
+        client._new_events |= set
+
+        if not client._processing:
+            # modifying a non processing client?
+            self.reg_clients_has_changed = True
+            # apply new_events now
+            self.set_events(client, client._new_events)
+
+    def set_events(self, client, new_events):
+        """
+        Set the active interest events bitset for a client.
+        """
+        assert not client._processing
+
+        self._debug("SETEV new_events:0x%x events:0x%x %s" % (new_events,
+            client._events, client))
+
+        if client.autoclose:
+            refcnt_inc = 0
+        else:
+            refcnt_inc = 1
+
+        chgbits = new_events ^ client._events
+        if chgbits == 0:
+            return
+
+        # configure interest events as appropriate
+        rfd = client.reader_fileno()
+        if rfd != None:
+            if chgbits & Engine.E_READABLE:
+                status = new_events & Engine.E_READABLE
+                self._modify_specific(rfd, Engine.E_READABLE, status)
+                if status:
+                    client._events |= Engine.E_READABLE
+                else:
+                    client._events &= ~Engine.E_READABLE
+
+        wfd = client.writer_fileno()
+        if wfd != None:
+            if chgbits & Engine.E_WRITABLE:
+                status = new_events & Engine.E_WRITABLE
+                self._modify_specific(wfd, Engine.E_WRITABLE, status)
+                if status:
+                    client._events |= Engine.E_WRITABLE
+                else:
+                    client._events &= ~Engine.E_WRITABLE
+
+        client._new_events = client._events
+
+    def add_timer(self, timer):
+        """
+        Add engine timer.
+        """
+        timer._set_engine(self)
+        self.timerq.schedule(timer)
+
+    def remove_timer(self, timer):
+        """
+        Remove engine timer.
+        """
+        self.timerq.invalidate(timer)
+
+    def fire_timers(self):
+        """
+        Fire expired timers for processing.
+        """
+        while self.timerq.expired():
+            self.timerq.fire()
 
     def start_all(self):
         """
-        Start and register all stopped workers.
+        Start and register all possible clients, in respect of task fanout.
         """
-        for worker in self._workers:
-            if not worker.registered:
-                self.register(worker._start())
+        fanout = self.info["fanout"]
+        assert fanout > 0
+        if fanout <= len(self.reg_clients) + 1: # +1 for possible writer client
+             return
+
+        for client in self._clients:
+            if not client.registered:
+                self._debug("START CLIENT %s" % client.__class__.__name__)
+                self.register(client._start())
+                if fanout <= len(self.reg_clients):
+                    break
     
     def run(self, timeout):
         """
@@ -342,25 +616,18 @@ class Engine:
         if not self.run_lock.acquire(0):
             raise EngineAlreadyRunningError()
 
-        # arm worker timers
-        for worker in self._workers:
-            self.timerq.push(worker)
-
-        # start workers now
+        # start clients now
         self.start_all()
 
         # we're started
         self.start_lock.release()
-
-        # prepare msg and rc handling
-        self._reset()
 
         # note: try-except-finally not supported before python 2.5
         try:
             try:
                 self.runloop(timeout)
             except Exception, e:
-                # any exceptions invalidate workers
+                # any exceptions invalidate clients
                 self.clear(isinstance(e, EngineTimeoutException))
                 raise
         finally:
@@ -400,120 +667,6 @@ class Engine:
         self.run_lock.acquire()
         self.run_lock.release()
 
-    def add_msg(self, source, msg):
-        """
-        Add a worker message associated with a source.
-        """
-        # try first to get current element in msgs tree
-        e_msg = self._d_source_msg.get(source)
-        if not e_msg:
-            # key not found (first msg from it)
-            e_msg = self._msg_root
-
-        # add child msg and update dict
-        self._d_source_msg[source] = e_msg.add_msg(source, msg)
-
-    def set_rc(self, source, rc, override=True):
-        """
-        Add a worker return code associated with a source.
-        """
-        if not override and self._d_source_rc.has_key(source):
-            return
-
-        # store rc by source
-        self._d_source_rc[source] = rc
-
-        # store source by rc
-        e = self._d_rc_sources.get(rc)
-        if e is None:
-            self._d_rc_sources[rc] = Set([source])
-        else:
-            self._d_rc_sources[rc].add(source)
-        
-        # update max rc
-        if rc > self._max_rc:
-            self._max_rc = rc
-
-    def message_by_source(self, source):
-        """
-        Get a message by its source (worker, key).
-        """
-        e_msg = self._d_source_msg.get(source)
-
-        if e_msg is None:
-            return None
-
-        return e_msg.message()
-
-    def iter_messages(self):
-        """
-        Return an iterator over all messages and keys list.
-        """
-        for e in self._msg_root:
-            yield e.message(), [t[1] for t in e.sources]
-
-    def iter_messages_by_key(self, key):
-        """
-        Return an iterator over stored messages for the given key.
-        """
-        for (w, k), e in self._d_source_msg.iteritems():
-            if k == key:
-                yield e.message()
-
-    def iter_messages_by_worker(self, worker):
-        """
-        Return an iterator over messages and keys list for a specific
-        worker.
-        """
-        for e in self._msg_root:
-            keys = [t[1] for t in e.sources if t[0] is worker]
-            if len(keys) > 0:
-                yield e.message(), keys
-
-    def iter_key_messages_by_worker(self, worker):
-        """
-        Return an iterator over key, message for a specific worker.
-        """
-        for (w, k), e in self._d_source_msg.iteritems():
-            if w is worker:
-                yield k, e.message()
- 
-    def retcode_by_source(self, source):
-        """
-        Get a return code by its source (worker, key).
-        """
-        return self._d_source_msg.get(source, 0)
-   
-    def iter_retcodes(self):
-        """
-        Return an iterator over return codes and keys list.
-        """
-        # Use the items iterator for the underlying dict.
-        for rc, src in self._d_rc_sources.iteritems():
-            yield rc, [t[1] for t in src]
-
-    def iter_retcodes_by_key(self, key):
-        """
-        Return an iterator over return codes for the given key.
-        """
-        for (w, k), rc in self._d_source_rc.iteritems():
-            if k == key:
-                yield rc
-
-    def iter_retcodes_by_worker(self, worker):
-        """
-        Return an iterator over return codes and keys list for a
-        specific worker.
-        """
-        # Use the items iterator for the underlying dict.
-        for rc, src in self._d_rc_sources.iteritems():
-            keys = [t[1] for t in src if t[0] is worker]
-            if len(keys) > 0:
-                yield rc, keys
-
-    def max_retcode(self):
-        """
-        Get max return code encountered during last run.
-        """
-        return self._max_rc
-
+    def _debug(self, s):
+        # library engine debugging hook
+        pass

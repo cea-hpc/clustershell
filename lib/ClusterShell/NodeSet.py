@@ -1,22 +1,34 @@
-# NodeSet.py -- Cluster shell nodeset representation
-# Copyright (C) 2007, 2008, 2009 CEA
-# Written by S. Thiell
 #
-# This file is part of ClusterShell
+# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of the ClusterShell library.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This software is governed by the CeCILL-C license under French law and
+# abiding by the rules of distribution of free software.  You can  use,
+# modify and/ or redistribute the software under the terms of the CeCILL-C
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info".
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+#
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or
+# data to be ensured and,  more generally, to use and operate it in the
+# same conditions as regards security.
+#
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL-C license and that you accept its terms.
 #
 # $Id$
 
@@ -55,17 +67,17 @@ import re
 
 class RangeSetException(Exception):
     """used by RangeSet"""
-    def __init__(self, message):
-        self.message = message
+    def __init__(self, msg):
+        self.msg = msg
 
     def __str__(self):
-        return self.message
+        return self.msg
 
 class RangeSetParseError(RangeSetException):
     """used by RangeSet when a parse cannot be done"""
-    def __init__(self, subrange, message):
+    def __init__(self, subrange, msg):
         # faulty subrange; this allows you to target the error
-        self.message = "%s : \"%s\"" % (message, subrange)
+        self.msg = "%s : \"%s\"" % (msg, subrange)
 
 class RangeSetPaddingError(RangeSetException):
     """used by RangeSet when a fatal padding incoherency occurs"""
@@ -73,24 +85,24 @@ class RangeSetPaddingError(RangeSetException):
 
 class NodeSetException(Exception):
     """used by NodeSet"""
-    def __init__(self, message):
-        self.message = message
+    def __init__(self, msg):
+        self.msg = msg
 
     def __str__(self):
-        return self.message
+        return self.msg
 
 class NodeSetParseError(NodeSetException):
     """used by NodeSet when a parse cannot be done"""
-    def __init__(self, part, message):
+    def __init__(self, part, msg):
         # faulty part; this allows you to target the error
         self.part = part
-        self.message = message
+        self.msg = msg
 
 class NodeSetParseRangeError(NodeSetParseError):
     """used by NodeSet when bad range is encountered during a a parse"""
     def __init__(self, rset_exc):
         # faulty part; this allows you to target the error
-        self.message = rset_exc.message
+        self.msg = rset_exc.msg
 
 
 class RangeSet:
@@ -111,8 +123,9 @@ class RangeSet:
         autostep threshold.
         """
         if autostep is None:
-            # disabled by default for pdsh compat (+inf)
-            self._autostep = 1E400
+            # disabled by default for pdsh compat (+inf is 1E400, but a bug in
+            # python 2.4 makes it impossible to be pickled, so we use less).
+            self._autostep = 1E100
         else:
             # - 1 because user means node count, but we means
             # real steps.
@@ -178,6 +191,20 @@ class RangeSet:
 
                 self.add_range(start, stop, step, pad)
         
+    def fromlist(cls, l, autostep=None):
+        """
+        Class method that returns a new RangeSet with ranges from
+        provided list.
+        """
+        inst = RangeSet(autostep=autostep)
+        for rg in l:
+            if isinstance(rg, RangeSet):
+                inst.update(rg)
+            else:
+                inst.update(RangeSet(rg))
+        return inst
+    fromlist = classmethod(fromlist)
+
     def __iter__(self):
         """
         Iterate over each item in RangeSet.
@@ -255,8 +282,11 @@ class RangeSet:
         Contains subroutine that takes an integer and a padding value.
         """
         for rgstart, rgstop, rgstep, rgpad in self._ranges:
+            # for each ranges, check for inclusion + padding matching
+            # + step matching
             if ielem >= rgstart and ielem <= rgstop and \
-                    pad == rgpad and (ielem - rgstart) % rgstep == 0:
+                    (pad == rgpad or (pad == 0 and len(str(ielem)) >= rgpad)) and \
+                    (ielem - rgstart) % rgstep == 0:
                         return True
         return False
 
@@ -346,9 +376,10 @@ class RangeSet:
                             istart = k = i
                         elif k - istart > m:
                             # stepped without autostep
-                            for j in range(istart, k + m, m):
+                            # be careful to let the last one "pending"
+                            for j in range(istart, k, m):
                                 rg.append((j, j, 1, pad))
-                            istart = k = i
+                            istart = k
                         else:
                             rg.append((istart, istart, 1, pad))
                             istart = k
@@ -382,6 +413,7 @@ class RangeSet:
         assert step > 0
         assert pad != None
         assert pad >= 0
+        assert stop - start < 1e9, "range too large"
 
         if self._length == 0:
             # first add optimization
@@ -439,6 +471,13 @@ class RangeSet:
         """
         for start, stop, step, pad in rangeset._ranges:
             self.add_range(start, stop, step, pad)
+
+    def clear(self):
+        """
+        Remove all ranges from this rangeset.
+        """
+        self._ranges = []
+        self._length = 0
 
     def __ior__(self, other):
         """
@@ -651,6 +690,8 @@ def _NodeSetParse(ns, autostep):
         if pat.find('%') >= 0:
             pat = pat.replace('%', '%%')
         while pat is not None:
+            # Ignore whitespace(s) for convenience
+            pat = pat.lstrip()
 
             # What's first: a simple node or a pattern of nodes?
             comma_idx = pat.find(',')
@@ -678,6 +719,9 @@ def _NodeSetParse(ns, autostep):
                 else:
                     sfx, pat = sfx.split(',', 1)
 
+                # Ignore whitespace(s)
+                sfx = sfx.rstrip()
+
                 # pfx + sfx cannot be empty
                 if len(pfx) + len(sfx) == 0:
                     raise NodeSetParseError(pat, "empty node name")
@@ -698,13 +742,15 @@ def _NodeSetParse(ns, autostep):
                     pat = None # break next time
                 else:
                     node, pat = pat.split(',', 1)
+                # Ignore whitespace(s)
+                node = node.strip()
 
                 if len(node) == 0:
                     raise NodeSetParseError(pat, "empty node name")
 
                 # single node parsing
                 if single_node_re is None:
-                    single_node_re = re.compile("(\D+)*(\d+)*(\S+)*")
+                    single_node_re = re.compile("(\D*)(\d*)(.*)")
 
                 mo = single_node_re.match(node)
                 if not mo:
@@ -899,7 +945,7 @@ class NodeSet(object):
             pat_e.update(rangeset)
         else:
             # create new pattern (with possibly rangeset=None)
-            self._patterns[pat] = rangeset
+            self._patterns[pat] = copy.copy(rangeset)
 
     def union(self, other):
         """
@@ -929,6 +975,13 @@ class NodeSet(object):
         """
         for pat, rangeset in _NodeSetParse(other, self._autostep):
             self._add_rangeset(pat, rangeset)
+
+    def clear(self):
+        """
+        Remove all nodes from this nodeset.
+        """
+        self._patterns.clear()
+        self._length = 0
 
     def __ior__(self, other):
         """

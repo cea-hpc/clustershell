@@ -39,6 +39,13 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("[0]cluster")
         self._assertNode(nodeset, "0cluster")
 
+    def testWhitespacePrefix(self):
+        """test parsing ignoring whitespace"""
+        nodeset = NodeSet(" tigrou2 , tigrou7 , tigrou[5,9-11] ")
+        self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
+        nodeset = NodeSet("   tigrou2 ,    tigrou5,tigrou7 , tigrou[ 9   - 11 ]    ")
+        self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
+
     def testFromListConstructor(self):
         """test NodeSet.fromlist constructor"""
         nodeset = NodeSet.fromlist([ "cluster33" ])
@@ -627,6 +634,26 @@ class NodeSetTest(unittest.TestCase):
         self.assert_("dark3002" not in nodeset)
         for node in nodeset:
             self.assert_(node in nodeset)
+
+    def testContainsUsingPadding(self):
+        """test NodeSet contains() when using padding"""
+        nodeset = NodeSet("white[001,030]")
+        nodeset.add("white113")
+        self.assert_(NodeSet("white30") not in nodeset)
+        self.assert_(NodeSet("white030") in nodeset)
+        # case: nodeset without padding info is compared to a
+        # padding-initialized range
+        self.assert_(NodeSet("white113") in nodeset)
+        self.assert_(NodeSet("white[001,113]") in nodeset)
+        self.assert_(NodeSet("gene0113") not in NodeSet("gene[001,030,113]"))
+        self.assert_(NodeSet("gene0113") in NodeSet("gene[0001,0030,0113]"))
+        self.assert_(NodeSet("gene0113") not in NodeSet("gene[098-113]"))
+        self.assert_(NodeSet("gene0113") in NodeSet("gene[0098-0113]"))
+        # case: len(str(ielem)) >= rgpad
+        nodeset = NodeSet("white[001,099]")
+        nodeset.add("white100")
+        nodeset.add("white1000")
+        self.assert_(NodeSet("white1000") in nodeset)
 
     def testIsSuperSet(self):
         """test NodeSet issuperset()"""

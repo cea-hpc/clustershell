@@ -1,22 +1,34 @@
-# Task.py -- Cluster task management
-# Copyright (C) 2007, 2008, 2009 CEA
-# Written by S. Thiell
 #
-# This file is part of ClusterShell
+# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of the ClusterShell library.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This software is governed by the CeCILL-C license under French law and
+# abiding by the rules of distribution of free software.  You can  use,
+# modify and/ or redistribute the software under the terms of the CeCILL-C
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info".
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+#
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or
+# data to be ensured and,  more generally, to use and operate it in the
+# same conditions as regards security.
+#
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL-C license and that you accept its terms.
 #
 # $Id$
 
@@ -45,11 +57,16 @@ Simple example of use:
 from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
 from Engine.Engine import EngineAlreadyRunningError
+from Engine.Engine import EngineTimer
 from Engine.Poll import EnginePoll
-from Worker.File import WorkerFile
 from Worker.Pdsh import WorkerPdsh
+from Worker.Ssh import WorkerSsh
 from Worker.Popen2 import WorkerPopen2
 
+from MsgTree import MsgTreeElem
+from NodeSet import NodeSet
+
+from sets import Set
 import thread
 
 class TaskException(Exception):
@@ -68,6 +85,14 @@ class AlreadyRunningError(TaskException):
     """
     def __str__(self):
         return "current task already running"
+
+
+def _task_print_debug(task, s):
+    """
+    Default task debug printing function. Cannot provide 'print'
+    directly as it is not a function (will be in Py3k!).
+    """
+    print s
 
 
 class Task(object):
@@ -93,6 +118,7 @@ class Task(object):
     """
 
     _default_info = { "debug"           : False,
+                      "print_debug"     : _task_print_debug,
                       "fanout"          : 32,
                       "connect_timeout" : 10,
                       "command_timeout" : 0 }
@@ -115,31 +141,42 @@ class Task(object):
         """
         Initialize a Task, creating a new thread if needed.
         """
-        if not getattr(self, "engine", None):
-
+        if not getattr(self, "_engine", None):
             # first time called
-
             self._info = self.__class__._default_info.copy()
-            self.engine = EnginePoll(self._info)
+            self._engine = EnginePoll(self._info)
             self.timeout = 0
             self.l_run = None
 
-            # create new thread if needed
+            # root of msg tree
+            self._msg_root = MsgTreeElem()
+            # dict of sources to msg tree elements
+            self._d_source_msg = {}
+            # dict of sources to return codes
+            self._d_source_rc = {}
+            # dict of return codes to sources
+            self._d_rc_sources = {}
+            # keep max rc
+            self._max_rc = 0
+            # keep timeout'd sources
+            self._timeout_sources = Set()
 
+            # create new thread if needed
             if not thread_id:
                 self.l_run = thread.allocate_lock()
                 self.l_run.acquire()
-                print "starting new thread"
                 tid = thread.start_new_thread(Task._start_thread, (self,))
                 self._tasks[tid] = self
 
     def _start_thread(self):
-        print "thread started (id=0x%x)" % thread.get_ident()
-
-        self.l_run.acquire()
-        self.engine.run(self.timeout)
-
-        print "thread exited (id=0x%x)" % thread.get_ident()
+        """New Task thread entry point."""
+        try:
+            while True:
+                self.l_run.acquire()
+                self._engine.run(self.timeout)
+        except:
+            # TODO: dispatch exceptions
+            raise
 
     def info(self, info_key, def_val=None):
         """
@@ -168,18 +205,22 @@ class Task(object):
 
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
+        ac = kwargs.get("autoclose", False)
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \
                     "'key' argument not supported for distant command"
-            worker =  WorkerPdsh(kwargs["nodes"], command=command, \
-                    handler=handler, timeout=timeo, task=self)
-        else:
-            worker = WorkerPopen2(command, key=kwargs.get("key", None), \
-                    handler=handler, timeout=timeo, task=self)
 
-        # schedule task for this new shell worker
-        self.engine.add(worker)
+            # create ssh-based worker
+            worker = WorkerSsh(NodeSet(kwargs["nodes"]), handler=handler,
+                               timeout=timeo, command=command, autoclose=ac)
+        else:
+            # create popen2-based (local) worker
+            worker = WorkerPopen2(command, key=kwargs.get("key", None),
+                                  handler=handler, timeout=timeo, autoclose=ac)
+
+        # schedule worker for execution in this task
+        self.schedule(worker)
 
         return worker
 
@@ -193,24 +234,34 @@ class Task(object):
         timeo = kwargs.get("timeout", None)
 
         # create a new Pdcp worker (supported by WorkerPdsh)
-        worker = WorkerPdsh(nodes, source=source, dest=dest, handler=handler, timeout=timeo, task=self)
+        worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
+                timeout=timeo)
 
-        # schedule task for this new copy worker
-        self.engine.add(worker)
-
-        return worker
-
-    def file(self, file, key=None, handler=None, timeout=None):
-        """
-        Listen on file object.
-        """
-        # create a File worker
-        worker = WorkerFile(file=file, key=key, handler=handler, timeout=timeout, task=self)
-
-        # schedule task for the file worker
-        self.engine.add(worker)
+        self.schedule(worker)
 
         return worker
+
+    def timer(self, fire, handler, interval=-1.0, autoclose=False):
+        """
+        Create task's timer.
+        """
+        assert fire >= 0.0, "timer's relative fire time must be a positive floating number"
+        
+        timer = EngineTimer(fire, interval, autoclose, handler)
+        self._engine.add_timer(timer)
+        return timer
+
+    def schedule(self, worker):
+        """
+        Schedule a worker for execution. Only useful for manually
+        instantiated workers.
+        """
+        # bind worker to task self
+        worker._set_task(self)
+
+        # add worker clients to engine
+        for client in worker._engine_clients():
+            self._engine.add(client)
 
     def resume(self, timeout=0):
         """
@@ -227,7 +278,8 @@ class Task(object):
             self.l_run.release()
         else:
             try:
-                self.engine.run(timeout)
+                self._reset()
+                self._engine.run(timeout)
             except EngineTimeoutException:
                 raise TimeoutError()
             except EngineAbortException:
@@ -241,20 +293,167 @@ class Task(object):
         """
         Abort a task.
         """
-        self.engine.abort()
+        assert task_self() == self, "Inter-task abort not implemented yet"
+        self._engine.abort()
 
     def join(self):
         """
         Suspend execution of the calling thread until the target task
         terminates, unless the target task has already terminated.
         """
-        self.engine.join()
+        self._engine.join()
 
-    def workers(self):
+    def _reset(self):
         """
-        Get active workers (as an iterable object).
+        Reset buffers and retcodes managment variables.
         """
-        return self.engine.workers()
+        self._msg_root = MsgTreeElem()
+        self._d_source_msg = {}
+        self._d_source_rc = {}
+        self._d_rc_sources = {}
+        self._max_rc = 0
+        self._timeout_sources.clear()
+
+    def _msg_add(self, source, msg):
+        """
+        Add a worker message associated with a source.
+        """
+        # try first to get current element in msgs tree
+        e_msg = self._d_source_msg.get(source)
+        if not e_msg:
+            # key not found (first msg from it)
+            e_msg = self._msg_root
+
+        # add child msg and update dict
+        self._d_source_msg[source] = e_msg.add_msg(source, msg)
+
+    def _rc_set(self, source, rc, override=True):
+        """
+        Add a worker return code associated with a source.
+        """
+        if not override and self._d_source_rc.has_key(source):
+            return
+
+        # store rc by source
+        self._d_source_rc[source] = rc
+
+        # store source by rc
+        e = self._d_rc_sources.get(rc)
+        if e is None:
+            self._d_rc_sources[rc] = Set([source])
+        else:
+            self._d_rc_sources[rc].add(source)
+        
+        # update max rc
+        if rc > self._max_rc:
+            self._max_rc = rc
+
+    def _timeout_add(self, source):
+        """
+        Add a worker timeout associated with a source.
+        """
+        # store source in timeout set
+        self._timeout_sources.add(source)
+
+    def _msg_by_source(self, source):
+        """
+        Get a message by its source (worker, key).
+        """
+        e_msg = self._d_source_msg.get(source)
+
+        if e_msg is None:
+            return None
+
+        return e_msg.message()
+
+    def _msg_iter_by_key(self, key):
+        """
+        Return an iterator over stored messages for the given key.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if k == key:
+                yield e.message()
+
+    def _msg_iter_by_worker(self, worker, match_keys=None):
+        """
+        Return an iterator over messages and keys list for a specific
+        worker and optional matching keys.
+        """
+        if match_keys:
+            for e in self._msg_root:
+                keys = [t[1] for t in e.sources if t[0] is worker and t[1] in match_keys]
+                if len(keys) > 0:
+                    yield e.message(), keys
+        else:
+            for e in self._msg_root:
+                keys = [t[1] for t in e.sources if t[0] is worker]
+                if len(keys) > 0:
+                    yield e.message(), keys
+
+    def _kmsg_iter_by_worker(self, worker):
+        """
+        Return an iterator over key, message for a specific worker.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if w is worker:
+                yield k, e.message()
+ 
+    def _rc_by_source(self, source):
+        """
+        Get a return code by its source (worker, key).
+        """
+        return self._d_source_msg.get(source, 0)
+   
+    def _rc_iter_by_key(self, key):
+        """
+        Return an iterator over return codes for the given key.
+        """
+        for (w, k), rc in self._d_source_rc.iteritems():
+            if k == key:
+                yield rc
+
+    def _rc_iter_by_worker(self, worker, match_keys=None):
+        """
+        Return an iterator over return codes and keys list for a
+        specific worker and optional matching keys.
+        """
+        if match_keys:
+            # Use the items iterator for the underlying dict.
+            for rc, src in self._d_rc_sources.iteritems():
+                keys = [t[1] for t in src if t[0] is worker and t[1] in match_keys]
+                if len(keys) > 0:
+                    yield rc, keys
+        else:
+            for rc, src in self._d_rc_sources.iteritems():
+                keys = [t[1] for t in src if t[0] is worker]
+                if len(keys) > 0:
+                    yield rc, keys
+
+    def _krc_iter_by_worker(self, worker):
+        """
+        Return an iterator over key, rc for a specific worker.
+        """
+        for rc, (w, k) in self._d_rc_sources.iteritems():
+            if w is worker:
+                yield k, rc
+
+    def _num_timeout_by_worker(self, worker):
+        """
+        Return the number of timed out "keys" for a specific worker.
+        """
+        cnt = 0
+        for (w, k) in self._timeout_sources:
+            if w is worker:
+                cnt += 1
+        return cnt
+
+    def _iter_keys_timeout_by_worker(self, worker):
+        """
+        Iterate over timed out keys (ie. nodes) for a specific worker.
+        """
+        for (w, k) in self._timeout_sources:
+            if w is worker:
+                yield k
 
     def key_buffer(self, key):
         """
@@ -262,7 +461,7 @@ class Task(object):
         to multiple workers, the resulting buffer will contain
         all workers content that may overlap.
         """
-        return "".join(self.engine.iter_messages_by_key(key))
+        return "".join(self._msg_iter_by_key(key))
     
     node_buffer = key_buffer
 
@@ -272,7 +471,7 @@ class Task(object):
         associated to multiple workers, return the max return
         code from these workers.
         """
-        return max(self.engine.iter_retcodes_by_key(key))
+        return max(self._rc_iter_by_key(key))
     
     node_retcode = key_retcode
 
@@ -285,27 +484,70 @@ class Task(object):
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.
         """
-        return self.engine.max_retcode()
+        return self._max_rc
 
-    def iter_buffers(self):
+    def iter_buffers(self, match_keys=None):
         """
         Iterate over buffers, returns a tuple (buffer, keys). For remote
-        workers (Ssh), keys are nodeset.
+        workers (Ssh), keys are list of nodes. In that case, you should use
+        NodeSet.fromlist(keys) to get a NodeSet instance (which is more
+        convenient and efficient):
+
+        Optional parameter match_keys add filtering on these keys.
+
+        Usage example:
+
+            for buffer, nodelist in task.iter_buffers():
+                print NodeSet.fromlist(nodelist)
+                print buffer
         """
-        for m, k in self.engine.iter_messages():
-            yield m, list(k)
+        if match_keys:
+            for e in self._msg_root:
+                keys = [t[1] for t in e.sources if t[1] in match_keys]
+                if keys:
+                    yield e.message(), keys
+        else:
+            for e in self._msg_root:
+                yield e.message(), [t[1] for t in e.sources]
             
-    def iter_retcodes(self):
+    def iter_retcodes(self, match_keys=None):
         """
         Iterate over return codes, returns a tuple (rc, keys).
+
+        Optional parameter match_keys add filtering on these keys.
 
         How retcodes work:
           If the process exits normally, the return code is its exit
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.
         """
-        for rc, k in self.engine.iter_retcodes():
-            yield rc, list(k)
+        if match_keys:
+            # Use the items iterator for the underlying dict.
+            for rc, src in self._d_rc_sources.iteritems():
+                keys = [t[1] for t in src if t[1] in match_keys]
+                yield rc, keys
+        else:
+            for rc, src in self._d_rc_sources.iteritems():
+                yield rc, [t[1] for t in src]
+
+    def max_retcode(self):
+        """
+        Get max return code encountered during last run.
+        """
+        return self._max_rc
+
+    def num_timeout(self):
+        """
+        Return the number of timed out "keys" (ie. nodes).
+        """
+        return len(self._timeout_sources)
+
+    def iter_keys_timeout(self):
+        """
+        Iterate over timed out keys (ie. nodes).
+        """
+        for (w, k) in self._timeout_sources:
+            yield k
 
     def wait(cls, from_thread_id):
         """
@@ -316,7 +558,6 @@ class Task(object):
             if thread_id != from_thread_id:
                 task.join()
     wait = classmethod(wait)
-
 
 
 def task_self():

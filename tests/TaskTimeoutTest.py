@@ -34,14 +34,12 @@ class TaskTimeoutTest(unittest.TestCase):
 
         task.resume()
         self.assertEqual(worker.read(), """some buffer
-here...
-""")
+here...""")
         test = 1
         for buf, keys in task.iter_buffers():
             test = 0
             self.assertEqual(buf, """some buffer
-here...
-""")
+here...""")
         self.assertEqual(test, 0, "task.iter_buffers() did not work")
 
     

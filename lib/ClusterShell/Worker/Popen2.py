@@ -1,33 +1,46 @@
-# WorkerPopen2.py -- Local shell worker
-# Copyright (C) 2007, 2008, 2009 CEA
 #
-# This file is part of ClusterShell
+# Copyright CEA/DAM/DIF (2008, 2009)
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This file is part of the ClusterShell library.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This software is governed by the CeCILL-C license under French law and
+# abiding by the rules of distribution of free software.  You can  use,
+# modify and/ or redistribute the software under the terms of the CeCILL-C
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info".
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+#
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or
+# data to be ensured and,  more generally, to use and operate it in the
+# same conditions as regards security.
+#
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL-C license and that you accept its terms.
 #
 # $Id$
-
 
 """
 WorkerPopen2
 
-ClusterShell worker for local commands.
+ClusterShell worker for executing local commands with popen2.
 """
 
 from ClusterShell.NodeSet import NodeSet
-from Worker import Worker
+
+from Worker import WorkerSimple
 
 import fcntl
 import os
@@ -35,68 +48,41 @@ import popen2
 import signal
 
 
-class WorkerPopen2(Worker):
+class WorkerPopen2(WorkerSimple):
     """
-    Implements the Worker interface.
+    Implements the Popen2 Worker.
     """
 
-    def __init__(self, command, key, handler, timeout, task):
+    def __init__(self, command, key, handler, timeout, autoclose=False):
         """
         Initialize Popen2 worker.
         """
-        Worker.__init__(self, handler, timeout, task)
+        WorkerSimple.__init__(self, None, None, None, key, handler, timeout, autoclose)
+
         self.command = command
         if not self.command:
             raise WorkerBadArgumentException()
-        self.fid = None
-        self.buf = ""
-        self.last_msg = None
-        self.rc = None
-        self.key = key or self
 
-    def set_key(self, key):
-        """
-        Source key for Popen2 worker is free for use. This method is a
-        way to set such a custom source key for this worker.
-        """
-        self.key = key
+        self.fid = None
+        self.rc = None
 
     def _start(self):
         """
-        Start worker. Implements worker interface.
+        Start worker.
         """
         assert self.fid is None
 
-        self.buf = ""                # initialize worker read buffer
+        cmdlist = ['/bin/sh', '-c', self.command]
+        self.fid = self._exec_nonblock(cmdlist)
+        self.file_reader = self.fid.fromchild
+        self.file_writer = self.fid.tochild
 
-        # Launch process in non-blocking mode
-        self.fid = popen2.Popen4(self.command)
-        fcntl.fcntl(self.fid.fromchild, fcntl.F_SETFL, os.O_NDELAY)
-
-        if self._task.info("debug", False):
-            print "POPEN2: %s" % self.command
+        if self.task.info("debug", False):
+            self.task.info("print_debug")(self.task, "POPEN2: [%s]" % ','.join(cmdlist))
 
         self._invoke("ev_start")
 
         return self
-
-    def fileno(self):
-        """
-        Returns the file descriptor as an integer.
-        """
-        return self.fid.fromchild.fileno()
-
-    def closed(self):
-        """
-        Returns True if the underlying file object is closed.
-        """
-        return self.fid.fromchild.closed
-
-    def _read(self, size=-1):
-        """
-        Read data from process.
-        """
-        return self.fid.fromchild.read(size)
 
     def _close(self, force, timeout):
         """
@@ -104,88 +90,45 @@ class WorkerPopen2(Worker):
         unregistered. This method should handle all termination types
         (normal, forced or on timeout).
         """
+        rc = -1
         if force or timeout:
             # check if process has terminated
             status = self.fid.poll()
             if status == -1:
                 # process is still running, kill it
                 os.kill(self.fid.pid, signal.SIGKILL)
-            # trigger timeout event
-            if timeout:
-                self._invoke("ev_timeout")
         else:
             # close process / check if it has terminated
             status = self.fid.wait()
             # get exit status
             if os.WIFEXITED(status):
                 # process exited normally
-                self._set_rc(os.WEXITSTATUS(status))
+                rc = os.WEXITSTATUS(status)
             elif os.WIFSIGNALED(status):
                 # if process was signaled, return 128 + signum (bash-like)
-                self._set_rc(128 + os.WSTOPSIG(status))
+                rc = 128 + os.WSTOPSIG(status)
             else:
                 # unknown condition
-                self._set_rc(255)
+                rc = 255
 
         self.fid.tochild.close()
         self.fid.fromchild.close()
+
+        if rc >= 0:
+            self._on_rc(rc)
+        elif timeout:
+            self._on_timeout()
+
         self._invoke("ev_close")
 
-    def _handle_read(self):
-        """
-        Engine is telling us a read is available.
-        """
-        debug = self._task.info("debug", False)
-
-        # read a chunk
-        readbuf = self._read()
-        assert len(readbuf) > 0, "_handle_read() called with no data to read"
-
-        buf = self.buf + readbuf
-        lines = buf.splitlines(True)
-        self.buf = ""
-        for line in lines:
-            if debug:
-                print "LINE %s" % line,
-            if line.endswith('\n'):
-                self._add_msg(line)
-                self._invoke("ev_read")
-            else:
-                # keep partial line in buffer
-                self.buf = line
-                # will break here
-        return True
-
-    def last_read(self):
-        """
-        Read last msg, useful in an EventHandler.
-        """
-        return self.last_msg
-
-    def _add_msg(self, msg):
-        """
-        Add a message.
-        """
-        # add last msg to local buffer
-        self.last_msg = msg[:-1]
-
-        # tell engine
-        self.engine.add_msg((self, self.key), msg)
-
-    def _set_rc(self, rc):
+    def _on_rc(self, rc):
         """
         Set return code.
         """
         self.rc = rc
-        self.engine.set_rc((self, self.key), rc)
+        self.task._rc_set((self, self.key), rc)
 
-    def read(self):
-        """
-        Read worker buffer.
-        """
-        for key, msg in self.engine.iter_key_messages_by_worker(self):
-            assert key == self.key
-            return msg
+        self._invoke("ev_hup")
 
     def retcode(self):
         """

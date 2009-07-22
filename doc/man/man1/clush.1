@@ -1,0 +1,375 @@
+.\" Man page generated from reStructeredText.
+.TH clush 1 "2009-07-22" "1.1" "ClusterShell User Manual"
+.SH NAME
+clush \- execute shell commands on a cluster
+
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level magin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+
+.SH SYNOPSIS
+\fBclush\fP \fB\-a\fP | \fB\-g\fP \fIgroup\fP | \fB\-w\fP \fInodes\fP  [ OPTIONS ]
+
+\fBclush\fP \fB\-a\fP | \fB\-g\fP \fIgroup\fP | \fB\-w\fP \fInodes\fP  [ OPTIONS ] \fIcommand\fP
+
+\fBclush\fP \fB\-a\fP | \fB\-g\fP \fIgroup\fP | \fB\-w\fP \fInodes\fP  [ OPTIONS ] \-\-copy
+\fIfile\fP [ \-\-dest \fIdest_path\fP ]
+
+
+.SH DESCRIPTION
+\fBclush\fP is a program for executing commands in parallel on a cluster and for
+gathering their results. \fBclush\fP executes commands interactively or can be
+used within shell scripts and other applications.  It is a partial front\-end
+to the ClusterShell library that ensures a light, unified and robust command
+execution framework.  \fBclush\fP currently makes use of the Ssh worker of
+ClusterShell that only requires \fBssh\fP(1) (OpenSSH SSH client).
+
+
+.SH INVOCATION
+\fBclush\fP can be started non\-interactively to run a shell \fIcommand\fP, or can
+be invoked as an interactive shell. To start a \fBclush\fP interactive session,
+invoke the \fBclush\fP command without providing \fIcommand\fP.
+
+.INDENT 0.0
+
+.TP
+.B Non\-interactive mode
+When \fBclush\fP is started non\-interactively, the \fIcommand\fP is executed on
+the specified remote hosts in parallel. If option \fB\-b\fP or \fB\-\-dshbak\fP
+is specified, \fBclush\fP waits for commands completion and then displays
+gathered output results.
+
+\fBclush\fP detects when its standard input is connected to a terminal (as
+determined by \fBisatty\fP(3)). If actually connected to a terminal,
+\fBclush\fP listens to standard input when commands are running, waiting for
+an \fIEnter\fP key press. Doing so will display the status of current nodes.  If
+standard input is not connected to a terminal, \fBclush\fP try to bind the
+standard input of the remote commands to its own standard input, allowing
+scripting methods like:
+
+
+# echo foo | clush \-w node[40\-42] \-b cat
+.br
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.br
+node[40\-42]
+.br
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.br
+foo
+.br
+
+Please see some other great examples in the EXAMPLES section below.
+
+
+.TP
+.B Interactive session
+If a \fIcommand\fP is not specified, \fBclush\fP runs interactively. In this mode,
+\fBclush\fP uses the GNU \fBreadline\fP library to read command lines. Readline
+provides commands for searching through the command history for lines
+containing a specified string. For instance, type Control\-R to search in the
+history for the next entry matching the search string typed so far.
+\fBclush\fP also recognizes special single\-character prefixes that allows the
+user to see and modify the current nodeset (the nodes where the commands are
+executed).
+
+.INDENT 7.0
+
+.TP
+.B Single\-character interactive commands are:
+.INDENT 7.0
+
+.TP
+.B clush> ?
+show current nodeset
+
+
+.TP
+.B clush> =<NODESET>
+set current nodeset
+
+
+.TP
+.B clush> +<NODESET>
+add nodes to current nodeset
+
+
+.TP
+.B clush> \-<NODESET>
+remove nodes from current nodeset
+
+
+.TP
+.B clush> !COMMAND
+execute COMMAND on the local system
+
+
+.TP
+.B clush> =
+toggle the ouput format (gathered or standard mode)
+
+.UNINDENT
+.UNINDENT
+To leave an interactive session, type \fBquit\fP or Control\-D.
+
+
+.TP
+.B File copying mode
+When \fBclush\fP is started with the \fB\-c\fP or \fB\-\-copy\fP option, it attempts
+to copy \fIfile\fP to the provided target cluster nodes. If the \fB\-\-dest\fP
+option is specified, it will put the copied file there.
+
+.UNINDENT
+
+.SH OPTIONS
+.INDENT 0.0
+
+.TP
+.B \-\-version
+show \fBclush\fP version number and exit
+
+.UNINDENT
+.INDENT 0.0
+
+.TP
+.B Selecting target nodes:
+.INDENT 7.0
+
+.TP
+.BI \-w\  NODES
+nodes where to run the command
+
+
+.TP
+.BI \-x\  EXCLUDE
+exclude nodes from the node list
+
+
+.TP
+.B \-a , \-\-all
+run command on all nodes
+
+
+.TP
+.BI \-g\  GROUP ,\ \-\-group\fn= GROUP
+run command on a group of nodes
+
+.UNINDENT
+
+.TP
+.B Output behaviour:
+.INDENT 7.0
+
+.TP
+.B \-q , \-\-quiet
+be quiet, print essential output only
+
+
+.TP
+.B \-v , \-\-verbose
+be verbose, print informative messages
+
+
+.TP
+.B \-d , \-\-debug
+output more messages for debugging purpose
+
+
+.TP
+.B \-N
+disable labeling of command line
+
+
+.TP
+.B \-S
+return the largest of command return codes
+
+
+.TP
+.B \-b , \-\-dshbak
+display results in a dshbak\-like way
+
+.UNINDENT
+
+.TP
+.B File copying:
+.INDENT 7.0
+
+.TP
+.BI \-c\  SOURCE_PATH ,\ \-\-copy\fn= SOURCE_PATH
+copy local file or directory to the nodes
+
+
+.TP
+.BI \-\-dest\fn= DEST_PATH
+destination file or directory on the nodes
+(optional \-\- the same path as source path
+when not specified)
+
+.UNINDENT
+
+.TP
+.B Ssh options:
+.INDENT 7.0
+
+.TP
+.BI \-f\  FANOUT ,\ \-\-fanout\fn= FANOUT
+use a specified fanout
+
+
+.TP
+.BI \-l\  USER ,\ \-\-user\fn= USER
+execute remote command as user
+
+
+.TP
+.BI \-o\  OPTIONS ,\ \-\-options\fn= OPTIONS
+can be used to give ssh options
+
+
+.TP
+.BI \-t\  CONNECT_TIMEOUT ,\ \-\-connect_timeout\fn= CONNECT_TIMEOUT
+limit time to connect to a node
+
+
+.TP
+.BI \-u\  COMMAND_TIMEOUT ,\ \-\-command_timeout\fn= COMMAND_TIMEOUT
+limit time for command to run on the node
+
+.UNINDENT
+.UNINDENT
+For a short explanation of these options, see \fB\-h, \-\-help\fP.
+
+
+.SH EXIT STATUS
+By default, an exit status of zero indicates success of the \fBclush\fP command
+but gives no information about the remote commands exit status. However, when
+the \fB\-S\fP option is specified, the exit status of \fBclush\fP is the largest
+value of the remote commands return codes.
+
+For failed remote commands whose exit status is non\-zero, \fBclush\fP displays
+messages similar to:
+
+.INDENT 0.0
+
+.TP
+.B clush: node[40\-42]: exited with exit code 1
+.UNINDENT
+
+.SH EXAMPLES
+.INDENT 0.0
+
+.TP
+.B # clush \-w node[3\-5,62] uname \-r
+Run command \fIuname \-r\fP on nodes: node3, node4, node5 and node62
+
+
+.TP
+.B # clush \-w node[3\-5,62] \-b uname \-r
+Run command \fIuname \-r\fP on nodes[3\-5,62] and display gathered output results (\fBdshbak\fP\-like).
+
+
+.TP
+.B # ssh node32 find /etc/yum.repos.d \-type f | clush \-w node[40\-42] \-b xargs ls \-l
+Search some files on node32 in /etc/yum.repos.d and use clush to list the matching ones on node[40\-42], and use \fB\-b\fP to display gathered results.
+
+.UNINDENT
+
+.SS All/NodeGroups examples
+.INDENT 0.0
+
+.TP
+.B # clush \-a uname \-r
+Run command \fIuname \-r\fP on all cluster nodes, see \fBclush.conf\fP(5) to setup all cluster nodes (\fInodes_all:\fP field).
+
+
+.TP
+.B # clush \-a \-x node[5,7] uname \-r
+Run command \fIuname \-r\fP on all cluster nodes except on nodes node5 and node7.
+
+
+.TP
+.B # clush \-g oss modprobe lustre
+Run command \fImodprobe lustre\fP on nodes from node group named \fIoss\fP, see \fBclush.conf\fP(5) to setup node groups (\fInodes_group:\fP field).
+
+.UNINDENT
+
+.SS Copy files
+.INDENT 0.0
+
+.TP
+.B # clush \-w node[3\-5,62] \-\-copy /etc/motd
+Copy local file \fI/etc/motd\fP to remote nodes node[3\-5,62].
+
+
+.TP
+.B # clush \-w node[3\-5,62] \-\-copy /etc/motd \-\-dest /tmp/motd
+Copy local file \fI/etc/motd\fP to remote nodes node[3\-5,62] at path \fI/tmp/motd\fP.
+
+.UNINDENT
+
+.SH FILES
+.INDENT 0.0
+
+.TP
+.B \fI/etc/clustershell/clush.conf\fP
+System\-wide \fBclush\fP configuration file.
+
+
+.TP
+.B \fI~/.clush.conf\fP
+This is the per\-user \fBclush\fP configuration file.
+
+
+.TP
+.B \fI~/.clush_history\fP
+File in which interactive \fBclush\fP command history is saved.
+
+.UNINDENT
+
+.SH SEE ALSO
+\fBnodeset\fP(1)
+\fBreadline\fP(3)
+\fBclush.conf\fP(5)
+
+
+.SH BUG REPORTS
+.INDENT 0.0
+
+.TP
+.B Use the following URL to submit a bug report or feedback:
+\fI\%http://clustershell.sourceforge.net/bugreport.php\fP
+
+.UNINDENT
+
+.SH AUTHOR
+Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+
+.SH COPYRIGHT
+CeCILL-C V1
+
+.\" Generated by docutils manpage writer on 2009-07-22 17:59.
+.\" 
