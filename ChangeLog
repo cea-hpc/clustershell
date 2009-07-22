@@ -7,7 +7,9 @@
 
 	* clush.py: add -o options to pass custom ssh options (#24).
 
-	* Worker/Ssh.py: simple quote escape fix (trac ticket #25)
+	* Worker/Ssh.py: simple quote escape fix (trac ticket #25).
+
+	* Worker/Popen2.py: simple quote escape fix (trac ticket #25)
 
 	* clush.py: fix options issue when using -f, -u or -t.
 

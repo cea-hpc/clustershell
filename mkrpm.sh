@@ -10,6 +10,9 @@ VERS=$1
 DIST=$2
 
 case $DIST in
+    el4)
+        VIM_VERS=63
+        ;;
     el5)
         VIM_VERS=70
         ;;
