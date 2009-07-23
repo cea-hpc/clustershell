@@ -61,7 +61,7 @@ from Engine.Engine import EngineTimer
 from Engine.Poll import EnginePoll
 from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
-from Worker.Popen2 import WorkerPopen2
+from Worker.Popen import WorkerPopen
 
 from MsgTree import MsgTreeElem
 from NodeSet import NodeSet
@@ -215,9 +215,9 @@ class Task(object):
             worker = WorkerSsh(NodeSet(kwargs["nodes"]), handler=handler,
                                timeout=timeo, command=command, autoclose=ac)
         else:
-            # create popen2-based (local) worker
-            worker = WorkerPopen2(command, key=kwargs.get("key", None),
-                                  handler=handler, timeout=timeo, autoclose=ac)
+            # create (local) worker
+            worker = WorkerPopen(command, key=kwargs.get("key", None),
+                                 handler=handler, timeout=timeo, autoclose=ac)
 
         # schedule worker for execution in this task
         self.schedule(worker)

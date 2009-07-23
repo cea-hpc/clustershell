@@ -1,3 +1,14 @@
+2009-07-23 S. Thiell <stephane.thiell@cea.fr>
+
+	* Replaced popen2.Popen4 (deprecated) by subprocess.Popen (Python 2.4+),
+	renaming Worker.Popen2 to Worker.Popen.
+
+	* clush.py: (backport for 1.1 branch) fix another command_timeout (-u)
+	issue, now the command_timeout value is passed as the timeout value at
+	worker level.
+
+	* Version 1.1 branched.
+
 2009-07-22 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.1 RC 2 released.

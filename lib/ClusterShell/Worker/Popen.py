@@ -33,7 +33,7 @@
 # $Id$
 
 """
-WorkerPopen2
+WorkerPopen
 
 ClusterShell worker for executing local commands.
 """
@@ -47,14 +47,14 @@ import os
 import signal
 
 
-class WorkerPopen2(WorkerSimple):
+class WorkerPopen(WorkerSimple):
     """
-    Implements the Popen2 Worker.
+    Implements the Popen Worker.
     """
 
     def __init__(self, command, key, handler, timeout, autoclose=False):
         """
-        Initialize Popen2 worker.
+        Initialize Popen worker.
         """
         WorkerSimple.__init__(self, None, None, None, key, handler, timeout, autoclose)
 
@@ -76,7 +76,7 @@ class WorkerPopen2(WorkerSimple):
         self.file_writer = self.popen.stdin
 
         if self.task.info("debug", False):
-            self.task.info("print_debug")(self.task, "POPEN2: %s" % self.command)
+            self.task.info("print_debug")(self.task, "POPEN: %s" % self.command)
 
         self._invoke("ev_start")
 
