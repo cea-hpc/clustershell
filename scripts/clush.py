@@ -570,13 +570,17 @@ def clush_main(args):
     if ssh_options:
         task.set_info("ssh_options", ssh_options)
 
+    # Set detailed timeout values
     connect_timeout = config.get_connect_timeout()
     task.set_info("connect_timeout", connect_timeout)
-    timeout = connect_timeout
     command_timeout = config.get_command_timeout()
     task.set_info("command_timeout", command_timeout)
-    if command_timeout > 1e-3:
+
+    # Set timeout at worker level when command_timeout is defined.
+    if command_timeout > 0:
         timeout = command_timeout
+    else:
+        timeout = -1
 
     # Configure custom task related status
     task.set_info("USER_interactive", len(args) == 0 and not options.source_path)
