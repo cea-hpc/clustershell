@@ -311,15 +311,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                 prompt = "clush> "
             else:
                 prompt = ""
-            if sys.version_info[:3] >= (2,4,0):
-                cmd = raw_input(prompt)
-            else:
-                # raw_input defers signals in Python 2.3, (bugs #685846
-                # and #706406) and is not interruptible, so we provide
-                # a quick workaround here (won't have readline support).
-                if prompt:
-                    sys.stdout.write("\r%s" % prompt)
-                cmd = sys.stdin.readline()[:-1]
+            cmd = raw_input(prompt)
         except EOFError:
             print
             return
