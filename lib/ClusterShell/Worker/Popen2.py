@@ -35,7 +35,7 @@
 """
 WorkerPopen2
 
-ClusterShell worker for executing local commands with popen2.
+ClusterShell worker for executing local commands.
 """
 
 from ClusterShell.NodeSet import NodeSet
@@ -44,7 +44,6 @@ from Worker import WorkerSimple
 
 import fcntl
 import os
-import popen2
 import signal
 
 
@@ -63,22 +62,21 @@ class WorkerPopen2(WorkerSimple):
         if not self.command:
             raise WorkerBadArgumentException()
 
-        self.fid = None
+        self.popen = None
         self.rc = None
 
     def _start(self):
         """
         Start worker.
         """
-        assert self.fid is None
+        assert self.popen is None
 
-        cmdlist = ['/bin/sh', '-c', self.command]
-        self.fid = self._exec_nonblock(cmdlist)
-        self.file_reader = self.fid.fromchild
-        self.file_writer = self.fid.tochild
+        self.popen = self._exec_nonblock(self.command, shell=True)
+        self.file_reader = self.popen.stdout
+        self.file_writer = self.popen.stdin
 
         if self.task.info("debug", False):
-            self.task.info("print_debug")(self.task, "POPEN2: [%s]" % ','.join(cmdlist))
+            self.task.info("print_debug")(self.task, "POPEN2: %s" % self.command)
 
         self._invoke("ev_start")
 
@@ -93,26 +91,23 @@ class WorkerPopen2(WorkerSimple):
         rc = -1
         if force or timeout:
             # check if process has terminated
-            status = self.fid.poll()
-            if status == -1:
+            prc = self.popen.poll()
+            if prc is None:
                 # process is still running, kill it
-                os.kill(self.fid.pid, signal.SIGKILL)
+                os.kill(self.popen.pid, signal.SIGKILL)
         else:
             # close process / check if it has terminated
-            status = self.fid.wait()
+            prc = self.popen.wait()
             # get exit status
-            if os.WIFEXITED(status):
+            if prc >= 0:
                 # process exited normally
-                rc = os.WEXITSTATUS(status)
-            elif os.WIFSIGNALED(status):
-                # if process was signaled, return 128 + signum (bash-like)
-                rc = 128 + os.WSTOPSIG(status)
+                rc = prc
             else:
-                # unknown condition
-                rc = 255
+                # if process was signaled, return 128 + signum (bash-like)
+                rc = 128 + -prc
 
-        self.fid.tochild.close()
-        self.fid.fromchild.close()
+        self.popen.stdin.close()
+        self.popen.stdout.close()
 
         if rc >= 0:
             self._on_rc(rc)

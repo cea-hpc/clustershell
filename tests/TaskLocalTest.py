@@ -315,7 +315,7 @@ class TaskLocalTest(unittest.TestCase):
         task.set_info("debug", True)
         task.shell("/bin/true")
         task.resume()
-        self.assertEqual(task.info("user_print_debug_last"), "POPEN2: [/bin/sh,-c,/bin/true]")
+        self.assertEqual(task.info("user_print_debug_last"), "POPEN2: /bin/true")
 
         # remove debug
         task.set_info("debug", False)

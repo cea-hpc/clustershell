@@ -46,7 +46,6 @@ from Worker import DistantWorker, WorkerError
 import errno
 import fcntl
 import os
-import popen2
 import signal
 
 
@@ -97,7 +96,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
         else:
             raise WorkerBadArgumentException()
 
-        self.fid = None
+        self.popen = None
         self.buf = ""
 
     def _engine_clients(self):
@@ -110,9 +109,12 @@ class WorkerPdsh(EngineClient,DistantWorker):
         # Initialize worker read buffer
         self._buf = ""
 
+        pdsh_env = {}
+
         if self.command is not None:
             # Build pdsh command
-            cmd_l = [ self.task.info("pdsh_path") or "pdsh", "-b" ]
+            executable = self.task.info("pdsh_path") or "pdsh"
+            cmd_l = [ executable, "-b" ]
 
             fanout = self.task.info("fanout", 0)
             if fanout > 0:
@@ -123,24 +125,22 @@ class WorkerPdsh(EngineClient,DistantWorker):
             # flag.
             connect_timeout = self.task.info("connect_timeout", 0)
             if connect_timeout > 0:
-                cmd_l.insert(0, 
-                    "PDSH_SSH_ARGS_APPEND=\"-o ConnectTimeout=%d\"" %
-                    connect_timeout)
+                pdsh_env['PDSH_SSH_ARGS_APPEND'] = "-o ConnectTimeout=%d" % \
+                        connect_timeout
 
             command_timeout = self.task.info("command_timeout", 0)
             if command_timeout > 0:
                 cmd_l.append("-u %d" % command_timeout)
 
-            cmd_l.append("-w '%s'" % self.nodes)
-            cmd_l.append("'%s'" % self.command)
-
-            cmd = ' '.join(cmd_l)
+            cmd_l.append("-w %s" % self.nodes)
+            cmd_l.append("%s" % self.command)
 
             if self.task.info("debug", False):
-                self.task.info("print_debug")(self.task, "PDSH: %s" % cmd)
+                self.task.info("print_debug")(self.task, "PDSH: %s" % ' '.join(cmd_l))
         else:
             # Build pdcp command
-            cmd_l = [ self.task.info("pdcp_path") or "pdcp", "-b" ]
+            executable = self.task.info("pdcp_path") or "pdcp"
+            cmd_l = [ executable, "-b" ]
 
             fanout = self.task.info("fanout", 0)
             if fanout > 0:
@@ -150,16 +150,15 @@ class WorkerPdsh(EngineClient,DistantWorker):
             if connect_timeout > 0:
                 cmd_l.append("-t %d" % connect_timeout)
 
-            cmd_l.append("-w '%s'" % self.nodes)
+            cmd_l.append("-w %s" % self.nodes)
 
-            cmd_l.append("'%s'" % self.source)
-            cmd_l.append("'%s'" % self.dest)
-            cmd = ' '.join(cmd_l)
+            cmd_l.append("%s" % self.source)
+            cmd_l.append("%s" % self.dest)
 
             if self.task.info("debug", False):
-                self.task.info("print_debug")(self.task,"PDCP: %s" % cmd)
+                self.task.info("print_debug")(self.task,"PDCP: %s" % ' '.join(cmd_l))
 
-        self.fid = self._exec_nonblock(cmd)
+        self.popen = self._exec_nonblock(cmd_l, env=pdsh_env)
 
         self._on_start()
 
@@ -169,19 +168,19 @@ class WorkerPdsh(EngineClient,DistantWorker):
         """
         Return the reader file descriptor as an integer.
         """
-        return self.fid.fromchild.fileno()
+        return self.popen.stdout.fileno()
     
     def writer_fileno(self):
         """
         Return the writer file descriptor as an integer.
         """
-        return self.fid.tochild.fileno()
+        return self.popen.stdin.fileno()
 
     def _read(self, size=-1):
         """
         Read data from process.
         """
-        result = self.fid.fromchild.read(size)
+        result = self.popen.stdout.read(size)
         if result > 0:
             self._set_reading()
         return result
@@ -199,22 +198,22 @@ class WorkerPdsh(EngineClient,DistantWorker):
         (normal, forced or on timeout).
         """
         if force or timeout:
-            status = self.fid.poll()
-            if status == -1:
+            prc = self.popen.poll()
+            if prc is None:
                 # process is still running, kill it
-                os.kill(self.fid.pid, signal.SIGKILL)
+                os.kill(self.popen.pid, signal.SIGKILL)
             if timeout:
                 self._invoke("ev_timeout")
         else:
-            status = self.fid.wait()
-            if os.WIFEXITED(status):
-                rc = os.WEXITSTATUS(status)
+            prc = self.popen.wait()
+            if prc >= 0:
+                rc = prc
                 if rc != 0:
                     raise WorkerError("Cannot run pdsh (error %d)" % rc)
 
         # close
-        self.fid.tochild.close()
-        self.fid.fromchild.close()
+        self.popen.stdin.close()
+        self.popen.stdout.close()
 
         if timeout:
             for node in (self.nodes - self.closed_nodes):

@@ -42,8 +42,8 @@ it and write data to it.
 """
 
 import fcntl
-import popen2
 import os
+from subprocess import *
 
 from ClusterShell.Engine.Engine import EngineBaseTimer
 
@@ -165,18 +165,25 @@ class EngineClient(EngineBaseTimer):
             else:
                 self._set_writing()
     
-    def _exec_nonblock(self, commandlist):
+    def _exec_nonblock(self, commandlist, shell=False, env=None):
         """
         Utility method to launch a command with stdin/stdout file
         descriptors configured in non-blocking mode.
         """
+        full_env = None
+        if env:
+            full_env = os.environ.copy()
+            full_env.update(env)
+
         # Launch process in non-blocking mode
-        fid = popen2.Popen4(commandlist)
-        fl = fcntl.fcntl(fid.fromchild, fcntl.F_GETFL)
-        fcntl.fcntl(fid.fromchild, fcntl.F_SETFL, os.O_NDELAY)
-        fl = fcntl.fcntl(fid.tochild, fcntl.F_GETFL)
-        fcntl.fcntl(fid.tochild, fcntl.F_SETFL, os.O_NDELAY)
-        return fid
+        proc = Popen(commandlist, bufsize=0, stdin=PIPE, stdout=PIPE,
+                stderr=STDOUT, close_fds=False, shell=shell, env=full_env)
+
+        fcntl.fcntl(proc.stdout, fcntl.F_SETFL,
+                fcntl.fcntl(proc.stdout, fcntl.F_GETFL) | os.O_NDELAY)
+        fcntl.fcntl(proc.stdin, fcntl.F_SETFL,
+                fcntl.fcntl(proc.stdin, fcntl.F_GETFL) | os.O_NDELAY)
+        return proc
 
     def _readlines(self):
         """

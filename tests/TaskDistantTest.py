@@ -305,34 +305,31 @@ class TaskDistantTest(unittest.TestCase):
         # read result
         self.assertEqual(worker.node_buffer("localhost"), "foobar")
 
-    #
-    # FIXME: Uncomment as soon as ticket #26 is fixed.
-    #
-    #def testEscapePdsh(self):
-    #    """test distant worker (pdsh) cmd with escaped variable"""
-    #    task = task_self()
-    #    self.assert_(task != None)
-    #    worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'",
-    #            handler=None, timeout=None)
-    #    self.assert_(worker != None)
-    #    task.set_info("debug", True)
-    #    task.schedule(worker)
-    #    # execute
-    #    task.resume()
-    #    # read result
-    #    self.assertEqual(worker.node_buffer("localhost"), "$CSTEST")
+    def testEscapePdsh(self):
+        """test distant worker (pdsh) cmd with escaped variable"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'",
+                handler=None, timeout=None)
+        self.assert_(worker != None)
+        #task.set_info("debug", True)
+        task.schedule(worker)
+        # execute
+        task.resume()
+        # read result
+        self.assertEqual(worker.node_buffer("localhost"), "$CSTEST")
 
-    #def testEscapePdsh2(self):
-    #    """test distant worker (pdsh) cmd with non-escaped variable"""
-    #    task = task_self()
-    #    self.assert_(task != None)
-    #    worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'",
-    #            handler=None, timeout=None)
-    #    task.schedule(worker)
-    #    # execute
-    #    task.resume()
-    #    # read result
-    #    self.assertEqual(worker.node_buffer("localhost"), "foobar")
+    def testEscapePdsh2(self):
+        """test distant worker (pdsh) cmd with non-escaped variable"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'",
+                handler=None, timeout=None)
+        task.schedule(worker)
+        # execute
+        task.resume()
+        # read result
+        self.assertEqual(worker.node_buffer("localhost"), "foobar")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)

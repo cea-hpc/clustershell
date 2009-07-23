@@ -62,7 +62,7 @@ class Ssh(EngineClient):
 
         self.key = copy.copy(node)
         self.command = command
-        self.fid = None
+        self.popen = None
         self.file_reader = None
         self.file_writer = None
 
@@ -97,9 +97,9 @@ class Ssh(EngineClient):
         if task.info("debug", False):
             task.info("print_debug")(task, "SSH: %s" % ' '.join(cmd_l))
 
-        self.fid = self._exec_nonblock(cmd_l)
-        self.file_reader = self.fid.fromchild
-        self.file_writer = self.fid.tochild
+        self.popen = self._exec_nonblock(cmd_l)
+        self.file_reader = self.popen.stdout
+        self.file_writer = self.popen.stdin
 
         self.worker._on_start()
 
@@ -139,17 +139,17 @@ class Ssh(EngineClient):
         """
         rc = -1
         if force or timeout:
-            status = self.fid.poll()
-            if status == -1:
+            prc = self.popen.poll()
+            if prc is None:
                 # process is still running, kill it
-                os.kill(self.fid.pid, signal.SIGKILL)
+                os.kill(self.popen.pid, signal.SIGKILL)
         else:
-            status = self.fid.wait()
-            if os.WIFEXITED(status):
-                rc = os.WEXITSTATUS(status)
+            prc = self.popen.wait()
+            if prc >= 0:
+                rc = prc
 
-        self.fid.tochild.close()
-        self.fid.fromchild.close()
+        self.popen.stdin.close()
+        self.popen.stdout.close()
 
         if rc >= 0:
             self.worker._on_node_rc(self.key, rc)
@@ -186,7 +186,7 @@ class Scp(Ssh):
         Ssh.__init__(self, node, None, worker, timeout)
         self.source = source
         self.dest = dest
-        self.fid = None
+        self.popen = None
         self.file_reader = None
         self.file_writer = None
 
@@ -223,14 +223,13 @@ class Scp(Ssh):
             cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
         else:
             cmd_l.append("'%s:%s'" % (self.key, self.dest))
-        cmd = ' '.join(cmd_l)
 
         if task.info("debug", False):
-            task.info("print_debug")(task, "SCP: %s" % cmd)
+            task.info("print_debug")(task, "SCP: %s" % ' '.join(cmd_l))
 
-        self.fid = self._exec_nonblock(cmd)
-        self.file_reader = self.fid.fromchild
-        self.file_writer = self.fid.tochild
+        self.popen = self._exec_nonblock(cmd_l)
+        self.file_reader = self.popen.stdout
+        self.file_writer = self.popen.stdin
 
         return self
 
