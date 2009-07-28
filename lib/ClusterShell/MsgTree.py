@@ -38,7 +38,6 @@ MsgTree
 ClusterShell message tree classes.
 """
 
-from sets import Set
 
 class MsgTreeElem:
     """
@@ -78,7 +77,7 @@ class MsgTreeElem:
         if not self.sources:
             self.sources = source.copy()
         else:
-            self.sources.union_update(source)
+            self.sources.update(source)
     
     def _remove_source(self, source):
         """
@@ -99,7 +98,7 @@ class MsgTreeElem:
             self.sources = None
         else:
             # remove source from parent (self)
-            src = Set([ source ])
+            src = set([ source ])
             self._remove_source(src)
 
         # add msg elem to child

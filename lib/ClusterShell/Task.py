@@ -58,6 +58,7 @@ from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
 from Engine.Engine import EngineAlreadyRunningError
 from Engine.Engine import EngineTimer
+from Engine.EPoll import EngineEPoll
 from Engine.Poll import EnginePoll
 from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
@@ -66,7 +67,6 @@ from Worker.Popen import WorkerPopen
 from MsgTree import MsgTreeElem
 from NodeSet import NodeSet
 
-from sets import Set
 import thread
 
 class TaskException(Exception):
@@ -159,7 +159,7 @@ class Task(object):
             # keep max rc
             self._max_rc = 0
             # keep timeout'd sources
-            self._timeout_sources = Set()
+            self._timeout_sources = set()
 
             # create new thread if needed
             if not thread_id:
@@ -340,7 +340,7 @@ class Task(object):
         # store source by rc
         e = self._d_rc_sources.get(rc)
         if e is None:
-            self._d_rc_sources[rc] = Set([source])
+            self._d_rc_sources[rc] = set([source])
         else:
             self._d_rc_sources[rc].add(source)
         

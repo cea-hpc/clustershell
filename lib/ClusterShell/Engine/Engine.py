@@ -39,8 +39,6 @@ An Engine implements a loop your thread enters and uses to call event handlers
 in response to incoming events (from workers, timers, etc.).
 """
 
-from sets import Set
-
 import heapq
 import thread
 import time
@@ -347,7 +345,7 @@ class Engine:
         self.info = info
 
         # keep track of all clients
-        self._clients = Set()
+        self._clients = set()
 
         # keep track of registered clients in a dict where keys are fileno
         # note: len(self.reg_clients) <= configured fanout

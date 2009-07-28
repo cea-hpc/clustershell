@@ -1,3 +1,20 @@
+2009-07-28 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: remove DeprecationWarning ignore filter (the
+	library is now natively Python 2.6/Fedora 11 ready)
+
+	* Change all sets to use built in set type available since Python 2.4
+	(the sets module is deprecated).
+
+	* Engine/EPoll.py: added epoll based Engine (Python 2.6+ needed)
+
+	* Engine/Poll.py: added _register_specific() and
+	_unregister_specific() methods to match modified Engine base class.
+
+	* Engine/Engine.py: added calls to derived class's
+	_register_specific() and _unregister_specific() instead of only
+	_modify_specific()
+
 2009-07-23 S. Thiell <stephane.thiell@cea.fr>
 
 	* Replaced popen2.Popen4 (deprecated) by subprocess.Popen (Python 2.4+),

@@ -56,9 +56,6 @@ import ConfigParser
 
 sys.path.insert(0, '../lib')
 
-import warnings
-warnings.simplefilter('ignore', DeprecationWarning)
-
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.Task import Task, task_self
