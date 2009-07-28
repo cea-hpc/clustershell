@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2009)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -33,9 +33,10 @@
 # $Id$
 
 """
-A poll() based ClusterShell Engine.
+A ClusterShell Engine using epoll, an I/O event notification facility.
 
-The poll() system call is available on Linux and BSD.
+The epoll event distribution interface is available on Linux 2.6, and
+has been included in Python 2.6.
 """
 
 from Engine import *
@@ -51,15 +52,14 @@ import time
 import thread
 
 
-class EnginePoll(Engine):
+class EngineEPoll(Engine):
     """
-    Poll Engine
+    EPoll Engine
 
-    ClusterShell engine using the select.poll mechanism (Linux poll()
-    syscall).
+    ClusterShell Engine class using the select.epoll mechanism.
     """
 
-    identifier = "poll"
+    identifier = "epoll"
 
     def __init__(self, info):
         """
@@ -67,45 +67,49 @@ class EnginePoll(Engine):
         """
         Engine.__init__(self, info)
         try:
-            # get a polling object
-            self.polling = select.poll()
+            # get an epoll object
+            self.epolling = select.epoll()
         except AttributeError:
-            print >> sys.stderr, "Error: select.poll() not supported"
+            print >> sys.stderr, "Error: select.epoll() not supported"
             raise
 
         # runloop-has-exited flag
         self.exited = False
 
     def _register_specific(self, fd, event):
+        """
+        Engine-specific fd registering. Called by Engine register.
+        """
         if event == Engine.E_READABLE:
-            eventmask = select.POLLIN
+            eventmask = select.EPOLLIN
         elif event == Engine.E_WRITABLE:
-            eventmask = select.POLLOUT
+            eventmask = select.EPOLLOUT
 
-        self.polling.register(fd, eventmask)
+        self.epolling.register(fd, eventmask)
 
     def _unregister_specific(self, fd, ev_is_set):
-        if ev_is_set:
-            self.polling.unregister(fd)
+        """
+        Engine-specific fd unregistering. Called by Engine unregister.
+        """
+        self.epolling.unregister(fd)
 
     def _modify_specific(self, fd, event, setvalue):
         """
         Engine-specific modifications after a interesting event change for
-        a file descriptor. Called automatically by Engine register/unregister and
-        set_events().  For the poll() engine, it reg/unreg or modifies the event mask
-        associated to a file descriptor.
+        a file descriptor. Called automatically by Engine set_events().
+        For the epoll engine, it modifies the event mask associated to a file
+        descriptor.
         """
         self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event, setvalue))
 
+        eventmask = 0
         if setvalue:
-            eventmask = 0
             if event == Engine.E_READABLE:
-                eventmask = select.POLLIN
+                eventmask = select.EPOLLIN
             elif event == Engine.E_WRITABLE:
-                eventmask = select.POLLOUT
-            self.polling.register(fd, eventmask)
-        else:
-            self.polling.unregister(fd)
+                eventmask = select.EPOLLOUT
+
+        self.epolling.modify(fd, eventmask)
 
     def set_reading(self, client):
         """
@@ -123,7 +127,7 @@ class EnginePoll(Engine):
 
     def runloop(self, timeout):
         """
-        Poll engine run(): start clients and properly get replies
+        Run epoll main loop.
         """
         if timeout == 0:
             timeout = -1
@@ -144,7 +148,7 @@ class EnginePoll(Engine):
                     timeo = timeout
 
                 self.reg_clients_changed = False
-                evlist = self.polling.poll(timeo * 1000.0 + 1.0)
+                evlist = self.epolling.poll(timeo + 0.001)
 
             except select.error, (ex_errno, ex_strerror):
                 # might get interrupted by a signal
@@ -152,13 +156,10 @@ class EnginePoll(Engine):
                     continue
                 elif ex_errno == errno.EINVAL:
                     print >>sys.stderr, \
-                            "EnginePoll: please increase RLIMIT_NOFILE"
+                            "EngineEPoll: please increase RLIMIT_NOFILE"
                 raise
 
             for fd, event in evlist:
-
-                if event & select.POLLNVAL:
-                    raise EngineException("Caught POLLNVAL on fd %d" % fd)
 
                 if self.reg_clients_changed:
                     self._debug("REG CLIENTS CHANGED - Aborting current evlist")
@@ -175,15 +176,15 @@ class EnginePoll(Engine):
                 client._processing = True
 
                 # check for poll error condition of some sort
-                if event & select.POLLERR:
-                    self._debug("POLLERR %s" % client)
+                if event & select.EPOLLERR:
+                    self._debug("EPOLLERR %s" % client)
                     self.unregister_writer(client)
                     client.file_writer.close()
                     client.file_writer = None
                     continue
 
                 # check for data to read
-                if event & select.POLLIN:
+                if event & select.EPOLLIN:
                     assert client._events & Engine.E_READABLE
                     self.modify(client, 0, Engine.E_READABLE)
                     try:
@@ -195,14 +196,14 @@ class EnginePoll(Engine):
 
                 # or check for end of stream (do not handle both at the same time
                 # because handle_read() may perform a partial read)
-                elif event & select.POLLHUP:
-                    self._debug("POLLHUP fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
+                elif event & select.EPOLLHUP:
+                    self._debug("EPOLLHUP fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
                         client.reader_fileno(), client.writer_fileno()))
                     self.remove(client)
 
                 # check for writing
-                if event & select.POLLOUT:
-                    self._debug("POLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
+                if event & select.EPOLLOUT:
+                    self._debug("EPOLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
                         client.reader_fileno(), client.writer_fileno()))
                     assert client._events & Engine.E_WRITABLE
                     self.modify(client, 0, Engine.E_WRITABLE)

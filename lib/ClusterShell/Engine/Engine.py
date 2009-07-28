@@ -448,13 +448,13 @@ class Engine:
             self.reg_clients_changed = True
             client._events |= Engine.E_READABLE
             self.evlooprefcnt += refcnt_inc
-            self._modify_specific(rfd, Engine.E_READABLE, 1)
+            self._register_specific(rfd, Engine.E_READABLE)
         if wfd != None:
             self.reg_clients[wfd] = client
             self.reg_clients_changed = True
             client._events |= Engine.E_WRITABLE
             self.evlooprefcnt += refcnt_inc
-            self._modify_specific(wfd, Engine.E_WRITABLE, 1)
+            self._register_specific(wfd, Engine.E_WRITABLE)
 
         client._new_events = client._events
 
@@ -470,9 +470,8 @@ class Engine:
 
         wfd = client.writer_fileno()
         if wfd != None:
-            if client._events & Engine.E_WRITABLE:
-                self._modify_specific(wfd, Engine.E_WRITABLE, 0)
-                client._events &= ~Engine.E_WRITABLE
+            self._unregister_specific(wfd, client._events & Engine.E_WRITABLE)
+            client._events &= ~Engine.E_WRITABLE
             del self.reg_clients[wfd]
             self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
@@ -498,18 +497,16 @@ class Engine:
         # clear interest events
         rfd = client.reader_fileno()
         if rfd != None:
-            if client._events & Engine.E_READABLE:
-                self._modify_specific(rfd, Engine.E_READABLE, 0)
-                client._events &= ~Engine.E_READABLE
+            self._unregister_specific(rfd, client._events & Engine.E_READABLE)
+            client._events &= ~Engine.E_READABLE
             del self.reg_clients[rfd]
             self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         wfd = client.writer_fileno()
         if wfd != None:
-            if client._events & Engine.E_WRITABLE:
-                self._modify_specific(wfd, Engine.E_WRITABLE, 0)
-                client._events &= ~Engine.E_WRITABLE
+            self._unregister_specific(wfd, client._events & Engine.E_WRITABLE)
+            client._events &= ~Engine.E_WRITABLE
             del self.reg_clients[wfd]
             self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
