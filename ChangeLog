@@ -1,5 +1,8 @@
 2009-07-29 S. Thiell <stephane.thiell@cea.fr>
 
+	* NodeSet.py: fixed a problem with intersection_update() when used
+	with two simple nodes (no rangeset) [merged from trunk].
+
 	* nodeset.py: fixed -i and -X options issue (trac ticket #29).
 
 2009-07-28 S. Thiell <stephane.thiell@cea.fr>
