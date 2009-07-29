@@ -1026,6 +1026,9 @@ class NodeSet(object):
                 # ignore pattern if empty rangeset
                 if len(rs) > 0:
                     tmp_ns._add_rangeset(pat, rs)
+            elif not irangeset and pat in self._patterns:
+                # intersect two nodes with no rangeset
+                tmp_ns._add_rangeset(pat, None)
 
         # Substitute 
         self._patterns = tmp_ns._patterns

@@ -1,3 +1,13 @@
+2009-07-29 S. Thiell <stephane.thiell@cea.fr>
+
+	* tests/NodeSetScriptTest.py: added unit test for scripts/nodeset.py
+
+	* NodeSet.py: fixed a problem with intersection_update() when used
+	with two simple nodes (no rangeset).
+
+	* scripts/nodeset.py: merge -i and -X options issue fix from 1.1
+	branch (#29)
+
 2009-07-28 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: remove DeprecationWarning ignore filter (the

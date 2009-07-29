@@ -378,6 +378,17 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 1)
         self.assertEqual(str(nodeset), "red")
 
+        nodeset = NodeSet("red")
+        self.assertEqual(len(nodeset), 1)
+        nodeset.intersection_update("red")
+        self.assertEqual(len(nodeset), 1)
+        self.assertEqual(str(nodeset), "red")
+
+        nodeset = NodeSet("red")
+        self.assertEqual(len(nodeset), 1)
+        nodeset.intersection_update("blue")
+        self.assertEqual(len(nodeset), 0)
+
         nodeset = NodeSet("red[78-149]")
         self.assertEqual(len(nodeset), 72)
         nodeset.intersection_update(nodeset)
