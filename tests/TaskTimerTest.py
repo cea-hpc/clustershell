@@ -8,12 +8,12 @@
 
 import copy
 import sys
-from time import time
+from time import sleep, time
 import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.Engine.Engine import EngineIllegalOperationError
+from ClusterShell.Engine.Engine import EngineTimer, EngineIllegalOperationError
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import *
 
@@ -48,6 +48,18 @@ class TaskTimerTest(unittest.TestCase):
         # run task
         task.resume()
         self.assertEqual(test_handler.count, 1)
+
+    def testSimpleTimer2(self):
+        """test simple 2 timers with same fire_date"""
+        task = task_self()
+        self.assert_(task != None)
+        test_handler = self.__class__.TSimpleTimerChecker()
+        timer1 = task.timer(1.0, handler=test_handler)
+        self.assert_(timer1 != None)
+        timer2 = task.timer(1.0, handler=test_handler)
+        self.assert_(timer2 != None)
+        task.resume()
+        self.assertEqual(test_handler.count, 2)
 
     class TRepeaterTimerChecker(EventHandler):
         def __init__(self):
@@ -373,6 +385,31 @@ class TaskTimerTest(unittest.TestCase):
         task.resume()
         self.assertEqual(test_handler.count, 1)
     
+    class TForceDelayedRepeaterChecker(EventHandler):
+        def __init__(self):
+            self.count = 0
+
+        def ev_timer(self, timer):
+            self.count += 1
+            if self.count == 1:
+                # force delay timer (NOT a best practice!)
+                sleep(4)
+                # do not invalidate first time
+            else:
+                # invalidate next time to stop repeater
+                timer.invalidate()
+
+    def testForceDelayedRepeater(self):
+        """test repeater being forcibly delayed"""
+        task = task_self()
+        self.assert_(task != None)
+        test_handler = self.__class__.TForceDelayedRepeaterChecker()
+        repeater1 = task.timer(1.0, interval=0.5, handler=test_handler)
+        self.assert_(repeater1 != None)
+        task.resume()
+        self.assertEqual(test_handler.count, 2)
+
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskTimerTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

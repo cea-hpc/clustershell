@@ -305,6 +305,23 @@ class TaskDistantTest(unittest.TestCase):
         # read result
         self.assertEqual(worker.node_buffer("localhost"), "foobar")
 
+    def testWorkerBuffers(self):
+        """test buffers at worker level"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", nodes='localhost')
+        task.resume()
+
+        cnt = 1
+        for buf, nodes in worker.iter_buffers():
+            cnt -= 1
+            if buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(keys), 1)
+                self.assertEqual(str(nodes), "localhost")
+
+        self.assertEqual(cnt, 0)
+
     #
     # FIXME: Uncomment as soon as ticket #26 is fixed.
     #

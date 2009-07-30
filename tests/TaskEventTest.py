@@ -106,6 +106,22 @@ class TaskEventTest(unittest.TestCase):
 
         eh.do_asserts_timeout()
        
+    class TInFlyAdder(EventHandler):
+        def ev_read(self, worker):
+            # in-fly workers addition
+            other1 = worker.task.shell("/bin/sleep 1")
+            assert other1 != None
+            other2 = worker.task.shell("/bin/sleep 1")
+            assert other2 != None
+
+    def testEngineInFlyAdd(self):
+        """test client add while running (in-fly add)"""
+        task = task_self()
+        self.assert_(task != None)
+        eh = self.__class__.TInFlyAdder()
+        worker = task.shell("/bin/uname", handler=eh)
+        self.assert_(worker != None)
+        task.resume()
 
 
 if __name__ == '__main__':
