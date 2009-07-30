@@ -188,6 +188,16 @@ class TaskLocalTest(unittest.TestCase):
         except TimeoutError:
             self.fail("did detect task timeout")
 
+    def testLocalEmptyBuffer(self):
+        """test task local empty buffer"""
+        task = task_self()
+        self.assert_(task != None)
+        task.shell("/bin/true", key="empty")
+        task.resume()
+        self.assertEqual(task.key_buffer("empty"), '')
+        for buf, keys in task.iter_buffers():
+            self.assert_(False)
+
     def testLocalSingleLineBuffers(self):
         """test task local single line buffers gathering"""
         task = task_self()
@@ -226,13 +236,14 @@ class TaskLocalTest(unittest.TestCase):
         task.shell("/usr/bin/printf 'foo\nbar\n'", key="foobar")
         task.shell("/usr/bin/printf 'foo\nbar\n'", key="foobar2")
         task.shell("/usr/bin/printf 'foo\nbar\n'", key="foobar3")
+        task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", key="foobarX")
         task.shell("/usr/bin/printf 'foo\nfuu\n'", key="foofuu")
         task.shell("/usr/bin/printf 'faa\nber\n'", key="faaber")
         task.shell("/usr/bin/printf 'foo\nfuu\n'", key="foofuu2")
 
         task.resume()
 
-        cnt = 3
+        cnt = 4
         for buf, keys in task.iter_buffers():
             cnt -= 1
             if buf == "faa\nber\n":
@@ -244,6 +255,9 @@ class TaskLocalTest(unittest.TestCase):
             elif buf == "foo\nbar\n":
                 self.assertEqual(len(keys), 3)
                 self.assert_(keys[0].startswith("foobar"))
+            elif buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0].startswith("foobarX"))
 
         self.assertEqual(cnt, 0)
 
@@ -315,10 +329,13 @@ class TaskLocalTest(unittest.TestCase):
         task.set_info("debug", True)
         task.shell("/bin/true")
         task.resume()
-        self.assertEqual(task.info("user_print_debug_last"), "POPEN: /bin/true")
+	self.assertEqual(task.info("user_print_debug_last"), "POPEN: /bin/true")
 
         # remove debug
         task.set_info("debug", False)
+        # re-run for default print debug callback code coverage
+        task.shell("/bin/true")
+        task.resume()
 
     def testLocalRCBufferGathering(self):
         """test task local rc+buffers gathering"""
@@ -427,6 +444,36 @@ class TaskLocalTest(unittest.TestCase):
         task.resume()
         # read result
         self.assertEqual(worker.read(), "foobar")
+
+    def testEngineClients(self):
+        """test Engine.clients() [private]"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("/bin/hostname")
+        self.assert_(worker != None)
+        self.assertEqual(len(task._engine.clients()), 1)
+        task.resume()
+
+    def testSimpleCommandAutoclose(self):
+        """test simple command (autoclose)"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("/bin/sleep 3; /bin/uname", autoclose=True)
+        self.assert_(worker != None)
+        task.resume()
+        self.assertEqual(worker.read(), None)
+
+    def testTwoSimpleCommandsAutoclose(self):
+        """test two simple commands (one autoclosing)"""
+        task = task_self()
+        self.assert_(task != None)
+        worker1 = task.shell("/bin/sleep 2; /bin/echo ok")
+        worker2 = task.shell("/bin/sleep 3; /bin/uname", autoclose=True)
+        self.assert_(worker2 != None)
+        task.resume()
+        self.assertEqual(worker1.read(), "ok")
+        self.assertEqual(worker2.read(), None)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)
