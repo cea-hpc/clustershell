@@ -147,8 +147,9 @@ class GatherOutputHandler(EventHandler):
                 print "clush: %s: exited with exit code %s" % (ns, rc)
 
         # Display nodes that didn't answer within command timeout delay
-        print >>sys.stderr, "clush: %s: command timeout" % \
-                NodeSet.fromlist(worker.iter_keys_timeout())
+        if worker.num_timeout() > 0:
+            print >>sys.stderr, "clush: %s: command timeout" % \
+                    NodeSet.fromlist(worker.iter_keys_timeout())
 
         # Notify main thread to update its prompt
         worker.task.set_info("USER_running", False)
