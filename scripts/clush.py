@@ -75,17 +75,22 @@ class UpdatePromptException(Exception):
 
 class StdInputHandler(EventHandler):
     """Standard input event handler class."""
+
     def __init__(self, worker):
         self.master_worker = worker
+
     def ev_read(self, worker):
         self.master_worker.write(worker.last_read() + '\n')
+
     def ev_close(self, worker):
         self.master_worker.set_write_eof()
 
 class DirectOutputHandler(EventHandler):
     """Direct output event handler class."""
+
     def __init__(self, label=None):
         self._label = label
+
     def ev_read(self, worker):
         t = worker.last_read()
         if type(t) is tuple:
@@ -96,6 +101,7 @@ class DirectOutputHandler(EventHandler):
           print "%s: %s" % (ns, buf)
         else:
           print "%s" % buf
+
     def ev_hup(self, worker):
         if hasattr(worker, "last_retcode"):
             ns, rc = worker.last_retcode()
@@ -103,10 +109,12 @@ class DirectOutputHandler(EventHandler):
             ns = "local"
             rc = worker.retcode()
         if rc > 0:
-            print "clush: %s: exited with exit code %d" % (ns, rc) 
+            print >>sys.stderr, "clush: %s: exited with exit code %d" % (ns, rc) 
 
     def ev_timeout(self, worker):
-        print "clush: %s: command timeout" % worker.last_node()
+        print >>sys.stderr, "clush: %s: command timeout" % \
+                NodeSet.fromlist(worker.iter_keys_timeout())
+
     def ev_close(self, worker):
         # Notify main thread to update its prompt
         worker.task.set_info("USER_running", False)
@@ -115,11 +123,12 @@ class DirectOutputHandler(EventHandler):
 
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
+
     def __init__(self, runtimer):
         self.runtimer = runtimer
 
     def ev_close(self, worker):
-
+        # Worker is closing -- it's time to gather results...
         if self.runtimer:
             self.runtimer.eh.finalize(worker.task.info("USER_interactive"))
 
@@ -127,15 +136,19 @@ class GatherOutputHandler(EventHandler):
         for rc, nodeset in worker.iter_retcodes():
             for buffer, nodeset in worker.iter_buffers(nodeset):
                 print "-" * 15
-                print NodeSet.fromlist(nodeset, autostep=3)
+                print NodeSet.fromlist(nodeset)
                 print "-" * 15
                 print buffer
 
         # Display return code if not ok ( != 0)
         for rc, nodeset in worker.iter_retcodes():
             if rc != 0:
-                ns = NodeSet.fromlist(nodeset, autostep=3)
+                ns = NodeSet.fromlist(nodeset)
                 print "clush: %s: exited with exit code %s" % (ns, rc)
+
+        # Display nodes that didn't answer within command timeout delay
+        print >>sys.stderr, "clush: %s: command timeout" % \
+                NodeSet.fromlist(worker.iter_keys_timeout())
 
         # Notify main thread to update its prompt
         worker.task.set_info("USER_running", False)
@@ -172,6 +185,7 @@ class RunTimer(EventHandler):
 
 class ClushConfigError(Exception):
     """Exception used by the signal handler"""
+
     def __init__(self, section, option, msg):
         self.section = section
         self.option = option
@@ -420,6 +434,13 @@ def run_copy(task, source, dest, ns, timeout):
 
     task.resume()
 
+def clush_exit(n):
+    # Flush stdio buffers
+    for f in [sys.stdout, sys.stderr]:
+        f.flush()
+    # Use os._exit to avoid threads cleanup
+    os._exit(n)
+
 def clush_main(args):
     """Main clush script function"""
 
@@ -615,22 +636,21 @@ def clush_main(args):
                 config.get_verbosity())
     elif task.info("USER_interactive"):
         print >>sys.stderr, "ERROR: interactive mode requires a tty"
-        os._exit(1)
+        clush_exit(1)
 
     # return the command retcode
     if options.maxrc:
-        os._exit(task.max_retcode())
+        clush_exit(task.max_retcode())
     # return clush retcode
     else:
-        os._exit(0)
+        clush_exit(0)
 
 if __name__ == '__main__':
     try:
         clush_main(sys.argv)
     except KeyboardInterrupt:
         print "Keyboard interrupt."
-        # Use os._exit to avoid threads cleanup
-        os._exit(128 + signal.SIGINT)
+        clush_exit(128 + signal.SIGINT)
     except ClushConfigError, e:
         print >>sys.stderr, e
         sys.exit(1)
