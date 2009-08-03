@@ -1,4 +1,14 @@
+2009-08-03 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.1 RC 5 released.
+
 2009-07-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* clush.py: (1) remove /step in displayed nodeset when using -b (to
+	allow copy/paste to other tools like ipmipower that doesn't support
+	N-M/STEP ranges), (2) when command timeout is specified (-u), show
+	nodes (on stderr) that didn't have time to fully complete, (3) flush
+	stdio buffers before exiting.
 
 	* Version 1.1 RC 4 released.
 
