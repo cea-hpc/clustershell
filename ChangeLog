@@ -1,5 +1,7 @@
 2009-08-08 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.1 RC 6 released.
+
 	* Engine: fix fanout definition and set it as the max number of
 	concurrent running engine clients (EngineClient), and not FDs (trac
 	ticket #33).
