@@ -580,7 +580,7 @@ def clush_main(args):
         task.set_info("USER_handle_SIGHUP", False)
 
     task.set_info("debug", config.get_verbosity() >= VERB_DEBUG)
-    task.set_info("fanout", config.get_fanout() * 2)
+    task.set_info("fanout", config.get_fanout())
 
     ssh_user = config.get_ssh_user()
     if ssh_user:
@@ -619,7 +619,7 @@ def clush_main(args):
         op = "command=\"%s\"" % ' '.join(args)
 
     config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout conn=%.1f " \
-            "cmd=%.1f] %s" %  (nodeset_base, task.info("fanout")/2,
+            "cmd=%.1f] %s" %  (nodeset_base, task.info("fanout"),
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
