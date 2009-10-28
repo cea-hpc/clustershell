@@ -216,12 +216,3 @@ class EnginePoll(Engine):
         """
         return not self.running and self.exited
 
-    def join(self):
-        """
-        Block calling thread until runloop has finished.
-        """
-        self.start_lock.acquire()
-        self.start_lock.release()
-        self.run_lock.acquire()
-        self.run_lock.release()
-

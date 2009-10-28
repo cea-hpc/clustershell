@@ -374,6 +374,7 @@ class Engine:
         # clients and timers configured WITHOUT autoclose)
         self.evlooprefcnt = 0
 
+        self.joinable = True
         # thread stuffs
         self.run_lock = thread.allocate_lock()
         self.start_lock = thread.allocate_lock()
@@ -626,6 +627,7 @@ class Engine:
         self.start_all()
 
         # we're started
+        self.joinable = True
         self.start_lock.release()
 
         # note: try-except-finally not supported before python 2.5
@@ -641,6 +643,7 @@ class Engine:
             self.timerq.clear()
 
             # change to idle state
+            self.joinable = False
             self.start_lock.acquire()
             self.run_lock.release()
 
@@ -667,8 +670,13 @@ class Engine:
         Block calling thread until runloop has finished.
         """
         # make sure engine has started first
-        self.start_lock.acquire()
+        if not self.start_lock.acquire(0): # try
+            # check for joinable state
+            if not self.joinable:
+                return
+            self.start_lock.acquire()
         self.start_lock.release()
+
         # joined once run_lock is available
         self.run_lock.acquire()
         self.run_lock.release()

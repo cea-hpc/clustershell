@@ -1,5 +1,8 @@
 2009-10-28 S. Thiell <stephane.thiell@cea.fr>
 
+	* Engine/Engine.py: improve join() logic to fix task_wait() and allow
+	call to task_wait() after completed tasks.
+
 	* NodeSet.py: fix RangeSet.intersection, RangeSet.difference (wrong
 	parameter issue).
 
