@@ -1,5 +1,8 @@
 2009-10-28 S. Thiell <stephane.thiell@cea.fr>
 
+	* NodeSet.py: fix RangeSet.intersection, RangeSet.difference (wrong
+	parameter issue).
+
 	* Task.py: fix called method when using worker.iter_node_retcodes();
 	fix called method when using worker.node_rc().
 

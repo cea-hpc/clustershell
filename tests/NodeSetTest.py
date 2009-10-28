@@ -12,7 +12,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.NodeSet import NodeSet
+from ClusterShell.NodeSet import NodeSet, fold, expand
 
 
 class NodeSetTest(unittest.TestCase):
@@ -615,6 +615,13 @@ class NodeSetTest(unittest.TestCase):
         nodeset.remove("haddock17")
         self.assertEqual(len(nodeset), 0)
 
+    def testClear(self):
+        """test NodeSet clear()"""
+        nodeset = NodeSet("purple[35-39]")
+        self.assertEqual(len(nodeset), 5)
+        nodeset.clear()
+        self.assertEqual(len(nodeset), 0)
+    
     def testContains(self):
         """test NodeSet contains()"""
         nodeset = NodeSet()
@@ -768,6 +775,26 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 997)
         result = nodeset ^ nodeset
         self.assertEqual(len(result), 0)
+
+    def testBinarySanityCheck(self):
+        """test NodeSet binary sanity check"""
+        ns1 = NodeSet("1-5")
+        ns2 = "4-6"
+        self.assertRaises(TypeError, ns1.__and__, ns2)
+
+    def testIsSubSetError(self):
+        """test NodeSet issubset error"""
+        ns1 = NodeSet("1-5")
+        ns2 = 4
+        self.assertRaises(TypeError, ns1.issubset, ns2)
+
+    def testExpandFunction(self):
+        """test expand() utility function"""
+        self.assertEqual(expand("purple[1-3]"), [ "purple1", "purple2", "purple3" ])
+
+    def testFoldFunction(self):
+        """test fold() utility function"""
+        self.assertEqual(fold("purple1,purple2,purple3"), "purple[1-3]")
 
 
 if __name__ == '__main__':
