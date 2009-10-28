@@ -135,15 +135,18 @@ class TaskDistantTest(unittest.TestCase):
         def ev_read(self, worker):
             self.test.assertEqual(self.flags, EV_START)
             self.flags |= EV_READ
+            self.last_node, self.last_read = worker.last_read()
         def ev_written(self, worker):
             self.test.assert_(self.flags & EV_START)
             self.flags |= EV_WRITTEN
         def ev_hup(self, worker):
             self.test.assert_(self.flags & EV_START)
             self.flags |= EV_HUP
+            self.last_rc = worker.last_retcode()
         def ev_timeout(self, worker):
             self.test.assert_(self.flags & EV_START)
             self.flags |= EV_TIMEOUT
+            self.last_node = worker.last_node()
         def ev_close(self, worker):
             self.test.assert_(self.flags & EV_START)
             self.test.assert_(self.flags & EV_CLOSE == 0)
@@ -189,7 +192,7 @@ class TaskDistantTest(unittest.TestCase):
             self.assertEqual(node, "localhost")
         self.assertEqual(count, 1)
 
-    def testShellEventsWithTimeout(self):
+    def testShellEventsWithTimeout2(self):
         """test triggered events (with timeout) (more)"""
         task = task_self()
         self.assert_(task != None)
@@ -313,12 +316,82 @@ class TaskDistantTest(unittest.TestCase):
         worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", nodes='localhost')
         task.resume()
 
-        cnt = 1
+        cnt = 2
         for buf, nodes in worker.iter_buffers():
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
                 self.assertEqual(len(keys), 1)
                 self.assertEqual(str(nodes), "localhost")
+        self.assertEqual(cnt, 1)
+        for buf, nodes in worker.iter_buffers("localhost"):
+            cnt -= 1
+            if buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(keys), 1)
+                self.assertEqual(str(nodes), "localhost")
+        self.assertEqual(cnt, 0)
+
+    def testWorkerNodeBuffers(self):
+        """test iter_node_buffers on distant workers"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", nodes='localhost')
+
+        task.resume()
+
+        cnt = 1
+        for node, buf in worker.iter_node_buffers():
+            cnt -= 1
+            if buf == "foo\nbar\nxxx\n":
+                self.assertEqual(node, "localhost")
+        self.assertEqual(cnt, 0)
+
+    def testWorkerRetcodes(self):
+        """test retcodes on distant workers"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/bin/sh -c 'exit 3'", nodes="localhost")
+
+        task.resume()
+
+        cnt = 2
+        for rc, keys in worker.iter_retcodes():
+            cnt -= 1
+            self.assertEqual(rc, 3)
+            self.assertEqual(len(keys), 1)
+            self.assert_(keys[0] == "localhost")
+
+        self.assertEqual(cnt, 1)
+
+        for rc, keys in worker.iter_retcodes("localhost"):
+            cnt -= 1
+            self.assertEqual(rc, 3)
+            self.assertEqual(len(keys), 1)
+            self.assert_(keys[0] == "localhost")
+
+        self.assertEqual(cnt, 0)
+
+        # test node_rc
+        self.assertEqual(worker.node_rc("localhost"), 3)
+
+        # test max retcode API
+        self.assertEqual(task.max_retcode(), 3)
+
+    def testWorkerNodeRetcodes(self):
+        """test iter_node_retcodes on distant workers"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/bin/sh -c 'exit 3'", nodes="localhost")
+
+        task.resume()
+
+        cnt = 1
+        for node, rc in worker.iter_node_retcodes():
+            cnt -= 1
+            self.assertEqual(rc, 3)
+            self.assertEqual(node, "localhost")
 
         self.assertEqual(cnt, 0)
 

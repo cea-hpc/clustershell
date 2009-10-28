@@ -294,6 +294,7 @@ class Task(object):
         Abort a task.
         """
         assert task_self() == self, "Inter-task abort not implemented yet"
+        self._engine.clear()
         self._engine.abort()
 
     def join(self):
@@ -402,7 +403,7 @@ class Task(object):
         """
         Get a return code by its source (worker, key).
         """
-        return self._d_source_msg.get(source, 0)
+        return self._d_source_rc.get(source, 0)
    
     def _rc_iter_by_key(self, key):
         """
@@ -433,9 +434,10 @@ class Task(object):
         """
         Return an iterator over key, rc for a specific worker.
         """
-        for rc, (w, k) in self._d_rc_sources.iteritems():
-            if w is worker:
-                yield k, rc
+        for rc, src in self._d_rc_sources.iteritems():
+            for w, k in src:
+                if w is worker:
+                    yield k, rc
 
     def _num_timeout_by_worker(self, worker):
         """
@@ -529,12 +531,6 @@ class Task(object):
         else:
             for rc, src in self._d_rc_sources.iteritems():
                 yield rc, [t[1] for t in src]
-
-    def max_retcode(self):
-        """
-        Get max return code encountered during last run.
-        """
-        return self._max_rc
 
     def num_timeout(self):
         """
