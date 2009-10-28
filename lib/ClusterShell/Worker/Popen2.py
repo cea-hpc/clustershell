@@ -80,9 +80,7 @@ class WorkerPopen2(WorkerSimple):
         if self.task.info("debug", False):
             self.task.info("print_debug")(self.task, "POPEN2: [%s]" % ','.join(cmdlist))
 
-        self._invoke("ev_start")
-
-        return self
+        return WorkerSimple._start(self)
 
     def _close(self, force, timeout):
         """
