@@ -17,6 +17,7 @@ sys.path.insert(0, '../lib')
 
 import ClusterShell
 
+from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Worker import WorkerSimple
@@ -498,16 +499,42 @@ class TaskLocalTest(unittest.TestCase):
         task.resume()
         task.set_info("debug", False)
 
-    def testTaskAbort(self):
-        """test task abort"""
-        from ClusterShell.Engine.Engine import EngineAbortException
-        # warning: abort() method not fully supported in 1.1,
-        # use with care and subject to change
-        # test abort() outside handler
+    def testTaskAbortSelf(self):
+        """test task abort self (ouside handler)"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # abort(False) keeps current task_self() object
+        task.abort()
+        self.assert_(task == task_self())
+
+        # abort(True) unbinds current task_self() object
+        task.abort(True)
+        self.assert_(task != task_self())
+
+        # retry
         task = task_self()
         self.assert_(task != None)
         worker = task.shell("/bin/echo shouldnt see that")
-        self.assertRaises(EngineAbortException, task.abort)
+        task.abort()
+        self.assert_(task == task_self())
+
+    def testTaskAbortHandler(self):
+        """test task abort self (inside handler)"""
+
+        class AbortOnReadTestHandler(EventHandler):
+            def ev_read(self, worker):
+                self.has_ev_read = True
+                worker.task.abort()
+                assert False, "Shouldn't reach this line"
+
+        task = task_self()
+        self.assert_(task != None)
+        eh = AbortOnReadTestHandler()
+        eh.has_ev_read = False
+        task.shell("/bin/echo test", handler=eh)
+        task.resume()
+        self.assert_(eh.has_ev_read)
 
     def testTaskScheduleError(self):
         """test task worker schedule error"""
@@ -516,10 +543,7 @@ class TaskLocalTest(unittest.TestCase):
         self.assert_(task != None)
         worker = task.shell("/bin/echo itsme")
         self.assertRaises(WorkerError, task.schedule, worker)
-        try:
-            task.abort()
-        except:
-            pass
+        task.abort()
 
     def testWorkerSetKey(self):
         """test worker set_key()"""

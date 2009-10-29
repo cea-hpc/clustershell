@@ -54,6 +54,8 @@ class EngineAbortException(EngineException):
     """
     Raised on user abort.
     """
+    def __init__(self, kill):
+        self.kill = kill
 
 class EngineTimeoutException(EngineException):
     """
@@ -653,17 +655,14 @@ class Engine:
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def abort(self):
+    def abort(self, kill):
         """
-        Abort task's running loop.
+        Abort runloop.
         """
-        raise EngineAbortException()
-
-    def exited(self):
-        """
-        Return True if the engine has exited the runloop once.
-        """
-        raise NotImplementedError("Derived classes must implement.")
+        if not self.start_lock.locked() and self.joinable:
+            raise EngineAbortException(kill)
+        else:
+            self.clear()
 
     def join(self):
         """

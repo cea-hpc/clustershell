@@ -1,3 +1,10 @@
+2009-10-29 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: fix/improve task.abort() so that it can also work when the
+	task is not running (eg. not from an event handler). Added optional
+	parameter `kill' to allow deletion of the task object itself. Added
+	tests.
+
 2009-10-28 S. Thiell <stephane.thiell@cea.fr>
 
 	* Engine/Engine.py: improve join() logic to fix task_wait() and allow

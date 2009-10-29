@@ -282,20 +282,39 @@ class Task(object):
                 self._engine.run(timeout)
             except EngineTimeoutException:
                 raise TimeoutError()
-            except EngineAbortException:
-                pass
+            except EngineAbortException, e:
+                self._terminate(e.kill)
             except EngineAlreadyRunningError:
                 raise AlreadyRunningError()
             except:
                 raise
 
-    def abort(self):
+    def abort(self, kill=False):
         """
-        Abort a task.
+        Abort a task. Aborting a task removes (and stops when needed)
+        all workers. If optional parameter kill is True, the task
+        object is unbound from the current thread, so calling
+        task_self() creates a new Task object.
         """
+        # Aborting a task from another thread (ie. not the thread
+        # bound to task) will be supported through the inter-task msg
+        # API (trac #21).
         assert task_self() == self, "Inter-task abort not implemented yet"
-        self._engine.clear()
-        self._engine.abort()
+        
+        # Raise an EngineAbortException when task is running.
+        self._engine.abort(kill)
+
+        # Called directly when task is not running.
+        self._terminate(kill)
+
+    def _terminate(self, kill):
+        """
+        Abort completion subroutine.
+        """
+        self._reset()
+
+        if kill:
+            del self.__class__._tasks[thread.get_ident()]
 
     def join(self):
         """
@@ -306,7 +325,7 @@ class Task(object):
 
     def _reset(self):
         """
-        Reset buffers and retcodes managment variables.
+        Reset buffers and retcodes management variables.
         """
         self._msg_root = MsgTreeElem()
         self._d_source_msg = {}
