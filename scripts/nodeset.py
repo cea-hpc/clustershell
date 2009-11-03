@@ -79,7 +79,7 @@ sys.path.insert(0, '../lib')
 
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.NodeSet import RangeSet, RangeSetParseError
-from ClusterShell import version
+from ClusterShell import __version__
 
 
 def run_nodeset(args):
@@ -134,7 +134,7 @@ def run_nodeset(args):
         elif k in ("-q", "--quiet"):
             quiet = True
         elif k in ("-v", "--version"):
-            print version
+            print __version__
             sys.exit(0)
         elif k in ("-x", "--exclude"):
             excludes.update(class_set(v))
