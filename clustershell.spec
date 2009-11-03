@@ -1,5 +1,7 @@
+# You must defined vim_version according to your Linux distribution, eg.
+# vim_version=70 for CentOS 5
 %define name clustershell
-%define release 1%{dist}
+%define release 1%{?dist}
 
 Summary: ClusterShell Python framework
 Name: %{name}

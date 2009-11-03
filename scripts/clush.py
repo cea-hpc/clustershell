@@ -63,7 +63,7 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.Task import Task, task_self
 from ClusterShell.Worker.Worker import WorkerSimple
-from ClusterShell import version
+from ClusterShell import __version__
 
 VERB_QUIET = 0
 VERB_STD = 1
@@ -453,7 +453,7 @@ def clush_main(args):
     #
     usage = "%prog [options] command"
 
-    parser = optparse.OptionParser(usage, version="%%prog %s" % version)
+    parser = optparse.OptionParser(usage, version="%%prog %s" % __version__)
     parser.disable_interspersed_args()
 
     # Node selections
