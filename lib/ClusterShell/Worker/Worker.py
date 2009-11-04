@@ -98,6 +98,12 @@ class Worker(object):
         """
         raise NotImplementedError("Derived classes must implement.")
 
+    def last_error(self):
+        """
+        Get last error message from event handler.
+        """
+        raise NotImplementedError("Derived classes must implement.")
+
     def abort(self):
         """
         Stop this worker.
@@ -144,6 +150,17 @@ class DistantWorker(Worker):
 
         self._invoke("ev_read")
 
+    def _on_node_errline(self, node, msg):
+        """
+        Error message received from node, update last* stuffs.
+        """
+        self._last_node = node
+        self._last_errmsg = msg
+
+        self.task._errmsg_add((self, node), msg)
+
+        self._invoke("ev_error")
+
     def _on_node_rc(self, node, rc):
         """
         Return code received from a node, update last* stuffs.
@@ -177,6 +194,12 @@ class DistantWorker(Worker):
         """
         return self._last_node, self._last_msg
 
+    def last_error(self):
+        """
+        Get last (node, error_buffer), useful in an EventHandler.ev_error()
+        """
+        return self._last_node, self._last_errmsg
+
     def last_retcode(self):
         """
         Get last (node, rc), useful in an EventHandler.ev_hup()
@@ -189,6 +212,12 @@ class DistantWorker(Worker):
         """
         return self.task._msg_by_source((self, node))
         
+    def node_error_buffer(self, node):
+        """
+        Get specific node error buffer.
+        """
+        return self.task._errmsg_by_source((self, node))
+
     def node_rc(self, node):
         """
         Get specific node return code.
@@ -209,6 +238,12 @@ class DistantWorker(Worker):
         Returns an iterator over each node and associated buffer.
         """
         return self.task._kmsg_iter_by_worker(self)
+
+    def iter_node_errors(self):
+        """
+        Returns an iterator over each node and associated error buffer.
+        """
+        return self.task._kerrmsg_iter_by_worker(self)
 
     def iter_retcodes(self, match_keys=None):
         """
@@ -243,12 +278,13 @@ class WorkerSimple(EngineClient,Worker):
     Implements a simple Worker being itself an EngineClient.
     """
 
-    def __init__(self, file_reader, file_writer, file_error, key, handler, timeout, autoclose=False):
+    def __init__(self, file_reader, file_writer, file_error, key, handler,
+            stderr=False, timeout=-1, autoclose=False):
         """
         Initialize worker.
         """
         Worker.__init__(self, handler)
-        EngineClient.__init__(self, self, timeout, autoclose)
+        EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
         self.last_msg = None
         self.key = key or self
@@ -277,11 +313,20 @@ class WorkerSimple(EngineClient,Worker):
 
         return self
 
+    def error_fileno(self):
+        """
+        Returns the standard error reader file descriptor as an integer.
+        """
+        if self.file_error and not self.file_error.closed:
+            return self.file_error.fileno()
+
+        return None
+
     def reader_fileno(self):
         """
         Returns the reader file descriptor as an integer.
         """
-        if self.file_reader:
+        if self.file_reader and not self.file_reader.closed:
             return self.file_reader.fileno()
 
         return None
@@ -290,7 +335,7 @@ class WorkerSimple(EngineClient,Worker):
         """
         Returns the writer file descriptor as an integer.
         """
-        if self.file_writer:
+        if self.file_writer and not self.file_writer.closed:
             return self.file_writer.fileno()
         
         return None
@@ -304,6 +349,16 @@ class WorkerSimple(EngineClient,Worker):
         if not len(result):
             raise EngineClientEOF()
         self._set_reading()
+        return result
+
+    def _readerr(self, size=4096):
+        """
+        Read data from process.
+        """
+        result = self.file_error.read(size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading_error()
         return result
 
     def _close(self, force, timeout):
@@ -326,7 +381,7 @@ class WorkerSimple(EngineClient,Worker):
 
     def _handle_read(self):
         """
-        Engine is telling us a read is available.
+        Engine is telling us there is data available for reading.
         """
         debug = self.task.info("debug", False)
         if debug:
@@ -336,6 +391,19 @@ class WorkerSimple(EngineClient,Worker):
             if debug:
                 print_debug(self.task, "LINE %s" % msg)
             self._on_msgline(msg)
+
+    def _handle_error(self):
+        """
+        Engine is telling us there is error available for reading.
+        """
+        debug = self.task.info("debug", False)
+        if debug:
+            print_debug = self.task.info("print_debug")
+
+        for msg in self._readerrlines():
+            if debug:
+                print_debug(self.task, "LINE@STDERR %s" % msg)
+            self._on_errmsgline(msg)
 
     def last_read(self):
         """
@@ -354,6 +422,18 @@ class WorkerSimple(EngineClient,Worker):
         self.task._msg_add((self, self.key), msg)
 
         self._invoke("ev_read")
+
+    def _on_errmsgline(self, msg):
+        """
+        Add a message.
+        """
+        # add last msg to local buffer
+        self.last_errmsg = msg
+
+        # update task
+        self.task._errmsg_add((self, self.key), msg)
+
+        self._invoke("ev_error")
 
     def _on_timeout(self):
         """

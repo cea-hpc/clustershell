@@ -130,3 +130,87 @@ class MsgTreeElem:
         # concat buffers
         return '\n'.join(rmsgs)
 
+class MsgTree:
+
+    def __init__(self):
+        # root of msg tree
+        self._root = MsgTreeElem()
+        # dict of sources to msg tree elements
+        self._d_source_msg = {}
+
+    def reset(self):
+        """
+        Reset tree buffers.
+        """
+        self._root = MsgTreeElem()
+        self._d_source_msg = {}
+
+    def add(self, source, msg):
+        """
+        Add a worker message associated with a source.
+        """
+        # try first to get current element in msgs tree
+        e_msg = self._d_source_msg.get(source)
+        if not e_msg:
+            # key not found (first msg from it)
+            e_msg = self._root
+
+        # add child msg and update dict
+        self._d_source_msg[source] = e_msg.add_msg(source, msg)
+
+    def iter_buffers(self, match_keys=None):
+        """
+        Iterate over buffers, returns a tuple (buffer, keys).
+        """
+        if match_keys:
+            for e in self._root:
+                keys = [t[1] for t in e.sources if t[1] in match_keys]
+                if keys:
+                    yield e.message(), keys
+        else:
+            for e in self._root:
+                yield e.message(), [t[1] for t in e.sources]
+            
+    def get_by_source(self, source):
+        """
+        Get a message by its source.
+        """
+        e_msg = self._d_source_msg.get(source)
+
+        if e_msg is None:
+            return None
+
+        return e_msg.message()
+
+    def iter_by_key(self, key):
+        """
+        Return an iterator over stored messages for the given key.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if k == key:
+                yield e.message()
+
+    def iter_by_worker(self, worker, match_keys=None):
+        """
+        Return an iterator over messages and keys list for a specific
+        worker and optional matching keys.
+        """
+        if match_keys:
+            for e in self._root:
+                keys = [t[1] for t in e.sources if t[0] is worker and t[1] in match_keys]
+                if len(keys) > 0:
+                    yield e.message(), keys
+        else:
+            for e in self._root:
+                keys = [t[1] for t in e.sources if t[0] is worker]
+                if len(keys) > 0:
+                    yield e.message(), keys
+
+    def iterkey_by_worker(self, worker):
+        """
+        Return an iterator over key, message for a specific worker.
+        """
+        for (w, k), e in self._d_source_msg.iteritems():
+            if w is worker:
+                yield k, e.message()
+ 

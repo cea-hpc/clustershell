@@ -52,11 +52,13 @@ class WorkerPopen(WorkerSimple):
     Implements the Popen Worker.
     """
 
-    def __init__(self, command, key, handler, timeout, autoclose=False):
+    def __init__(self, command, key=None, handler=None,
+        stderr=False, timeout=-1, autoclose=False):
         """
         Initialize Popen worker.
         """
-        WorkerSimple.__init__(self, None, None, None, key, handler, timeout, autoclose)
+        WorkerSimple.__init__(self, None, None, None, key, handler,
+            stderr, timeout, autoclose)
 
         self.command = command
         if not self.command:
@@ -73,6 +75,7 @@ class WorkerPopen(WorkerSimple):
 
         self.popen = self._exec_nonblock(self.command, shell=True)
         self.file_reader = self.popen.stdout
+        self.file_error = self.popen.stderr
         self.file_writer = self.popen.stdin
 
         if self.task.info("debug", False):

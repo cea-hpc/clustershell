@@ -64,7 +64,7 @@ from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
 from Worker.Popen import WorkerPopen
 
-from MsgTree import MsgTreeElem
+from MsgTree import MsgTree
 from NodeSet import NodeSet
 
 import thread
@@ -121,7 +121,8 @@ class Task(object):
                       "print_debug"     : _task_print_debug,
                       "fanout"          : 32,
                       "connect_timeout" : 10,
-                      "command_timeout" : 0 }
+                      "command_timeout" : 0,
+                      "default_stderr"  : False }
     _tasks = {}
 
     def __new__(cls, thread_id=None):
@@ -145,13 +146,16 @@ class Task(object):
             # first time called
             self._info = self.__class__._default_info.copy()
             self._engine = EnginePoll(self._info)
+            #self._engine = EngineEPoll(self._info)
             self.timeout = 0
             self.l_run = None
 
-            # root of msg tree
-            self._msg_root = MsgTreeElem()
-            # dict of sources to msg tree elements
-            self._d_source_msg = {}
+            # STDIN tree
+            self._msgtree = MsgTree()
+
+            # STDERR tree
+            self._errtree = MsgTree()
+
             # dict of sources to return codes
             self._d_source_rc = {}
             # dict of return codes to sources
@@ -206,18 +210,21 @@ class Task(object):
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
         ac = kwargs.get("autoclose", False)
+        stderr = kwargs.get("stderr", self._info["default_stderr"])
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \
                     "'key' argument not supported for distant command"
 
             # create ssh-based worker
-            worker = WorkerSsh(NodeSet(kwargs["nodes"]), handler=handler,
-                               timeout=timeo, command=command, autoclose=ac)
+            worker = WorkerSsh(NodeSet(kwargs["nodes"]), command=command,
+                               handler=handler, stderr=stderr, timeout=timeo,
+                               autoclose=ac)
         else:
             # create (local) worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
-                                 handler=handler, timeout=timeo, autoclose=ac)
+                                 handler=handler, stderr=stderr, timeout=timeo,
+                                 autoclose=ac)
 
         # schedule worker for execution in this task
         self.schedule(worker)
@@ -233,7 +240,7 @@ class Task(object):
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
 
-        # create a new Pdcp worker (supported by WorkerPdsh)
+        # create a new copy worker
         worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
                 timeout=timeo)
 
@@ -307,8 +314,8 @@ class Task(object):
         """
         Reset buffers and retcodes managment variables.
         """
-        self._msg_root = MsgTreeElem()
-        self._d_source_msg = {}
+        self._msgtree.reset()
+        self._errtree.reset()
         self._d_source_rc = {}
         self._d_rc_sources = {}
         self._max_rc = 0
@@ -318,14 +325,13 @@ class Task(object):
         """
         Add a worker message associated with a source.
         """
-        # try first to get current element in msgs tree
-        e_msg = self._d_source_msg.get(source)
-        if not e_msg:
-            # key not found (first msg from it)
-            e_msg = self._msg_root
+        self._msgtree.add(source, msg)
 
-        # add child msg and update dict
-        self._d_source_msg[source] = e_msg.add_msg(source, msg)
+    def _errmsg_add(self, source, msg):
+        """
+        Add a worker error message associated with a source.
+        """
+        self._errtree.add(source, msg)
 
     def _rc_set(self, source, rc, override=True):
         """
@@ -359,50 +365,57 @@ class Task(object):
         """
         Get a message by its source (worker, key).
         """
-        e_msg = self._d_source_msg.get(source)
+        return self._msgtree.get_by_source(source)
 
-        if e_msg is None:
-            return None
-
-        return e_msg.message()
+    def _errmsg_by_source(self, source):
+        """
+        Get an error message by its source (worker, key).
+        """
+        return self._errtree.get_by_source(source)
 
     def _msg_iter_by_key(self, key):
         """
         Return an iterator over stored messages for the given key.
         """
-        for (w, k), e in self._d_source_msg.iteritems():
-            if k == key:
-                yield e.message()
+        return self._msgtree.iter_by_key(key)
+
+    def _errmsg_iter_by_key(self, key):
+        """
+        Return an iterator over stored error messages for the given key.
+        """
+        return self._errtree.iter_by_key()
 
     def _msg_iter_by_worker(self, worker, match_keys=None):
         """
         Return an iterator over messages and keys list for a specific
         worker and optional matching keys.
         """
-        if match_keys:
-            for e in self._msg_root:
-                keys = [t[1] for t in e.sources if t[0] is worker and t[1] in match_keys]
-                if len(keys) > 0:
-                    yield e.message(), keys
-        else:
-            for e in self._msg_root:
-                keys = [t[1] for t in e.sources if t[0] is worker]
-                if len(keys) > 0:
-                    yield e.message(), keys
+        return self._msgtree.iter_by_worker(worker, match_keys)
+
+    def _errmsg_iter_by_worker(self, worker, match_keys=None):
+        """
+        Return an iterator over error messages and keys list for a specific
+        worker and optional matching keys.
+        """
+        return self._errtree.iter_by_worker(worker, match_keys)
 
     def _kmsg_iter_by_worker(self, worker):
         """
         Return an iterator over key, message for a specific worker.
         """
-        for (w, k), e in self._d_source_msg.iteritems():
-            if w is worker:
-                yield k, e.message()
+        return self._msgtree.iterkey_by_worker(worker)
  
+    def _kerrmsg_iter_by_worker(self, worker):
+        """
+        Return an iterator over key, err_message for a specific worker.
+        """
+        return self._errtree.iterkey_by_worker(worker)
+    
     def _rc_by_source(self, source):
         """
         Get a return code by its source (worker, key).
         """
-        return self._d_source_msg.get(source, 0)
+        return self._d_source_rc.get(source, 0)
    
     def _rc_iter_by_key(self, key):
         """
@@ -501,14 +514,15 @@ class Task(object):
                 print NodeSet.fromlist(nodelist)
                 print buffer
         """
-        if match_keys:
-            for e in self._msg_root:
-                keys = [t[1] for t in e.sources if t[1] in match_keys]
-                if keys:
-                    yield e.message(), keys
-        else:
-            for e in self._msg_root:
-                yield e.message(), [t[1] for t in e.sources]
+        return self._msgtree.iter_buffers(match_keys)
+
+    def iter_errors(self, match_keys=None):
+        """
+        Iterate over error buffers, returns a tuple (buffer, keys).
+
+        See iter_buffers().
+        """
+        return self._errtree.iter_buffers(match_keys)
             
     def iter_retcodes(self, match_keys=None):
         """

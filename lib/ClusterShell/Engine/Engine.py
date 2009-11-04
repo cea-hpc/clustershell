@@ -333,9 +333,10 @@ class Engine:
     """
 
     # Engine client I/O event interest bits
-    E_READABLE = 0x1
-    E_WRITABLE = 0x2
-    E_ANY = 0x3
+    E_READ = 0x1
+    E_ERROR = 0x2
+    E_WRITE = 0x4
+    E_ANY = E_READ | E_ERROR | E_WRITE
 
     def __init__(self, info):
         """
@@ -378,6 +379,21 @@ class Engine:
         Get a copy of clients set.
         """
         return self._clients.copy()
+
+    def _fd2client(self, fd):
+        fdev = None
+        client = self.reg_clients.get(fd)
+        if client:
+            try:
+                if fd == client.reader_fileno():
+                    fdev = Engine.E_READ
+                elif fd == client.error_fileno():
+                    fdev = Engine.E_ERROR
+                elif fd == client.writer_fileno():
+                    fdev = Engine.E_WRITE
+            except:
+                return (client, Engine.E_ERROR)
+        return (client, fdev)
 
     def add(self, client):
         """
@@ -426,12 +442,14 @@ class Engine:
         assert client in self._clients
         assert not client.registered
 
+        efd = client.error_fileno()
         rfd = client.reader_fileno()
         wfd = client.writer_fileno()
         assert rfd != None or wfd != None
 
-        self._debug("REG %s(r%s,w%s)(autoclose=%s)" % (client.__class__.__name__,
-            rfd, wfd, client.autoclose))
+        self._debug("REG %s(e%s,r%s,w%s)(autoclose=%s)" % \
+                (client.__class__.__name__, efd, rfd, wfd,
+                    client.autoclose))
 
         client._events = 0
         client.registered = True
@@ -441,18 +459,24 @@ class Engine:
         else:
             refcnt_inc = 1
 
+        if efd != None:
+            self.reg_clients[efd] = client
+            self.reg_clients_changed = True
+            client._events |= Engine.E_ERROR
+            self.evlooprefcnt += refcnt_inc
+            self._register_specific(efd, Engine.E_ERROR)
         if rfd != None:
             self.reg_clients[rfd] = client
             self.reg_clients_changed = True
-            client._events |= Engine.E_READABLE
+            client._events |= Engine.E_READ
             self.evlooprefcnt += refcnt_inc
-            self._register_specific(rfd, Engine.E_READABLE)
+            self._register_specific(rfd, Engine.E_READ)
         if wfd != None:
             self.reg_clients[wfd] = client
             self.reg_clients_changed = True
-            client._events |= Engine.E_WRITABLE
+            client._events |= Engine.E_WRITE
             self.evlooprefcnt += refcnt_inc
-            self._register_specific(wfd, Engine.E_WRITABLE)
+            self._register_specific(wfd, Engine.E_WRITE)
 
         client._new_events = client._events
 
@@ -468,8 +492,8 @@ class Engine:
 
         wfd = client.writer_fileno()
         if wfd != None:
-            self._unregister_specific(wfd, client._events & Engine.E_WRITABLE)
-            client._events &= ~Engine.E_WRITABLE
+            self._unregister_specific(wfd, client._events & Engine.E_WRITE)
+            client._events &= ~Engine.E_WRITE
             del self.reg_clients[wfd]
             self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
@@ -481,8 +505,9 @@ class Engine:
         """
         # sanity check
         assert client.registered
-        self._debug("UNREG %s (r%s,w%s)" % (client.__class__.__name__,
-            client.reader_fileno(), client.writer_fileno()))
+        self._debug("UNREG %s (r%s,e%s,w%s)" % (client.__class__.__name__,
+            client.reader_fileno(), client.error_fileno(),
+            client.writer_fileno()))
         
         # remove timeout timer
         self.timerq.invalidate(client)
@@ -493,18 +518,26 @@ class Engine:
             refcnt_inc = 1
             
         # clear interest events
+        efd = client.error_fileno()
+        if efd != None:
+            self._unregister_specific(efd, client._events & Engine.E_ERROR)
+            client._events &= ~Engine.E_ERROR
+            del self.reg_clients[efd]
+            self.reg_clients_changed = True
+            self.evlooprefcnt -= refcnt_inc
+
         rfd = client.reader_fileno()
         if rfd != None:
-            self._unregister_specific(rfd, client._events & Engine.E_READABLE)
-            client._events &= ~Engine.E_READABLE
+            self._unregister_specific(rfd, client._events & Engine.E_READ)
+            client._events &= ~Engine.E_READ
             del self.reg_clients[rfd]
             self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         wfd = client.writer_fileno()
         if wfd != None:
-            self._unregister_specific(wfd, client._events & Engine.E_WRITABLE)
-            client._events &= ~Engine.E_WRITABLE
+            self._unregister_specific(wfd, client._events & Engine.E_WRITE)
+            client._events &= ~Engine.E_WRITE
             del self.reg_clients[wfd]
             self.reg_clients_changed = True
             self.evlooprefcnt -= refcnt_inc
@@ -545,25 +578,35 @@ class Engine:
             return
 
         # configure interest events as appropriate
+        efd = client.error_fileno()
+        if efd != None:
+            if chgbits & Engine.E_ERROR:
+                status = new_events & Engine.E_ERROR
+                self._modify_specific(efd, Engine.E_ERROR, status)
+                if status:
+                    client._events |= Engine.E_ERROR
+                else:
+                    client._events &= ~Engine.E_ERROR
+
         rfd = client.reader_fileno()
         if rfd != None:
-            if chgbits & Engine.E_READABLE:
-                status = new_events & Engine.E_READABLE
-                self._modify_specific(rfd, Engine.E_READABLE, status)
+            if chgbits & Engine.E_READ:
+                status = new_events & Engine.E_READ
+                self._modify_specific(rfd, Engine.E_READ, status)
                 if status:
-                    client._events |= Engine.E_READABLE
+                    client._events |= Engine.E_READ
                 else:
-                    client._events &= ~Engine.E_READABLE
+                    client._events &= ~Engine.E_READ
 
         wfd = client.writer_fileno()
         if wfd != None:
-            if chgbits & Engine.E_WRITABLE:
-                status = new_events & Engine.E_WRITABLE
-                self._modify_specific(wfd, Engine.E_WRITABLE, status)
+            if chgbits & Engine.E_WRITE:
+                status = new_events & Engine.E_WRITE
+                self._modify_specific(wfd, Engine.E_WRITE, status)
                 if status:
-                    client._events |= Engine.E_WRITABLE
+                    client._events |= Engine.E_WRITE
                 else:
-                    client._events &= ~Engine.E_WRITABLE
+                    client._events &= ~Engine.E_WRITE
 
         client._new_events = client._events
 
@@ -664,4 +707,5 @@ class Engine:
 
     def _debug(self, s):
         # library engine debugging hook
+        #print s
         pass

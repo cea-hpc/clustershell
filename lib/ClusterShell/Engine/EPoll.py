@@ -80,9 +80,9 @@ class EngineEPoll(Engine):
         """
         Engine-specific fd registering. Called by Engine register.
         """
-        if event == Engine.E_READABLE:
+        if event & (Engine.E_READ | Engine.E_ERROR):
             eventmask = select.EPOLLIN
-        elif event == Engine.E_WRITABLE:
+        elif event == Engine.E_WRITE:
             eventmask = select.EPOLLOUT
 
         self.epolling.register(fd, eventmask)
@@ -104,9 +104,9 @@ class EngineEPoll(Engine):
 
         eventmask = 0
         if setvalue:
-            if event == Engine.E_READABLE:
+            if event == Engine.E_READ:
                 eventmask = select.EPOLLIN
-            elif event == Engine.E_WRITABLE:
+            elif event == Engine.E_WRITE:
                 eventmask = select.EPOLLOUT
 
         self.epolling.modify(fd, eventmask)
@@ -116,14 +116,21 @@ class EngineEPoll(Engine):
         Set client reading state.
         """
         # listen for readable events
-        self.modify(client, Engine.E_READABLE, 0)
+        self.modify(client, Engine.E_READ, 0)
+
+    def set_reading_error(self, client):
+        """
+        Set client reading error state.
+        """
+        # listen for readable events
+        self.modify(client, Engine.E_ERROR, 0)
 
     def set_writing(self, client):
         """
         Set client writing state.
         """
         # listen for writable events
-        self.modify(client, Engine.E_WRITABLE, 0)
+        self.modify(client, Engine.E_WRITE, 0)
 
     def runloop(self, timeout):
         """
@@ -170,7 +177,10 @@ class EngineEPoll(Engine):
                 if not self.reg_clients.has_key(fd):
                     continue
 
-                client = self.reg_clients[fd]
+                # get client instance
+                client, fdev = self._fd2client(fd)
+                if not client or fdev is None:
+                    continue
 
                 # process this client
                 client._processing = True
@@ -185,10 +195,13 @@ class EngineEPoll(Engine):
 
                 # check for data to read
                 if event & select.EPOLLIN:
-                    assert client._events & Engine.E_READABLE
-                    self.modify(client, 0, Engine.E_READABLE)
+                    assert client._events & Engine.E_READ
+                    self.modify(client, 0, Engine.E_READ)
                     try:
-                        client._handle_read()
+                        if fdev & Engine.E_READ:
+                            client._handle_read()
+                        else:
+                            client._handle_error()
                     except EngineClientEOF, e:
                         self._debug("EngineClientEOF %s" % client)
                         self.remove(client)
@@ -199,14 +212,26 @@ class EngineEPoll(Engine):
                 elif event & select.EPOLLHUP:
                     self._debug("EPOLLHUP fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
                         client.reader_fileno(), client.writer_fileno()))
-                    self.remove(client)
+                    client._processing = False
+
+                    if fdev & Engine.E_READ:
+                        if client._events & Engine.E_ERROR:
+                            self.modify(client, 0, fdev)
+                        else:
+                            self.remove(client)
+                    else:
+                        if client._events & Engine.E_READ:
+                            self.modify(client, 0, fdev)
+                        else:
+                            self.remove(client)
+                    continue
 
                 # check for writing
                 if event & select.EPOLLOUT:
                     self._debug("EPOLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
                         client.reader_fileno(), client.writer_fileno()))
-                    assert client._events & Engine.E_WRITABLE
-                    self.modify(client, 0, Engine.E_WRITABLE)
+                    assert client._events & Engine.E_WRITE
+                    self.modify(client, 0, Engine.E_WRITE)
                     client._handle_write()
 
                 # post processing

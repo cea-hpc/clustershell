@@ -54,15 +54,16 @@ class Ssh(EngineClient):
     Ssh EngineClient.
     """
 
-    def __init__(self, node, command, worker, timeout, autoclose=False):
+    def __init__(self, node, command, worker, stderr, timeout, autoclose=False):
         """
         Initialize Ssh EngineClient instance.
         """
-        EngineClient.__init__(self, worker, timeout, autoclose)
+        EngineClient.__init__(self, worker, stderr, timeout, autoclose)
 
         self.key = copy.copy(node)
         self.command = command
         self.popen = None
+        self.file_error = None
         self.file_reader = None
         self.file_writer = None
 
@@ -98,12 +99,21 @@ class Ssh(EngineClient):
             task.info("print_debug")(task, "SSH: %s" % ' '.join(cmd_l))
 
         self.popen = self._exec_nonblock(cmd_l)
+        self.file_error = self.popen.stderr
         self.file_reader = self.popen.stdout
         self.file_writer = self.popen.stdin
 
         self.worker._on_start()
 
         return self
+
+    def error_fileno(self):
+        """
+        Return the standard error reader file descriptor as an integer.
+        """
+        if self.file_error:
+            return self.file_error.fileno()
+        return None
 
     def reader_fileno(self):
         """
@@ -126,6 +136,16 @@ class Ssh(EngineClient):
         Read data from process.
         """
         result = self.file_reader.read(size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading()
+        return result
+
+    def _readerr(self, size=-1):
+        """
+        Read error from process.
+        """
+        result = self.file_error.read(size)
         if not len(result):
             raise EngineClientEOF()
         self._set_reading()
@@ -173,17 +193,31 @@ class Ssh(EngineClient):
             # handle full msg line
             self.worker._on_node_msgline(self.key, msg)
 
+    def _handle_error(self):
+        """
+        Handle a read error (stderr) notification.
+        """
+        debug = self.worker.task.info("debug", False)
+        if debug:
+            print_debug = self.worker.task.info("print_debug")
+
+        for msg in self._readerrlines():
+            if debug:
+                print_debug(self.worker.task, "%s@STDERR: %s" % (self.key, msg))
+            # handle full msg line
+            self.worker._on_node_errline(self.key, msg)
+
 
 class Scp(Ssh):
     """
     Scp EngineClient.
     """
 
-    def __init__(self, node, source, dest, worker, timeout):
+    def __init__(self, node, source, dest, worker, stderr, timeout):
         """
         Initialize Scp instance.
         """
-        Ssh.__init__(self, node, None, worker, timeout)
+        Ssh.__init__(self, node, None, worker, stderr, timeout)
         self.source = source
         self.dest = dest
         self.popen = None
@@ -263,18 +297,19 @@ class WorkerSsh(DistantWorker):
         self._has_timeout = False
 
         autoclose = kwargs.get('autoclose', False)
+        stderr = kwargs.get('stderr', False)
 
         # Prepare underlying engine clients (ssh/scp processes)
         if kwargs.has_key('command'):
             # secure remote shell
             for node in self.nodes:
                 self.clients.append(Ssh(node, kwargs['command'], self,
-                    timeout,autoclose))
+                    stderr, timeout, autoclose))
         elif kwargs.has_key('source'):
             # secure copy
             for node in self.nodes:
                 self.clients.append(Scp(node, kwargs['source'], kwargs['dest'],
-                    self, timeout))
+                    self, stderr, timeout))
         else:
             raise WorkerBadArgumentException()
 

@@ -30,12 +30,14 @@ class TestHandler(EventHandler):
     def do_asserts_read_notimeout(self):
         assert self.did_start, "ev_start not called"
         assert self.did_read, "ev_read not called"
+        assert not self.did_readerr, "ev_error called"
         assert self.did_close, "ev_close not called"
         assert not self.did_timeout, "ev_timeout called"
 
     def do_asserts_timeout(self):
         assert self.did_start, "ev_start not called"
         assert not self.did_read, "ev_read called"
+        assert not self.did_readerr, "ev_error called"
         assert self.did_close, "ev_close not called"
         assert self.did_timeout, "ev_timeout not called"
 
@@ -43,6 +45,7 @@ class TestHandler(EventHandler):
         self.did_start = False
         self.did_open = False
         self.did_read = False
+        self.did_readerr = False
         self.did_close = False
         self.did_timeout = False
 
@@ -52,6 +55,10 @@ class TestHandler(EventHandler):
     def ev_read(self, worker):
         self.did_read = True
         assert worker.last_read() == "abcdefghijklmnopqrstuvwxyz"
+
+    def ev_error(self, worker):
+        self.did_readerr = True
+        assert worker.last_error() == "errerrerrerrerrerrerrerr"
 
     def ev_close(self, worker):
         self.did_close = True
@@ -84,8 +91,6 @@ class TaskEventTest(unittest.TestCase):
         task.resume()
         eh.do_asserts_read_notimeout()
         eh.reset_asserts()
-
-
 
     def testSimpleEventHandlerWithTaskTimeout(self):
         """test simple event handler with timeout"""

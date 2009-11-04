@@ -474,6 +474,39 @@ class TaskLocalTest(unittest.TestCase):
         self.assertEqual(worker1.read(), "ok")
         self.assertEqual(worker2.read(), None)
 
+    def testLocalErrorBuffers(self):
+        """test task local stderr buffers gathering"""
+        task = task_self()
+        self.assert_(task != None)
+
+        task.shell("/usr/bin/printf 'foo\nbar\n' 1>&2", key="foobar", stderr=True)
+        task.shell("/usr/bin/printf 'foo\nbar\n' 1>&2", key="foobar2", stderr=True)
+        task.shell("/usr/bin/printf 'foo\nbar\n 1>&2'", key="foobar3", stderr=True)
+        task.shell("/usr/bin/printf 'foo\nbar\nxxx\n' 1>&2", key="foobarX", stderr=True)
+        task.shell("/usr/bin/printf 'foo\nfuu\n' 1>&2", key="foofuu", stderr=True)
+        task.shell("/usr/bin/printf 'faa\nber\n' 1>&2", key="faaber", stderr=True)
+        task.shell("/usr/bin/printf 'foo\nfuu\n' 1>&2", key="foofuu2", stderr=True)
+
+        task.resume()
+
+        cnt = 4
+        for buf, keys in task.iter_errors():
+            cnt -= 1
+            if buf == "faa\nber\n":
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0].startswith("faaber"))
+            elif buf == "foo\nfuu\n":
+                self.assertEqual(len(keys), 2)
+                self.assert_(keys[0].startswith("foofuu"))
+            elif buf == "foo\nbar\n":
+                self.assertEqual(len(keys), 3)
+                self.assert_(keys[0].startswith("foobar"))
+            elif buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0].startswith("foobarX"))
+
+        self.assertEqual(cnt, 0)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)

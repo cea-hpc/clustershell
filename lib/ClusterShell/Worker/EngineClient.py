@@ -66,7 +66,7 @@ class EngineClient(EngineBaseTimer):
     Abstract class EngineClient.
     """
 
-    def __init__(self, worker, timeout, autoclose):
+    def __init__(self, worker, stderr, timeout, autoclose):
         """
         Initializer. Should be called from derived classes.
         """
@@ -83,7 +83,11 @@ class EngineClient(EngineBaseTimer):
 
         self.worker = worker
 
-        # initialize read and write buffers
+        # boolean indicating whether stderr is on a separate fd
+        self._stderr = stderr
+
+        # initialize error, read and write buffers
+        self._ebuf = ""
         self._rbuf = ""
         self._wbuf = ""
         self._weof = False                  # write-ends notification
@@ -99,6 +103,12 @@ class EngineClient(EngineBaseTimer):
         """
         Starts client and returns client instance as a convenience.
         Derived classes must implement.
+        """
+        raise NotImplementedError("Derived classes must implement.")
+
+    def error_fileno(self):
+        """
+        Returns the standard error reader file descriptor as an integer.
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -136,6 +146,12 @@ class EngineClient(EngineBaseTimer):
         """
         self._engine.set_reading(self)
 
+    def _set_reading_error(self):
+        """
+        Set error reading state.
+        """
+        self._engine.set_reading_error(self)
+
     def _set_writing(self):
         """
         Set writing state.
@@ -146,6 +162,13 @@ class EngineClient(EngineBaseTimer):
         """
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
+        """
+        raise NotImplementedError("Derived classes must implement.")
+
+    def _handle_error(self):
+        """
+        Handle a stderr read notification. Called by the engine as the result
+        of an event indicating that a read is available on stderr.
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -175,14 +198,23 @@ class EngineClient(EngineBaseTimer):
             full_env = os.environ.copy()
             full_env.update(env)
 
+        if self._stderr:
+            stderr_setup = PIPE
+        else:
+            stderr_setup = STDOUT
+
         # Launch process in non-blocking mode
         proc = Popen(commandlist, bufsize=0, stdin=PIPE, stdout=PIPE,
-                stderr=STDOUT, close_fds=False, shell=shell, env=full_env)
+                stderr=stderr_setup, close_fds=False, shell=shell, env=full_env)
 
+        if self._stderr:
+            fcntl.fcntl(proc.stderr, fcntl.F_SETFL,
+                    fcntl.fcntl(proc.stderr, fcntl.F_GETFL) | os.O_NDELAY)
         fcntl.fcntl(proc.stdout, fcntl.F_SETFL,
                 fcntl.fcntl(proc.stdout, fcntl.F_GETFL) | os.O_NDELAY)
         fcntl.fcntl(proc.stdin, fcntl.F_SETFL,
                 fcntl.fcntl(proc.stdin, fcntl.F_GETFL) | os.O_NDELAY)
+
         return proc
 
     def _readlines(self):
@@ -209,6 +241,29 @@ class EngineClient(EngineBaseTimer):
             else:
                 # keep partial line in buffer
                 self._rbuf = line
+                # breaking here
+
+    def _readerrlines(self):
+        """
+        Utility method to read client lines
+        """
+        # read a chunk of data, may raise eof
+        readerrbuf = self._readerr()
+        assert len(readerrbuf) > 0, "assertion failed: len(readerrbuf) > 0"
+
+        buf = self._ebuf + readerrbuf
+        lines = buf.splitlines(True)
+        self._ebuf = ""
+        for line in lines:
+            if line.endswith('\n'):
+                if line.endswith('\r\n'):
+                    yield line[:-2] # trim CRLF
+                else:
+                    # trim LF
+                    yield line[:-1] # trim LF
+            else:
+                # keep partial line in buffer
+                self._ebuf = line
                 # breaking here
 
     def _write(self, buf):

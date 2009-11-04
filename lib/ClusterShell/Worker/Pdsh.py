@@ -76,10 +76,14 @@ class WorkerPdsh(EngineClient,DistantWorker):
         Initialize Pdsh worker instance.
         """
         DistantWorker.__init__(self, handler)
-        EngineClient.__init__(self, self, timeout, kwargs.get('autoclose', False))
 
         self.nodes = NodeSet(nodes)
         self.closed_nodes = NodeSet()
+
+        autoclose = kwargs.get('autoclose', False)
+        stderr = kwargs.get('stderr', False)
+
+        EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
         if kwargs.has_key('command'):
             # PDSH
@@ -164,6 +168,14 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
         return self
 
+    def error_fileno(self):
+        """
+        Return the standard error reader file descriptor as an integer.
+        """
+        if self.popen.stderr:
+            return self.popen.stderr.fileno()
+        return None
+
     def reader_fileno(self):
         """
         Return the reader file descriptor as an integer.
@@ -181,6 +193,15 @@ class WorkerPdsh(EngineClient,DistantWorker):
         Read data from process.
         """
         result = self.popen.stdout.read(size)
+        if result > 0:
+            self._set_reading()
+        return result
+
+    def _readerr(self, size=-1):
+        """
+        Read error from process.
+        """
+        result = self.popen.stderr.read(size)
         if result > 0:
             self._set_reading()
         return result
@@ -224,6 +245,47 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
         self._invoke("ev_close")
 
+    def _parse_line(self, line, stderr):
+        """
+        Parse Pdsh line syntax.
+        """
+        if line.startswith("pdsh@") or line.startswith("pdcp@") or line.startswith("sending "):
+            try:
+                # pdsh@cors113: cors115: ssh exited with exit code 1
+                #       0          1      2     3     4    5    6  7
+                # corsUNKN: ssh: corsUNKN: Name or service not known
+                #     0      1       2       3  4     5     6    7
+                # pdsh@fortoy0: fortoy101: command timeout
+                #     0             1         2       3
+                # sending SIGTERM to ssh fortoy112 pid 32014
+                #     0      1     2  3      4      5    6
+                # pdcp@cors113: corsUNKN: ssh exited with exit code 255
+                #     0             1      2    3     4    5    6    7
+                # pdcp@cors113: cors115: fatal: /var/cache/shine/conf/testfs.xmf: No such file or directory
+                #     0             1      2                   3...
+
+                words  = line.split()
+                # Set return code for nodename of worker
+                if self.mode == 'pdsh':
+                    if len(words) == 4 and words[2] == "command" and \
+                        words[3] == "timeout":
+                            pass
+                    elif len(words) == 8 and words[3] == "exited" and words[7].isdigit():
+                        self._on_node_rc(words[1][:-1], int(words[7]))
+                elif self.mode == 'pdcp':
+                    self._on_node_rc(words[1][:-1], errno.ENOENT)
+
+            except Exception, e:
+                print >>sys.stderr, e
+                raise EngineClientError()
+        else:
+            # split pdsh reply "nodename: msg"
+            nodename, msg = line.split(': ', 1)
+            if stderr:
+                self._on_node_errline(nodename, msg)
+            else:
+                self._on_node_msgline(nodename, msg)
+
     def _handle_read(self):
         """
         Engine is telling us a read is available.
@@ -232,59 +294,23 @@ class WorkerPdsh(EngineClient,DistantWorker):
         if debug:
             print_debug = self.task.info("print_debug")
 
-        # read a chunk
-        readbuf = self._read()
-        assert len(readbuf) > 0, "_handle_read() called with no data to read"
-
-        buf = self._buf + readbuf
-        lines = buf.splitlines(True)
-        self._buf = ""
-        for line in lines:
+        for msg in self._readlines():
             if debug:
-                print_debug(self.task, "LINE: %s" % line[:-1])
-            if line.endswith('\n'):
-                if line.startswith("pdsh@") or line.startswith("pdcp@") or line.startswith("sending "):
-                    try:
-                        # pdsh@cors113: cors115: ssh exited with exit code 1
-                        #       0          1      2     3     4    5    6  7
-                        # corsUNKN: ssh: corsUNKN: Name or service not known
-                        #     0      1       2       3  4     5     6    7
-                        # pdsh@fortoy0: fortoy101: command timeout
-                        #     0             1         2       3
-                        # sending SIGTERM to ssh fortoy112 pid 32014
-                        #     0      1     2  3      4      5    6
-                        # pdcp@cors113: corsUNKN: ssh exited with exit code 255
-                        #     0             1      2    3     4    5    6    7
-                        # pdcp@cors113: cors115: fatal: /var/cache/shine/conf/testfs.xmf: No such file or directory
-                        #     0             1      2                   3...
+                print_debug(self.task, "PDSH: %s" % msg)
+            self._parse_line(msg, False)
 
-                        words  = line.split()
-                        # Set return code for nodename of worker
-                        if self.mode == 'pdsh':
-                            if len(words) == 4 and words[2] == "command" and \
-                                words[3] == "timeout":
-                                    pass
-                            elif len(words) == 8 and words[3] == "exited" and words[7].isdigit():
-                                self._on_node_rc(words[1][:-1], int(words[7]))
-                        elif self.mode == 'pdcp':
-                            self._on_node_rc(words[1][:-1], errno.ENOENT)
+    def _handle_error(self):
+        """
+        Engine is telling us an error read is available.
+        """
+        debug = self.worker.task.info("debug", False)
+        if debug:
+            print_debug = self.worker.task.info("print_debug")
 
-                    except Exception, e:
-                        print >>sys.stderr, e
-                        raise EngineClientError()
-                else:
-                    #        
-                    # split pdsh reply "nodename: msg"
-                    nodename, msg = line.split(': ', 1)
-                    if msg.endswith('\n'):
-                        if msg.endswith('\r\n'):
-                            msgline = msg[:-2] # trim CRLF
-                        else:
-                            msgline = msg[:-1] # trim LF
-                    self._on_node_msgline(nodename, msgline)
-            else:
-                # keep partial line in buffer
-                self._buf = line
+        for msg in self._readerrlines():
+            if debug:
+                print_debug(self.task, "PDSH@STDERR: %s" % msg)
+            self._parse_line(msg, True)
 
     def _on_node_rc(self, node, rc):
         """

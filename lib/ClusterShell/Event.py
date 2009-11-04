@@ -60,6 +60,11 @@ class EventHandler:
         Called to indicate that a worker has data to read.
         """
 
+    def ev_error(self, worker):
+        """
+        Called to indicate that a worker has error to read (on stderr).
+        """
+
     def ev_written(self, worker):
         """
         Called to indicate that writing has been done.

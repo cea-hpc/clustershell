@@ -1,5 +1,11 @@
 2009-11-04 S. Thiell <stephane.thiell@cea.fr>
 
+	* Added optional separate stdout/stderr handling (with 1.1 Task API
+	compat). Added some tests for that.
+
+	* Create a MsgTree class in MsgTree.py and remove this code from
+	Task.py.
+
 	* First changes to use setUp() in test case objects.
 
 2009-08-02 S. Thiell <stephane.thiell@cea.fr>

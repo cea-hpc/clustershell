@@ -77,9 +77,9 @@ class EnginePoll(Engine):
         self.exited = False
 
     def _register_specific(self, fd, event):
-        if event == Engine.E_READABLE:
+        if event & (Engine.E_READ | Engine.E_ERROR):
             eventmask = select.POLLIN
-        elif event == Engine.E_WRITABLE:
+        elif event == Engine.E_WRITE:
             eventmask = select.POLLOUT
 
         self.polling.register(fd, eventmask)
@@ -99,9 +99,9 @@ class EnginePoll(Engine):
 
         if setvalue:
             eventmask = 0
-            if event == Engine.E_READABLE:
+            if event & (Engine.E_READ | Engine.E_ERROR):
                 eventmask = select.POLLIN
-            elif event == Engine.E_WRITABLE:
+            elif event == Engine.E_WRITE:
                 eventmask = select.POLLOUT
             self.polling.register(fd, eventmask)
         else:
@@ -112,14 +112,21 @@ class EnginePoll(Engine):
         Set client reading state.
         """
         # listen for readable events
-        self.modify(client, Engine.E_READABLE, 0)
+        self.modify(client, Engine.E_READ, 0)
+
+    def set_reading_error(self, client):
+        """
+        Set client reading error state.
+        """
+        # listen for readable events
+        self.modify(client, Engine.E_ERROR, 0)
 
     def set_writing(self, client):
         """
         Set client writing state.
         """
         # listen for writable events
-        self.modify(client, Engine.E_WRITABLE, 0)
+        self.modify(client, Engine.E_WRITE, 0)
 
     def runloop(self, timeout):
         """
@@ -166,10 +173,9 @@ class EnginePoll(Engine):
                     break
 
                 # get client instance
-                if not self.reg_clients.has_key(fd):
+                client, fdev = self._fd2client(fd)
+                if not client or fdev is None:
                     continue
-
-                client = self.reg_clients[fd]
 
                 # process this client
                 client._processing = True
@@ -184,28 +190,46 @@ class EnginePoll(Engine):
 
                 # check for data to read
                 if event & select.POLLIN:
-                    assert client._events & Engine.E_READABLE
-                    self.modify(client, 0, Engine.E_READABLE)
+                    assert fdev & (Engine.E_READ | Engine.E_ERROR)
+                    assert client._events & fdev
+                    self.modify(client, 0, fdev)
                     try:
-                        client._handle_read()
+                        if fdev & Engine.E_READ:
+                            client._handle_read()
+                        else:
+                            client._handle_error()
                     except EngineClientEOF, e:
                         self._debug("EngineClientEOF %s" % client)
-                        self.remove(client)
+                        if fdev & Engine.E_READ:
+                            self.remove(client)
                         continue
 
                 # or check for end of stream (do not handle both at the same time
                 # because handle_read() may perform a partial read)
                 elif event & select.POLLHUP:
-                    self._debug("POLLHUP fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
-                        client.reader_fileno(), client.writer_fileno()))
-                    self.remove(client)
+                    self._debug("POLLHUP fd=%d %s (r%s,e%s,w%s)" % (fd, client.__class__.__name__,
+                        client.reader_fileno(), client.error_fileno(), client.writer_fileno()))		
+                    client._processing = False
+
+                    if fdev & Engine.E_READ:
+                        if client._events & Engine.E_ERROR:
+                            self.modify(client, 0, fdev)
+                        else:
+                            self.remove(client)
+                    else:
+                        if client._events & Engine.E_READ:
+                            self.modify(client, 0, fdev)
+                        else:
+                            self.remove(client)
+                    continue
 
                 # check for writing
                 if event & select.POLLOUT:
-                    self._debug("POLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
-                        client.reader_fileno(), client.writer_fileno()))
-                    assert client._events & Engine.E_WRITABLE
-                    self.modify(client, 0, Engine.E_WRITABLE)
+                    self._debug("POLLOUT fd=%d %s (r%s,e%s,w%s)" % (fd, client.__class__.__name__,
+                        client.reader_fileno(), client.error_fileno(), client.writer_fileno()))
+                    assert fdev == Engine.E_WRITE
+                    assert client._events & fdev
+                    self.modify(client, 0, fdev)
                     client._handle_write()
 
                 # post processing

@@ -92,6 +92,28 @@ class TaskDistantTest(unittest.TestCase):
         # test output
         self.assertEqual(worker.node_buffer("localhost"), "alright")
 
+    def testExplicitSshWorkerStdErr(self):
+        """test simple localhost command with explicit ssh worker (stderr)"""
+        # init worker
+        worker = WorkerSsh("localhost", command="/bin/echo alright 1>&2",
+                    handler=None, stderr=True, timeout=5)
+        self.assert_(worker != None)
+        self._task.schedule(worker)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker.node_error_buffer("localhost"), "alright")
+
+        # Re-test with stderr=False
+        worker = WorkerSsh("localhost", command="/bin/echo alright 1>&2",
+                    handler=None, stderr=False, timeout=5)
+        self.assert_(worker != None)
+        self._task.schedule(worker)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker.node_error_buffer("localhost"), None)
+
     def testExplicitPdshWorker(self):
         """test simple localhost command with explicit pdsh worker"""
         # init worker
@@ -102,6 +124,29 @@ class TaskDistantTest(unittest.TestCase):
         self._task.resume()
         # test output
         self.assertEqual(worker.node_buffer("localhost"), "alright")
+
+    def testExplicitPdshWorkerStdErr(self):
+        """test simple localhost command with explicit pdsh worker (stderr)"""
+        # init worker
+        worker = WorkerPdsh("localhost", command="/bin/echo alright 1>&2",
+                    handler=None, stderr=True, timeout=5)
+        self.assert_(worker != None)
+        self._task.schedule(worker)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker.node_error_buffer("localhost"), "alright")
+
+        # Re-test with stderr=False
+        worker = WorkerPdsh("localhost", command="/bin/echo alright 1>&2",
+                    handler=None, stderr=False, timeout=5)
+        self.assert_(worker != None)
+        self._task.schedule(worker)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker.node_error_buffer("localhost"), None)
+
 
     def testPdshWorkerWriteNotSupported(self):
         """test that write is reported as not supported with pdsh"""
