@@ -1,3 +1,7 @@
+2009-11-04 S. Thiell <stephane.thiell@cea.fr>
+
+	* First changes to use setUp() in test case objects.
+
 2009-08-02 S. Thiell <stephane.thiell@cea.fr>
 
 	* clush.py: (1) remove /step in displayed nodeset when using -b (to
