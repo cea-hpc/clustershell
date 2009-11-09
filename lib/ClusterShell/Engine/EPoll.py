@@ -104,7 +104,7 @@ class EngineEPoll(Engine):
 
         eventmask = 0
         if setvalue:
-            if event == Engine.E_READ:
+            if event & (Engine.E_READ | Engine.E_ERROR):
                 eventmask = select.EPOLLIN
             elif event == Engine.E_WRITE:
                 eventmask = select.EPOLLOUT
@@ -143,8 +143,8 @@ class EngineEPoll(Engine):
 
         # run main event loop...
         while self.evlooprefcnt > 0:
-            self._debug("LOOP evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
-                    (self.evlooprefcnt, self.reg_clients.keys(), len(self.timerq)))
+            self._debug("LOOP evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
+                    (self.evlooprefcnt, self.reg_clifds.keys(), len(self.timerq)))
             try:
                 timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
@@ -154,28 +154,20 @@ class EngineEPoll(Engine):
                 elif timeo == -1:
                     timeo = timeout
 
-                self.reg_clients_changed = False
+                self.reg_clifds_changed = False
                 evlist = self.epolling.poll(timeo + 0.001)
 
-            except select.error, (ex_errno, ex_strerror):
+            except IOError, e:
                 # might get interrupted by a signal
-                if ex_errno == errno.EINTR:
+                if e.errno == errno.EINTR:
                     continue
-                elif ex_errno == errno.EINVAL:
-                    print >>sys.stderr, \
-                            "EngineEPoll: please increase RLIMIT_NOFILE"
-                raise
 
             for fd, event in evlist:
 
-                if self.reg_clients_changed:
+                if self.reg_clifds_changed:
                     self._debug("REG CLIENTS CHANGED - Aborting current evlist")
                     # Oops, reconsider evlist by calling poll() again.
                     break
-
-                # get client instance
-                if not self.reg_clients.has_key(fd):
-                    continue
 
                 # get client instance
                 client, fdev = self._fd2client(fd)
@@ -195,8 +187,9 @@ class EngineEPoll(Engine):
 
                 # check for data to read
                 if event & select.EPOLLIN:
-                    assert client._events & Engine.E_READ
-                    self.modify(client, 0, Engine.E_READ)
+                    assert fdev & (Engine.E_READ | Engine.E_ERROR)
+                    assert client._events & fdev
+                    self.modify(client, 0, fdev)
                     try:
                         if fdev & Engine.E_READ:
                             client._handle_read()
@@ -204,7 +197,8 @@ class EngineEPoll(Engine):
                             client._handle_error()
                     except EngineClientEOF, e:
                         self._debug("EngineClientEOF %s" % client)
-                        self.remove(client)
+                        if fdev & Engine.E_READ:
+                            self.remove(client)
                         continue
 
                 # or check for end of stream (do not handle both at the same time
@@ -230,8 +224,9 @@ class EngineEPoll(Engine):
                 if event & select.EPOLLOUT:
                     self._debug("EPOLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
                         client.reader_fileno(), client.writer_fileno()))
-                    assert client._events & Engine.E_WRITE
-                    self.modify(client, 0, Engine.E_WRITE)
+                    assert fdev == Engine.E_WRITE
+                    assert client._events & fdev
+                    self.modify(client, 0, fdev)
                     client._handle_write()
 
                 # post processing
@@ -248,21 +243,12 @@ class EngineEPoll(Engine):
             # process clients timeout
             self.fire_timers()
 
-        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
-                (self.evlooprefcnt, self.reg_clients, len(self.timerq)))
+        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
+                (self.evlooprefcnt, self.reg_clifds, len(self.timerq)))
 
     def exited(self):
         """
         Returns True if the engine has exited the runloop once.
         """
         return not self.running and self.exited
-
-    def join(self):
-        """
-        Block calling thread until runloop has finished.
-        """
-        self.start_lock.acquire()
-        self.start_lock.release()
-        self.run_lock.acquire()
-        self.run_lock.release()
 
