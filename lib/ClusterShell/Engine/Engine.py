@@ -52,6 +52,8 @@ class EngineAbortException(EngineException):
     """
     Raised on user abort.
     """
+    def __init__(self, kill):
+        self.kill = kill
 
 class EngineTimeoutException(EngineException):
     """
@@ -348,11 +350,15 @@ class Engine:
         # keep track of all clients
         self._clients = set()
 
-        # keep track of registered clients in a dict where keys are fileno
+        # keep track of the number of registered clients
         # note: len(self.reg_clients) <= configured fanout
-        self.reg_clients = {}
+        self.reg_clients = 0
 
-        # A boolean that indicates when reg_clients has changed, or when
+        # keep track of registered file descriptors in a dict where keys
+        # are fileno and values are clients
+        self.reg_clifds = {}
+
+        # A boolean that indicates when reg_clifds has changed, or when
         # some client interest event mask has changed. It is set by the
         # base class, and reset by each engine implementation.
         # Engines often deal with I/O events in chunk, and some event
@@ -360,7 +366,7 @@ class Engine:
         # or could even register or close other clients. When such
         # changes are made, this boolean is set to True, allowing the
         # engine implementation to reconsider their events got by chunk.
-        self.reg_clients_changed = False
+        self.reg_clifds_changed = False
 
         # timer queue to handle both timers and clients timeout
         self.timerq = _EngineTimerQ(self)
@@ -369,6 +375,7 @@ class Engine:
         # clients and timers configured WITHOUT autoclose)
         self.evlooprefcnt = 0
 
+        self.joinable = True
         # thread stuffs
         self.run_lock = thread.allocate_lock()
         self.start_lock = thread.allocate_lock()
@@ -382,7 +389,7 @@ class Engine:
 
     def _fd2client(self, fd):
         fdev = None
-        client = self.reg_clients.get(fd)
+        client = self.reg_clifds.get(fd)
         if client:
             try:
                 if fd == client.reader_fileno():
@@ -453,6 +460,7 @@ class Engine:
 
         client._events = 0
         client.registered = True
+        self.reg_clients += 1
 
         if client.autoclose:
             refcnt_inc = 0
@@ -460,20 +468,20 @@ class Engine:
             refcnt_inc = 1
 
         if efd != None:
-            self.reg_clients[efd] = client
-            self.reg_clients_changed = True
+            self.reg_clifds[efd] = client
+            self.reg_clifds_changed = True
             client._events |= Engine.E_ERROR
             self.evlooprefcnt += refcnt_inc
             self._register_specific(efd, Engine.E_ERROR)
         if rfd != None:
-            self.reg_clients[rfd] = client
-            self.reg_clients_changed = True
+            self.reg_clifds[rfd] = client
+            self.reg_clifds_changed = True
             client._events |= Engine.E_READ
             self.evlooprefcnt += refcnt_inc
             self._register_specific(rfd, Engine.E_READ)
         if wfd != None:
-            self.reg_clients[wfd] = client
-            self.reg_clients_changed = True
+            self.reg_clifds[wfd] = client
+            self.reg_clifds_changed = True
             client._events |= Engine.E_WRITE
             self.evlooprefcnt += refcnt_inc
             self._register_specific(wfd, Engine.E_WRITE)
@@ -494,8 +502,8 @@ class Engine:
         if wfd != None:
             self._unregister_specific(wfd, client._events & Engine.E_WRITE)
             client._events &= ~Engine.E_WRITE
-            del self.reg_clients[wfd]
-            self.reg_clients_changed = True
+            del self.reg_clifds[wfd]
+            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
     def unregister(self, client):
@@ -522,28 +530,29 @@ class Engine:
         if efd != None:
             self._unregister_specific(efd, client._events & Engine.E_ERROR)
             client._events &= ~Engine.E_ERROR
-            del self.reg_clients[efd]
-            self.reg_clients_changed = True
+            del self.reg_clifds[efd]
+            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         rfd = client.reader_fileno()
         if rfd != None:
             self._unregister_specific(rfd, client._events & Engine.E_READ)
             client._events &= ~Engine.E_READ
-            del self.reg_clients[rfd]
-            self.reg_clients_changed = True
+            del self.reg_clifds[rfd]
+            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         wfd = client.writer_fileno()
         if wfd != None:
             self._unregister_specific(wfd, client._events & Engine.E_WRITE)
             client._events &= ~Engine.E_WRITE
-            del self.reg_clients[wfd]
-            self.reg_clients_changed = True
+            del self.reg_clifds[wfd]
+            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         client._new_events = 0
         client.registered = False
+        self.reg_clients -= 1
 
     def modify(self, client, set, clear):
         """
@@ -555,7 +564,7 @@ class Engine:
 
         if not client._processing:
             # modifying a non processing client?
-            self.reg_clients_has_changed = True
+            self.reg_clifds_has_changed = True
             # apply new_events now
             self.set_events(client, client._new_events)
 
@@ -636,14 +645,14 @@ class Engine:
         """
         fanout = self.info["fanout"]
         assert fanout > 0
-        if fanout <= len(self.reg_clients) + 1: # +1 for possible writer client
+        if fanout <= self.reg_clients:
              return
 
         for client in self._clients:
             if not client.registered:
                 self._debug("START CLIENT %s" % client.__class__.__name__)
                 self.register(client._start())
-                if fanout <= len(self.reg_clients):
+                if fanout <= self.reg_clients:
                     break
     
     def run(self, timeout):
@@ -658,6 +667,7 @@ class Engine:
         self.start_all()
 
         # we're started
+        self.joinable = True
         self.start_lock.release()
 
         # note: try-except-finally not supported before python 2.5
@@ -673,6 +683,7 @@ class Engine:
             self.timerq.clear()
 
             # change to idle state
+            self.joinable = False
             self.start_lock.acquire()
             self.run_lock.release()
 
@@ -682,25 +693,27 @@ class Engine:
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def abort(self):
+    def abort(self, kill):
         """
-        Abort task's running loop.
+        Abort runloop.
         """
-        raise EngineAbortException()
-
-    def exited(self):
-        """
-        Return True if the engine has exited the runloop once.
-        """
-        raise NotImplementedError("Derived classes must implement.")
+        if not self.start_lock.locked() and self.joinable:
+            raise EngineAbortException(kill)
+        else:
+            self.clear()
 
     def join(self):
         """
         Block calling thread until runloop has finished.
         """
         # make sure engine has started first
-        self.start_lock.acquire()
+        if not self.start_lock.acquire(0): # try
+            # check for joinable state
+            if not self.joinable:
+                return
+            self.start_lock.acquire()
         self.start_lock.release()
+
         # joined once run_lock is available
         self.run_lock.acquire()
         self.run_lock.release()

@@ -163,6 +163,9 @@ class WorkerPdsh(EngineClient,DistantWorker):
                 self.task.info("print_debug")(self.task,"PDCP: %s" % ' '.join(cmd_l))
 
         self.popen = self._exec_nonblock(cmd_l, env=pdsh_env)
+        self.file_error = self.popen.stderr
+        self.file_reader = self.popen.stdout
+        self.file_writer = self.popen.stdin
 
         self._on_start()
 
@@ -172,27 +175,31 @@ class WorkerPdsh(EngineClient,DistantWorker):
         """
         Return the standard error reader file descriptor as an integer.
         """
-        if self.popen.stderr:
-            return self.popen.stderr.fileno()
+        if self.file_error:
+            return self.file_error.fileno()
         return None
 
     def reader_fileno(self):
         """
         Return the reader file descriptor as an integer.
         """
-        return self.popen.stdout.fileno()
+        if self.file_reader:
+            return self.file_reader.fileno()
+        return None
     
     def writer_fileno(self):
         """
         Return the writer file descriptor as an integer.
         """
-        return self.popen.stdin.fileno()
+        if self.file_writer:
+            return self.file_writer.fileno()
+        return None
 
     def _read(self, size=-1):
         """
         Read data from process.
         """
-        result = self.popen.stdout.read(size)
+        result = self.file_reader.read(size)
         if result > 0:
             self._set_reading()
         return result
@@ -201,9 +208,9 @@ class WorkerPdsh(EngineClient,DistantWorker):
         """
         Read error from process.
         """
-        result = self.popen.stderr.read(size)
+        result = self.file_error.read(size)
         if result > 0:
-            self._set_reading()
+            self._set_reading_error()
         return result
 
     def write(self, buf):

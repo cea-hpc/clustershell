@@ -1,6 +1,6 @@
- ----------------------------------
- ClusterShell 1.1-RC Python Library
- ----------------------------------
+ -------------------------------
+ ClusterShell 1.2 Python Library
+ -------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
 distant cluster nodes in parallel depending on the selected engine and worker
@@ -9,12 +9,12 @@ mechanisms.
 This is the source tarball. When possible, please use the RPM distribution.
 
  -------------------
- Requirements (v1.1)
+ Requirements (v1.2)
  -------------------
 
  * OpenSSH (ssh/scp)
 
- * Python 2.3+ with select.poll available (eg. Linux)
+ * Python 2.x (x >= 4) with select.poll available (eg. Linux)
 
  ------------------------
  Supported Engine workers
@@ -93,7 +93,17 @@ Sourceforge.net project page:
 
     http://sourceforge.net/projects/clustershell
 
+Trac wiki and issue tracking system:
+
+    https://sourceforge.net/apps/trac/clustershell
+
 ClusterShell was first created for Shine, the Lustre Administration Utility:
 
     http://sourceforge.net/projects/lustre-shine
+
+ ------
+ Author
+ ------
+
+Stephane Thiell <stephane.thiell@cea.fr>
 

@@ -1,3 +1,12 @@
+2009-11-09 S. Thiell <stephane.thiell@cea.fr>
+
+    * Backport recent 1.1-branch improvements: tests code coverage, also
+	resulting in some fixes (see 1.1 2009-10-28).
+
+2009-11-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Added stdout/stderr support in clush script.
+
 2009-11-04 S. Thiell <stephane.thiell@cea.fr>
 
 	* Added optional separate stdout/stderr handling (with 1.1 Task API

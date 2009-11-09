@@ -139,8 +139,8 @@ class EnginePoll(Engine):
 
         # run main event loop...
         while self.evlooprefcnt > 0:
-            self._debug("LOOP evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
-                    (self.evlooprefcnt, self.reg_clients.keys(), len(self.timerq)))
+            self._debug("LOOP evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
+                    (self.evlooprefcnt, self.reg_clifds.keys(), len(self.timerq)))
             try:
                 timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
@@ -150,7 +150,7 @@ class EnginePoll(Engine):
                 elif timeo == -1:
                     timeo = timeout
 
-                self.reg_clients_changed = False
+                self.reg_clifds_changed = False
                 evlist = self.polling.poll(timeo * 1000.0 + 1.0)
 
             except select.error, (ex_errno, ex_strerror):
@@ -167,7 +167,7 @@ class EnginePoll(Engine):
                 if event & select.POLLNVAL:
                     raise EngineException("Caught POLLNVAL on fd %d" % fd)
 
-                if self.reg_clients_changed:
+                if self.reg_clifds_changed:
                     self._debug("REG CLIENTS CHANGED - Aborting current evlist")
                     # Oops, reconsider evlist by calling poll() again.
                     break
@@ -246,21 +246,12 @@ class EnginePoll(Engine):
             # process clients timeout
             self.fire_timers()
 
-        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clients=%s) (timers=%d)" % \
-                (self.evlooprefcnt, self.reg_clients, len(self.timerq)))
+        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
+                (self.evlooprefcnt, self.reg_clifds, len(self.timerq)))
 
     def exited(self):
         """
         Returns True if the engine has exited the runloop once.
         """
         return not self.running and self.exited
-
-    def join(self):
-        """
-        Block calling thread until runloop has finished.
-        """
-        self.start_lock.acquire()
-        self.start_lock.release()
-        self.run_lock.acquire()
-        self.run_lock.release()
 

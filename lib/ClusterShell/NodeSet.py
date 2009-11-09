@@ -493,7 +493,7 @@ class RangeSet:
         to s and t.
         """
         self_copy = copy.deepcopy(self)
-        self_copy.intersection_update(other)
+        self_copy.intersection_update(rangeset)
         return self_copy
 
     def __and__(self, other):
@@ -539,7 +539,7 @@ class RangeSet:
         in t.
         """
         self_copy = copy.deepcopy(self)
-        self_copy.difference_update(other)
+        self_copy.difference_update(rangeset)
         return self_copy
 
     def __sub__(self, other):
@@ -1026,6 +1026,9 @@ class NodeSet(object):
                 # ignore pattern if empty rangeset
                 if len(rs) > 0:
                     tmp_ns._add_rangeset(pat, rs)
+            elif not irangeset and pat in self._patterns:
+                # intersect two nodes with no rangeset
+                tmp_ns._add_rangeset(pat, None)
             elif not irangeset and pat in self._patterns:
                 # intersect two nodes with no rangeset
                 tmp_ns._add_rangeset(pat, None)

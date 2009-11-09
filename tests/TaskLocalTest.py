@@ -7,19 +7,25 @@
 """Unit test for ClusterShell Task (local)"""
 
 import copy
+import os
+import signal
 import sys
+import time
 import unittest
 
 sys.path.insert(0, '../lib')
 
 import ClusterShell
 
+from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
+from ClusterShell.Worker.Worker import WorkerSimple
 
 import socket
 
 import thread
+import threading
 
 
 def _test_print_debug(task, s):
@@ -171,6 +177,8 @@ class TaskLocalTest(unittest.TestCase):
         except TimeoutError:
             self.fail("did detect timeout")
 
+        self.assert_(worker.did_timeout())
+
     def testWorkersTimeout2(self):
         """test workers with timeout (more)"""
         task = task_self()
@@ -187,6 +195,16 @@ class TaskLocalTest(unittest.TestCase):
             task.resume()
         except TimeoutError:
             self.fail("did detect task timeout")
+
+    def testLocalEmptyBuffer(self):
+        """test task local empty buffer"""
+        task = task_self()
+        self.assert_(task != None)
+        task.shell("/bin/true", key="empty")
+        task.resume()
+        self.assertEqual(task.key_buffer("empty"), '')
+        for buf, keys in task.iter_buffers():
+            self.assert_(False)
 
     def testLocalEmptyBuffer(self):
         """test task local empty buffer"""
@@ -254,6 +272,9 @@ class TaskLocalTest(unittest.TestCase):
                 self.assert_(keys[0].startswith("foofuu"))
             elif buf == "foo\nbar\n":
                 self.assertEqual(len(keys), 3)
+            elif buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(keys), 1)
+                self.assert_(keys[0].startswith("foobarX"))
                 self.assert_(keys[0].startswith("foobar"))
             elif buf == "foo\nbar\nxxx\n":
                 self.assertEqual(len(keys), 1)
@@ -320,22 +341,28 @@ class TaskLocalTest(unittest.TestCase):
         self.assert_(task != None)
 
         # first test that simply changing print_debug doesn't enable debug
-        task.set_info("print_debug", _test_print_debug)
-        task.shell("/bin/true")
-        task.resume()
-        self.assertEqual(task.info("user_print_debug_last"), None)
+        default_print_debug = task.info("print_debug")
+        try:
+            task.set_info("print_debug", _test_print_debug)
+            task.shell("/bin/true")
+            task.resume()
+            self.assertEqual(task.info("user_print_debug_last"), None)
 
-        # with debug enabled, it should work
-        task.set_info("debug", True)
-        task.shell("/bin/true")
-        task.resume()
-	self.assertEqual(task.info("user_print_debug_last"), "POPEN: /bin/true")
+            # with debug enabled, it should work
+            task.set_info("debug", True)
+            task.shell("/bin/true")
+            task.resume()
+            self.assertEqual(task.info("user_print_debug_last"), "POPEN: /bin/true")
 
-        # remove debug
-        task.set_info("debug", False)
-        # re-run for default print debug callback code coverage
-        task.shell("/bin/true")
-        task.resume()
+            # remove debug
+            task.set_info("debug", False)
+            # re-run for default print debug callback code coverage
+            task.shell("/bin/true")
+            task.resume()
+        finally:
+            # restore default print_debug
+            task.set_info("debug", False)
+            task.set_info("print_debug", default_print_debug)
 
     def testLocalRCBufferGathering(self):
         """test task local rc+buffers gathering"""
@@ -506,6 +533,105 @@ class TaskLocalTest(unittest.TestCase):
                 self.assert_(keys[0].startswith("foobarX"))
 
         self.assertEqual(cnt, 0)
+
+    def testTaskPrintDebug(self):
+        """test task default print_debug"""
+        task = task_self()
+        self.assert_(task != None)
+        # simple test, just run a task with debug on to improve test
+        # code coverage
+        task.set_info("debug", True)
+        worker = task.shell("/bin/echo test")
+        self.assert_(worker != None)
+        task.resume()
+        task.set_info("debug", False)
+
+    def testTaskAbortSelf(self):
+        """test task abort self (ouside handler)"""
+        task = task_self()
+        self.assert_(task != None)
+
+        # abort(False) keeps current task_self() object
+        task.abort()
+        self.assert_(task == task_self())
+
+        # abort(True) unbinds current task_self() object
+        task.abort(True)
+        self.assert_(task != task_self())
+
+        # retry
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("/bin/echo shouldnt see that")
+        task.abort()
+        self.assert_(task == task_self())
+
+    def testTaskAbortHandler(self):
+        """test task abort self (inside handler)"""
+
+        class AbortOnReadTestHandler(EventHandler):
+            def ev_read(self, worker):
+                self.has_ev_read = True
+                worker.task.abort()
+                assert False, "Shouldn't reach this line"
+
+        task = task_self()
+        self.assert_(task != None)
+        eh = AbortOnReadTestHandler()
+        eh.has_ev_read = False
+        task.shell("/bin/echo test", handler=eh)
+        task.resume()
+        self.assert_(eh.has_ev_read)
+
+    def testTaskScheduleError(self):
+        """test task worker schedule error"""
+        from ClusterShell.Worker.Worker import WorkerError
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("/bin/echo itsme")
+        self.assertRaises(WorkerError, task.schedule, worker)
+        task.abort()
+
+    def testWorkerSetKey(self):
+        """test worker set_key()"""
+        task = task_self()
+        self.assert_(task != None)
+        task.shell("/bin/echo foo", key="foo")
+        worker = task.shell("/bin/echo foobar")
+        worker.set_key("bar")
+        task.resume()
+        self.assert_(task.key_buffer("bar") == "foobar")
+
+    def testWorkerSimple(self):
+        """test WorkerSimple"""
+        task = task_self()
+        self.assert_(task != None)
+
+        file_reader = sys.stdin
+        worker = WorkerSimple(file_reader, None, None, "simple", None, 0, True)
+        self.assert_(worker != None)
+
+        task.schedule(worker)
+        task.resume()
+
+    def testInterruptEngine(self):
+        """test Engine signal interruption"""
+        class KillerThread(threading.Thread):
+            def run(self):
+                time.sleep(1)
+                os.kill(self.pidkill, signal.SIGUSR1)
+                task_wait()
+
+        kth = KillerThread()
+        kth.pidkill = os.getpid()
+
+        task = task_self()
+        self.assert_(task != None)
+        signal.signal(signal.SIGUSR1, lambda x, y: None)
+        task.shell("/bin/sleep 2", timeout=5)
+
+        kth.start()
+        task.resume()
 
 
 if __name__ == '__main__':
