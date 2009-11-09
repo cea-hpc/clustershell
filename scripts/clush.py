@@ -91,13 +91,24 @@ class DirectOutputHandler(EventHandler):
     def ev_read(self, worker):
         t = worker.last_read()
         if type(t) is tuple:
-            ns, buf = worker.last_read()
+            (ns, buf) = t
         else:
-            buf = worker.last_read()
+            buf = t
         if self._label:
           print "%s: %s" % (ns, buf)
         else:
           print "%s" % buf
+
+    def ev_error(self, worker):
+        t = worker.last_error()
+        if type(t) is tuple:
+            (ns, buf) = t
+        else:
+            buf = t
+        if self._label:
+          print >>sys.stderr, "%s: %s" % (ns, buf)
+        else:
+          print >>sys.stderr,"%s" % buf
 
     def ev_hup(self, worker):
         if hasattr(worker, "last_retcode"):
@@ -121,13 +132,28 @@ class DirectOutputHandler(EventHandler):
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, runtimer):
-        self.runtimer = runtimer
+    def __init__(self, label, runtimer):
+        self._label = label
+        self._runtimer = runtimer
+
+    def ev_error(self, worker):
+        t = worker.last_error()
+        if type(t) is tuple:
+            (ns, buf) = t
+        else:
+            buf = t
+        self._runtimer.eh.erase_line()
+        if self._label:
+          print >>sys.stderr, "%s: %s" % (ns, buf)
+        else:
+          print >>sys.stderr,"%s" % buf
+        # Force redisplay of counter
+        self._runtimer.eh.set_dirty()
 
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
-        if self.runtimer:
-            self.runtimer.eh.finalize(worker.task.info("USER_interactive"))
+        if self._runtimer:
+            self._runtimer.eh.finalize(worker.task.info("USER_interactive"))
 
         # Display command output, try to order buffers by rc
         for rc, nodeset in worker.iter_retcodes():
@@ -159,9 +185,17 @@ class RunTimer(EventHandler):
         self.total = total
         self.cnt_last = -1
         self.tslen = len(str(self.total))
+        self.wholelen = 0
 
     def ev_timer(self, timer):
         self.update()
+
+    def set_dirty(self):
+        self.cnt_last = -1
+
+    def erase_line(self):
+        if self.wholelen:
+            sys.stderr.write(' ' * self.wholelen + '\r')
 
     def update(self):
         clients = self.task._engine.clients()
@@ -169,8 +203,10 @@ class RunTimer(EventHandler):
         if cnt != self.cnt_last:
             self.cnt_last = cnt
             # display completed/total clients
-            sys.stderr.write('clush: %*d/%*d\r' % (self.tslen, self.total - cnt,
-                self.tslen, self.total))
+            towrite = 'clush: %*d/%*d\r' % (self.tslen, self.total - cnt,
+                self.tslen, self.total)
+            self.wholelen = len(towrite)
+            sys.stderr.write(towrite)
 
     def finalize(self, cr):
         # display completed/total clients
@@ -405,7 +441,7 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity):
         if verbosity == VERB_STD or verbosity == VERB_VERB:
             # Create a ClusterShell timer used to display the number of completed commands
             runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3., autoclose=True)
-        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(runtimer), timeout=timeout)
+        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(label, runtimer), timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label), timeout=timeout)
 
@@ -586,6 +622,7 @@ def clush_main(args):
     task.set_info("connect_timeout", connect_timeout)
     command_timeout = config.get_command_timeout()
     task.set_info("command_timeout", command_timeout)
+    task.set_info("default_stderr", True)
 
     # Set timeout at worker level when command_timeout is defined.
     if command_timeout > 0:
