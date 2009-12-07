@@ -250,13 +250,13 @@ class Scp(Ssh):
             if ssh_options:
                 cmd_l.append(ssh_options)
 
-        cmd_l.append("'%s'" % self.source)
+        cmd_l.append(self.source)
 
         user = task.info("ssh_user")
         if user:
             cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
         else:
-            cmd_l.append("'%s:%s'" % (self.key, self.dest))
+            cmd_l.append("%s:%s" % (self.key, self.dest))
 
         if task.info("debug", False):
             task.info("print_debug")(task, "SCP: %s" % ' '.join(cmd_l))
