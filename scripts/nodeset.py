@@ -58,6 +58,9 @@ Options:
         Calculate nodesets intersection before processing command. This
         means that only nodes that are in every provided nodesets are
         used.
+    --separator=<string>, -S <string>
+        Use specified separator string when expanding nodesets (default
+        is ' ').
     --xor, -X
         Calculate symmetric difference (XOR) between two nodesets before
         processing command. This means that nodes present in only one of
@@ -91,12 +94,14 @@ def run_nodeset(args):
     preprocess = None
     quiet = False
     class_set = NodeSet
+    separator = ' '
 
     # Parse command options using getopt
     try:
-        opts, args = getopt.getopt(args[1:], "a:cefhiqvx:RX", ["autostep=",
-            "count", "expand", "fold", "help", "intersection", "quiet",
-            "rangeset", "version", "exclude=", "xor"])
+        opts, args = getopt.getopt(args[1:], "a:cefhiqvx:RS:X",
+            ["autostep=", "count", "expand", "fold", "help",
+            "intersection", "quiet", "rangeset", "version", "exclude=",
+            "separator=", "xor"])
     except getopt.error, msg:
         print >>sys.stderr, msg
         print >>sys.stderr, "Try `%s -h' for more information." % args[0]
@@ -143,6 +148,8 @@ def run_nodeset(args):
                 print >>sys.stderr, "ERROR: Conflicting options."
                 sys.exit(2)
             preprocess = class_set.symmetric_difference_update
+        elif k in ("-S", "--separator"):
+            separator = v
 
     # Check for command presence
     if not command:
@@ -190,7 +197,7 @@ def run_nodeset(args):
             ns.difference_update(excludes)
         # Display result according to command choice
         if command == "expand":
-            print " ".join(ns)
+            print separator.join(ns)
         elif command == "fold":
             print ns
         else:

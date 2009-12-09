@@ -99,6 +99,21 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["--expand", "foo[1-2]"], "foo1 foo2")
         self._launchAndCompare(["--expand", "foo[1-2],bar"], ["bar foo1 foo2", "foo1 foo2 bar"])
 
+    def testExpandWithSeparator(self):
+        """test nodeset.py --expand -S"""
+        self._launchAndCompare(["--expand", "-S", ":", "foo"], "foo")
+        self._launchAndCompare(["--expand", "-S", ":", "foo", "bar"], ["bar:foo", "foo:bar"])
+        self._launchAndCompare(["--expand", "--separator", ":", "foo", "bar"], ["bar:foo", "foo:bar"])
+        self._launchAndCompare(["--expand", "--separator=:", "foo", "bar"], ["bar:foo", "foo:bar"])
+        self._launchAndCompare(["--expand", "-S", ":", "foo", "foo"], "foo")
+        self._launchAndCompare(["--expand", "-S", ":", "foo[0]"], "foo0")
+        self._launchAndCompare(["--expand", "-S", ":", "foo[2]"], "foo2")
+        self._launchAndCompare(["--expand", "-S", ":", "foo[1,2]"], "foo1:foo2")
+        self._launchAndCompare(["--expand", "-S", ":", "foo[1-2]"], "foo1:foo2")
+        self._launchAndCompare(["--expand", "-S", " ", "foo[1-2]"], "foo1 foo2")
+        self._launchAndCompare(["--expand", "-S", ",", "foo[1-2],bar"], ["bar,foo1,foo2", "foo1,foo2,bar"])
+        self._launchAndCompare(["--expand", "-S", "uuu", "foo[1-2],bar"], ["baruuufoo1uuufoo2", "foo1uuufoo2uuubar"])
+
     def testFoldXOR(self):
         """test nodeset.py --fold --xor"""
         self._launchAndCompare(["-X", "--fold", "foo"], "foo")

@@ -1,3 +1,8 @@
+2009-12-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/nodeset.py: Add separator option to nodeset
+	--expand with -S <string> (trac ticket #39).
+
 2009-12-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Added source presence check on copy.
