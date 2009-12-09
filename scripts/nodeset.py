@@ -157,6 +157,14 @@ def run_nodeset(args):
         print __doc__
         sys.exit(1)
 
+    # Interprate special characters
+    try:
+        separator = eval('\'%s\'' % separator,{"__builtins__":None},{})
+    except:
+        print >>sys.stderr, "ERROR: invalid separator."
+        sys.exit(1)
+
+
     try:
         # Check for nodeset argument(s)
         read_stdin = len(args) < 1
@@ -197,7 +205,7 @@ def run_nodeset(args):
             ns.difference_update(excludes)
         # Display result according to command choice
         if command == "expand":
-            print eval('\'%s\'' % separator).join(ns)
+            print separator.join(ns)
         elif command == "fold":
             print ns
         else:

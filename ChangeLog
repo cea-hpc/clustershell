@@ -1,3 +1,8 @@
+2009-12-09 A. Degremont  <aurelien.degremont@cea.fr>
+
+	* scripts/nodeset.py: Protect --separator from code injection and
+	handle gracefully incorrect separtor.
+
 2009-12-09 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.2 beta 1 released.

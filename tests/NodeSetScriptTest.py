@@ -113,6 +113,7 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["--expand", "-S", " ", "foo[1-2]"], "foo1 foo2")
         self._launchAndCompare(["--expand", "-S", ",", "foo[1-2],bar"], ["bar,foo1,foo2", "foo1,foo2,bar"])
         self._launchAndCompare(["--expand", "-S", "uuu", "foo[1-2],bar"], ["baruuufoo1uuufoo2", "foo1uuufoo2uuubar"])
+        self._launchAndCompare(["--expand", "-S", "\\n", "foo[1-2]"], "foo1\nfoo2")
 
     def testFoldXOR(self):
         """test nodeset.py --fold --xor"""
