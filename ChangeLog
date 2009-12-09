@@ -1,3 +1,15 @@
+2009-12-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Added source presence check on copy.
+
+2009-12-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Ssh.py: Added copy support for directory (automatic
+	detection).
+
+	* Worker/Ssh.py: Fix Scp Popen4->subprocess.popen issue (simple
+	quote escape not needed).
+
 2009-11-10 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.2 beta 0 released. Updated doc and man pages for 1.2.

@@ -226,7 +226,7 @@ class ClushConfigError(Exception):
         self.msg = msg
 
     def __str__(self):
-        return "ERROR (Config %s.%s): %s" % (self.section, self.option, self.msg)
+        return "(Config %s.%s): %s" % (self.section, self.option, self.msg)
 
 class ClushConfig(ConfigParser.ConfigParser):
     """Config class for clush (specialized ConfigParser)"""
@@ -456,6 +456,11 @@ def run_copy(task, source, dest, ns, timeout):
     """
     task.set_info("USER_running", True)
 
+    # Source check
+    if not os.path.exists(source):
+        print >>sys.stderr, "ERROR: file \"%s\" not found" % source
+        clush_exit(1)
+
     worker = task.copy(source, dest, ns, handler=DirectOutputHandler(), timeout=timeout)
 
     task.resume()
@@ -679,6 +684,6 @@ if __name__ == '__main__':
         print "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
     except ClushConfigError, e:
-        print >>sys.stderr, e
+        print >>sys.stderr, "ERROR: %s" % e
         sys.exit(1)
 

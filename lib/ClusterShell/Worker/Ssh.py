@@ -224,6 +224,12 @@ class Scp(Ssh):
         self.file_reader = None
         self.file_writer = None
 
+        # Directory check
+        self.isdir = os.path.isdir(self.source)
+        # Note: file sanity checks can be added to Scp._start() as
+        # soon as Task._start_thread is able to dispatch exceptions on
+        # _start (need trac ticket #21).
+
     def _start(self):
         """
         Start worker, initialize buffers, prepare command.
@@ -232,6 +238,9 @@ class Scp(Ssh):
 
         # Build scp command
         cmd_l = [ task.info("scp_path") or "scp" ]
+
+        if self.isdir:
+            cmd_l.append("-r")
 
         user = task.info("scp_user") or task.info("ssh_user")
         if user:
