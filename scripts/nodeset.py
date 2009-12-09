@@ -197,7 +197,7 @@ def run_nodeset(args):
             ns.difference_update(excludes)
         # Display result according to command choice
         if command == "expand":
-            print separator.join(ns)
+            print eval('\'%s\'' % separator).join(ns)
         elif command == "fold":
             print ns
         else:
