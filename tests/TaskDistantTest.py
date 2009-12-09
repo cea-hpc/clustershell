@@ -7,6 +7,7 @@
 """Unit test for ClusterShell Task (distant)"""
 
 import copy
+import shutil
 import sys
 import unittest
 
@@ -63,6 +64,16 @@ class TaskDistantTest(unittest.TestCase):
         # run task
         self._task.resume()
 
+    def testLocalhostCopyDir(self):
+        """test simple localhost directory copy"""
+        # assume there is a /etc/rc.d directory
+        dest = "/tmp/cs-test_testLocalhostCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        worker = self._task.copy("/etc/rc.d", dest, nodes='localhost')
+        self.assert_(worker != None)
+        # run task
+        self._task.resume()
+
     def testLocalhostExplicitSshCopy(self):
         """test simple localhost copy with explicit ssh worker"""
         # init worker
@@ -72,12 +83,33 @@ class TaskDistantTest(unittest.TestCase):
         self._task.schedule(worker) 
         self._task.resume()
 
+    def testLocalhostExplicitSshCopyDir(self):
+        """test simple localhost copy dir with explicit ssh worker"""
+        # init worker
+        dest = "/tmp/cs-test_testLocalhostExplicitSshCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        worker = WorkerSsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=10)
+        self._task.schedule(worker) 
+        self._task.resume()
+
     def testLocalhostExplicitPdshCopy(self):
         """test simple localhost copy with explicit pdsh worker"""
-        # init worker
+        dest = "/tmp/cs-test_testLocalhostExplicitPdshCopy"
         worker = WorkerPdsh("localhost", source="/etc/hosts",
-                dest="/tmp/cs-test_testLocalhostExplicitPdshCopy",
-                handler=None, timeout=10)
+                dest=dest, handler=None, timeout=10)
+        self._task.schedule(worker) 
+        self._task.resume()
+
+    def testLocalhostExplicitPdshCopyDir(self):
+        """test simple localhost copy dir with explicit pdsh worker"""
+        # pdcp worker doesn't create custom destination directory
+        # TODO: use tempfile.mkdtemp()
+        dest = "/tmp/cs-test_testLocalhostExplicitPdshCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerPdsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=10)
         self._task.schedule(worker) 
         self._task.resume()
 

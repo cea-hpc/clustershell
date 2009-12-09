@@ -3,6 +3,9 @@
 	* scripts/nodeset.py: Add separator option to nodeset
 	--expand with -S <string> (trac ticket #39).
 
+	* Worker/Pdsh.py: Added copy support for directory (automatic
+	detection). Added non-reg tests.
+
 2009-12-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Added source presence check on copy.

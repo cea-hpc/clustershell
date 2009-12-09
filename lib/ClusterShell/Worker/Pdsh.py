@@ -97,6 +97,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
             self.source = kwargs['source']
             self.dest = kwargs['dest']
             self.mode = 'pdcp'
+            self.isdir = os.path.isdir(self.source)
         else:
             raise WorkerBadArgumentException()
 
@@ -156,8 +157,11 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
             cmd_l.append("-w %s" % self.nodes)
 
-            cmd_l.append("%s" % self.source)
-            cmd_l.append("%s" % self.dest)
+            if self.isdir:
+                cmd_l.append("-r")
+
+            cmd_l.append(self.source)
+            cmd_l.append(self.dest)
 
             if self.task.info("debug", False):
                 self.task.info("print_debug")(self.task,"PDCP: %s" % ' '.join(cmd_l))
