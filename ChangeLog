@@ -1,5 +1,7 @@
 2009-12-09 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.2 beta 1 released.
+
 	* scripts/clush.py and library: Add -p option when using --copy to
 	preserve file modification times and modes.
 
