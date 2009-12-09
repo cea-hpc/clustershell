@@ -142,7 +142,8 @@ class GatherOutputHandler(EventHandler):
             (ns, buf) = t
         else:
             buf = t
-        self._runtimer.eh.erase_line()
+        if self._runtimer:
+            self._runtimer.eh.erase_line()
         if self._label:
           print >>sys.stderr, "%s: %s" % (ns, buf)
         else:
