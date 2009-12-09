@@ -93,6 +93,16 @@ class TaskDistantTest(unittest.TestCase):
         self._task.schedule(worker) 
         self._task.resume()
 
+    def testLocalhostExplicitSshCopyDirPreserve(self):
+        """test simple localhost preserve copy dir with explicit ssh worker"""
+        # init worker
+        dest = "/tmp/cs-test_testLocalhostExplicitSshPreserveCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        worker = WorkerSsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=10, preserve=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+
     def testLocalhostExplicitPdshCopy(self):
         """test simple localhost copy with explicit pdsh worker"""
         dest = "/tmp/cs-test_testLocalhostExplicitPdshCopy"
@@ -110,6 +120,17 @@ class TaskDistantTest(unittest.TestCase):
         os.mkdir(dest)
         worker = WorkerPdsh("localhost", source="/etc/rc.d",
                 dest=dest, handler=None, timeout=10)
+        self._task.schedule(worker) 
+        self._task.resume()
+
+    def testLocalhostExplicitPdshCopyDirPreserve(self):
+        """test simple localhost preserve copy dir with explicit pdsh worker"""
+        # pdcp worker doesn't create custom destination directory
+        dest = "/tmp/cs-test_testLocalhostExplicitPdshPreserveCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerPdsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=10, preserve=True)
         self._task.schedule(worker) 
         self._task.resume()
 

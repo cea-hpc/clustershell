@@ -239,10 +239,11 @@ class Task(object):
 
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
+        preserve = kwargs.get("preserve", None)
 
         # create a new copy worker
         worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
-                timeout=timeo)
+                timeout=timeo, preserve=preserve)
 
         self.schedule(worker)
 

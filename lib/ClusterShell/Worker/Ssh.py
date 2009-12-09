@@ -213,7 +213,7 @@ class Scp(Ssh):
     Scp EngineClient.
     """
 
-    def __init__(self, node, source, dest, worker, stderr, timeout):
+    def __init__(self, node, source, dest, worker, stderr, timeout, preserve):
         """
         Initialize Scp instance.
         """
@@ -229,6 +229,9 @@ class Scp(Ssh):
         # Note: file sanity checks can be added to Scp._start() as
         # soon as Task._start_thread is able to dispatch exceptions on
         # _start (need trac ticket #21).
+    
+        # Preserve modification times and modes?
+        self.preserve = preserve
 
     def _start(self):
         """
@@ -241,6 +244,9 @@ class Scp(Ssh):
 
         if self.isdir:
             cmd_l.append("-r")
+
+        if self.preserve:
+            cmd_l.append("-p")
 
         user = task.info("scp_user") or task.info("ssh_user")
         if user:
@@ -318,7 +324,7 @@ class WorkerSsh(DistantWorker):
             # secure copy
             for node in self.nodes:
                 self.clients.append(Scp(node, kwargs['source'], kwargs['dest'],
-                    self, stderr, timeout))
+                    self, stderr, timeout, kwargs.get('preserve', False)))
         else:
             raise WorkerBadArgumentException()
 

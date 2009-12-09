@@ -1,5 +1,8 @@
 2009-12-09 S. Thiell <stephane.thiell@cea.fr>
 
+	* scripts/clush.py and library: Add -p option when using --copy to
+	preserve file modification times and modes.
+
 	* scripts/clush.py: Fix clush -q/--quiet issue.
 
 	* scripts/nodeset.py: Add separator option to nodeset

@@ -451,7 +451,7 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity):
  
     task.resume()
 
-def run_copy(task, source, dest, ns, timeout):
+def run_copy(task, source, dest, ns, timeout, preserve_flag):
     """
     run copy command
     """
@@ -462,7 +462,8 @@ def run_copy(task, source, dest, ns, timeout):
         print >>sys.stderr, "ERROR: file \"%s\" not found" % source
         clush_exit(1)
 
-    worker = task.copy(source, dest, ns, handler=DirectOutputHandler(), timeout=timeout)
+    worker = task.copy(source, dest, ns, handler=DirectOutputHandler(),
+                timeout=timeout, preserve=preserve_flag)
 
     task.resume()
 
@@ -522,6 +523,8 @@ def clush_main(args):
                       help="copy local file or directory to the nodes")
     optgrp.add_option("--dest", action="store", dest="dest_path",
                       help="destination file or directory on the nodes")
+    optgrp.add_option("-p", action="store_true", dest="preserve_flag",
+                      help="preserve modification times and modes")
     parser.add_option_group(optgrp)
 
     # Ssh options
@@ -659,7 +662,8 @@ def clush_main(args):
         if options.source_path:
             if not options.dest_path:
                 options.dest_path = options.source_path
-            run_copy(task, options.source_path, options.dest_path, nodeset_base, 0)
+            run_copy(task, options.source_path, options.dest_path, nodeset_base,
+                    0, options.preserve_flag)
         else:
             run_command(task, ' '.join(args), nodeset_base, options.gather,
                     timeout, options.label, config.get_verbosity())

@@ -98,6 +98,8 @@ class WorkerPdsh(EngineClient,DistantWorker):
             self.dest = kwargs['dest']
             self.mode = 'pdcp'
             self.isdir = os.path.isdir(self.source)
+            # Preserve modification times and modes?
+            self.preserve = kwargs.get('preserve', False)
         else:
             raise WorkerBadArgumentException()
 
@@ -159,6 +161,9 @@ class WorkerPdsh(EngineClient,DistantWorker):
 
             if self.isdir:
                 cmd_l.append("-r")
+
+            if self.preserve:
+                cmd_l.append("-p")
 
             cmd_l.append(self.source)
             cmd_l.append(self.dest)
