@@ -1,3 +1,7 @@
+2009-12-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Fix clush -q/--quiet issue again!
+
 2009-12-09 A. Degremont  <aurelien.degremont@cea.fr>
 
 	* scripts/nodeset.py: Protect --separator from code injection and

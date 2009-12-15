@@ -148,8 +148,9 @@ class GatherOutputHandler(EventHandler):
           print >>sys.stderr, "%s: %s" % (ns, buf)
         else:
           print >>sys.stderr,"%s" % buf
-        # Force redisplay of counter
-        self._runtimer.eh.set_dirty()
+        if self._runtimer:
+            # Force redisplay of counter
+            self._runtimer.eh.set_dirty()
 
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
