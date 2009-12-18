@@ -1,3 +1,8 @@
+2009-12-09 A. Degremont  <aurelien.degremont@cea.fr>
+
+	* scripts/clush.py: Add -X flag to exclude node groups.
+	  Node flags -w/-x/-g/-X can now be specified multiple times.
+
 2009-12-17 S. Thiell <stephane.thiell@cea.fr>
 
 	* Engine/Factory.py: Add engine automatic selection mechanism trac

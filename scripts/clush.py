@@ -491,14 +491,16 @@ def clush_main(args):
 
     # Node selections
     optgrp = optparse.OptionGroup(parser, "Selecting target nodes")
-    optgrp.add_option("-w", action="store", dest="nodes",
+    optgrp.add_option("-w", action="append", dest="nodes",
                       help="nodes where to run the command")
-    optgrp.add_option("-x", action="store", dest="exclude",
+    optgrp.add_option("-x", action="append", dest="exclude",
                       help="exclude nodes from the node list")
     optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
                       help="run command on all nodes")
-    optgrp.add_option("-g", "--group", action="store", dest="group",
+    optgrp.add_option("-g", "--group", action="append", dest="group",
                       help="run command on a group of nodes")
+    optgrp.add_option("-X", action="append", dest="exgroup",
+                      help="exclude nodes from this group")
     parser.add_option_group(optgrp)
 
     # Output behaviour
@@ -570,8 +572,10 @@ def clush_main(args):
     #
     # Compute the nodeset
     #
-    nodeset_base = NodeSet(options.nodes)
-    nodeset_exclude = NodeSet(options.exclude)
+    if options.nodes:
+        nodeset_base = NodeSet.fromlist(options.nodes)
+    if options.exclude:
+        nodeset_exclude = NodeSet.fromlist(options.exclude)
 
     # Do we have nodes group?
     task = task_self()
@@ -580,16 +584,25 @@ def clush_main(args):
         command = config.get_nodes_all_command()
         task.shell(command, key="all")
     if options.group:
-        command = config.get_nodes_group_command(options.group)
-        task.shell(command, key="group")
+        for grp in options.group:
+            command = config.get_nodes_group_command(grp)
+            task.shell(command, key="group")
+    if options.exgroup:
+        for grp in options.exgroup:
+            command = config.get_nodes_group_command(grp)
+            task.shell(command, key="exgroup")
 
     # Run needed external commands
     task.resume()
 
-    for buf, keys in task.iter_buffers():
+    for buf, keys in task.iter_buffers(['all', 'group']):
         for line in buf.splitlines():
-            config.verbose_print(VERB_DEBUG, "Nodes from option %s: %s" % (','.join(keys), buf))
+            config.verbose_print(VERB_DEBUG, "Adding nodes from option %s: %s" % (','.join(keys), buf))
             nodeset_base.add(line)
+    for buf, keys in task.iter_buffers(['exgroup']):
+        for line in buf.splitlines():
+            config.verbose_print(VERB_DEBUG, "Excluding nodes from option %s: %s" % (','.join(keys), buf))
+            nodeset_exclude.add(line)
 
     # Do we have an exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)

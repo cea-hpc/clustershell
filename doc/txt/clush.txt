@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2009-11-10
+:Date:   2009-12-18
 :Copyright: CeCILL-C V1
 :Version: 1.2
 :Manual section: 1
@@ -106,6 +106,7 @@ Selecting target nodes:
   -a, --all           run command on all nodes
   -g GROUP, --group=GROUP
                       run command on a group of nodes
+  -X EXGROUP          exclude nodes from this group
 
 Output behaviour:
   -q, --quiet         be quiet, print essential output only
