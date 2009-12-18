@@ -58,8 +58,7 @@ from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
 from Engine.Engine import EngineAlreadyRunningError
 from Engine.Engine import EngineTimer
-from Engine.EPoll import EngineEPoll
-from Engine.Poll import EnginePoll
+from Engine.Factory import PreferredEngine
 from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
 from Worker.Popen import WorkerPopen
@@ -122,7 +121,8 @@ class Task(object):
                       "fanout"          : 32,
                       "connect_timeout" : 10,
                       "command_timeout" : 0,
-                      "default_stderr"  : False }
+                      "default_stderr"  : False,
+                      "engine"          : 'auto' }
     _tasks = {}
 
     def __new__(cls, thread_id=None):
@@ -145,8 +145,8 @@ class Task(object):
         if not getattr(self, "_engine", None):
             # first time called
             self._info = self.__class__._default_info.copy()
-            self._engine = EnginePoll(self._info)
-            #self._engine = EngineEPoll(self._info)
+            # use factory class PreferredEngine that gives the proper engine instance
+            self._engine = PreferredEngine(self._info)
             self.timeout = 0
             self.l_run = None
 
@@ -606,4 +606,13 @@ def task_wait():
     ClusterShell.Task package namespace.
     """
     Task.wait(thread.get_ident())
+
+def task_terminate():
+    """
+    Destroy the Task instance bound to the current thread. A next call
+    to task_self() will create a new Task object. This function provided
+    as a convenience is available in the top-level ClusterShell.Task
+    package namespace.
+    """
+    task_self().abort(kill=True)
 

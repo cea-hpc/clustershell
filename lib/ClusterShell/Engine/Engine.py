@@ -70,6 +70,11 @@ class EngineAlreadyRunningError(EngineIllegalOperationError):
     Error raised when the engine is already running.
     """
 
+class EngineNotSupportedError(EngineException):
+    """
+    Error raised when the engine mechanism is not supported.
+    """
+
 
 class EngineBaseTimer:
     """
@@ -346,6 +351,9 @@ class Engine:
         """
         # take a reference on info dict
         self.info = info
+
+        # and update engine id
+        self.info['engine'] = self.identifier
 
         # keep track of all clients
         self._clients = set()

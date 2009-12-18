@@ -1,3 +1,10 @@
+2009-12-17 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine/Factory.py: Add engine automatic selection mechanism trac
+	ticket #10).
+
+	* Task.py: Add task_terminate() function for convenience.
+
 2009-12-15 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Fix clush -q/--quiet issue again!

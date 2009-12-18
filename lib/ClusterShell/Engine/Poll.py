@@ -70,8 +70,7 @@ class EnginePoll(Engine):
             # get a polling object
             self.polling = select.poll()
         except AttributeError:
-            print >> sys.stderr, "Error: select.poll() not supported"
-            raise
+            raise EngineNotSupportedError()
 
         # runloop-has-exited flag
         self.exited = False

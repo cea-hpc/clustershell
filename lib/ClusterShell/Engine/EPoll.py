@@ -70,8 +70,7 @@ class EngineEPoll(Engine):
             # get an epoll object
             self.epolling = select.epoll()
         except AttributeError:
-            print >> sys.stderr, "Error: select.epoll() not supported"
-            raise
+            raise EngineNotSupportedError()
 
         # runloop-has-exited flag
         self.exited = False
