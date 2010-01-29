@@ -1,5 +1,8 @@
 2010-01-29 S. Thiell <stephane.thiell@cea.fr>
 
+	* scripts/clush.py: Return some error code when -S -u TIMEOUT is used
+	and some command timeout occurred (trac ticket #48).
+
 	* scripts/clush.py: Display output messages on KeyboardInterrupt (trac
 	ticket #22).
 

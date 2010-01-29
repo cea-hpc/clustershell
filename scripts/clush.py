@@ -720,12 +720,13 @@ def clush_main(args):
         print >>sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)
 
-    # return the command retcode
+    rc = 0
     if options.maxrc:
-        clush_exit(task.max_retcode())
-    # return clush retcode
-    else:
-        clush_exit(0)
+        # instead of clush return code, return commands retcode
+        rc = task.max_retcode()
+        if task.num_timeout() > 0:
+            rc = 255
+    clush_exit(rc)
 
 if __name__ == '__main__':
     try:
