@@ -1,17 +1,20 @@
 2010-01-29 S. Thiell <stephane.thiell@cea.fr>
 
-	* tests/TaskThreadJoinTest.py: added test cases for task.join().
+	* scripts/clush.py: Display output messages on KeyboardInterrupt (trac
+	ticket #22).
 
-	* tests/TaskThreadSuspendTest.py: added test cases for
+	* tests/TaskThreadJoinTest.py: Added test cases for task.join().
+
+	* tests/TaskThreadSuspendTest.py: Added test cases for
 	task.suspend().
 
-	* tests/TaskPortTest.py: added test cases for task.port().
+	* tests/TaskPortTest.py: Added test cases for task.port().
 
 	* Task.py: Improved features in multithreaded environments thanks
 	to new port feature: abort(), suspend(), resume(), schedule(), etc.
-	are now thread-safe.
+	are now thread-safe (trac ticket #21).
 
-	* Worker/EngineClient.py: added port feature, a way to communicate between
+	* Worker/EngineClient.py: Added port feature, a way to communicate between
 	different tasks.
 
 2009-12-09 A. Degremont  <aurelien.degremont@cea.fr>

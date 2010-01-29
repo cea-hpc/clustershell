@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -200,8 +200,7 @@ class RunTimer(EventHandler):
             sys.stderr.write(' ' * self.wholelen + '\r')
 
     def update(self):
-        clients = self.task._engine.clients()
-        cnt = len(clients)
+        cnt = len(self.task._engine.clients())
         if cnt != self.cnt_last:
             self.cnt_last = cnt
             # display completed/total clients
@@ -369,6 +368,38 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
             if task.info("USER_interactive"):
                 continue
             return
+        except KeyboardInterrupt, e:
+            signal.signal(signal.SIGHUP, signal.SIG_IGN)
+            if gather:
+                # Suspend task, so we can safely access its data from
+                # the main thread
+                suspended = task.suspend()
+
+                print_warn = False
+
+                # Display command output, but cannot order buffers by rc
+                for buffer, nodeset in task.iter_buffers():
+                    if not print_warn:
+                        print_warn = True
+                        print >>sys.stderr, "Warning: Caught keyboard " \
+                            "interrupt, current results shown below"
+                    print "-" * 15
+                    print NodeSet.fromlist(nodeset)
+                    print "-" * 15
+                    print buffer
+                    
+                # Display return code if not ok ( != 0)
+                for rc, nodeset in task.iter_retcodes():
+                    if rc != 0:
+                        ns = NodeSet.fromlist(nodeset)
+                        print "clush: %s: exited with exit code %s" % (ns, rc)
+
+                # Display nodes that didn't answer within command timeout delay
+                if task.num_timeout() > 0:
+                    print >>sys.stderr, "clush: %s: command timeout" % \
+                            NodeSet.fromlist(task.iter_keys_timeout())
+            raise e
+
         if task.info("USER_running"):
             ns_reg, ns_unreg = NodeSet(), NodeSet()
             for c in task._engine.clients():
