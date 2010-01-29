@@ -17,6 +17,9 @@ from ClusterShell.Task import *
 
 class TaskAdvancedTest(unittest.TestCase):
 
+    def tearDown(self):
+        task_cleanup()
+
     def testTaskEngineUserSelection(self):
         """test task engine user selection hack"""
         task_terminate()

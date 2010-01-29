@@ -43,12 +43,12 @@ class EventHandler:
     """
     Base class EventHandler.
     """
-    def _invoke(self, ev_type, source):
+    def _invoke(self, ev_type, *args):
         """
         Invoke a specific event handler.
         """
         ev_handler = getattr(self, ev_type)
-        ev_handler(source)
+        ev_handler(*args)
 
     def ev_start(self, worker):
         """
@@ -86,9 +86,17 @@ class EventHandler:
         have failed on timeout).
         """
 
+    def ev_msg(self, port, msg):
+        """
+        Handle port message.
+
+        @port: The port object on which a message is available.
+        """
+
     def ev_timer(self, timer):
         """
         Handle firing timer.
 
         @timer: The timer that is firing. 
         """
+

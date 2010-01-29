@@ -287,7 +287,10 @@ class WorkerSimple(EngineClient,Worker):
         EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
         self.last_msg = None
-        self.key = key or self
+        if key is None: # allow key=0
+            self.key = self
+        else:
+            self.key = key
         self.file_reader = file_reader
         self.file_writer = file_writer
         self.file_error = file_error

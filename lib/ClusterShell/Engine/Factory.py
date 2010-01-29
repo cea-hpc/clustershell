@@ -41,7 +41,7 @@ import sys
 
 from Engine import EngineNotSupportedError
 
-# Availaable event engines
+# Available event engines
 from EPoll import EngineEPoll
 from Poll import EnginePoll
 

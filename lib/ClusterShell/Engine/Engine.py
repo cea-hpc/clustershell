@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -39,9 +39,11 @@ An Engine implements a loop your thread enters and uses to call event handlers
 in response to incoming events (from workers, timers, etc.).
 """
 
+import errno
 import heapq
 import thread
 import time
+
 
 class EngineException(Exception):
     """
@@ -357,9 +359,9 @@ class Engine:
 
         # keep track of all clients
         self._clients = set()
+        self._ports = set()
 
         # keep track of the number of registered clients
-        # note: len(self.reg_clients) <= configured fanout
         self.reg_clients = 0
 
         # keep track of registered file descriptors in a dict where keys
@@ -383,17 +385,20 @@ class Engine:
         # clients and timers configured WITHOUT autoclose)
         self.evlooprefcnt = 0
 
-        self.joinable = True
-        # thread stuffs
-        self.run_lock = thread.allocate_lock()
-        self.start_lock = thread.allocate_lock()
-        self.start_lock.acquire()
+        # running state
+        self.running = False
 
     def clients(self):
         """
         Get a copy of clients set.
         """
         return self._clients.copy()
+
+    def ports(self):
+        """
+        Get a copy of ports set.
+        """
+        return self._ports.copy()
 
     def _fd2client(self, fd):
         fdev = None
@@ -418,12 +423,19 @@ class Engine:
         # bind to engine
         client._set_engine(self)
 
-        # add to clients set
-        self._clients.add(client)
+        if client.delayable:
+            # add to regular client set
+            self._clients.add(client)
+        else:
+            # add to port set (non-delayable)
+            self._ports.add(client)
 
-        if self.run_lock.locked():
+        if self.running:
             # in-fly add if running
-            self.register(client._start())
+            if not client.delayable:
+                self.register(client)
+            elif self.info["fanout"] > self.reg_clients:
+                self.register(client._start())
 
     def remove(self, client, did_timeout=False):
         """
@@ -431,30 +443,38 @@ class Engine:
         method should call base class method.
         """
         self._debug("REMOVE %s" % client)
-        self._clients.remove(client)
+        if client.delayable:
+            self._clients.remove(client)
+        else:
+            self._ports.remove(client)
 
         if client.registered:
             self.unregister(client)
             client._close(force=False, timeout=did_timeout)
             self.start_all()
 
-    def clear(self, did_timeout=False):
+    def clear(self, did_timeout=False, clear_ports=False):
         """
         Remove all clients. Subclasses that override this method should
         call base class method.
         """
-        while len(self._clients) > 0:
-            client = self._clients.pop()
-            if client.registered:
-                self.unregister(client)
-                client._close(force=True, timeout=did_timeout)
+        all_clients = [self._clients]
+        if clear_ports:
+            all_clients.append(self._ports)
+
+        for clients in all_clients:
+            while len(clients) > 0:
+                client = clients.pop()
+                if client.registered:
+                    self.unregister(client)
+                    client._close(force=True, timeout=did_timeout)
 
     def register(self, client):
         """
-        Register a client. Subclasses that override this method should
-        call base class method.
+        Register an engine client. Subclasses that override this method
+        should call base class method.
         """
-        assert client in self._clients
+        assert client in self._clients or client in self._ports
         assert not client.registered
 
         efd = client.error_fileno()
@@ -500,7 +520,8 @@ class Engine:
         self.timerq.schedule(client)
 
     def unregister_writer(self, client):
-        self._debug("UNREG WRITER r%s,w%s" % (client.reader_fileno(), client.writer_fileno()))
+        self._debug("UNREG WRITER r%s,w%s" % (client.reader_fileno(), \
+            client.writer_fileno()))
         if client.autoclose:
             refcnt_inc = 0
         else:
@@ -647,15 +668,27 @@ class Engine:
         while self.timerq.expired():
             self.timerq.fire()
 
+    def start_ports(self):
+        """
+        Start and register all port clients.
+        """
+        # Ports are special, non-delayable engine clients
+        for port in self._ports:
+            if not port.registered:
+                self._debug("START PORT %s" % port)
+                self.register(port)
+
     def start_all(self):
         """
-        Start and register all possible clients, in respect of task fanout.
+        Start and register all other possible clients, in respect of task fanout.
         """
+        # Get current fanout value
         fanout = self.info["fanout"]
         assert fanout > 0
         if fanout <= self.reg_clients:
              return
 
+        # Register regular engine clients within the fanout limit
         for client in self._clients:
             if not client.registered:
                 self._debug("START CLIENT %s" % client.__class__.__name__)
@@ -668,15 +701,18 @@ class Engine:
         Run engine in calling thread.
         """
         # change to running state
-        if not self.run_lock.acquire(0):
+        if self.running:
             raise EngineAlreadyRunningError()
+        self.running = True
 
-        # start clients now
+        # start port clients
+        self.start_ports()
+
+        # peek in ports for early pending messages
+        self.snoop_ports()
+
+        # start all other clients
         self.start_all()
-
-        # we're started
-        self.joinable = True
-        self.start_lock.release()
 
         # note: try-except-finally not supported before python 2.5
         try:
@@ -689,11 +725,26 @@ class Engine:
         finally:
             # cleanup
             self.timerq.clear()
+            self.running = False
 
-            # change to idle state
-            self.joinable = False
-            self.start_lock.acquire()
-            self.run_lock.release()
+    def snoop_ports(self):
+        """
+        Peek in ports for possible early pending messages.
+        This method simply tries to read port pipes in non-
+        blocking mode.
+        """
+        # make a copy so that early messages on installed ports may
+        # lead to new ports
+        ports = self._ports.copy()
+        for port in ports:
+            try:
+                port._handle_read()
+            except OSError, (err, strerr):
+                if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+                    # no pending message
+                    return
+                # raise any other error
+                raise
 
     def runloop(self, timeout):
         """
@@ -705,28 +756,14 @@ class Engine:
         """
         Abort runloop.
         """
-        if not self.start_lock.locked() and self.joinable:
+        if self.running:
             raise EngineAbortException(kill)
-        else:
-            self.clear()
 
-    def join(self):
-        """
-        Block calling thread until runloop has finished.
-        """
-        # make sure engine has started first
-        if not self.start_lock.acquire(0): # try
-            # check for joinable state
-            if not self.joinable:
-                return
-            self.start_lock.acquire()
-        self.start_lock.release()
-
-        # joined once run_lock is available
-        self.run_lock.acquire()
-        self.run_lock.release()
+        self.clear()
 
     def _debug(self, s):
         # library engine debugging hook
         #print s
         pass
+
+

@@ -49,7 +49,6 @@ import select
 import signal
 import sys
 import time
-import thread
 
 
 class EngineEPoll(Engine):

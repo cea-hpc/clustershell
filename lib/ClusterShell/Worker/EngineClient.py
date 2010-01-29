@@ -43,7 +43,10 @@ it and write data to it.
 
 import fcntl
 import os
+import Queue
 from subprocess import *
+import struct
+import thread
 
 from ClusterShell.Engine.Engine import EngineBaseTimer
 
@@ -80,6 +83,7 @@ class EngineClient(EngineBaseTimer):
 
         # read-only public
         self.registered = False             # registered on engine or not
+        self.delayable = True               # subject to fanout limit
 
         self.worker = worker
 
@@ -102,7 +106,7 @@ class EngineClient(EngineBaseTimer):
     def _start(self):
         """
         Starts client and returns client instance as a convenience.
-        Derived classes must implement.
+        Derived classes (except EnginePort) must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -110,7 +114,8 @@ class EngineClient(EngineBaseTimer):
         """
         Returns the standard error reader file descriptor as an integer.
         """
-        raise NotImplementedError("Derived classes must implement.")
+        # For convenience, the default behaviour is stderr not supported.
+        return None
 
     def reader_fileno(self):
         """
@@ -291,4 +296,116 @@ class EngineClient(EngineBaseTimer):
             self._engine.unregister_writer(self)
             self.file_writer.close()
             self.file_writer = None
+
+
+class EnginePort(EngineClient):
+
+    class _Msg:
+        """Private class representing a port message.
+        
+        A port message may be any Python object.
+        """
+
+        def __init__(self, user_msg, sync):
+            self._user_msg = user_msg
+            self._sync_msg = sync
+            self.reply_lock = thread.allocate_lock()
+            self.reply_lock.acquire()
+
+        def get(self):
+            """
+            Get and acknowledge message.
+            """
+            self.reply_lock.release()
+            return self._user_msg
+
+        def sync(self):
+            """
+            Wait for message acknowledgment if needed.
+            """
+            if self._sync_msg:
+                self.reply_lock.acquire()
+
+    def __init__(self, task, handler=None, autoclose=False):
+        """
+        Initialize EnginePort object.
+        """
+        EngineClient.__init__(self, None, False, -1, autoclose)
+        self.task = task
+        self.eh = handler
+        # ports are no subject to fanout
+        self.delayable = False
+
+        # Port messages queue
+        self._msgq = Queue.Queue(self.task.info("port_qlimit_default"))
+
+        # Request pipe
+        (self._req_read, self._req_write) = os.pipe()
+        fcntl.fcntl(self._req_read, fcntl.F_SETFL,
+                fcntl.fcntl(self._req_read, fcntl.F_GETFL) | os.O_NDELAY)
+        fcntl.fcntl(self._req_write, fcntl.F_SETFL,
+                fcntl.fcntl(self._req_write, fcntl.F_GETFL) | os.O_NDELAY)
+
+    def _start(self):
+        return self
+
+    def _close(self, force, timeout):
+        """
+        """
+        os.close(self._req_read)
+        os.close(self._req_write)
+
+    def reader_fileno(self):
+        """
+        Returns the reader file descriptor as an integer.
+        """
+        return self._req_read
+    
+    def writer_fileno(self):
+        """
+        Returns the writer file descriptor as an integer.
+        """
+        return self._req_write
+    
+    def _read(self, size=4096):
+        """
+        Read data from pipe.
+        """
+        result = os.read(self._req_read, size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading()
+        return result
+
+    def _handle_read(self):
+        """
+        Handle a read notification. Called by the engine as the result of an
+        event indicating that a read is available.
+        """
+        readbuf = self._read()
+        for c in readbuf:
+            # raise Empty if empty (should never happen)
+            pmsg = self._msgq.get(block=False)
+            self.eh.ev_msg(self, pmsg.get())
+
+    def msg(self, send_msg, send_once=False):
+        """
+        Port message send with optional reply.
+        """
+        pmsg = EnginePort._Msg(send_msg, not send_once)
+        self._msgq.put(pmsg, block=True, timeout=None)
+
+        try:
+            ret = os.write(self._req_write, "M")
+        except OSError:
+            raise
+
+        pmsg.sync()
+
+    def msg_send(self, send_msg):
+        """
+        Port message send-once method (no reply).
+        """
+        self.msg(send_msg, send_once=True)
+
 

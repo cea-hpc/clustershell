@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -54,19 +54,23 @@ Simple example of use:
 
 """
 
+import pickle
+import threading
+
 from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
 from Engine.Engine import EngineAlreadyRunningError
 from Engine.Engine import EngineTimer
 from Engine.Factory import PreferredEngine
+from Worker.EngineClient import EnginePort
 from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
 from Worker.Popen import WorkerPopen
 
+from Event import EventHandler
 from MsgTree import MsgTree
 from NodeSet import NodeSet
 
-import thread
 
 class TaskException(Exception):
     """
@@ -101,9 +105,9 @@ class Task(object):
     To create a task in a new thread:
         task = Task()
 
-    To create or get the instance of the task associated with the thread
-    identifier tid:
-        task = Task(thread_id=tid)
+    To create or get the instance of the task associated with the
+    thread object thr (threading.Thread):
+        task = Task(thread=thr)
 
     Add command to execute locally in task with:
         task.shell("/bin/hostname")
@@ -116,39 +120,127 @@ class Task(object):
         task.resume()
     """
 
-    _default_info = { "debug"           : False,
-                      "print_debug"     : _task_print_debug,
-                      "fanout"          : 32,
-                      "connect_timeout" : 10,
-                      "command_timeout" : 0,
-                      "default_stderr"  : False,
-                      "engine"          : 'auto' }
+    _default_info = { "debug"               : False,
+                      "print_debug"         : _task_print_debug,
+                      "fanout"              : 64,
+                      "connect_timeout"     : 10,
+                      "command_timeout"     : 0,
+                      "stderr_default"      : False,
+                      "engine"              : 'auto',
+                      "port_qlimit_default" : 16 }
     _tasks = {}
+    _taskid_max = 0
+    _task_lock = threading.Lock()
 
-    def __new__(cls, thread_id=None):
+    class _SyncMsgHandler(EventHandler):
+        """Special task control port event handler.
+        When a message is received on the port, call appropriate
+        task method."""
+        def ev_msg(self, port, msg):
+            """Message received: call appropriate task method."""
+            # pull out function and its arguments from message
+            func, (args, kwargs) = msg[0], msg[1:]
+            # call task method
+            func(port.task, *args, **kwargs)
+
+    class tasksyncmethod(object):
+        """Class encapsulating a function that checks if the calling
+        task is running or is the current task, and allowing it to be
+        used as a decorator making the wrapped task method thread-safe."""
+        
+        def __call__(self, f):
+            def taskfunc(*args, **kwargs):
+                # pull out the class instance
+                task, fargs = args[0], args[1:]
+                # check if the calling task is the current thread task
+                if task._is_task_self():
+                    return f(task, *fargs, **kwargs)
+                else:
+                    # no, safely call the task method by message 
+                    # through the task special dispatch port
+                    task._dispatch_port.msg_send((f, fargs, kwargs))
+
+            # modify the decorator meta-data for pydoc
+            # Note: should be later replaced  by @wraps (functools)
+            # as of Python 2.5
+            taskfunc.__name__ = f.__name__
+            taskfunc.__doc__ = f.__doc__
+            taskfunc.__dict__ = f.__dict__
+            taskfunc.__module__ = f.__module__
+            return taskfunc
+
+    class _SuspendCondition(object):
+        """Special class to manage task suspend condition."""
+        def __init__(self, lock=threading.RLock(), initial=0):
+            self._cond = threading.Condition(lock)
+            self.suspend_count = initial
+
+        def atomic_inc(self):
+            """Increase suspend count."""
+            self._cond.acquire()
+            self.suspend_count += 1
+            self._cond.release()
+
+        def atomic_dec(self):
+            """Decrease suspend count."""
+            self._cond.acquire()
+            self.suspend_count -= 1
+            self._cond.release()
+
+        def wait_check(self, release_lock=None):
+            """Wait for condition if needed."""
+            self._cond.acquire()
+            try:
+                if self.suspend_count > 0:
+                    if release_lock:
+                        release_lock.release()
+                    self._cond.wait()
+            finally:
+                self._cond.release()
+            
+        def notify_all(self):
+            """Signal all threads waiting for condition."""
+            self._cond.acquire()
+            try:
+                self.suspend_count = min(self.suspend_count, 0)
+                self._cond.notifyAll()
+            finally:
+                self._cond.release()
+
+
+    def __new__(cls, thread=None):
         """
         For task bound to a specific thread, this class acts like a
         "thread singleton", so new style class is used and new object
         are only instantiated if needed.
         """
-        if thread_id:                       # a thread identifier is a nonzero integer
-            if thread_id not in cls._tasks:
-                cls._tasks[thread_id] = object.__new__(cls)
-            return cls._tasks[thread_id]
+        if thread:
+            if thread not in cls._tasks:
+                cls._tasks[thread] = object.__new__(cls)
+            return cls._tasks[thread]
 
         return object.__new__(cls)
 
-    def __init__(self, thread_id=None):
+    def __init__(self, thread=None):
         """
         Initialize a Task, creating a new thread if needed.
         """
         if not getattr(self, "_engine", None):
             # first time called
             self._info = self.__class__._default_info.copy()
-            # use factory class PreferredEngine that gives the proper engine instance
+            # use factory class PreferredEngine that gives the proper
+            # engine instance
             self._engine = PreferredEngine(self._info)
             self.timeout = 0
-            self.l_run = None
+
+            # task synchronization objects
+            self._run_lock = threading.Lock()
+            self._suspend_lock = threading.RLock()
+            # both join and suspend conditions share the same underlying lock
+            self._suspend_cond = Task._SuspendCondition(self._suspend_lock, 1)
+            self._join_cond = threading.Condition(self._suspend_lock)
+            self._suspended = False
+            self._quit = False
 
             # STDIN tree
             self._msgtree = MsgTree()
@@ -165,29 +257,59 @@ class Task(object):
             # keep timeout'd sources
             self._timeout_sources = set()
 
+            # special engine port for task method dispatching
+            self._dispatch_port = EnginePort(self,
+                                            handler=Task._SyncMsgHandler(),
+                                            autoclose=True)
+            self._engine.add(self._dispatch_port)
+
+            # set taskid used as Thread name
+            Task._task_lock.acquire()
+            Task._taskid_max += 1
+            self._taskid = Task._taskid_max
+            Task._task_lock.release()
+
             # create new thread if needed
-            if not thread_id:
-                self.l_run = thread.allocate_lock()
-                self.l_run.acquire()
-                tid = thread.start_new_thread(Task._start_thread, (self,))
-                self._tasks[tid] = self
+            if thread:
+                self.thread = thread
+            else:
+                self.thread = thread = threading.Thread(None,
+                                                        Task._thread_start,
+                                                        "Task-%d" % self._taskid,
+                                                        args=(self,))
+                Task._tasks[thread] = self
+                thread.start()
 
-    def _start_thread(self):
-        """New Task thread entry point."""
+    def _is_task_self(self):
+        """Private method used by the library to check if the task is
+        task_self(), but do not create any task_self() instance."""
+        return self.thread == threading.currentThread()
+        
+    def _thread_start(self):
+        """Task-managed thread entry point"""
+        while not self._quit:
+            self._suspend_cond.wait_check()
+            if self._quit:
+                break
+            self._resume()
+
+        self._terminate(kill=True)
+
+    def _run(self, timeout):
+        # use with statement later
         try:
-            while True:
-                self.l_run.acquire()
-                self._engine.run(self.timeout)
-        except:
-            # TODO: dispatch exceptions
-            raise
-
+            self._run_lock.acquire()
+            self._engine.run(timeout)
+        finally:
+            self._run_lock.release()
+        
     def info(self, info_key, def_val=None):
         """
         Return per-task information.
         """
         return self._info.get(info_key, def_val)
 
+    @tasksyncmethod()
     def set_info(self, info_key, value):
         """
         Set task-specific information state.
@@ -210,7 +332,7 @@ class Task(object):
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
         ac = kwargs.get("autoclose", False)
-        stderr = kwargs.get("stderr", self._info["default_stderr"])
+        stderr = kwargs.get("stderr", self._info["stderr_default"])
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \
@@ -223,8 +345,8 @@ class Task(object):
         else:
             # create (local) worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
-                                 handler=handler, stderr=stderr, timeout=timeo,
-                                 autoclose=ac)
+                                 handler=handler, stderr=stderr,
+                                 timeout=timeo, autoclose=ac)
 
         # schedule worker for execution in this task
         self.schedule(worker)
@@ -243,33 +365,90 @@ class Task(object):
 
         # create a new copy worker
         worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
-                timeout=timeo, preserve=preserve)
+                           timeout=timeo, preserve=preserve)
 
         self.schedule(worker)
 
         return worker
 
+    @tasksyncmethod()
+    def _add_port(self, port):
+        self._engine.add(port)
+
+    def port(self, handler=None, autoclose=False):
+        """
+        Create a new task port. A task port is an abstraction object to
+        deliver messages reliably between tasks.
+
+        Basic rules:
+            A task can send messages to another task port (thread safe).
+            A task can receive messages from an acquired port either by
+            setting up a notification mechanism or using a polling
+            mechanism that may block the task waiting for a message
+            sent on the port.
+            A port can be acquired by one task only.
+
+        If handler is set to a valid EventHandler object, the port is
+        a send-once port, ie. a message sent to this port generates an
+        ev_msg event notification issued the port's task. If handler
+        is not set, the task can only receive messages on the port by
+        calling port.msg_recv().
+        """
+        port = EnginePort(self, handler, autoclose)
+        self._add_port(port)
+        return port
+
+    @tasksyncmethod()
     def timer(self, fire, handler, interval=-1.0, autoclose=False):
         """
         Create task's timer.
         """
-        assert fire >= 0.0, "timer's relative fire time must be a positive floating number"
+        assert fire >= 0.0, \
+            "timer's relative fire time must be a positive floating number"
         
         timer = EngineTimer(fire, interval, autoclose, handler)
         self._engine.add_timer(timer)
         return timer
 
+    @tasksyncmethod()
     def schedule(self, worker):
         """
         Schedule a worker for execution. Only useful for manually
         instantiated workers.
         """
+        assert self in Task._tasks.values(), "deleted task"
+
         # bind worker to task self
         worker._set_task(self)
 
         # add worker clients to engine
         for client in worker._engine_clients():
             self._engine.add(client)
+
+    def _resume_thread(self):
+        """Resume called from another thread."""
+        self._suspend_cond.notify_all()
+
+    def _resume(self):
+        assert self.thread == threading.currentThread()
+        try:
+            try:
+                self._reset()
+                self._run(self.timeout)
+            except EngineTimeoutException:
+                raise TimeoutError()
+            except EngineAbortException, e:
+                self._terminate(e.kill)
+            except EngineAlreadyRunningError:
+                raise AlreadyRunningError()
+            except:
+                raise
+        finally:
+            # task becomes joinable
+            self._join_cond.acquire()
+            self._suspend_cond.suspend_count += 1
+            self._join_cond.notifyAll()
+            self._join_cond.release()
 
     def resume(self, timeout=0):
         """
@@ -281,21 +460,63 @@ class Task(object):
         In that case, you may then want to call task_wait() to wait for
         completion.
         """
-        if self.l_run:
-            self.timeout = timeout
-            self.l_run.release()
+        self.timeout = timeout
+
+        self._suspend_cond.atomic_dec()
+
+        if self._is_task_self():
+            self._resume()
         else:
-            try:
-                self._reset()
-                self._engine.run(timeout)
-            except EngineTimeoutException:
-                raise TimeoutError()
-            except EngineAbortException, e:
-                self._terminate(e.kill)
-            except EngineAlreadyRunningError:
-                raise AlreadyRunningError()
-            except:
-                raise
+            self._resume_thread()
+
+    @tasksyncmethod()
+    def _suspend_wait(self, keep_run_lock=False):
+        assert task_self() == self
+        # atomically set suspend state
+        self._suspend_lock.acquire()
+        self._suspended = True
+        self._suspend_lock.release()
+
+        # wait for special suspend condition, while releasing l_run
+        self._suspend_cond.wait_check(self._run_lock)
+
+        # waking up, atomically unset suspend state
+        self._suspend_lock.acquire()
+        self._suspended = False
+        self._suspend_lock.release()
+            
+    def suspend(self):
+        """
+        Suspend task execution. This method may be called from another
+        task (thread-safe). The function returns False if the task
+        cannot be suspended (eg. it's not running), or returns True if
+        the task has been successfully suspended.
+        To resume a suspended task, use task.resume().
+        """
+        # first of all, increase suspend count
+        self._suspend_cond.atomic_inc()
+
+        # call synchronized suspend method
+        self._suspend_wait()
+
+        # wait for stopped task
+        self._run_lock.acquire()
+        
+        # get result: are we really suspended or just stopped?
+        result = True
+        self._suspend_lock.acquire()
+        if not self._suspended:
+            # not acknowledging suspend state, task is stopped
+            result = False
+            self._run_lock.release()
+        self._suspend_lock.release()
+        return result
+
+    @tasksyncmethod()
+    def _abort(self, kill=False):
+        assert task_self() == self
+        # raise an EngineAbortException when task is running
+        self._engine.abort(kill)
 
     def abort(self, kill=False):
         """
@@ -304,32 +525,51 @@ class Task(object):
         object is unbound from the current thread, so calling
         task_self() creates a new Task object.
         """
-        # Aborting a task from another thread (ie. not the thread
-        # bound to task) will be supported through the inter-task msg
-        # API (trac #21).
-        assert task_self() == self, "Inter-task abort not implemented yet"
-        
-        # Raise an EngineAbortException when task is running.
-        self._engine.abort(kill)
-
-        # Called directly when task is not running.
-        self._terminate(kill)
+        if self._run_lock.acquire(0):
+            self._quit = True
+            self._run_lock.release()
+            if self._is_task_self():
+                self._terminate(kill)
+            else:
+                self.resume()
+        else:
+            # call synchronized method when running
+            self._abort(kill)
 
     def _terminate(self, kill):
         """
         Abort completion subroutine.
         """
+        self._engine.clear()
         self._reset()
 
         if kill:
-            del self.__class__._tasks[thread.get_ident()]
+            Task._task_lock.acquire()
+            try:
+                del Task._tasks[threading.currentThread()]
+            finally:
+                Task._task_lock.release()
 
     def join(self):
         """
         Suspend execution of the calling thread until the target task
         terminates, unless the target task has already terminated.
         """
-        self._engine.join()
+        self._join_cond.acquire()
+        try:
+            if self._suspend_cond.suspend_count > 0:
+                if not self._suspended:
+                    # ignore stopped task
+                    return
+            self._join_cond.wait()
+        finally:
+            self._join_cond.release()
+
+    def running(self):
+        """
+        Return True if the task is running.
+        """
+        return self._engine.running
 
     def _reset(self):
         """
@@ -579,15 +819,22 @@ class Task(object):
         for (w, k) in self._timeout_sources:
             yield k
 
-    def wait(cls, from_thread_id):
+    @classmethod
+    def wait(cls, from_thread):
         """
         Class method that blocks calling thread until all tasks have
-        finished.
+        finished (from a ClusterShell point of view, for instance,
+        their task.resume() return). It doesn't necessarly mean that
+        associated threads have finished.
         """
-        for thread_id, task in Task._tasks.iteritems():
-            if thread_id != from_thread_id:
+        Task._task_lock.acquire()
+        try:
+            tasks = Task._tasks.copy()
+        finally:
+            Task._task_lock.release()
+        for thread, task in tasks.iteritems():
+            if thread != from_thread:
                 task.join()
-    wait = classmethod(wait)
 
 
 def task_self():
@@ -596,7 +843,7 @@ def task_self():
     provided as a convenience is available in the top-level
     ClusterShell.Task package namespace.
     """
-    return Task(thread_id=thread.get_ident())
+    return Task(thread=threading.currentThread())
 
 def task_wait():
     """
@@ -605,7 +852,7 @@ def task_wait():
     as a convenience and is available in the top-level
     ClusterShell.Task package namespace.
     """
-    Task.wait(thread.get_ident())
+    Task.wait(threading.currentThread())
 
 def task_terminate():
     """
@@ -615,4 +862,18 @@ def task_terminate():
     package namespace.
     """
     task_self().abort(kill=True)
+
+def task_cleanup():
+    """
+    Cleanup routine to destroy all created tasks. This function
+    provided as a convenience is available in the top-level
+    ClusterShell.Task package namespace.
+    """
+    Task._task_lock.acquire()
+    try:
+        tasks = Task._tasks.copy()
+    finally:
+        Task._task_lock.release()
+    for thread, task in tasks.iteritems():
+        task.abort(kill=True)
 

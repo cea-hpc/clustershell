@@ -48,7 +48,6 @@ import select
 import signal
 import sys
 import time
-import thread
 
 
 class EnginePoll(Engine):
@@ -138,8 +137,9 @@ class EnginePoll(Engine):
 
         # run main event loop...
         while self.evlooprefcnt > 0:
-            self._debug("LOOP evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
-                    (self.evlooprefcnt, self.reg_clifds.keys(), len(self.timerq)))
+            self._debug("LOOP evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" \
+                % (self.evlooprefcnt, self.reg_clifds.keys(), \
+                   len(self.timerq)))
             try:
                 timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:

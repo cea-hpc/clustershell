@@ -547,7 +547,7 @@ class TaskLocalTest(unittest.TestCase):
         task.set_info("debug", False)
 
     def testTaskAbortSelf(self):
-        """test task abort self (ouside handler)"""
+        """test task abort self (outside handler)"""
         task = task_self()
         self.assert_(task != None)
 
