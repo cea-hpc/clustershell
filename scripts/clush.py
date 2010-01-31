@@ -169,7 +169,7 @@ class GatherOutputHandler(EventHandler):
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
                 ns = NodeSet.fromlist(nodelist)
-                print "clush: %s: exited with exit code %s" % (ns, rc)
+                print >>sys.stderr, "clush: %s: exited with exit code %s" % (ns, rc)
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
@@ -394,7 +394,8 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                     if rc != 0:
                         # Display return code if not ok ( != 0)
                         ns = NodeSet.fromlist(nodelist)
-                        print "clush: %s: exited with exit code %s" % (ns, rc)
+                        print >>sys.stderr, \
+                            "clush: %s: exited with exit code %s" % (ns, rc)
                 # Add uncompleted nodeset to exception object
                 e.uncompleted_nodes = ns - ns_ok
 
@@ -649,8 +650,8 @@ def clush_main(args):
     #
     # Task management
     #
-    stdin_isatty = sys.stdin.isatty()
-    if stdin_isatty:
+    user_interaction = sys.stdin.isatty() and sys.stdout.isatty()
+    if user_interaction:
         # Standard input is a terminal and we want to perform some user
         # interactions in the main thread (using blocking calls), so
         # we run cluster commands in a new ClusterShell Task (a new
@@ -717,7 +718,7 @@ def clush_main(args):
             run_command(task, ' '.join(args), nodeset_base, options.gather,
                     timeout, options.label, config.get_verbosity())
 
-    if stdin_isatty:
+    if user_interaction:
         ttyloop(task, nodeset_base, options.gather, timeout, options.label,
                 config.get_verbosity())
     elif task.info("USER_interactive"):
@@ -726,7 +727,7 @@ def clush_main(args):
 
     rc = 0
     if options.maxrc:
-        # instead of clush return code, return commands retcode
+        # Instead of clush return code, return commands retcode
         rc = task.max_retcode()
         if task.num_timeout() > 0:
             rc = 255
@@ -735,9 +736,15 @@ def clush_main(args):
 if __name__ == '__main__':
     try:
         clush_main(sys.argv)
+    except ClushConfigError, e:
+        print >>sys.stderr, "ERROR: %s" % e
+        sys.exit(1)
     except NodeSetParseError, e:
         print >>sys.stderr, "NodeSet parse error:", e
         sys.exit(1)
+    except IOError:
+        # Ignore broken pipe
+        os._exit(1)
     except KeyboardInterrupt, e:
         u_nodes = getattr(e, 'uncompleted_nodes', None)
         if u_nodes:
@@ -745,7 +752,4 @@ if __name__ == '__main__':
         else:
             print >>sys.stderr, "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
-    except ClushConfigError, e:
-        print >>sys.stderr, "ERROR: %s" % e
-        sys.exit(1)
 
