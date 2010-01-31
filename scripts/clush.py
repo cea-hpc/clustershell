@@ -158,17 +158,17 @@ class GatherOutputHandler(EventHandler):
             self._runtimer.eh.finalize(worker.task.info("USER_interactive"))
 
         # Display command output, try to order buffers by rc
-        for rc, nodeset in worker.iter_retcodes():
-            for buffer, nodeset in worker.iter_buffers(nodeset):
+        for rc, nodelist in worker.iter_retcodes():
+            for buffer, nodelist in worker.iter_buffers(nodelist):
                 print "-" * 15
-                print NodeSet.fromlist(nodeset)
+                print NodeSet.fromlist(nodelist)
                 print "-" * 15
                 print buffer
 
         # Display return code if not ok ( != 0)
-        for rc, nodeset in worker.iter_retcodes():
+        for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
-                ns = NodeSet.fromlist(nodeset)
+                ns = NodeSet.fromlist(nodelist)
                 print "clush: %s: exited with exit code %s" % (ns, rc)
 
         # Display nodes that didn't answer within command timeout delay
@@ -378,21 +378,25 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                 print_warn = False
 
                 # Display command output, but cannot order buffers by rc
-                for buffer, nodeset in task.iter_buffers():
+                for buffer, nodelist in task.iter_buffers():
                     if not print_warn:
                         print_warn = True
-                        print >>sys.stderr, "Warning: Caught keyboard " \
-                            "interrupt, current results shown below"
+                        print >>sys.stderr, "Warning: Caught keyboard interrupt!"
                     print "-" * 15
-                    print NodeSet.fromlist(nodeset)
+                    print NodeSet.fromlist(nodelist)
                     print "-" * 15
                     print buffer
                     
-                # Display return code if not ok ( != 0)
-                for rc, nodeset in task.iter_retcodes():
+                # Return code handling
+                ns_ok = NodeSet()
+                for rc, nodeliset in task.iter_retcodes():
+                    ns_ok.add(NodeSet.fromlist(nodelist))
                     if rc != 0:
-                        ns = NodeSet.fromlist(nodeset)
+                        # Display return code if not ok ( != 0)
+                        ns = NodeSet.fromlist(nodelist)
                         print "clush: %s: exited with exit code %s" % (ns, rc)
+                # Add uncompleted nodeset to exception object
+                e.uncompleted_nodes = ns - ns_ok
 
                 # Display nodes that didn't answer within command timeout delay
                 if task.num_timeout() > 0:
@@ -731,8 +735,12 @@ def clush_main(args):
 if __name__ == '__main__':
     try:
         clush_main(sys.argv)
-    except KeyboardInterrupt:
-        print "Keyboard interrupt."
+    except KeyboardInterrupt, e:
+        u_nodes = getattr(e, 'uncompleted_nodes', None)
+        if u_nodes:
+            print "Keyboard interrupt (%s did not complete)." % u_nodes
+        else:
+            print "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
     except ClushConfigError, e:
         print >>sys.stderr, "ERROR: %s" % e
