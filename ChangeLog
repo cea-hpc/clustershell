@@ -1,5 +1,7 @@
 2010-01-31 S. Thiell <stephane.thiell@cea.fr>
 
+	* scripts/clush.py: Fix unhandled NodeSet parse error (trac ticket #36).
+
 	* scripts/clush.py: Display uncompleted nodes on keyboard interrupt.
 
 2010-01-29 S. Thiell <stephane.thiell@cea.fr>

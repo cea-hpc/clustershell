@@ -735,12 +735,15 @@ def clush_main(args):
 if __name__ == '__main__':
     try:
         clush_main(sys.argv)
+    except NodeSetParseError, e:
+        print >>sys.stderr, "NodeSet parse error:", e
+        sys.exit(1)
     except KeyboardInterrupt, e:
         u_nodes = getattr(e, 'uncompleted_nodes', None)
         if u_nodes:
-            print "Keyboard interrupt (%s did not complete)." % u_nodes
+            print >>sys.stderr, "Keyboard interrupt (%s did not complete)." % u_nodes
         else:
-            print "Keyboard interrupt."
+            print >>sys.stderr, "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
     except ClushConfigError, e:
         print >>sys.stderr, "ERROR: %s" % e
