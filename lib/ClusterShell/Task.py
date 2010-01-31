@@ -54,8 +54,9 @@ Simple example of use:
 
 """
 
-import pickle
+import sys
 import threading
+import traceback
 
 from Engine.Engine import EngineAbortException
 from Engine.Engine import EngineTimeoutException
@@ -284,6 +285,11 @@ class Task(object):
         """Private method used by the library to check if the task is
         task_self(), but do not create any task_self() instance."""
         return self.thread == threading.currentThread()
+
+    def _handle_exception(self):
+        print >>sys.stderr, 'Exception in thread %s:' % self.thread
+        traceback.print_exc(file=sys.stderr)
+        self._quit = True
         
     def _thread_start(self):
         """Task-managed thread entry point"""
@@ -291,7 +297,10 @@ class Task(object):
             self._suspend_cond.wait_check()
             if self._quit:
                 break
-            self._resume()
+            try:
+                self._resume()
+            except:
+                self._handle_exception()
 
         self._terminate(kill=True)
 
