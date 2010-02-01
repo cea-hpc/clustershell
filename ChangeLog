@@ -1,3 +1,8 @@
+2010-02-01 S. Thiell <stephane.thiell@cea.fr>
+
+	* mkrpm.sh: Improve RPM build process and allow SRPM package to be
+	easily rebuilt (trac ticket #51).
+
 2010-01-31 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Fix broken pipe issue (trac ticket #34).

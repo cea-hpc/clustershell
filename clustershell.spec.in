@@ -1,5 +1,5 @@
-# You must defined vim_version according to your Linux distribution, eg.
-# vim_version=70 for CentOS 5
+# $Id$
+
 %define name clustershell
 %define release 1%{?dist}
 
@@ -17,9 +17,11 @@ Vendor: Stephane Thiell <stephane.thiell@cea.fr>
 Url: http://clustershell.sourceforge.net/
 
 %description
-ClusterShell is an event-based python library to execute commands on local
+ClusterShell is an event-based Python library to execute commands on local
 or distant cluster nodes in parallel depending on the selected engine and
-worker mechanisms.
+worker mechanisms. The library provides also advanced nodeset handling
+methods. Finally, clush and nodeset, two convenient command-line tools
+using the library are included.
 
 %prep
 %setup
@@ -31,6 +33,12 @@ python setup.py build
 python setup.py install --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/clustershell
 
+# detecting vim version
+VIMDATADIR=`ls /usr/share/vim/vim[0-9]* -1d | tail -1`
+if [ ! -d "$VIMDATADIR" ]; then
+    VIMDATADIR=%{_datadir}/%{name}/vim
+fi
+
 # man pages
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man1,man5}
 gzip -c doc/man/man1/clush.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/clush.1.gz
@@ -39,18 +47,18 @@ gzip -c doc/man/man5/clush.conf.5 >$RPM_BUILD_ROOT/%{_mandir}/man5/clush.conf.5.
 
 # vim addons
 cp conf/clush.conf $RPM_BUILD_ROOT/%{_sysconfdir}/clustershell
-mkdir -p $RPM_BUILD_ROOT/usr/share/vim/vim%{vim_version}/ftdetect
-cp doc/extras/vim/ftdetect/clush.vim $RPM_BUILD_ROOT/usr/share/vim/vim%{vim_version}/ftdetect
-mkdir -p $RPM_BUILD_ROOT/usr/share/vim/vim%{vim_version}/syntax
-cp doc/extras/vim/syntax/clush.vim $RPM_BUILD_ROOT/usr/share/vim/vim%{vim_version}/syntax
+mkdir -p $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
+cp doc/extras/vim/ftdetect/clush.vim $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
+mkdir -p $RPM_BUILD_ROOT/$VIMDATADIR/syntax
+cp doc/extras/vim/syntax/clush.vim $RPM_BUILD_ROOT/$VIMDATADIR/syntax
+echo $VIMDATADIR/ftdetect/clush.vim >>INSTALLED_FILES
+echo $VIMDATADIR/syntax/clush.vim >>INSTALLED_FILES
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
-/usr/share/vim/vim%{vim_version}/syntax/clush.vim
-/usr/share/vim/vim%{vim_version}/ftdetect/clush.vim
 %doc README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
 %doc %{_mandir}/man1/clush.1.gz
 %doc %{_mandir}/man1/nodeset.1.gz

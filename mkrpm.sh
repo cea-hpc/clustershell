@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Id$
 
 if [ -z "$2" ]; then
     echo "usage: $0 <version> <el5|fc11>"
@@ -7,24 +8,7 @@ fi
 
 
 VERS=$1
-DIST=$2
-
-case $DIST in
-    el4)
-        VIM_VERS=63
-        ;;
-    el5)
-        VIM_VERS=70
-        ;;
-    fc11)
-        VIM_VERS=72
-        ;;
-    *)
-        echo "unsupported dist: $DIST"
-        exit 1
-esac
-
-DIST=".$DIST"
+DIST=".$2"
 
 PKGNAME=clustershell-$VERS
 
@@ -39,7 +23,10 @@ mkdir -vp "$TMPDIR/conf"
 mkdir -vp "$TMPDIR"/doc/man/{man1,man5}
 mkdir -vp "$TMPDIR"/doc/extras/vim/{ftdetect,syntax}
 
-cp -v clustershell.spec setup.cfg setup.py "$TMPDIR/"
+
+sed -e "s/^Version: %{version}$/Version: $VERS/" <clustershell.spec.in >"$TMPDIR/clustershell.spec"
+
+cp -v setup.cfg setup.py "$TMPDIR/"
 cp -v README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt "$TMPDIR/"
 cp -v lib/ClusterShell/*.py "$TMPDIR/lib/ClusterShell"
 cp -v lib/ClusterShell/Engine/*.py "$TMPDIR/lib/ClusterShell/Engine/"
@@ -57,5 +44,5 @@ cp -v doc/extras/vim/syntax/clush.vim "$TMPDIR/doc/extras/vim/syntax/"
 cd "$TMPDIR/.."
 
 tar -czf $PKGNAME.tar.gz $PKGNAME
-rpmbuild -ta --define "version $VERS" --define "dist $DIST" --define "vim_version $VIM_VERS" $PKGNAME.tar.gz
+rpmbuild -ta --define "dist $DIST" $PKGNAME.tar.gz
 
