@@ -45,7 +45,7 @@ Please see: ClusterShell.NodeSet
 
 __version__ = '1.2'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2009/12/09'
+__date__    = '2010/02/01'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 
