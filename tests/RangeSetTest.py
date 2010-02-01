@@ -384,6 +384,21 @@ class RangeSetTest(unittest.TestCase):
         rg2 = "4-6"
         self.assertRaises(TypeError, rg1.issubset, rg2)
 
+    def testEquality(self):
+        """test RangeSet equal"""
+        rg0_1 = RangeSet()
+        rg0_2 = RangeSet()
+        self.assertEqual(rg0_1, rg0_2)
+        rg1 = RangeSet("1-4")
+        rg2 = RangeSet("1-4")
+        self.assertEqual(rg1, rg2)
+        rg3 = RangeSet("2-5")
+        self.assertNotEqual(rg1, rg3)
+        rg4 = RangeSet("1,2,3,4")
+        self.assertEqual(rg1, rg4)
+        rg5 = RangeSet("1,2,4")
+        self.assertNotEqual(rg1, rg5)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)

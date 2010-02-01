@@ -807,6 +807,19 @@ class NodeSetTest(unittest.TestCase):
         """test fold() utility function"""
         self.assertEqual(fold("purple1,purple2,purple3"), "purple[1-3]")
 
+    def testEquality(self):
+        """test NodeSet equality"""
+        ns0_1 = NodeSet()
+        ns0_2 = NodeSet()
+        self.assertEqual(ns0_1, ns0_2)
+        ns1 = NodeSet("roma[50-99]-ipmi,cors[113,115-117,130,166-172],cws-tigrou,tigrou3")
+        ns2 = NodeSet("roma[50-99]-ipmi,cors[113,115-117,130,166-172],cws-tigrou,tigrou3")
+        self.assertEqual(ns1, ns2)
+        ns3 = NodeSet("cws-tigrou,tigrou3,cors[113,115-117,166-172],roma[50-99]-ipmi,cors130")
+        self.assertEqual(ns1, ns3)
+        ns4 = NodeSet("roma[50-99]-ipmi,cors[113,115-117,130,166-171],cws-tigrou,tigrou[3-4]")
+        self.assertNotEqual(ns1, ns4)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetTest)

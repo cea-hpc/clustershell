@@ -315,6 +315,13 @@ class RangeSet:
         self._binary_sanity_check(rangeset)
         return rangeset.issubset(self)
 
+    def __eq__(self, other):
+        """
+        RangeSet equality comparison.
+        """
+        self._binary_sanity_check(other)
+        return len(self) == len(other) and self.issubset(other)
+        
     # inequality comparisons using the is-subset relation
     __le__ = issubset
     __ge__ = issuperset
@@ -889,7 +896,7 @@ class NodeSet(object):
         """
         Report whether this nodeset contains another nodeset.
         """
-        status = False
+        status = True
         for pat, erangeset in _NodeSetParse(other, self._autostep):
             rangeset = self._patterns.get(pat)
             if rangeset:
@@ -897,7 +904,16 @@ class NodeSet(object):
             else:
                 # might be an unnumbered node (key in dict but no value)
                 status = self._patterns.has_key(pat)
+            if not status:
+                break
         return status
+
+    def __eq__(self, other):
+        """
+        NodeSet equality comparison.
+        """
+        self._binary_sanity_check(other)
+        return len(self) == len(other) and self.issuperset(other)
 
     # inequality comparisons using the is-subset relation
     __le__ = issubset
