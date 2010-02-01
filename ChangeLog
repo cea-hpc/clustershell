@@ -1,3 +1,8 @@
+2010-02-01 A. Degremont  <aurelien.degremont@cea.fr>
+
+	* NodeSet.py: Added __getslice__() and split() method to RangeSet.
+	Added split() to NodeSet (trac ticket #18).
+
 2010-02-01 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Added equality comparisons for RangeSet and NodeSet. Fixed

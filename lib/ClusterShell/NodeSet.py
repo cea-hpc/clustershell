@@ -351,6 +351,38 @@ class RangeSet:
                 return start + (i - length) * step
             length += cnt
 
+    def __getslice__(self, i, j):
+        """
+        Return the slice from index i to index j-1. For convenience
+        only, not optimized as of version 1.0.
+        """
+        return RangeSet.fromlist(list(self)[i:j])
+
+    def split(self, nbr):
+        """
+        Split the rangeset into nbr sub-rangeset. Each sub-rangeset will have
+        the same number of element more or less 1. Current rangeset remains
+        unmodified. Returns an iterator.
+
+        >>> RangeSet("1-5").split(3) 
+        RangeSet("1-2")
+        RangeSet("3-4")
+        RangeSet("foo5")
+        """
+        # XXX: This uses the non-optimized __getslice__ method.
+        assert(nbr > 0)
+
+        # We put the same number of element in each sub-nodeset.
+        slice_size = len(self) / nbr
+        left = len(self) % nbr
+
+        begin = 0
+        for i in range(0, nbr):
+            length = slice_size + int(i < left)
+            yield self[begin:begin + length]
+            begin += length
+
+
     def _expand(self):
         """
         Expand all items. Internal use.
@@ -944,6 +976,30 @@ class NodeSet(object):
         only, not optimized as of version 1.0.
         """
         return NodeSet.fromlist(list(self)[i:j])
+
+    def split(self, nbr):
+        """
+        Split the nodeset into nbr sub-nodeset. Each sub-nodeset will have the
+        same number of element more or less 1. Current nodeset remains
+        unmodified.
+
+        >>> NodeSet("foo[1-5]").split(3) 
+        NodeSet("foo[1-2]")
+        NodeSet("foo[3-4]")
+        NodeSet("foo5")
+        """
+        # XXX: This uses the non-optimized __getslice__ method.
+        assert(nbr > 0)
+
+        # We put the same number of element in each sub-nodeset.
+        slice_size = len(self) / nbr
+        left = len(self) % nbr
+
+        begin = 0
+        for i in range(0, nbr):
+            length = slice_size + int(i < left)
+            yield self[begin:begin + length]
+            begin += length
 
     def _add_rangeset(self, pat, rangeset):
         """
