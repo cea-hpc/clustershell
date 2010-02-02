@@ -7,10 +7,8 @@
 """Unit test for ClusterShell task's join feature in multithreaded
 environments"""
 
-import random
 import sys
 import time
-import thread
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -58,35 +56,6 @@ class TaskThreadJoinTest(unittest.TestCase):
         time.sleep(4)
         task_wait()
 
-    def _thread_delayed_unsuspend_func(self, task):
-        """thread used to unsuspend task during task_wait()"""
-        time_th = int(random.random()*6+5)
-        #print "TIME unsuspend thread=%d" % time_th
-        time.sleep(time_th)
-        self.resumed = True
-        task.resume()
-
-    def testThreadTaskWaitWithSuspend(self):
-        """test task_wait() with suspended tasks"""
-        task = Task()
-        self.resumed = False
-        thread.start_new_thread(TaskThreadJoinTest._thread_delayed_unsuspend_func, (self, task))
-        time_sh = int(random.random()*4)
-        #print "TIME shell=%d" % time_sh
-        task.shell("sleep %d" % time_sh)
-        task.resume()
-        time.sleep(1)
-        suspended = task.suspend()
-
-        for i in range(1, 4):
-            task = Task()
-            task.shell("sleep %d" % i)
-            task.resume()
-
-        time.sleep(1)
-        task_wait()
-        self.assert_(self.resumed or suspended == False)
-
     def testThreadSimpleTaskSupervisor(self):
         """test task methods from another thread"""
         #print "PASS 1"
@@ -108,6 +77,34 @@ class TaskThreadJoinTest(unittest.TestCase):
         #print "PASS 4"
         self.assertEqual(task.key_buffer(3), "done")
         task.abort()
+
+    def testThreadTaskBuffers(self):
+        """test task data access methods after join()"""
+        task = Task()
+        # test data access from main thread
+
+        # test stderr separated
+        task.set_default("stderr", True)
+        task.shell("echo foobar", key="OUT")
+        task.shell("echo raboof 1>&2", key="ERR")
+        task.resume()
+        task.join()
+        self.assertEqual(task.key_buffer("OUT"), "foobar")
+        self.assertEqual(task.key_error("OUT"), "")
+        self.assertEqual(task.key_buffer("ERR"), "")
+        self.assertEqual(task.key_error("ERR"), "raboof")
+
+        # test stderr merged
+        task.set_default("stderr", False)
+        task.shell("echo foobar", key="OUT")
+        task.shell("echo raboof 1>&2", key="ERR")
+        task.resume()
+        task.join()
+        self.assertEqual(task.key_buffer("OUT"), "foobar")
+        self.assertEqual(task.key_error("OUT"), "")
+        self.assertEqual(task.key_buffer("ERR"), "raboof")
+        self.assertEqual(task.key_error("ERR"), "")
+
 
 
 if __name__ == '__main__':

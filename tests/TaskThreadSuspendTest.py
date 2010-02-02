@@ -6,8 +6,10 @@
 
 """Unit test for ClusterShell in multithreaded environments"""
 
+import random
 import sys
 import time
+import thread
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -45,6 +47,35 @@ class TaskThreadSuspendTest(unittest.TestCase):
 
         task_wait()
         self.assertEqual(task2.key_buffer(1), "suspend_test")
+
+    def _thread_delayed_unsuspend_func(self, task):
+        """thread used to unsuspend task during task_wait()"""
+        time_th = int(random.random()*6+5)
+        #print "TIME unsuspend thread=%d" % time_th
+        time.sleep(time_th)
+        self.resumed = True
+        task.resume()
+
+    def testThreadTaskWaitWithSuspend(self):
+        """test task_wait() with suspended tasks"""
+        task = Task()
+        self.resumed = False
+        thread.start_new_thread(TaskThreadSuspendTest._thread_delayed_unsuspend_func, (self, task))
+        time_sh = int(random.random()*4)
+        #print "TIME shell=%d" % time_sh
+        task.shell("sleep %d" % time_sh)
+        task.resume()
+        time.sleep(1)
+        suspended = task.suspend()
+
+        for i in range(1, 4):
+            task = Task()
+            task.shell("sleep %d" % i)
+            task.resume()
+
+        time.sleep(1)
+        task_wait()
+        self.assert_(self.resumed or suspended == False)
 
 
 if __name__ == '__main__':
