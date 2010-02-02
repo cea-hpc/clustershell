@@ -350,6 +350,7 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostCommandFanout(self):
         """test fanout with localhost commands"""
+        fanout = self._task.info("fanout")
         self._task.set_info("fanout", 2)
         # init worker
         for i in range(0, 10):
@@ -357,6 +358,9 @@ class TaskDistantTest(unittest.TestCase):
             self.assert_(worker != None)
         # run task
         self._task.resume()
+        # restore fanout value
+        self._task.set_info("fanout", fanout)
+
     def testWorkerBuffers(self):
         """test buffers at worker level"""
         task = task_self()

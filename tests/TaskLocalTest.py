@@ -110,7 +110,7 @@ class TaskLocalTest(unittest.TestCase):
         self.assert_(task != None)
 
         fanout = task.info("fanout")
-        self.assertEqual(fanout, Task._default_info["fanout"])
+        self.assertEqual(fanout, Task._std_info["fanout"])
 
     def testSimpleCommandTimeout(self):
         """test simple command timeout"""

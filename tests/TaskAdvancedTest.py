@@ -24,7 +24,7 @@ class TaskAdvancedTest(unittest.TestCase):
         """test task engine user selection hack"""
         task_terminate()
         # Uh ho! It's a test case, not an example!
-        Task._default_info['engine'] = 'poll'
+        Task._std_default['engine'] = 'poll'
         self.assertEqual(task_self().info('engine'), 'poll')
         task_terminate()
 
@@ -33,11 +33,11 @@ class TaskAdvancedTest(unittest.TestCase):
         try:
             task_terminate()
             # Uh ho! It's a test case, not an example!
-            Task._default_info['engine'] = 'foobar'
+            Task._std_default['engine'] = 'foobar'
             # Check for KeyError in case of wrong engine request
             self.assertRaises(KeyError, task_self)
         finally:
-            Task._default_info['engine'] = 'auto'
+            Task._std_default['engine'] = 'auto'
 
         task_terminate()
 
