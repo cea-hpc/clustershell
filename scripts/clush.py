@@ -681,7 +681,9 @@ def clush_main(args):
     task.set_info("connect_timeout", connect_timeout)
     command_timeout = config.get_command_timeout()
     task.set_info("command_timeout", command_timeout)
-    task.set_info("default_stderr", True)
+
+    # Enable stdout/stderr separation
+    task.set_default("stderr", True)
 
     # Set timeout at worker level when command_timeout is defined.
     if command_timeout > 0:

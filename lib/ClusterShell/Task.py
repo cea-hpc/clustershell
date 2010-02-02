@@ -121,14 +121,15 @@ class Task(object):
         task.resume()
     """
 
-    _default_info = { "debug"               : False,
+    _std_default = {  "stderr"              : False,
+                      "engine"              : 'auto',
+                      "port_qlimit"         : 32 }
+
+    _std_info =     { "debug"               : False,
                       "print_debug"         : _task_print_debug,
                       "fanout"              : 64,
                       "connect_timeout"     : 10,
-                      "command_timeout"     : 0,
-                      "stderr_default"      : False,
-                      "engine"              : 'auto',
-                      "port_qlimit_default" : 16 }
+                      "command_timeout"     : 0 }
     _tasks = {}
     _taskid_max = 0
     _task_lock = threading.Lock()
@@ -228,10 +229,13 @@ class Task(object):
         """
         if not getattr(self, "_engine", None):
             # first time called
-            self._info = self.__class__._default_info.copy()
+            self._default_lock = threading.Lock()
+            self._default = self.__class__._std_default.copy()
+            self._info = self.__class__._std_info.copy()
+
             # use factory class PreferredEngine that gives the proper
             # engine instance
-            self._engine = PreferredEngine(self._info)
+            self._engine = PreferredEngine(self.default("engine"), self._info)
             self.timeout = 0
 
             # task synchronization objects
@@ -312,6 +316,34 @@ class Task(object):
         finally:
             self._run_lock.release()
         
+    def default(self, default_key, def_val=None):
+        """
+        Return per-task value for key from the "default" dictionary.
+        """
+        self._default_lock.acquire()
+        try:
+            return self._default.get(default_key, def_val)
+        finally:
+            self._default_lock.release()
+
+    def set_default(self, default_key, value):
+        """
+        Set task value for specified key from the "default" dictionary.
+        Users may store their own task-specific key, value pairs
+        using this method and retrieve them with default().
+        
+        Threading considerations:
+          Unlike set_info(), when called from the task's thread or
+          not, set_default() immediately updates the underlying
+          dictionary in a thread-safe manner. This method doesn't
+          wake up the engine when called.
+        """
+        self._default_lock.acquire()
+        try:
+            self._default[default_key] = value
+        finally:
+            self._default_lock.release()
+
     def info(self, info_key, def_val=None):
         """
         Return per-task information.
@@ -321,7 +353,18 @@ class Task(object):
     @tasksyncmethod()
     def set_info(self, info_key, value):
         """
-        Set task-specific information state.
+        Set task value for key run time information. Specific key,
+        values can be passed to the engine and/or workers.
+        Users may store their own task-specific info key, value pairs
+        using this method and retrieve them with info().
+        
+        Threading considerations:
+          Unlike set_default(), the underlying info dictionary is only
+          modified from the task's thread. So calling set_info() from
+          another thread leads to queueing the request for late apply
+          (at run time) using the task dispatch port. When received,
+          the request wakes up the engine when the task is running and
+          the info dictionary is then updated.
         """
         self._info[info_key] = value
 
@@ -341,7 +384,7 @@ class Task(object):
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
         ac = kwargs.get("autoclose", False)
-        stderr = kwargs.get("stderr", self._info["stderr_default"])
+        stderr = kwargs.get("stderr", self.default("stderr"))
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \

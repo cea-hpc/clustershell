@@ -337,7 +337,7 @@ class EnginePort(EngineClient):
         self.delayable = False
 
         # Port messages queue
-        self._msgq = Queue.Queue(self.task.info("port_qlimit_default"))
+        self._msgq = Queue.Queue(self.task.default("port_qlimit"))
 
         # Request pipe
         (self._req_read, self._req_write) = os.pipe()

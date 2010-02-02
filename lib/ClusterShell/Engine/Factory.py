@@ -53,11 +53,11 @@ class PreferredEngine(object):
 
     engines = { EngineEPoll.identifier: EngineEPoll, EnginePoll.identifier: EnginePoll }
 
-    def __new__(cls, info):
+    def __new__(cls, hint, info):
         """
         Create a new preferred Engine.
         """
-        if 'engine' not in info or info['engine'] == 'auto':
+        if not hint or hint == 'auto':
             # In order or preference
             for engine_class in [ EngineEPoll, EnginePoll ]:
                 try:
@@ -68,7 +68,7 @@ class PreferredEngine(object):
         else:
             # User overriding engine selection
             try:
-                return cls.engines[info['engine']](info)
+                return cls.engines[hint](info)
             except KeyError, e:
                 print >>sys.stderr, "Invalid engine identifier", e
                 raise

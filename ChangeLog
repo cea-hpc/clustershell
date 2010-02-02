@@ -1,3 +1,13 @@
+2010-02-02 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Fix stdout/stderr separation issue (introduced
+	in 1.2b2) thanks to the new Task.set_default() method.
+
+	* Task.py: As set_info() is now dispatched through the task special port,
+	and applied only on task.resume() when called from another thread, add two
+	new methods default() and set_default() to synchronously manage another
+	task specific dictionary, useful for default configuration parameters.
+
 2010-02-01 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.2 beta 2 released.
