@@ -189,12 +189,7 @@ class _EngineTimerQ:
             self.fire_date = self.client.fire_delay + time.time()
 
         def __cmp__(self, other):
-            if self.fire_date < other.fire_date:
-                return -1
-            elif self.fire_date > other.fire_date:
-                return 1
-            else:
-                return 0
+            return cmp(self.fire_date, other.fire_date)
 
         def arm(self, client):
             assert client != None
@@ -488,7 +483,9 @@ class Engine:
 
         client._events = 0
         client.registered = True
-        self.reg_clients += 1
+
+        if client.delayable:
+            self.reg_clients += 1
 
         if client.autoclose:
             refcnt_inc = 0
