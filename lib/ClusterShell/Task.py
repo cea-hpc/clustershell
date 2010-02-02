@@ -328,7 +328,7 @@ class Task(object):
 
     def set_default(self, default_key, value):
         """
-        Set task value for specified key from the "default" dictionary.
+        Set task value for specified key in the dictionary "default".
         Users may store their own task-specific key, value pairs
         using this method and retrieve them with default().
         
@@ -353,8 +353,8 @@ class Task(object):
     @tasksyncmethod()
     def set_info(self, info_key, value):
         """
-        Set task value for key run time information. Specific key,
-        values can be passed to the engine and/or workers.
+        Set task value for a specific key information. Key, value
+        pairs can be passed to the engine and/or workers.
         Users may store their own task-specific info key, value pairs
         using this method and retrieve them with info().
         
@@ -696,7 +696,7 @@ class Task(object):
         """
         Return an iterator over stored error messages for the given key.
         """
-        return self._errtree.iter_by_key()
+        return self._errtree.iter_by_key(key)
 
     def _msg_iter_by_worker(self, worker, match_keys=None):
         """
@@ -791,6 +791,16 @@ class Task(object):
         return "".join(self._msg_iter_by_key(key))
     
     node_buffer = key_buffer
+
+    def key_error(self, key):
+        """
+        Get error buffer for a specific key. When the key is associated
+        to multiple workers, the resulting buffer will contain all
+        workers content that may overlap.
+        """
+        return "".join(self._errmsg_iter_by_key(key))
+    
+    node_error = key_error
 
     def key_retcode(self, key):
         """

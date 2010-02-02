@@ -1,5 +1,8 @@
 2010-02-02 S. Thiell <stephane.thiell@cea.fr>
 
+	* Task.py: Add Task.key_error() and its alias node_error() methods for
+	easy retrieving of error buffers for a specified key/node.
+
 	* scripts/clush.py: Fix stdout/stderr separation issue (introduced
 	in 1.2b2) thanks to the new Task.set_default() method.
 
