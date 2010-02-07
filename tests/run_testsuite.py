@@ -37,6 +37,6 @@ if __name__ == '__main__':
             sys.exit(0)
 
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromNames([ "RangeSetTest", "RangeSetErrorTest", "NodeSetTest", "NodeSetErrorTest", "NodeSetScriptTest", "TaskLocalTest", "TaskEventTest", "TaskTimeoutTest", "TaskDistantTest", "TaskTimerTest", "TaskAdvancedTest", "TaskPortTest", "TaskThreadJoinTest", "TaskThreadSuspendTest" ])
+    suite = loader.loadTestsFromNames([ "MsgTreeTest", "RangeSetTest", "RangeSetErrorTest", "NodeSetTest", "NodeSetErrorTest", "NodeSetScriptTest", "TaskLocalTest", "TaskEventTest", "TaskTimeoutTest", "TaskDistantTest", "TaskTimerTest", "TaskAdvancedTest", "TaskPortTest", "TaskThreadJoinTest", "TaskThreadSuspendTest" ])
 
     unittest.TextTestRunner(verbosity=verb).run(suite)

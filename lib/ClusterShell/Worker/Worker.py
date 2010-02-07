@@ -451,9 +451,9 @@ class WorkerSimple(EngineClient,Worker):
         """
         Read worker buffer.
         """
-        for key, msg in self.task._kmsg_iter_by_worker(self):
-            assert key == self.key
-            return msg
+        for msg, keys in self.task._kmsg_iter_by_worker(self):
+            assert keys[0] == self.key
+            return str(msg)
 
     def write(self, buf):
         """

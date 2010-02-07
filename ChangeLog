@@ -1,3 +1,8 @@
+2010-02-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* MsgTree.py: Rewrite of MsgTree module with a better API (part of trac
+	ticket #47). Adapted library classes. Added specific tests.
+
 2010-02-02 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Add Task.key_error() and its alias node_error() methods for

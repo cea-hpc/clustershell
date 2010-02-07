@@ -377,17 +377,21 @@ class TaskLocalTest(unittest.TestCase):
         task.shell("/usr/bin/printf 'foo\nfuu\n' && exit 1", key="foofuu2")
 
         task.resume()
+        
+        foobur = "foo\nbur"
 
         cnt = 5
         for rc, keys in task.iter_retcodes():
             for buf, keys in task.iter_buffers(keys):
                 cnt -= 1
-                if buf == "foo\nbar\n":
-                    self.assert_(rc == 1 and rc == 4)
-                elif buf == "foo\nbur\n":
+                if buf == "foo\nbar":
+                    self.assert_(rc == 1 or rc == 4)
+                elif foobur == buf:
                     self.assertEqual(rc, 1)
-                elif buf == "foo\nbuu\n":
-                    self.assertEqual(rc, 5)
+                elif "foo\nfuu" == buf:
+                    self.assert_(rc == 1 or rc == 5)
+                else:
+                    self.fail("invalid buffer returned")
 
         self.assertEqual(cnt, 0)
     

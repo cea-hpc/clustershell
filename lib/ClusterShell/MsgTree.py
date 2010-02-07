@@ -38,13 +38,9 @@ MsgTree
 ClusterShell message tree classes.
 """
 
-
-class MsgTreeElem:
+class _MsgTreeElem:
     """
-    Helper class used to build a messages tree. Advantages are:
-    (1) low memory consumption especially on a cluster when all nodes
-    return similar messages,
-    (2) gathering of messages is done (almost) automatically.
+    Class representing an element of the MsgTree.
     """
     def __init__(self, msg=None, parent=None):
         """
@@ -55,64 +51,50 @@ class MsgTreeElem:
         self.children = {}
         # content
         self.msg = msg
-        self.sources = None
+        self.keys = None
    
-    def __iter__(self):
-        """
-        Iterate over tree key'd elements.
-        """
-        estack = [ self ]
+    def __len__(self):
+        if self.keys:
+            return len(self.keys)
+        return 0
 
-        while len(estack) > 0:
-            elem = estack.pop()
-            if len(elem.children) > 0:
-                estack += elem.children.values()
-            if elem.sources and len(elem.sources) > 0:
-                yield elem
-    
-    def _add_source(self, source):
+    def __str__(self):
+        return "<MsgTree._MsgTreeElem parent=%s keys=%s msg=%s>" % \
+            (self.parent, self.keys, self.msg)
+
+    def _shift(self, key, target_elem):
         """
-        Add source tuple (worker, key) to this element.
+        Shift one of our key to specified target element.
         """
-        if not self.sources:
-            self.sources = source.copy()
+        if len(self) == 1:
+            shifting = self.keys
+            self.keys = None
         else:
-            self.sources.update(source)
-    
-    def _remove_source(self, source):
-        """
-        Remove a source tuple (worker, key) from this element.
-        It's used when moving it to a child.
-        """
-        if self.sources:
-            self.sources.difference_update(source)
-        
-    def add_msg(self, source, msg):
-        """
-        A new message line is coming, add it to the tree.
-        source is a tuple identifying the message source
-        """
-        if self.sources and len(self.sources) == 1:
-            # do it quick when only one source is attached
-            src = self.sources
-            self.sources = None
+            shifting = set([ key ])
+            if self.keys:
+                self.keys.difference_update(shifting)
+
+        if len(target_elem) == 0:
+            target_elem.keys = shifting
         else:
-            # remove source from parent (self)
-            src = set([ source ])
-            self._remove_source(src)
+            target_elem.keys.update(shifting)
 
-        # add msg elem to child
-        elem = self.children.setdefault(msg, self.__class__(msg, self))
-        # add source to elem
-        elem._add_source(src)
-        return elem
+        return target_elem
 
-    def message(self):
+    def add(self, key, msg):
         """
-        Get the whole message buffer from this tree element.
+        A new message line is coming, add it to the tree with
+        associated source key.
+        """
+        # create new child element and shift down the key
+        return self._shift(key, self.children.setdefault(msg,
+                                        self.__class__(msg, self)))
+
+    def msglist(self):
+        """
+        Get the whole message list from this tree element.
         """
         msg = ""
-
         # no msg in root element
         if self.msg is None:
             return msg
@@ -120,97 +102,130 @@ class MsgTreeElem:
         # build list of msg (reversed by design)
         rmsgs = [self.msg]
         parent = self.parent
-        while parent and parent.msg is not None:
+        while parent.msg is not None:
             rmsgs.append(parent.msg)
             parent = parent.parent
 
         # reverse the list
         rmsgs.reverse()
+        return rmsgs
 
+    def message(self):
+        """
+        Get the whole message buffer from this tree element.
+        """
         # concat buffers
-        return '\n'.join(rmsgs)
+        return '\n'.join(self.msglist())
+
+
+class MsgTreeMsg:
+    """
+    Class representing a MsgTree message. Object of this class
+    are returned by the various MsgTree methods like msg_keys().
+    The object can then be used as an iterator over the message
+    lines or casted into a string.
+    """
+    def __init__(self, elem):
+        self._elem = elem
+
+    def __len__(self):
+        return len(self._elem.message())
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __iter__(self):
+        return iter(self._elem.msglist())
+
+    def __getitem__(self, i):
+        return self._elem.msglist()[i]
+        
+    def __str__(self):
+        return self._elem.message()
+
 
 class MsgTree:
+    """
+    A MsgTree object maps key objects to multi-lines messages.
+    MsgTree's are mutable objects. Keys are almost abritrary values
+    (must be hashable). Message lines are organized as a tree
+    internally. MsgTree provides low memory consumption especially
+    on a cluster when all nodes return similar messages. Also,
+    gathering of messages is done automatically.
+    """
 
     def __init__(self):
-        # root of msg tree
-        self._root = MsgTreeElem()
-        # dict of sources to msg tree elements
-        self._d_source_msg = {}
+        """Initialization method."""
+        self.clear()
 
-    def reset(self):
-        """
-        Reset tree buffers.
-        """
-        self._root = MsgTreeElem()
-        self._d_source_msg = {}
+    def clear(self):
+        # root element of MsgTree
+        self._root = _MsgTreeElem()
+        # dict of keys to _MsgTreeElem
+        self._keys = {}
 
-    def add(self, source, msg):
-        """
-        Add a worker message associated with a source.
-        """
-        # try first to get current element in msgs tree
-        e_msg = self._d_source_msg.get(source)
-        if not e_msg:
-            # key not found (first msg from it)
-            e_msg = self._root
+    def __len__(self):
+        """Return the number of keys contained in the MsgTree."""
+        return len(self._keys)
 
-        # add child msg and update dict
-        self._d_source_msg[source] = e_msg.add_msg(source, msg)
+    def __getitem__(self, key):
+        """Return the message of MsgTree with specified key. Raises a
+        KeyError if key is not in the MsgTree."""
+        return MsgTreeMsg(self._keys[key])
 
-    def iter_buffers(self, match_keys=None):
-        """
-        Iterate over buffers, returns a tuple (buffer, keys).
-        """
-        if match_keys:
-            for e in self._root:
-                keys = [t[1] for t in e.sources if t[1] in match_keys]
-                if keys:
-                    yield e.message(), keys
-        else:
-            for e in self._root:
-                yield e.message(), [t[1] for t in e.sources]
-            
-    def get_by_source(self, source):
-        """
-        Get a message by its source.
-        """
-        e_msg = self._d_source_msg.get(source)
-
-        if e_msg is None:
+    def get(self, key):
+        """Return the message of MsgTree with specified key or None
+        if not found."""
+        e = self._keys.get(key)
+        if e is None:
             return None
+        return MsgTreeMsg(e)
 
-        return e_msg.message()
+    def _walktree(self, match=None, mapper=None):
+        """Walk the tree. Optionally filter keys on match parameter,
+        and optionally map resulting keys with mapper."""
+        # stack of elements used to walk the tree
+        estack = [ self._root ]
 
-    def iter_by_key(self, key):
-        """
-        Return an iterator over stored messages for the given key.
-        """
-        for (w, k), e in self._d_source_msg.iteritems():
-            if k == key:
-                yield e.message()
+        while len(estack) > 0:
+            elem = estack.pop()
+            if len(elem.children) > 0:
+                estack += elem.children.values()
+            if len(elem) > 0: # has key(s)
+                mkeys = filter(match, elem.keys)
+                if len(mkeys):
+                    yield elem, map(mapper, mkeys)
 
-    def iter_by_worker(self, worker, match_keys=None):
-        """
-        Return an iterator over messages and keys list for a specific
-        worker and optional matching keys.
-        """
-        if match_keys:
-            for e in self._root:
-                keys = [t[1] for t in e.sources if t[0] is worker and t[1] in match_keys]
-                if len(keys) > 0:
-                    yield e.message(), keys
-        else:
-            for e in self._root:
-                keys = [t[1] for t in e.sources if t[0] is worker]
-                if len(keys) > 0:
-                    yield e.message(), keys
+    def keys(self):
+        """Return an iterator over MsgTree's keys."""
+        return self._keys.iterkeys()
 
-    def iterkey_by_worker(self, worker):
-        """
-        Return an iterator over key, message for a specific worker.
-        """
-        for (w, k), e in self._d_source_msg.iteritems():
-            if w is worker:
-                yield k, e.message()
- 
+    __iter__ = keys
+    
+    def msgs(self, match=None):
+        """Return an iterator over MsgTree's messages."""
+        for elem, keys in self._walktree(match):
+            yield MsgTreeMsg(elem)
+    
+    def items(self, match=None):
+        """Return (key, message) for each key of the MsgTree."""
+        if not match:
+            match = bool
+        for key, elem in self._keys.iteritems():
+            if match(key):
+                yield key, MsgTreeMsg(elem)
+
+    def msg_keys(self, match=None, mapper=None):
+        """Return (msg, keys) for each different msg of the MsgTree."""
+        for elem, keys in self._walktree(match, mapper):
+            yield MsgTreeMsg(elem), keys
+
+    def add(self, key, msg):
+        """Add a message associated with the given key to the MsgTree."""
+        # try to get current element in MsgTree for the given key,
+        # defaulting to the root element
+        e_msg = self._keys.get(key) or self._root
+
+        # add child msg and update keys dict
+        self._keys[key] = e_msg.add(key, msg)
+

@@ -54,6 +54,8 @@ Simple example of use:
 
 """
 
+import itertools
+import operator
 import sys
 import threading
 import traceback
@@ -627,8 +629,8 @@ class Task(object):
         """
         Reset buffers and retcodes management variables.
         """
-        self._msgtree.reset()
-        self._errtree.reset()
+        self._msgtree.clear()
+        self._errtree.clear()
         self._d_source_rc = {}
         self._d_rc_sources = {}
         self._max_rc = 0
@@ -678,51 +680,69 @@ class Task(object):
         """
         Get a message by its source (worker, key).
         """
-        return self._msgtree.get_by_source(source)
+        s = self._msgtree.get(source)
+        if s is None:
+            return None
+        return str(s)
 
     def _errmsg_by_source(self, source):
         """
         Get an error message by its source (worker, key).
         """
-        return self._errtree.get_by_source(source)
+        s = self._errtree.get(source)
+        if s is None:
+            return None
+        return str(s)
 
     def _msg_iter_by_key(self, key):
         """
         Return an iterator over stored messages for the given key.
         """
-        return self._msgtree.iter_by_key(key)
+        return itertools.imap(str, self._msgtree.msgs(lambda k: k[1] == key))
 
     def _errmsg_iter_by_key(self, key):
         """
         Return an iterator over stored error messages for the given key.
         """
-        return self._errtree.iter_by_key(key)
+        return itertools.imap(str, self._errtree.msgs(lambda k: k[1] == key))
 
     def _msg_iter_by_worker(self, worker, match_keys=None):
         """
         Return an iterator over messages and keys list for a specific
         worker and optional matching keys.
         """
-        return self._msgtree.iter_by_worker(worker, match_keys)
+        # iterate by worker and optionally by matching keys
+        match = None
+        if match_keys is not None:
+            match = lambda k: k[0] is worker and k[1] in match_keys
+            
+        return self._msgtree.msg_keys(match, operator.itemgetter(1))
 
     def _errmsg_iter_by_worker(self, worker, match_keys=None):
         """
         Return an iterator over error messages and keys list for a specific
         worker and optional matching keys.
         """
-        return self._errtree.iter_by_worker(worker, match_keys)
+        # iterate by worker and optionally by matching keys
+        match = None
+        if match_keys is not None:
+            match = lambda k: k[0] is worker and k[1] in match_keys
+            
+        return self._errtree.msg_keys(match, operator.itemgetter(1))
 
     def _kmsg_iter_by_worker(self, worker):
         """
         Return an iterator over key, message for a specific worker.
         """
-        return self._msgtree.iterkey_by_worker(worker)
+        return self._msgtree.msg_keys(lambda k: k[0] is worker,
+                                      operator.itemgetter(1))
  
     def _kerrmsg_iter_by_worker(self, worker):
         """
         Return an iterator over key, err_message for a specific worker.
         """
-        return self._errtree.iterkey_by_worker(worker)
+        return self._msgtree.msg_keys(lambda k: k[0] is worker,
+                                      operator.itemgetter(1))
     
     def _rc_by_source(self, source):
         """
@@ -838,7 +858,10 @@ class Task(object):
                 print NodeSet.fromlist(nodelist)
                 print buffer
         """
-        return self._msgtree.iter_buffers(match_keys)
+        match = None
+        if match_keys:
+            match = lambda k: k[1] in match_keys
+        return self._msgtree.msg_keys(match=match, mapper=operator.itemgetter(1))
 
     def iter_errors(self, match_keys=None):
         """
@@ -846,7 +869,10 @@ class Task(object):
 
         See iter_buffers().
         """
-        return self._errtree.iter_buffers(match_keys)
+        match = None
+        if match_keys:
+            match = lambda k: k[1] in match_keys
+        return self._errtree.msg_keys(match=match, mapper=operator.itemgetter(1))
             
     def iter_retcodes(self, match_keys=None):
         """
