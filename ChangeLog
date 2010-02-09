@@ -1,3 +1,10 @@
+2010-02-10 S. Thiell <stephane.thiell@cea.fr>
+	
+	* scripts/clubak.py: Added clubak utility (trac ticket #47). It provides
+	 dshbak backward-compatibility, but always try to sort buffers by nodes or
+	 nodeset. It also provides additional -L option to switch to alternative
+	 line mode display.
+
 2010-02-09 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker.py: Updated Task/MsgTree dependencies. Added iter_node_errors()

@@ -36,13 +36,15 @@
 from distutils.core import setup
 import os
 
+if not os.access('scripts/clubak', os.F_OK):
+    os.symlink('clubak.py', 'scripts/clubak')
 if not os.access('scripts/clush', os.F_OK):
     os.symlink('clush.py', 'scripts/clush')
 if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
 setup(name='ClusterShell',
-      version='1.1.81',
+      version='1.1.83',
       license='CeCILL-C',
       description='ClusterShell library',
       author='Stephane Thiell',
@@ -52,7 +54,8 @@ setup(name='ClusterShell',
       packages=['ClusterShell',
                'ClusterShell.Engine',
                'ClusterShell.Worker'],
-      scripts=['scripts/clush',
+      scripts=['scripts/clubak',
+               'scripts/clush',
                'scripts/nodeset']
      )
 
