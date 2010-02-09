@@ -79,7 +79,7 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(args + ["--fold", "foo[1,2]", "foo[1-2]"], "foo[1-2]")
         self._launchAndCompare(args + ["--fold", "foo[1-200,245-394]"], "foo[1-200,245-394]")
         self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo[1-200,245-394]"], "foo[1-200,245-442]")
-        self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442],foo"])
+        self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"])
         self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"])
         self._launchAndCompare(args + ["--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], ["foo[1-200,245-442],bar[3,24]", "bar[3,24],foo[1-200,245-442]"])
 
@@ -129,7 +129,7 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["-X", "--fold", "foo[1-10]", "foo[5-15]"], "foo[1-4,11-15]")
         self._launchAndCompare(["-X", "--fold", "foo[1-200,245-394]"], "foo[1-200,245-394]")
         self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo[1-200,245-394]"], "foo[1-200,245-442]")
-        self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442],foo"])
+        self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"])
         self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"])
         self._launchAndCompare(["-X", "--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], ["foo[1-200,245-442],bar[3,24]", "bar[3,24],foo[1-200,245-442]"])
 

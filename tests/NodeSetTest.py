@@ -243,13 +243,13 @@ class NodeSetTest(unittest.TestCase):
         nodeset.update("cluster5")
         self.assertEqual(str(nodeset), "cluster[3,5]")
         nodeset.update("tiger5")
-        self.assert_(str(nodeset) == "cluster[3,5],tiger5" or str(nodeset) == "tiger5,cluster[3,5]")
+        self.assertEqual(str(nodeset), "cluster[3,5],tiger5")
         nodeset.update("tiger7")
-        self.assert_(str(nodeset) == "cluster[3,5],tiger[5,7]" or str(nodeset) == "tiger[5,7],cluster[3,5]")
+        self.assertEqual(str(nodeset), "cluster[3,5],tiger[5,7]")
         nodeset.update("tiger6")
-        self.assert_(str(nodeset) == "cluster[3,5],tiger[5-7]" or str(nodeset) == "tiger[5-7],cluster[3,5]")
+        self.assertEqual(str(nodeset), "cluster[3,5],tiger[5-7]")
         nodeset.update("cluster4")
-        self.assert_(str(nodeset) == "cluster[3-5],tiger[5-7]" or str(nodeset) == "tiger[5-7],cluster[3-5]")
+        self.assertEqual(str(nodeset), "cluster[3-5],tiger[5-7]")
 
     def testOperatorUnion(self):
         """test union | operator"""
@@ -282,13 +282,13 @@ class NodeSetTest(unittest.TestCase):
         n_test1 = nodeset |  NodeSet("cluster5") 
         self.assertEqual(str(n_test1), "cluster[3,5]")
         n_test2 = n_test1 | NodeSet("tiger5") 
-        self.assert_(str(n_test2) == "cluster[3,5],tiger5" or str(n_test2) == "tiger5,cluster[3,5]")
+        self.assertEqual(str(n_test2), "cluster[3,5],tiger5")
         n_test1 = n_test2 | NodeSet("tiger7") 
-        self.assert_(str(n_test1) == "cluster[3,5],tiger[5,7]" or str(n_test1) == "tiger[5,7],cluster[3,5]")
+        self.assertEqual(str(n_test1), "cluster[3,5],tiger[5,7]")
         n_test2 = n_test1 | NodeSet("tiger6")
-        self.assert_(str(n_test2) == "cluster[3,5],tiger[5-7]" or str(n_test2) == "tiger[5-7],cluster[3,5]")
+        self.assertEqual(str(n_test2), "cluster[3,5],tiger[5-7]")
         n_test1 = n_test2 | NodeSet("cluster4")
-        self.assert_(str(n_test1) == "cluster[3-5],tiger[5-7]" or str(n_test1) == "tiger[5-7],cluster[3-5]")
+        self.assertEqual(str(n_test1), "cluster[3-5],tiger[5-7]")
 
     def testLen(self):
         """test len() results"""
@@ -528,13 +528,13 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet getitem()"""
         nodeset = NodeSet("yeti[30,34-51,59-60]")
         self.assertEqual(len(nodeset), 21)
-        self.assert_(nodeset[0] == "yeti30")
-        self.assert_(nodeset[1] == "yeti34")
-        self.assert_(nodeset[2] == "yeti35")
-        self.assert_(nodeset[3] == "yeti36")
-        self.assert_(nodeset[18] == "yeti51")
-        self.assert_(nodeset[19] == "yeti59")
-        self.assert_(nodeset[20] == "yeti60")
+        self.assertEqual(nodeset[0], "yeti30")
+        self.assertEqual(nodeset[1], "yeti34")
+        self.assertEqual(nodeset[2], "yeti35")
+        self.assertEqual(nodeset[3], "yeti36")
+        self.assertEqual(nodeset[18], "yeti51")
+        self.assertEqual(nodeset[19], "yeti59")
+        self.assertEqual(nodeset[20], "yeti60")
 
     def testGetSlice(self):
         """test NodeSet getslice()"""
@@ -758,8 +758,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 998)
         nodeset.symmetric_difference_update("artcore[1-2000]")
         self.assertEqual(len(nodeset), 1004)
-        self.assert_(str(nodeset) =="artcore[1-2,1000-2000],lounge" or \
-                str(nodeset) == "lounge,artcore[1-2,1000-2000]")
+        self.assertEqual(str(nodeset), "artcore[1-2,1000-2000],lounge")
         nodeset = NodeSet("artcore[3-999],lounge")
         self.assertEqual(len(nodeset), 998)
         nodeset.symmetric_difference_update("artcore[1-2000],lounge")
@@ -774,8 +773,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset2), 2001) # check const argument
         nodeset.symmetric_difference_update("artcore[1-2000],lounge")
         self.assertEqual(len(nodeset), 998)
-        self.assert_(str(nodeset) =="artcore[3-999],lounge" or \
-                str(nodeset) == "lounge,artcore[3-999]")
+        self.assertEqual(str(nodeset), "artcore[3-999],lounge")
 
     def testSymmetricDifference(self):
         """test NodeSet symmetric_difference() and ^ operator"""
@@ -834,6 +832,19 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(ns1, ns3)
         ns4 = NodeSet("roma[50-99]-ipmi,cors[113,115-117,130,166-171],cws-tigrou,tigrou[3-4]")
         self.assertNotEqual(ns1, ns4)
+
+    def testIterOrder(self):
+        """test NodeSet nodes name order in iter and str"""
+        ns_b = NodeSet("bcluster25")
+        ns_c = NodeSet("ccluster12")
+        ns_a1 = NodeSet("acluster4")
+        ns_a2 = NodeSet("acluster39")
+        ns_a3 = NodeSet("acluster41")
+        ns = ns_c | ns_a1 | ns_b | ns_a2 | ns_a3
+        self.assertEqual(str(ns), "acluster[4,39,41],bcluster25,ccluster12")
+        nodelist = list(iter(ns))
+        self.assertEqual(nodelist, ['acluster4', 'acluster39', 'acluster41', \
+            'bcluster25', 'ccluster12'])
 
 
 if __name__ == '__main__':

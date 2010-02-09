@@ -1,3 +1,8 @@
+2010-02-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Modified NodeSet.__iter__() and __str__() so that nodes are
+	now always sorted by name/pattern (eg. acluster2, bcluster1).
+
 2010-02-07 S. Thiell <stephane.thiell@cea.fr>
 
 	* MsgTree.py: Rewrite of MsgTree module with a better API (part of trac

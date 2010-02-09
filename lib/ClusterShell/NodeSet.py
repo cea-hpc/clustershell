@@ -858,7 +858,7 @@ class NodeSet(object):
         """
         Iterate over concret nodes.
         """
-        for pat, rangeset in self._patterns.iteritems():
+        for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
                 for start, stop, step, pad in rangeset._ranges:
                     while start <= stop:
@@ -884,7 +884,7 @@ class NodeSet(object):
         Get pdsh-like, ranges-based pattern of node list.
         """
         result = ""
-        for pat, rangeset in self._patterns.iteritems():
+        for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
                 s = str(rangeset)
                 cnt = len(rangeset)
