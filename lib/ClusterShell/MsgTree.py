@@ -35,14 +35,25 @@
 """
 MsgTree
 
-ClusterShell message tree classes.
+ClusterShell messages tree module. The purpose of MsgTree is to
+provide a shared messages tree for storing message lines received
+from ClusterShell Workers (for example, from remote cluster
+commands). It should be efficient, in term of compute power and memory
+consumption, especially when remote messages are the same.
 """
 
-class _MsgTreeElem:
+from itertools import imap
+from operator import itemgetter
+
+
+class MsgTreeElem(object):
     """
-    Class representing an element of the MsgTree.
+    Class representing an element of the MsgTree and its associated
+    message. Object of this class are returned by the various MsgTree
+    methods like messages() or walk(). The object can then be used as
+    an iterator over the message lines or casted into a string.
     """
-    def __init__(self, msg=None, parent=None):
+    def __init__(self, msgline=None, parent=None):
         """
         Initialize message tree element.
         """
@@ -50,23 +61,20 @@ class _MsgTreeElem:
         self.parent = parent
         self.children = {}
         # content
-        self.msg = msg
+        self.msgline = msgline
         self.keys = None
    
     def __len__(self):
-        if self.keys:
-            return len(self.keys)
-        return 0
+        """Length of whole message string."""
+        return len(str(self))
 
-    def __str__(self):
-        return "<MsgTree._MsgTreeElem parent=%s keys=%s msg=%s>" % \
-            (self.parent, self.keys, self.msg)
+    def __eq__(self, other):
+        """Comparison method compares whole message strings."""
+        return str(self) == str(other)
 
     def _shift(self, key, target_elem):
-        """
-        Shift one of our key to specified target element.
-        """
-        if len(self) == 1:
+        """Shift one of our key to specified target element."""
+        if self.keys and len(self.keys) == 1:
             shifting = self.keys
             self.keys = None
         else:
@@ -74,95 +82,77 @@ class _MsgTreeElem:
             if self.keys:
                 self.keys.difference_update(shifting)
 
-        if len(target_elem) == 0:
+        if not target_elem.keys:
             target_elem.keys = shifting
         else:
             target_elem.keys.update(shifting)
 
         return target_elem
 
-    def add(self, key, msg):
-        """
-        A new message line is coming, add it to the tree with
-        associated source key.
-        """
-        # create new child element and shift down the key
-        return self._shift(key, self.children.setdefault(msg,
-                                        self.__class__(msg, self)))
+    def __getitem__(self, i):
+        return self.lines()[i]
 
-    def msglist(self):
-        """
-        Get the whole message list from this tree element.
-        """
-        msg = ""
-        # no msg in root element
-        if self.msg is None:
-            return msg
-        
-        # build list of msg (reversed by design)
-        rmsgs = [self.msg]
+    def __iter__(self):
+        """Iterate over message lines starting from this tree element."""
+        # no msgline in root element
+        if self.msgline is None:
+            return
+        # trace the message path
+        path = [self.msgline]
         parent = self.parent
-        while parent.msg is not None:
-            rmsgs.append(parent.msg)
+        while parent.msgline is not None:
+            path.append(parent.msgline)
             parent = parent.parent
+        # rewind path
+        while path:
+            yield path.pop()
 
-        # reverse the list
-        rmsgs.reverse()
-        return rmsgs
+    def lines(self):
+        """
+        Get the whole message lines iterator from this tree element.
+        """
+        return iter(self)
 
     def message(self):
         """
         Get the whole message buffer from this tree element.
         """
         # concat buffers
-        return '\n'.join(self.msglist())
+        return '\n'.join(self.lines())
+
+    __str__ = message
+
+    def append(self, key, msgline):
+        """
+        A new message line is coming, append it to the tree element
+        with associated source key. Called by MsgTree.add().
+        Return corresponding newly created MsgTreeElem.
+        """
+        # create new child element and shift down the key
+        return self._shift(key, self.children.setdefault(msgline, \
+                                        self.__class__(msgline, self)))
 
 
-class MsgTreeMsg:
-    """
-    Class representing a MsgTree message. Object of this class
-    are returned by the various MsgTree methods like msg_keys().
-    The object can then be used as an iterator over the message
-    lines or casted into a string.
-    """
-    def __init__(self, elem):
-        self._elem = elem
-
-    def __len__(self):
-        return len(self._elem.message())
-
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __iter__(self):
-        return iter(self._elem.msglist())
-
-    def __getitem__(self, i):
-        return self._elem.msglist()[i]
-        
-    def __str__(self):
-        return self._elem.message()
-
-
-class MsgTree:
+class MsgTree(object):
     """
     A MsgTree object maps key objects to multi-lines messages.
-    MsgTree's are mutable objects. Keys are almost abritrary values
+    MsgTree's are mutable objects. Keys are almost arbitrary values
     (must be hashable). Message lines are organized as a tree
     internally. MsgTree provides low memory consumption especially
     on a cluster when all nodes return similar messages. Also,
-    gathering of messages is done automatically.
+    the gathering of messages is done automatically.
     """
 
     def __init__(self):
-        """Initialization method."""
-        self.clear()
-
-    def clear(self):
         # root element of MsgTree
-        self._root = _MsgTreeElem()
+        self._root = MsgTreeElem()
         # dict of keys to _MsgTreeElem
         self._keys = {}
+
+    def clear(self):
+        """Remove all items from the MsgTree."""
+        self._root = MsgTreeElem()
+        self._keys.clear()
 
     def __len__(self):
         """Return the number of keys contained in the MsgTree."""
@@ -171,30 +161,29 @@ class MsgTree:
     def __getitem__(self, key):
         """Return the message of MsgTree with specified key. Raises a
         KeyError if key is not in the MsgTree."""
-        return MsgTreeMsg(self._keys[key])
+        return self._keys[key]
 
-    def get(self, key):
-        """Return the message of MsgTree with specified key or None
-        if not found."""
-        e = self._keys.get(key)
-        if e is None:
-            return None
-        return MsgTreeMsg(e)
+    def get(self, key, default=None):
+        """
+        Return the message for key if key is in the MsgTree, else default.
+        If default is not given, it defaults to None, so that this method
+        never raises a KeyError.
+        """
+        elem = self._keys.get(key)
+        if elem is None:
+            return default
+        return elem
 
-    def _walktree(self, match=None, mapper=None):
-        """Walk the tree. Optionally filter keys on match parameter,
-        and optionally map resulting keys with mapper."""
-        # stack of elements used to walk the tree
-        estack = [ self._root ]
+    def add(self, key, msgline):
+        """
+        Add a message line associated with the given key to the MsgTree.
+        """
+        # try to get current element in MsgTree for the given key,
+        # defaulting to the root element
+        e_msg = self._keys.get(key, self._root)
 
-        while len(estack) > 0:
-            elem = estack.pop()
-            if len(elem.children) > 0:
-                estack += elem.children.values()
-            if len(elem) > 0: # has key(s)
-                mkeys = filter(match, elem.keys)
-                if len(mkeys):
-                    yield elem, map(mapper, mkeys)
+        # add child msg and update keys dict
+        self._keys[key] = e_msg.append(key, msgline)
 
     def keys(self):
         """Return an iterator over MsgTree's keys."""
@@ -202,30 +191,53 @@ class MsgTree:
 
     __iter__ = keys
     
-    def msgs(self, match=None):
+    def messages(self, match=None):
         """Return an iterator over MsgTree's messages."""
-        for elem, keys in self._walktree(match):
-            yield MsgTreeMsg(elem)
+        return imap(itemgetter(0), self.walk(match))
     
-    def items(self, match=None):
-        """Return (key, message) for each key of the MsgTree."""
-        if not match:
-            match = bool
+    def items(self, match=None, mapper=None):
+        """
+        Return (key, message) for each key of the MsgTree.
+        """
+        if mapper is None:
+            mapper = lambda k: k
         for key, elem in self._keys.iteritems():
-            if match(key):
-                yield key, MsgTreeMsg(elem)
+            if match is None or match(key):
+                yield mapper(key), elem
 
-    def msg_keys(self, match=None, mapper=None):
-        """Return (msg, keys) for each different msg of the MsgTree."""
-        for elem, keys in self._walktree(match, mapper):
-            yield MsgTreeMsg(elem), keys
+    def _depth(self):
+        """
+        Return the depth of the MsgTree, ie. the max number of lines
+        per message. Added for debugging.
+        """
+        depth = 0
+        # stack of (element, depth) tuples used to walk the tree
+        estack = [ (self._root, depth) ]
 
-    def add(self, key, msg):
-        """Add a message associated with the given key to the MsgTree."""
-        # try to get current element in MsgTree for the given key,
-        # defaulting to the root element
-        e_msg = self._keys.get(key) or self._root
+        while estack:
+            elem, edepth = estack.pop()
+            if len(elem.children) > 0:
+                estack += [(v, edepth + 1) for v in elem.children.values()]
+            depth = max(depth, edepth)
+        
+        return depth
 
-        # add child msg and update keys dict
-        self._keys[key] = e_msg.add(key, msg)
+    def walk(self, match=None, mapper=None):
+        """
+        Walk the tree. Optionally filter keys on match parameter,
+        and optionally map resulting keys with mapper function.
+        Return an iterator of (message, keys) tuples for each
+        different message in the tree.
+        """
+        # stack of elements used to walk the tree (depth-first)
+        estack = [ self._root ]
+
+        while estack:
+            elem = estack.pop()
+            if len(elem.children) > 0:
+                estack += elem.children.values()
+            if elem.keys: # has some keys
+                mkeys = filter(match, elem.keys)
+                if len(mkeys):
+                    yield elem, map(mapper, mkeys)
 

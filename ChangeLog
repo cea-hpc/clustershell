@@ -1,5 +1,18 @@
 2010-02-09 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker.py: Updated Task/MsgTree dependencies. Added iter_node_errors()
+	method. Added match_keys optional parameter to iter_node_buffers() and
+	iter_node_errors(). Added WorkerSimple.error() method (read stderr).
+	Added tests.
+
+	* Task.py: Updated MsgTree dependencies. Factorized most tree data's
+	access methods.
+
+	* MsgTree.py: Merged Msg and _MsgTreeElem in one class MsgTreeElem. All
+	message objects returned are now instance of MsgTreeElem. Some algorithms
+	improvements. Renamed main MsgTree access methods: messages(), items() and
+	walk(). Added more docstring.
+
 	* NodeSet.py: Modified NodeSet.__iter__() and __str__() so that nodes are
 	now always sorted by name/pattern (eg. acluster2, bcluster1).
 

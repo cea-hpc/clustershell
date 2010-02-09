@@ -54,8 +54,8 @@ Simple example of use:
 
 """
 
-import itertools
-import operator
+from itertools import imap
+from operator import itemgetter
 import sys
 import threading
 import traceback
@@ -66,7 +66,6 @@ from Engine.Engine import EngineAlreadyRunningError
 from Engine.Engine import EngineTimer
 from Engine.Factory import PreferredEngine
 from Worker.EngineClient import EnginePort
-from Worker.Pdsh import WorkerPdsh
 from Worker.Ssh import WorkerSsh
 from Worker.Popen import WorkerPopen
 
@@ -293,7 +292,7 @@ class Task(object):
         return self.thread == threading.currentThread()
 
     def _handle_exception(self):
-        print >>sys.stderr, 'Exception in thread %s:' % self.thread
+        print >> sys.stderr, 'Exception in thread %s:' % self.thread
         traceback.print_exc(file=sys.stderr)
         self._quit = True
         
@@ -524,7 +523,7 @@ class Task(object):
             self._resume_thread()
 
     @tasksyncmethod()
-    def _suspend_wait(self, keep_run_lock=False):
+    def _suspend_wait(self):
         assert task_self() == self
         # atomically set suspend state
         self._suspend_lock.acquire()
@@ -694,55 +693,19 @@ class Task(object):
             return None
         return str(s)
 
-    def _msg_iter_by_key(self, key):
-        """
-        Return an iterator over stored messages for the given key.
-        """
-        return itertools.imap(str, self._msgtree.msgs(lambda k: k[1] == key))
-
-    def _errmsg_iter_by_key(self, key):
-        """
-        Return an iterator over stored error messages for the given key.
-        """
-        return itertools.imap(str, self._errtree.msgs(lambda k: k[1] == key))
-
-    def _msg_iter_by_worker(self, worker, match_keys=None):
-        """
-        Return an iterator over messages and keys list for a specific
-        worker and optional matching keys.
-        """
-        # iterate by worker and optionally by matching keys
-        match = None
-        if match_keys is not None:
+    def _call_tree_matcher(self, tree_match_func, match_keys=None, worker=None):
+        """Call identified tree matcher (items, walk) method with options."""
+        # filter by worker and optionally by matching keys
+        if worker and not match_keys:
+            match = lambda k: k[0] is worker
+        elif worker and match_keys:
             match = lambda k: k[0] is worker and k[1] in match_keys
-            
-        return self._msgtree.msg_keys(match, operator.itemgetter(1))
-
-    def _errmsg_iter_by_worker(self, worker, match_keys=None):
-        """
-        Return an iterator over error messages and keys list for a specific
-        worker and optional matching keys.
-        """
-        # iterate by worker and optionally by matching keys
-        match = None
-        if match_keys is not None:
-            match = lambda k: k[0] is worker and k[1] in match_keys
-            
-        return self._errtree.msg_keys(match, operator.itemgetter(1))
-
-    def _kmsg_iter_by_worker(self, worker):
-        """
-        Return an iterator over key, message for a specific worker.
-        """
-        return self._msgtree.msg_keys(lambda k: k[0] is worker,
-                                      operator.itemgetter(1))
- 
-    def _kerrmsg_iter_by_worker(self, worker):
-        """
-        Return an iterator over key, err_message for a specific worker.
-        """
-        return self._msgtree.msg_keys(lambda k: k[0] is worker,
-                                      operator.itemgetter(1))
+        elif match_keys:
+            match = lambda k: k[1] in match_keys
+        else:
+            match = None
+        # Call tree matcher function (items or walk)
+        return tree_match_func(match, itemgetter(1))
     
     def _rc_by_source(self, source):
         """
@@ -808,7 +771,8 @@ class Task(object):
         to multiple workers, the resulting buffer will contain
         all workers content that may overlap.
         """
-        return "".join(self._msg_iter_by_key(key))
+        select_key = lambda k: k[1] == key
+        return "".join(imap(str, self._msgtree.messages(select_key)))
     
     node_buffer = key_buffer
 
@@ -818,7 +782,8 @@ class Task(object):
         to multiple workers, the resulting buffer will contain all
         workers content that may overlap.
         """
-        return "".join(self._errmsg_iter_by_key(key))
+        select_key = lambda k: k[1] == key
+        return "".join(imap(str, self._errtree.messages(select_key)))
     
     node_error = key_error
 
@@ -858,10 +823,7 @@ class Task(object):
                 print NodeSet.fromlist(nodelist)
                 print buffer
         """
-        match = None
-        if match_keys:
-            match = lambda k: k[1] in match_keys
-        return self._msgtree.msg_keys(match=match, mapper=operator.itemgetter(1))
+        return self._call_tree_matcher(self._msgtree.walk, match_keys)
 
     def iter_errors(self, match_keys=None):
         """
@@ -869,10 +831,7 @@ class Task(object):
 
         See iter_buffers().
         """
-        match = None
-        if match_keys:
-            match = lambda k: k[1] in match_keys
-        return self._errtree.msg_keys(match=match, mapper=operator.itemgetter(1))
+        return self._call_tree_matcher(self._errtree.walk, match_keys)
             
     def iter_retcodes(self, match_keys=None):
         """

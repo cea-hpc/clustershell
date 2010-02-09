@@ -505,6 +505,17 @@ class TaskLocalTest(unittest.TestCase):
         self.assertEqual(worker1.read(), "ok")
         self.assertEqual(worker2.read(), None)
 
+    def testLocalWorkerErrorBuffers(self):
+        """test task local stderr worker buffers"""
+        task = task_self()
+        self.assert_(task != None)
+
+        w1 = task.shell("/usr/bin/printf 'foo bar\n' 1>&2", key="foobar", stderr=True)
+        w2 = task.shell("/usr/bin/printf 'foo\nbar\n' 1>&2", key="foobar2", stderr=True)
+        task.resume()
+        self.assertEqual(w1.error(), 'foo bar')
+        self.assertEqual(w2.error(), 'foo\nbar')
+
     def testLocalErrorBuffers(self):
         """test task local stderr buffers gathering"""
         task = task_self()

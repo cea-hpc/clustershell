@@ -230,20 +230,33 @@ class DistantWorker(Worker):
         NodeSet. If the optional parameter match_keys is defined, only
         keys found in match_keys are returned.
         """
-        for msg, keys in self.task._msg_iter_by_worker(self, match_keys):
+        for msg, keys in self.task._call_tree_matcher( \
+                            self.task._msgtree.walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
 
-    def iter_node_buffers(self):
+    def iter_errors(self, match_keys=None):
+        """
+        Returns an iterator over available error buffers and associated
+        NodeSet. If the optional parameter match_keys is defined, only
+        keys found in match_keys are returned.
+        """
+        for msg, keys in self.task._call_tree_matcher( \
+                            self.task._errtree.walk, match_keys, self):
+            yield msg, NodeSet.fromlist(keys)
+
+    def iter_node_buffers(self, match_keys=None):
         """
         Returns an iterator over each node and associated buffer.
         """
-        return self.task._kmsg_iter_by_worker(self)
+        return self.task._call_tree_matcher(self.task._msgtree.items,
+                                            match_keys, self)
 
-    def iter_node_errors(self):
+    def iter_node_errors(self, match_keys=None):
         """
         Returns an iterator over each node and associated error buffer.
         """
-        return self.task._kerrmsg_iter_by_worker(self)
+        return self.task._call_tree_matcher(self.task._errtree.items,
+                                            match_keys, self)
 
     def iter_retcodes(self, match_keys=None):
         """
@@ -347,7 +360,6 @@ class WorkerSimple(EngineClient,Worker):
         """
         Read data from process.
         """
-        #result = self.file_reader.read(size)
         result = self.file_reader.read(size)
         if not len(result):
             raise EngineClientEOF()
@@ -451,8 +463,18 @@ class WorkerSimple(EngineClient,Worker):
         """
         Read worker buffer.
         """
-        for msg, keys in self.task._kmsg_iter_by_worker(self):
-            assert keys[0] == self.key
+        for key, msg in self.task._call_tree_matcher(self.task._msgtree.items,
+                                                     worker=self):
+            assert key == self.key
+            return str(msg)
+
+    def error(self):
+        """
+        Read worker error buffer.
+        """
+        for key, msg in self.task._call_tree_matcher(self.task._errtree.items,
+                                                     worker=self):
+            assert key == self.key
             return str(msg)
 
     def write(self, buf):

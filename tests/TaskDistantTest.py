@@ -388,12 +388,30 @@ class TaskDistantTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
 
-        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", nodes='localhost')
+        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'",
+                            nodes='localhost')
 
         task.resume()
 
         cnt = 1
         for node, buf in worker.iter_node_buffers():
+            cnt -= 1
+            if buf == "foo\nbar\nxxx\n":
+                self.assertEqual(node, "localhost")
+        self.assertEqual(cnt, 0)
+
+    def testWorkerNodeErrors(self):
+        """test iter_node_errors on distant workers"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n' 1>&2",
+                            nodes='localhost', stderr=True)
+
+        task.resume()
+
+        cnt = 1
+        for node, buf in worker.iter_node_errors():
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
                 self.assertEqual(node, "localhost")

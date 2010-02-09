@@ -45,6 +45,7 @@ class MsgTreeTest(unittest.TestCase):
         tree.add(("item4", "key"), "message3")
         tree.add(("item2", "newkey"), "message4")
         self.assertEqual(len(tree), 5)
+        self.assertEqual(tree._depth(), 1)
 
         # test standard iterator (over keys)
         cnt = 0
@@ -62,9 +63,9 @@ class MsgTreeTest(unittest.TestCase):
             cnt += 1
         self.assertEqual(cnt, 5)
 
-        # test msgs() iterator (iterate over different messages)
+        # test messages() iterator (iterate over different messages)
         cnt = 0
-        for msg in tree.msgs():
+        for msg in tree.messages():
             cnt += 1
         self.assertEqual(cnt, 4)
 
@@ -74,11 +75,11 @@ class MsgTreeTest(unittest.TestCase):
             cnt += 1
         self.assertEqual(cnt, 5)
             
-        # test msg_keys() iterator (iterate by msg and give the list of
+        # test walk() iterator (iterate by msg and give the list of
         # associated keys)
         cnt = 0
         cnt_2 = 0
-        for msg, keys in tree.msg_keys():
+        for msg, keys in tree.walk():
             cnt += 1
             if len(keys) == 2:
                 self.assertEqual(msg, "message3")
@@ -86,16 +87,16 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(cnt, 4)
         self.assertEqual(cnt_2, 1)
 
-        # test msg_keys() with provided key-filter
+        # test walk() with provided key-filter
         cnt = 0
-        for msg, keys in tree.msg_keys(match=lambda s: s[1] == "newkey"):
+        for msg, keys in tree.walk(match=lambda s: s[1] == "newkey"):
             cnt += 1
         self.assertEqual(cnt, 1)
 
-        # test msg_keys() with provided key-mapper
+        # test walk() with provided key-mapper
         cnt = 0
         cnt_2 = 0
-        for msg, keys in tree.msg_keys(mapper=itemgetter(0)):
+        for msg, keys in tree.walk(mapper=itemgetter(0)):
             cnt += 1
             if len(keys) == 2:
                 for k in keys:
@@ -104,9 +105,9 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(cnt, 4)
         self.assertEqual(cnt_2, 1)
 
-        # test msg_keys with full options: key-filter and key-mapper
+        # test walk with full options: key-filter and key-mapper
         cnt = 0
-        for msg, keys in tree.msg_keys(match=lambda k: k[1] == "newkey",
+        for msg, keys in tree.walk(match=lambda k: k[1] == "newkey",
                                        mapper=itemgetter(0)):
             cnt += 1
             self.assertEqual(msg, "message4")
@@ -114,7 +115,7 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(cnt, 1)
 
         cnt = 0
-        for msg, keys in tree.msg_keys(match=lambda k: k[1] == "key",
+        for msg, keys in tree.walk(match=lambda k: k[1] == "key",
                                        mapper=itemgetter(0)):
             cnt += 1
             self.assertEqual(keys[0][:-1], "item")
@@ -134,6 +135,8 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(len(tree), 4)
         self.assertEqual(tree["item1"], "message0")
         self.assertEqual(tree["item2"], "message2\nmessage4")
+        self.assertEqual(tree._depth(), 2)
+
 
 
 if __name__ == '__main__':
