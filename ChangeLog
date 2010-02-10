@@ -1,5 +1,11 @@
 2010-02-10 S. Thiell <stephane.thiell@cea.fr>
 	
+	* scripts/clush.py: Due to set_info() behaviour modifications in
+	multi-thread mode, change some set_info() for set_default() to modify
+	task specific dictionary synchronously. Also remove splitlines() where
+	MsgTreeElem are returned instead of whole buffer after latest MsgTree
+	improvements.
+
 	* scripts/clubak.py: Added clubak utility (trac ticket #47). It provides
 	 dshbak backward-compatibility, but always try to sort buffers by nodes or
 	 nodeset. It also provides additional -L option to switch to alternative
@@ -341,6 +347,6 @@
 	* 1.0->1.1 internal design changes.
 
 
-Copyright CEA/DAM/DIF  (2009)
+Copyright CEA/DAM/DIF  (2009, 2010)
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.

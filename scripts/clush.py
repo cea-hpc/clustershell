@@ -124,10 +124,12 @@ class DirectOutputHandler(EventHandler):
                 NodeSet.fromlist(worker.iter_keys_timeout())
 
     def ev_close(self, worker):
-        # Notify main thread to update its prompt
-        worker.task.set_info("USER_running", False)
-        if worker.task.info("USER_handle_SIGHUP"):
-            os.kill(os.getpid(), signal.SIGHUP)
+        # If needed, notify main thread to update its prompt by sending
+        # a SIGUSR1 signal. We use task-specific user-defined variable
+        # to record current states (prefixed by USER_).
+        worker.task.set_default("USER_running", False)
+        if worker.task.default("USER_handle_SIGUSR1"):
+            os.kill(os.getpid(), signal.SIGUSR1)
 
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
@@ -155,7 +157,7 @@ class GatherOutputHandler(EventHandler):
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
         if self._runtimer:
-            self._runtimer.eh.finalize(worker.task.info("USER_interactive"))
+            self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
 
         # Display command output, try to order buffers by rc
         for rc, nodelist in worker.iter_retcodes():
@@ -177,9 +179,9 @@ class GatherOutputHandler(EventHandler):
                     NodeSet.fromlist(worker.iter_keys_timeout())
 
         # Notify main thread to update its prompt
-        worker.task.set_info("USER_running", False)
-        if worker.task.info("USER_handle_SIGHUP"):
-            os.kill(os.getpid(), signal.SIGHUP)
+        worker.task.set_default("USER_running", False)
+        if worker.task.default("USER_handle_SIGUSR1"):
+            os.kill(os.getpid(), signal.SIGUSR1)
 
 class RunTimer(EventHandler):
     def __init__(self, task, total):
@@ -312,7 +314,7 @@ class ClushConfig(ConfigParser.ConfigParser):
 
 def signal_handler(signum, frame):
     """Signal handler used for main thread notification"""
-    if signum == signal.SIGHUP:
+    if signum == signal.SIGUSR1:
         raise UpdatePromptException()
 
 def get_history_file():
@@ -335,7 +337,7 @@ def readline_setup():
 def ttyloop(task, nodeset, gather, timeout, label, verbosity):
     """Manage the interactive prompt to run command"""
     has_readline = False
-    if task.info("USER_interactive"):
+    if task.default("USER_interactive"):
         assert sys.stdin.isatty()
         readline_avail = False
         try:
@@ -351,9 +353,9 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
     ns = NodeSet(nodeset)
     ns_info = True
     cmd = ""
-    while task.info("USER_running") or cmd.lower() != 'quit':
+    while task.default("USER_running") or cmd.lower() != 'quit':
         try:
-            if task.info("USER_interactive") and not task.info("USER_running"):
+            if task.default("USER_interactive") and not task.default("USER_running"):
                 if ns_info:
                     print "Working with nodes: %s" % ns
                     ns_info = False
@@ -365,11 +367,11 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
             print
             return
         except UpdatePromptException:
-            if task.info("USER_interactive"):
+            if task.default("USER_interactive"):
                 continue
             return
         except KeyboardInterrupt, e:
-            signal.signal(signal.SIGHUP, signal.SIG_IGN)
+            signal.signal(signal.SIGUSR1, signal.SIG_IGN)
             if gather:
                 # Suspend task, so we can safely access its data from
                 # the main thread
@@ -405,7 +407,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                             NodeSet.fromlist(task.iter_keys_timeout())
             raise e
 
-        if task.info("USER_running"):
+        if task.default("USER_running"):
             ns_reg, ns_unreg = NodeSet(), NodeSet()
             for c in task._engine.clients():
                 if c.registered:
@@ -472,7 +474,7 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity):
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
     """    
-    task.set_info("USER_running", True)
+    task.set_default("USER_running", True)
 
     if gather:
         runtimer = None
@@ -492,7 +494,7 @@ def run_copy(task, source, dest, ns, timeout, preserve_flag):
     """
     run copy command
     """
-    task.set_info("USER_running", True)
+    task.set_default("USER_running", True)
 
     # Source check
     if not os.path.exists(source):
@@ -632,11 +634,11 @@ def clush_main(args):
     task.resume()
 
     for buf, keys in task.iter_buffers(['all', 'group']):
-        for line in buf.splitlines():
+        for line in buf:
             config.verbose_print(VERB_DEBUG, "Adding nodes from option %s: %s" % (','.join(keys), buf))
             nodeset_base.add(line)
     for buf, keys in task.iter_buffers(['exgroup']):
-        for line in buf.splitlines():
+        for line in buf:
             config.verbose_print(VERB_DEBUG, "Excluding nodes from option %s: %s" % (','.join(keys), buf))
             nodeset_exclude.add(line)
 
@@ -657,11 +659,11 @@ def clush_main(args):
         # we run cluster commands in a new ClusterShell Task (a new
         # thread is created).
         task = Task()
-        signal.signal(signal.SIGHUP, signal_handler)
-        task.set_info("USER_handle_SIGHUP", True)
+        signal.signal(signal.SIGUSR1, signal_handler)
+        task.set_default("USER_handle_SIGUSR1", True)
     else:
         # Perform everything in main thread.
-        task.set_info("USER_handle_SIGHUP", False)
+        task.set_default("USER_handle_SIGUSR1", False)
 
     task.set_info("debug", config.get_verbosity() >= VERB_DEBUG)
     task.set_info("fanout", config.get_fanout())
@@ -692,8 +694,8 @@ def clush_main(args):
         timeout = -1
 
     # Configure custom task related status
-    task.set_info("USER_interactive", len(args) == 0 and not options.source_path)
-    task.set_info("USER_running", False)
+    task.set_default("USER_interactive", len(args) == 0 and not options.source_path)
+    task.set_default("USER_running", False)
 
     if options.source_path and not options.dest_path:
         options.dest_path = options.source_path
@@ -710,7 +712,7 @@ def clush_main(args):
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
-    if not task.info("USER_interactive"):
+    if not task.default("USER_interactive"):
         if options.source_path:
             if not options.dest_path:
                 options.dest_path = options.source_path
@@ -723,7 +725,7 @@ def clush_main(args):
     if user_interaction:
         ttyloop(task, nodeset_base, options.gather, timeout, options.label,
                 config.get_verbosity())
-    elif task.info("USER_interactive"):
+    elif task.default("USER_interactive"):
         print >>sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)
 
