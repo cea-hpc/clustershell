@@ -61,6 +61,18 @@ def print_lines(header, msg):
     for line in msg:
         sys.stdout.write("%s: %s\n" % (header, line))
 
+def nodeset_cmp(ns1, ns2):
+    """Compare 2 nodesets by their length (we want larger nodeset
+    first) and then by first node."""
+    len_cmp = cmp(len(ns2), len(ns1))
+    if not len_cmp:
+        smaller = NodeSet.fromlist([ns1[0], ns2[0]])[0]
+        if smaller == ns1[0]:
+            return -1
+        else:
+            return 1
+    return len_cmp
+
 def display(tree, line_mode, gather):
     """Display results"""
     try:
@@ -68,12 +80,8 @@ def display(tree, line_mode, gather):
             # lambda to create a NodeSet from keys list returned by walk()
             ns_getter = lambda x: NodeSet.fromlist(x[1])
 
-            # lambda to compare 2 nodesets by their length (we want larger
-            # nodeset first) and then by first node
-            ns_cmp = lambda x, y: cmp(len(y), len(x)) or \
-                        cmp(NodeSet.fromlist([x[0], y[0]])[0], y[0])
-
-            for nodeset in sorted(imap(ns_getter, tree.walk()), cmp=ns_cmp):
+            for nodeset in sorted(imap(ns_getter, tree.walk()),
+                                  cmp=nodeset_cmp):
                 if line_mode:
                     print_lines(nodeset, tree[nodeset[0]])
                 else:
