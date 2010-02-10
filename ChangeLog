@@ -1,5 +1,8 @@
 2010-02-10 S. Thiell <stephane.thiell@cea.fr>
 	
+	* Worker/Worker.py: Added missing WorkerSimple.last_error() method. Fixed
+	worker bad argument error exception.
+
 	* Worker/Ssh.py: Added command, source and dest public instance variable.
 
 	* Worker/Pdsh.py: Added command, source and dest public instance variable.

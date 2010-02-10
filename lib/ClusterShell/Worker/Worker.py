@@ -50,6 +50,9 @@ class WorkerException(Exception):
 class WorkerError(WorkerException):
     """Generic worker error."""
 
+class WorkerBadArgumentError(WorkerError):
+    """Bad argument in worker error."""
+
 class Worker(object):
     """
     Base class Worker.
@@ -425,6 +428,12 @@ class WorkerSimple(EngineClient,Worker):
         Read last msg, useful in an EventHandler.
         """
         return self.last_msg
+
+    def last_error(self):
+        """
+        Get last error message from event handler.
+        """
+        return self.last_errmsg
 
     def _on_msgline(self, msg):
         """

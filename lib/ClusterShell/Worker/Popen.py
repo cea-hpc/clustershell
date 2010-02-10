@@ -40,7 +40,7 @@ ClusterShell worker for executing local commands.
 
 from ClusterShell.NodeSet import NodeSet
 
-from Worker import WorkerSimple
+from Worker import WorkerSimple, WorkerBadArgumentError
 
 import fcntl
 import os
@@ -62,7 +62,7 @@ class WorkerPopen(WorkerSimple):
 
         self.command = command
         if not self.command:
-            raise WorkerBadArgumentException()
+            raise WorkerBadArgumentError()
 
         self.popen = None
         self.rc = None

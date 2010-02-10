@@ -41,7 +41,7 @@ ClusterShell worker for executing commands with LLNL pdsh.
 from ClusterShell.NodeSet import NodeSet
 
 from EngineClient import *
-from Worker import DistantWorker, WorkerError
+from Worker import DistantWorker, WorkerError, WorkerBadArgumentError
 
 import errno
 import fcntl
@@ -102,7 +102,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
             # Preserve modification times and modes?
             self.preserve = kwargs.get('preserve', False)
         else:
-            raise WorkerBadArgumentException()
+            raise WorkerBadArgumentError()
 
         self.popen = None
         self.buf = ""

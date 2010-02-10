@@ -39,7 +39,7 @@ This module implements OpenSSH engine client and task's worker.
 """
 
 from EngineClient import EngineClient, EngineClientEOF
-from Worker import DistantWorker
+from Worker import DistantWorker, WorkerBadArgumentError
 
 from ClusterShell.NodeSet import NodeSet
 
@@ -328,7 +328,7 @@ class WorkerSsh(DistantWorker):
                 self.clients.append(Scp(node, self.source, self.dest,
                     self, stderr, timeout, kwargs.get('preserve', False)))
         else:
-            raise WorkerBadArgumentException()
+            raise WorkerBadArgumentError()
 
     def _engine_clients(self):
         """
