@@ -308,22 +308,24 @@ class WorkerSsh(DistantWorker):
 
         self.clients = []
         self.nodes = NodeSet(nodes)
+        self.command = kwargs.get('command')
+        self.source = kwargs.get('source')
+        self.dest = kwargs.get('dest')
+        autoclose = kwargs.get('autoclose', False)
+        stderr = kwargs.get('stderr', False)
         self._close_count = 0
         self._has_timeout = False
 
-        autoclose = kwargs.get('autoclose', False)
-        stderr = kwargs.get('stderr', False)
-
         # Prepare underlying engine clients (ssh/scp processes)
-        if kwargs.has_key('command'):
+        if self.command is not None:
             # secure remote shell
             for node in self.nodes:
-                self.clients.append(Ssh(node, kwargs['command'], self,
-                    stderr, timeout, autoclose))
-        elif kwargs.has_key('source'):
+                self.clients.append(Ssh(node, self.command, self, stderr,
+                                        timeout, autoclose))
+        elif self.source:
             # secure copy
             for node in self.nodes:
-                self.clients.append(Scp(node, kwargs['source'], kwargs['dest'],
+                self.clients.append(Scp(node, self.source, self.dest,
                     self, stderr, timeout, kwargs.get('preserve', False)))
         else:
             raise WorkerBadArgumentException()

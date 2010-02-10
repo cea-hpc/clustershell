@@ -80,22 +80,23 @@ class WorkerPdsh(EngineClient,DistantWorker):
         self.nodes = NodeSet(nodes)
         self.closed_nodes = NodeSet()
 
+        self.command = kwargs.get('command')
+        self.source = kwargs.get('source')
+        self.dest = kwargs.get('dest')
+
         autoclose = kwargs.get('autoclose', False)
         stderr = kwargs.get('stderr', False)
 
         EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
-        if kwargs.has_key('command'):
+        if self.command is not None:
             # PDSH
-            self.command = kwargs['command']
             self.source = None
             self.dest = None
             self.mode = 'pdsh'
-        elif kwargs.has_key('source'):
+        elif self.source:
             # PDCP
             self.command = None
-            self.source = kwargs['source']
-            self.dest = kwargs['dest']
             self.mode = 'pdcp'
             self.isdir = os.path.isdir(self.source)
             # Preserve modification times and modes?

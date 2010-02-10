@@ -55,6 +55,37 @@ class TaskDistantTest(unittest.TestCase):
         # run task
         self._task.resume()
     
+    def testTaskShellWorkerGetCommand(self):
+        """test worker.command with task.shell()"""
+        worker1 = self._task.shell("/bin/hostname", nodes='localhost')
+        self.assert_(worker1 != None)
+        worker2 = self._task.shell("/bin/uname -r", nodes='localhost')
+        self.assert_(worker2 != None)
+        self._task.resume()
+        self.assert_(hasattr(worker1, 'command'))
+        self.assert_(hasattr(worker2, 'command'))
+        self.assertEqual(worker1.command, "/bin/hostname")
+        self.assertEqual(worker2.command, "/bin/uname -r")
+    
+    def testWorkerPdshGetCommand(self):
+        """test worker.command with WorkerPdsh"""
+
+        worker1 = WorkerPdsh("localhost", command="/bin/echo foo bar fuu",
+                             handler=None, timeout=5)
+        self.assert_(worker1 != None)
+        self._task.schedule(worker1)
+        worker2 = WorkerPdsh("localhost", command="/bin/echo blah blah foo",
+                             handler=None, timeout=5)
+        self.assert_(worker2 != None)
+        self._task.schedule(worker2)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker1.node_buffer("localhost"), "foo bar fuu")
+        self.assertEqual(worker1.command, "/bin/echo foo bar fuu")
+        self.assertEqual(worker2.node_buffer("localhost"), "blah blah foo")
+        self.assertEqual(worker2.command, "/bin/echo blah blah foo")
+    
     def testLocalhostCopy(self):
         """test simple localhost copy"""
         # init worker
@@ -92,6 +123,8 @@ class TaskDistantTest(unittest.TestCase):
                 dest=dest, handler=None, timeout=10)
         self._task.schedule(worker) 
         self._task.resume()
+        self.assertEqual(worker.source, "/etc/rc.d")
+        self.assertEqual(worker.dest, dest)
 
     def testLocalhostExplicitSshCopyDirPreserve(self):
         """test simple localhost preserve copy dir with explicit ssh worker"""
@@ -110,6 +143,8 @@ class TaskDistantTest(unittest.TestCase):
                 dest=dest, handler=None, timeout=10)
         self._task.schedule(worker) 
         self._task.resume()
+        self.assertEqual(worker.source, "/etc/hosts")
+        self.assertEqual(worker.dest, dest)
 
     def testLocalhostExplicitPdshCopyDir(self):
         """test simple localhost copy dir with explicit pdsh worker"""
