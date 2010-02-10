@@ -59,21 +59,24 @@ class MsgTreeTest(unittest.TestCase):
 
         # test keys() iterator
         cnt = 0
-        for key in tree.keys():
+        for key in tree.keys(): # keep this test for return value check
             cnt += 1
         self.assertEqual(cnt, 5)
+        self.assertEqual(len(list(iter(tree.keys()))), 5)
 
         # test messages() iterator (iterate over different messages)
         cnt = 0
         for msg in tree.messages():
             cnt += 1
         self.assertEqual(cnt, 4)
+        self.assertEqual(len(list(iter(tree.messages()))), 4)
 
         # test items() iterator (iterate over all key, msg pairs)
         cnt = 0
         for key, msg in tree.items():
             cnt += 1
         self.assertEqual(cnt, 5)
+        self.assertEqual(len(list(iter(tree.items()))), 5)
             
         # test walk() iterator (iterate by msg and give the list of
         # associated keys)
@@ -86,6 +89,7 @@ class MsgTreeTest(unittest.TestCase):
                 cnt_2 += 1
         self.assertEqual(cnt, 4)
         self.assertEqual(cnt_2, 1)
+        self.assertEqual(len(list(iter(tree.walk()))), 4)
 
         # test walk() with provided key-filter
         cnt = 0
@@ -122,7 +126,7 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(cnt, 3) # 3 and not 4 because item3 and item4 are merged
 
     def testMsgTreeGetItem(self):
-        """test MsgTree __getitem__"""
+        """test MsgTree get and __getitem__"""
         # build tree...
         tree = MsgTree()
         tree.add("item1", "message0")
@@ -134,9 +138,11 @@ class MsgTreeTest(unittest.TestCase):
         tree.add("item3", "message4")
         self.assertEqual(len(tree), 4)
         self.assertEqual(tree["item1"], "message0")
+        self.assertEqual(tree.get("item1"), "message0")
         self.assertEqual(tree["item2"], "message2\nmessage4")
+        self.assertEqual(tree.get("item2"), "message2\nmessage4")
+        self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
         self.assertEqual(tree._depth(), 2)
-
 
 
 if __name__ == '__main__':

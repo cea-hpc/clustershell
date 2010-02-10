@@ -35,8 +35,8 @@
 """
 MsgTree
 
-ClusterShell messages tree module. The purpose of MsgTree is to
-provide a shared messages tree for storing message lines received
+ClusterShell message tree module. The purpose of MsgTree is to
+provide a shared message tree for storing message lines received
 from ClusterShell Workers (for example, from remote cluster
 commands). It should be efficient, in term of compute power and memory
 consumption, especially when remote messages are the same.
@@ -169,10 +169,7 @@ class MsgTree(object):
         If default is not given, it defaults to None, so that this method
         never raises a KeyError.
         """
-        elem = self._keys.get(key)
-        if elem is None:
-            return default
-        return elem
+        return self._keys.get(key, default)
 
     def add(self, key, msgline):
         """
