@@ -51,7 +51,6 @@ import optparse
 import os
 import sys
 import signal
-import thread
 import ConfigParser
 
 sys.path.insert(0, '../lib')
@@ -89,15 +88,15 @@ class DirectOutputHandler(EventHandler):
         self._label = label
 
     def ev_read(self, worker):
-        t = worker.last_read()
-        if type(t) is tuple:
-            (ns, buf) = t
+        result = worker.last_read()
+        if type(result) is tuple:
+            (ns, buf) = result
         else:
-            buf = t
+            buf = result
         if self._label:
-          print "%s: %s" % (ns, buf)
+            print "%s: %s" % (ns, buf)
         else:
-          print "%s" % buf
+            print "%s" % buf
 
     def ev_error(self, worker):
         t = worker.last_error()
@@ -106,9 +105,9 @@ class DirectOutputHandler(EventHandler):
         else:
             buf = t
         if self._label:
-          print >>sys.stderr, "%s: %s" % (ns, buf)
+            print >> sys.stderr, "%s: %s" % (ns, buf)
         else:
-          print >>sys.stderr,"%s" % buf
+            print >> sys.stderr,"%s" % buf
 
     def ev_hup(self, worker):
         if hasattr(worker, "last_retcode"):
@@ -117,10 +116,10 @@ class DirectOutputHandler(EventHandler):
             ns = "local"
             rc = worker.retcode()
         if rc > 0:
-            print >>sys.stderr, "clush: %s: exited with exit code %d" % (ns, rc) 
+            print >> sys.stderr, "clush: %s: exited with exit code %d" % (ns, rc) 
 
     def ev_timeout(self, worker):
-        print >>sys.stderr, "clush: %s: command timeout" % \
+        print >> sys.stderr, "clush: %s: command timeout" % \
                 NodeSet.fromlist(worker.iter_keys_timeout())
 
     def ev_close(self, worker):
@@ -147,9 +146,9 @@ class GatherOutputHandler(EventHandler):
         if self._runtimer:
             self._runtimer.eh.erase_line()
         if self._label:
-          print >>sys.stderr, "%s: %s" % (ns, buf)
+            print >> sys.stderr, "%s: %s" % (ns, buf)
         else:
-          print >>sys.stderr,"%s" % buf
+            print >> sys.stderr,"%s" % buf
         if self._runtimer:
             # Force redisplay of counter
             self._runtimer.eh.set_dirty()
@@ -161,21 +160,21 @@ class GatherOutputHandler(EventHandler):
 
         # Display command output, try to order buffers by rc
         for rc, nodelist in worker.iter_retcodes():
-            for buffer, nodelist in worker.iter_buffers(nodelist):
+            for buf, nodelist in worker.iter_buffers(nodelist):
                 print "-" * 15
                 print NodeSet.fromlist(nodelist)
                 print "-" * 15
-                print buffer
+                print buf
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
                 ns = NodeSet.fromlist(nodelist)
-                print >>sys.stderr, "clush: %s: exited with exit code %s" % (ns, rc)
+                print >> sys.stderr, "clush: %s: exited with exit code %s" % (ns, rc)
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
-            print >>sys.stderr, "clush: %s: command timeout" % \
+            print >> sys.stderr, "clush: %s: command timeout" % \
                     NodeSet.fromlist(worker.iter_keys_timeout())
 
         # Notify main thread to update its prompt
@@ -224,6 +223,7 @@ class ClushConfigError(Exception):
     """Exception used by the signal handler"""
 
     def __init__(self, section, option, msg):
+        Exception.__init__(self)
         self.section = section
         self.option = option
         self.msg = msg
@@ -234,17 +234,20 @@ class ClushConfigError(Exception):
 class ClushConfig(ConfigParser.ConfigParser):
     """Config class for clush (specialized ConfigParser)"""
 
-    defaults = { "fanout" : "64",
-                 "connect_timeout" : "30",
-                 "command_timeout" : "0",
-                 "history_size" : "100",
-                 "verbosity" : "%d" % VERB_STD }
+    main_defaults = { "fanout" : "64",
+                      "connect_timeout" : "30",
+                      "command_timeout" : "0",
+                      "history_size" : "100",
+                      "verbosity" : "%d" % VERB_STD }
 
-    def __init__(self, overrides):
-        ConfigParser.ConfigParser.__init__(self, ClushConfig.defaults)
+    def __init__(self):
+        ConfigParser.ConfigParser.__init__(self)
+        # create Main section with default values
+        self.add_section("Main")
+        for key, value in ClushConfig.main_defaults.iteritems():
+            self.set("Main", key, value)
+        # config files override defaults values
         self.read(['/etc/clustershell/clush.conf', os.path.expanduser('~/.clush.conf')])
-        if not self.has_section("Main"):
-            self.add_section("Main")
 
     def verbose_print(self, level, message):
         if self.get_verbosity() >= level:
@@ -336,10 +339,9 @@ def readline_setup():
 
 def ttyloop(task, nodeset, gather, timeout, label, verbosity):
     """Manage the interactive prompt to run command"""
-    has_readline = False
+    readline_avail = False
     if task.default("USER_interactive"):
         assert sys.stdin.isatty()
-        readline_avail = False
         try:
             import readline
             readline_setup()
@@ -375,35 +377,35 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
             if gather:
                 # Suspend task, so we can safely access its data from
                 # the main thread
-                suspended = task.suspend()
+                task.suspend()
 
                 print_warn = False
 
                 # Display command output, but cannot order buffers by rc
-                for buffer, nodelist in task.iter_buffers():
+                for buf, nodelist in task.iter_buffers():
                     if not print_warn:
                         print_warn = True
-                        print >>sys.stderr, "Warning: Caught keyboard interrupt!"
+                        print >> sys.stderr, "Warning: Caught keyboard interrupt!"
                     print "-" * 15
                     print NodeSet.fromlist(nodelist)
                     print "-" * 15
-                    print buffer
+                    print buf
                     
                 # Return code handling
                 ns_ok = NodeSet()
-                for rc, nodeliset in task.iter_retcodes():
+                for rc, nodelist in task.iter_retcodes():
                     ns_ok.add(NodeSet.fromlist(nodelist))
                     if rc != 0:
                         # Display return code if not ok ( != 0)
                         ns = NodeSet.fromlist(nodelist)
-                        print >>sys.stderr, \
+                        print >> sys.stderr, \
                             "clush: %s: exited with exit code %s" % (ns, rc)
                 # Add uncompleted nodeset to exception object
                 e.uncompleted_nodes = ns - ns_ok
 
                 # Display nodes that didn't answer within command timeout delay
                 if task.num_timeout() > 0:
-                    print >>sys.stderr, "clush: %s: command timeout" % \
+                    print >> sys.stderr, "clush: %s: command timeout" % \
                             NodeSet.fromlist(task.iter_keys_timeout())
             raise e
 
@@ -418,7 +420,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                 pending = "\nclush: pending(%d): %s" % (len(ns_unreg), ns_unreg)
             else:
                 pending = ""
-            print >>sys.stderr, "clush: interrupt (^C to abort task)\n" \
+            print >> sys.stderr, "clush: interrupt (^C to abort task)\n" \
                     "clush: in progress(%d): %s%s" % (len(ns_reg), ns_reg, pending)
         else:
             cmdl = cmd.lower()
@@ -442,12 +444,12 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                 elif not cmdl.startswith('?'): # if ?, just print ns_info
                     ns_info = False
             except NodeSetParseError:
-                print >>sys.stderr, "clush: nodeset parse error (ignoring)"
+                print >> sys.stderr, "clush: nodeset parse error (ignoring)"
 
             if ns_info:
                 continue
 
-            if cmdl.startswith('!'):
+            if cmdl.startswith('!') and len(cmd.strip()) > 0:
                 run_command(task, cmd[1:], None, gather, timeout, None, verbosity)
             elif cmdl != "quit":
                 if not cmd:
@@ -498,18 +500,18 @@ def run_copy(task, source, dest, ns, timeout, preserve_flag):
 
     # Source check
     if not os.path.exists(source):
-        print >>sys.stderr, "ERROR: file \"%s\" not found" % source
+        print >> sys.stderr, "ERROR: file \"%s\" not found" % source
         clush_exit(1)
 
-    worker = task.copy(source, dest, ns, handler=DirectOutputHandler(),
-                timeout=timeout, preserve=preserve_flag)
+    task.copy(source, dest, ns, handler=DirectOutputHandler(),
+              timeout=timeout, preserve=preserve_flag)
 
     task.resume()
 
 def clush_exit(n):
     # Flush stdio buffers
-    for f in [sys.stdout, sys.stderr]:
-        f.flush()
+    for stream in [sys.stdout, sys.stderr]:
+        stream.flush()
     # Use os._exit to avoid threads cleanup
     os._exit(n)
 
@@ -587,7 +589,7 @@ def clush_main(args):
     #
     # Load config file
     #
-    config = ClushConfig(options)
+    config = ClushConfig()
 
     # Apply command line overrides
     if options.quiet:
@@ -707,8 +709,10 @@ def clush_main(args):
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
+    # print debug values (fanout value is get from the config object and not task
+    # itself as set_info() is an asynchronous call.
     config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout conn=%.1f " \
-            "cmd=%.1f] %s" %  (nodeset_base, task.info("fanout"),
+            "cmd=%.1f] %s" %  (nodeset_base, config.get_fanout(),
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
@@ -726,7 +730,7 @@ def clush_main(args):
         ttyloop(task, nodeset_base, options.gather, timeout, options.label,
                 config.get_verbosity())
     elif task.default("USER_interactive"):
-        print >>sys.stderr, "ERROR: interactive mode requires a tty"
+        print >> sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)
 
     rc = 0
@@ -741,19 +745,20 @@ if __name__ == '__main__':
     try:
         clush_main(sys.argv)
     except ClushConfigError, e:
-        print >>sys.stderr, "ERROR: %s" % e
+        print >> sys.stderr, "ERROR: %s" % e
         sys.exit(1)
     except NodeSetParseError, e:
-        print >>sys.stderr, "NodeSet parse error:", e
+        print >> sys.stderr, "NodeSet parse error:", e
         sys.exit(1)
     except IOError:
         # Ignore broken pipe
         os._exit(1)
     except KeyboardInterrupt, e:
-        u_nodes = getattr(e, 'uncompleted_nodes', None)
-        if u_nodes:
-            print >>sys.stderr, "Keyboard interrupt (%s did not complete)." % u_nodes
+        uncomp_nodes = getattr(e, 'uncompleted_nodes', None)
+        if uncomp_nodes:
+            print >> sys.stderr, "Keyboard interrupt (%s did not complete)." \
+                                    % uncomp_nodes
         else:
-            print >>sys.stderr, "Keyboard interrupt."
+            print >> sys.stderr, "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
 
