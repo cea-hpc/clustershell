@@ -1,3 +1,10 @@
+2010-02-11 S. Thiell <stephane.thiell@cea.fr>
+	
+	* Engine/Factory.py: disable Engine.EPoll automatic selection as an issue
+	has been found with clush when stdin is a plain file (<file redirections).
+	Engine.Poll is now the default engine for all platforms. Created trac
+	ticket #56 to follow this issue.
+
 2010-02-10 S. Thiell <stephane.thiell@cea.fr>
 	
 	* Worker/Worker.py: Added missing WorkerSimple.last_error() method. Fixed

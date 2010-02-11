@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009)
+# Copyright CEA/DAM/DIF (2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -58,8 +58,9 @@ class PreferredEngine(object):
         Create a new preferred Engine.
         """
         if not hint or hint == 'auto':
-            # In order or preference
-            for engine_class in [ EngineEPoll, EnginePoll ]:
+            # 2010-02-11: disable automatic EngineEPoll selection as an
+            # epoll issue has been found (trac ticket #56).
+            for engine_class in [ EnginePoll ]:  # in order or preference
                 try:
                     return engine_class(info)
                 except EngineNotSupportedError:
