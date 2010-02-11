@@ -714,12 +714,9 @@ def clush_main(args):
     task.set_default("USER_interactive", len(args) == 0 and not options.source_path)
     task.set_default("USER_running", False)
 
-    if options.source_path and not options.dest_path:
-        options.dest_path = options.source_path
-
     if options.source_path:
         if not options.dest_path:
-            options.dest_path = options.source_path
+            options.dest_path = os.path.dirname(options.source_path)
         op = "copy source=%s dest=%s" % (options.source_path, options.dest_path)
     else:
         op = "command=\"%s\"" % ' '.join(args)
@@ -733,8 +730,6 @@ def clush_main(args):
 
     if not task.default("USER_interactive"):
         if options.source_path:
-            if not options.dest_path:
-                options.dest_path = options.source_path
             run_copy(task, options.source_path, options.dest_path, nodeset_base,
                     0, options.preserve_flag)
         else:

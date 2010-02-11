@@ -1,9 +1,13 @@
 2010-02-11 S. Thiell <stephane.thiell@cea.fr>
 	
+	* scripts/clush.py: For clush --copy, when --dest is not specified, set
+	the destination path to the source dirname path and not the source full
+	path.
+
 	* scripts/clush.py: Added option --nostdin to prevent reading from
 	standard input (fix trac ticket #49).
 
-	* Engine/Factory.py: disable Engine.EPoll automatic selection as an issue
+	* Engine/Factory.py: Disable Engine.EPoll automatic selection as an issue
 	has been found with clush when stdin is a plain file (<file redirections).
 	Engine.Poll is now the default engine for all platforms. Created trac
 	ticket #56 to follow this issue.
