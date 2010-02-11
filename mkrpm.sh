@@ -31,6 +31,7 @@ cp -v README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt "$T
 cp -v lib/ClusterShell/*.py "$TMPDIR/lib/ClusterShell"
 cp -v lib/ClusterShell/Engine/*.py "$TMPDIR/lib/ClusterShell/Engine/"
 cp -v lib/ClusterShell/Worker/*.py "$TMPDIR/lib/ClusterShell/Worker/"
+cp -v scripts/clubak.py "$TMPDIR/scripts/"
 cp -v scripts/clush.py "$TMPDIR/scripts/"
 cp -v scripts/nodeset.py "$TMPDIR/scripts/"
 cp -v conf/clush.conf "$TMPDIR/conf/"

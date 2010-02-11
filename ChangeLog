@@ -1,5 +1,7 @@
 2010-02-11 S. Thiell <stephane.thiell@cea.fr>
 	
+	* Version 1.2 beta 3 released.
+
 	* scripts/clush.py: For clush --copy, when --dest is not specified, set
 	the destination path to the source dirname path and not the source full
 	path.
