@@ -1,5 +1,8 @@
 2010-02-11 S. Thiell <stephane.thiell@cea.fr>
 	
+	* scripts/clush.py: Added option --nostdin to prevent reading from
+	standard input (fix trac ticket #49).
+
 	* Engine/Factory.py: disable Engine.EPoll automatic selection as an issue
 	has been found with clush when stdin is a plain file (<file redirections).
 	Engine.Poll is now the default engine for all platforms. Created trac

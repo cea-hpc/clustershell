@@ -460,9 +460,12 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
     return rc
 
 def bind_stdin(worker):
+    """Create a ClusterShell stdin-reader worker bound to specified
+    worker."""
     assert not sys.stdin.isatty()
     # Switch stdin to non blocking mode
-    fcntl.fcntl(sys.stdin, fcntl.F_SETFL, os.O_NDELAY)
+    fcntl.fcntl(sys.stdin, fcntl.F_SETFL, \
+        fcntl.fcntl(sys.stdin, fcntl.F_GETFL) | os.O_NDELAY)
 
     # Create a simple worker attached to stdin in autoclose mode
     worker_stdin = WorkerSimple(sys.stdin, None, None, None,
@@ -487,7 +490,7 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity):
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label), timeout=timeout)
 
-    if not sys.stdin.isatty():
+    if task.default("USER_stdin_worker"):
         bind_stdin(worker)
  
     task.resume()
@@ -528,6 +531,9 @@ def clush_main(args):
 
     parser = optparse.OptionParser(usage, version="%%prog %s" % __version__)
     parser.disable_interspersed_args()
+
+    parser.add_option("--nostdin", action="store_true", dest="nostdin",
+                      help="don't watch for possible input from stdin")
 
     # Node selections
     optgrp = optparse.OptionGroup(parser, "Selecting target nodes")
@@ -649,13 +655,17 @@ def clush_main(args):
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
 
-    config.verbose_print(VERB_DEBUG, "Final NodeSet is %s" % nodeset_base)
+    config.verbose_print(VERB_DEBUG, "Final NodeSet: %s" % nodeset_base)
 
     #
     # Task management
     #
     user_interaction = sys.stdin.isatty() and sys.stdout.isatty()
+    config.verbose_print(VERB_DEBUG, "User interaction: %s" % user_interaction)
     if user_interaction:
+        if options.nostdin:
+            parser.error("illegal option `--nostdin' in interactive mode")
+
         # Standard input is a terminal and we want to perform some user
         # interactions in the main thread (using blocking calls), so
         # we run cluster commands in a new ClusterShell Task (a new
@@ -666,6 +676,11 @@ def clush_main(args):
     else:
         # Perform everything in main thread.
         task.set_default("USER_handle_SIGUSR1", False)
+
+    task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or
+                                               options.nostdin))
+    config.verbose_print(VERB_DEBUG, "Create STDIN worker: %s" % \
+                                        task.default("USER_stdin_worker"))
 
     task.set_info("debug", config.get_verbosity() >= VERB_DEBUG)
     task.set_info("fanout", config.get_fanout())
