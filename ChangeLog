@@ -1,3 +1,9 @@
+2010-02-13 S. Thiell <stephane.thiell@cea.fr>
+	
+	* scripts/clush.py: Comply with clubak by adding -L option that allow
+	switching to alternative line mode display (when using -b). Also, sort
+	buffers by nodes or nodeset length like clubak (fix trac ticket #54).
+
 2010-02-11 S. Thiell <stephane.thiell@cea.fr>
 	
 	* Version 1.2 beta 3 released.

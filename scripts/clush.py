@@ -133,8 +133,9 @@ class DirectOutputHandler(EventHandler):
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, label, runtimer):
+    def __init__(self, label, gather_print, runtimer):
         self._label = label
+        self._gather_print = gather_print
         self._runtimer = runtimer
 
     def ev_error(self, worker):
@@ -159,12 +160,13 @@ class GatherOutputHandler(EventHandler):
             self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
 
         # Display command output, try to order buffers by rc
+        nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
         for rc, nodelist in worker.iter_retcodes():
-            for buf, nodelist in worker.iter_buffers(nodelist):
-                print "-" * 15
-                print NodeSet.fromlist(nodelist)
-                print "-" * 15
-                print buf
+            # Then order by node/nodeset (see bufnodeset_cmp)
+            for buf, nodeset in sorted(map(nodesetify,
+                                           worker.iter_buffers(nodelist)),
+                                       cmp=bufnodeset_cmp):
+                self._gather_print(nodeset, buf)
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
@@ -337,7 +339,40 @@ def readline_setup():
     except IOError:
         pass
 
-def ttyloop(task, nodeset, gather, timeout, label, verbosity):
+# Start of clubak.py common functions
+
+def print_buffer(header, content):
+    """Display a dshbak-like header block and content."""
+    sep = "-" * 15
+    sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
+
+def print_lines(header, msg):
+    """Display a MsgTree buffer by line with prefixed header."""
+    for line in msg:
+        sys.stdout.write("%s: %s\n" % (header, line))
+
+def nodeset_cmp(ns1, ns2):
+    """Compare 2 nodesets by their length (we want larger nodeset
+    first) and then by first node."""
+    len_cmp = cmp(len(ns2), len(ns1))
+    if not len_cmp:
+        smaller = NodeSet.fromlist([ns1[0], ns2[0]])[0]
+        if smaller == ns1[0]:
+            return -1
+        else:
+            return 1
+    return len_cmp
+
+# End of clubak.py common functions
+
+def bufnodeset_cmp(bn1, bn2):
+    """Convenience function to compare 2 (buf, nodeset) tuples by their
+    nodeset length (we want larger nodeset first) and then by first
+    node."""
+    # Extract nodesets and call nodeset_cmp
+    return nodeset_cmp(bn1[1], bn2[1])
+
+def ttyloop(task, nodeset, gather, timeout, label, verbosity, gather_print):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
@@ -382,14 +417,13 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                 print_warn = False
 
                 # Display command output, but cannot order buffers by rc
-                for buf, nodelist in task.iter_buffers():
+                nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+                for buf, nodeset in sorted(map(nodesetify, task.iter_buffers()),
+                                            cmp=bufnodeset_cmp):
                     if not print_warn:
                         print_warn = True
                         print >> sys.stderr, "Warning: Caught keyboard interrupt!"
-                    print "-" * 15
-                    print NodeSet.fromlist(nodelist)
-                    print "-" * 15
-                    print buf
+                    gather_print(nodeset, buf)
                     
                 # Return code handling
                 ns_ok = NodeSet()
@@ -450,13 +484,15 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity):
                 continue
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
-                run_command(task, cmd[1:], None, gather, timeout, None, verbosity)
+                run_command(task, cmd[1:], None, gather, timeout, None,
+                            verbosity, gather_print)
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                run_command(task, cmd, ns, gather, timeout, label, verbosity)
+                run_command(task, cmd, ns, gather, timeout, label, verbosity,
+                            gather_print)
     return rc
 
 def bind_stdin(worker):
@@ -474,7 +510,7 @@ def bind_stdin(worker):
     # Add stdin worker to the same task than given worker
     worker.task.schedule(worker_stdin)
 
-def run_command(task, cmd, ns, gather, timeout, label, verbosity):
+def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_print):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
@@ -484,11 +520,15 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity):
     if gather:
         runtimer = None
         if verbosity == VERB_STD or verbosity == VERB_VERB:
-            # Create a ClusterShell timer used to display the number of completed commands
-            runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3., autoclose=True)
-        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(label, runtimer), timeout=timeout)
+            # Create a ClusterShell timer used to display in live the
+            # number of completed commands
+            runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
+                                  autoclose=True)
+        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(label,
+                            gather_print, runtimer), timeout=timeout)
     else:
-        worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label), timeout=timeout)
+        worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label),
+                            timeout=timeout)
 
     if task.default("USER_stdin_worker"):
         bind_stdin(worker)
@@ -511,12 +551,12 @@ def run_copy(task, source, dest, ns, timeout, preserve_flag):
 
     task.resume()
 
-def clush_exit(n):
+def clush_exit(status):
     # Flush stdio buffers
     for stream in [sys.stdout, sys.stderr]:
         stream.flush()
     # Use os._exit to avoid threads cleanup
-    os._exit(n)
+    os._exit(status)
 
 def clush_main(args):
     """Main clush script function"""
@@ -558,6 +598,8 @@ def clush_main(args):
     optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
 
+    optgrp.add_option("-L", action="store_true", dest="line_mode", default=False,
+                      help="disable header block and order output by nodes")
     optgrp.add_option("-N", action="store_false", dest="label", default=True,
                       help="disable labeling of command line")
     optgrp.add_option("-S", action="store_true", dest="maxrc",
@@ -728,17 +770,24 @@ def clush_main(args):
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
+    # Select gather-mode print function
+    if options.line_mode:
+        gather_print = print_lines
+    else:
+        gather_print = print_buffer
+
     if not task.default("USER_interactive"):
         if options.source_path:
             run_copy(task, options.source_path, options.dest_path, nodeset_base,
                     0, options.preserve_flag)
         else:
             run_command(task, ' '.join(args), nodeset_base, options.gather,
-                    timeout, options.label, config.get_verbosity())
+                    timeout, options.label, config.get_verbosity(),
+                    gather_print)
 
     if user_interaction:
         ttyloop(task, nodeset_base, options.gather, timeout, options.label,
-                config.get_verbosity())
+                config.get_verbosity(), gather_print)
     elif task.default("USER_interactive"):
         print >> sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)

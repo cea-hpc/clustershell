@@ -116,7 +116,7 @@ def clubak():
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
     parser.add_option("-L", action="store_true", dest="line_mode",
-                      help="display output without header ordered by nodes")
+                      help="disable header block and order output by nodes")
     options = parser.parse_args()[0]
 
     # Create new message tree
