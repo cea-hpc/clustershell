@@ -702,12 +702,14 @@ def clush_main(args):
     #
     # Task management
     #
-    user_interaction = sys.stdin.isatty() and sys.stdout.isatty()
+    interactive = not len(args) and not options.source_path
+    if options.nostdin and interactive:
+        parser.error("illegal option `--nostdin' in interactive mode")
+
+    user_interaction = not options.nostdin and sys.stdin.isatty() and \
+                       sys.stdout.isatty()
     config.verbose_print(VERB_DEBUG, "User interaction: %s" % user_interaction)
     if user_interaction:
-        if options.nostdin:
-            parser.error("illegal option `--nostdin' in interactive mode")
-
         # Standard input is a terminal and we want to perform some user
         # interactions in the main thread (using blocking calls), so
         # we run cluster commands in a new ClusterShell Task (a new
@@ -752,8 +754,8 @@ def clush_main(args):
     else:
         timeout = -1
 
-    # Configure custom task related status
-    task.set_default("USER_interactive", len(args) == 0 and not options.source_path)
+    # Configure task custom status
+    task.set_default("USER_interactive", interactive)
     task.set_default("USER_running", False)
 
     if options.source_path:

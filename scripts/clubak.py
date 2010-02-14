@@ -111,7 +111,7 @@ def clubak():
     parser.disable_interspersed_args()
 
     parser.add_option("-b", "-c", action="store_true", dest="gather",
-                      help="gather nodes with same output (-c is provided for" \
+                      help="gather nodes with same output (-c is provided for " \
                            "dshbak compatibility)")
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
