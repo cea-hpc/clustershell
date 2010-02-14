@@ -1,3 +1,8 @@
+2010-02-14 S. Thiell <stephane.thiell@cea.fr>
+	
+	* Worker/Ssh.py: Fix Ssh worker issue where sometimes stderr buffer could
+	not be read completely (trac ticket #50).
+
 2010-02-13 S. Thiell <stephane.thiell@cea.fr>
 	
 	* scripts/clush.py: Comply with clubak by adding -L option that allow

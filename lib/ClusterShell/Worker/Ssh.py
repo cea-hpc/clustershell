@@ -148,7 +148,7 @@ class Ssh(EngineClient):
         result = self.file_error.read(size)
         if not len(result):
             raise EngineClientEOF()
-        self._set_reading()
+        self._set_reading_error()
         return result
 
     def _close(self, force, timeout):
