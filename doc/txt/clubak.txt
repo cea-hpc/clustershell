@@ -1,0 +1,75 @@
+=========
+ clubak
+=========
+
+-----------------------------------------
+format output from clush/pdsh-like output
+-----------------------------------------
+
+:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+:Date:   2010-02-12
+:Copyright: CeCILL-C V1
+:Version: 1.2
+:Manual section: 1
+:Manual group: ClusterShell User Manual
+
+
+SYNOPSIS
+========
+
+``clubak`` [ OPTIONS ]
+
+DESCRIPTION
+===========
+``clubak`` formats text from standard input containing lines of the form
+"`node: output`".  It is fully backward compatible with ``dshbak``\(1) but
+provides additonal features. For instance, ``clubak`` always displays
+its results sorted by node/nodeset.
+
+You do not need to use ``clubak`` when using ``clush``\(1) as all output
+formatting features are already included in.
+
+Like ``clush``\(1), ``clubak`` uses the `ClusterShell.MsgTree` module of the
+ClusterShell library (see ``pydoc ClusterShell.MsgTree``).
+
+INVOCATION
+==========
+
+``clubak`` should be started with connected standard input.
+
+OPTIONS
+=======
+
+--version    show ``clubak`` version number and exit
+-b, -c       gather nodes with same output (-c is provided for ``dshbak``\(1)
+             compatibility)
+-d, --debug  output more messages for debugging purpose
+-L           disable header block and order output by nodes
+
+EXIT STATUS
+===========
+
+An exit status of zero indicates success of the ``clubak`` command.
+
+EXAMPLES
+===========
+
+Iterate over `node*` text files in current directory and gather characters count for all of them::
+
+    # find -name 'node*" -exec wc -c {} \; | \\
+        awk '{ gsub("./","",$2); print $2": "$1 }' | clubak -bL
+    node[1,3]: 7
+    node2: 9
+
+SEE ALSO
+========
+
+``clush``\(1)
+``nodeset``\(1)
+
+BUG REPORTS
+===========
+
+Use the following URL to submit a bug report or feedback:
+  http://sourceforge.net/apps/trac/clustershell/report
+

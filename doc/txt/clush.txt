@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2009-12-18
+:Date:   2010-02-12
 :Copyright: CeCILL-C V1
 :Version: 1.2
 :Manual section: 1
@@ -44,16 +44,17 @@ invoke the ``clush`` command without providing *command*.
 Non-interactive mode
   When ``clush`` is started non-interactively, the *command* is executed on
   the specified remote hosts in parallel. If option ``-b`` or ``--dshbak``
-  is specified, ``clush`` waits for commands completion and then displays
+  is specified, ``clush`` waits for command completion and then displays
   gathered output results.
 
-  ``clush`` detects when its standard input is connected to a terminal (as
-  determined by ``isatty``\(3)). If actually connected to a terminal,
-  ``clush`` listens to standard input when commands are running, waiting for
-  an `Enter` key press. Doing so will display the status of current nodes.  If
-  standard input is not connected to a terminal, ``clush`` try to bind the
-  standard input of the remote commands to its own standard input, allowing
-  scripting methods like:
+  Unless option ``--nostdin`` is specified, ``clush`` detects when its
+  standard input is connected to a terminal (as determined by ``isatty``\(3)).
+  If actually connected to a terminal, ``clush`` listens to standard input
+  when commands are running, waiting for an `Enter` key press. Doing so will
+  display the status of current nodes.  If standard input is not connected
+  to a terminal, and unless option ``--nostdin`` is specified, ``clush``
+  binds the standard input of the remote commands to its own standard input,
+  allowing scripting methods like:
 
   | # echo foo | clush -w node[40-42] -b cat
   | ---------------
@@ -99,6 +100,7 @@ OPTIONS
 =======
 
 --version             show ``clush`` version number and exit
+--nostdin             do not watch for possible input from stdin
 
 Selecting target nodes:
   -w NODES            nodes where to run the command
@@ -112,6 +114,7 @@ Output behaviour:
   -q, --quiet         be quiet, print essential output only
   -v, --verbose       be verbose, print informative messages
   -d, --debug         output more messages for debugging purpose
+  -L                  disable header block and order output by nodes
   -N                  disable labeling of command line
   -S                  return the largest of command return codes
   -b, --dshbak        display results in a dshbak-like way
@@ -120,8 +123,10 @@ File copying:
   -c SOURCE_PATH, --copy=SOURCE_PATH
                       copy local file or directory to the nodes
   --dest=DEST_PATH    destination file or directory on the nodes
-                      (optional -- the same path as source path
+                      (optional: use the source directory path
                       when not specified)
+
+  -p                  preserve modification times and modes
 
 Ssh options:
   -f FANOUT, --fanout=FANOUT
@@ -134,7 +139,6 @@ Ssh options:
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
-
 
 For a short explanation of these options, see ``-h, --help``.
 
@@ -182,8 +186,12 @@ Copy files
 :# clush -w node[3-5,62] --copy /etc/motd:
     Copy local file `/etc/motd` to remote nodes node[3-5,62].
 
-:# clush -w node[3-5,62] --copy /etc/motd --dest /tmp/motd:
-    Copy local file `/etc/motd` to remote nodes node[3-5,62] at path `/tmp/motd`.
+:# clush -w node[3-5,62] --copy /etc/motd --dest /tmp/motd2:
+    Copy local file `/etc/motd` to remote nodes node[3-5,62] at path `/tmp/motd2`.
+
+:# clush -w node[3-5,62] -c /usr/share/doc/clustershell:
+    Recursively copy local directory `/usr/share/doc/clustershell` to the same
+    path on remote nodes node[3-5,62].
 
 FILES
 =====
@@ -200,6 +208,7 @@ FILES
 SEE ALSO
 ========
 
+``clubak``\(1)
 ``nodeset``\(1)
 ``readline``\(3)
 ``clush.conf``\(5)

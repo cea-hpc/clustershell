@@ -1,5 +1,7 @@
 2010-02-14 S. Thiell <stephane.thiell@cea.fr>
 	
+	* Updated doc/man pages for latest clush changes and added clubak tool.
+
 	* Worker/Ssh.py: Fix Ssh worker issue where sometimes stderr buffer could
 	not be read completely (trac ticket #50).
 
