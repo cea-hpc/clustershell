@@ -113,6 +113,8 @@ class MsgTreeElem(object):
         """
         return iter(self)
 
+    splitlines = lines
+
     def message(self):
         """
         Get the whole message buffer from this tree element.

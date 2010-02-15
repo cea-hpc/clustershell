@@ -1,3 +1,7 @@
+2010-02-15 S. Thiell <stephane.thiell@cea.fr>
+	
+	* MsgTree.py: Added MsgTreeElem.splitlines() method as alias of lines().
+
 2010-02-14 S. Thiell <stephane.thiell@cea.fr>
 	
 	* Updated doc/man pages for latest clush changes and added clubak tool.
