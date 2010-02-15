@@ -41,6 +41,7 @@ fi
 
 # man pages
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man1,man5}
+gzip -c doc/man/man1/clubak.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/clubak.1.gz
 gzip -c doc/man/man1/clush.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/clush.1.gz
 gzip -c doc/man/man1/nodeset.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/nodeset.1.gz
 gzip -c doc/man/man5/clush.conf.5 >$RPM_BUILD_ROOT/%{_mandir}/man5/clush.conf.5.gz
@@ -60,6 +61,7 @@ rm -rf $RPM_BUILD_ROOT
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
 %doc README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
+%doc %{_mandir}/man1/clubak.1.gz
 %doc %{_mandir}/man1/clush.1.gz
 %doc %{_mandir}/man1/nodeset.1.gz
 %doc %{_mandir}/man5/clush.conf.5.gz
