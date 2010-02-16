@@ -398,7 +398,45 @@ class RangeSetTest(unittest.TestCase):
         """test RangeSet binary sanity check"""
         rg1 = RangeSet("1-5")
         rg2 = "4-6"
-        self.assertRaises(TypeError, rg1.__and__, rg2)
+        self.assertRaises(TypeError, rg1.__gt__, rg2)
+        self.assertRaises(TypeError, rg1.__lt__, rg2)
+
+    def testBinarySanityCheckNotImplementedSubtle(self):
+        """test RangeSet binary sanity check (NotImplemented subtle)"""
+        rg1 = RangeSet("1-5")
+        rg2 = "4-6"
+        self.assertEqual(rg1.__and__(rg2), NotImplemented)
+        self.assertEqual(rg1.__or__(rg2), NotImplemented)
+        self.assertEqual(rg1.__sub__(rg2), NotImplemented)
+        self.assertEqual(rg1.__xor__(rg2), NotImplemented)
+        # Should implicitely raises TypeError if the real operator
+        # version is invoked. To test that, we perform a manual check
+        # as an additional function would be needed to check with
+        # assertRaises():
+        good_error = False
+        try:
+            rg3 = rg1 & rg2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for &")
+        good_error = False
+        try:
+            rg3 = rg1 | rg2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for |")
+        good_error = False
+        try:
+            rg3 = rg1 - rg2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for -")
+        good_error = False
+        try:
+            rg3 = rg1 ^ rg2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for ^")
 
     def testIsSubSetError(self):
         """test RangeSet issubset error"""
@@ -420,6 +458,12 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rg1, rg4)
         rg5 = RangeSet("1,2,4")
         self.assertNotEqual(rg1, rg5)
+        if rg1 == None:
+            self.fail("rg1 == None succeeded")
+        if rg1 != None:
+            pass
+        else:
+            self.fail("rg1 != None failed")
 
 
 if __name__ == '__main__':

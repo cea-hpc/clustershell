@@ -804,10 +804,48 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet binary sanity check"""
         ns1 = NodeSet("1-5")
         ns2 = "4-6"
-        self.assertRaises(TypeError, ns1.__and__, ns2)
+        self.assertRaises(TypeError, ns1.__gt__, ns2)
+        self.assertRaises(TypeError, ns1.__lt__, ns2)
+
+    def testBinarySanityCheckNotImplementedSubtle(self):
+        """test NodeSet binary sanity check (NotImplemented subtle)"""
+        ns1 = NodeSet("1-5")
+        ns2 = "4-6"
+        self.assertEqual(ns1.__and__(ns2), NotImplemented)
+        self.assertEqual(ns1.__or__(ns2), NotImplemented)
+        self.assertEqual(ns1.__sub__(ns2), NotImplemented)
+        self.assertEqual(ns1.__xor__(ns2), NotImplemented)
+        # Should implicitely raises TypeError if the real operator
+        # version is invoked. To test that, we perform a manual check
+        # as an additional function would be needed to check with
+        # assertRaises():
+        good_error = False
+        try:
+            ns3 = ns1 & ns2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for &")
+        good_error = False
+        try:
+            ns3 = ns1 | ns2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for |")
+        good_error = False
+        try:
+            ns3 = ns1 - ns2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for -")
+        good_error = False
+        try:
+            ns3 = ns1 ^ ns2
+        except TypeError:
+            good_error = True
+        self.assert_(good_error, "TypeError not raised for ^")
 
     def testIsSubSetError(self):
-        """test NodeSet issubset error"""
+        """test NodeSet issubset type error"""
         ns1 = NodeSet("1-5")
         ns2 = 4
         self.assertRaises(TypeError, ns1.issubset, ns2)
@@ -845,6 +883,22 @@ class NodeSetTest(unittest.TestCase):
         nodelist = list(iter(ns))
         self.assertEqual(nodelist, ['acluster4', 'acluster39', 'acluster41', \
             'bcluster25', 'ccluster12'])
+
+    def testEquality(self):
+        """test NodeSet equality"""
+        self.assertEqual(NodeSet(), NodeSet())
+        ns1 = NodeSet("nodealone")
+        ns2 = NodeSet("nodealone")
+        self.assertEqual(ns1, ns2)
+        ns1 = NodeSet("clu3,clu[4-9],clu11")
+        ns2 = NodeSet("clu[3-9,11]")
+        self.assertEqual(ns1, ns2)
+        if ns1 == None:
+            self.fail("ns1 == None succeeded")
+        if ns1 != None:
+            pass
+        else:
+            self.fail("ns1 != None failed")
 
 
 if __name__ == '__main__':

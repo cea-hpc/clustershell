@@ -1,4 +1,11 @@
+2010-02-16 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fix mixed-type comparisons, where, like standard set(),
+	are allowed, instead of raising TypeError.
+
 2010-02-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.2 beta 4 released.
 	
 	* MsgTree.py: Added MsgTreeElem.splitlines() method as alias of lines().
 

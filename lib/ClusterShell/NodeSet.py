@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -35,7 +35,7 @@
 """
 Cluster node set.
 
-A module to deal efficiently with pdsh-like rangesets and nodesets.
+A module to deal efficiently with 1D rangesets and nodesets (pdsh-like).
 Instances of RangeSet and NodeSet both provide similar operations than
 the builtin set() type and Set object.
    [ See http://www.python.org/doc/lib/set-objects.html ]
@@ -301,7 +301,6 @@ class RangeSet:
         Report whether another rangeset contains this rangeset.
         """
         self._binary_sanity_check(rangeset)
-
         for start, stop, step, pad in self._ranges:
             for i in range(start, stop + 1, step):
                 if not rangeset._contains_with_padding(i, pad):
@@ -319,7 +318,13 @@ class RangeSet:
         """
         RangeSet equality comparison.
         """
-        self._binary_sanity_check(other)
+        # Return NotImplemented instead of raising TypeError, to
+        # indicate that the comparison is not implemented with respect
+        # to the other type (the other comparand then gets a change to
+        # determine the result, then it falls back to object address
+        # comparison).
+        if not isinstance(other, RangeSet):
+            return NotImplemented
         return len(self) == len(other) and self.issubset(other)
         
     # inequality comparisons using the is-subset relation
@@ -495,7 +500,8 @@ class RangeSet:
         Implements the | operator. So s | t returns a new rangeset with
         elements from both s and t.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, RangeSet):
+            return NotImplemented
         return self.union(other)
 
     def add(self, elem):
@@ -540,7 +546,8 @@ class RangeSet:
         Implements the & operator. So s & t returns a new rangeset with
         elements common to s and t.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, RangeSet):
+            return NotImplemented
         return self.intersection(other)
 
     def intersection_update(self, rangeset):
@@ -586,7 +593,8 @@ class RangeSet:
         Implement the - operator. So s - t returns a new rangeset with
         elements in s but not in t.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, RangeSet):
+            return NotImplemented
         return self.difference(other)
 
     def difference_update(self, rangeset, strict=False):
@@ -669,7 +677,8 @@ class RangeSet:
         Implement the ^ operator. So s ^ t returns a new rangeset with
         elements that are in exactly one of the rangesets.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, RangeSet):
+            return NotImplemented
         return self.symmetric_difference(other)
 
     def symmetric_difference_update(self, rangeset):
@@ -944,7 +953,9 @@ class NodeSet(object):
         """
         NodeSet equality comparison.
         """
-        self._binary_sanity_check(other)
+        # See comment for for RangeSet.__eq__()
+        if not isinstance(other, NodeSet):
+            return NotImplemented
         return len(self) == len(other) and self.issuperset(other)
 
     # inequality comparisons using the is-subset relation
@@ -955,12 +966,14 @@ class NodeSet(object):
         """
         x.__lt__(y) <==> x<y
         """
+        self._binary_sanity_check(other)
         return len(self) < len(other) and self.issubset(other)
 
     def __gt__(self, other):
         """
         x.__gt__(y) <==> x>y
         """
+        self._binary_sanity_check(other)
         return len(self) > len(other) and self.issuperset(other)
 
     def __getitem__(self, i):
@@ -1032,7 +1045,8 @@ class NodeSet(object):
         Implements the | operator. So s | t returns a new nodeset with
         elements from both s and t.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, NodeSet):
+            return NotImplemented
         return self.union(other)
 
     def add(self, other):
@@ -1077,7 +1091,8 @@ class NodeSet(object):
         Implements the & operator. So s & t returns a new nodeset with
         elements common to s and t.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, NodeSet):
+            return NotImplemented
         return self.intersection(other)
 
     def intersection_update(self, other):
@@ -1130,7 +1145,8 @@ class NodeSet(object):
         Implement the - operator. So s - t returns a new nodeset with
         elements in s but not in t.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, NodeSet):
+            return NotImplemented
         return self.difference(other)
 
     def difference_update(self, other, strict=False):
@@ -1194,7 +1210,8 @@ class NodeSet(object):
         Implement the ^ operator. So s ^ t returns a new NodeSet with
         nodes that are in exactly one of the nodesets.
         """
-        self._binary_sanity_check(other)
+        if not isinstance(other, NodeSet):
+            return NotImplemented
         return self.symmetric_difference(other)
 
     def symmetric_difference_update(self, other):
