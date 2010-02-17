@@ -1,3 +1,7 @@
+2010-02-17 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.2 beta 5 released.
+
 2010-02-16 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fix mixed-type comparisons, where, like standard set(),
