@@ -1,3 +1,14 @@
+2010-02-18 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Disable MsgTree buffering when not performing
+	any gathering of results (when -b is not used).
+
+	* Task.py: Allow disabling of MsgTree buffering (trac ticket #3) via
+	'stdout_msgtree" and 'stderr_msgtree' Task default keywords, useful if we
+	don't want MsgTree internal buffering for fully event-based scripts (eg.
+	clush without -b). When disabled, any Task method accessing MsgTree data
+	like iter_buffers() will raise a new exception (TaskMsgTreeError).
+
 2010-02-17 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.2 beta 5 released.

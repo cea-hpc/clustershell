@@ -75,21 +75,47 @@ from NodeSet import NodeSet
 
 
 class TaskException(Exception):
-    """
-    Base task exception.
-    """
+    """Base task exception."""
 
-class TimeoutError(TaskException):
-    """
-    Raised when the task timed out.
-    """
+class TaskError(TaskException):
+    """Base task error exception."""
 
-class AlreadyRunningError(TaskException):
-    """
-    Raised when trying to resume an already running task.
-    """
+class TimeoutError(TaskError):
+    """Raised when the task timed out."""
+
+class AlreadyRunningError(TaskError):
+    """Raised when trying to resume an already running task."""
     def __str__(self):
         return "current task already running"
+
+class TaskMsgTreeError(TaskError):
+    """Raised when trying to access disabled MsgTree."""
+
+
+class _TaskMsgTree(object):
+    """
+    Task special MsgTree wrapper class, for easy disabling of MsgTree
+    buffering. This class checks if task.default(keyword) is set before
+    effective MsgTree attribute lookup, according to following rules:
+        If set, allow all MsgTree methods, else:
+            - ignore add() calls
+            - disallow MsgTree methods except clear()
+    """
+    def __init__(self, task, keyword):
+        self._task = task
+        self._keyword = keyword
+        self._tree = MsgTree()
+
+    def __getattr__(self, name):
+        # check if msgtree is enabled, but always allow MsgTree.clear()
+        if name != 'clear' and not self._task.default(self._keyword):
+            # disable MsgTree.add method
+            if name == 'add':
+                return lambda *args: None
+            # all other MsgTree methods are not allowed
+            raise TaskMsgTreeError("%s not set" % self._keyword)
+        # msgtree enabled: lookup tree attribute name
+        return getattr(self._tree, name)
 
 
 def _task_print_debug(task, s):
@@ -123,6 +149,8 @@ class Task(object):
     """
 
     _std_default = {  "stderr"              : False,
+                      "stdout_msgtree"      : True,
+                      "stderr_msgtree"      : True,
                       "engine"              : 'auto',
                       "port_qlimit"         : 32 }
 
@@ -249,10 +277,10 @@ class Task(object):
             self._quit = False
 
             # STDIN tree
-            self._msgtree = MsgTree()
+            self._msgtree = _TaskMsgTree(self, "stdout_msgtree")
 
             # STDERR tree
-            self._errtree = MsgTree()
+            self._errtree = _TaskMsgTree(self, "stderr_msgtree")
 
             # dict of sources to return codes
             self._d_source_rc = {}
@@ -279,10 +307,11 @@ class Task(object):
             if thread:
                 self.thread = thread
             else:
-                self.thread = thread = threading.Thread(None,
-                                                        Task._thread_start,
-                                                        "Task-%d" % self._taskid,
-                                                        args=(self,))
+                self.thread = thread = \
+                    threading.Thread(None,
+                                     Task._thread_start,
+                                     "Task-%d" % self._taskid,
+                                     args=(self,))
                 Task._tasks[thread] = self
                 thread.start()
 
@@ -375,11 +404,13 @@ class Task(object):
 
         Local usage:
             task.shell(command [, key=key] [, handler=handler]
-                    [, timeout=secs])
+                  [, timeout=secs] [, autoclose=enable_autoclose]
+                  [, stderr=enable_stderr])
 
         Distant usage:
             task.shell(command, nodes=nodeset [, handler=handler]
-                    [, timeout=secs])
+                  [, timeout=secs], [, autoclose=enable_autoclose]
+                  [, strderr=enable_stderr])
         """
 
         handler = kwargs.get("handler", None)
@@ -729,7 +760,8 @@ class Task(object):
         if match_keys:
             # Use the items iterator for the underlying dict.
             for rc, src in self._d_rc_sources.iteritems():
-                keys = [t[1] for t in src if t[0] is worker and t[1] in match_keys]
+                keys = [t[1] for t in src if t[0] is worker and \
+                                             t[1] in match_keys]
                 if len(keys) > 0:
                     yield rc, keys
         else:

@@ -605,7 +605,7 @@ def clush_main(args):
     optgrp.add_option("-S", action="store_true", dest="maxrc",
                       help="return the largest of command return codes")
     optgrp.add_option("-b", "--dshbak", action="store_true", dest="gather",
-                      help="display results in a dshbak-like way")
+                      default=False, help="display results in a dshbak-like way")
     parser.add_option_group(optgrp)
 
     # Copy
@@ -747,6 +747,10 @@ def clush_main(args):
 
     # Enable stdout/stderr separation
     task.set_default("stderr", True)
+
+    # Disable MsgTree buffering if not gathering outputs
+    task.set_default("stdout_msgtree", options.gather)
+    task.set_default("stderr_msgtree", options.gather)
 
     # Set timeout at worker level when command_timeout is defined.
     if command_timeout > 0:
