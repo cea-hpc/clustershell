@@ -71,9 +71,12 @@ class Worker(object):
         """
         if self.task is not None:
             # one-shot-only schedule supported for now
-            raise WorkerError()
-
+            raise WorkerError("worker has already been scheduled")
         self.task = task
+
+    def _task_bound_check(self):
+        if not self.task:
+            raise WorkerError("worker is not task bound")
 
     def _engine_clients(self):
         """
@@ -117,6 +120,7 @@ class Worker(object):
         """
         Return True if this worker aborted due to timeout.
         """
+        self._task_bound_check()
         return self.task._num_timeout_by_worker(self) > 0
 
 
@@ -213,18 +217,21 @@ class DistantWorker(Worker):
         """
         Get specific node buffer.
         """
+        self._task_bound_check()
         return self.task._msg_by_source((self, node))
         
     def node_error_buffer(self, node):
         """
         Get specific node error buffer.
         """
+        self._task_bound_check()
         return self.task._errmsg_by_source((self, node))
 
     def node_rc(self, node):
         """
         Get specific node return code.
         """
+        self._task_bound_check()
         return self.task._rc_by_source((self, node))
 
     def iter_buffers(self, match_keys=None):
@@ -233,6 +240,7 @@ class DistantWorker(Worker):
         NodeSet. If the optional parameter match_keys is defined, only
         keys found in match_keys are returned.
         """
+        self._task_bound_check()
         for msg, keys in self.task._call_tree_matcher( \
                             self.task._msgtree.walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
@@ -243,6 +251,7 @@ class DistantWorker(Worker):
         NodeSet. If the optional parameter match_keys is defined, only
         keys found in match_keys are returned.
         """
+        self._task_bound_check()
         for msg, keys in self.task._call_tree_matcher( \
                             self.task._errtree.walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
@@ -251,6 +260,7 @@ class DistantWorker(Worker):
         """
         Returns an iterator over each node and associated buffer.
         """
+        self._task_bound_check()
         return self.task._call_tree_matcher(self.task._msgtree.items,
                                             match_keys, self)
 
@@ -258,6 +268,7 @@ class DistantWorker(Worker):
         """
         Returns an iterator over each node and associated error buffer.
         """
+        self._task_bound_check()
         return self.task._call_tree_matcher(self.task._errtree.items,
                                             match_keys, self)
 
@@ -267,6 +278,7 @@ class DistantWorker(Worker):
         If the optional parameter match_keys is defined, only keys
         found in match_keys are returned.
         """
+        self._task_bound_check()
         for rc, keys in self.task._rc_iter_by_worker(self, match_keys):
             yield rc, NodeSet.fromlist(keys)
 
@@ -274,18 +286,21 @@ class DistantWorker(Worker):
         """
         Returns an iterator over each node and associated return code.
         """
+        self._task_bound_check()
         return self.task._krc_iter_by_worker(self)
 
     def num_timeout(self):
         """
         Return the number of timed out "keys" (ie. nodes) for this worker.
         """
+        self._task_bound_check()
         return self.task._num_timeout_by_worker(self)
 
     def iter_keys_timeout(self):
         """
         Iterate over timed out keys (ie. nodes) for a specific worker.
         """
+        self._task_bound_check()
         return self.task._iter_keys_timeout_by_worker(self)
 
 
@@ -472,6 +487,7 @@ class WorkerSimple(EngineClient,Worker):
         """
         Read worker buffer.
         """
+        self._task_bound_check()
         for key, msg in self.task._call_tree_matcher(self.task._msgtree.items,
                                                      worker=self):
             assert key == self.key
@@ -481,6 +497,7 @@ class WorkerSimple(EngineClient,Worker):
         """
         Read worker error buffer.
         """
+        self._task_bound_check()
         for key, msg in self.task._call_tree_matcher(self.task._errtree.items,
                                                      worker=self):
             assert key == self.key

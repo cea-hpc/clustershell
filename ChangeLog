@@ -1,3 +1,8 @@
+2010-02-21 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Worker.py: Improve usage error handling for some methods (trac
+	ticket #28), raising WorkerError when needed. Add library misusage tests.
+
 2010-02-18 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Disable MsgTree buffering when not performing
