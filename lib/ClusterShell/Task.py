@@ -85,8 +85,6 @@ class TimeoutError(TaskError):
 
 class AlreadyRunningError(TaskError):
     """Raised when trying to resume an already running task."""
-    def __str__(self):
-        return "current task already running"
 
 class TaskMsgTreeError(TaskError):
     """Raised when trying to access disabled MsgTree."""
@@ -268,8 +266,8 @@ class Task(object):
             self.timeout = 0
 
             # task synchronization objects
-            self._run_lock = threading.Lock()
-            self._suspend_lock = threading.RLock()
+            self._run_lock = threading.Lock()       # primitive lock
+            self._suspend_lock = threading.RLock()  # reentrant lock
             # both join and suspend conditions share the same underlying lock
             self._suspend_cond = Task._SuspendCondition(self._suspend_lock, 1)
             self._join_cond = threading.Condition(self._suspend_lock)
@@ -339,6 +337,10 @@ class Task(object):
         self._terminate(kill=True)
 
     def _run(self, timeout):
+        """Run task (always called from its self thread)."""
+        # check if task is already running
+        if self._run_lock.locked():
+            raise AlreadyRunningError("task is already running")
         # use with statement later
         try:
             self._run_lock.acquire()
@@ -524,7 +526,7 @@ class Task(object):
             except EngineAbortException, e:
                 self._terminate(e.kill)
             except EngineAlreadyRunningError:
-                raise AlreadyRunningError()
+                raise AlreadyRunningError("task engine is already running")
             except:
                 raise
         finally:
@@ -584,7 +586,7 @@ class Task(object):
         self._suspend_wait()
 
         # wait for stopped task
-        self._run_lock.acquire()
+        self._run_lock.acquire()    # run_lock ownership transfer
         
         # get result: are we really suspended or just stopped?
         result = True
@@ -615,9 +617,10 @@ class Task(object):
             if self._is_task_self():
                 self._terminate(kill)
             else:
+                # abort on stopped/suspended task
                 self.resume()
         else:
-            # call synchronized method when running
+            # self._run_lock is locked, call synchronized method
             self._abort(kill)
 
     def _terminate(self, kill):
