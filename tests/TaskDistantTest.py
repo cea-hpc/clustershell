@@ -555,6 +555,29 @@ class TaskDistantTest(unittest.TestCase):
 
         self.assertEqual(cnt, 0)
 
+    def testSshUserOption(self):
+        """test task.shell() with ssh_user set"""
+        ssh_user_orig = self._task.info("ssh_user")
+        self._task.set_info("ssh_user", os.getlogin())
+        worker = self._task.shell("/bin/echo foobar", nodes="localhost")
+        self.assert_(worker != None)
+        self._task.resume()
+        # restore original ssh_user (None)
+        self.assertEqual(ssh_user_orig, None)
+        self._task.set_info("ssh_user", ssh_user_orig)
+
+    def testSshUserOptionForScp(self):
+        """test task.copy() with ssh_user set"""
+        ssh_user_orig = self._task.info("ssh_user")
+        self._task.set_info("ssh_user", os.getlogin())
+        worker = self._task.copy("/etc/hosts",
+                "/tmp/cs-test_testLocalhostCopyU", nodes='localhost')
+        self.assert_(worker != None)
+        self._task.resume()
+        # restore original ssh_user (None)
+        self.assertEqual(ssh_user_orig, None)
+        self._task.set_info("ssh_user", ssh_user_orig)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)

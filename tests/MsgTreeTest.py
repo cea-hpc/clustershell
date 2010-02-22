@@ -12,7 +12,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.MsgTree import MsgTree
+from ClusterShell.MsgTree import MsgTree, MsgTreeElem
 
 
 class MsgTreeTest(unittest.TestCase):
@@ -30,6 +30,13 @@ class MsgTreeTest(unittest.TestCase):
 
         tree.add("key2", "message3")
         self.assertEqual(len(tree), 2)
+
+    def testMsgTreeElem(self):
+        """test MsgTreeElem"""
+        elem = MsgTreeElem()
+        self.assertEqual(len(elem), 0)
+        for s in elem:
+            self.fail("found line in empty MsgTreeElem!")
 
     def testMsgTreeIterators(self):
         """test MsgTree iterators"""
@@ -68,6 +75,8 @@ class MsgTreeTest(unittest.TestCase):
         cnt = 0
         for msg in tree.messages():
             cnt += 1
+            self.assertEqual(len(msg), len("message0"))
+            self.assertEqual(msg[0][:-1], "message")
         self.assertEqual(cnt, 4)
         self.assertEqual(len(list(iter(tree.messages()))), 4)
 

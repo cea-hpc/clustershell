@@ -90,7 +90,7 @@ class MsgTreeElem(object):
         return target_elem
 
     def __getitem__(self, i):
-        return self.lines()[i]
+        return list(self.lines())[i]
 
     def __iter__(self):
         """Iterate over message lines starting from this tree element."""
@@ -148,7 +148,7 @@ class MsgTree(object):
     def __init__(self):
         # root element of MsgTree
         self._root = MsgTreeElem()
-        # dict of keys to _MsgTreeElem
+        # dict of keys to MsgTreeElem
         self._keys = {}
 
     def clear(self):
