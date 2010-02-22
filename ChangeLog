@@ -1,11 +1,13 @@
 2010-02-22 S. Thiell <stephane.thiell@cea.fr>
 
-    * NodeSet.py: NodeSet constructor now raises a NodeSetParseError
+	* scripts/clush.py: Add -B flag (trac ticket #60) to gather with stderr.
+
+	* NodeSet.py: NodeSet constructor now raises a NodeSetParseError
 	exception when unsupported type is used as input (trac ticket #53).
 
 2010-02-21 S. Thiell <stephane.thiell@cea.fr>
 
-    * Task.py: Fix a deadlock when a task is resumed two times from another
+	* Task.py: Fix a deadlock when a task is resumed two times from another
 	thread (raise AlreadyRunningError instead). Added test.
 
 	* Worker/Worker.py: Improve usage error handling for some methods (trac
