@@ -820,6 +820,8 @@ def _NodeSetParse(ns, autostep):
                 else:
                     # undefined pad means no node index
                     yield pfx, None
+    else:
+        raise NodeSetParseError('', "unsupported input %s" % type(ns))
 
 
 class NodeSet(object):

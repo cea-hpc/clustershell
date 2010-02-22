@@ -32,7 +32,7 @@ class NodeSetErrorTest(unittest.TestCase):
             
 
     def testBadRangeUsages(self):
-        """test parse errors in range"""
+        """test NodeSet parse errors in range"""
         self._testNS("", NodeSetParseError)
         self._testNS("nova[]", NodeSetParseRangeError)
         self._testNS("nova[-]", NodeSetParseRangeError)
@@ -51,7 +51,7 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova[3-59/2,,102]", NodeSetParseRangeError)
 
     def testBadUsages(self):
-        """test other parse errors"""
+        """test NodeSet other parse errors"""
         self._testNS("nova[3-59/2,102", NodeSetParseError)
         self._testNS("nova3,nova4,,nova6", NodeSetParseError)
         self._testNS("nova3,nova4,5,nova6", NodeSetParseError)
@@ -60,6 +60,15 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova6[", NodeSetParseError)
         #self._testNS("nova6]", NodeSetParseError)
         #self._testNS("nova%s", NodeSetParseError)
+
+    def testTypeSanityCheck(self):
+        """test NodeSet input type sanity check"""
+        self.assertRaises(NodeSetParseError, NodeSet, dict())
+        self.assertRaises(NodeSetParseError, NodeSet, list())
+        try:
+            ns1 = NodeSet(dict())
+        except NodeSetParseError, e:
+            self.assertEqual(e.part, '')
 
 
 if __name__ == '__main__':
