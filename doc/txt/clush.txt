@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-02-12
+:Date:   2010-02-22
 :Copyright: CeCILL-C V1
 :Version: 1.2
 :Manual section: 1
@@ -114,10 +114,11 @@ Output behaviour:
   -q, --quiet         be quiet, print essential output only
   -v, --verbose       be verbose, print informative messages
   -d, --debug         output more messages for debugging purpose
-  -L                  disable header block and order output by nodes
+  -L                  disable header block and order output by nodes (with -b or -B)
   -N                  disable labeling of command line
   -S                  return the largest of command return codes
-  -b, --dshbak        display results in a dshbak-like way
+  -b, --dshbak        display gathered results in a dshbak-like way
+  -B                  like -b but including standard error
 
 File copying:
   -c SOURCE_PATH, --copy=SOURCE_PATH

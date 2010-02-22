@@ -7,7 +7,7 @@ format output from clush/pdsh-like output
 -----------------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-02-12
+:Date:   2010-02-22
 :Copyright: CeCILL-C V1
 :Version: 1.2
 :Manual section: 1
@@ -22,7 +22,7 @@ SYNOPSIS
 DESCRIPTION
 ===========
 ``clubak`` formats text from standard input containing lines of the form
-"`node: output`".  It is fully backward compatible with ``dshbak``\(1) but
+"`node:output`".  It is fully backward compatible with ``dshbak``\(1) but
 provides additonal features. For instance, ``clubak`` always displays
 its results sorted by node/nodeset.
 
@@ -54,12 +54,19 @@ An exit status of zero indicates success of the ``clubak`` command.
 EXAMPLES
 ===========
 
-Iterate over `node*` text files in current directory and gather characters count for all of them::
+1. ``clubak`` can be used to gather some recorded ``clush``\(1) results:
 
-    # find -name 'node*" -exec wc -c {} \; | \\
-        awk '{ gsub("./","",$2); print $2": "$1 }' | clubak -bL
-    node[1,3]: 7
-    node2: 9
+Record ``clush``\(1) results in a file:
+    | # clush -w node[1-7] uname -r >/tmp/clush_output
+    | # clush -w node[32-159] uname -r >>/tmp/clush_output
+Display file gathered results (in line-mode):
+    | # clubak -bL </tmp/clush_output
+
+2. Another example, iterate over `node*` text files in current directory and gather characters count for all of them:
+
+    | # find -name "node*" -exec wc -c {} \; | awk '{ gsub("./","",$2); print $2": "$1 }' | clubak -bL
+    | node[1,3]: 7
+    | node2: 9
 
 SEE ALSO
 ========

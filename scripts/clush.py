@@ -605,9 +605,9 @@ def clush_main(args):
     optgrp.add_option("-S", action="store_true", dest="maxrc",
                       help="return the largest of command return codes")
     optgrp.add_option("-b", "--dshbak", action="store_true", dest="gather",
-                      default=False, help="display results in a dshbak-like way")
+                      default=False, help="display gathered results in a dshbak-like way")
     optgrp.add_option("-B", action="store_true", dest="gatherall",
-                      default=False, help="same as -b but including standard error")
+                      default=False, help="like -b but including standard error")
     parser.add_option_group(optgrp)
 
     # Copy
