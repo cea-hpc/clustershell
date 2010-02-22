@@ -1,5 +1,8 @@
 2010-02-22 S. Thiell <stephane.thiell@cea.fr>
 
+	* scripts/clubak.py: Fix TypeError exception raised on unexpected input
+	and accept 'node:message' line pattern (trac ticket #59).
+
 	* scripts/clush.py: Add -B flag (trac ticket #60) to gather with stderr.
 
 	* NodeSet.py: NodeSet constructor now raises a NodeSetParseError

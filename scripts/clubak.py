@@ -124,7 +124,8 @@ def clubak():
 
     # Feed the tree from standard input lines
     for line in sys.stdin:
-        tree.add(*tuple(line.rstrip('\r\n').split(': ', 1)))
+        node, line = line.rstrip('\r\n').split(':', 1)
+        tree.add(node, line)
 
     # Display results
     if options.debug:
@@ -144,4 +145,7 @@ if __name__ == '__main__':
         sys.exit(1)     # exit with error on broken pipe
     except KeyboardInterrupt, e:
         sys.exit(128 + signal.SIGINT)
-
+    except ValueError, e:
+        print >> sys.stderr, "clubak:", e
+        sys.exit(1)
+        
