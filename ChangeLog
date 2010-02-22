@@ -1,5 +1,8 @@
 2010-02-22 S. Thiell <stephane.thiell@cea.fr>
 
+	* scripts/nodeset.py: Change command syntax: operations are now specified
+	inline between nodesets (trac ticket #45). Update doc and tests.
+
 	* scripts/clubak.py: Fix TypeError exception raised on unexpected input
 	and accept 'node:message' line pattern (trac ticket #59).
 

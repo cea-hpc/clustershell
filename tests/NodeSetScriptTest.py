@@ -52,20 +52,16 @@ class NodeSetScriptTest(unittest.TestCase):
 
     def testCountIntersection(self):
         """test nodeset.py --count --intersection"""
-        self._launchAndCompare(["--count", "--intersection", "foo"], "1")
-        self._launchAndCompare(["--count", "--intersection", "foo", "bar"], "0")
-        self._launchAndCompare(["--count", "--intersection", "foo", "foo"], "1")
-        self._launchAndCompare(["--count", "--intersection", "foo", "foo", "bar"], "0")
-        self._launchAndCompare(["--count", "--intersection", "foo[0]"], "1")
-        self._launchAndCompare(["--count", "--intersection", "foo[2]"], "1")
-        self._launchAndCompare(["--count", "--intersection", "foo[1,2]"], "2")
-        self._launchAndCompare(["--count", "--intersection", "foo[1-2]"], "2")
-        self._launchAndCompare(["--count", "--intersection", "foo[1,2]", "foo[1-2]"], "2")
-        self._launchAndCompare(["--count", "--intersection", "foo[1-200,245-394]"], "350")
-        self._launchAndCompare(["--count", "--intersection", "foo[395-442]", "foo[1-200,245-394]"], "0")
-        self._launchAndCompare(["--count", "--intersection", "foo[395-442]", "foo", "foo[1-200,245-394]"], "0")
-        self._launchAndCompare(["--count", "--intersection", "foo[395-442]", "foo", "foo[0-200,245-394]"], "0")
-        self._launchAndCompare(["--count", "--intersection", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], "0")
+        self._launchAndCompare(["--count", "foo", "--intersection", "bar"], "0")
+        self._launchAndCompare(["--count", "foo", "--intersection", "foo"], "1")
+        self._launchAndCompare(["--count", "foo", "--intersection", "foo", "-i", "bar"], "0")
+        self._launchAndCompare(["--count", "foo[0]", "--intersection", "foo0"], "1")
+        self._launchAndCompare(["--count", "foo[2]", "--intersection", "foo"], "0")
+        self._launchAndCompare(["--count", "foo[1,2]", "--intersection", "foo[1-2]"], "2")
+        self._launchAndCompare(["--count", "foo[395-442]", "--intersection", "foo[1-200,245-394]"], "0")
+        self._launchAndCompare(["--count", "foo[395-442]", "--intersection", "foo", "-i", "foo[1-200,245-394]"], "0")
+        self._launchAndCompare(["--count", "foo[395-442]", "-i", "foo", "-i", "foo[0-200,245-394]"], "0")
+        self._launchAndCompare(["--count", "foo[395-442]", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], "0")
 
     def _launchBatteryOfFoldTests(self, args):
         self._launchAndCompare(args + ["--fold", "foo"], "foo")
@@ -117,39 +113,33 @@ class NodeSetScriptTest(unittest.TestCase):
 
     def testFoldXOR(self):
         """test nodeset.py --fold --xor"""
-        self._launchAndCompare(["-X", "--fold", "foo"], "foo")
-        self._launchAndCompare(["-X", "--fold", "foo", "bar"], ["bar,foo", "foo,bar"])
-        self._launchAndCompare(["-X", "--fold", "foo", "foo"], "")
-        self._launchAndCompare(["-X", "--fold", "foo", "foo", "bar"], "bar")
-        self._launchAndCompare(["-X", "--fold", "foo[0]"], "foo0")
-        self._launchAndCompare(["-X", "--fold", "foo[2]"], "foo2")
-        self._launchAndCompare(["-X", "--fold", "foo[1,2]"], "foo[1-2]")
-        self._launchAndCompare(["-X", "--fold", "foo[1-2]"], "foo[1-2]")
-        self._launchAndCompare(["-X", "--fold", "foo[1,2]", "foo[1-2]"], "")
-        self._launchAndCompare(["-X", "--fold", "foo[1-10]", "foo[5-15]"], "foo[1-4,11-15]")
-        self._launchAndCompare(["-X", "--fold", "foo[1-200,245-394]"], "foo[1-200,245-394]")
-        self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo[1-200,245-394]"], "foo[1-200,245-442]")
-        self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"])
-        self._launchAndCompare(["-X", "--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"])
-        self._launchAndCompare(["-X", "--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], ["foo[1-200,245-442],bar[3,24]", "bar[3,24],foo[1-200,245-442]"])
+        self._launchAndCompare(["--fold", "foo", "-X", "bar"], ["bar,foo", "foo,bar"])
+        self._launchAndCompare(["--fold", "foo", "-X", "foo"], "")
+        self._launchAndCompare(["--fold", "foo[1,2]", "-X", "foo[1-2]"], "")
+        self._launchAndCompare(["--fold", "foo[1-10]", "-X", "foo[5-15]"], "foo[1-4,11-15]")
+        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "foo[1-200,245-394]"], "foo[1-200,245-442]")
+        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"])
+        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"])
+        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], "bar[3,24],foo[1-200,245-442]")
 
     def testExclude(self):
         """test nodeset.py --fold --exclude"""
         # Empty result
-        self._launchAndCompare(["--fold","-x", "foo", "foo"], "")
+        self._launchAndCompare(["--fold", "foo", "-x", "foo"], "")
         # With no range
-        self._launchAndCompare(["--fold","-x", "foo", "foo,bar"], "bar")
+        self._launchAndCompare(["--fold", "foo,bar", "-x", "foo"], "bar")
         # Normal with range
-        self._launchAndCompare(["--fold","-x", "foo[0-5]", "foo[0-10]"], "foo[6-10]")
+        self._launchAndCompare(["--fold", "foo[0-5]", "-x", "foo[0-10]"], "")
+        self._launchAndCompare(["--fold", "foo[0-10]", "-x", "foo[0-5]"], "foo[6-10]")
         # Do no change
-        self._launchAndCompare(["--fold","-x", "bar[0-5]", "foo[6-10]"], "foo[6-10]")
-        self._launchAndCompare(["--fold","--exclude", "foo[5-10,15]", "foo[0-10]", "foo[13-18]"], "foo[0-4,13-14,16-18]")
+        self._launchAndCompare(["--fold", "foo[6-10]", "-x", "bar[0-5]"], "foo[6-10]")
+        self._launchAndCompare(["--fold", "foo[0-10]", "foo[13-18]", "--exclude", "foo[5-10,15]"], "foo[0-4,13-14,16-18]")
 
     def testRangeSet(self):
         """test nodeset.py --rangeset"""
         self._launchAndCompare(["--fold","--rangeset","1,2"], "1-2")
         self._launchAndCompare(["--expand","-R","1-2"], "1 2")
-        self._launchAndCompare(["--fold","-X","-R","1-2","2-3"], "1,3")
+        self._launchAndCompare(["--fold","-R","1-2","-X","2-3"], "1,3")
 
     def testStdin(self):
         """test nodeset.py - (stdin)"""

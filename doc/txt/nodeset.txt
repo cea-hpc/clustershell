@@ -7,7 +7,7 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2009-11-10
+:Date:   2010-02-22
 :Copyright: CeCILL-C V1
 :Version: 1.2
 :Manual section: 1
@@ -17,46 +17,52 @@ compute advanced nodeset operations
 SYNOPSIS
 ========
 
-``nodeset`` [ options ] [ command ]
+ ``nodeset`` [COMMAND] [OPTIONS] [ns1 [-ixX] ns2|...]
+
 
 DESCRIPTION
 ===========
 The ``nodeset`` command is an utility command provided with the ClusterShell
-library which implements some features of the NodeSet class.
+library which implements some features of the NodeSet and RangeSet classes.
+It provides easy manipulation of indexed cluster nodes.
 
 OPTIONS
 =======
 
 Commands:
-    --count, -c <nodeset> [nodeset ...]
+    --count, -c
         Return the number of nodes in nodesets.
-    --expand, -e <nodeset> [nodeset ...]
+    --expand, -e
         Expand nodesets to separate nodes.
-    --fold, -f <nodeset> [nodeset ...]
+    --fold, -f
         Compact/fold nodesets (or separate nodes) into one nodeset.
 Options:
-    --autostep=<number>, -a <number>
+    --autostep=NUMBER, -a NUMBER
         Specify auto step threshold number when folding nodesets.
         If not specified, auto step is disabled.
         Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2]
-    --exclude=<nodeset>, -x <nodeset>
-        Exclude provided node or nodeset from result. Can be specified
-        several times.
-    --intersection, -i
-        Calculate nodesets intersection before processing command. This
-        means that only nodes that are in every provided nodesets are
-        used.
-    --xor, -X
-        Calculate symmetric difference (XOR) between two nodesets before
-        processing command. This means that nodes present in only one of
-        the nodesets are used.
+    --help, -h
+        This help page.
+    --quiet, -q
+        Quiet mode, hide any parse error messages (on stderr).
     --rangeset, -R
         Switch to RangeSet instead of NodeSet. Useful when working on
         numerical cluster ranges, eg. 1,5,18-31.
-    --quiet, -q
-        Quiet mode, hide any parse error messages (on stderr).
+    --separator=STRING, -S STRING
+        Use specified separator string when expanding nodesets (default
+        is ' ').
     --version, -v
         Show ClusterShell version and exit.
+Operations (default is union):
+    --exclude=NODESET, -x NODESET
+        Exclude provided node or nodeset.
+    --intersection=NODESET, -i NODESET
+        Calculate nodesets intersection. This means that only nodes that
+        are in the two provided nodesets are used.
+    --xor=NODESET, -X NODESET
+        Calculate symmetric difference (XOR) between two nodesets. This
+        This means that nodes present in only one of the nodesets are
+        used.
 
 
 For a short explanation of these options, see ``-h, --help``.
@@ -91,19 +97,35 @@ Expanding nodesets
   | node160 node161 node162 node163
 
 Excluding nodes from nodeset
-  :$ nodeset -x node33 -f node[32-159]:
+  :$ nodeset -f node[32-159] -x node33:
 
   | node[32,34-159]
 
 Computing nodesets intersection
-  :$ nodeset -i -f node[32-159] node[0-7,20-21,32,156-159]:
+  :$ nodeset -f node[32-159] -i node[0-7,20-21,32,156-159]:
 
   | node[32,156-159]
 
 Computing nodesets symmetric difference (xor)
-  :$ nodeset --xor -f node[33-159] node[32-33,156-159]:
+  :$ nodeset -f node[33-159] --xor node[32-33,156-159]:
 
   | node[32,34-155]
+
+
+HISTORY
+=======
+
+Command syntax has been changed since ``nodeset`` command available with ClusterShell v1.1. Operations, like *--intersection* or *-x*, are now specified between nodesets in the command line.
+
+ClusterShell v1.1:
+    :$ nodeset -f -x node[3,5-6,9] node[1-9]:
+
+    | node[1-2,4,7-8]
+
+ClusterShell v1.2+:
+    :$ nodeset -f node[1-9] -x node[3,5-6,9]:
+
+    | node[1-2,4,7-8]
 
 
 SEE ALSO

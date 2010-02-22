@@ -34,7 +34,7 @@
 # $Id$
 
 """
-Usage: nodeset [options] [command]
+Usage: nodeset [COMMAND] [OPTIONS] [ns1 [-ixX] ns2|...]
 
 Commands:
     --count, -c <nodeset> [nodeset ...]
@@ -49,41 +49,43 @@ Options:
         If not specified, auto step is disabled.
         Example: autostep=4, "node2 node4 node6" folds in node[2,4,6]
                  autostep=3, "node2 node4 node6" folds in node[2-6/2]
-    --exclude=<nodeset>, -x <nodeset>
-        Exclude provided node or nodeset from result. Can be specified
-        several times.
     --help, -h
         This help page.
-    --intersection, -i
-        Calculate nodesets intersection before processing command. This
-        means that only nodes that are in every provided nodesets are
-        used.
-    --separator=<string>, -S <string>
-        Use specified separator string when expanding nodesets (default
-        is ' ').
-    --xor, -X
-        Calculate symmetric difference (XOR) between two nodesets before
-        processing command. This means that nodes present in only one of
-        the nodesets are used.
+    --quiet, -q
+        Quiet mode, hide any parse error messages (on stderr).
     --rangeset, -R
         Switch to RangeSet instead of NodeSet. Useful when working on
         numerical cluster ranges, eg. 1,5,18-31.
-    --quiet, -q
-        Quiet mode, hide any parse error messages (on stderr).
+    --separator=<string>, -S <string>
+        Use specified separator string when expanding nodesets (default
+        is ' ').
     --version, -v
         Show ClusterShell version and exit.
+Operations (default is union):
+        The default operation is the union of node or nodeset.
+    --exclude=<nodeset>, -x <nodeset>
+        Exclude provided node or nodeset.
+    --intersection, -i
+        Calculate nodesets intersection.
+    --xor, -X
+        Calculate symmetric difference (XOR) between two nodesets.
 """
 
 import getopt
 import signal
 import sys
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.NodeSet import RangeSet, RangeSetParseError
 from ClusterShell import __version__
 
+def process_stdin(result, autostep):
+    """Process standard input"""
+    for line in sys.stdin.readlines():
+        # Support multi-lines and multi-nodesets per line
+        line = line[0:line.find('#')].strip()
+        for node in line.split():
+            result.update(result.__class__(node, autostep=autostep))
 
 def run_nodeset(args):
     """
@@ -91,37 +93,29 @@ def run_nodeset(args):
     """
     autostep = None
     command = None
-    preprocess = None
     quiet = False
     class_set = NodeSet
     separator = ' '
 
-    # Parse command options using getopt
+    # Parse getoptable options
     try:
-        opts, args = getopt.getopt(args[1:], "a:cefhiqvx:RS:X",
+        opts, args = getopt.getopt(args[1:], "a:cefhqvRS:",
             ["autostep=", "count", "expand", "fold", "help",
-            "intersection", "quiet", "rangeset", "version", "exclude=",
-            "separator=", "xor"])
-    except getopt.error, msg:
-        print >>sys.stderr, msg
-        print >>sys.stderr, "Try `%s -h' for more information." % args[0]
+             "quiet", "rangeset", "version", "separator="])
+    except getopt.error, err:
+        if err.opt in [ "i", "intersection", "x", "exclude", "X", "xor" ]:
+            print >> sys.stderr, "option -%s not allowed here" % err.opt
+        else:
+            print >> sys.stderr, err.msg
+        print >> sys.stderr, "Try `%s -h' for more information." % args[0]
         sys.exit(2)
 
-    # Search for RangeSet switch in options
-    for opt in [ "-R", "--rangeset" ]:
-        if opt in [k for k, v in opts]:
-            class_set = RangeSet
-
-    # Initialize excludes set
-    excludes = class_set()
-
-    # Parse other options
-    for k, v in opts:
+    for k, val in opts:
         if k in ("-a", "--autostep"):
             try:
-                autostep = int(v)
-            except ValueError, e:
-                print >>sys.stderr, e
+                autostep = int(val)
+            except ValueError, exc:
+                print >> sys.stderr, exc
         elif k in ("-c", "--count"):
             command = "count"
         elif k in ("-e", "--expand"):
@@ -131,101 +125,80 @@ def run_nodeset(args):
         elif k in ("-h", "--help"):
             print __doc__
             sys.exit(0)
-        elif k in ("-i", "--intersection"):
-            if preprocess and preprocess != class_set.intersection_update:
-                print >>sys.stderr, "ERROR: Conflicting options."
-                sys.exit(2)
-            preprocess = class_set.intersection_update
         elif k in ("-q", "--quiet"):
             quiet = True
+        elif k in ("-R", "--rangeset"):
+            class_set = RangeSet
+        elif k in ("-S", "--separator"):
+            separator = val
         elif k in ("-v", "--version"):
             print __version__
             sys.exit(0)
-        elif k in ("-x", "--exclude"):
-            excludes.update(class_set(v))
-        elif k in ("-X", "--xor"):
-            if preprocess and preprocess != class_set.symmetric_difference_update:
-                print >>sys.stderr, "ERROR: Conflicting options."
-                sys.exit(2)
-            preprocess = class_set.symmetric_difference_update
-        elif k in ("-S", "--separator"):
-            separator = v
 
     # Check for command presence
     if not command:
-        print >>sys.stderr, "ERROR: no command specified."
+        print >> sys.stderr, "ERROR: no command specified."
         print __doc__
         sys.exit(1)
 
+    # Instantiate RangeSet or NodeSet object
+    result = class_set()
+
+    # No need to specify '-' to read stdin if no argument at all
+    if not args:
+        process_stdin(result, autostep)
+        
+    # Process operations
+    while args:
+        arg = args.pop(0)
+        if arg in ("-i", "--intersection"):
+            result.intersection_update(class_set(args.pop(0),
+                                                 autostep=autostep))
+        elif arg in ("-x", "--exclude"):
+            result.difference_update(class_set(args.pop(0),
+                                               autostep=autostep))
+        elif arg in ("-X", "--xor"):
+            result.symmetric_difference_update(class_set(args.pop(0),
+                                                         autostep=autostep))
+        elif arg == '-':
+            process_stdin(result, autostep)
+        else:
+            result.update(class_set(arg, autostep=autostep))
+
     # Interprate special characters
     try:
-        separator = eval('\'%s\'' % separator,{"__builtins__":None},{})
-    except:
-        print >>sys.stderr, "ERROR: invalid separator."
+        separator = eval('\'%s\'' % separator, {"__builtins__":None}, {})
+    except SyntaxError:
+        print >> sys.stderr, "ERROR: invalid separator."
         sys.exit(1)
 
-
     try:
-        # Check for nodeset argument(s)
-        read_stdin = len(args) < 1
-        ns = None
-
-        if len(args):
-            if '-' in args:
-                # Special argument '-' means read from stdin
-                read_stdin = True
-                args.remove('-')
-        if len(args):
-            # Parse arguments
-            if not preprocess:
-                preprocess = class_set.update
-            # Create a base nodeset from first argument (do not use an
-            # empty nodeset as it wouldn't work when preprocess is
-            # intersection)
-            ns = class_set(args[0], autostep=autostep)
-            for arg in args[1:]:
-                preprocess(ns, class_set(arg, autostep=autostep))
-
-        if read_stdin:
-            # Read standard input when argument is missing or when
-            # the special argument '-' is specified.
-            if not preprocess:
-                preprocess = class_set.update
-            # Support multi-lines and multi-nodesets per line
-            for line in sys.stdin.readlines():
-                line = line[0:line.find('#')].strip()
-                for node in line.split():
-                    if not ns:
-                        ns = class_set(node, autostep=autostep)
-                    else:
-                        preprocess(ns, class_set(node, autostep=autostep))
-
-        # Finally, remove excluding nodes
-        if excludes:
-            ns.difference_update(excludes)
         # Display result according to command choice
         if command == "expand":
-            print separator.join(ns)
+            print separator.join(result)
         elif command == "fold":
-            print ns
+            print result
         else:
-            print len(ns)
-    except (NodeSetParseError, RangeSetParseError), e:
+            print len(result)
+    except (NodeSetParseError, RangeSetParseError), exc:
         if not quiet:
-            print >>sys.stderr, "%s parse error:" % class_set.__name__, e
+            print >> sys.stderr, "%s parse error:" % class_set.__name__, e
             # In some case, NodeSet might report the part of the string
             # that causes problem.  For RangeSet it is always included
             # in the error message.
             if hasattr(e, 'part') and e.part:
-                print >>sys.stderr, ">>", e.part
+                print >> sys.stderr, ">>", e.part
         sys.exit(1)
 
 if __name__ == '__main__':
     try:
         run_nodeset(sys.argv)
+        sys.exit(0)
     except AssertionError, e:
-        print >>sys.stderr, "ERROR:", e
+        print >> sys.stderr, "ERROR:", e
+        sys.exit(1)
+    except IndexError:
+        print >> sys.stderr, "ERROR: syntax error"
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(128 + signal.SIGINT)
-    sys.exit(0)
