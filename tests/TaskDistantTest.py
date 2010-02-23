@@ -540,21 +540,6 @@ class TaskDistantTest(unittest.TestCase):
         # read result
         self.assertEqual(worker.node_buffer("localhost"), "foobar")
 
-    def testWorkerBuffers(self):
-        """test buffers at worker level"""
-
-        worker = self._task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", nodes='localhost')
-        self._task.resume()
-
-        cnt = 1
-        for buf, nodes in worker.iter_buffers():
-            cnt -= 1
-            if buf == "foo\nbar\nxxx\n":
-                self.assertEqual(len(keys), 1)
-                self.assertEqual(str(nodes), "localhost")
-
-        self.assertEqual(cnt, 0)
-
     def testSshUserOption(self):
         """test task.shell() with ssh_user set"""
         ssh_user_orig = self._task.info("ssh_user")
@@ -577,6 +562,66 @@ class TaskDistantTest(unittest.TestCase):
         # restore original ssh_user (None)
         self.assertEqual(ssh_user_orig, None)
         self._task.set_info("ssh_user", ssh_user_orig)
+
+    def testSshOptionsOption(self):
+        """test task.shell() with ssh_options set"""
+        ssh_options_orig = self._task.info("ssh_options")
+        self._task.set_info("ssh_options", "-oLogLevel=DEBUG")
+        worker = self._task.shell("/bin/echo foobar", nodes="localhost")
+        self.assert_(worker != None)
+        self._task.resume()
+        # restore original ssh_user (None)
+        self.assertEqual(ssh_options_orig, None)
+        self._task.set_info("ssh_options", ssh_options_orig)
+
+    def testSshOptionsOptionForScp(self):
+        """test task.copy() with ssh_options set"""
+        ssh_options_orig = self._task.info("ssh_options")
+        self._task.set_info("ssh_options", "-oLogLevel=DEBUG")
+        worker = self._task.copy("/etc/hosts",
+                "/tmp/cs-test_testLocalhostCopyO", nodes='localhost')
+        self.assert_(worker != None)
+        self._task.resume()
+        # restore original ssh_user (None)
+        self.assertEqual(ssh_options_orig, None)
+        self._task.set_info("ssh_options", ssh_options_orig)
+
+    def testShellStderrWithHandler(self):
+        """test reading stderr of distant task.shell() on event handler"""
+        class StdErrHandler(EventHandler):
+            def ev_error(self, worker):
+                assert worker.last_error() == "something wrong"
+
+        worker = self._task.shell("echo something wrong 1>&2", nodes='localhost',
+                                  handler=StdErrHandler())
+        self._task.resume()
+        for buf, nodes in worker.iter_errors():
+            self.assertEqual(buf, "something wrong")
+        for buf, nodes in worker.iter_errors('localhost'):
+            self.assertEqual(buf, "something wrong")
+
+    def testShellWriteSimple(self):
+        """test simple write on distant task.shell()"""
+        worker = self._task.shell("cat", nodes='localhost')
+        worker.write("this is a test\n")
+        worker.set_write_eof()
+        self._task.resume()
+        self.assertEqual(worker.node_buffer("localhost"), "this is a test")
+
+    def testShellWriteHandler(self):
+        """test write in event handler on distant task.shell()"""
+        class WriteOnReadHandler(EventHandler):
+            def __init__(self, target_worker):
+                self.target_worker = target_worker
+            def ev_read(self, worker):
+                self.target_worker.write("%s:%s\n" % worker.last_read())
+                self.target_worker.set_write_eof()
+
+        reader = self._task.shell("cat", nodes='localhost')
+        worker = self._task.shell("sleep 1; echo foobar", nodes='localhost',
+                                  handler=WriteOnReadHandler(reader))
+        self._task.resume()
+        self.assertEqual(reader.node_buffer("localhost"), "localhost:foobar")
 
 
 if __name__ == '__main__':

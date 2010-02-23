@@ -527,8 +527,6 @@ class Task(object):
                 self._terminate(e.kill)
             except EngineAlreadyRunningError:
                 raise AlreadyRunningError("task engine is already running")
-            except:
-                raise
         finally:
             # task becomes joinable
             self._join_cond.acquire()

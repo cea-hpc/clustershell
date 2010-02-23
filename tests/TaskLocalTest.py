@@ -121,13 +121,8 @@ class TaskLocalTest(unittest.TestCase):
         worker = task.shell("/bin/sleep 30")
         self.assert_(worker != None)
 
-        try:
-            # run task
-            task.resume(3)
-        except TimeoutError:
-            pass
-        else:
-            self.fail("did not detect timeout")
+        # run task
+        self.assertRaises(TimeoutError, task.resume, 3)
 
     def testSimpleCommandNoTimeout(self):
         """test simple command exiting before timeout"""
@@ -195,6 +190,19 @@ class TaskLocalTest(unittest.TestCase):
             task.resume()
         except TimeoutError:
             self.fail("did detect task timeout")
+
+    def testWorkersAndTaskTimeout(self):
+        """test task and workers with timeout"""
+        task = task_self()
+        self.assert_(task != None)
+
+        worker = task.shell("/bin/sleep 10", timeout=5)
+        self.assert_(worker != None)
+
+        worker = task.shell("/bin/sleep 10", timeout=3)
+        self.assert_(worker != None)
+
+        self.assertRaises(TimeoutError, task.resume, 2)
 
     def testLocalEmptyBuffer(self):
         """test task local empty buffer"""

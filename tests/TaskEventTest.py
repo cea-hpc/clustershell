@@ -113,6 +113,7 @@ class TaskEventTest(unittest.TestCase):
        
     class TInFlyAdder(EventHandler):
         def ev_read(self, worker):
+            assert worker.task.running()
             # in-fly workers addition
             other1 = worker.task.shell("/bin/sleep 1")
             assert other1 != None
