@@ -51,7 +51,8 @@ class PreferredEngine(object):
     Preferred Engine selection metaclass (DP Abstract Factory).
     """
 
-    engines = { EngineEPoll.identifier: EngineEPoll, EnginePoll.identifier: EnginePoll }
+    engines = { EngineEPoll.identifier: EngineEPoll,
+                EnginePoll.identifier: EnginePoll }
 
     def __new__(cls, hint, info):
         """
@@ -70,6 +71,6 @@ class PreferredEngine(object):
             # User overriding engine selection
             try:
                 return cls.engines[hint](info)
-            except KeyError, e:
-                print >>sys.stderr, "Invalid engine identifier", e
+            except KeyError, exc:
+                print >> sys.stderr, "Invalid engine identifier", exc
                 raise

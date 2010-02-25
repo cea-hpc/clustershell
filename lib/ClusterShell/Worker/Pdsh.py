@@ -38,18 +38,19 @@ WorkerPdsh
 ClusterShell worker for executing commands with LLNL pdsh.
 """
 
-from ClusterShell.NodeSet import NodeSet
-
-from EngineClient import *
-from Worker import DistantWorker, WorkerError, WorkerBadArgumentError
-
 import errno
-import fcntl
 import os
 import signal
+import sys
+
+from ClusterShell.NodeSet import NodeSet
+
+from EngineClient import EngineClient
+from EngineClient import EngineClientError, EngineClientNotSupportedError
+from Worker import DistantWorker, WorkerError, WorkerBadArgumentError
 
 
-class WorkerPdsh(EngineClient,DistantWorker):
+class WorkerPdsh(EngineClient, DistantWorker):
     """
     ClusterShell pdsh-based worker Class.
 
@@ -105,7 +106,7 @@ class WorkerPdsh(EngineClient,DistantWorker):
             raise WorkerBadArgumentError()
 
         self.popen = None
-        self.buf = ""
+        self._buf = ""
 
     def _engine_clients(self):
         return [self]
@@ -144,7 +145,8 @@ class WorkerPdsh(EngineClient,DistantWorker):
             cmd_l.append("%s" % self.command)
 
             if self.task.info("debug", False):
-                self.task.info("print_debug")(self.task, "PDSH: %s" % ' '.join(cmd_l))
+                self.task.info("print_debug")(self.task, "PDSH: %s" % \
+                                                            ' '.join(cmd_l))
         else:
             # Build pdcp command
             executable = self.task.info("pdcp_path") or "pdcp"
@@ -170,7 +172,8 @@ class WorkerPdsh(EngineClient,DistantWorker):
             cmd_l.append(self.dest)
 
             if self.task.info("debug", False):
-                self.task.info("print_debug")(self.task,"PDCP: %s" % ' '.join(cmd_l))
+                self.task.info("print_debug")(self.task,"PDCP: %s" % \
+                                                            ' '.join(cmd_l))
 
         self.popen = self._exec_nonblock(cmd_l, env=pdsh_env)
         self.file_error = self.popen.stderr
@@ -180,30 +183,6 @@ class WorkerPdsh(EngineClient,DistantWorker):
         self._on_start()
 
         return self
-
-    def error_fileno(self):
-        """
-        Return the standard error reader file descriptor as an integer.
-        """
-        if self.file_error:
-            return self.file_error.fileno()
-        return None
-
-    def reader_fileno(self):
-        """
-        Return the reader file descriptor as an integer.
-        """
-        if self.file_reader:
-            return self.file_reader.fileno()
-        return None
-    
-    def writer_fileno(self):
-        """
-        Return the writer file descriptor as an integer.
-        """
-        if self.file_writer:
-            return self.file_writer.fileno()
-        return None
 
     def _read(self, size=-1):
         """
@@ -227,7 +206,8 @@ class WorkerPdsh(EngineClient,DistantWorker):
         """
         Write data to process. Not supported with Pdsh worker.
         """
-        raise EngineClientNotSupportedError("writing is not supported by pdsh worker")
+        raise EngineClientNotSupportedError("writing is not " \
+                                            "supported by pdsh worker")
 
     def _close(self, force, timeout):
         """
@@ -266,7 +246,9 @@ class WorkerPdsh(EngineClient,DistantWorker):
         """
         Parse Pdsh line syntax.
         """
-        if line.startswith("pdsh@") or line.startswith("pdcp@") or line.startswith("sending "):
+        if line.startswith("pdsh@") or \
+           line.startswith("pdcp@") or \
+           line.startswith("sending "):
             try:
                 # pdsh@cors113: cors115: ssh exited with exit code 1
                 #       0          1      2     3     4    5    6  7
@@ -278,22 +260,23 @@ class WorkerPdsh(EngineClient,DistantWorker):
                 #     0      1     2  3      4      5    6
                 # pdcp@cors113: corsUNKN: ssh exited with exit code 255
                 #     0             1      2    3     4    5    6    7
-                # pdcp@cors113: cors115: fatal: /var/cache/shine/conf/testfs.xmf: No such file or directory
+                # pdcp@cors113: cors115: fatal: /var/cache/shine/...
                 #     0             1      2                   3...
 
                 words  = line.split()
                 # Set return code for nodename of worker
                 if self.mode == 'pdsh':
                     if len(words) == 4 and words[2] == "command" and \
-                        words[3] == "timeout":
-                            pass
-                    elif len(words) == 8 and words[3] == "exited" and words[7].isdigit():
+                       words[3] == "timeout":
+                        pass
+                    elif len(words) == 8 and words[3] == "exited" and \
+                         words[7].isdigit():
                         self._on_node_rc(words[1][:-1], int(words[7]))
                 elif self.mode == 'pdcp':
                     self._on_node_rc(words[1][:-1], errno.ENOENT)
 
             except Exception, e:
-                print >>sys.stderr, e
+                print >> sys.stderr, e
                 raise EngineClientError()
         else:
             # split pdsh reply "nodename: msg"

@@ -954,6 +954,6 @@ def task_cleanup():
         tasks = Task._tasks.copy()
     finally:
         Task._task_lock.release()
-    for thread, task in tasks.iteritems():
+    for task in tasks.itervalues():
         task.abort(kill=True)
 

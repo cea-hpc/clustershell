@@ -53,8 +53,6 @@ import sys
 import signal
 import ConfigParser
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.Task import Task, task_self

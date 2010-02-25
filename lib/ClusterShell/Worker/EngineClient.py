@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009)
+# Copyright CEA/DAM/DIF (2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -44,8 +44,7 @@ it and write data to it.
 import fcntl
 import os
 import Queue
-from subprocess import *
-import struct
+from subprocess import Popen, PIPE, STDOUT
 import thread
 
 from ClusterShell.Engine.Engine import EngineBaseTimer
@@ -90,6 +89,11 @@ class EngineClient(EngineBaseTimer):
         # boolean indicating whether stderr is on a separate fd
         self._stderr = stderr
 
+        # associated files
+        self.file_error = None
+        self.file_reader = None
+        self.file_writer = None
+
         # initialize error, read and write buffers
         self._ebuf = ""
         self._rbuf = ""
@@ -112,23 +116,28 @@ class EngineClient(EngineBaseTimer):
 
     def error_fileno(self):
         """
-        Returns the standard error reader file descriptor as an integer.
+        Return the standard error reader file descriptor as an integer.
         """
-        # For convenience, the default behaviour is stderr not supported.
+        if self.file_error:
+            return self.file_error.fileno()
         return None
 
     def reader_fileno(self):
         """
-        Returns the reader file descriptor as an integer.
+        Return the reader file descriptor as an integer.
         """
-        raise NotImplementedError("Derived classes must implement.")
+        if self.file_reader:
+            return self.file_reader.fileno()
+        return None
     
     def writer_fileno(self):
         """
-        Returns the writer file descriptor as an integer.
+        Return the writer file descriptor as an integer.
         """
-        raise NotImplementedError("Derived classes must implement.")
-    
+        if self.file_writer:
+            return self.file_writer.fileno()
+        return None
+
     def abort(self):
         """
         Stop this client.
@@ -162,6 +171,26 @@ class EngineClient(EngineBaseTimer):
         Set writing state.
         """
         self._engine.set_writing(self)
+
+    def _read(self, size=-1):
+        """
+        Read data from process.
+        """
+        result = self.file_reader.read(size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading()
+        return result
+
+    def _readerr(self, size=-1):
+        """
+        Read error data from process.
+        """
+        result = self.file_error.read(size)
+        if not len(result):
+            raise EngineClientEOF()
+        self._set_reading_error()
+        return result
 
     def _handle_read(self):
         """
@@ -340,11 +369,15 @@ class EnginePort(EngineClient):
         self._msgq = Queue.Queue(self.task.default("port_qlimit"))
 
         # Request pipe
-        (self._req_read, self._req_write) = os.pipe()
-        fcntl.fcntl(self._req_read, fcntl.F_SETFL,
-                fcntl.fcntl(self._req_read, fcntl.F_GETFL) | os.O_NDELAY)
-        fcntl.fcntl(self._req_write, fcntl.F_SETFL,
-                fcntl.fcntl(self._req_write, fcntl.F_GETFL) | os.O_NDELAY)
+        (readfd, writefd) = os.pipe()
+        # Use file objects instead of FD for convenience
+        self.file_reader = os.fdopen(readfd, 'r')
+        self.file_writer = os.fdopen(writefd, 'w')
+        # Set nonblocking flag
+        fcntl.fcntl(readfd, fcntl.F_SETFL,
+            fcntl.fcntl(readfd, fcntl.F_GETFL) | os.O_NDELAY)
+        fcntl.fcntl(writefd, fcntl.F_SETFL,
+            fcntl.fcntl(writefd, fcntl.F_GETFL) | os.O_NDELAY)
 
     def _start(self):
         return self
@@ -352,30 +385,14 @@ class EnginePort(EngineClient):
     def _close(self, force, timeout):
         """
         """
-        os.close(self._req_read)
-        os.close(self._req_write)
+        self.file_reader.close()
+        self.file_writer.close()
 
-    def reader_fileno(self):
-        """
-        Returns the reader file descriptor as an integer.
-        """
-        return self._req_read
-    
-    def writer_fileno(self):
-        """
-        Returns the writer file descriptor as an integer.
-        """
-        return self._req_write
-    
     def _read(self, size=4096):
         """
         Read data from pipe.
         """
-        result = os.read(self._req_read, size)
-        if not len(result):
-            raise EngineClientEOF()
-        self._set_reading()
-        return result
+        return EngineClient._read(self, size)
 
     def _handle_read(self):
         """
@@ -396,11 +413,12 @@ class EnginePort(EngineClient):
         self._msgq.put(pmsg, block=True, timeout=None)
 
         try:
-            ret = os.write(self._req_write, "M")
+            ret = os.write(self.writer_fileno(), "M")
         except OSError:
             raise
 
         pmsg.sync()
+        return ret == 1
 
     def msg_send(self, send_msg):
         """

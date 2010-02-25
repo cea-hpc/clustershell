@@ -45,8 +45,6 @@ import optparse
 import signal
 import sys
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell import __version__

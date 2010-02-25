@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -39,7 +39,7 @@ EventHandler's derived classes may implement ev_* methods to listen on
 worker's events.
 """
 
-class EventHandler:
+class EventHandler(object):
     """
     Base class EventHandler.
     """

@@ -1,3 +1,8 @@
+2010-02-25 S. Thiell <stephane.thiell@cea.fr>
+
+	* Important code cleaning (some unused imports, duplicate codes, etc.
+	thanks to pylint).
+
 2010-02-22 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/nodeset.py: Change command syntax: operations are now specified

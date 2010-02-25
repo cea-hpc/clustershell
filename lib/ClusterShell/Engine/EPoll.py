@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009)
+# Copyright CEA/DAM/DIF (2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -39,16 +39,14 @@ The epoll event distribution interface is available on Linux 2.6, and
 has been included in Python 2.6.
 """
 
-from Engine import *
+import errno
+import select
+import time
+
+from Engine import Engine
+from Engine import EngineNotSupportedError, EngineTimeoutException
 
 from ClusterShell.Worker.EngineClient import EngineClientEOF
-
-import errno
-import os
-import select
-import signal
-import sys
-import time
 
 
 class EngineEPoll(Engine):
@@ -70,9 +68,6 @@ class EngineEPoll(Engine):
             self.epolling = select.epoll()
         except AttributeError:
             raise EngineNotSupportedError()
-
-        # runloop-has-exited flag
-        self.exited = False
 
     def _register_specific(self, fd, event):
         """
@@ -98,8 +93,8 @@ class EngineEPoll(Engine):
         For the epoll engine, it modifies the event mask associated to a file
         descriptor.
         """
-        self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event, setvalue))
-
+        self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event,
+                                                            setvalue))
         eventmask = 0
         if setvalue:
             if event & (Engine.E_READ | Engine.E_ERROR):
@@ -108,27 +103,6 @@ class EngineEPoll(Engine):
                 eventmask = select.EPOLLOUT
 
         self.epolling.modify(fd, eventmask)
-
-    def set_reading(self, client):
-        """
-        Set client reading state.
-        """
-        # listen for readable events
-        self.modify(client, Engine.E_READ, 0)
-
-    def set_reading_error(self, client):
-        """
-        Set client reading error state.
-        """
-        # listen for readable events
-        self.modify(client, Engine.E_ERROR, 0)
-
-    def set_writing(self, client):
-        """
-        Set client writing state.
-        """
-        # listen for writable events
-        self.modify(client, Engine.E_WRITE, 0)
 
     def runloop(self, timeout):
         """
@@ -142,7 +116,8 @@ class EngineEPoll(Engine):
         # run main event loop...
         while self.evlooprefcnt > 0:
             self._debug("LOOP evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
-                    (self.evlooprefcnt, self.reg_clifds.keys(), len(self.timerq)))
+                    (self.evlooprefcnt, self.reg_clifds.keys(),
+                     len(self.timerq)))
             try:
                 timeo = self.timerq.nextfire_delay()
                 if timeout > 0 and timeo >= timeout:
@@ -199,11 +174,12 @@ class EngineEPoll(Engine):
                             self.remove(client)
                         continue
 
-                # or check for end of stream (do not handle both at the same time
-                # because handle_read() may perform a partial read)
+                # or check for end of stream (do not handle both at the same
+                # time because handle_read() may perform a partial read)
                 elif event & select.EPOLLHUP:
-                    self._debug("EPOLLHUP fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
-                        client.reader_fileno(), client.writer_fileno()))
+                    self._debug("EPOLLHUP fd=%d %s (r%s,w%s)" % (fd,
+                        client.__class__.__name__, client.reader_fileno(),
+                        client.writer_fileno()))
                     client._processing = False
 
                     if fdev & Engine.E_READ:
@@ -220,8 +196,9 @@ class EngineEPoll(Engine):
 
                 # check for writing
                 if event & select.EPOLLOUT:
-                    self._debug("EPOLLOUT fd=%d %s (r%s,w%s)" % (fd, client.__class__.__name__,
-                        client.reader_fileno(), client.writer_fileno()))
+                    self._debug("EPOLLOUT fd=%d %s (r%s,w%s)" % (fd,
+                        client.__class__.__name__, client.reader_fileno(),
+                        client.writer_fileno()))
                     assert fdev == Engine.E_WRITE
                     assert client._events & fdev
                     self.modify(client, 0, fdev)
@@ -243,10 +220,4 @@ class EngineEPoll(Engine):
 
         self._debug("LOOP EXIT evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
                 (self.evlooprefcnt, self.reg_clifds, len(self.timerq)))
-
-    def exited(self):
-        """
-        Returns True if the engine has exited the runloop once.
-        """
-        return not self.running and self.exited
 

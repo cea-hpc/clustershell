@@ -38,9 +38,8 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
-from EngineClient import EngineClient, EngineClientEOF
+from EngineClient import EngineClient
 
-from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 
 
@@ -84,13 +83,6 @@ class Worker(object):
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _start(self):
-        """
-        Starts worker and returns worker instance as a convenience.
-        Derived classes must implement.
-        """
-        raise NotImplementedError("Derived classes must implement.")
-
     def _invoke(self, ev_type):
         """
         Invoke user EventHandler method if needed.
@@ -107,12 +99,6 @@ class Worker(object):
     def last_error(self):
         """
         Get last error message from event handler.
-        """
-        raise NotImplementedError("Derived classes must implement.")
-
-    def abort(self):
-        """
-        Stop this worker.
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -304,7 +290,7 @@ class DistantWorker(Worker):
         return self.task._iter_keys_timeout_by_worker(self)
 
 
-class WorkerSimple(EngineClient,Worker):
+class WorkerSimple(EngineClient, Worker):
     """
     Implements a simple Worker being itself an EngineClient.
     """
@@ -378,21 +364,13 @@ class WorkerSimple(EngineClient,Worker):
         """
         Read data from process.
         """
-        result = self.file_reader.read(size)
-        if not len(result):
-            raise EngineClientEOF()
-        self._set_reading()
-        return result
+        return EngineClient._read(self, size)
 
     def _readerr(self, size=4096):
         """
-        Read data from process.
+        Read error data from process.
         """
-        result = self.file_error.read(size)
-        if not len(result):
-            raise EngineClientEOF()
-        self._set_reading_error()
-        return result
+        return EngineClient._readerr(self, size)
 
     def _close(self, force, timeout):
         """

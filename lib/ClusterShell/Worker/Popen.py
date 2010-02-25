@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008, 2009)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -38,13 +38,10 @@ WorkerPopen
 ClusterShell worker for executing local commands.
 """
 
-from ClusterShell.NodeSet import NodeSet
-
-from Worker import WorkerSimple, WorkerBadArgumentError
-
-import fcntl
 import os
 import signal
+
+from Worker import WorkerSimple, WorkerBadArgumentError
 
 
 class WorkerPopen(WorkerSimple):

@@ -41,7 +41,6 @@ in response to incoming events (from workers, timers, etc.).
 
 import errno
 import heapq
-import thread
 import time
 
 
@@ -342,6 +341,8 @@ class Engine:
     E_WRITE = 0x4
     E_ANY = E_READ | E_ERROR | E_WRITE
 
+    identifier = "(none)"
+
     def __init__(self, info):
         """
         Initialize base class.
@@ -382,6 +383,8 @@ class Engine:
 
         # running state
         self.running = False
+        # runloop-has-exited flag
+        self._exited = False
 
     def clients(self):
         """
@@ -580,13 +583,14 @@ class Engine:
         client.registered = False
         self.reg_clients -= 1
 
-    def modify(self, client, set, clear):
+    def modify(self, client, setmask, clearmask):
         """
         Modify the next loop interest events bitset for a client.
         """
-        self._debug("MODEV set:0x%x clear:0x%x %s" % (set, clear, client))
-        client._new_events &= ~clear
-        client._new_events |= set
+        self._debug("MODEV set:0x%x clear:0x%x %s" % (setmask, clearmask,
+                                                      client))
+        client._new_events &= ~clearmask
+        client._new_events |= setmask
 
         if not client._processing:
             # modifying a non processing client?
@@ -594,6 +598,18 @@ class Engine:
             # apply new_events now
             self.set_events(client, client._new_events)
 
+    def _register_specific(self, fd, event):
+        """Engine-specific register fd for event method."""
+        raise NotImplementedError("Derived classes must implement.")
+
+    def _unregister_specific(self, fd, ev_is_set):
+        """Engine-specific unregister fd method."""
+        raise NotImplementedError("Derived classes must implement.")
+
+    def _modify_specific(self, fd, event, setvalue):
+        """Engine-specific modify fd for event method."""
+        raise NotImplementedError("Derived classes must implement.")
+        
     def set_events(self, client, new_events):
         """
         Set the active interest events bitset for a client.
@@ -602,11 +618,6 @@ class Engine:
 
         self._debug("SETEV new_events:0x%x events:0x%x %s" % (new_events,
             client._events, client))
-
-        if client.autoclose:
-            refcnt_inc = 0
-        else:
-            refcnt_inc = 1
 
         chgbits = new_events ^ client._events
         if chgbits == 0:
@@ -644,6 +655,27 @@ class Engine:
                     client._events &= ~Engine.E_WRITE
 
         client._new_events = client._events
+
+    def set_reading(self, client):
+        """
+        Set client reading state.
+        """
+        # listen for readable events
+        self.modify(client, Engine.E_READ, 0)
+
+    def set_reading_error(self, client):
+        """
+        Set client reading error state.
+        """
+        # listen for readable events
+        self.modify(client, Engine.E_ERROR, 0)
+
+    def set_writing(self, client):
+        """
+        Set client writing state.
+        """
+        # listen for writable events
+        self.modify(client, Engine.E_WRITE, 0)
 
     def add_timer(self, timer):
         """
@@ -683,7 +715,7 @@ class Engine:
         fanout = self.info["fanout"]
         assert fanout > 0
         if fanout <= self.reg_clients:
-             return
+            return
 
         # Register regular engine clients within the fanout limit
         for client in self._clients:
@@ -736,7 +768,7 @@ class Engine:
         for port in ports:
             try:
                 port._handle_read()
-            except OSError, (err, strerr):
+            except (IOError, OSError), (err, strerr):
                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
                     # no pending message
                     return
@@ -758,9 +790,14 @@ class Engine:
 
         self.clear()
 
+    def exited(self):
+        """
+        Returns True if the engine has exited the runloop once.
+        """
+        return not self.running and self._exited
+
     def _debug(self, s):
         # library engine debugging hook
         #print s
         pass
-
 

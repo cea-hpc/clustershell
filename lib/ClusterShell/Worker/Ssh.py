@@ -38,15 +38,14 @@ ClusterShell Ssh/Scp support
 This module implements OpenSSH engine client and task's worker.
 """
 
-from EngineClient import EngineClient, EngineClientEOF
+import copy
+import os
+import signal
+
+from EngineClient import EngineClient
 from Worker import DistantWorker, WorkerBadArgumentError
 
 from ClusterShell.NodeSet import NodeSet
-
-import copy
-import errno
-import os
-import signal
 
 
 class Ssh(EngineClient):
@@ -63,9 +62,6 @@ class Ssh(EngineClient):
         self.key = copy.copy(node)
         self.command = command
         self.popen = None
-        self.file_error = None
-        self.file_reader = None
-        self.file_writer = None
 
     def _start(self):
         """
@@ -106,50 +102,6 @@ class Ssh(EngineClient):
         self.worker._on_start()
 
         return self
-
-    def error_fileno(self):
-        """
-        Return the standard error reader file descriptor as an integer.
-        """
-        if self.file_error:
-            return self.file_error.fileno()
-        return None
-
-    def reader_fileno(self):
-        """
-        Return the reader file descriptor as an integer.
-        """
-        if self.file_reader:
-            return self.file_reader.fileno()
-        return None
-    
-    def writer_fileno(self):
-        """
-        Return the writer file descriptor as an integer.
-        """
-        if self.file_writer:
-            return self.file_writer.fileno()
-        return None
-
-    def _read(self, size=-1):
-        """
-        Read data from process.
-        """
-        result = self.file_reader.read(size)
-        if not len(result):
-            raise EngineClientEOF()
-        self._set_reading()
-        return result
-
-    def _readerr(self, size=-1):
-        """
-        Read error from process.
-        """
-        result = self.file_error.read(size)
-        if not len(result):
-            raise EngineClientEOF()
-        self._set_reading_error()
-        return result
 
     def _close(self, force, timeout):
         """
@@ -235,7 +187,7 @@ class Scp(Ssh):
 
     def _start(self):
         """
-        Start worker, initialize buffers, prepare command.
+        Start client, initialize buffers, prepare command.
         """
         task = self.worker.task
 
