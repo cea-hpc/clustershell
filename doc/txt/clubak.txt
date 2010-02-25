@@ -71,8 +71,7 @@ Display file gathered results (in line-mode):
 SEE ALSO
 ========
 
-``clush``\(1)
-``nodeset``\(1)
+``clush``\(1), ``nodeset``\(1).
 
 BUG REPORTS
 ===========

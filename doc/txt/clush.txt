@@ -209,10 +209,7 @@ FILES
 SEE ALSO
 ========
 
-``clubak``\(1)
-``nodeset``\(1)
-``readline``\(3)
-``clush.conf``\(5)
+``clubak``\(1), ``nodeset``\(1), ``readline``\(3), ``clush.conf``\(5).
 
 BUG REPORTS
 ===========
