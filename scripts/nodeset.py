@@ -79,13 +79,36 @@ from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.NodeSet import RangeSet, RangeSetParseError
 from ClusterShell import __version__
 
-def process_stdin(result, autostep):
-    """Process standard input"""
+def process_stdin(xset, autostep):
+    """Process standard input and populate xset."""
     for line in sys.stdin.readlines():
         # Support multi-lines and multi-nodesets per line
         line = line[0:line.find('#')].strip()
         for node in line.split():
-            result.update(result.__class__(node, autostep=autostep))
+            xset.update(xset.__class__(node, autostep=autostep))
+
+def compute_nodeset(xset, args, autostep):
+    """Apply operations and operands from args on xset, an initial
+    RangeSet or NodeSet."""
+    class_set = xset.__class__
+    # Process operations
+    while args:
+        arg = args.pop(0)
+        if arg in ("-i", "--intersection"):
+            xset.intersection_update(class_set(args.pop(0),
+                                               autostep=autostep))
+        elif arg in ("-x", "--exclude"):
+            xset.difference_update(class_set(args.pop(0),
+                                             autostep=autostep))
+        elif arg in ("-X", "--xor"):
+            xset.symmetric_difference_update(class_set(args.pop(0),
+                                                       autostep=autostep))
+        elif arg == '-':
+            process_stdin(xset, autostep)
+        else:
+            xset.update(class_set(arg, autostep=autostep))
+
+    return xset
 
 def run_nodeset(args):
     """
@@ -141,54 +164,33 @@ def run_nodeset(args):
         print __doc__
         sys.exit(1)
 
-    # Instantiate RangeSet or NodeSet object
-    result = class_set()
+    try:
+        # Instantiate RangeSet or NodeSet object
+        xset = class_set()
 
-    # No need to specify '-' to read stdin if no argument at all
-    if not args:
-        process_stdin(result, autostep)
+        # No need to specify '-' to read stdin if no argument at all
+        if not args:
+            process_stdin(xset, autostep)
         
-    # Process operations
-    while args:
-        arg = args.pop(0)
-        if arg in ("-i", "--intersection"):
-            result.intersection_update(class_set(args.pop(0),
-                                                 autostep=autostep))
-        elif arg in ("-x", "--exclude"):
-            result.difference_update(class_set(args.pop(0),
-                                               autostep=autostep))
-        elif arg in ("-X", "--xor"):
-            result.symmetric_difference_update(class_set(args.pop(0),
-                                                         autostep=autostep))
-        elif arg == '-':
-            process_stdin(result, autostep)
-        else:
-            result.update(class_set(arg, autostep=autostep))
+        # Finish xset computing from args
+        compute_nodeset(xset, args, autostep)
 
-    # Interprate special characters
-    try:
+        # Interprate special characters (may raise SyntaxError)
         separator = eval('\'%s\'' % separator, {"__builtins__":None}, {})
-    except SyntaxError:
-        print >> sys.stderr, "ERROR: invalid separator."
-        sys.exit(1)
 
-    try:
         # Display result according to command choice
         if command == "expand":
-            print separator.join(result)
+            print separator.join(xset)
         elif command == "fold":
-            print result
+            print xset
         else:
-            print len(result)
+            print len(xset)
+
     except (NodeSetParseError, RangeSetParseError), exc:
         if not quiet:
-            print >> sys.stderr, "%s parse error:" % class_set.__name__, e
-            # In some case, NodeSet might report the part of the string
-            # that causes problem.  For RangeSet it is always included
-            # in the error message.
-            if hasattr(e, 'part') and e.part:
-                print >> sys.stderr, ">>", e.part
+            print >> sys.stderr, "%s parse error:" % class_set.__name__, exc
         sys.exit(1)
+
 
 if __name__ == '__main__':
     try:
@@ -199,6 +201,9 @@ if __name__ == '__main__':
         sys.exit(1)
     except IndexError:
         print >> sys.stderr, "ERROR: syntax error"
+        sys.exit(1)
+    except SyntaxError:
+        print >> sys.stderr, "ERROR: invalid separator"
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(128 + signal.SIGINT)

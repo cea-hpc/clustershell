@@ -66,43 +66,39 @@ import copy
 import re
 
 class RangeSetException(Exception):
-    """used by RangeSet"""
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
+    """Base RangeSet exception class."""
 
 class RangeSetParseError(RangeSetException):
-    """used by RangeSet when a parse cannot be done"""
-    def __init__(self, subrange, msg):
+    """Raised when RangeSet parsing cannot be done properly."""
+    def __init__(self, part, msg):
+        if part:
+            msg = "%s : \"%s\"" % (msg, part)
+        RangeSetException.__init__(self, msg)
         # faulty subrange; this allows you to target the error
-        self.msg = "%s : \"%s\"" % (msg, subrange)
+        self.part = part
 
-class RangeSetPaddingError(RangeSetException):
-    """used by RangeSet when a fatal padding incoherency occurs"""
+class RangeSetPaddingError(RangeSetParseError):
+    """Raised when a fatal padding incoherency occurs"""
+    def __init__(self, part, msg):
+        RangeSetParseError.__init__(self, part, "padding mismatch (%s)" % msg)
 
 
 class NodeSetException(Exception):
-    """used by NodeSet"""
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
+    """Base NodeSet exception class."""
 
 class NodeSetParseError(NodeSetException):
-    """used by NodeSet when a parse cannot be done"""
+    """Raised when NodeSet parsing cannot be done properly."""
     def __init__(self, part, msg):
+        if part:
+            msg = "%s : \"%s\"" % (msg, part)
+        NodeSetException.__init__(self, msg)
         # faulty part; this allows you to target the error
         self.part = part
-        self.msg = msg
 
 class NodeSetParseRangeError(NodeSetParseError):
-    """used by NodeSet when bad range is encountered during a a parse"""
+    """Raised when bad range is encountered during NodeSet parsing."""
     def __init__(self, rset_exc):
-        # faulty part; this allows you to target the error
-        self.msg = rset_exc.msg
+        NodeSetParseError.__init__(self, str(rset_exc), "bad range")
 
 
 class RangeSet:
@@ -191,19 +187,19 @@ class RangeSet:
 
                 self.add_range(start, stop, step, pad)
         
-    def fromlist(cls, l, autostep=None):
+    @classmethod
+    def fromlist(cls, rglist, autostep=None):
         """
         Class method that returns a new RangeSet with ranges from
         provided list.
         """
         inst = RangeSet(autostep=autostep)
-        for rg in l:
+        for rg in rglist:
             if isinstance(rg, RangeSet):
                 inst.update(rg)
             else:
                 inst.update(RangeSet(rg))
         return inst
-    fromlist = classmethod(fromlist)
 
     def __iter__(self):
         """
@@ -273,8 +269,8 @@ class RangeSet:
         """
         for rgstart, rgstop, rgstep, rgpad in self._ranges:
             if ielem >= rgstart and ielem <= rgstop and \
-                    (ielem - rgstart) % rgstep == 0:
-                        return True
+                (ielem - rgstart) % rgstep == 0:
+                return True
         return False
 
     def _contains_with_padding(self, ielem, pad):
@@ -285,9 +281,9 @@ class RangeSet:
             # for each ranges, check for inclusion + padding matching
             # + step matching
             if ielem >= rgstart and ielem <= rgstop and \
-                    (pad == rgpad or (pad == 0 and len(str(ielem)) >= rgpad)) and \
-                    (ielem - rgstart) % rgstep == 0:
-                        return True
+                (pad == rgpad or (pad == 0 and len(str(ielem)) >= rgpad)) and \
+                (ielem - rgstart) % rgstep == 0:
+                return True
         return False
 
     def _binary_sanity_check(self, other):
@@ -650,7 +646,8 @@ class RangeSet:
 
             # if iset is not empty, some elements were not removed
             if len(iset) > 0:
-                # give the user an indication of the range that cannot be removed
+                # give the user an indication of the range that cannot
+                # be removed
                 missing = RangeSet()
                 missing._ranges, missing._length = self._fold(iset.keys(), pad2)
                 # repr(missing) is implicit here
@@ -659,7 +656,8 @@ class RangeSet:
             return self._fold(lst, pad1 or pad2)
         else:
             # fold items that are in set 1 and not in set 2
-            return self._fold([e for e in items1 if e not in iset], pad1 or pad2)
+            return self._fold([e for e in items1 if e not in iset],
+                              pad1 or pad2)
 
     def symmetric_difference(self, other):
         """
@@ -706,7 +704,7 @@ class RangeSet:
         items2, pad2 = rangeset._expand()
 
         if pad1 != pad2:
-            raise RangeSetPaddingError()
+            raise RangeSetPaddingError('', "%s != %s" % (pad1, pad2))
         # same padding, we're clean...
 
         # create a temporary dicts
@@ -854,16 +852,16 @@ class NodeSet(object):
         if pattern is not None:
             self.update(pattern)
 
-    def fromlist(cls, l, autostep=None):
+    @classmethod
+    def fromlist(cls, nodelist, autostep=None):
         """
         Class method that returns a new NodeSet with nodes from
         provided list.
         """
         inst = NodeSet(autostep=autostep)
-        for pat in l:
-            inst.update(pat)
+        for node in nodelist:
+            inst.update(node)
         return inst
-    fromlist = classmethod(fromlist)
 
     def __iter__(self):
         """
@@ -931,7 +929,8 @@ class NodeSet(object):
         elif type(other) is str:
             binary = NodeSet(other)
         else:
-            raise TypeError, "Binary operation only permitted between NodeSets or string"
+            raise TypeError, \
+                "Binary operation only permitted between NodeSets or string"
 
         return binary.issuperset(self)
         
@@ -1229,7 +1228,8 @@ class NodeSet(object):
         elif type(other) is str:
             binary = NodeSet(other)
         else:
-            raise TypeError, "Binary operation only permitted between NodeSets or string"
+            raise TypeError, \
+                "Binary operation only permitted between NodeSets or string"
 
         purge_patterns = []
 
