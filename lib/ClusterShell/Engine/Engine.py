@@ -594,7 +594,7 @@ class Engine:
 
         if not client._processing:
             # modifying a non processing client?
-            self.reg_clifds_has_changed = True
+            self.reg_clifds_changed = True
             # apply new_events now
             self.set_events(client, client._new_events)
 
