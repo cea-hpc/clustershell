@@ -44,6 +44,14 @@ class MisusageTest(unittest.TestCase):
         task.resume()
         self.assertRaises(WorkerError, worker.node_buffer, "localhost")
 
+    def testTaskScheduleTwice(self):
+        """test task worker schedule twice error"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("/bin/echo itsme")
+        self.assertRaises(WorkerError, task.schedule, worker)
+        task.abort()
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(MisusageTest)

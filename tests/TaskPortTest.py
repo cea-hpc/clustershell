@@ -46,6 +46,20 @@ class TaskPortTest(unittest.TestCase):
         task_wait()
         self.assert_(TaskPortTest.got_msg)
 
+    def testPortRemove(self):
+        """test port remove [private as of 1.2]"""
+        
+        task = Task()
+
+        class PortHandler(EventHandler):
+            def ev_msg(self, port, msg):
+                pass
+
+        port = task.port(handler=PortHandler(), autoclose=True)
+        task.resume()
+        task._remove_port(port)
+        task_wait()
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskPortTest)

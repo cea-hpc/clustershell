@@ -103,8 +103,8 @@ class WorkerPdsh(EngineClient, DistantWorker):
             # Preserve modification times and modes?
             self.preserve = kwargs.get('preserve', False)
         else:
-            raise WorkerBadArgumentError()
-
+            raise WorkerBadArgumentError("missing command or source in " \
+                                         "WorkerPdsh constructor")
         self.popen = None
         self._buf = ""
 

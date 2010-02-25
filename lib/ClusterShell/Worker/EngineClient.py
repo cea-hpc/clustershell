@@ -138,13 +138,6 @@ class EngineClient(EngineBaseTimer):
             return self.file_writer.fileno()
         return None
 
-    def abort(self):
-        """
-        Stop this client.
-        """
-        if self._engine:
-            self._engine.remove(self)
-
     def _close(self, force, timeout):
         """
         Close client. Called by the engine after client has been

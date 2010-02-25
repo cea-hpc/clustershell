@@ -454,12 +454,17 @@ class Task(object):
                            timeout=timeo, preserve=preserve)
 
         self.schedule(worker)
-
         return worker
 
     @tasksyncmethod()
     def _add_port(self, port):
+        """Add an EnginePort instance to Engine (private method)."""
         self._engine.add(port)
+
+    @tasksyncmethod()
+    def _remove_port(self, port):
+        """Remove a port from Engine (private method)."""
+        self._engine.remove(port)
 
     def port(self, handler=None, autoclose=False):
         """

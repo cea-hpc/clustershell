@@ -16,7 +16,6 @@ sys.path.insert(0, '../lib')
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
-from ClusterShell.Worker.Pdsh import WorkerPdsh
 from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.EngineClient import *
 
@@ -66,25 +65,6 @@ class TaskDistantTest(unittest.TestCase):
         self.assert_(hasattr(worker2, 'command'))
         self.assertEqual(worker1.command, "/bin/hostname")
         self.assertEqual(worker2.command, "/bin/uname -r")
-    
-    def testWorkerPdshGetCommand(self):
-        """test worker.command with WorkerPdsh"""
-
-        worker1 = WorkerPdsh("localhost", command="/bin/echo foo bar fuu",
-                             handler=None, timeout=5)
-        self.assert_(worker1 != None)
-        self._task.schedule(worker1)
-        worker2 = WorkerPdsh("localhost", command="/bin/echo blah blah foo",
-                             handler=None, timeout=5)
-        self.assert_(worker2 != None)
-        self._task.schedule(worker2)
-        # run task
-        self._task.resume()
-        # test output
-        self.assertEqual(worker1.node_buffer("localhost"), "foo bar fuu")
-        self.assertEqual(worker1.command, "/bin/echo foo bar fuu")
-        self.assertEqual(worker2.node_buffer("localhost"), "blah blah foo")
-        self.assertEqual(worker2.command, "/bin/echo blah blah foo")
     
     def testLocalhostCopy(self):
         """test simple localhost copy"""
@@ -136,39 +116,6 @@ class TaskDistantTest(unittest.TestCase):
         self._task.schedule(worker) 
         self._task.resume()
 
-    def testLocalhostExplicitPdshCopy(self):
-        """test simple localhost copy with explicit pdsh worker"""
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshCopy"
-        worker = WorkerPdsh("localhost", source="/etc/hosts",
-                dest=dest, handler=None, timeout=10)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assertEqual(worker.source, "/etc/hosts")
-        self.assertEqual(worker.dest, dest)
-
-    def testLocalhostExplicitPdshCopyDir(self):
-        """test simple localhost copy dir with explicit pdsh worker"""
-        # pdcp worker doesn't create custom destination directory
-        # TODO: use tempfile.mkdtemp()
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerPdsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=10)
-        self._task.schedule(worker) 
-        self._task.resume()
-
-    def testLocalhostExplicitPdshCopyDirPreserve(self):
-        """test simple localhost preserve copy dir with explicit pdsh worker"""
-        # pdcp worker doesn't create custom destination directory
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshPreserveCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerPdsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=10, preserve=True)
-        self._task.schedule(worker) 
-        self._task.resume()
-
     def testExplicitSshWorker(self):
         """test simple localhost command with explicit ssh worker"""
         # init worker
@@ -201,46 +148,6 @@ class TaskDistantTest(unittest.TestCase):
         self._task.resume()
         # test output
         self.assertEqual(worker.node_error_buffer("localhost"), None)
-
-    def testExplicitPdshWorker(self):
-        """test simple localhost command with explicit pdsh worker"""
-        # init worker
-        worker = WorkerPdsh("localhost", command="/bin/echo alright", handler=None, timeout=5)
-        self.assert_(worker != None)
-        self._task.schedule(worker)
-        # run task
-        self._task.resume()
-        # test output
-        self.assertEqual(worker.node_buffer("localhost"), "alright")
-
-    def testExplicitPdshWorkerStdErr(self):
-        """test simple localhost command with explicit pdsh worker (stderr)"""
-        # init worker
-        worker = WorkerPdsh("localhost", command="/bin/echo alright 1>&2",
-                    handler=None, stderr=True, timeout=5)
-        self.assert_(worker != None)
-        self._task.schedule(worker)
-        # run task
-        self._task.resume()
-        # test output
-        self.assertEqual(worker.node_error_buffer("localhost"), "alright")
-
-        # Re-test with stderr=False
-        worker = WorkerPdsh("localhost", command="/bin/echo alright 1>&2",
-                    handler=None, stderr=False, timeout=5)
-        self.assert_(worker != None)
-        self._task.schedule(worker)
-        # run task
-        self._task.resume()
-        # test output
-        self.assertEqual(worker.node_error_buffer("localhost"), None)
-
-
-    def testPdshWorkerWriteNotSupported(self):
-        """test that write is reported as not supported with pdsh"""
-        # init worker
-        worker = WorkerPdsh("localhost", command="/bin/uname -r", handler=None, timeout=5)
-        self.assertRaises(EngineClientNotSupportedError, worker.write, "toto")
 
     class TEventHandlerChecker(EventHandler):
 
@@ -341,46 +248,6 @@ class TaskDistantTest(unittest.TestCase):
         self._task.resume()
         # test events received: start, close
         self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
-        self.assertEqual(worker.node_buffer("localhost"), "")
-
-    def testExplicitWorkerPdshShellEvents(self):
-        """test triggered events with explicit pdsh worker"""
-        # init worker
-        test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="/bin/hostname", handler=test_eh, timeout=None)
-        self.assert_(worker != None)
-        self._task.schedule(worker)
-        # run task
-        self._task.resume()
-        # test events received: start, read, hup, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_HUP | EV_CLOSE)
-    
-    def testExplicitWorkerPdshShellEventsWithTimeout(self):
-        """test triggered events (with timeout) with explicit pdsh worker"""
-        # init worker
-        test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="/bin/echo alright && /bin/sleep 10",
-                handler=test_eh, timeout=2)
-        self.assert_(worker != None)
-        self._task.schedule(worker)
-        # run task
-        self._task.resume()
-        # test events received: start, read, timeout, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_TIMEOUT | EV_CLOSE)
-        self.assertEqual(worker.node_buffer("localhost"), "alright")
-
-    def testShellEventsNoReadNoTimeout(self):
-        """test triggered events (no read, no timeout) with explicit pdsh worker"""
-        # init worker
-        test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="/bin/sleep 2",
-                handler=test_eh, timeout=None)
-        self.assert_(worker != None)
-        self._task.schedule(worker)
-        # run task
-        self._task.resume()
-        # test events received: start, close
-        self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
         self.assertEqual(worker.node_buffer("localhost"), None)
 
     def testLocalhostCommandFanout(self):
@@ -408,13 +275,13 @@ class TaskDistantTest(unittest.TestCase):
         for buf, nodes in worker.iter_buffers():
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
-                self.assertEqual(len(keys), 1)
+                self.assertEqual(len(nodes), 1)
                 self.assertEqual(str(nodes), "localhost")
         self.assertEqual(cnt, 1)
         for buf, nodes in worker.iter_buffers("localhost"):
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
-                self.assertEqual(len(keys), 1)
+                self.assertEqual(len(nodes), 1)
                 self.assertEqual(str(nodes), "localhost")
         self.assertEqual(cnt, 0)
 
@@ -513,28 +380,6 @@ class TaskDistantTest(unittest.TestCase):
     def testEscape2(self):
         """test distant worker (ssh) cmd with non-escaped variable"""
         worker = self._task.shell("export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'", nodes="localhost")
-        # execute
-        self._task.resume()
-        # read result
-        self.assertEqual(worker.node_buffer("localhost"), "foobar")
-
-    def testEscapePdsh(self):
-        """test distant worker (pdsh) cmd with escaped variable"""
-        worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'",
-                handler=None, timeout=None)
-        self.assert_(worker != None)
-        #task.set_info("debug", True)
-        self._task.schedule(worker)
-        # execute
-        self._task.resume()
-        # read result
-        self.assertEqual(worker.node_buffer("localhost"), "$CSTEST")
-
-    def testEscapePdsh2(self):
-        """test distant worker (pdsh) cmd with non-escaped variable"""
-        worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'",
-                handler=None, timeout=None)
-        self._task.schedule(worker)
         # execute
         self._task.resume()
         # read result

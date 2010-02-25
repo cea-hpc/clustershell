@@ -20,7 +20,7 @@ import ClusterShell
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
-from ClusterShell.Worker.Worker import WorkerSimple
+from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
 
 import socket
 
@@ -493,6 +493,15 @@ class TaskLocalTest(unittest.TestCase):
         self.assertEqual(len(task._engine.clients()), 1)
         task.resume()
 
+    def testEnginePorts(self):
+        """test Engine.ports() [private]"""
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("/bin/hostname")
+        self.assert_(worker != None)
+        self.assertEqual(len(task._engine.ports()), 1)
+        task.resume()
+
     def testSimpleCommandAutoclose(self):
         """test simple command (autoclose)"""
         task = task_self()
@@ -606,15 +615,6 @@ class TaskLocalTest(unittest.TestCase):
         task.resume()
         self.assert_(eh.has_ev_read)
 
-    def testTaskScheduleError(self):
-        """test task worker schedule error"""
-        from ClusterShell.Worker.Worker import WorkerError
-        task = task_self()
-        self.assert_(task != None)
-        worker = task.shell("/bin/echo itsme")
-        self.assertRaises(WorkerError, task.schedule, worker)
-        task.abort()
-
     def testWorkerSetKey(self):
         """test worker set_key()"""
         task = task_self()
@@ -655,6 +655,27 @@ class TaskLocalTest(unittest.TestCase):
 
         kth.start()
         task.resume()
+
+    def testShellDelayedIO(self):
+        """test delayed io in event handler"""
+        class TestDelayedHandler(EventHandler):
+            def __init__(self, target_worker=None):
+                self.target_worker = target_worker
+                self.counter = 0
+            def ev_read(self, worker):
+                self.counter += 1
+                if self.counter == 100:
+                    worker.write("another thing to read\n")
+                    worker.set_write_eof()
+            def ev_timer(self, timer):
+                self.target_worker.write("something to read\n" * 300)
+                
+        task = task_self()
+        hdlr = TestDelayedHandler()
+        reader = task.shell("cat", handler=hdlr)
+        timer = task.timer(0.6, handler=TestDelayedHandler(reader))
+        task.resume()
+        self.assertEqual(hdlr.counter, 301)
 
 
 if __name__ == '__main__':
