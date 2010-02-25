@@ -75,8 +75,9 @@ class EngineClient(EngineBaseTimer):
         EngineBaseTimer.__init__(self, timeout, -1, autoclose)
 
         # engine-friendly variables
-        self._events = 0                    # current configured set of interesting
-                                            # events (read, write) for client
+        self._events = 0                    # current configured set of
+                                            # interesting events (read,
+                                            # write) for client
         self._new_events = 0                # new set of interesting events
         self._processing = False            # engine is working on us
 
@@ -232,7 +233,7 @@ class EngineClient(EngineBaseTimer):
 
         # Launch process in non-blocking mode
         proc = Popen(commandlist, bufsize=0, stdin=PIPE, stdout=PIPE,
-                stderr=stderr_setup, close_fds=False, shell=shell, env=full_env)
+            stderr=stderr_setup, close_fds=False, shell=shell, env=full_env)
 
         if self._stderr:
             fcntl.fcntl(proc.stderr, fcntl.F_SETFL,
@@ -321,6 +322,10 @@ class EngineClient(EngineBaseTimer):
 
 
 class EnginePort(EngineClient):
+    """
+    An EnginePort is an abstraction object to deliver messages
+    reliably between tasks.
+    """
 
     class _Msg:
         """Private class representing a port message.
