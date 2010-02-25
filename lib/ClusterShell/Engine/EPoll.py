@@ -43,9 +43,9 @@ import errno
 import select
 import time
 
-from Engine import Engine
-from Engine import EngineNotSupportedError, EngineTimeoutException
-
+from ClusterShell.Engine.Engine import Engine
+from ClusterShell.Engine.Engine import EngineNotSupportedError
+from ClusterShell.Engine.Engine import EngineTimeoutException
 from ClusterShell.Worker.EngineClient import EngineClientEOF
 
 

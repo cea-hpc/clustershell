@@ -41,7 +41,7 @@ ClusterShell worker for executing local commands.
 import os
 import signal
 
-from Worker import WorkerSimple, WorkerBadArgumentError
+from ClusterShell.Worker.Worker import WorkerSimple, WorkerBadArgumentError
 
 
 class WorkerPopen(WorkerSimple):

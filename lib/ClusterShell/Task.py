@@ -60,18 +60,18 @@ import sys
 import threading
 import traceback
 
-from Engine.Engine import EngineAbortException
-from Engine.Engine import EngineTimeoutException
-from Engine.Engine import EngineAlreadyRunningError
-from Engine.Engine import EngineTimer
-from Engine.Factory import PreferredEngine
-from Worker.EngineClient import EnginePort
-from Worker.Ssh import WorkerSsh
-from Worker.Popen import WorkerPopen
+from ClusterShell.Engine.Engine import EngineAbortException
+from ClusterShell.Engine.Engine import EngineTimeoutException
+from ClusterShell.Engine.Engine import EngineAlreadyRunningError
+from ClusterShell.Engine.Engine import EngineTimer
+from ClusterShell.Engine.Factory import PreferredEngine
+from ClusterShell.Worker.EngineClient import EnginePort
+from ClusterShell.Worker.Ssh import WorkerSsh
+from ClusterShell.Worker.Popen import WorkerPopen
 
-from Event import EventHandler
-from MsgTree import MsgTree
-from NodeSet import NodeSet
+from ClusterShell.Event import EventHandler
+from ClusterShell.MsgTree import MsgTree
+from ClusterShell.NodeSet import NodeSet
 
 
 class TaskException(Exception):

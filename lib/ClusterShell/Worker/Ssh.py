@@ -42,10 +42,9 @@ import copy
 import os
 import signal
 
-from EngineClient import EngineClient
-from Worker import DistantWorker, WorkerBadArgumentError
-
 from ClusterShell.NodeSet import NodeSet
+from ClusterShell.Worker.EngineClient import EngineClient
+from ClusterShell.Worker.Worker import DistantWorker, WorkerBadArgumentError
 
 
 class Ssh(EngineClient):

@@ -1,7 +1,7 @@
 2010-02-25 S. Thiell <stephane.thiell@cea.fr>
 
-	* Important code cleaning (some unused imports, duplicate codes, etc.
-	thanks to pylint).
+	* Important code cleaning (use absolute imports, remove some unused
+	imports, remove duplicate code, etc. thanks to pylint).
 
 2010-02-22 S. Thiell <stephane.thiell@cea.fr>
 

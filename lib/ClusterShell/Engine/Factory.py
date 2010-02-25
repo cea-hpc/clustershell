@@ -39,11 +39,11 @@ version of Python and Operating System.
 
 import sys
 
-from Engine import EngineNotSupportedError
+from ClusterShell.Engine.Engine import EngineNotSupportedError
 
 # Available event engines
-from EPoll import EngineEPoll
-from Poll import EnginePoll
+from ClusterShell.Engine.EPoll import EngineEPoll
+from ClusterShell.Engine.Poll import EnginePoll
 
 
 class PreferredEngine(object):

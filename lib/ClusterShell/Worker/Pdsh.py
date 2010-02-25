@@ -44,10 +44,11 @@ import signal
 import sys
 
 from ClusterShell.NodeSet import NodeSet
-
-from EngineClient import EngineClient
-from EngineClient import EngineClientError, EngineClientNotSupportedError
-from Worker import DistantWorker, WorkerError, WorkerBadArgumentError
+from ClusterShell.Worker.EngineClient import EngineClient
+from ClusterShell.Worker.EngineClient import EngineClientError
+from ClusterShell.Worker.EngineClient import EngineClientNotSupportedError
+from ClusterShell.Worker.Worker import DistantWorker
+from ClusterShell.Worker.Worker import WorkerError, WorkerBadArgumentError
 
 
 class WorkerPdsh(EngineClient, DistantWorker):

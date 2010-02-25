@@ -38,8 +38,7 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
-from EngineClient import EngineClient
-
+from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 
 
