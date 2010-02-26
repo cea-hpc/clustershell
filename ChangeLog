@@ -1,3 +1,7 @@
+2010-02-26 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.2 RC 1 released.
+
 2010-02-25 S. Thiell <stephane.thiell@cea.fr>
 
 	* Important code cleaning (use absolute imports, remove some unused
