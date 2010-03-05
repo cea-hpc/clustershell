@@ -1,3 +1,8 @@
+2010-03-05 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/*.py: Do not forget to keep last line and generate an ev_read
+	event when it does not contain EOL (trac ticket #66). Added tests.
+
 2010-02-26 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.2 RC 1 released.
@@ -244,7 +249,7 @@
 
 	* Worker/Pdsh.py: Fix stdout/stderr support.
 
-    * Backport recent 1.1-branch improvements: tests code coverage, also
+	* Backport recent 1.1-branch improvements: tests code coverage, also
 	resulting in some fixes (see 1.1 2009-10-28).
 
 2009-11-09 S. Thiell <stephane.thiell@cea.fr>

@@ -377,6 +377,11 @@ class WorkerSimple(EngineClient, Worker):
         unregistered. This method should handle all termination types
         (normal, forced or on timeout).
         """
+        if not force and self._rbuf:
+            # We still have some read data available in buffer, but no
+            # EOL. Generate a final message before closing.
+            self.worker._on_msgline(self._rbuf)
+
         if self.file_reader != None:
             self.file_reader.close()
         if self.file_writer != None:

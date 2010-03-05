@@ -238,6 +238,18 @@ class TaskDistantTest(unittest.TestCase):
         self.assertEqual(worker2.num_timeout(), 1)
         self.assertEqual(self._task.num_timeout(), 2)
 
+    def testShellEventsReadNoEOL(self):
+        """test triggered events (read without EOL)"""
+        # init worker
+        test_eh = self.__class__.TEventHandlerChecker(self)
+        worker = self._task.shell("/bin/echo -n okay", nodes='localhost', handler=test_eh)
+        self.assert_(worker != None)
+        # run task
+        self._task.resume()
+        # test events received: start, close
+        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_HUP | EV_CLOSE)
+        self.assertEqual(worker.node_buffer("localhost"), "okay")
+
     def testShellEventsNoReadNoTimeout(self):
         """test triggered events (no read, no timeout)"""
         # init worker

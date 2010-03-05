@@ -88,6 +88,11 @@ class WorkerPopen(WorkerSimple):
         unregistered. This method should handle all termination types
         (normal, forced or on timeout).
         """
+        if not force and self._rbuf:
+            # We still have some read data available in buffer, but no
+            # EOL. Generate a final message before closing.
+            self.worker._on_msgline(self._rbuf)
+
         rc = -1
         if force or timeout:
             # check if process has terminated

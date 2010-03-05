@@ -24,8 +24,8 @@ from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
 
 import socket
 
-import thread
 import threading
+import tempfile
 
 
 def _test_print_debug(task, s):
@@ -625,17 +625,29 @@ class TaskLocalTest(unittest.TestCase):
         task.resume()
         self.assert_(task.key_buffer("bar") == "foobar")
 
-    def testWorkerSimple(self):
-        """test WorkerSimple"""
+    def testWorkerSimpleStdin(self):
+        """test WorkerSimple (stdin)"""
         task = task_self()
         self.assert_(task != None)
-
         file_reader = sys.stdin
-        worker = WorkerSimple(file_reader, None, None, "simple", None, 0, True)
+        worker = WorkerSimple(file_reader, None, None, "stdin", None, 0, True)
         self.assert_(worker != None)
-
         task.schedule(worker)
         task.resume()
+
+    def testWorkerSimpleFile(self):
+        """test WorkerSimple (file)"""
+        task = task_self()
+        self.assert_(task != None)
+        # use tempfile
+        tmpfile = tempfile.TemporaryFile()
+        tmpfile.write("one line without EOL")
+        tmpfile.seek(0)
+        worker = WorkerSimple(tmpfile, None, None, "file", None, 0, True)
+        self.assert_(worker != None)
+        task.schedule(worker)
+        task.resume()
+        self.assertEqual(worker.read(), "one line without EOL")
 
     def testInterruptEngine(self):
         """test Engine signal interruption"""
@@ -669,13 +681,24 @@ class TaskLocalTest(unittest.TestCase):
                     worker.set_write_eof()
             def ev_timer(self, timer):
                 self.target_worker.write("something to read\n" * 300)
-                
+
         task = task_self()
         hdlr = TestDelayedHandler()
         reader = task.shell("cat", handler=hdlr)
         timer = task.timer(0.6, handler=TestDelayedHandler(reader))
         task.resume()
         self.assertEqual(hdlr.counter, 301)
+
+    def testSimpleCommandReadNoEOL(self):
+        """test simple command read without EOL"""
+        task = task_self()
+        self.assert_(task != None)
+        # init worker
+        worker = task.shell("/bin/echo -n okay")
+        self.assert_(worker != None)
+        # run task
+        task.resume()
+        self.assertEqual(worker.read(), "okay")
 
 
 if __name__ == '__main__':
