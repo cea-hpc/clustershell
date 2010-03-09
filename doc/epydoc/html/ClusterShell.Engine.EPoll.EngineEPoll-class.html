@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Engine.EPoll.EngineEPoll</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Engine-module.html">Package&nbsp;Engine</a> ::
+        <a href="ClusterShell.Engine.EPoll-module.html">Module&nbsp;EPoll</a> ::
+        Class&nbsp;EngineEPoll
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class EngineEPoll</h1><p class="nomargin-top"><span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_clusters" name="uml_class_diagram_for_clusters">
+<area shape="rect" href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#identifier" title="ClusterShell.Engine.EPoll.EngineEPoll.identifier" alt="" coords="99,433,227,452"/>
+<area shape="rect" href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#__init__" title="Initialize Engine." alt="" coords="99,455,227,473"/>
+<area shape="rect" href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#runloop" title="Run epoll main loop." alt="" coords="99,473,227,492"/>
+<area shape="rect" href="ClusterShell.Engine.EPoll.EngineEPoll-class.html" title="EPoll Engine" alt="" coords="97,416,228,493"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#E_READ" title="ClusterShell.Engine.Engine.Engine.E_READ" alt="" coords="17,28,308,47"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#E_ERROR" title="ClusterShell.Engine.Engine.Engine.E_ERROR" alt="" coords="17,47,308,65"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#E_WRITE" title="ClusterShell.Engine.Engine.Engine.E_WRITE" alt="" coords="17,65,308,84"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#E_ANY" title="ClusterShell.Engine.Engine.Engine.E_ANY" alt="" coords="17,84,308,103"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#clients" title="Get a copy of clients set." alt="" coords="17,105,308,124"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#ports" title="Get a copy of ports set." alt="" coords="17,124,308,143"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#add" title="Add a client to engine." alt="" coords="17,143,308,161"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#remove" title="Remove a client from engine." alt="" coords="17,161,308,180"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#clear" title="Remove all clients." alt="" coords="17,180,308,199"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#register" title="Register an engine client." alt="" coords="17,199,308,217"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#unregister_writer" title="ClusterShell.Engine.Engine.Engine.unregister_writer" alt="" coords="17,217,308,236"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#unregister" title="Unregister a client." alt="" coords="17,236,308,255"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#modify" title="Modify the next loop interest events bitset for a client." alt="" coords="17,255,308,273"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#set_events" title="Set the active interest events bitset for a client." alt="" coords="17,273,308,292"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#set_reading" title="Set client reading state." alt="" coords="17,292,308,311"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#set_reading_error" title="Set client reading error state." alt="" coords="17,311,308,329"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#set_writing" title="Set client writing state." alt="" coords="17,329,308,348"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html#exited" title="Returns True if the engine has exited the runloop once." alt="" coords="17,367,308,385"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.Engine-class.html" title="Interface for ClusterShell engine." alt="" coords="16,11,309,387"/>
+</map>
+  <img src="uml_class_diagram_for_clusters.png" alt='' usemap="#uml_class_diagram_for_clusters" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>EPoll Engine</p>
+  <p>ClusterShell Engine class using the select.epoll mechanism.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">info</span>)</span><br />
+      Initialize Engine.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#_register_specific" class="summary-sig-name" onclick="show_private();">_register_specific</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">fd</span>,
+        <span class="summary-sig-arg">event</span>)</span><br />
+      Engine-specific fd registering.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll._register_specific">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#_unregister_specific" class="summary-sig-name" onclick="show_private();">_unregister_specific</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">fd</span>,
+        <span class="summary-sig-arg">ev_is_set</span>)</span><br />
+      Engine-specific fd unregistering.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll._unregister_specific">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#_modify_specific" class="summary-sig-name" onclick="show_private();">_modify_specific</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">fd</span>,
+        <span class="summary-sig-arg">event</span>,
+        <span class="summary-sig-arg">setvalue</span>)</span><br />
+      Engine-specific modifications after a interesting event change for a 
+      file descriptor.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll._modify_specific">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html#runloop" class="summary-sig-name">runloop</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">timeout</span>)</span><br />
+      Run epoll main loop.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll.runloop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.Engine-class.html">Engine.Engine</a></code></b>:
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#abort">abort</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#add">add</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#add_timer">add_timer</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#clear">clear</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#clients">clients</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#exited">exited</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#fire_timers">fire_timers</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#modify">modify</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#ports">ports</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#register">register</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#remove">remove</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#remove_timer">remove_timer</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#run">run</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#set_events">set_events</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#set_reading">set_reading</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#set_reading_error">set_reading_error</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#set_writing">set_writing</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#snoop_ports">snoop_ports</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#start_all">start_all</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#start_ports">start_ports</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#unregister">unregister</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#unregister_writer">unregister_writer</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.Engine-class.html">Engine.Engine</a></code></b> (private):
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#_debug" onclick="show_private();">_debug</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#_fd2client" onclick="show_private();">_fd2client</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="identifier"></a><span class="summary-name">identifier</span> = <code title="'epoll'"><code class="variable-quote">'</code><code class="variable-string">epoll</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.Engine-class.html">Engine.Engine</a></code></b>:
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#E_ANY">E_ANY</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#E_ERROR">E_ERROR</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#E_READ">E_READ</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.Engine-class.html#E_WRITE">E_WRITE</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">info</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize Engine.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.Engine-class.html#__init__">Engine.Engine.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_register_specific"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_register_specific</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">fd</span>,
+        <span class="sig-arg">event</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll._register_specific">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Engine-specific fd registering. Called by Engine register.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.Engine-class.html#_register_specific" onclick="show_private();">Engine.Engine._register_specific</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_unregister_specific"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_unregister_specific</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">fd</span>,
+        <span class="sig-arg">ev_is_set</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll._unregister_specific">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Engine-specific fd unregistering. Called by Engine unregister.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.Engine-class.html#_unregister_specific" onclick="show_private();">Engine.Engine._unregister_specific</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_modify_specific"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_modify_specific</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">fd</span>,
+        <span class="sig-arg">event</span>,
+        <span class="sig-arg">setvalue</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll._modify_specific">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Engine-specific modifications after a interesting event change for a 
+  file descriptor. Called automatically by Engine set_events(). For the 
+  epoll engine, it modifies the event mask associated to a file 
+  descriptor.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.Engine-class.html#_modify_specific" onclick="show_private();">Engine.Engine._modify_specific</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="runloop"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">runloop</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">timeout</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Engine.EPoll-pysrc.html#EngineEPoll.runloop">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Run epoll main loop.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.Engine-class.html#runloop">Engine.Engine.runloop</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:33 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

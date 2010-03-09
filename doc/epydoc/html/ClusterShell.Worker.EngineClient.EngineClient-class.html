@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Worker.EngineClient.EngineClient</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Worker-module.html">Package&nbsp;Worker</a> ::
+        <a href="ClusterShell.Worker.EngineClient-module.html">Module&nbsp;EngineClient</a> ::
+        Class&nbsp;EngineClient
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Worker.EngineClient.EngineClient-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class EngineClient</h1><p class="nomargin-top"><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_clusters_34" name="uml_class_diagram_for_clusters_34">
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#__init__" title="Initializer." alt="" coords="153,148,436,167"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#error_fileno" title="Return the standard error reader file descriptor as an integer." alt="" coords="153,167,436,185"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#reader_fileno" title="Return the reader file descriptor as an integer." alt="" coords="153,185,436,204"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#writer_fileno" title="Return the writer file descriptor as an integer." alt="" coords="153,204,436,223"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html" title="Abstract class EngineClient." alt="" coords="152,123,437,224"/>
+<area shape="rect" href="ClusterShell.Worker.Pdsh.WorkerPdsh-class.html" title="ClusterShell pdsh&#45;based worker Class." alt="" coords="16,253,136,280"/>
+<area shape="rect" href="ClusterShell.Worker.Ssh.Ssh-class.html" title="Ssh EngineClient." alt="" coords="187,253,251,280"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html" title="Implements a simple Worker being itself an EngineClient." alt="" coords="301,253,443,280"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EnginePort-class.html" title="An EnginePort is an abstraction object to deliver messages reliably between tasks." alt="" coords="493,253,571,280"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#invalidate" title="Invalidates a timer object, stopping it from ever firing again." alt="" coords="176,36,413,55"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#is_valid" title="Returns a boolean value that indicates whether an EngineTimer object is &#160;valid and able to fire." alt="" coords="176,55,413,73"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#set_nextfire" title="Set the next firing delay in seconds for an EngineTimer object." alt="" coords="176,73,413,92"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html" title="Abstract class for ClusterShell&#39;s engine timer." alt="" coords="175,11,415,93"/>
+<area shape="rect" href="ClusterShell.Worker.Ssh.Scp-class.html" title="Scp EngineClient." alt="" coords="187,309,251,336"/>
+<area shape="rect" href="ClusterShell.Worker.Popen.WorkerPopen-class.html" title="Implements the Popen Worker." alt="" coords="305,309,439,336"/>
+</map>
+  <img src="uml_class_diagram_for_clusters_34.png" alt='' usemap="#uml_class_diagram_for_clusters_34" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Abstract class EngineClient.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>,
+        <span class="summary-sig-arg">stderr</span>,
+        <span class="summary-sig-arg">timeout</span>,
+        <span class="summary-sig-arg">autoclose</span>)</span><br />
+      Initializer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_fire" class="summary-sig-name" onclick="show_private();">_fire</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Fire timeout timer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._fire">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_start" class="summary-sig-name" onclick="show_private();">_start</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Starts client and returns client instance as a convenience.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._start">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="error_fileno"></a><span class="summary-sig-name">error_fileno</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the standard error reader file descriptor as an integer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient.error_fileno">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reader_fileno"></a><span class="summary-sig-name">reader_fileno</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the reader file descriptor as an integer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient.reader_fileno">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="writer_fileno"></a><span class="summary-sig-name">writer_fileno</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the writer file descriptor as an integer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient.writer_fileno">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_close" class="summary-sig-name" onclick="show_private();">_close</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">force</span>,
+        <span class="summary-sig-arg">timeout</span>)</span><br />
+      Close client.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_set_reading"></a><span class="summary-sig-name">_set_reading</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Set reading state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._set_reading">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_set_reading_error"></a><span class="summary-sig-name">_set_reading_error</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Set error reading state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._set_reading_error">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_set_writing"></a><span class="summary-sig-name">_set_writing</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Set writing state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._set_writing">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_read"></a><span class="summary-sig-name">_read</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Read data from process.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._read">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_readerr"></a><span class="summary-sig-name">_readerr</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Read error data from process.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._readerr">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_read" class="summary-sig-name" onclick="show_private();">_handle_read</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Handle a read notification.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._handle_read">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_error" class="summary-sig-name" onclick="show_private();">_handle_error</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Handle a stderr read notification.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._handle_error">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_write" class="summary-sig-name" onclick="show_private();">_handle_write</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Handle a write notification.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._handle_write">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_exec_nonblock"></a><span class="summary-sig-name">_exec_nonblock</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">commandlist</span>,
+        <span class="summary-sig-arg">shell</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">env</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Utility method to launch a command with stdin/stdout file descriptors
+      configured in non-blocking mode.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._exec_nonblock">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_readlines"></a><span class="summary-sig-name">_readlines</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Utility method to read client lines</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._readlines">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_readerrlines"></a><span class="summary-sig-name">_readerrlines</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Utility method to read client lines</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._readerrlines">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_write"></a><span class="summary-sig-name">_write</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">buf</span>)</span><br />
+      Add some data to be written to the client.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._write">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_set_write_eof"></a><span class="summary-sig-name">_set_write_eof</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._set_write_eof">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_close_writer"></a><span class="summary-sig-name">_close_writer</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._close_writer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">Engine.Engine.EngineBaseTimer</a></code></b>:
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#invalidate">invalidate</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#is_valid">is_valid</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#set_nextfire">set_nextfire</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">Engine.Engine.EngineBaseTimer</a></code></b> (private):
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#_set_engine" onclick="show_private();">_set_engine</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">worker</span>,
+        <span class="sig-arg">stderr</span>,
+        <span class="sig-arg">timeout</span>,
+        <span class="sig-arg">autoclose</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initializer. Should be called from derived classes.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#__init__">Engine.Engine.EngineBaseTimer.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_fire"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_fire</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._fire">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Fire timeout timer.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#_fire" onclick="show_private();">Engine.Engine.EngineBaseTimer._fire</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_start"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_start</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._start">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Starts client and returns client instance as a convenience. Derived 
+  classes (except EnginePort) must implement.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_close"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_close</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">force</span>,
+        <span class="sig-arg">timeout</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Close client. Called by the engine after client has been unregistered.
+  This method should handle all termination types (normal, forced or on 
+  timeout). Derived classes must implement.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_handle_read"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_handle_read</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._handle_read">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Handle a read notification. Called by the engine as the result of an 
+  event indicating that a read is available.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_handle_error"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_handle_error</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._handle_error">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Handle a stderr read notification. Called by the engine as the result 
+  of an event indicating that a read is available on stderr.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_handle_write"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_handle_write</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EngineClient._handle_write">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Handle a write notification. Called by the engine as the result of an 
+  event indicating that a write can be performed now.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:35 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

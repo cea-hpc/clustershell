@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>clush.ClushConfig</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="clush-module.html">Module&nbsp;clush</a> ::
+        Class&nbsp;ClushConfig
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="clush.ClushConfig-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class ClushConfig</h1><p class="nomargin-top"><span class="codelink"><a href="clush-pysrc.html#ClushConfig">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_clush_cl" name="uml_class_diagram_for_clush_cl">
+<area shape="rect" href="clush.ClushConfig-class.html#main_defaults" title="clush.ClushConfig.main_defaults" alt="" coords="43,471,280,489"/>
+<area shape="rect" href="clush.ClushConfig-class.html#__init__" title="clush.ClushConfig.__init__" alt="" coords="43,492,280,511"/>
+<area shape="rect" href="clush.ClushConfig-class.html#verbose_print" title="clush.ClushConfig.verbose_print" alt="" coords="43,511,280,529"/>
+<area shape="rect" href="clush.ClushConfig-class.html#set_main" title="clush.ClushConfig.set_main" alt="" coords="43,529,280,548"/>
+<area shape="rect" href="clush.ClushConfig-class.html#getint" title="clush.ClushConfig.getint" alt="" coords="43,548,280,567"/>
+<area shape="rect" href="clush.ClushConfig-class.html#getfloat" title="clush.ClushConfig.getfloat" alt="" coords="43,567,280,585"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_verbosity" title="clush.ClushConfig.get_verbosity" alt="" coords="43,585,280,604"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_fanout" title="clush.ClushConfig.get_fanout" alt="" coords="43,604,280,623"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_connect_timeout" title="clush.ClushConfig.get_connect_timeout" alt="" coords="43,623,280,641"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_command_timeout" title="clush.ClushConfig.get_command_timeout" alt="" coords="43,641,280,660"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_ssh_user" title="clush.ClushConfig.get_ssh_user" alt="" coords="43,660,280,679"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_ssh_path" title="clush.ClushConfig.get_ssh_path" alt="" coords="43,679,280,697"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_ssh_options" title="clush.ClushConfig.get_ssh_options" alt="" coords="43,697,280,716"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_nodes_all_command" title="clush.ClushConfig.get_nodes_all_command" alt="" coords="43,716,280,735"/>
+<area shape="rect" href="clush.ClushConfig-class.html#get_nodes_group_command" title="clush.ClushConfig.get_nodes_group_command" alt="" coords="43,735,280,753"/>
+<area shape="rect" href="clush.ClushConfig-class.html" title="Config class for clush (specialized ConfigParser)" alt="" coords="41,453,281,755"/>
+<area shape="rect" href="javascript:void(0);" title="Get an option value for a given section." alt="" coords="17,385,305,404"/>
+<area shape="rect" href="javascript:void(0);" title="Return a list of tuples with (name, value) for each option in the section." alt="" coords="17,404,305,423"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.ConfigParser" alt="" coords="16,360,307,424"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.RawConfigParser.SECTCRE" alt="" coords="55,28,268,47"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.RawConfigParser.OPTCRE" alt="" coords="55,47,268,65"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.RawConfigParser.defaults" alt="" coords="55,68,268,87"/>
+<area shape="rect" href="javascript:void(0);" title="Return a list of section names, excluding [DEFAULT]" alt="" coords="55,87,268,105"/>
+<area shape="rect" href="javascript:void(0);" title="Create a new section in the configuration." alt="" coords="55,105,268,124"/>
+<area shape="rect" href="javascript:void(0);" title="Indicate whether the named section is present in the configuration." alt="" coords="55,124,268,143"/>
+<area shape="rect" href="javascript:void(0);" title="Return a list of option names for the given section name." alt="" coords="55,143,268,161"/>
+<area shape="rect" href="javascript:void(0);" title="Read and parse a filename or a list of filenames." alt="" coords="55,161,268,180"/>
+<area shape="rect" href="javascript:void(0);" title="Like read() but the argument must be a file&#45;like object." alt="" coords="55,180,268,199"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.RawConfigParser.getboolean" alt="" coords="55,199,268,217"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.RawConfigParser.optionxform" alt="" coords="55,217,268,236"/>
+<area shape="rect" href="javascript:void(0);" title="Check for the existence of a given option in a given section." alt="" coords="55,236,268,255"/>
+<area shape="rect" href="javascript:void(0);" title="Set an option." alt="" coords="55,255,268,273"/>
+<area shape="rect" href="javascript:void(0);" title="Write an .ini&#45;format representation of the configuration state." alt="" coords="55,273,268,292"/>
+<area shape="rect" href="javascript:void(0);" title="Remove an option." alt="" coords="55,292,268,311"/>
+<area shape="rect" href="javascript:void(0);" title="Remove a file section." alt="" coords="55,311,268,329"/>
+<area shape="rect" href="javascript:void(0);" title="ConfigParser.RawConfigParser" alt="" coords="53,11,269,331"/>
+</map>
+  <img src="uml_class_diagram_for_clush_cl.png" alt='' usemap="#uml_class_diagram_for_clush_cl" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Config class for clush (specialized ConfigParser)</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="clush.ClushConfig-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="verbose_print"></a><span class="summary-sig-name">verbose_print</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">level</span>,
+        <span class="summary-sig-arg">message</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.verbose_print">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_main"></a><span class="summary-sig-name">set_main</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">option</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.set_main">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="clush.ClushConfig-class.html#getint" class="summary-sig-name">getint</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">section</span>,
+        <span class="summary-sig-arg">option</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.getint">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="clush.ClushConfig-class.html#getfloat" class="summary-sig-name">getfloat</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">section</span>,
+        <span class="summary-sig-arg">option</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.getfloat">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_optional"></a><span class="summary-sig-name">_get_optional</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">section</span>,
+        <span class="summary-sig-arg">option</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig._get_optional">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_verbosity"></a><span class="summary-sig-name">get_verbosity</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_verbosity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_fanout"></a><span class="summary-sig-name">get_fanout</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_fanout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_connect_timeout"></a><span class="summary-sig-name">get_connect_timeout</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_connect_timeout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_command_timeout"></a><span class="summary-sig-name">get_command_timeout</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_command_timeout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_ssh_user"></a><span class="summary-sig-name">get_ssh_user</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_ssh_user">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_ssh_path"></a><span class="summary-sig-name">get_ssh_path</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_ssh_path">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_ssh_options"></a><span class="summary-sig-name">get_ssh_options</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_ssh_options">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_nodes_all_command"></a><span class="summary-sig-name">get_nodes_all_command</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_nodes_all_command">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_nodes_group_command"></a><span class="summary-sig-name">get_nodes_group_command</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ClushConfig.get_nodes_group_command">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.ConfigParser</code></b>:
+      <code>get</code>,
+      <code>items</code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.ConfigParser</code></b> (private):
+      <code>_interpolate</code>,
+      <code>_interpolation_replace</code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.RawConfigParser</code></b>:
+      <code>add_section</code>,
+      <code>defaults</code>,
+      <code>getboolean</code>,
+      <code>has_option</code>,
+      <code>has_section</code>,
+      <code>options</code>,
+      <code>optionxform</code>,
+      <code>read</code>,
+      <code>readfp</code>,
+      <code>remove_option</code>,
+      <code>remove_section</code>,
+      <code>sections</code>,
+      <code>set</code>,
+      <code>write</code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.RawConfigParser</code></b> (private):
+      <code>_get</code>,
+      <code>_read</code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.ClushConfig-class.html#main_defaults" class="summary-name">main_defaults</a> = <code title="{'command_timeout': '0',
+ 'connect_timeout': '30',
+ 'fanout': '64',
+ 'history_size': '100',
+ 'verbosity': '1'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">command_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">0</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">connect_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">3</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.ConfigParser</code></b> (private):
+      <code>_KEYCRE</code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.RawConfigParser</code></b>:
+      <code>OPTCRE</code>,
+      <code>SECTCRE</code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>ConfigParser.RawConfigParser</code></b> (private):
+      <code>_boolean_states</code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="clush-pysrc.html#ClushConfig.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        ConfigParser.RawConfigParser.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getint"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getint</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">section</span>,
+        <span class="sig-arg">option</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="clush-pysrc.html#ClushConfig.getint">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        ConfigParser.RawConfigParser.getint
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getfloat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getfloat</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">section</span>,
+        <span class="sig-arg">option</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="clush-pysrc.html#ClushConfig.getfloat">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        ConfigParser.RawConfigParser.getfloat
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="main_defaults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">main_defaults</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">command_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">0</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">connect_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">30</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">fanout</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">64</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">history_size</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">100</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">verbosity</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">1</code><code class="variable-quote">'</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:36 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

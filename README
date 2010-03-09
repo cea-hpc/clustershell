@@ -8,6 +8,16 @@ mechanisms.
 
 This is the source tarball. When possible, please use the RPM distribution.
 
+ ----------------------
+ ClusterShell 1.2 Tools
+ ----------------------
+
+Three CLI tools are also provided with ClusterShell:
+
+ * clush - execute cluster commands in parallel with readable output format
+ * clubak - improved dshbak to gather and sort dsh-like outputs
+ * nodeset - compute advanced nodeset operations
+
  -------------------
  Requirements (v1.2)
  -------------------
@@ -99,7 +109,7 @@ Trac wiki and issue tracking system:
 
 ClusterShell was first created for Shine, the Lustre Administration Utility:
 
-    http://sourceforge.net/projects/lustre-shine
+    http://lustre-shine.sourceforge.net
 
  ------
  Author
@@ -107,4 +117,5 @@ ClusterShell was first created for Shine, the Lustre Administration Utility:
 
 Stephane Thiell <stephane.thiell@cea.fr>
 
-CEA/DAM 2010
+CEA/DAM 2010 - http://www-hpc.cea.fr/
+

@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.MsgTree</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        Module&nbsp;MsgTree
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.MsgTree-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="ClusterShell.MsgTree-module.html">Module ClusterShell.MsgTree</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment">#  Contributor: Stephane THIELL &lt;stephane.thiell@cea.fr&gt;</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of the ClusterShell library.</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># This software is governed by the CeCILL-C license under French law and</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># abiding by the rules of distribution of free software.  You can  use,</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># modify and/ or redistribute the software under the terms of the CeCILL-C</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># license as circulated by CEA, CNRS and INRIA at the following URL</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># "http://www.cecill.info".</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># As a counterpart to the access to the source code and  rights to copy,</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># modify and redistribute granted by the license, users are provided only</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># with a limited warranty  and the software's author,  the holder of the</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># economic rights,  and the successive licensors  have only  limited</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># liability.</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment"># In this respect, the user's attention is drawn to the risks associated</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment"># with loading,  using,  modifying and/or developing or reproducing the</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-comment"># software by the user in light of its specific status of free software,</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-comment"># that may mean  that it is complicated to manipulate,  and  that  also</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-comment"># therefore means  that it is reserved for developers  and  experienced</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-comment"># professionals having in-depth computer knowledge. Users are therefore</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-comment"># encouraged to load and test the software's suitability as regards their</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-comment"># requirements in conditions enabling the security of their systems and/or</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-comment"># data to be ensured and,  more generally, to use and operate it in the</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-comment"># same conditions as regards security.</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-comment"># The fact that you are presently reading this means that you have had</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-comment"># knowledge of the CeCILL-C license and that you accept its terms.</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-comment"># $Id: MsgTree.py 231 2010-02-22 22:48:35Z st-cea $</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">MsgTree</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">ClusterShell message tree module. The purpose of MsgTree is to</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">provide a shared message tree for storing message lines received</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">from ClusterShell Workers (for example, from remote cluster</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">commands). It should be efficient, in term of compute power and memory</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring">consumption, especially when remote messages are the same.</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">itertools</tt> <tt class="py-keyword">import</tt> <tt class="py-name">imap</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">operator</tt> <tt class="py-keyword">import</tt> <tt class="py-name">itemgetter</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem"></a><div id="MsgTreeElem-def"><a name="L49"></a><tt class="py-lineno"> 49</tt> <a class="py-toggle" href="#" id="MsgTreeElem-toggle" onclick="return toggle('MsgTreeElem');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html">MsgTreeElem</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MsgTreeElem-expanded"><a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">    Class representing an element of the MsgTree and its associated</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">    message. Object of this class are returned by the various MsgTree</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">    methods like messages() or walk(). The object can then be used as</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">    an iterator over the message lines or casted into a string.</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="MsgTreeElem.__init__"></a><div id="MsgTreeElem.__init__-def"><a name="L56"></a><tt class="py-lineno"> 56</tt> <a class="py-toggle" href="#" id="MsgTreeElem.__init__-toggle" onclick="return toggle('MsgTreeElem.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">msgline</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">parent</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.__init__-expanded"><a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">        Initialize message tree element.</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-comment"># structure</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parent</tt> <tt class="py-op">=</tt> <tt class="py-name">parent</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">children</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-comment"># content</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">msgline</tt> <tt class="py-op">=</tt> <tt class="py-name">msgline</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Method ClusterShell.MsgTree.MsgTree.keys()=ClusterShell.MsgTree.MsgTree-class.html#keys"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-0', 'keys', 'link-0');">keys</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">    </tt>
+<a name="MsgTreeElem.__len__"></a><div id="MsgTreeElem.__len__-def"><a name="L67"></a><tt class="py-lineno"> 67</tt> <a class="py-toggle" href="#" id="MsgTreeElem.__len__-toggle" onclick="return toggle('MsgTreeElem.__len__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#__len__">__len__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.__len__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.__len__-expanded"><a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-docstring">"""Length of whole message string."""</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem.__eq__"></a><div id="MsgTreeElem.__eq__-def"><a name="L71"></a><tt class="py-lineno"> 71</tt> <a class="py-toggle" href="#" id="MsgTreeElem.__eq__-toggle" onclick="return toggle('MsgTreeElem.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.__eq__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.__eq__-expanded"><a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-docstring">"""Comparison method compares whole message strings."""</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem._shift"></a><div id="MsgTreeElem._shift-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="MsgTreeElem._shift-toggle" onclick="return toggle('MsgTreeElem._shift');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#_shift">_shift</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">,</tt> <tt class="py-param">target_elem</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem._shift-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem._shift-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-docstring">"""Shift one of our key to specified target element."""</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-1" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-1', 'keys', 'link-0');">keys</a></tt> <tt class="py-keyword">and</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-2', 'keys', 'link-0');">keys</a></tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">            <tt class="py-name">shifting</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-3', 'keys', 'link-0');">keys</a></tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-4', 'keys', 'link-0');">keys</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-name">shifting</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-name">key</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-5', 'keys', 'link-0');">keys</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-6', 'keys', 'link-0');">keys</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Method ClusterShell.NodeSet.NodeSet.difference_update()=ClusterShell.NodeSet.NodeSet-class.html#difference_update,Method ClusterShell.NodeSet.RangeSet.difference_update()=ClusterShell.NodeSet.RangeSet-class.html#difference_update"><a title="ClusterShell.NodeSet.NodeSet.difference_update
+ClusterShell.NodeSet.RangeSet.difference_update" class="py-name" href="#" onclick="return doclink('link-7', 'difference_update', 'link-7');">difference_update</a></tt><tt class="py-op">(</tt><tt class="py-name">shifting</tt><tt class="py-op">)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">target_elem</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-8', 'keys', 'link-0');">keys</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-name">target_elem</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-9', 'keys', 'link-0');">keys</a></tt> <tt class="py-op">=</tt> <tt class="py-name">shifting</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-name">target_elem</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-10', 'keys', 'link-0');">keys</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Method ClusterShell.NodeSet.NodeSet.update()=ClusterShell.NodeSet.NodeSet-class.html#update,Method ClusterShell.NodeSet.RangeSet.update()=ClusterShell.NodeSet.RangeSet-class.html#update,Method clush.RunTimer.update()=clush.RunTimer-class.html#update"><a title="ClusterShell.NodeSet.NodeSet.update
+ClusterShell.NodeSet.RangeSet.update
+clush.RunTimer.update" class="py-name" href="#" onclick="return doclink('link-11', 'update', 'link-11');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">shifting</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">target_elem</tt> </tt>
+</div><a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem.__getitem__"></a><div id="MsgTreeElem.__getitem__-def"><a name="L92"></a><tt class="py-lineno"> 92</tt> <a class="py-toggle" href="#" id="MsgTreeElem.__getitem__-toggle" onclick="return toggle('MsgTreeElem.__getitem__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#__getitem__">__getitem__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">i</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.__getitem__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.__getitem__-expanded"><a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method ClusterShell.MsgTree.MsgTreeElem.lines()=ClusterShell.MsgTree.MsgTreeElem-class.html#lines"><a title="ClusterShell.MsgTree.MsgTreeElem.lines" class="py-name" href="#" onclick="return doclink('link-12', 'lines', 'link-12');">lines</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-name">i</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem.__iter__"></a><div id="MsgTreeElem.__iter__-def"><a name="L95"></a><tt class="py-lineno"> 95</tt> <a class="py-toggle" href="#" id="MsgTreeElem.__iter__-toggle" onclick="return toggle('MsgTreeElem.__iter__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#__iter__">__iter__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.__iter__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.__iter__-expanded"><a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-docstring">"""Iterate over message lines starting from this tree element."""</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-comment"># no msgline in root element</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">msgline</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-comment"># trace the message path</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-name">path</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">msgline</tt><tt class="py-op">]</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">        <tt class="py-name">parent</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">parent</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">parent</tt><tt class="py-op">.</tt><tt class="py-name">msgline</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt class="py-name">path</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method ClusterShell.MsgTree.MsgTreeElem.append()=ClusterShell.MsgTree.MsgTreeElem-class.html#append"><a title="ClusterShell.MsgTree.MsgTreeElem.append" class="py-name" href="#" onclick="return doclink('link-13', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt class="py-name">parent</tt><tt class="py-op">.</tt><tt class="py-name">msgline</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-name">parent</tt> <tt class="py-op">=</tt> <tt class="py-name">parent</tt><tt class="py-op">.</tt><tt class="py-name">parent</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-comment"># rewind path</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">path</tt><tt class="py-op">:</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">pop</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem.lines"></a><div id="MsgTreeElem.lines-def"><a name="L110"></a><tt class="py-lineno">110</tt> <a class="py-toggle" href="#" id="MsgTreeElem.lines-toggle" onclick="return toggle('MsgTreeElem.lines');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#lines">lines</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.lines-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.lines-expanded"><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-docstring">        Get the whole message lines iterator from this tree element.</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">iter</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">    <tt class="py-name">splitlines</tt> <tt class="py-op">=</tt> <tt id="link-14" class="py-name"><a title="ClusterShell.MsgTree.MsgTreeElem.lines" class="py-name" href="#" onclick="return doclink('link-14', 'lines', 'link-12');">lines</a></tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem.message"></a><div id="MsgTreeElem.message-def"><a name="L118"></a><tt class="py-lineno">118</tt> <a class="py-toggle" href="#" id="MsgTreeElem.message-toggle" onclick="return toggle('MsgTreeElem.message');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#message">message</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.message-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.message-expanded"><a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-docstring">        Get the whole message buffer from this tree element.</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-comment"># concat buffers</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">'\n'</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Method ClusterShell.Task.Task.join()=ClusterShell.Task.Task-class.html#join"><a title="ClusterShell.Task.Task.join" class="py-name" href="#" onclick="return doclink('link-15', 'join', 'link-15');">join</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="ClusterShell.MsgTree.MsgTreeElem.lines" class="py-name" href="#" onclick="return doclink('link-16', 'lines', 'link-12');">lines</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt id="link-17" class="py-name" targets="Method ClusterShell.NodeSet.NodeSet.__str__()=ClusterShell.NodeSet.NodeSet-class.html#__str__,Method ClusterShell.NodeSet.RangeSet.__str__()=ClusterShell.NodeSet.RangeSet-class.html#__str__,Method clush.ClushConfigError.__str__()=clush.ClushConfigError-class.html#__str__"><a title="ClusterShell.NodeSet.NodeSet.__str__
+ClusterShell.NodeSet.RangeSet.__str__
+clush.ClushConfigError.__str__" class="py-name" href="#" onclick="return doclink('link-17', '__str__', 'link-17');">__str__</a></tt> <tt class="py-op">=</tt> <tt id="link-18" class="py-name" targets="Method ClusterShell.MsgTree.MsgTreeElem.message()=ClusterShell.MsgTree.MsgTreeElem-class.html#message"><a title="ClusterShell.MsgTree.MsgTreeElem.message" class="py-name" href="#" onclick="return doclink('link-18', 'message', 'link-18');">message</a></tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"> </tt>
+<a name="MsgTreeElem.append"></a><div id="MsgTreeElem.append-def"><a name="L127"></a><tt class="py-lineno">127</tt> <a class="py-toggle" href="#" id="MsgTreeElem.append-toggle" onclick="return toggle('MsgTreeElem.append');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTreeElem-class.html#append">append</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">,</tt> <tt class="py-param">msgline</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTreeElem.append-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTreeElem.append-expanded"><a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"><tt class="py-docstring">        A new message line is coming, append it to the tree element</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"><tt class="py-docstring">        with associated source key. Called by MsgTree.add().</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"><tt class="py-docstring">        Return corresponding newly created MsgTreeElem.</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-comment"># create new child element and shift down the key</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method ClusterShell.MsgTree.MsgTreeElem._shift()=ClusterShell.MsgTree.MsgTreeElem-class.html#_shift"><a title="ClusterShell.MsgTree.MsgTreeElem._shift" class="py-name" href="#" onclick="return doclink('link-19', '_shift', 'link-19');">_shift</a></tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">children</tt><tt class="py-op">.</tt><tt class="py-name">setdefault</tt><tt class="py-op">(</tt><tt class="py-name">msgline</tt><tt class="py-op">,</tt> \ </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">                                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">(</tt><tt class="py-name">msgline</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree"></a><div id="MsgTree-def"><a name="L138"></a><tt class="py-lineno">138</tt> <a class="py-toggle" href="#" id="MsgTree-toggle" onclick="return toggle('MsgTree');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html">MsgTree</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MsgTree-expanded"><a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring">    A MsgTree object maps key objects to multi-lines messages.</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring">    MsgTree's are mutable objects. Keys are almost arbitrary values</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">    (must be hashable). Message lines are organized as a tree</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">    internally. MsgTree provides low memory consumption especially</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-docstring">    on a cluster when all nodes return similar messages. Also,</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"><tt class="py-docstring">    the gathering of messages is done automatically.</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.__init__"></a><div id="MsgTree.__init__-def"><a name="L148"></a><tt class="py-lineno">148</tt> <a class="py-toggle" href="#" id="MsgTree.__init__-toggle" onclick="return toggle('MsgTree.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.__init__-expanded"><a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-comment"># root element of MsgTree</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_root</tt> <tt class="py-op">=</tt> <tt id="link-20" class="py-name" targets="Class ClusterShell.MsgTree.MsgTreeElem=ClusterShell.MsgTree.MsgTreeElem-class.html"><a title="ClusterShell.MsgTree.MsgTreeElem" class="py-name" href="#" onclick="return doclink('link-20', 'MsgTreeElem', 'link-20');">MsgTreeElem</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-comment"># dict of keys to MsgTreeElem</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+</div><a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.clear"></a><div id="MsgTree.clear-def"><a name="L154"></a><tt class="py-lineno">154</tt> <a class="py-toggle" href="#" id="MsgTree.clear-toggle" onclick="return toggle('MsgTree.clear');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#clear">clear</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.clear-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.clear-expanded"><a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt class="py-docstring">"""Remove all items from the MsgTree."""</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_root</tt> <tt class="py-op">=</tt> <tt id="link-21" class="py-name"><a title="ClusterShell.MsgTree.MsgTreeElem" class="py-name" href="#" onclick="return doclink('link-21', 'MsgTreeElem', 'link-20');">MsgTreeElem</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Method ClusterShell.Engine.Engine.Engine.clear()=ClusterShell.Engine.Engine.Engine-class.html#clear,Method ClusterShell.Engine.Engine._EngineTimerQ.clear()=ClusterShell.Engine.Engine._EngineTimerQ-class.html#clear,Method ClusterShell.MsgTree.MsgTree.clear()=ClusterShell.MsgTree.MsgTree-class.html#clear,Method ClusterShell.NodeSet.NodeSet.clear()=ClusterShell.NodeSet.NodeSet-class.html#clear,Method ClusterShell.NodeSet.RangeSet.clear()=ClusterShell.NodeSet.RangeSet-class.html#clear"><a title="ClusterShell.Engine.Engine.Engine.clear
+ClusterShell.Engine.Engine._EngineTimerQ.clear
+ClusterShell.MsgTree.MsgTree.clear
+ClusterShell.NodeSet.NodeSet.clear
+ClusterShell.NodeSet.RangeSet.clear" class="py-name" href="#" onclick="return doclink('link-22', 'clear', 'link-22');">clear</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.__len__"></a><div id="MsgTree.__len__-def"><a name="L159"></a><tt class="py-lineno">159</tt> <a class="py-toggle" href="#" id="MsgTree.__len__-toggle" onclick="return toggle('MsgTree.__len__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#__len__">__len__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.__len__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.__len__-expanded"><a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return the number of keys contained in the MsgTree."""</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.__getitem__"></a><div id="MsgTree.__getitem__-def"><a name="L163"></a><tt class="py-lineno">163</tt> <a class="py-toggle" href="#" id="MsgTree.__getitem__-toggle" onclick="return toggle('MsgTree.__getitem__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#__getitem__">__getitem__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.__getitem__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.__getitem__-expanded"><a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return the message of MsgTree with specified key. Raises a</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"><tt class="py-docstring">        KeyError if key is not in the MsgTree."""</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">[</tt><tt class="py-name">key</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.get"></a><div id="MsgTree.get-def"><a name="L168"></a><tt class="py-lineno">168</tt> <a class="py-toggle" href="#" id="MsgTree.get-toggle" onclick="return toggle('MsgTree.get');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#get">get</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">,</tt> <tt class="py-param">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.get-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.get-expanded"><a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"><tt class="py-docstring">        Return the message for key if key is in the MsgTree, else default.</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"><tt class="py-docstring">        If default is not given, it defaults to None, so that this method</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line"><tt class="py-docstring">        never raises a KeyError.</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Method ClusterShell.MsgTree.MsgTree.get()=ClusterShell.MsgTree.MsgTree-class.html#get,Method ClusterShell.Worker.EngineClient.EnginePort._Msg.get()=ClusterShell.Worker.EngineClient.EnginePort._Msg-class.html#get"><a title="ClusterShell.MsgTree.MsgTree.get
+ClusterShell.Worker.EngineClient.EnginePort._Msg.get" class="py-name" href="#" onclick="return doclink('link-23', 'get', 'link-23');">get</a></tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">,</tt> <tt id="link-24" class="py-name" targets="Method ClusterShell.Task.Task.default()=ClusterShell.Task.Task-class.html#default"><a title="ClusterShell.Task.Task.default" class="py-name" href="#" onclick="return doclink('link-24', 'default', 'link-24');">default</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.add"></a><div id="MsgTree.add-def"><a name="L176"></a><tt class="py-lineno">176</tt> <a class="py-toggle" href="#" id="MsgTree.add-toggle" onclick="return toggle('MsgTree.add');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#add">add</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">,</tt> <tt class="py-param">msgline</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.add-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.add-expanded"><a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"><tt class="py-docstring">        Add a message line associated with the given key to the MsgTree.</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-comment"># try to get current element in MsgTree for the given key,</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">        <tt class="py-comment"># defaulting to the root element</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-name">e_msg</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.get
+ClusterShell.Worker.EngineClient.EnginePort._Msg.get" class="py-name" href="#" onclick="return doclink('link-25', 'get', 'link-23');">get</a></tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_root</tt><tt class="py-op">)</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line"> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">        <tt class="py-comment"># add child msg and update keys dict</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">[</tt><tt class="py-name">key</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">e_msg</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="ClusterShell.MsgTree.MsgTreeElem.append" class="py-name" href="#" onclick="return doclink('link-26', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">msgline</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.keys"></a><div id="MsgTree.keys-def"><a name="L187"></a><tt class="py-lineno">187</tt> <a class="py-toggle" href="#" id="MsgTree.keys-toggle" onclick="return toggle('MsgTree.keys');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#keys">keys</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.keys-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.keys-expanded"><a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return an iterator over MsgTree's keys."""</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">.</tt><tt class="py-name">iterkeys</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">    <tt id="link-27" class="py-name" targets="Method ClusterShell.MsgTree.MsgTreeElem.__iter__()=ClusterShell.MsgTree.MsgTreeElem-class.html#__iter__,Method ClusterShell.NodeSet.NodeSet.__iter__()=ClusterShell.NodeSet.NodeSet-class.html#__iter__,Method ClusterShell.NodeSet.RangeSet.__iter__()=ClusterShell.NodeSet.RangeSet-class.html#__iter__"><a title="ClusterShell.MsgTree.MsgTreeElem.__iter__
+ClusterShell.NodeSet.NodeSet.__iter__
+ClusterShell.NodeSet.RangeSet.__iter__" class="py-name" href="#" onclick="return doclink('link-27', '__iter__', 'link-27');">__iter__</a></tt> <tt class="py-op">=</tt> <tt id="link-28" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-28', 'keys', 'link-0');">keys</a></tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">     </tt>
+<a name="MsgTree.messages"></a><div id="MsgTree.messages-def"><a name="L193"></a><tt class="py-lineno">193</tt> <a class="py-toggle" href="#" id="MsgTree.messages-toggle" onclick="return toggle('MsgTree.messages');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#messages">messages</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">match</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.messages-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.messages-expanded"><a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return an iterator over MsgTree's messages."""</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">imap</tt><tt class="py-op">(</tt><tt class="py-name">itemgetter</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name" targets="Method ClusterShell.MsgTree.MsgTree.walk()=ClusterShell.MsgTree.MsgTree-class.html#walk"><a title="ClusterShell.MsgTree.MsgTree.walk" class="py-name" href="#" onclick="return doclink('link-29', 'walk', 'link-29');">walk</a></tt><tt class="py-op">(</tt><tt class="py-name">match</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">     </tt>
+<a name="MsgTree.items"></a><div id="MsgTree.items-def"><a name="L197"></a><tt class="py-lineno">197</tt> <a class="py-toggle" href="#" id="MsgTree.items-toggle" onclick="return toggle('MsgTree.items');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#items">items</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">match</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">mapper</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.items-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.items-expanded"><a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">        Return (key, message) for each key of the MsgTree.</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">mapper</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">            <tt class="py-name">mapper</tt> <tt class="py-op">=</tt> <tt class="py-keyword">lambda</tt> <tt class="py-name">k</tt><tt class="py-op">:</tt> <tt class="py-name">k</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_keys</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">match</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt> <tt class="py-keyword">or</tt> <tt class="py-name">match</tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">                <tt class="py-keyword">yield</tt> <tt class="py-name">mapper</tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">elem</tt> </tt>
+</div><a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree._depth"></a><div id="MsgTree._depth-def"><a name="L207"></a><tt class="py-lineno">207</tt> <a class="py-toggle" href="#" id="MsgTree._depth-toggle" onclick="return toggle('MsgTree._depth');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#_depth">_depth</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree._depth-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree._depth-expanded"><a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"><tt class="py-docstring">        Return the depth of the MsgTree, ie. the max number of lines</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"><tt class="py-docstring">        per message. Added for debugging.</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">        <tt class="py-name">depth</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">        <tt class="py-comment"># stack of (element, depth) tuples used to walk the tree</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-name">estack</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_root</tt><tt class="py-op">,</tt> <tt class="py-name">depth</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line"> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">estack</tt><tt class="py-op">:</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">            <tt class="py-name">elem</tt><tt class="py-op">,</tt> <tt class="py-name">edepth</tt> <tt class="py-op">=</tt> <tt class="py-name">estack</tt><tt class="py-op">.</tt><tt class="py-name">pop</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">.</tt><tt class="py-name">children</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">                <tt class="py-name">estack</tt> <tt class="py-op">+=</tt> <tt class="py-op">[</tt><tt class="py-op">(</tt><tt class="py-name">v</tt><tt class="py-op">,</tt> <tt class="py-name">edepth</tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">v</tt> <tt class="py-keyword">in</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt class="py-name">children</tt><tt class="py-op">.</tt><tt class="py-name">values</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">            <tt class="py-name">depth</tt> <tt class="py-op">=</tt> <tt class="py-name">max</tt><tt class="py-op">(</tt><tt class="py-name">depth</tt><tt class="py-op">,</tt> <tt class="py-name">edepth</tt><tt class="py-op">)</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">         </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">depth</tt> </tt>
+</div><a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"> </tt>
+<a name="MsgTree.walk"></a><div id="MsgTree.walk-def"><a name="L224"></a><tt class="py-lineno">224</tt> <a class="py-toggle" href="#" id="MsgTree.walk-toggle" onclick="return toggle('MsgTree.walk');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.MsgTree.MsgTree-class.html#walk">walk</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">match</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">mapper</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MsgTree.walk-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MsgTree.walk-expanded"><a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"><tt class="py-docstring">        Walk the tree. Optionally filter keys on match parameter,</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line"><tt class="py-docstring">        and optionally map resulting keys with mapper function.</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"><tt class="py-docstring">        Return an iterator of (message, keys) tuples for each</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line"><tt class="py-docstring">        different message in the tree.</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">        <tt class="py-comment"># stack of elements used to walk the tree (depth-first)</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">        <tt class="py-name">estack</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_root</tt> <tt class="py-op">]</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">estack</tt><tt class="py-op">:</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">            <tt class="py-name">elem</tt> <tt class="py-op">=</tt> <tt class="py-name">estack</tt><tt class="py-op">.</tt><tt class="py-name">pop</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">.</tt><tt class="py-name">children</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">                <tt class="py-name">estack</tt> <tt class="py-op">+=</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt class="py-name">children</tt><tt class="py-op">.</tt><tt class="py-name">values</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-30', 'keys', 'link-0');">keys</a></tt><tt class="py-op">:</tt> <tt class="py-comment"># has some keys</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">                <tt class="py-name">mkeys</tt> <tt class="py-op">=</tt> <tt class="py-name">filter</tt><tt class="py-op">(</tt><tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="ClusterShell.MsgTree.MsgTree.keys" class="py-name" href="#" onclick="return doclink('link-31', 'keys', 'link-0');">keys</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">mkeys</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">                    <tt class="py-keyword">yield</tt> <tt class="py-name">elem</tt><tt class="py-op">,</tt> <tt class="py-name">map</tt><tt class="py-op">(</tt><tt class="py-name">mapper</tt><tt class="py-op">,</tt> <tt class="py-name">mkeys</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:37 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

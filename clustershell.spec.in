@@ -65,5 +65,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mandir}/man1/clush.1.gz
 %doc %{_mandir}/man1/nodeset.1.gz
 %doc %{_mandir}/man5/clush.conf.5.gz
+%doc doc/epydoc
 
 %config %{_sysconfdir}/clustershell/clush.conf

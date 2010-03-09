@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Worker.Popen</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Worker-module.html">Package&nbsp;Worker</a> ::
+        Module&nbsp;Popen
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Worker.Popen-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="ClusterShell.Worker.Popen-module.html">Module ClusterShell.Worker.Popen</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright CEA/DAM/DIF (2008, 2009, 2010)</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment">#  Contributor: Stephane THIELL &lt;stephane.thiell@cea.fr&gt;</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of the ClusterShell library.</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># This software is governed by the CeCILL-C license under French law and</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># abiding by the rules of distribution of free software.  You can  use,</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># modify and/ or redistribute the software under the terms of the CeCILL-C</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># license as circulated by CEA, CNRS and INRIA at the following URL</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># "http://www.cecill.info".</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># As a counterpart to the access to the source code and  rights to copy,</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># modify and redistribute granted by the license, users are provided only</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># with a limited warranty  and the software's author,  the holder of the</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># economic rights,  and the successive licensors  have only  limited</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># liability.</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment"># In this respect, the user's attention is drawn to the risks associated</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment"># with loading,  using,  modifying and/or developing or reproducing the</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-comment"># software by the user in light of its specific status of free software,</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-comment"># that may mean  that it is complicated to manipulate,  and  that  also</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-comment"># therefore means  that it is reserved for developers  and  experienced</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-comment"># professionals having in-depth computer knowledge. Users are therefore</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-comment"># encouraged to load and test the software's suitability as regards their</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-comment"># requirements in conditions enabling the security of their systems and/or</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-comment"># data to be ensured and,  more generally, to use and operate it in the</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-comment"># same conditions as regards security.</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-comment"># The fact that you are presently reading this means that you have had</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-comment"># knowledge of the CeCILL-C license and that you accept its terms.</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-comment"># $Id: Popen.py 242 2010-03-05 13:18:28Z st-cea $</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">WorkerPopen</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">ClusterShell worker for executing local commands.</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">signal</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package ClusterShell=ClusterShell-module.html"><a title="ClusterShell" class="py-name" href="#" onclick="return doclink('link-0', 'ClusterShell', 'link-0');">ClusterShell</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package ClusterShell.Worker=ClusterShell.Worker-module.html,Module ClusterShell.Worker.Worker=ClusterShell.Worker.Worker-module.html,Class ClusterShell.Worker.Worker.Worker=ClusterShell.Worker.Worker.Worker-class.html"><a title="ClusterShell.Worker
+ClusterShell.Worker.Worker
+ClusterShell.Worker.Worker.Worker" class="py-name" href="#" onclick="return doclink('link-1', 'Worker', 'link-1');">Worker</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name"><a title="ClusterShell.Worker
+ClusterShell.Worker.Worker
+ClusterShell.Worker.Worker.Worker" class="py-name" href="#" onclick="return doclink('link-2', 'Worker', 'link-1');">Worker</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Class ClusterShell.Worker.Worker.WorkerSimple=ClusterShell.Worker.Worker.WorkerSimple-class.html"><a title="ClusterShell.Worker.Worker.WorkerSimple" class="py-name" href="#" onclick="return doclink('link-3', 'WorkerSimple', 'link-3');">WorkerSimple</a></tt><tt class="py-op">,</tt> <tt id="link-4" class="py-name" targets="Class ClusterShell.Worker.Worker.WorkerBadArgumentError=ClusterShell.Worker.Worker.WorkerBadArgumentError-class.html"><a title="ClusterShell.Worker.Worker.WorkerBadArgumentError" class="py-name" href="#" onclick="return doclink('link-4', 'WorkerBadArgumentError', 'link-4');">WorkerBadArgumentError</a></tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"> </tt>
+<a name="WorkerPopen"></a><div id="WorkerPopen-def"><a name="L47"></a><tt class="py-lineno"> 47</tt> <a class="py-toggle" href="#" id="WorkerPopen-toggle" onclick="return toggle('WorkerPopen');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="ClusterShell.Worker.Popen.WorkerPopen-class.html">WorkerPopen</a><tt class="py-op">(</tt><tt class="py-base-class">WorkerSimple</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WorkerPopen-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="WorkerPopen-expanded"><a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    Implements the Popen Worker.</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="WorkerPopen.__init__"></a><div id="WorkerPopen.__init__-def"><a name="L52"></a><tt class="py-lineno"> 52</tt> <a class="py-toggle" href="#" id="WorkerPopen.__init__-toggle" onclick="return toggle('WorkerPopen.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">command</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">handler</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-param">stderr</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-param">timeout</tt><tt class="py-op">=</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-param">autoclose</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WorkerPopen.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WorkerPopen.__init__-expanded"><a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">        Initialize Popen worker.</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt id="link-5" class="py-name"><a title="ClusterShell.Worker.Worker.WorkerSimple" class="py-name" href="#" onclick="return doclink('link-5', 'WorkerSimple', 'link-3');">WorkerSimple</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Method ClusterShell.Engine.EPoll.EngineEPoll.__init__()=ClusterShell.Engine.EPoll.EngineEPoll-class.html#__init__,Method ClusterShell.Engine.Engine.Engine.__init__()=ClusterShell.Engine.Engine.Engine-class.html#__init__,Method ClusterShell.Engine.Engine.EngineAbortException.__init__()=ClusterShell.Engine.Engine.EngineAbortException-class.html#__init__,Method ClusterShell.Engine.Engine.EngineBaseTimer.__init__()=ClusterShell.Engine.Engine.EngineBaseTimer-class.html#__init__,Method ClusterShell.Engine.Engine.EngineTimer.__init__()=ClusterShell.Engine.Engine.EngineTimer-class.html#__init__,Method ClusterShell.Engine.Engine._EngineTimerQ._EngineTimerCase.__init__()=ClusterShell.Engine.Engine._EngineTimerQ._EngineTimerCase-class.html#__init__,Method ClusterShell.Engine.Engine._EngineTimerQ.__init__()=ClusterShell.Engine.Engine._EngineTimerQ-class.html#__init__,Method ClusterShell.Engine.Poll.EnginePoll.__init__()=ClusterShell.Engine.Poll.EnginePoll-class.html#__init__,Method ClusterShell.MsgTree.MsgTree.__init__()=ClusterShell.MsgTree.MsgTree-class.html#__init__,Method ClusterShell.MsgTree.MsgTreeElem.__init__()=ClusterShell.MsgTree.MsgTreeElem-class.html#__init__,Method ClusterShell.NodeSet.NodeSet.__init__()=ClusterShell.NodeSet.NodeSet-class.html#__init__,Method ClusterShell.NodeSet.NodeSetParseError.__init__()=ClusterShell.NodeSet.NodeSetParseError-class.html#__init__,Method ClusterShell.NodeSet.NodeSetParseRangeError.__init__()=ClusterShell.NodeSet.NodeSetParseRangeError-class.html#__init__,Method ClusterShell.NodeSet.RangeSet.__init__()=ClusterShell.NodeSet.RangeSet-class.html#__init__,Method ClusterShell.NodeSet.RangeSetPaddingError.__init__()=ClusterShell.NodeSet.RangeSetPaddingError-class.html#__init__,Method ClusterShell.NodeSet.RangeSetParseError.__init__()=ClusterShell.NodeSet.RangeSetParseError-class.html#__init__,Method ClusterShell.Task.Task._SuspendCondition.__init__()=ClusterShell.Task.Task._SuspendCondition-class.html#__init__,Method ClusterShell.Task.Task.__init__()=ClusterShell.Task.Task-class.html#__init__,Method ClusterShell.Task._TaskMsgTree.__init__()=ClusterShell.Task._TaskMsgTree-class.html#__init__,Method ClusterShell.Worker.EngineClient.EngineClient.__init__()=ClusterShell.Worker.EngineClient.EngineClient-class.html#__init__,Method ClusterShell.Worker.EngineClient.EnginePort._Msg.__init__()=ClusterShell.Worker.EngineClient.EnginePort._Msg-class.html#__init__,Method ClusterShell.Worker.EngineClient.EnginePort.__init__()=ClusterShell.Worker.EngineClient.EnginePort-class.html#__init__,Method ClusterShell.Worker.Pdsh.WorkerPdsh.__init__()=ClusterShell.Worker.Pdsh.WorkerPdsh-class.html#__init__,Method ClusterShell.Worker.Popen.WorkerPopen.__init__()=ClusterShell.Worker.Popen.WorkerPopen-class.html#__init__,Method ClusterShell.Worker.Ssh.Scp.__init__()=ClusterShell.Worker.Ssh.Scp-class.html#__init__,Method ClusterShell.Worker.Ssh.Ssh.__init__()=ClusterShell.Worker.Ssh.Ssh-class.html#__init__,Method ClusterShell.Worker.Ssh.WorkerSsh.__init__()=ClusterShell.Worker.Ssh.WorkerSsh-class.html#__init__,Method ClusterShell.Worker.Worker.DistantWorker.__init__()=ClusterShell.Worker.Worker.DistantWorker-class.html#__init__,Method ClusterShell.Worker.Worker.Worker.__init__()=ClusterShell.Worker.Worker.Worker-class.html#__init__,Method ClusterShell.Worker.Worker.WorkerSimple.__init__()=ClusterShell.Worker.Worker.WorkerSimple-class.html#__init__,Method clush.ClushConfig.__init__()=clush.ClushConfig-class.html#__init__,Method clush.ClushConfigError.__init__()=clush.ClushConfigError-class.html#__init__,Method clush.DirectOutputHandler.__init__()=clush.DirectOutputHandler-class.html#__init__,Method clush.GatherOutputHandler.__init__()=clush.GatherOutputHandler-class.html#__init__,Method clush.RunTimer.__init__()=clush.RunTimer-class.html#__init__,Method clush.StdInputHandler.__init__()=clush.StdInputHandler-class.html#__init__"><a title="ClusterShell.Engine.EPoll.EngineEPoll.__init__
+ClusterShell.Engine.Engine.Engine.__init__
+ClusterShell.Engine.Engine.EngineAbortException.__init__
+ClusterShell.Engine.Engine.EngineBaseTimer.__init__
+ClusterShell.Engine.Engine.EngineTimer.__init__
+ClusterShell.Engine.Engine._EngineTimerQ._EngineTimerCase.__init__
+ClusterShell.Engine.Engine._EngineTimerQ.__init__
+ClusterShell.Engine.Poll.EnginePoll.__init__
+ClusterShell.MsgTree.MsgTree.__init__
+ClusterShell.MsgTree.MsgTreeElem.__init__
+ClusterShell.NodeSet.NodeSet.__init__
+ClusterShell.NodeSet.NodeSetParseError.__init__
+ClusterShell.NodeSet.NodeSetParseRangeError.__init__
+ClusterShell.NodeSet.RangeSet.__init__
+ClusterShell.NodeSet.RangeSetPaddingError.__init__
+ClusterShell.NodeSet.RangeSetParseError.__init__
+ClusterShell.Task.Task._SuspendCondition.__init__
+ClusterShell.Task.Task.__init__
+ClusterShell.Task._TaskMsgTree.__init__
+ClusterShell.Worker.EngineClient.EngineClient.__init__
+ClusterShell.Worker.EngineClient.EnginePort._Msg.__init__
+ClusterShell.Worker.EngineClient.EnginePort.__init__
+ClusterShell.Worker.Pdsh.WorkerPdsh.__init__
+ClusterShell.Worker.Popen.WorkerPopen.__init__
+ClusterShell.Worker.Ssh.Scp.__init__
+ClusterShell.Worker.Ssh.Ssh.__init__
+ClusterShell.Worker.Ssh.WorkerSsh.__init__
+ClusterShell.Worker.Worker.DistantWorker.__init__
+ClusterShell.Worker.Worker.Worker.__init__
+ClusterShell.Worker.Worker.WorkerSimple.__init__
+clush.ClushConfig.__init__
+clush.ClushConfigError.__init__
+clush.DirectOutputHandler.__init__
+clush.GatherOutputHandler.__init__
+clush.RunTimer.__init__
+clush.StdInputHandler.__init__" class="py-name" href="#" onclick="return doclink('link-6', '__init__', 'link-6');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">handler</tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">            <tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-name">timeout</tt><tt class="py-op">,</tt> <tt class="py-name">autoclose</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">command</tt> <tt class="py-op">=</tt> <tt class="py-name">command</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">command</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-7" class="py-name"><a title="ClusterShell.Worker.Worker.WorkerBadArgumentError" class="py-name" href="#" onclick="return doclink('link-7', 'WorkerBadArgumentError', 'link-4');">WorkerBadArgumentError</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">rc</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="WorkerPopen._start"></a><div id="WorkerPopen._start-def"><a name="L67"></a><tt class="py-lineno"> 67</tt> <a class="py-toggle" href="#" id="WorkerPopen._start-toggle" onclick="return toggle('WorkerPopen._start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#_start">_start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WorkerPopen._start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WorkerPopen._start-expanded"><a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">        Start worker.</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-keyword">assert</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Method ClusterShell.Worker.EngineClient.EngineClient._exec_nonblock()=ClusterShell.Worker.EngineClient.EngineClient-class.html#_exec_nonblock"><a title="ClusterShell.Worker.EngineClient.EngineClient._exec_nonblock" class="py-name" href="#" onclick="return doclink('link-8', '_exec_nonblock', 'link-8');">_exec_nonblock</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">command</tt><tt class="py-op">,</tt> <tt id="link-9" class="py-name" targets="Method ClusterShell.Task.Task.shell()=ClusterShell.Task.Task-class.html#shell"><a title="ClusterShell.Task.Task.shell" class="py-name" href="#" onclick="return doclink('link-9', 'shell', 'link-9');">shell</a></tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">file_reader</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">stdout</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">file_error</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">file_writer</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">stdin</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method ClusterShell.Task.Task.info()=ClusterShell.Task.Task-class.html#info"><a title="ClusterShell.Task.Task.info" class="py-name" href="#" onclick="return doclink('link-10', 'info', 'link-10');">info</a></tt><tt class="py-op">(</tt><tt class="py-string">"debug"</tt><tt class="py-op">,</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="ClusterShell.Task.Task.info" class="py-name" href="#" onclick="return doclink('link-11', 'info', 'link-10');">info</a></tt><tt class="py-op">(</tt><tt class="py-string">"print_debug"</tt><tt class="py-op">)</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">task</tt><tt class="py-op">,</tt> <tt class="py-string">"POPEN: %s"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">command</tt><tt class="py-op">)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method ClusterShell.Event.EventHandler._invoke()=ClusterShell.Event.EventHandler-class.html#_invoke,Method ClusterShell.Worker.Worker.Worker._invoke()=ClusterShell.Worker.Worker.Worker-class.html#_invoke"><a title="ClusterShell.Event.EventHandler._invoke
+ClusterShell.Worker.Worker.Worker._invoke" class="py-name" href="#" onclick="return doclink('link-12', '_invoke', 'link-12');">_invoke</a></tt><tt class="py-op">(</tt><tt class="py-string">"ev_start"</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> </tt>
+</div><a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"> </tt>
+<a name="WorkerPopen._close"></a><div id="WorkerPopen._close-def"><a name="L85"></a><tt class="py-lineno"> 85</tt> <a class="py-toggle" href="#" id="WorkerPopen._close-toggle" onclick="return toggle('WorkerPopen._close');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#_close">_close</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">force</tt><tt class="py-op">,</tt> <tt class="py-param">timeout</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WorkerPopen._close-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WorkerPopen._close-expanded"><a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring">        Close worker. Called by engine after worker has been</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">        unregistered. This method should handle all termination types</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring">        (normal, forced or on timeout).</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">force</tt> <tt class="py-keyword">and</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_rbuf</tt><tt class="py-op">:</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">            <tt class="py-comment"># We still have some read data available in buffer, but no</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">            <tt class="py-comment"># EOL. Generate a final message before closing.</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">worker</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method ClusterShell.Worker.Worker.WorkerSimple._on_msgline()=ClusterShell.Worker.Worker.WorkerSimple-class.html#_on_msgline"><a title="ClusterShell.Worker.Worker.WorkerSimple._on_msgline" class="py-name" href="#" onclick="return doclink('link-13', '_on_msgline', 'link-13');">_on_msgline</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_rbuf</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">rc</tt> <tt class="py-op">=</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">force</tt> <tt class="py-keyword">or</tt> <tt class="py-name">timeout</tt><tt class="py-op">:</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt class="py-comment"># check if process has terminated</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt class="py-name">prc</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">poll</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">prc</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">                <tt class="py-comment"># process is still running, kill it</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">kill</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">pid</tt><tt class="py-op">,</tt> <tt class="py-name">signal</tt><tt class="py-op">.</tt><tt class="py-name">SIGKILL</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt class="py-comment"># close process / check if it has terminated</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-name">prc</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Class Method ClusterShell.Task.Task.wait()=ClusterShell.Task.Task-class.html#wait"><a title="ClusterShell.Task.Task.wait" class="py-name" href="#" onclick="return doclink('link-14', 'wait', 'link-14');">wait</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-comment"># get exit status</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">prc</tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">                <tt class="py-comment"># process exited normally</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">                <tt class="py-name">rc</tt> <tt class="py-op">=</tt> <tt class="py-name">prc</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">                <tt class="py-comment"># if process was signaled, return 128 + signum (bash-like)</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">                <tt class="py-name">rc</tt> <tt class="py-op">=</tt> <tt class="py-number">128</tt> <tt class="py-op">+</tt> <tt class="py-op">-</tt><tt class="py-name">prc</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">stdin</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">popen</tt><tt class="py-op">.</tt><tt class="py-name">stdout</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">rc</tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Method ClusterShell.Worker.Popen.WorkerPopen._on_rc()=ClusterShell.Worker.Popen.WorkerPopen-class.html#_on_rc"><a title="ClusterShell.Worker.Popen.WorkerPopen._on_rc" class="py-name" href="#" onclick="return doclink('link-15', '_on_rc', 'link-15');">_on_rc</a></tt><tt class="py-op">(</tt><tt class="py-name">rc</tt><tt class="py-op">)</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">timeout</tt><tt class="py-op">:</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method ClusterShell.Worker.Worker.WorkerSimple._on_timeout()=ClusterShell.Worker.Worker.WorkerSimple-class.html#_on_timeout"><a title="ClusterShell.Worker.Worker.WorkerSimple._on_timeout" class="py-name" href="#" onclick="return doclink('link-16', '_on_timeout', 'link-16');">_on_timeout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="ClusterShell.Event.EventHandler._invoke
+ClusterShell.Worker.Worker.Worker._invoke" class="py-name" href="#" onclick="return doclink('link-17', '_invoke', 'link-12');">_invoke</a></tt><tt class="py-op">(</tt><tt class="py-string">"ev_close"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="WorkerPopen._on_rc"></a><div id="WorkerPopen._on_rc-def"><a name="L124"></a><tt class="py-lineno">124</tt> <a class="py-toggle" href="#" id="WorkerPopen._on_rc-toggle" onclick="return toggle('WorkerPopen._on_rc');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#_on_rc">_on_rc</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">rc</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WorkerPopen._on_rc-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WorkerPopen._on_rc-expanded"><a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"><tt class="py-docstring">        Set return code.</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">rc</tt> <tt class="py-op">=</tt> <tt class="py-name">rc</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method ClusterShell.Task.Task._rc_set()=ClusterShell.Task.Task-class.html#_rc_set"><a title="ClusterShell.Task.Task._rc_set" class="py-name" href="#" onclick="return doclink('link-18', '_rc_set', 'link-18');">_rc_set</a></tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">key</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">rc</tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="ClusterShell.Event.EventHandler._invoke
+ClusterShell.Worker.Worker.Worker._invoke" class="py-name" href="#" onclick="return doclink('link-19', '_invoke', 'link-12');">_invoke</a></tt><tt class="py-op">(</tt><tt class="py-string">"ev_hup"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"> </tt>
+<a name="WorkerPopen.retcode"></a><div id="WorkerPopen.retcode-def"><a name="L133"></a><tt class="py-lineno">133</tt> <a class="py-toggle" href="#" id="WorkerPopen.retcode-toggle" onclick="return toggle('WorkerPopen.retcode');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#retcode">retcode</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WorkerPopen.retcode-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WorkerPopen.retcode-expanded"><a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"><tt class="py-docstring">        Return return code or None if command is still in progress.</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">rc</tt> </tt>
+</div></div><a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:37 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

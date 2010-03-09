@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>clush</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Module&nbsp;clush
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="clush-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module clush</h1><p class="nomargin-top"><span class="codelink"><a href="clush-pysrc.html">source&nbsp;code</a></span></p>
+<p>Utility program to run commands on a cluster using the ClusterShell 
+  library.</p>
+  <p>clush is a pdsh-like command which benefits from the ClusterShell 
+  library and its Ssh worker. It features an integrated output results 
+  gathering system (dshbak-like), can get node groups by running predefined
+  external commands and can redirect lines read on its standard input to 
+  the remote commands.</p>
+  <p>When no command are specified, clush runs interactively.</p>
+
+<hr />
+<div class="fields">      <p><strong>Version:</strong>
+        1.2
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.UpdatePromptException-class.html" class="summary-name">UpdatePromptException</a><br />
+      Exception used by the signal handler
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.StdInputHandler-class.html" class="summary-name">StdInputHandler</a><br />
+      Standard input event handler class.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.DirectOutputHandler-class.html" class="summary-name">DirectOutputHandler</a><br />
+      Direct output event handler class.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.GatherOutputHandler-class.html" class="summary-name">GatherOutputHandler</a><br />
+      Gathered output event handler class.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.RunTimer-class.html" class="summary-name">RunTimer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.ClushConfigError-class.html" class="summary-name">ClushConfigError</a><br />
+      Exception used by the signal handler
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="clush.ClushConfig-class.html" class="summary-name">ClushConfig</a><br />
+      Config class for clush (specialized ConfigParser)
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="signal_handler"></a><span class="summary-sig-name">signal_handler</span>(<span class="summary-sig-arg">signum</span>,
+        <span class="summary-sig-arg">frame</span>)</span><br />
+      Signal handler used for main thread notification</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#signal_handler">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_history_file"></a><span class="summary-sig-name">get_history_file</span>()</span><br />
+      Turn the history file path</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#get_history_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="readline_setup"></a><span class="summary-sig-name">readline_setup</span>()</span><br />
+      Configure readline to automatically load and save a history file 
+      named .clush_history</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#readline_setup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_buffer"></a><span class="summary-sig-name">print_buffer</span>(<span class="summary-sig-arg">header</span>,
+        <span class="summary-sig-arg">content</span>)</span><br />
+      Display a dshbak-like header block and content.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#print_buffer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_lines"></a><span class="summary-sig-name">print_lines</span>(<span class="summary-sig-arg">header</span>,
+        <span class="summary-sig-arg">msg</span>)</span><br />
+      Display a MsgTree buffer by line with prefixed header.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#print_lines">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="nodeset_cmp"></a><span class="summary-sig-name">nodeset_cmp</span>(<span class="summary-sig-arg">ns1</span>,
+        <span class="summary-sig-arg">ns2</span>)</span><br />
+      Compare 2 nodesets by their length (we want larger nodeset first) and
+      then by first node.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#nodeset_cmp">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bufnodeset_cmp"></a><span class="summary-sig-name">bufnodeset_cmp</span>(<span class="summary-sig-arg">bn1</span>,
+        <span class="summary-sig-arg">bn2</span>)</span><br />
+      Convenience function to compare 2 (buf, nodeset) tuples by their 
+      nodeset length (we want larger nodeset first) and then by first node.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#bufnodeset_cmp">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ttyloop"></a><span class="summary-sig-name">ttyloop</span>(<span class="summary-sig-arg">task</span>,
+        <span class="summary-sig-arg">nodeset</span>,
+        <span class="summary-sig-arg">gather</span>,
+        <span class="summary-sig-arg">timeout</span>,
+        <span class="summary-sig-arg">label</span>,
+        <span class="summary-sig-arg">verbosity</span>,
+        <span class="summary-sig-arg">gather_print</span>)</span><br />
+      Manage the interactive prompt to run command</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#ttyloop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bind_stdin"></a><span class="summary-sig-name">bind_stdin</span>(<span class="summary-sig-arg">worker</span>)</span><br />
+      Create a ClusterShell stdin-reader worker bound to specified worker.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#bind_stdin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="run_command"></a><span class="summary-sig-name">run_command</span>(<span class="summary-sig-arg">task</span>,
+        <span class="summary-sig-arg">cmd</span>,
+        <span class="summary-sig-arg">ns</span>,
+        <span class="summary-sig-arg">gather</span>,
+        <span class="summary-sig-arg">timeout</span>,
+        <span class="summary-sig-arg">label</span>,
+        <span class="summary-sig-arg">verbosity</span>,
+        <span class="summary-sig-arg">gather_print</span>)</span><br />
+      Create and run the specified command line, displaying results in a 
+      dshbak way when gathering is used.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#run_command">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="run_copy"></a><span class="summary-sig-name">run_copy</span>(<span class="summary-sig-arg">task</span>,
+        <span class="summary-sig-arg">source</span>,
+        <span class="summary-sig-arg">dest</span>,
+        <span class="summary-sig-arg">ns</span>,
+        <span class="summary-sig-arg">timeout</span>,
+        <span class="summary-sig-arg">preserve_flag</span>)</span><br />
+      run copy command</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#run_copy">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="clush_exit"></a><span class="summary-sig-name">clush_exit</span>(<span class="summary-sig-arg">status</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#clush_exit">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="clush_main"></a><span class="summary-sig-name">clush_main</span>(<span class="summary-sig-arg">args</span>)</span><br />
+      Main clush script function</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="clush-pysrc.html#clush_main">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERB_QUIET"></a><span class="summary-name">VERB_QUIET</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERB_STD"></a><span class="summary-name">VERB_STD</span> = <code title="1">1</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERB_VERB"></a><span class="summary-name">VERB_VERB</span> = <code title="2">2</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERB_DEBUG"></a><span class="summary-name">VERB_DEBUG</span> = <code title="3">3</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:33 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

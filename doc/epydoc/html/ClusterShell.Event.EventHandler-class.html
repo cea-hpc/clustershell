@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Event.EventHandler</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Event-module.html">Module&nbsp;Event</a> ::
+        Class&nbsp;EventHandler
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Event.EventHandler-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class EventHandler</h1><p class="nomargin-top"><span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler">source&nbsp;code</a></span></p>
+<center>
+  <div class="private"><center>  <map id="uml_class_diagram_for_clusters_13" name="uml_class_diagram_for_clusters_13">
+<area shape="rect" href="ClusterShell.Task.Task._SyncMsgHandler-class.html" title="Special task control port event handler." alt="" coords="16,235,203,261"/>
+<area shape="rect" href="clush.DirectOutputHandler-class.html" title="Direct output event handler class." alt="" coords="253,235,421,261"/>
+<area shape="rect" href="clush.StdInputHandler-class.html" title="Standard input event handler class." alt="" coords="472,235,616,261"/>
+<area shape="rect" href="clush.GatherOutputHandler-class.html" title="Gathered output event handler class." alt="" coords="667,235,840,261"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_start" title="Called to indicate that a worker has just started." alt="" coords="471,36,617,55"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_read" title="Called to indicate that a worker has data to read." alt="" coords="471,55,617,73"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_error" title="Called to indicate that a worker has error to read (on stderr)." alt="" coords="471,73,617,92"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_written" title="Called to indicate that writing has been done." alt="" coords="471,92,617,111"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_hup" title="Called to indicate that a worker&#39;s connection has been closed." alt="" coords="471,111,617,129"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_timeout" title="Called to indicate that a worker has timed out (worker timeout only)." alt="" coords="471,129,617,148"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_close" title="Called to indicate that a worker has just finished (it may already have &#160;failed on timeout)." alt="" coords="471,148,617,167"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_msg" title="Handle port message." alt="" coords="471,167,617,185"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_timer" title="Handle firing timer." alt="" coords="471,185,617,204"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html" title="Base class EventHandler." alt="" coords="469,11,619,205"/>
+<area shape="rect" href="clush.RunTimer-class.html" title="clush.RunTimer" alt="" coords="891,235,997,261"/>
+</map>
+  <img src="uml_class_diagram_for_clusters_13.png" alt='' usemap="#uml_class_diagram_for_clusters_13" ismap="ismap" class="graph-without-title" />
+</center></div>
+  <div class="public" style="display:none"><center>  <map id="uml_class_diagram_for_clusters_14" name="uml_class_diagram_for_clusters_14">
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_start" title="Called to indicate that a worker has just started." alt="" coords="303,36,449,55"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_read" title="Called to indicate that a worker has data to read." alt="" coords="303,55,449,73"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_error" title="Called to indicate that a worker has error to read (on stderr)." alt="" coords="303,73,449,92"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_written" title="Called to indicate that writing has been done." alt="" coords="303,92,449,111"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_hup" title="Called to indicate that a worker&#39;s connection has been closed." alt="" coords="303,111,449,129"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_timeout" title="Called to indicate that a worker has timed out (worker timeout only)." alt="" coords="303,129,449,148"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_close" title="Called to indicate that a worker has just finished (it may already have &#160;failed on timeout)." alt="" coords="303,148,449,167"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_msg" title="Handle port message." alt="" coords="303,167,449,185"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html#ev_timer" title="Handle firing timer." alt="" coords="303,185,449,204"/>
+<area shape="rect" href="ClusterShell.Event.EventHandler-class.html" title="Base class EventHandler." alt="" coords="301,11,451,205"/>
+<area shape="rect" href="clush.DirectOutputHandler-class.html" title="Direct output event handler class." alt="" coords="16,235,184,261"/>
+<area shape="rect" href="clush.RunTimer-class.html" title="clush.RunTimer" alt="" coords="235,235,341,261"/>
+<area shape="rect" href="clush.StdInputHandler-class.html" title="Standard input event handler class." alt="" coords="392,235,536,261"/>
+<area shape="rect" href="clush.GatherOutputHandler-class.html" title="Gathered output event handler class." alt="" coords="587,235,760,261"/>
+</map>
+  <img src="uml_class_diagram_for_clusters_14.png" alt='' usemap="#uml_class_diagram_for_clusters_14" ismap="ismap" class="graph-without-title" />
+</center></div>
+</center>
+<hr />
+<p>Base class EventHandler.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_invoke"></a><span class="summary-sig-name">_invoke</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">ev_type</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Invoke a specific event handler.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler._invoke">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_start"></a><span class="summary-sig-name">ev_start</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that a worker has just started.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_start">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_read"></a><span class="summary-sig-name">ev_read</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that a worker has data to read.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_read">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_error"></a><span class="summary-sig-name">ev_error</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that a worker has error to read (on stderr).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_error">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_written"></a><span class="summary-sig-name">ev_written</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that writing has been done.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_written">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_hup"></a><span class="summary-sig-name">ev_hup</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that a worker's connection has been closed.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_hup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_timeout"></a><span class="summary-sig-name">ev_timeout</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that a worker has timed out (worker timeout only).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_timeout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_close"></a><span class="summary-sig-name">ev_close</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Called to indicate that a worker has just finished (it may already 
+      have failed on timeout).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_msg"></a><span class="summary-sig-name">ev_msg</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">port</span>,
+        <span class="summary-sig-arg">msg</span>)</span><br />
+      Handle port message.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_msg">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ev_timer"></a><span class="summary-sig-name">ev_timer</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">timer</span>)</span><br />
+      Handle firing timer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Event-pysrc.html#EventHandler.ev_timer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__init__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:34 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

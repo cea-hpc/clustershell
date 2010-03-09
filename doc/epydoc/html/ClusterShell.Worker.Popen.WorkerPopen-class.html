@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Worker.Popen.WorkerPopen</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Worker-module.html">Package&nbsp;Worker</a> ::
+        <a href="ClusterShell.Worker.Popen-module.html">Module&nbsp;Popen</a> ::
+        Class&nbsp;WorkerPopen
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Worker.Popen.WorkerPopen-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class WorkerPopen</h1><p class="nomargin-top"><span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_clusters_41" name="uml_class_diagram_for_clusters_41">
+<area shape="rect" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#__init__" title="Initialize Popen worker." alt="" coords="17,465,575,484"/>
+<area shape="rect" href="ClusterShell.Worker.Popen.WorkerPopen-class.html#retcode" title="Return return code or None if command is still in progress." alt="" coords="17,484,575,503"/>
+<area shape="rect" href="ClusterShell.Worker.Popen.WorkerPopen-class.html" title="Implements the Popen Worker." alt="" coords="16,440,576,504"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#set_key" title="Source key for this worker is free for use." alt="" coords="232,223,360,241"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#error_fileno" title="Returns the standard error reader file descriptor as an integer." alt="" coords="232,241,360,260"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#reader_fileno" title="Returns the reader file descriptor as an integer." alt="" coords="232,260,360,279"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#writer_fileno" title="Returns the writer file descriptor as an integer." alt="" coords="232,279,360,297"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#last_read" title="Read last msg, useful in an EventHandler." alt="" coords="232,297,360,316"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#last_error" title="Get last error message from event handler." alt="" coords="232,316,360,335"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#read" title="Read worker buffer." alt="" coords="232,335,360,353"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#error" title="Read worker error buffer." alt="" coords="232,353,360,372"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#write" title="Write to worker." alt="" coords="232,372,360,391"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html#set_write_eof" title="Tell worker to close its writer file descriptor once flushed." alt="" coords="232,391,360,409"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.WorkerSimple-class.html" title="Implements a simple Worker being itself an EngineClient." alt="" coords="231,197,361,411"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.Worker-class.html#did_timeout" title="Return True if this worker aborted due to timeout." alt="" coords="156,148,257,167"/>
+<area shape="rect" href="ClusterShell.Worker.Worker.Worker-class.html" title="Base class Worker." alt="" coords="155,123,259,168"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html" title="Abstract class EngineClient." alt="" coords="309,129,464,161"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#invalidate" title="Invalidates a timer object, stopping it from ever firing again." alt="" coords="268,36,505,55"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#is_valid" title="Returns a boolean value that indicates whether an EngineTimer object is &#160;valid and able to fire." alt="" coords="268,55,505,73"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#set_nextfire" title="Set the next firing delay in seconds for an EngineTimer object." alt="" coords="268,73,505,92"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html" title="Abstract class for ClusterShell&#39;s engine timer." alt="" coords="267,11,507,93"/>
+</map>
+  <img src="uml_class_diagram_for_clusters_41.png" alt='' usemap="#uml_class_diagram_for_clusters_41" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Implements the Popen Worker.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.Popen.WorkerPopen-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">command</span>,
+        <span class="summary-sig-arg">key</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">handler</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">stderr</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">autoclose</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Initialize Popen worker.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.Popen.WorkerPopen-class.html#_start" class="summary-sig-name" onclick="show_private();">_start</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Start worker.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen._start">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.Popen.WorkerPopen-class.html#_close" class="summary-sig-name" onclick="show_private();">_close</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">force</span>,
+        <span class="summary-sig-arg">timeout</span>)</span><br />
+      Close worker.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen._close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_on_rc"></a><span class="summary-sig-name">_on_rc</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">rc</span>)</span><br />
+      Set return code.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen._on_rc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="retcode"></a><span class="summary-sig-name">retcode</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return return code or None if command is still in progress.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen.retcode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html">Worker.WorkerSimple</a></code></b>:
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#error">error</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#error_fileno">error_fileno</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#last_error">last_error</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#last_read">last_read</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#read">read</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#reader_fileno">reader_fileno</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#set_key">set_key</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#set_write_eof">set_write_eof</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#write">write</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#writer_fileno">writer_fileno</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html">Worker.WorkerSimple</a></code></b> (private):
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_engine_clients" onclick="show_private();">_engine_clients</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_handle_error" onclick="show_private();">_handle_error</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_handle_read" onclick="show_private();">_handle_read</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_on_errmsgline" onclick="show_private();">_on_errmsgline</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_on_msgline" onclick="show_private();">_on_msgline</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_on_timeout" onclick="show_private();">_on_timeout</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_read" onclick="show_private();">_read</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html#_readerr" onclick="show_private();">_readerr</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html">EngineClient.EngineClient</a></code></b> (private):
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_close_writer" onclick="show_private();">_close_writer</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_exec_nonblock" onclick="show_private();">_exec_nonblock</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_fire" onclick="show_private();">_fire</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_write" onclick="show_private();">_handle_write</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_readerrlines" onclick="show_private();">_readerrlines</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_readlines" onclick="show_private();">_readlines</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_reading" onclick="show_private();">_set_reading</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_reading_error" onclick="show_private();">_set_reading_error</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_write_eof" onclick="show_private();">_set_write_eof</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_writing" onclick="show_private();">_set_writing</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_write" onclick="show_private();">_write</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">Engine.Engine.EngineBaseTimer</a></code></b>:
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#invalidate">invalidate</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#is_valid">is_valid</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#set_nextfire">set_nextfire</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">Engine.Engine.EngineBaseTimer</a></code></b> (private):
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#_set_engine" onclick="show_private();">_set_engine</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.Worker.Worker-class.html">Worker.Worker</a></code></b>:
+      <code><a href="ClusterShell.Worker.Worker.Worker-class.html#did_timeout">did_timeout</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.Worker.Worker-class.html">Worker.Worker</a></code></b> (private):
+      <code><a href="ClusterShell.Worker.Worker.Worker-class.html#_invoke" onclick="show_private();">_invoke</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.Worker-class.html#_set_task" onclick="show_private();">_set_task</a></code>,
+      <code><a href="ClusterShell.Worker.Worker.Worker-class.html#_task_bound_check" onclick="show_private();">_task_bound_check</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">command</span>,
+        <span class="sig-arg">key</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">handler</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">stderr</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">timeout</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">autoclose</span>=<span class="sig-default">False</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize Popen worker.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_start"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_start</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen._start">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Start worker.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_start" onclick="show_private();">EngineClient.EngineClient._start</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_close"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_close</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">force</span>,
+        <span class="sig-arg">timeout</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.Popen-pysrc.html#WorkerPopen._close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Close worker. Called by engine after worker has been unregistered. 
+  This method should handle all termination types (normal, forced or on 
+  timeout).</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_close" onclick="show_private();">EngineClient.EngineClient._close</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:36 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

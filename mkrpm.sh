@@ -2,7 +2,7 @@
 # $Id$
 
 if [ -z "$2" ]; then
-    echo "usage: $0 <version> <el5|fc11>"
+    echo "usage: $0 <version> <el5|fc11|fc12>"
     exit 1
 fi
 
@@ -22,7 +22,7 @@ mkdir -vp "$TMPDIR/scripts"
 mkdir -vp "$TMPDIR/conf"
 mkdir -vp "$TMPDIR"/doc/man/{man1,man5}
 mkdir -vp "$TMPDIR"/doc/extras/vim/{ftdetect,syntax}
-
+mkdir -vp "$TMPDIR/doc/epydoc"
 
 sed -e "s/^Version: %{version}$/Version: $VERS/" <clustershell.spec.in >"$TMPDIR/clustershell.spec"
 
@@ -42,6 +42,7 @@ cp -v doc/man/man1/nodeset.1 "$TMPDIR/doc/man/man1/"
 cp -v doc/man/man5/clush.conf.5 "$TMPDIR/doc/man/man5/"
 cp -v doc/extras/vim/ftdetect/clush.vim "$TMPDIR/doc/extras/vim/ftdetect/"
 cp -v doc/extras/vim/syntax/clush.vim "$TMPDIR/doc/extras/vim/syntax/"
+cp -rv doc/epydoc/html "$TMPDIR/doc/epydoc/"
 
 cd "$TMPDIR/.."
 

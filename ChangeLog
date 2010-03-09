@@ -1,3 +1,9 @@
+2010-03-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.2 released.
+
+	* doc/epydoc: Add Epydoc 3 HTML documentation.
+
 2010-03-05 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/*.py: Do not forget to keep last line and generate an ev_read

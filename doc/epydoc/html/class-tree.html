@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class Hierarchy</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Trees&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">&nbsp;</td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="class-tree.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<center><b>
+ [ <a href="module-tree.html">Module Hierarchy</a>
+ | <a href="class-tree.html">Class Hierarchy</a> ]
+</b></center><br />
+<h1 class="epydoc">Class Hierarchy</h1>
+<ul class="nomargin-top">
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.Engine-class.html">ClusterShell.Engine.Engine.Engine</a></strong>:
+      <em class="summary">Interface for ClusterShell engine.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.EPoll.EngineEPoll-class.html">ClusterShell.Engine.EPoll.EngineEPoll</a></strong>:
+      <em class="summary">EPoll Engine</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Poll.EnginePoll-class.html">ClusterShell.Engine.Poll.EnginePoll</a></strong>:
+      <em class="summary">Poll Engine</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">ClusterShell.Engine.Engine.EngineBaseTimer</a></strong>:
+      <em class="summary">Abstract class for ClusterShell's engine timer.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html">ClusterShell.Worker.EngineClient.EngineClient</a></strong>:
+      <em class="summary">Abstract class EngineClient.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EnginePort-class.html">ClusterShell.Worker.EngineClient.EnginePort</a></strong>:
+      <em class="summary">An EnginePort is an abstraction object to deliver messages reliably
+        between tasks.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Ssh.Ssh-class.html">ClusterShell.Worker.Ssh.Ssh</a></strong>:
+      <em class="summary">Ssh EngineClient.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Ssh.Scp-class.html">ClusterShell.Worker.Ssh.Scp</a></strong>:
+      <em class="summary">Scp EngineClient.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Pdsh.WorkerPdsh-class.html">ClusterShell.Worker.Pdsh.WorkerPdsh</a></strong>:
+      <em class="summary">ClusterShell pdsh-based worker Class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html">ClusterShell.Worker.Worker.WorkerSimple</a></strong>:
+      <em class="summary">Implements a simple Worker being itself an EngineClient.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Popen.WorkerPopen-class.html">ClusterShell.Worker.Popen.WorkerPopen</a></strong>:
+      <em class="summary">Implements the Popen Worker.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineTimer-class.html">ClusterShell.Engine.Engine.EngineTimer</a></strong>:
+      <em class="summary">Concrete class EngineTimer</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.RangeSet-class.html">ClusterShell.NodeSet.RangeSet</a></strong>:
+      <em class="summary">Advanced range sets.</em>
+    </li>
+    <li> <strong class="uidlink">ConfigParser.RawConfigParser</strong>
+    <ul>
+    <li> <strong class="uidlink">ConfigParser.ConfigParser</strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="clush.ClushConfig-class.html">clush.ClushConfig</a></strong>:
+      <em class="summary">Config class for clush (specialized ConfigParser)</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine._EngineTimerQ._EngineTimerCase-class.html" onclick="show_private();">ClusterShell.Engine.Engine._EngineTimerQ._EngineTimerCase</a></strong>:
+      <em class="summary">Helper class that allows comparisons of fire times, to be easily 
+        used in an heapq.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine._EngineTimerQ-class.html" onclick="show_private();">ClusterShell.Engine.Engine._EngineTimerQ</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EnginePort._Msg-class.html" onclick="show_private();">ClusterShell.Worker.EngineClient.EnginePort._Msg</a></strong>:
+      <em class="summary">Private class representing a port message.</em>
+    </li>
+    <li> <strong class="uidlink">object</strong>:
+      <em class="summary">The most base type</em>
+    <ul>
+    <li> <strong class="uidlink">exceptions.BaseException</strong>:
+      <em class="summary">Common base class for all exceptions</em>
+    <ul>
+    <li> <strong class="uidlink">exceptions.Exception</strong>:
+      <em class="summary">Common base class for all non-exit exceptions.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="clush.ClushConfigError-class.html">clush.ClushConfigError</a></strong>:
+      <em class="summary">Exception used by the signal handler</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EngineClientException-class.html">ClusterShell.Worker.EngineClient.EngineClientException</a></strong>:
+      <em class="summary">Generic EngineClient exception.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EngineClientEOF-class.html">ClusterShell.Worker.EngineClient.EngineClientEOF</a></strong>:
+      <em class="summary">EOF from client.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EngineClientError-class.html">ClusterShell.Worker.EngineClient.EngineClientError</a></strong>:
+      <em class="summary">Base EngineClient error exception.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.EngineClient.EngineClientNotSupportedError-class.html">ClusterShell.Worker.EngineClient.EngineClientNotSupportedError</a></strong>:
+      <em class="summary">Operation not supported by EngineClient.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineException-class.html">ClusterShell.Engine.Engine.EngineException</a></strong>:
+      <em class="summary">Base engine exception.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineAbortException-class.html">ClusterShell.Engine.Engine.EngineAbortException</a></strong>:
+      <em class="summary">Raised on user abort.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineIllegalOperationError-class.html">ClusterShell.Engine.Engine.EngineIllegalOperationError</a></strong>:
+      <em class="summary">Error raised when an illegal operation has been performed.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineAlreadyRunningError-class.html">ClusterShell.Engine.Engine.EngineAlreadyRunningError</a></strong>:
+      <em class="summary">Error raised when the engine is already running.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineNotSupportedError-class.html">ClusterShell.Engine.Engine.EngineNotSupportedError</a></strong>:
+      <em class="summary">Error raised when the engine mechanism is not supported.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Engine.EngineTimeoutException-class.html">ClusterShell.Engine.Engine.EngineTimeoutException</a></strong>:
+      <em class="summary">Raised when a timeout is encountered.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.NodeSetException-class.html">ClusterShell.NodeSet.NodeSetException</a></strong>:
+      <em class="summary">Base NodeSet exception class.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.NodeSetParseError-class.html">ClusterShell.NodeSet.NodeSetParseError</a></strong>:
+      <em class="summary">Raised when NodeSet parsing cannot be done properly.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.NodeSetParseRangeError-class.html">ClusterShell.NodeSet.NodeSetParseRangeError</a></strong>:
+      <em class="summary">Raised when bad range is encountered during NodeSet parsing.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.RangeSetException-class.html">ClusterShell.NodeSet.RangeSetException</a></strong>:
+      <em class="summary">Base RangeSet exception class.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.RangeSetParseError-class.html">ClusterShell.NodeSet.RangeSetParseError</a></strong>:
+      <em class="summary">Raised when RangeSet parsing cannot be done properly.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.RangeSetPaddingError-class.html">ClusterShell.NodeSet.RangeSetPaddingError</a></strong>:
+      <em class="summary">Raised when a fatal padding incoherency occurs</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.TaskException-class.html">ClusterShell.Task.TaskException</a></strong>:
+      <em class="summary">Base task exception.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.TaskError-class.html">ClusterShell.Task.TaskError</a></strong>:
+      <em class="summary">Base task error exception.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.AlreadyRunningError-class.html">ClusterShell.Task.AlreadyRunningError</a></strong>:
+      <em class="summary">Raised when trying to resume an already running task.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.TaskMsgTreeError-class.html">ClusterShell.Task.TaskMsgTreeError</a></strong>:
+      <em class="summary">Raised when trying to access disabled MsgTree.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.TimeoutError-class.html">ClusterShell.Task.TimeoutError</a></strong>:
+      <em class="summary">Raised when the task timed out.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="clush.UpdatePromptException-class.html">clush.UpdatePromptException</a></strong>:
+      <em class="summary">Exception used by the signal handler</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.WorkerException-class.html">ClusterShell.Worker.Worker.WorkerException</a></strong>:
+      <em class="summary">Generic worker exception.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.WorkerError-class.html">ClusterShell.Worker.Worker.WorkerError</a></strong>:
+      <em class="summary">Generic worker error.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.WorkerBadArgumentError-class.html">ClusterShell.Worker.Worker.WorkerBadArgumentError</a></strong>:
+      <em class="summary">Bad argument in worker error.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Event.EventHandler-class.html">ClusterShell.Event.EventHandler</a></strong>:
+      <em class="summary">Base class EventHandler.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="clush.DirectOutputHandler-class.html">clush.DirectOutputHandler</a></strong>:
+      <em class="summary">Direct output event handler class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="clush.GatherOutputHandler-class.html">clush.GatherOutputHandler</a></strong>:
+      <em class="summary">Gathered output event handler class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="clush.RunTimer-class.html">clush.RunTimer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="clush.StdInputHandler-class.html">clush.StdInputHandler</a></strong>:
+      <em class="summary">Standard input event handler class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.Task._SyncMsgHandler-class.html" onclick="show_private();">ClusterShell.Task.Task._SyncMsgHandler</a></strong>:
+      <em class="summary">Special task control port event handler.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.MsgTree.MsgTree-class.html">ClusterShell.MsgTree.MsgTree</a></strong>:
+      <em class="summary">A MsgTree object maps key objects to multi-lines messages.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.MsgTree.MsgTreeElem-class.html">ClusterShell.MsgTree.MsgTreeElem</a></strong>:
+      <em class="summary">Class representing an element of the MsgTree and its associated 
+        message.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.NodeSet.NodeSet-class.html">ClusterShell.NodeSet.NodeSet</a></strong>:
+      <em class="summary">Iterable class of nodes with node ranges support.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Engine.Factory.PreferredEngine-class.html">ClusterShell.Engine.Factory.PreferredEngine</a></strong>:
+      <em class="summary">Preferred Engine selection metaclass (DP Abstract Factory).</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.Task-class.html">ClusterShell.Task.Task</a></strong>:
+      <em class="summary">Task to execute.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.Worker-class.html">ClusterShell.Worker.Worker.Worker</a></strong>:
+      <em class="summary">Base class Worker.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.DistantWorker-class.html">ClusterShell.Worker.Worker.DistantWorker</a></strong>:
+      <em class="summary">Base class DistantWorker, which provides a useful set of 
+        setters/getters to use with distant workers like ssh or pdsh.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Pdsh.WorkerPdsh-class.html">ClusterShell.Worker.Pdsh.WorkerPdsh</a></strong>:
+      <em class="summary">ClusterShell pdsh-based worker Class.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Ssh.WorkerSsh-class.html">ClusterShell.Worker.Ssh.WorkerSsh</a></strong>:
+      <em class="summary">ClusterShell ssh-based worker Class.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Worker.WorkerSimple-class.html">ClusterShell.Worker.Worker.WorkerSimple</a></strong>:
+      <em class="summary">Implements a simple Worker being itself an EngineClient.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="ClusterShell.Worker.Popen.WorkerPopen-class.html">ClusterShell.Worker.Popen.WorkerPopen</a></strong>:
+      <em class="summary">Implements the Popen Worker.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.Task._SuspendCondition-class.html" onclick="show_private();">ClusterShell.Task.Task._SuspendCondition</a></strong>:
+      <em class="summary">Special class to manage task suspend condition.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task._TaskMsgTree-class.html" onclick="show_private();">ClusterShell.Task._TaskMsgTree</a></strong>:
+      <em class="summary">Task special MsgTree wrapper class, for easy disabling of MsgTree
+buffering.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="ClusterShell.Task.Task.tasksyncmethod-class.html">ClusterShell.Task.Task.tasksyncmethod</a></strong>:
+      <em class="summary">Class encapsulating a function that checks if the calling task is 
+        running or is the current task, and allowing it to be used as a 
+        decorator making the wrapped task method thread-safe.</em>
+    </li>
+    </ul>
+    </li>
+</ul>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Trees&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:32 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

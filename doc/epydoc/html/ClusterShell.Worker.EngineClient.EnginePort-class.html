@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Worker.EngineClient.EnginePort</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Worker-module.html">Package&nbsp;Worker</a> ::
+        <a href="ClusterShell.Worker.EngineClient-module.html">Module&nbsp;EngineClient</a> ::
+        Class&nbsp;EnginePort
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Worker.EngineClient.EnginePort-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class EnginePort</h1><p class="nomargin-top"><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_clusters_39" name="uml_class_diagram_for_clusters_39">
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EnginePort-class.html#__init__" title="Initialize EnginePort object." alt="" coords="17,260,324,279"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EnginePort-class.html#msg" title="Port message send with optional reply." alt="" coords="17,279,324,297"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EnginePort-class.html#msg_send" title="Port message send&#45;once method (no reply)." alt="" coords="17,297,324,316"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EnginePort-class.html" title="An EnginePort is an abstraction object to deliver messages reliably between tasks." alt="" coords="16,235,325,317"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#error_fileno" title="Return the standard error reader file descriptor as an integer." alt="" coords="116,148,225,167"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#reader_fileno" title="Return the reader file descriptor as an integer." alt="" coords="116,167,225,185"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html#writer_fileno" title="Return the writer file descriptor as an integer." alt="" coords="116,185,225,204"/>
+<area shape="rect" href="ClusterShell.Worker.EngineClient.EngineClient-class.html" title="Abstract class EngineClient." alt="" coords="115,123,227,205"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#invalidate" title="Invalidates a timer object, stopping it from ever firing again." alt="" coords="52,36,289,55"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#is_valid" title="Returns a boolean value that indicates whether an EngineTimer object is &#160;valid and able to fire." alt="" coords="52,55,289,73"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#set_nextfire" title="Set the next firing delay in seconds for an EngineTimer object." alt="" coords="52,73,289,92"/>
+<area shape="rect" href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html" title="Abstract class for ClusterShell&#39;s engine timer." alt="" coords="51,11,291,93"/>
+</map>
+  <img src="uml_class_diagram_for_clusters_39.png" alt='' usemap="#uml_class_diagram_for_clusters_39" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>An EnginePort is an abstraction object to deliver messages reliably 
+  between tasks.</p>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Nested Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-NestedClasses"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="ClusterShell.Worker.EngineClient.EnginePort._Msg-class.html" class="summary-name" onclick="show_private();">_Msg</a><br />
+      Private class representing a port message.
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EnginePort-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">task</span>,
+        <span class="summary-sig-arg">handler</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">autoclose</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Initialize EnginePort object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EnginePort-class.html#_start" class="summary-sig-name" onclick="show_private();">_start</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Starts client and returns client instance as a convenience.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._start">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EnginePort-class.html#_close" class="summary-sig-name" onclick="show_private();">_close</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">force</span>,
+        <span class="summary-sig-arg">timeout</span>)</span><br />
+      Close client.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EnginePort-class.html#_read" class="summary-sig-name" onclick="show_private();">_read</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">4096</span>)</span><br />
+      Read data from pipe.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._read">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Worker.EngineClient.EnginePort-class.html#_handle_read" class="summary-sig-name" onclick="show_private();">_handle_read</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Handle a read notification.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._handle_read">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="msg"></a><span class="summary-sig-name">msg</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">send_msg</span>,
+        <span class="summary-sig-arg">send_once</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Port message send with optional reply.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort.msg">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="msg_send"></a><span class="summary-sig-name">msg_send</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">send_msg</span>)</span><br />
+      Port message send-once method (no reply).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort.msg_send">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html">EngineClient</a></code></b>:
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#error_fileno">error_fileno</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#reader_fileno">reader_fileno</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#writer_fileno">writer_fileno</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html">EngineClient</a></code></b> (private):
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_close_writer" onclick="show_private();">_close_writer</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_exec_nonblock" onclick="show_private();">_exec_nonblock</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_fire" onclick="show_private();">_fire</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_error" onclick="show_private();">_handle_error</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_write" onclick="show_private();">_handle_write</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_readerr" onclick="show_private();">_readerr</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_readerrlines" onclick="show_private();">_readerrlines</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_readlines" onclick="show_private();">_readlines</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_reading" onclick="show_private();">_set_reading</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_reading_error" onclick="show_private();">_set_reading_error</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_write_eof" onclick="show_private();">_set_write_eof</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_set_writing" onclick="show_private();">_set_writing</a></code>,
+      <code><a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_write" onclick="show_private();">_write</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">Engine.Engine.EngineBaseTimer</a></code></b>:
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#invalidate">invalidate</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#is_valid">is_valid</a></code>,
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#set_nextfire">set_nextfire</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html">Engine.Engine.EngineBaseTimer</a></code></b> (private):
+      <code><a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#_set_engine" onclick="show_private();">_set_engine</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">task</span>,
+        <span class="sig-arg">handler</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">autoclose</span>=<span class="sig-default">False</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize EnginePort object.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Engine.Engine.EngineBaseTimer-class.html#__init__">Engine.Engine.EngineBaseTimer.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_start"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_start</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._start">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Starts client and returns client instance as a convenience. Derived 
+  classes (except EnginePort) must implement.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_start" onclick="show_private();">EngineClient._start</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_close"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_close</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">force</span>,
+        <span class="sig-arg">timeout</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Close client. Called by the engine after client has been unregistered.
+  This method should handle all termination types (normal, forced or on 
+  timeout). Derived classes must implement.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_close" onclick="show_private();">EngineClient._close</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_read"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_read</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">size</span>=<span class="sig-default">4096</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._read">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Read data from pipe.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_read" onclick="show_private();">EngineClient._read</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_handle_read"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_handle_read</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Worker.EngineClient-pysrc.html#EnginePort._handle_read">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Handle a read notification. Called by the engine as the result of an 
+  event indicating that a read is available.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="ClusterShell.Worker.EngineClient.EngineClient-class.html#_handle_read" onclick="show_private();">EngineClient._handle_read</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:35 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

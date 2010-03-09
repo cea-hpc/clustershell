@@ -1,0 +1,2158 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ClusterShell.Task.Task</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ClusterShell-module.html">Package&nbsp;ClusterShell</a> ::
+        <a href="ClusterShell.Task-module.html">Module&nbsp;Task</a> ::
+        Class&nbsp;Task
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ClusterShell.Task.Task-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Task</h1><p class="nomargin-top"><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_clusters_25" name="uml_class_diagram_for_clusters_25">
+<area shape="rect" href="ClusterShell.Task.Task.tasksyncmethod-class.html" title="Class encapsulating a function that checks if the calling task is running &#160;or is the current task, and allowing it to be used as a decorator making &#160;the wrapped task method thread&#45;safe." alt="" coords="17,28,268,47"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#__new__" title="For task bound to a specific thread, this class acts like a &quot;thread &#160;singleton&quot;, so new style class is used and new object are only instantiated if needed." alt="" coords="17,49,268,68"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#__init__" title="Initialize a Task, creating a new thread if needed." alt="" coords="17,68,268,87"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#default" title="Return per&#45;task value for key from the &quot;default&quot; dictionary." alt="" coords="17,87,268,105"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#set_default" title="Set task value for specified key in the dictionary &quot;default&quot;." alt="" coords="17,105,268,124"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#info" title="Return per&#45;task information." alt="" coords="17,124,268,143"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#set_info" title="Set task value for a specific key information." alt="" coords="17,143,268,161"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#shell" title="Schedule a shell command for local or distant execution." alt="" coords="17,161,268,180"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#copy" title="Copy local file to distant nodes." alt="" coords="17,180,268,199"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#port" title="Create a new task port." alt="" coords="17,199,268,217"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#timer" title="Create task&#39;s timer." alt="" coords="17,217,268,236"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#schedule" title="Schedule a worker for execution." alt="" coords="17,236,268,255"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#resume" title="Resume task." alt="" coords="17,255,268,273"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#suspend" title="Suspend task execution." alt="" coords="17,273,268,292"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html#wait" title="Class method that blocks calling thread until all tasks have finished (from a ClusterShell point of view, for instance, their task.resume() return)." alt="" coords="17,311,268,329"/>
+<area shape="rect" href="ClusterShell.Task.Task-class.html" title="Task to execute." alt="" coords="16,11,269,331"/>
+</map>
+  <img src="uml_class_diagram_for_clusters_25.png" alt='' usemap="#uml_class_diagram_for_clusters_25" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<pre class="literalblock">
+
+Task to execute. May be bound to a specific thread.
+
+To create a task in a new thread:
+    task = Task()
+
+To create or get the instance of the task associated with the
+thread object thr (threading.Thread):
+    task = Task(thread=thr)
+
+Add command to execute locally in task with:
+    task.shell(&quot;/bin/hostname&quot;)
+
+Add command to execute in a distant node in task with:
+    task.shell(&quot;/bin/hostname&quot;, nodes=&quot;tiger[1-20]&quot;)
+
+Run task in its associated thread (will block only if the calling
+thread is the associated thread:
+    task.resume()
+
+</pre>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Nested Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-NestedClasses"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="ClusterShell.Task.Task._SyncMsgHandler-class.html" class="summary-name" onclick="show_private();">_SyncMsgHandler</a><br />
+      Special task control port event handler.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="ClusterShell.Task.Task.tasksyncmethod-class.html" class="summary-name">tasksyncmethod</a><br />
+      Class encapsulating a function that checks if the calling task is 
+        running or is the current task, and allowing it to be used as a 
+        decorator making the wrapped task method thread-safe.
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="ClusterShell.Task.Task._SuspendCondition-class.html" class="summary-name" onclick="show_private();">_SuspendCondition</a><br />
+      Special class to manage task suspend condition.
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">thread</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Initialize a Task, creating a new thread if needed.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_is_task_self"></a><span class="summary-sig-name">_is_task_self</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Private method used by the library to check if the task is 
+      task_self(), but do not create any task_self() instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._is_task_self">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_handle_exception"></a><span class="summary-sig-name">_handle_exception</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._handle_exception">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_thread_start"></a><span class="summary-sig-name">_thread_start</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Task-managed thread entry point</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._thread_start">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_run"></a><span class="summary-sig-name">_run</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">timeout</span>)</span><br />
+      Run task (always called from its self thread).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._run">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="default"></a><span class="summary-sig-name">default</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">default_key</span>,
+        <span class="summary-sig-arg">def_val</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Return per-task value for key from the &quot;default&quot; 
+      dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.default">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#set_default" class="summary-sig-name">set_default</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">default_key</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Set task value for specified key in the dictionary &quot;default&quot;.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.set_default">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="info"></a><span class="summary-sig-name">info</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">info_key</span>,
+        <span class="summary-sig-arg">def_val</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Return per-task information.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.info">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#set_info" class="summary-sig-name">set_info</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Set task value for a specific key information.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.set_info">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#shell" class="summary-sig-name">shell</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">command</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Schedule a shell command for local or distant execution.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.shell">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="copy"></a><span class="summary-sig-name">copy</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>,
+        <span class="summary-sig-arg">dest</span>,
+        <span class="summary-sig-arg">nodes</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Copy local file to distant nodes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.copy">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#_add_port" class="summary-sig-name" onclick="show_private();">_add_port</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Add an EnginePort instance to Engine (private method).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._add_port">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#_remove_port" class="summary-sig-name" onclick="show_private();">_remove_port</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Remove a port from Engine (private method).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._remove_port">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#port" class="summary-sig-name">port</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">handler</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">autoclose</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Create a new task port.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.port">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#timer" class="summary-sig-name">timer</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Create task's timer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.timer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#schedule" class="summary-sig-name">schedule</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Schedule a worker for execution.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.schedule">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_resume_thread"></a><span class="summary-sig-name">_resume_thread</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Resume called from another thread.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._resume_thread">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_resume"></a><span class="summary-sig-name">_resume</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._resume">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#resume" class="summary-sig-name">resume</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Resume task.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.resume">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#_suspend_wait" class="summary-sig-name" onclick="show_private();">_suspend_wait</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._suspend_wait">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#suspend" class="summary-sig-name">suspend</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Suspend task execution.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.suspend">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#_abort" class="summary-sig-name" onclick="show_private();">_abort</a>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._abort">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#abort" class="summary-sig-name">abort</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">kill</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Abort a task.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.abort">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_terminate"></a><span class="summary-sig-name">_terminate</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">kill</span>)</span><br />
+      Abort completion subroutine.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._terminate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="join"></a><span class="summary-sig-name">join</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Suspend execution of the calling thread until the target task 
+      terminates, unless the target task has already terminated.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.join">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="running"></a><span class="summary-sig-name">running</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return True if the task is running.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.running">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_reset"></a><span class="summary-sig-name">_reset</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Reset buffers and retcodes management variables.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._reset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_msg_add"></a><span class="summary-sig-name">_msg_add</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>,
+        <span class="summary-sig-arg">msg</span>)</span><br />
+      Add a worker message associated with a source.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._msg_add">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_errmsg_add"></a><span class="summary-sig-name">_errmsg_add</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>,
+        <span class="summary-sig-arg">msg</span>)</span><br />
+      Add a worker error message associated with a source.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._errmsg_add">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_rc_set"></a><span class="summary-sig-name">_rc_set</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>,
+        <span class="summary-sig-arg">rc</span>,
+        <span class="summary-sig-arg">override</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Add a worker return code associated with a source.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._rc_set">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_timeout_add"></a><span class="summary-sig-name">_timeout_add</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Add a worker timeout associated with a source.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._timeout_add">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_msg_by_source"></a><span class="summary-sig-name">_msg_by_source</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Get a message by its source (worker, key).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._msg_by_source">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_errmsg_by_source"></a><span class="summary-sig-name">_errmsg_by_source</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Get an error message by its source (worker, key).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._errmsg_by_source">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_call_tree_matcher"></a><span class="summary-sig-name">_call_tree_matcher</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tree_match_func</span>,
+        <span class="summary-sig-arg">match_keys</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">worker</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Call identified tree matcher (items, walk) method with options.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._call_tree_matcher">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_rc_by_source"></a><span class="summary-sig-name">_rc_by_source</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">source</span>)</span><br />
+      Get a return code by its source (worker, key).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._rc_by_source">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_rc_iter_by_key"></a><span class="summary-sig-name">_rc_iter_by_key</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Return an iterator over return codes for the given key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._rc_iter_by_key">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_rc_iter_by_worker"></a><span class="summary-sig-name">_rc_iter_by_worker</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>,
+        <span class="summary-sig-arg">match_keys</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Return an iterator over return codes and keys list for a specific 
+      worker and optional matching keys.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._rc_iter_by_worker">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_krc_iter_by_worker"></a><span class="summary-sig-name">_krc_iter_by_worker</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Return an iterator over key, rc for a specific worker.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._krc_iter_by_worker">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_num_timeout_by_worker"></a><span class="summary-sig-name">_num_timeout_by_worker</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Return the number of timed out &quot;keys&quot; for a specific 
+      worker.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._num_timeout_by_worker">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#_iter_keys_timeout_by_worker" class="summary-sig-name" onclick="show_private();">_iter_keys_timeout_by_worker</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">worker</span>)</span><br />
+      Iterate over timed out keys (ie.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._iter_keys_timeout_by_worker">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#key_buffer" class="summary-sig-name">key_buffer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Get buffer for a specific key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_buffer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#node_buffer" class="summary-sig-name">node_buffer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Get buffer for a specific key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_buffer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#key_error" class="summary-sig-name">key_error</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Get error buffer for a specific key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_error">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#node_error" class="summary-sig-name">node_error</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Get error buffer for a specific key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_error">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#key_retcode" class="summary-sig-name">key_retcode</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Return return code for a specific key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_retcode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#node_retcode" class="summary-sig-name">node_retcode</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Return return code for a specific key.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_retcode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#max_retcode" class="summary-sig-name">max_retcode</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get max return code encountered during last run.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.max_retcode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#iter_buffers" class="summary-sig-name">iter_buffers</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">match_keys</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Iterate over buffers, returns a tuple (buffer, keys).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_buffers">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#iter_errors" class="summary-sig-name">iter_errors</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">match_keys</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Iterate over error buffers, returns a tuple (buffer, keys).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_errors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#iter_retcodes" class="summary-sig-name">iter_retcodes</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">match_keys</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Iterate over return codes, returns a tuple (rc, keys).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_retcodes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#num_timeout" class="summary-sig-name">num_timeout</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the number of timed out &quot;keys&quot; (ie.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.num_timeout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#iter_keys_timeout" class="summary-sig-name">iter_keys_timeout</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Iterate over timed out keys (ie.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_keys_timeout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#wait" class="summary-sig-name">wait</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">from_thread</span>)</span><br />
+      Class method that blocks calling thread until all tasks have finished
+      (from a ClusterShell point of view, for instance, their task.resume()
+      return).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.wait">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Static Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-StaticMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">a new object with type S, a subtype of T</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ClusterShell.Task.Task-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">thread</span>=<span class="summary-sig-default">None</span>)</span><br />
+      For task bound to a specific thread, this class acts like a 
+      &quot;thread singleton&quot;, so new style class is used and new 
+      object are only instantiated if needed.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="ClusterShell.Task.Task-class.html#_std_default" class="summary-name" onclick="show_private();">_std_default</a> = <code title="{'engine': 'auto',
+ 'port_qlimit': 32,
+ 'stderr': False,
+ 'stderr_msgtree': True,
+ 'stdout_msgtree': True}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">engine</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">auto</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">port_qlimit</code><code class="variable-quote">'</code><code class="variable-op">: </code>32<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">stderr</code><code class="variable-quote">'</code><code class="variable-op">:</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="ClusterShell.Task.Task-class.html#_std_info" class="summary-name" onclick="show_private();">_std_info</a> = <code title="{'command_timeout': 0,
+ 'connect_timeout': 10,
+ 'debug': False,
+ 'fanout': 64,
+ 'print_debug': &lt;function _task_print_debug at 0x13b2c80&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">command_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">connect_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code>10<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">deb</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_tasks"></a><span class="summary-name">_tasks</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_taskid_max"></a><span class="summary-name">_taskid_max</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_task_lock"></a><span class="summary-name">_task_lock</span> = <code title="threading.Lock()">threading.Lock()</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">thread</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>For task bound to a specific thread, this class acts like a 
+  &quot;thread singleton&quot;, so new style class is used and new object 
+  are only instantiated if needed.</p>
+  <dl class="fields">
+    <dt>Returns: a new object with type S, a subtype of T</dt>
+    <dt>Overrides:
+        object.__new__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">thread</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize a Task, creating a new thread if needed.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="set_default"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set_default</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">default_key</span>,
+        <span class="sig-arg">value</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.set_default">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Set task value for specified key in the dictionary &quot;default&quot;.
+Users may store their own task-specific key, value pairs
+using this method and retrieve them with default().
+
+Threading considerations:
+  Unlike set_info(), when called from the task's thread or
+  not, set_default() immediately updates the underlying
+  dictionary in a thread-safe manner. This method doesn't
+  wake up the engine when called.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="set_info"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set_info</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.set_info">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Set task value for a specific key information. Key, value
+pairs can be passed to the engine and/or workers.
+Users may store their own task-specific info key, value pairs
+using this method and retrieve them with info().
+
+Threading considerations:
+  Unlike set_default(), the underlying info dictionary is only
+  modified from the task's thread. So calling set_info() from
+  another thread leads to queueing the request for late apply
+  (at run time) using the task dispatch port. When received,
+  the request wakes up the engine when the task is running and
+  the info dictionary is then updated.
+
+</pre>
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="shell"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">shell</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">command</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.shell">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Schedule a shell command for local or distant execution.
+
+Local usage:
+    task.shell(command [, key=key] [, handler=handler]
+          [, timeout=secs] [, autoclose=enable_autoclose]
+          [, stderr=enable_stderr])
+
+Distant usage:
+    task.shell(command, nodes=nodeset [, handler=handler]
+          [, timeout=secs], [, autoclose=enable_autoclose]
+          [, strderr=enable_stderr])
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_add_port"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_add_port</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._add_port">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Add an EnginePort instance to Engine (private method).</p>
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_remove_port"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_remove_port</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._remove_port">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Remove a port from Engine (private method).</p>
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="port"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">port</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">handler</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">autoclose</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.port">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Create a new task port. A task port is an abstraction object to
+deliver messages reliably between tasks.
+
+Basic rules:
+    A task can send messages to another task port (thread safe).
+    A task can receive messages from an acquired port either by
+    setting up a notification mechanism or using a polling
+    mechanism that may block the task waiting for a message
+    sent on the port.
+    A port can be acquired by one task only.
+
+If handler is set to a valid EventHandler object, the port is
+a send-once port, ie. a message sent to this port generates an
+ev_msg event notification issued the port's task. If handler
+is not set, the task can only receive messages on the port by
+calling port.msg_recv().
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="timer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">timer</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.timer">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create task's timer.</p>
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="schedule"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">schedule</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.schedule">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Schedule a worker for execution. Only useful for manually instantiated
+  workers.</p>
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="resume"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">resume</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">timeout</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.resume">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Resume task. If task is task_self(), workers are executed in the 
+  calling thread so this method will block until workers have finished. 
+  This is always the case for a single-threaded application (eg. which 
+  doesn't create other Task() instance than task_self()). Otherwise, the 
+  current thread doesn't block. In that case, you may then want to call 
+  task_wait() to wait for completion.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_suspend_wait"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_suspend_wait</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._suspend_wait">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="suspend"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">suspend</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.suspend">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Suspend task execution. This method may be called from another task 
+  (thread-safe). The function returns False if the task cannot be suspended
+  (eg. it's not running), or returns True if the task has been successfully
+  suspended. To resume a suspended task, use task.resume().</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_abort"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_abort</span>(<span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._abort">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Decorators:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code>@tasksyncmethod()</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="abort"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">abort</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">kill</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.abort">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Abort a task. Aborting a task removes (and stops when needed) all 
+  workers. If optional parameter kill is True, the task object is unbound 
+  from the current thread, so calling task_self() creates a new Task 
+  object.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_iter_keys_timeout_by_worker"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_iter_keys_timeout_by_worker</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">worker</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task._iter_keys_timeout_by_worker">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Iterate over timed out keys (ie. nodes) for a specific worker.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="key_buffer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">key_buffer</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_buffer">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get buffer for a specific key. When the key is associated to multiple 
+  workers, the resulting buffer will contain all workers content that may 
+  overlap.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="node_buffer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">node_buffer</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_buffer">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get buffer for a specific key. When the key is associated to multiple 
+  workers, the resulting buffer will contain all workers content that may 
+  overlap.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="key_error"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">key_error</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_error">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get error buffer for a specific key. When the key is associated to 
+  multiple workers, the resulting buffer will contain all workers content 
+  that may overlap.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="node_error"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">node_error</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_error">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get error buffer for a specific key. When the key is associated to 
+  multiple workers, the resulting buffer will contain all workers content 
+  that may overlap.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="key_retcode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">key_retcode</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_retcode">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return return code for a specific key. When the key is associated to 
+  multiple workers, return the max return code from these workers.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="node_retcode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">node_retcode</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.key_retcode">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return return code for a specific key. When the key is associated to 
+  multiple workers, return the max return code from these workers.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="max_retcode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">max_retcode</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.max_retcode">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Get max return code encountered during last run.
+
+How retcodes work:
+  If the process exits normally, the return code is its exit
+  status. If the process is terminated by a signal, the return
+  code is 128 + signal number.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="iter_buffers"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">iter_buffers</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">match_keys</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_buffers">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Iterate over buffers, returns a tuple (buffer, keys). For remote
+workers (Ssh), keys are list of nodes. In that case, you should use
+NodeSet.fromlist(keys) to get a NodeSet instance (which is more
+convenient and efficient):
+
+Optional parameter match_keys add filtering on these keys.
+
+Usage example:
+
+    for buffer, nodelist in task.iter_buffers():
+        print NodeSet.fromlist(nodelist)
+        print buffer
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="iter_errors"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">iter_errors</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">match_keys</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_errors">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Iterate over error buffers, returns a tuple (buffer, keys).</p>
+  <p>See iter_buffers().</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="iter_retcodes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">iter_retcodes</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">match_keys</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_retcodes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Iterate over return codes, returns a tuple (rc, keys).
+
+Optional parameter match_keys add filtering on these keys.
+
+How retcodes work:
+  If the process exits normally, the return code is its exit
+  status. If the process is terminated by a signal, the return
+  code is 128 + signal number.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="num_timeout"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">num_timeout</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.num_timeout">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the number of timed out &quot;keys&quot; (ie. nodes).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="iter_keys_timeout"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">iter_keys_timeout</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.iter_keys_timeout">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Iterate over timed out keys (ie. nodes).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="wait"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">wait</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">from_thread</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ClusterShell.Task-pysrc.html#Task.wait">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Class method that blocks calling thread until all tasks have finished 
+  (from a ClusterShell point of view, for instance, their task.resume() 
+  return). It doesn't necessarly mean that associated threads have 
+  finished.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_std_default"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_std_default</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">engine</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">auto</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">port_qlimit</code><code class="variable-quote">'</code><code class="variable-op">: </code>32<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">stderr</code><code class="variable-quote">'</code><code class="variable-op">: </code>False<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">stderr_msgtree</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">stdout_msgtree</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_std_info"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">_std_info</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">command_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">connect_timeout</code><code class="variable-quote">'</code><code class="variable-op">: </code>10<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">debug</code><code class="variable-quote">'</code><code class="variable-op">: </code>False<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">fanout</code><code class="variable-quote">'</code><code class="variable-op">: </code>64<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">print_debug</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function _task_print_debug at 0x13b2c80&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://clustershell.sourceforge.net">ClusterShell</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Mar  9 10:46:34 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
