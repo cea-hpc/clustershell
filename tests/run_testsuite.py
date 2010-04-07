@@ -41,6 +41,7 @@ if __name__ == '__main__':
                                         "RangeSetErrorTest",
                                         "NodeSetTest",
                                         "NodeSetErrorTest",
+                                        "NodeSetGroupTest",
                                         "NodeSetScriptTest",
                                         "MisusageTest",
                                         "MsgTreeTest",

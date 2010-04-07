@@ -34,13 +34,14 @@
 # $Id$
 
 """
-Utility program to run commands on a cluster using the ClusterShell library.
+Utility program to run commands on a cluster using the ClusterShell
+library.
 
-clush is a pdsh-like command which benefits from the ClusterShell library
-and its Ssh worker. It features an integrated output results gathering
-system (dshbak-like), can get node groups by running predefined external
-commands and can redirect lines read on its standard input to the remote
-commands.
+clush is a pdsh-like command which benefits from the ClusterShell
+library and its Ssh worker. It features an integrated output results
+gathering system (dshbak-like), can get node groups by running
+predefined external commands and can redirect lines read on its
+standard input to the remote commands.
 
 When no command are specified, clush runs interactively.
 
@@ -55,6 +56,7 @@ import ConfigParser
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError
+from ClusterShell.NodeSet import STD_GROUP_RESOLVER
 from ClusterShell.Task import Task, task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell import __version__
@@ -297,22 +299,6 @@ class ClushConfig(ConfigParser.ConfigParser):
 
     def get_ssh_options(self):
         return self._get_optional("Main", "ssh_options")
-
-    def get_nodes_all_command(self):
-        section = "External"
-        option = "nodes_all"
-        try:
-            return self.get(section, option)
-        except ConfigParser.Error, e:
-            raise ClushConfigError(section, option, e)
-
-    def get_nodes_group_command(self, group):
-        section = "External"
-        option = "nodes_group"
-        try:
-            return self.get(section, option, 0, { "group" : group })
-        except ConfigParser.Error, e:
-            raise ClushConfigError(section, option, e)
 
 
 def signal_handler(signum, frame):
@@ -668,29 +654,30 @@ def clush_main(args):
     # Do we have nodes group?
     task = task_self()
     task.set_info("debug", config.get_verbosity() > 1)
+    if config.get_verbosity() > 1:
+        STD_GROUP_RESOLVER.set_verbosity(1)
     if options.nodes_all:
-        command = config.get_nodes_all_command()
-        task.shell(command, key="all")
+        all_nodeset = NodeSet.fromall()
+        config.verbose_print(VERB_DEBUG, \
+            "Adding nodes from option -a: %s" % all_nodeset)
+        nodeset_base.add(all_nodeset)
+
     if options.group:
-        for grp in options.group:
-            command = config.get_nodes_group_command(grp)
-            task.shell(command, key="group")
+        grp_nodeset = NodeSet()
+        for grpopt in options.group:
+            for grp in grpopt.split(','):
+                addingrp = NodeSet("@" + grp)
+                config.verbose_print(VERB_DEBUG, \
+                    "Adding nodes from option -g %s: %s" % (grp, addingrp))
+                nodeset_base.update(addingrp)
+
     if options.exgroup:
-        for grp in options.exgroup:
-            command = config.get_nodes_group_command(grp)
-            task.shell(command, key="exgroup")
-
-    # Run needed external commands
-    task.resume()
-
-    for buf, keys in task.iter_buffers(['all', 'group']):
-        for line in buf:
-            config.verbose_print(VERB_DEBUG, "Adding nodes from option %s: %s" % (','.join(keys), buf))
-            nodeset_base.add(line)
-    for buf, keys in task.iter_buffers(['exgroup']):
-        for line in buf:
-            config.verbose_print(VERB_DEBUG, "Excluding nodes from option %s: %s" % (','.join(keys), buf))
-            nodeset_exclude.add(line)
+        for grpopt in options.exgroup:
+            for grp in grpopt.split(','):
+                removingrp = NodeSet("@" + grp)
+                config.verbose_print(VERB_DEBUG, \
+                    "Excluding nodes from option -X %s: %s" % (grp, removingrp))
+                nodeset_exclude.update(removingrp)
 
     # Do we have an exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)

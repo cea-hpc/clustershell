@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -43,6 +43,10 @@ Commands:
         Expand nodesets to separate nodes.
     --fold, -f <nodeset> [nodeset ...]
         Compact/fold nodesets (or separate nodes) into one nodeset.
+    --list, -l
+        List node groups (compatible with --namespace).
+    --regroup, -r <nodeset> [nodeset ...]
+        Fold nodes using node groups (compatible with --namespace).
 Options:
     --autostep=<number>, -a <number>
         Specify auto step threshold number when folding nodesets.
@@ -53,6 +57,8 @@ Options:
         This help page.
     --quiet, -q
         Quiet mode, hide any parse error messages (on stderr).
+    --namespace, -n
+        Group namespace (section to use in groups.conf(5)).
     --rangeset, -R
         Switch to RangeSet instead of NodeSet. Useful when working on
         numerical cluster ranges, eg. 1,5,18-31.
@@ -75,9 +81,18 @@ import getopt
 import signal
 import sys
 
-from ClusterShell.NodeSet import NodeSet, NodeSetParseError
-from ClusterShell.NodeSet import RangeSet, RangeSetParseError
-from ClusterShell import __version__
+from ClusterShell.NodeUtils import GroupResolverConfigError
+from ClusterShell.NodeUtils import GroupResolverSourceError
+try:
+    from ClusterShell.NodeSet import NodeSet, NodeSetParseError
+    from ClusterShell.NodeSet import RangeSet, RangeSetParseError
+    from ClusterShell.NodeSet import grouplist, STD_GROUP_RESOLVER
+    from ClusterShell import __version__
+except GroupResolverConfigError, e:
+    print >> sys.stderr, \
+        "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
+    sys.exit(1)
+
 
 def process_stdin(xset, autostep):
     """Process standard input and populate xset."""
@@ -116,15 +131,17 @@ def run_nodeset(args):
     """
     autostep = None
     command = None
-    quiet = False
+    verbosity = 1
     class_set = NodeSet
     separator = ' '
+    namespace = None
 
     # Parse getoptable options
     try:
-        opts, args = getopt.getopt(args[1:], "a:cefhqvRS:",
-            ["autostep=", "count", "expand", "fold", "help",
-             "quiet", "rangeset", "version", "separator="])
+        opts, args = getopt.getopt(args[1:], "a:cdefhln:qvrRS:",
+            ["autostep=", "count", "debug", "expand", "fold", "help",
+             "list", "namespace=", "quiet", "regroup", "rangeset",
+             "version", "separator="])
     except getopt.error, err:
         if err.opt in [ "i", "intersection", "x", "exclude", "X", "xor" ]:
             print >> sys.stderr, "option -%s not allowed here" % err.opt
@@ -141,6 +158,8 @@ def run_nodeset(args):
                 print >> sys.stderr, exc
         elif k in ("-c", "--count"):
             command = "count"
+        elif k in ("-d", "--debug"):
+            verbosity = 2
         elif k in ("-e", "--expand"):
             command = "expand"
         elif k in ("-f", "--fold"):
@@ -148,8 +167,14 @@ def run_nodeset(args):
         elif k in ("-h", "--help"):
             print __doc__
             sys.exit(0)
+        elif k in ("-l", "--list"):
+            command = "list"
+        elif k in ("-n", "--namespace"):
+            namespace = val
         elif k in ("-q", "--quiet"):
-            quiet = True
+            verbosity = 0
+        elif k in ("-r", "--regroup"):
+            command = "regroup"
         elif k in ("-R", "--rangeset"):
             class_set = RangeSet
         elif k in ("-S", "--separator"):
@@ -164,7 +189,19 @@ def run_nodeset(args):
         print __doc__
         sys.exit(1)
 
+    # The list command doesn't need any NodeSet, check for it first.
+    if command == "list":
+        for group in grouplist(namespace):
+            if namespace:
+                print "@%s:%s" % (namespace, group)
+            else:
+                print "@%s" % group
+        return
+
     try:
+        if verbosity > 1:
+            STD_GROUP_RESOLVER.set_verbosity(1)
+
         # Instantiate RangeSet or NodeSet object
         xset = class_set()
 
@@ -183,11 +220,13 @@ def run_nodeset(args):
             print separator.join(xset)
         elif command == "fold":
             print xset
+        elif command == "regroup":
+            print xset.regroup(namespace)
         else:
             print len(xset)
 
     except (NodeSetParseError, RangeSetParseError), exc:
-        if not quiet:
+        if verbosity > 0:
             print >> sys.stderr, "%s parse error:" % class_set.__name__, exc
         sys.exit(1)
 
@@ -204,6 +243,9 @@ if __name__ == '__main__':
         sys.exit(1)
     except SyntaxError:
         print >> sys.stderr, "ERROR: invalid separator"
+        sys.exit(1)
+    except GroupResolverSourceError, e:
+        print >> sys.stderr, "ERROR: unknown group namespace: \"%s\"" % e
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(128 + signal.SIGINT)

@@ -63,12 +63,8 @@ class NodeSetErrorTest(unittest.TestCase):
 
     def testTypeSanityCheck(self):
         """test NodeSet input type sanity check"""
-        self.assertRaises(NodeSetParseError, NodeSet, dict())
-        self.assertRaises(NodeSetParseError, NodeSet, list())
-        try:
-            ns1 = NodeSet(dict())
-        except NodeSetParseError, e:
-            self.assertEqual(e.part, '')
+        self.assertRaises(TypeError, NodeSet, dict())
+        self.assertRaises(TypeError, NodeSet, list())
 
 
 if __name__ == '__main__':
