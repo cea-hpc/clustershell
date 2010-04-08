@@ -1,3 +1,8 @@
+2010-04-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Add -r (--regroup) option to display default groups
+	in nodeset when possible.
+
 2010-04-07 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Modified script to support new external "all nodes"

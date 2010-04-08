@@ -135,7 +135,7 @@ class GatherOutputHandler(EventHandler):
 
     def __init__(self, label, gather_print, runtimer):
         self._label = label
-        self._gather_print = gather_print
+        self._gather_print, self._regroup = gather_print
         self._runtimer = runtimer
 
     def ev_error(self, worker):
@@ -166,7 +166,7 @@ class GatherOutputHandler(EventHandler):
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
                                        cmp=bufnodeset_cmp):
-                self._gather_print(nodeset, buf)
+                self._gather_print(nodeset, buf, self._regroup)
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
@@ -325,13 +325,21 @@ def readline_setup():
 
 # Start of clubak.py common functions
 
-def print_buffer(header, content):
+def print_buffer(nodeset, content, regroup):
     """Display a dshbak-like header block and content."""
     sep = "-" * 15
+    if regroup:
+        header = nodeset.regroup()
+    else:
+        header = str(nodeset)
     sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
 
-def print_lines(header, msg):
+def print_lines(nodeset, msg, regroup):
     """Display a MsgTree buffer by line with prefixed header."""
+    if regroup:
+        header = nodeset.regroup()
+    else:
+        header = str(nodeset)
     for line in msg:
         sys.stdout.write("%s: %s\n" % (header, line))
 
@@ -356,7 +364,8 @@ def bufnodeset_cmp(bn1, bn2):
     # Extract nodesets and call nodeset_cmp
     return nodeset_cmp(bn1[1], bn2[1])
 
-def ttyloop(task, nodeset, gather, timeout, label, verbosity, gather_print):
+def ttyloop(task, nodeset, gather, timeout, label, verbosity,
+            (gather_print, regroup)):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
@@ -407,7 +416,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity, gather_print):
                     if not print_warn:
                         print_warn = True
                         print >> sys.stderr, "Warning: Caught keyboard interrupt!"
-                    gather_print(nodeset, buf)
+                    gather_print(nodeset, buf, regroup)
                     
                 # Return code handling
                 ns_ok = NodeSet()
@@ -592,6 +601,8 @@ def clush_main(args):
                       default=False, help="display gathered results in a dshbak-like way")
     optgrp.add_option("-B", action="store_true", dest="gatherall",
                       default=False, help="like -b but including standard error")
+    optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
+                      default=False, help="fold nodeset using node groups")
     parser.add_option_group(optgrp)
 
     # Copy
@@ -767,9 +778,9 @@ def clush_main(args):
 
     # Select gather-mode print function
     if options.line_mode:
-        gather_print = print_lines
+        gather_print = print_lines, options.regroup
     else:
-        gather_print = print_buffer
+        gather_print = print_buffer, options.regroup
 
     if not task.default("USER_interactive"):
         if options.source_path:
