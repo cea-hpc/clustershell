@@ -484,14 +484,14 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
                 run_command(task, cmd[1:], None, gather, timeout, None,
-                            verbosity, gather_info)
+                            verbosity, (gather_print, regroup, namespace))
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
                 run_command(task, cmd, ns, gather, timeout, label, verbosity,
-                            gather_info)
+                            (gather_print, regroup, namespace))
     return rc
 
 def bind_stdin(worker):
