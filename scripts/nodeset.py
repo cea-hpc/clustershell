@@ -125,6 +125,11 @@ def compute_nodeset(xset, args, autostep):
 
     return xset
 
+def error_exit(progname, message, status=1):
+    print >> sys.stderr, message
+    print >> sys.stderr, "Try `%s -h' for more information." % progname
+    sys.exit(status)
+    
 def run_nodeset(args):
     """
     Main script function.
@@ -135,6 +140,8 @@ def run_nodeset(args):
     class_set = NodeSet
     separator = ' '
     namespace = None
+    progname = args[0]
+    multcmds_errstr = "ERROR: multiple commands not allowed"
 
     # Parse getoptable options
     try:
@@ -144,11 +151,10 @@ def run_nodeset(args):
              "version", "separator="])
     except getopt.error, err:
         if err.opt in [ "i", "intersection", "x", "exclude", "X", "xor" ]:
-            print >> sys.stderr, "option -%s not allowed here" % err.opt
+            message = "option -%s not allowed here" % err.opt
         else:
-            print >> sys.stderr, err.msg
-        print >> sys.stderr, "Try `%s -h' for more information." % args[0]
-        sys.exit(2)
+            message = err.msg
+        error_exit(progname, message, 2)
 
     for k, val in opts:
         if k in ("-a", "--autostep"):
@@ -157,23 +163,33 @@ def run_nodeset(args):
             except ValueError, exc:
                 print >> sys.stderr, exc
         elif k in ("-c", "--count"):
+            if command:
+                error_exit(progname, multcmds_errstr, 2)
             command = "count"
         elif k in ("-d", "--debug"):
             verbosity = 2
         elif k in ("-e", "--expand"):
+            if command:
+                error_exit(progname, multcmds_errstr, 2)
             command = "expand"
         elif k in ("-f", "--fold"):
+            if command:
+                error_exit(progname, multcmds_errstr, 2)
             command = "fold"
         elif k in ("-h", "--help"):
             print __doc__
             sys.exit(0)
         elif k in ("-l", "--list"):
+            if command:
+                error_exit(progname, multcmds_errstr, 2)
             command = "list"
         elif k in ("-n", "--namespace"):
             namespace = val
         elif k in ("-q", "--quiet"):
             verbosity = 0
         elif k in ("-r", "--regroup"):
+            if command:
+                error_exit(progname, multcmds_errstr, 2)
             command = "regroup"
         elif k in ("-R", "--rangeset"):
             class_set = RangeSet
@@ -186,7 +202,7 @@ def run_nodeset(args):
     # Check for command presence
     if not command:
         print >> sys.stderr, "ERROR: no command specified."
-        print __doc__
+        print >> sys.stderr, __doc__
         sys.exit(1)
 
     # The list command doesn't need any NodeSet, check for it first.
