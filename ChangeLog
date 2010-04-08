@@ -1,3 +1,19 @@
+2010-04-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Modified script to support new external "all nodes"
+	upcall and node groups.
+
+	* scripts/nodeset.py: Added command flags -l (list groups), -r (used to
+	regroup nodes in groups), and also added option flag -n to specify desired
+	namespace.
+
+	* NodeSet.py: Added node group support with the help of the new NodeUtils
+	module (trac ticket #41). Improved parser to support basic node/nodegroups
+	arithmetics (trac ticket #44).
+
+	* NodeUtils.py: New module that provides binding support to external node
+	group sources (trac ticket #43).
+
 2010-03-05 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/*.py: Do not forget to keep last line and generate an ev_read

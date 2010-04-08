@@ -1,0 +1,106 @@
+=============
+ groups.conf
+=============
+
+--------------------------------------------------------
+Configuration file for ClusterShell external node groups
+--------------------------------------------------------
+
+:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+:Date:   2010-04-08
+:Copyright: CeCILL-C V1
+:Version: 1.3
+:Manual section: 5
+:Manual group: ClusterShell User Manual
+
+
+DESCRIPTION
+===========
+
+The ClusterShell library obtains node groups configuration options from the
+system-wide configuration file */etc/clustershell/groups.conf*.
+
+The configuration file has a format in the style of RFC 822 composed
+of several sections which may be present in any order. Sections are:
+
+Main
+  General options definition
+*Group_namespace*
+  External commands definition for namespace *Group_namespace* (map, all, list and reverse)
+
+
+[Main]
+------
+Configuration parameters of the ``Main`` section are described below.
+
+default
+  Specify the default group namespace used by the NodeSet parser when the
+  user does not specify explicitly the namespace (eg. "@io").
+
+*Group_namespace*
+-----------------
+Configuration parameters of each group namespace section are described below.
+
+map
+  Specify the external shell command used to resolve a group name into a
+  nodeset, list of nodes or list of nodeset (seperated by space characters or
+  by carriage returns). The variable *$GROUP* is replaced before executing the
+  command.
+all
+  Optional external shell command that should return a nodeset, list of
+  nodes or list of nodeset of all nodes for this group namespace. If not
+  specified, the library will try to resolve the group named ``all`` (@all). 
+list
+  Optional external shell command that should return the list of all groups
+  for this group namespace (separated by space characters or by carriage
+  returns).
+reverse
+  Optional external shell command used to find the group(s) of a single
+  node. The variable $NODE is previously replaced. If this upcall is not
+  specified, the reverse operation is computed in memory by the library from
+  the *list* and *map* external calls. Also, if the number of nodes to
+  reverse is greater than the number of available groups, the *reverse*
+  external command is avoided automatically.
+
+Each external command might return a non-zero return code when the operation
+is not doable. But if the call return zero, for instance, for a non-existing
+group, the user will not receive any error when trying to resolve such unknown
+group.  The desired behaviour is up to the system administrator.
+
+EXAMPLES
+===========
+
+Simple configuration file for local groups and slurm partitions binding.
+
+*groups.conf*
+-------------
+
+| [Main]
+| default: local
+| 
+| [local]
+| map: awk -F: '/^$GROUP:/ {print $2}' /etc/clustershell/groups
+| all: awk -F: '/^all:/ {print $2}' /etc/clustershell/groups
+| list:   awk -F: '/^\w/ {print $1}' /etc/clustershell/groups
+| 
+| [slurm]
+| map: sinfo -h -o "%N" -p $GROUP
+| all: sinfo -h -o "%N"
+| list: sinfo -h -o "%P"
+| reverse: sinfo -h -N -o "%P" -n $NODE
+
+
+
+FILES
+=====
+
+*/etc/clustershell/groups.conf*
+  System-wide external node groups configuration file.
+
+SEE ALSO
+========
+
+``clush``\(1), ``nodeset``\(1)
+
+http://clustershell.sourceforge.net/
+

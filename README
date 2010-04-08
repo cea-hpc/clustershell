@@ -1,5 +1,5 @@
  -------------------------------
- ClusterShell 1.2 Python Library
+ ClusterShell 1.3 Python Library
  -------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
@@ -9,7 +9,7 @@ mechanisms.
 This is the source tarball. When possible, please use the RPM distribution.
 
  -------------------
- Requirements (v1.2)
+ Requirements (v1.3)
  -------------------
 
  * OpenSSH (ssh/scp)
