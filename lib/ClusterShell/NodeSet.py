@@ -833,7 +833,7 @@ class NodeSetBase(object):
         """
         self._binary_sanity_check(other)
         return other.issuperset(self)
-        
+
     def issuperset(self, other):
         """
         Report whether this nodeset contains another nodeset.
@@ -1392,12 +1392,26 @@ class NodeSet(NodeSetBase):
         if not inst._resolver:
             raise NodeSetExternalError("No node group resolver")
         try:
-            for nodes in inst._resolver.all_nodes():
+            for nodes in inst._resolver.all_nodes(namespace):
                 inst.update(nodes)
         except NodeUtils.GroupSourceQueryFailed, exc:
             raise NodeSetExternalError("Unable to get all nodes due to the " \
                 "following external failure:\n\t%s" % exc)
         return inst
+
+    def __getstate__(self):
+        """Called when pickling: remove references to group resolver."""
+        odict = self.__dict__.copy()
+        del odict['_resolver']
+        del odict['_parser']
+        return odict
+
+    def __setstate__(self, dict):
+        """Called when unpickling: restore parser using non group
+        resolver."""
+        self.__dict__.update(dict)
+        self._resolver = None
+        self._parser = ParsingEngine(None)
 
     def _find_groups(self, node, namespace, allgroups):
         """Find groups of node by namespace."""
