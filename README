@@ -97,14 +97,19 @@ Trac wiki and issue tracking system:
 
     https://sourceforge.net/apps/trac/clustershell
 
+Python Package Index (PyPI) link:
+
+    http://pypi.python.org/pypi/ClusterShell
+
 ClusterShell was first created for Shine, the Lustre Administration Utility:
 
-    http://sourceforge.net/projects/lustre-shine
+    http://lustre-shine.sourceforge.net
 
- ------
- Author
- ------
+ -------
+ Authors
+ -------
 
-Stephane Thiell <stephane.thiell@cea.fr>
+Stephane Thiell           <stephane.thiell@cea.fr>
+Aurelien Degremont     <aurelien.degremont@cea.fr>
 
-CEA/DAM 2010
+CEA/DAM 2010 - http://www-hpc.cea.fr
