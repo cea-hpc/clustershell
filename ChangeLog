@@ -1,5 +1,8 @@
 2010-04-08 S. Thiell <stephane.thiell@cea.fr>
 
+	* scripts/clush.py: Add option flag -n NAMESPACE to specify groups.conf(5)
+	namespace to use for regrouping displayed nodeset.
+
 	* scripts/clush.py: Add -r (--regroup) option to display default groups
 	in nodeset when possible.
 

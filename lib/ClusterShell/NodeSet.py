@@ -1391,8 +1391,12 @@ class NodeSet(NodeSetBase):
         inst = NodeSet(autostep=autostep, resolver=resolver)
         if not inst._resolver:
             raise NodeSetExternalError("No node group resolver")
-        for nodes in inst._resolver.all_nodes():
-            inst.update(nodes)
+        try:
+            for nodes in inst._resolver.all_nodes():
+                inst.update(nodes)
+        except NodeUtils.GroupSourceQueryFailed, exc:
+            raise NodeSetExternalError("Unable to get all nodes due to the " \
+                "following external failure:\n\t%s" % exc)
         return inst
 
     def _find_groups(self, node, namespace, allgroups):

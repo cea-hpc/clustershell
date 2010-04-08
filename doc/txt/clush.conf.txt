@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2009-11-10
+:Date:   2010-04-08
 :Copyright: CeCILL-C V1
-:Version: 1.2
+:Version: 1.3
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -27,12 +27,10 @@ following order:
 For each parameter, the first obtained value will be used.
 
 The configuration file has a format in the style of RFC 822 composed
-of two sections which may be present in any order. The section names are:
+of one main section:
 
 Main
   Program options definition
-External
-  External commands definition
 
 
 [Main]
@@ -62,31 +60,11 @@ ssh_path
 ssh_options
   Set additional options to pass to the underlying ssh command.
 
-[External]
-----------
-The ``External`` section defines external commands whose output will be
-used by ``clush``, for example, to perform host selection:
-
-nodes_all
-  This parameter defines a command line to retrieve all available cluster(s)
-  nodes as a valid NodeSet string. This command will be called by ``clush``
-  when option *-a* is used.
-nodes_group
-  This parameter defines a command line to retrieve cluster nodes associated
-  to a given group as a valid NodeSet string. This command will be called by
-  ``clush`` when option *-g group* is used. The variable *%(group)s*, which
-  should be present in the command line, is resolved before the execution of
-  the command.
-
-
 
 EXAMPLES
 ===========
 
-Simple configuration file on a cluster where all nodes are defined
-in */etc/machines* and node groups are defined in netgroups. Note
-the use of the ``nodeset`` utility command which is also provided
-with ClusterShell.
+Simple configuration file.
 
 *clush.conf*
 ------------
@@ -97,14 +75,6 @@ with ClusterShell.
 | command_timeout: 0
 | history_size: 100
 | 
-| [External]
-| nodes_all:   /usr/bin/nodeset -f < /etc/machines
-| nodes_group: /path/to/mygetgroup %(group)s | /usr/bin/nodeset -f
-
-
-For example, if you create a file `/etc/clustershell/groups` containing `group`: `nodes` lines, you could configure `nodes_group` as follow:
-
-| nodes_group: awk -F: '/^%(group)s:/ {print $2}' /etc/clustershell/groups | nodeset -f 
 
 
 FILES
@@ -116,10 +86,20 @@ FILES
 */etc/clustershell/clush.conf*
   System-wide configuration file.
 
+
+HISTORY
+=======
+
+As of ClusterShell version 1.3, the ``External`` section has been removed
+from *clush.conf*.  External commands whose outputs were used by `clush``
+(-a, -g, -X) are now handled by the library itself and defined in
+``groups.conf``\(5).
+
+
 SEE ALSO
 ========
 
-``clush``\(1), ``nodeset``\(1)
+``clush``\(1), ``nodeset``\(1), ``groups.conf``\(5)
 
 http://clustershell.sourceforge.net/
 

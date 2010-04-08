@@ -54,12 +54,18 @@ import sys
 import signal
 import ConfigParser
 
-from ClusterShell.Event import EventHandler
-from ClusterShell.NodeSet import NodeSet, NodeSetParseError
-from ClusterShell.NodeSet import STD_GROUP_RESOLVER
-from ClusterShell.Task import Task, task_self
-from ClusterShell.Worker.Worker import WorkerSimple
-from ClusterShell import __version__
+from ClusterShell.NodeUtils import GroupResolverConfigError
+try:
+    from ClusterShell.Event import EventHandler
+    from ClusterShell.NodeSet import NodeSet, STD_GROUP_RESOLVER
+    from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
+    from ClusterShell.Task import Task, task_self
+    from ClusterShell.Worker.Worker import WorkerSimple
+    from ClusterShell import __version__
+except GroupResolverConfigError, e:
+    print >> sys.stderr, \
+        "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
+    sys.exit(1)
 
 VERB_QUIET = 0
 VERB_STD = 1
@@ -133,9 +139,9 @@ class DirectOutputHandler(EventHandler):
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, label, gather_print, runtimer):
+    def __init__(self, label, gather_info, runtimer):
         self._label = label
-        self._gather_print, self._regroup = gather_print
+        self._gather_print, self._regroup, self._namespace = gather_info
         self._runtimer = runtimer
 
     def ev_error(self, worker):
@@ -166,7 +172,7 @@ class GatherOutputHandler(EventHandler):
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
                                        cmp=bufnodeset_cmp):
-                self._gather_print(nodeset, buf, self._regroup)
+                self._gather_print(nodeset, buf, self._regroup, self._namespace)
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
@@ -325,19 +331,19 @@ def readline_setup():
 
 # Start of clubak.py common functions
 
-def print_buffer(nodeset, content, regroup):
+def print_buffer(nodeset, content, regroup, namespace):
     """Display a dshbak-like header block and content."""
     sep = "-" * 15
     if regroup:
-        header = nodeset.regroup()
+        header = nodeset.regroup(namespace)
     else:
         header = str(nodeset)
     sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
 
-def print_lines(nodeset, msg, regroup):
+def print_lines(nodeset, msg, regroup, namespace):
     """Display a MsgTree buffer by line with prefixed header."""
     if regroup:
-        header = nodeset.regroup()
+        header = nodeset.regroup(namespace)
     else:
         header = str(nodeset)
     for line in msg:
@@ -365,7 +371,7 @@ def bufnodeset_cmp(bn1, bn2):
     return nodeset_cmp(bn1[1], bn2[1])
 
 def ttyloop(task, nodeset, gather, timeout, label, verbosity,
-            (gather_print, regroup)):
+            (gather_print, regroup, namespace)):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
@@ -416,7 +422,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
                     if not print_warn:
                         print_warn = True
                         print >> sys.stderr, "Warning: Caught keyboard interrupt!"
-                    gather_print(nodeset, buf, regroup)
+                    gather_print(nodeset, buf, regroup, namespace)
                     
                 # Return code handling
                 ns_ok = NodeSet()
@@ -478,14 +484,14 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
                 run_command(task, cmd[1:], None, gather, timeout, None,
-                            verbosity, gather_print)
+                            verbosity, gather_info)
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
                 run_command(task, cmd, ns, gather, timeout, label, verbosity,
-                            gather_print)
+                            gather_info)
     return rc
 
 def bind_stdin(worker):
@@ -503,7 +509,7 @@ def bind_stdin(worker):
     # Add stdin worker to the same task than given worker
     worker.task.schedule(worker_stdin)
 
-def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_print):
+def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_info):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
@@ -518,7 +524,7 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_print):
             runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
                                   autoclose=True)
         worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(label,
-                            gather_print, runtimer), timeout=timeout)
+                            gather_info, runtimer), timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label),
                             timeout=timeout)
@@ -603,6 +609,8 @@ def clush_main(args):
                       default=False, help="like -b but including standard error")
     optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
                       default=False, help="fold nodeset using node groups")
+    optgrp.add_option("-n", "--namespace", action="store", dest="namespace",
+                      help="optional groups.conf(5) namespace")
     parser.add_option_group(optgrp)
 
     # Copy
@@ -778,9 +786,9 @@ def clush_main(args):
 
     # Select gather-mode print function
     if options.line_mode:
-        gather_print = print_lines, options.regroup
+        gather_info = print_lines, options.regroup, options.namespace
     else:
-        gather_print = print_buffer, options.regroup
+        gather_info = print_buffer, options.regroup, options.namespace
 
     if not task.default("USER_interactive"):
         if options.source_path:
@@ -788,11 +796,11 @@ def clush_main(args):
                     0, options.preserve_flag)
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
-                        options.label, config.get_verbosity(), gather_print)
+                        options.label, config.get_verbosity(), gather_info)
 
     if user_interaction:
         ttyloop(task, nodeset_base, gather, timeout, options.label,
-                config.get_verbosity(), gather_print)
+                config.get_verbosity(), gather_info)
     elif task.default("USER_interactive"):
         print >> sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)
@@ -811,8 +819,11 @@ if __name__ == '__main__':
     except ClushConfigError, e:
         print >> sys.stderr, "ERROR: %s" % e
         sys.exit(1)
+    except NodeSetExternalError, e:
+        print >> sys.stderr, "clush: external error:", e
+        sys.exit(1)
     except NodeSetParseError, e:
-        print >> sys.stderr, "NodeSet parse error:", e
+        print >> sys.stderr, "clush: parse error:", e
         sys.exit(1)
     except IOError:
         # Ignore broken pipe
