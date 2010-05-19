@@ -1,3 +1,14 @@
+2010-05-19 S. Thiell <stephane.thiell@cea.fr>
+
+	* doc/extras/vim/ftdetect/clustershell.vim: renamed clush.vim to
+	clustershell.vim.
+
+	* doc/extras/vim/syntax/clushconf.vim: renamed clush.vim to clushconf.vim
+	and cleaned up old external groups keywords.
+
+	* doc/extras/vim/syntax/groupsconf.vim: added vim syntax file for
+	groups.conf (trac ticket #73).
+
 2010-04-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Added __getstate__() and __setstate__() methods to support

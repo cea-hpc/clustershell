@@ -17,27 +17,27 @@ syn match  clushComment	    "#.*$"
 syn match  clushComment	    ";.*$"
 syn match  clushHeader	    "\[\w\+\]"
 
-syn keyword clushKeys       fanout command_timeout connect_timeout history_size verbosity ssh_user ssh_path ssh_options nodes_all nodes_group
+syn keyword clushKeys       fanout command_timeout connect_timeout history_size verbosity ssh_user ssh_path ssh_options
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
 " For version 5.8 and later: only when an item doesn't have highlighting yet
-if version >= 508 || !exists("did_clush_syntax_inits")
+if version >= 508 || !exists("did_clushconf_syntax_inits")
   if version < 508
-    let did_clush_syntax_inits = 1
+    let did_clushconf_syntax_inits = 1
     command -nargs=+ HiLink hi link <args>
   else
     command -nargs=+ HiLink hi def link <args>
   endif
 
-	HiLink clushHeader	Special
-	HiLink clushComment	Comment
-	HiLink clushLabel	Type
-    HiLink clushKeys    Identifier
+  HiLink clushHeader	Special
+  HiLink clushComment	Comment
+  HiLink clushLabel	Type
+  HiLink clushKeys      Identifier
 
   delcommand HiLink
 endif
 
-let b:current_syntax = "clush"
+let b:current_syntax = "clushconf"
 
 " vim:ts=8

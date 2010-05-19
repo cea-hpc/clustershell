@@ -42,8 +42,9 @@ cp -v doc/man/man1/clush.1 "$TMPDIR/doc/man/man1/"
 cp -v doc/man/man1/nodeset.1 "$TMPDIR/doc/man/man1/"
 cp -v doc/man/man5/clush.conf.5 "$TMPDIR/doc/man/man5/"
 cp -v doc/man/man5/groups.conf.5 "$TMPDIR/doc/man/man5/"
-cp -v doc/extras/vim/ftdetect/clush.vim "$TMPDIR/doc/extras/vim/ftdetect/"
-cp -v doc/extras/vim/syntax/clush.vim "$TMPDIR/doc/extras/vim/syntax/"
+cp -v doc/extras/vim/ftdetect/clustershell.vim "$TMPDIR/doc/extras/vim/ftdetect/"
+cp -v doc/extras/vim/syntax/clushconf.vim "$TMPDIR/doc/extras/vim/syntax/"
+cp -v doc/extras/vim/syntax/groupsconf.vim "$TMPDIR/doc/extras/vim/syntax/"
 
 cd "$TMPDIR/.."
 

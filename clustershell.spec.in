@@ -50,11 +50,13 @@ gzip -c doc/man/man5/groups.conf.5 >$RPM_BUILD_ROOT/%{_mandir}/man5/groups.conf.
 # vim addons
 cp conf/clush.conf conf/groups.conf $RPM_BUILD_ROOT/%{_sysconfdir}/clustershell
 mkdir -p $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
-cp doc/extras/vim/ftdetect/clush.vim $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
+cp doc/extras/vim/ftdetect/clustershell.vim $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
 mkdir -p $RPM_BUILD_ROOT/$VIMDATADIR/syntax
-cp doc/extras/vim/syntax/clush.vim $RPM_BUILD_ROOT/$VIMDATADIR/syntax
-echo $VIMDATADIR/ftdetect/clush.vim >>INSTALLED_FILES
-echo $VIMDATADIR/syntax/clush.vim >>INSTALLED_FILES
+cp doc/extras/vim/syntax/clushconf.vim $RPM_BUILD_ROOT/$VIMDATADIR/syntax
+cp doc/extras/vim/syntax/groupsconf.vim $RPM_BUILD_ROOT/$VIMDATADIR/syntax
+echo $VIMDATADIR/ftdetect/clustershell.vim >>INSTALLED_FILES
+echo $VIMDATADIR/syntax/clushconf.vim >>INSTALLED_FILES
+echo $VIMDATADIR/syntax/groupsconf.vim >>INSTALLED_FILES
 
 %clean
 rm -rf $RPM_BUILD_ROOT
