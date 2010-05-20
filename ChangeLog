@@ -1,4 +1,11 @@
+2010-05-20 S. Thiell <stephane.thiell@cea.fr>
+
+	* tests/NodeSetRegroupTest.py: added tests for nodeset.regroup().
+
 2010-05-19 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Fix unhandled GroupResolverSourceError exception (part
+	of trac ticket #74).
 
 	* doc/extras/vim/ftdetect/clustershell.vim: renamed clush.vim to
 	clustershell.vim.

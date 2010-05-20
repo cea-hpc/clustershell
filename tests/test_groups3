@@ -1,0 +1,11 @@
+#
+#
+all: montana[32-55]
+para: montana[32-37,42-55]
+gpu: montana[38-41]
+login: montana[32-33]
+overclock: montana[41-42]
+chassis1: montana[32-33]
+chassis2: montana[34-35]
+chassis3: montana[36-37]
+single: idaho

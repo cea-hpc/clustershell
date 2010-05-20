@@ -773,7 +773,10 @@ class NodeSetBase(object):
         Iterator on single, one-item NodeSetBase objects.
         """
         for pat, start, pad in self._iter():
-            yield NodeSetBase(pat, RangeSet.fromone(start, pad))
+            if start is not None:
+                yield NodeSetBase(pat, RangeSet.fromone(start, pad))
+            else:
+                yield NodeSetBase(pat) # no node index
 
     def __iter__(self):
         """
