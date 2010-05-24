@@ -122,7 +122,7 @@ def clubak():
     #
     # Argument management
     #
-    usage = "%prog [-bcdL]"
+    usage = "%prog [options]"
     parser = optparse.OptionParser(usage, version="%%prog %s" % __version__)
 
     # Set parsing to stop on the first non-option
@@ -139,6 +139,9 @@ def clubak():
                       default=False, help="fold nodeset using node groups")
     parser.add_option("-s", "--groupsource", action="store", dest="groupsource",
                       help="optional groups.conf(5) group source to use")
+    parser.add_option("-S", "--separator", action="store", dest="separator",
+                      default=':', help="node / line content separator " \
+                      "string (default: ':')")
     options = parser.parse_args()[0]
 
     # Create new message tree
@@ -146,8 +149,10 @@ def clubak():
 
     # Feed the tree from standard input lines
     for line in sys.stdin:
-        node, line = line.rstrip('\r\n').split(':', 1)
-        tree.add(node, line)
+        node, content = line.rstrip('\r\n').split(options.separator, 1)
+        if not node:
+            raise ValueError("No node found for line: %s" % line.rstrip('\r\n'))
+        tree.add(node, content)
 
     # Display results
     if options.debug:

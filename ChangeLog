@@ -1,6 +1,7 @@
 2010-05-25 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clubak.py: Added regroup support to clubak (trac ticket #78).
+	Added -S to specify user settable separator string (trac ticket #62).
 
 2010-05-24 S. Thiell <stephane.thiell@cea.fr>
 
