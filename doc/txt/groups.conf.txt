@@ -100,7 +100,7 @@ FILES
 SEE ALSO
 ========
 
-``clush``\(1), ``nodeset``\(1)
+``clush``\(1), ``clubak``\(1), ``nodeset``\(1)
 
 http://clustershell.sourceforge.net/
 
