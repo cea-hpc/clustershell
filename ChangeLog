@@ -5,7 +5,8 @@
 
 	* scripts/nodeset.py: Renamed -n NAMESPACE option to -s GROUPSOURCE (or
 	--groupsource=GROUPSOURCE). Fixed trac ticket #76 so that -f, -e or -c
-	take -s into account. Improved error handling (trac ticket #74).
+	take -s into account. Improved error handling (trac ticket #74). Added
+	--groupsources command to list configured group sources (trac #77).
 
 2010-05-20 S. Thiell <stephane.thiell@cea.fr>
 
