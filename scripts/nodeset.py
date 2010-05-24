@@ -64,9 +64,10 @@ Options:
         numerical cluster ranges, eg. 1,5,18-31.
     --groupsource, -s <GroupSource>
         Specify group source (ie. section to use in groups.conf(5)).
+    --noprefix, -N
+        Do not display group source prefix (always "@groupname").
     --separator=<string>, -S <string>
-        Use specified separator string when expanding nodesets (default
-        is ' ').
+        Specify separator string for expanding nodesets (default: ' ').
     --version, -v
         Show ClusterShell version and exit.
 Operations (default is union):
@@ -145,15 +146,16 @@ def run_nodeset(args):
     class_set = NodeSet
     separator = ' '
     source = None
+    noprefix = False
     progname = args[0]
     multcmds_errstr = "ERROR: multiple commands not allowed"
 
     # Parse getoptable options
     try:
-        opts, args = getopt.getopt(args[1:], "a:cdefhlqs:vrRS:",
+        opts, args = getopt.getopt(args[1:], "a:cdefhlqs:vrNRS:",
             ["autostep=", "count", "debug", "expand", "fold", "groupsource=",
-             "groupsources", "help", "list", "quiet", "regroup", "rangeset",
-             "separator=", "version"])
+             "groupsources", "help", "list", "noprefix", "quiet", "regroup",
+             "rangeset", "separator=", "version"])
     except getopt.error, err:
         if err.opt in [ "i", "intersection", "x", "exclude", "X", "xor" ]:
             message = "option -%s not allowed here" % err.opt
@@ -188,6 +190,8 @@ def run_nodeset(args):
             if command:
                 error_exit(progname, multcmds_errstr, 2)
             command = "list"
+        elif k in ("-N", "--noprefix"):
+            noprefix = True
         elif k in ("-q", "--quiet"):
             verbosity = 0
         elif k in ("-r", "--regroup"):
@@ -218,7 +222,7 @@ def run_nodeset(args):
     # The list command doesn't need any NodeSet, check for it first.
     if command == "list":
         for group in grouplist(source):
-            if source:
+            if source and not noprefix:
                 print "@%s:%s" % (source, group)
             else:
                 print "@%s" % group
@@ -259,7 +263,7 @@ def run_nodeset(args):
         elif command == "fold":
             print xset
         elif command == "regroup":
-            print xset.regroup(source)
+            print xset.regroup(source, noprefix=noprefix)
         else:
             print len(xset)
 

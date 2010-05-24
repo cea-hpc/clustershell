@@ -1428,7 +1428,8 @@ class NodeSet(NodeSetBase):
             for group in self._resolver.node_groups(node, namespace):
                 yield group
 
-    def regroup(self, groupsource=None, autostep=None, overlap=False):
+    def regroup(self, groupsource=None, autostep=None, overlap=False,
+                noprefix=False):
         """
         Regroup nodeset using groups.
         """
@@ -1490,7 +1491,7 @@ class NodeSet(NodeSetBase):
         for num, grp in sorted(fulls, cmp=bigalpha):
             if not overlap and groups[grp][1] not in rest:
                 continue
-            if groupsource:
+            if groupsource and not noprefix:
                 regrouped.update("@%s:%s" % (groupsource, grp))
             else:
                 regrouped.update("@" + grp)

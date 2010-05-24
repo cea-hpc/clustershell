@@ -1,5 +1,17 @@
 2010-05-24 S. Thiell <stephane.thiell@cea.fr>
 
+	* tests/NodeSetGroupTest.py: Some cleanup in tests (use setUp, tearDown)
+	and create temporary groups test files.
+
+	* tests/NodeSetRegroupTest.py: Removed (tests moved to
+	NodeSetGroupTest.py).
+
+	* scripts/nodeset.py: Add -N option to avoid display of group source
+	prefix (trac ticket #79).
+
+	* NodeSet.py: Add noprefix boolean option to regroup() to avoid building
+	nodegroups with group source prefixes. Added test.
+
 	* scripts/clush.py: Fix unhandled GroupResolverSourceError exception (part
 	of trac ticket #74).
 
