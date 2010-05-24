@@ -55,6 +55,9 @@ import signal
 import ConfigParser
 
 from ClusterShell.NodeUtils import GroupResolverConfigError
+from ClusterShell.NodeUtils import GroupResolverSourceError
+from ClusterShell.NodeUtils import GroupSourceException
+from ClusterShell.NodeUtils import GroupSourceNoUpcall
 try:
     from ClusterShell.Event import EventHandler
     from ClusterShell.NodeSet import NodeSet, STD_GROUP_RESOLVER
@@ -141,7 +144,7 @@ class GatherOutputHandler(EventHandler):
 
     def __init__(self, label, gather_info, runtimer):
         self._label = label
-        self._gather_print, self._regroup, self._namespace = gather_info
+        self._gather_print, self._regroup, self._groupsource = gather_info
         self._runtimer = runtimer
 
     def ev_error(self, worker):
@@ -172,7 +175,7 @@ class GatherOutputHandler(EventHandler):
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
                                        cmp=bufnodeset_cmp):
-                self._gather_print(nodeset, buf, self._regroup, self._namespace)
+                self._gather_print(nodeset, buf, self._regroup, self._groupsource)
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
@@ -331,19 +334,19 @@ def readline_setup():
 
 # Start of clubak.py common functions
 
-def print_buffer(nodeset, content, regroup, namespace):
+def print_buffer(nodeset, content, regroup, groupsource):
     """Display a dshbak-like header block and content."""
     sep = "-" * 15
     if regroup:
-        header = nodeset.regroup(namespace)
+        header = nodeset.regroup(groupsource)
     else:
         header = str(nodeset)
     sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
 
-def print_lines(nodeset, msg, regroup, namespace):
+def print_lines(nodeset, msg, regroup, groupsource):
     """Display a MsgTree buffer by line with prefixed header."""
     if regroup:
-        header = nodeset.regroup(namespace)
+        header = nodeset.regroup(groupsource)
     else:
         header = str(nodeset)
     for line in msg:
@@ -371,7 +374,7 @@ def bufnodeset_cmp(bn1, bn2):
     return nodeset_cmp(bn1[1], bn2[1])
 
 def ttyloop(task, nodeset, gather, timeout, label, verbosity,
-            (gather_print, regroup, namespace)):
+            (gather_print, regroup, groupsource)):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
@@ -422,7 +425,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
                     if not print_warn:
                         print_warn = True
                         print >> sys.stderr, "Warning: Caught keyboard interrupt!"
-                    gather_print(nodeset, buf, regroup, namespace)
+                    gather_print(nodeset, buf, regroup, groupsource)
                     
                 # Return code handling
                 ns_ok = NodeSet()
@@ -484,14 +487,14 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
                 run_command(task, cmd[1:], None, gather, timeout, None,
-                            verbosity, (gather_print, regroup, namespace))
+                            verbosity, (gather_print, regroup, groupsource))
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
                 run_command(task, cmd, ns, gather, timeout, label, verbosity,
-                            (gather_print, regroup, namespace))
+                            (gather_print, regroup, groupsource))
     return rc
 
 def bind_stdin(worker):
@@ -609,8 +612,8 @@ def clush_main(args):
                       default=False, help="like -b but including standard error")
     optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
                       default=False, help="fold nodeset using node groups")
-    optgrp.add_option("-n", "--namespace", action="store", dest="namespace",
-                      help="optional groups.conf(5) namespace")
+    optgrp.add_option("-s", "--groupsource", action="store", dest="groupsource",
+                      help="optional groups.conf(5) group source to use")
     parser.add_option_group(optgrp)
 
     # Copy
@@ -786,9 +789,9 @@ def clush_main(args):
 
     # Select gather-mode print function
     if options.line_mode:
-        gather_info = print_lines, options.regroup, options.namespace
+        gather_info = print_lines, options.regroup, options.groupsource
     else:
-        gather_info = print_buffer, options.regroup, options.namespace
+        gather_info = print_buffer, options.regroup, options.groupsource
 
     if not task.default("USER_interactive"):
         if options.source_path:
@@ -824,6 +827,16 @@ if __name__ == '__main__':
         sys.exit(1)
     except NodeSetParseError, e:
         print >> sys.stderr, "clush: parse error:", e
+        sys.exit(1)
+    except GroupResolverSourceError, e:
+        print >> sys.stderr, "ERROR: unknown group source: \"%s\"" % e
+        sys.exit(1)
+    except GroupSourceNoUpcall, e:
+        print >> sys.stderr, "ERROR: no %s upcall defined for group " \
+            "source \"%s\"" % (e, e.group_source.name)
+        sys.exit(1)
+    except GroupSourceException, e:
+        print >> sys.stderr, "ERROR: other group error:", e
         sys.exit(1)
     except IOError:
         # Ignore broken pipe

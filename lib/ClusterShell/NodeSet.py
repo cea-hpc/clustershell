@@ -1428,7 +1428,7 @@ class NodeSet(NodeSetBase):
             for group in self._resolver.node_groups(node, namespace):
                 yield group
 
-    def regroup(self, namespace=None, autostep=None, overlap=False):
+    def regroup(self, groupsource=None, autostep=None, overlap=False):
         """
         Regroup nodeset using groups.
         """
@@ -1436,8 +1436,8 @@ class NodeSet(NodeSetBase):
         rest = NodeSet(self, resolver=NOGROUP_RESOLVER)
 
         try:
-            # Get a NodeSet of all groups in specified group namespace.
-            allgrpns = NodeSet.fromlist(self._resolver.grouplist(namespace),
+            # Get a NodeSet of all groups in specified group source.
+            allgrpns = NodeSet.fromlist(self._resolver.grouplist(groupsource),
                                         resolver=NOGROUP_RESOLVER)
         except NodeUtils.GroupSourceException:
             # If list query failed, we still might be able to regroup
@@ -1449,7 +1449,7 @@ class NodeSet(NodeSetBase):
         # Check for external reverse presence, and also use the
         # following heuristic: external reverse is used only when number
         # of groups is greater than the NodeSet size.
-        if self._resolver.has_node_groups(namespace) and \
+        if self._resolver.has_node_groups(groupsource) and \
             (not allgrpns or len(allgrpns) >= len(self)):
             # use external reverse
             pass
@@ -1459,7 +1459,7 @@ class NodeSet(NodeSetBase):
             try:
                 # use internal reverse: populate allgroups
                 for grp in allgrpns:
-                    nodelist = self._resolver.group_nodes(grp, namespace)
+                    nodelist = self._resolver.group_nodes(grp, groupsource)
                     allgroups[grp] = NodeSet(",".join(nodelist))
             except NodeUtils.GroupSourceQueryFailed, exc:
                 # External result inconsistency
@@ -1468,9 +1468,9 @@ class NodeSet(NodeSetBase):
 
         # For each NodeSetBase in self, finds its groups.
         for node in self._iterbase():
-            for grp in self._find_groups(node, namespace, allgroups):
+            for grp in self._find_groups(node, groupsource, allgroups):
                 if grp not in groups:
-                    ns = self._parser.parse_group(grp, namespace, autostep)
+                    ns = self._parser.parse_group(grp, groupsource, autostep)
                     groups[grp] = (0, ns)
                 i, m = groups[grp]
                 groups[grp] = (i + 1, m)
@@ -1490,8 +1490,8 @@ class NodeSet(NodeSetBase):
         for num, grp in sorted(fulls, cmp=bigalpha):
             if not overlap and groups[grp][1] not in rest:
                 continue
-            if namespace:
-                regrouped.update("@%s:%s" % (namespace, grp))
+            if groupsource:
+                regrouped.update("@%s:%s" % (groupsource, grp))
             else:
                 regrouped.update("@" + grp)
             rest.difference_update(groups[grp][1])

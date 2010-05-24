@@ -44,9 +44,11 @@ Commands:
     --fold, -f <nodeset> [nodeset ...]
         Compact/fold nodesets (or separate nodes) into one nodeset.
     --list, -l
-        List node groups (compatible with --namespace).
+        List node groups (see --groupsource).
     --regroup, -r <nodeset> [nodeset ...]
-        Fold nodes using node groups (compatible with --namespace).
+        Fold nodes using node groups (see --groupsource).
+    --groupsources
+        List all configured group sources (see groups.conf(5)).
 Options:
     --autostep=<number>, -a <number>
         Specify auto step threshold number when folding nodesets.
@@ -57,11 +59,11 @@ Options:
         This help page.
     --quiet, -q
         Quiet mode, hide any parse error messages (on stderr).
-    --namespace, -n
-        Group namespace (section to use in groups.conf(5)).
     --rangeset, -R
         Switch to RangeSet instead of NodeSet. Useful when working on
         numerical cluster ranges, eg. 1,5,18-31.
+    --groupsource, -s <GroupSource>
+        Specify group source (ie. section to use in groups.conf(5)).
     --separator=<string>, -S <string>
         Use specified separator string when expanding nodesets (default
         is ' ').
@@ -78,11 +80,14 @@ Operations (default is union):
 """
 
 import getopt
+import os
 import signal
 import sys
 
 from ClusterShell.NodeUtils import GroupResolverConfigError
 from ClusterShell.NodeUtils import GroupResolverSourceError
+from ClusterShell.NodeUtils import GroupSourceException
+from ClusterShell.NodeUtils import GroupSourceNoUpcall
 try:
     from ClusterShell.NodeSet import NodeSet, NodeSetParseError
     from ClusterShell.NodeSet import RangeSet, RangeSetParseError
@@ -139,16 +144,16 @@ def run_nodeset(args):
     verbosity = 1
     class_set = NodeSet
     separator = ' '
-    namespace = None
+    source = None
     progname = args[0]
     multcmds_errstr = "ERROR: multiple commands not allowed"
 
     # Parse getoptable options
     try:
-        opts, args = getopt.getopt(args[1:], "a:cdefhln:qvrRS:",
-            ["autostep=", "count", "debug", "expand", "fold", "help",
-             "list", "namespace=", "quiet", "regroup", "rangeset",
-             "version", "separator="])
+        opts, args = getopt.getopt(args[1:], "a:cdefhlqs:vrRS:",
+            ["autostep=", "count", "debug", "expand", "fold", "groupsource=",
+             "groupsources", "help", "list", "quiet", "regroup", "rangeset",
+             "separator=", "version"])
     except getopt.error, err:
         if err.opt in [ "i", "intersection", "x", "exclude", "X", "xor" ]:
             message = "option -%s not allowed here" % err.opt
@@ -183,8 +188,6 @@ def run_nodeset(args):
             if command:
                 error_exit(progname, multcmds_errstr, 2)
             command = "list"
-        elif k in ("-n", "--namespace"):
-            namespace = val
         elif k in ("-q", "--quiet"):
             verbosity = 0
         elif k in ("-r", "--regroup"):
@@ -195,6 +198,10 @@ def run_nodeset(args):
             class_set = RangeSet
         elif k in ("-S", "--separator"):
             separator = val
+        elif k in ("-s", "--groupsource"):
+            source = val
+        elif k in ("--groupsources"):
+            command = "groupsources"
         elif k in ("-v", "--version"):
             print __version__
             sys.exit(0)
@@ -205,18 +212,33 @@ def run_nodeset(args):
         print >> sys.stderr, __doc__
         sys.exit(1)
 
+    if source and (class_set == RangeSet or command == "groupsources"):
+        print >> sys.stderr, "WARNING: option group source \"%s\" ignored" % source
+        
     # The list command doesn't need any NodeSet, check for it first.
     if command == "list":
-        for group in grouplist(namespace):
-            if namespace:
-                print "@%s:%s" % (namespace, group)
+        for group in grouplist(source):
+            if source:
+                print "@%s:%s" % (source, group)
             else:
                 print "@%s" % group
+        return
+    # Also, the groupsources command simply lists group sources.
+    elif command == "groupsources":
+        dispdefault = "(default)"
+        for src in STD_GROUP_RESOLVER.sources():
+            print "%s%s" % (src, dispdefault)
+            dispdefault = ""
         return
 
     try:
         if verbosity > 1:
             STD_GROUP_RESOLVER.set_verbosity(1)
+
+        # We want -s <groupsource> to act as a substition of default groupsource
+        # (ie. it's not necessary to prefix group names by this group source).
+        if source:
+            STD_GROUP_RESOLVER.default_sourcename = source
 
         # Instantiate RangeSet or NodeSet object
         xset = class_set()
@@ -237,7 +259,7 @@ def run_nodeset(args):
         elif command == "fold":
             print xset
         elif command == "regroup":
-            print xset.regroup(namespace)
+            print xset.regroup(source)
         else:
             print len(xset)
 
@@ -261,7 +283,14 @@ if __name__ == '__main__':
         print >> sys.stderr, "ERROR: invalid separator"
         sys.exit(1)
     except GroupResolverSourceError, e:
-        print >> sys.stderr, "ERROR: unknown group namespace: \"%s\"" % e
+        print >> sys.stderr, "ERROR: unknown group source: \"%s\"" % e
+        sys.exit(1)
+    except GroupSourceNoUpcall, e:
+        print >> sys.stderr, "ERROR: no %s upcall defined for group " \
+            "source \"%s\"" % (e, e.group_source.name)
+        sys.exit(1)
+    except GroupSourceException, e:
+        print >> sys.stderr, "ERROR: other group error:", e
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(128 + signal.SIGINT)

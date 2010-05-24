@@ -52,6 +52,9 @@ from subprocess import Popen, PIPE
 
 class GroupSourceException(Exception):
     """Base GroupSource exception"""
+    def __init__(self, message, group_source):
+        Exception.__init__(self, message)
+        self.group_source = group_source
 
 class GroupSourceNoUpcall(GroupSourceException):
     """Raised when upcall is not available"""
@@ -109,7 +112,7 @@ class GroupSource(object):
         if proc.returncode != 0:
             self._verbose_print("ERROR '%s' returned %d" % (cmdline, \
                 proc.returncode))
-            raise GroupSourceQueryFailed(cmdline)
+            raise GroupSourceQueryFailed(cmdline, self)
         return output
 
     def resolv_map(self, group):
@@ -128,7 +131,7 @@ class GroupSource(object):
         the cached value if available.
         """
         if not self.list_upcall:
-            raise GroupSourceNoUpcall("list")
+            raise GroupSourceNoUpcall("list", self)
 
         if not self._cache_list:
             self._cache_list = self._upcall_read('list')
@@ -141,7 +144,7 @@ class GroupSource(object):
         if available.
         """
         if not self.all_upcall:
-            raise GroupSourceNoUpcall("all")
+            raise GroupSourceNoUpcall("all", self)
 
         if not self._cache_all:
             self._cache_all = self._upcall_read('all')
@@ -154,7 +157,7 @@ class GroupSource(object):
         cached value if available.
         """
         if not self.reverse_upcall:
-            raise GroupSourceNoUpcall("reverse")
+            raise GroupSourceNoUpcall("reverse", self)
 
         if node not in self._cache_reverse:
             self._cache_reverse[node] = self._upcall_read('reverse', \
@@ -195,16 +198,20 @@ class GroupResolver(object):
                              group_source.name)
         self._sources[group_source.name] = group_source
 
+    def sources(self):
+        """
+        Get the list of all resolver source names.
+        """
+        return self._sources.keys()
+
     def _list(self, source, what, *args):
         """Helper method that returns a list of result when the source
         is defined."""
         result = []
-        if not source:
-            raise GroupSourceQueryFailed("Unable to resolve group")
+        assert source
         raw = getattr(source, 'resolv_%s' % what)(*args)
         for line in raw.splitlines():
             map(result.append, line.strip().split())
-
         return result
 
     def _source(self, namespace):
@@ -213,8 +220,8 @@ class GroupResolver(object):
             source = self._default_source
         else:
             source = self._sources.get(namespace)
-            if not source:
-                raise GroupResolverSourceError("%s" % namespace)
+        if not source:
+            raise GroupResolverSourceError(namespace or "default")
         return source
         
     def group_nodes(self, group, namespace=None):
@@ -247,8 +254,10 @@ class GroupResolver(object):
         Return whether finding group list for a specified node is
         supported by the resolver (in optional namespace).
         """
-        source = self._source(namespace)
-        return source is not None and bool(source.reverse_upcall)
+        try:
+            return bool(self._source(namespace).reverse_upcall)
+        except GroupResolverSourceError:
+            return False
 
     def node_groups(self, node, namespace=None):
         """
@@ -270,7 +279,7 @@ class GroupResolverConfig(GroupResolver):
         """
         GroupResolver.__init__(self)
 
-        self.default_namespace = None
+        self.default_sourcename = None
 
         self.config = ConfigParser()
         self.config.read(configfile)
@@ -284,32 +293,46 @@ class GroupResolverConfig(GroupResolver):
             return
 
         try:
-            self.default_namespace = self.config.get('Main', 'default')
-            if self.default_namespace and self.default_namespace \
+            self.default_sourcename = self.config.get('Main', 'default')
+            if self.default_sourcename and self.default_sourcename \
                                             not in group_sections:
-                raise GroupResolverConfigError("Default namespace not found: "
-                                               "\"%s\"" % self.default_namespace)
+                raise GroupResolverConfigError("Default group source not found: "
+                        "\"%s\"" % self.default_sourcename)
         except (NoSectionError, NoOptionError):
             pass
 
         # When not specified, select a random section.
-        if not self.default_namespace:
-            self.default_namespace = group_sections[0]
+        if not self.default_sourcename:
+            self.default_sourcename = group_sections[0]
 
-        for section in group_sections:
-            map_upcall = self.config.get(section, 'map', True)
-            all_upcall = list_upcall = reverse_upcall = None
-            if self.config.has_option(section, 'all'):
-                all_upcall = self.config.get(section, 'all', True)
-            if self.config.has_option(section, 'list'):
-                list_upcall = self.config.get(section, 'list', True)
-            if self.config.has_option(section, 'reverse'):
-                reverse_upcall = self.config.get(section, 'reverse', True)
+        try:
+            for section in group_sections:
+                map_upcall = self.config.get(section, 'map', True)
+                all_upcall = list_upcall = reverse_upcall = None
+                if self.config.has_option(section, 'all'):
+                    all_upcall = self.config.get(section, 'all', True)
+                if self.config.has_option(section, 'list'):
+                    list_upcall = self.config.get(section, 'list', True)
+                if self.config.has_option(section, 'reverse'):
+                    reverse_upcall = self.config.get(section, 'reverse', True)
 
-            self.add_source(GroupSource(section, map_upcall, all_upcall,
-                                        list_upcall, reverse_upcall))
+                self.add_source(GroupSource(section, map_upcall, all_upcall,
+                                            list_upcall, reverse_upcall))
+        except (NoSectionError, NoOptionError), e:
+            raise GroupResolverConfigError(str(e))
 
     def _source(self, namespace):
-        return GroupResolver._source(self, namespace or self.default_namespace)
+        return GroupResolver._source(self, namespace or self.default_sourcename)
+
+    def sources(self):
+        """
+        Get the list of all resolver source names (default source is always
+        first).
+        """
+        srcs = GroupResolver.sources(self)
+        if srcs:
+            srcs.remove(self.default_sourcename)
+            srcs.insert(0, self.default_sourcename)
+        return srcs
 
 
