@@ -1,5 +1,14 @@
 2010-05-25 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.3 beta 2 released.
+
+	* scripts/clush.py: Fixed missing support for group source (-s
+	GROUPSOURCE) when using -a or -g GROUP.
+
+	* scripts/nodeset.py: Added --all, -a support (also work is -s
+	GROUPSOURCE). Almost-silently removed -a for --autostep, I hope nobody's
+	using it. :)
+
 	* Updated man pages of clush, clubak and nodeset to match latest options
 	changes (trac #58).
 

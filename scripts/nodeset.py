@@ -50,7 +50,9 @@ Commands:
     --groupsources
         List all configured group sources (see groups.conf(5)).
 Options:
-    --autostep=<number>, -a <number>
+    --all, -a
+        Call external node groups support to display all nodes.
+    --autostep=<number>
         Specify auto step threshold number when folding nodesets.
         If not specified, auto step is disabled.
         Example: autostep=4, "node2 node4 node6" folds in node[2,4,6]
@@ -141,6 +143,7 @@ def run_nodeset(args):
     Main script function.
     """
     autostep = None
+    all = False
     command = None
     verbosity = 1
     class_set = NodeSet
@@ -152,7 +155,7 @@ def run_nodeset(args):
 
     # Parse getoptable options
     try:
-        opts, args = getopt.getopt(args[1:], "a:cdefhlqs:vrNRS:",
+        opts, args = getopt.getopt(args[1:], "acdefhlqs:vrNRS:",
             ["autostep=", "count", "debug", "expand", "fold", "groupsource=",
              "groupsources", "help", "list", "noprefix", "quiet", "regroup",
              "rangeset", "separator=", "version"])
@@ -164,7 +167,9 @@ def run_nodeset(args):
         error_exit(progname, message, 2)
 
     for k, val in opts:
-        if k in ("-a", "--autostep"):
+        if k in ("-a", "--all"):
+            all = True
+        elif k in ("--autostep"):
             try:
                 autostep = int(val)
             except ValueError, exc:
@@ -216,8 +221,11 @@ def run_nodeset(args):
         print >> sys.stderr, __doc__
         sys.exit(1)
 
+    if all: assert class_set == NodeSet, "-a is only supported in NodeSet mode"
+
     if source and (class_set == RangeSet or command == "groupsources"):
-        print >> sys.stderr, "WARNING: option group source \"%s\" ignored" % source
+        print >> sys.stderr, "WARNING: option group source \"%s\" ignored" \
+                                % source
         
     # The list command doesn't need any NodeSet, check for it first.
     if command == "list":
@@ -247,8 +255,13 @@ def run_nodeset(args):
         # Instantiate RangeSet or NodeSet object
         xset = class_set()
 
-        # No need to specify '-' to read stdin if no argument at all
-        if not args:
+        if all:
+            # Include all nodes from external node groups support.
+            xset.update(NodeSet.fromall()) # uses default_sourcename
+            # FIXME: only union operation is supported when using -a due to
+            # current options handling.
+        elif not args:
+            # No need to specify '-' to read stdin if no argument at all.
             process_stdin(xset, autostep)
         
         # Finish xset computing from args

@@ -673,6 +673,10 @@ def clush_main(args):
     if options.exclude:
         nodeset_exclude = NodeSet.fromlist(options.exclude)
 
+    if options.groupsource:
+        # Be sure -a/g -s source work as espected.
+        STD_GROUP_RESOLVER.default_sourcename = options.groupsource
+
     # Do we have nodes group?
     task = task_self()
     task.set_info("debug", config.get_verbosity() > 1)

@@ -44,7 +44,9 @@ Commands:
         List all configured group sources (see ``groups.conf``\(5)).
 
 Options:
-    --autostep=NUMBER, -a NUMBER
+    --all, -a
+        Call external node groups support to display all nodes.
+    --autostep=NUMBER
         Specify auto step threshold number when folding nodesets.
         If not specified, auto step is disabled.
         Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2]
