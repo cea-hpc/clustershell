@@ -59,19 +59,19 @@ except GroupResolverConfigError, e:
         "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
     sys.exit(1)
 
-def print_buffer(nodeset, content, regroup, groupsource):
+def print_buffer(nodeset, content, regroup, groupsource, noprefix):
     """Display a dshbak-like header block and content."""
     sep = "-" * 15
     if regroup:
-        header = nodeset.regroup(groupsource)
+        header = nodeset.regroup(groupsource, noprefix=noprefix)
     else:
         header = str(nodeset)
     sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
 
-def print_lines(nodeset, msg, regroup, groupsource):
+def print_lines(nodeset, msg, regroup, groupsource, noprefix):
     """Display a MsgTree buffer by line with prefixed header."""
     if regroup:
-        header = nodeset.regroup(groupsource)
+        header = nodeset.regroup(groupsource, noprefix=noprefix)
     else:
         header = str(nodeset)
     for line in msg:
@@ -89,7 +89,7 @@ def nodeset_cmp(ns1, ns2):
             return 1
     return len_cmp
 
-def display(tree, line_mode, gather, regroup, groupsource):
+def display(tree, line_mode, gather, regroup, groupsource, noprefix):
     """Display results"""
     try:
         if gather:
@@ -100,20 +100,22 @@ def display(tree, line_mode, gather, regroup, groupsource):
                                   cmp=nodeset_cmp):
                 if line_mode:
                     print_lines(nodeset, tree[nodeset[0]], regroup,
-                                groupsource)
+                                groupsource, noprefix)
                 else:
                     print_buffer(NodeSet.fromlist(nodeset), tree[nodeset[0]],
-                                 regroup, groupsource)
+                                 regroup, groupsource, noprefix)
         else:
             # automagically sorted by NodeSet
             nodes = NodeSet.fromlist(tree.keys())
 
             if line_mode:
                 for node in nodes:
-                    print_lines(node, tree[node], regroup, groupsource)
+                    print_lines(node, tree[node], regroup, groupsource,
+                                noprefix)
             else:
                 for node in nodes:
-                    print_buffer(node, tree[node], regroup, groupsource)
+                    print_buffer(node, tree[node], regroup, groupsource,
+                                 noprefix)
     finally:
         sys.stdout.flush()
 
@@ -139,6 +141,9 @@ def clubak():
                       default=False, help="fold nodeset using node groups")
     parser.add_option("-s", "--groupsource", action="store", dest="groupsource",
                       help="optional groups.conf(5) group source to use")
+    parser.add_option("-G", "--groupbase", action="store_true",
+                      dest="groupbase", default=False, help="do not display " \
+                      "group source prefix")
     parser.add_option("-S", "--separator", action="store", dest="separator",
                       default=':', help="node / line content separator " \
                       "string (default: ':')")
@@ -159,7 +164,7 @@ def clubak():
         print >> sys.stderr, "clubak: line_mode=%s gather=%s tree_depth=%d" % \
             (bool(options.line_mode), bool(options.gather), tree._depth())
     display(tree, options.line_mode, options.gather, options.regroup,
-            options.groupsource)
+            options.groupsource, options.groupbase)
     sys.exit(0)
 
 if __name__ == '__main__':

@@ -2,6 +2,15 @@
 
 	* Version 1.3 beta 2 released.
 
+	* scripts/clush.py: Added -G, --groupbase to strip group source prefix
+	when using -r.
+
+	* scripts/clubak.py: Added -G, --groupbase to strip group source prefix
+	when using -r.
+
+	* scripts/nodeset.py: Changed -N, --noprefix to -G, --groupbase to avoid
+	conflict with clush -N.
+
 	* scripts/clush.py: Fixed missing support for group source (-s
 	GROUPSOURCE) when using -a or -g GROUP.
 

@@ -144,7 +144,8 @@ class GatherOutputHandler(EventHandler):
 
     def __init__(self, label, gather_info, runtimer):
         self._label = label
-        self._gather_print, self._regroup, self._groupsource = gather_info
+        self._gather_print, self._regroup, self._groupsource, self._noprefix \
+            = gather_info
         self._runtimer = runtimer
 
     def ev_error(self, worker):
@@ -175,13 +176,15 @@ class GatherOutputHandler(EventHandler):
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
                                        cmp=bufnodeset_cmp):
-                self._gather_print(nodeset, buf, self._regroup, self._groupsource)
+                self._gather_print(nodeset, buf, self._regroup,
+                                   self._groupsource, self._noprefix)
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
                 ns = NodeSet.fromlist(nodelist)
-                print >> sys.stderr, "clush: %s: exited with exit code %s" % (ns, rc)
+                print >> sys.stderr, "clush: %s: exited with exit code %s" \
+                                        % (ns, rc)
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
@@ -334,19 +337,19 @@ def readline_setup():
 
 # Start of clubak.py common functions
 
-def print_buffer(nodeset, content, regroup, groupsource):
+def print_buffer(nodeset, content, regroup, groupsource, noprefix):
     """Display a dshbak-like header block and content."""
     sep = "-" * 15
     if regroup:
-        header = nodeset.regroup(groupsource)
+        header = nodeset.regroup(groupsource, noprefix=noprefix)
     else:
         header = str(nodeset)
     sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
 
-def print_lines(nodeset, msg, regroup, groupsource):
+def print_lines(nodeset, msg, regroup, groupsource, noprefix):
     """Display a MsgTree buffer by line with prefixed header."""
     if regroup:
-        header = nodeset.regroup(groupsource)
+        header = nodeset.regroup(groupsource, noprefix=noprefix)
     else:
         header = str(nodeset)
     for line in msg:
@@ -374,7 +377,7 @@ def bufnodeset_cmp(bn1, bn2):
     return nodeset_cmp(bn1[1], bn2[1])
 
 def ttyloop(task, nodeset, gather, timeout, label, verbosity,
-            (gather_print, regroup, groupsource)):
+            (gather_print, regroup, groupsource, noprefix)):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
@@ -425,7 +428,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
                     if not print_warn:
                         print_warn = True
                         print >> sys.stderr, "Warning: Caught keyboard interrupt!"
-                    gather_print(nodeset, buf, regroup, groupsource)
+                    gather_print(nodeset, buf, regroup, groupsource, noprefix)
                     
                 # Return code handling
                 ns_ok = NodeSet()
@@ -487,14 +490,15 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
                 run_command(task, cmd[1:], None, gather, timeout, None,
-                            verbosity, (gather_print, regroup, groupsource))
+                            verbosity, (gather_print, regroup, groupsource,
+                                        noprefix))
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
                 run_command(task, cmd, ns, gather, timeout, label, verbosity,
-                            (gather_print, regroup, groupsource))
+                            (gather_print, regroup, groupsource, noprefix))
     return rc
 
 def bind_stdin(worker):
@@ -600,20 +604,27 @@ def clush_main(args):
     optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="output more messages for debugging purpose")
 
-    optgrp.add_option("-L", action="store_true", dest="line_mode", default=False,
-                      help="disable header block and order output by nodes")
+    optgrp.add_option("-G", "--groupbase", action="store_true",
+                      dest="groupbase", default=False, help="do not display " \
+                      "group source prefix")
+    optgrp.add_option("-L", action="store_true", dest="line_mode",
+                      default=False, help="disable header block and order " \
+                      "output by nodes")
     optgrp.add_option("-N", action="store_false", dest="label", default=True,
                       help="disable labeling of command line")
     optgrp.add_option("-S", action="store_true", dest="maxrc",
                       help="return the largest of command return codes")
     optgrp.add_option("-b", "--dshbak", action="store_true", dest="gather",
-                      default=False, help="display gathered results in a dshbak-like way")
+                      default=False, help="display gathered results in a " \
+                      "dshbak-like way")
     optgrp.add_option("-B", action="store_true", dest="gatherall",
-                      default=False, help="like -b but including standard error")
+                      default=False, help="like -b but including standard " \
+                      "error")
     optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
                       default=False, help="fold nodeset using node groups")
-    optgrp.add_option("-s", "--groupsource", action="store", dest="groupsource",
-                      help="optional groups.conf(5) group source to use")
+    optgrp.add_option("-s", "--groupsource", action="store",
+                      dest="groupsource", help="optional groups.conf(5) " \
+                      "group source to use")
     parser.add_option_group(optgrp)
 
     # Copy
@@ -793,9 +804,11 @@ def clush_main(args):
 
     # Select gather-mode print function
     if options.line_mode:
-        gather_info = print_lines, options.regroup, options.groupsource
+        gather_info = print_lines, options.regroup, options.groupsource, \
+                        options.groupbase
     else:
-        gather_info = print_buffer, options.regroup, options.groupsource
+        gather_info = print_buffer, options.regroup, options.groupsource, \
+                        options.groupbase
 
     if not task.default("USER_interactive"):
         if options.source_path:
