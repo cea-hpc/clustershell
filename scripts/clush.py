@@ -125,7 +125,8 @@ class DirectOutputHandler(EventHandler):
             ns = "local"
             rc = worker.retcode()
         if rc > 0:
-            print >> sys.stderr, "clush: %s: exited with exit code %d" % (ns, rc) 
+            print >> sys.stderr, "clush: %s: exited with exit code %d" \
+                                    % (ns, rc) 
 
     def ev_timeout(self, worker):
         print >> sys.stderr, "clush: %s: command timeout" % \
@@ -261,7 +262,8 @@ class ClushConfig(ConfigParser.ConfigParser):
         for key, value in ClushConfig.main_defaults.iteritems():
             self.set("Main", key, value)
         # config files override defaults values
-        self.read(['/etc/clustershell/clush.conf', os.path.expanduser('~/.clush.conf')])
+        self.read(['/etc/clustershell/clush.conf',
+                   os.path.expanduser('~/.clush.conf')])
 
     def verbose_print(self, level, message):
         if self.get_verbosity() >= level:
@@ -645,8 +647,9 @@ def clush_main(args):
                       help="execute remote command as user")
     optgrp.add_option("-o", "--options", action="store", dest="options",
                       help="can be used to give ssh options")
-    optgrp.add_option("-t", "--connect_timeout", action="store", dest="connect_timeout", 
-                      help="limit time to connect to a node" ,type="float")
+    optgrp.add_option("-t", "--connect_timeout", action="store",
+                      dest="connect_timeout", help="limit time to connect to " \
+                      "a node" ,type="float")
     optgrp.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
                       help="limit time for command to run on the node", type="float")
     parser.add_option_group(optgrp)
@@ -700,6 +703,9 @@ def clush_main(args):
         nodeset_base.add(all_nodeset)
 
     if options.group:
+        if '[' in str(options.group):
+            parser.error("group ranges are not supported with -g, please " \
+                         "use -w @group[range]")
         grp_nodeset = NodeSet()
         for grpopt in options.group:
             for grp in grpopt.split(','):
@@ -709,6 +715,9 @@ def clush_main(args):
                 nodeset_base.update(addingrp)
 
     if options.exgroup:
+        if '[' in str(options.exgroup):
+            parser.error("group ranges are not supported with -X, please " \
+                         "use -X @group[range]")
         for grpopt in options.exgroup:
             for grp in grpopt.split(','):
                 removingrp = NodeSet("@" + grp)
