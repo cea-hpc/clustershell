@@ -114,6 +114,7 @@ Output behaviour:
   -q, --quiet         be quiet, print essential output only
   -v, --verbose       be verbose, print informative messages
   -d, --debug         output more messages for debugging purpose
+  -G, --groupbase     do not display group source prefix
   -L                  disable header block and order output by nodes (with -b or -B)
   -N                  disable labeling of command line
   -S                  return the largest of command return codes

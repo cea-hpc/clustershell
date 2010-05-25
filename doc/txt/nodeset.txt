@@ -59,7 +59,7 @@ Options:
         numerical cluster ranges, eg. 1,5,18-31.
     --groupsource=GROUPSOURCE, -s GROUPSOURCE
         Specify group source (section to use in ``groups.conf``\(5)).
-    --noprefix, -N
+    --groupbase, -G
         Do not display group source prefix (always `@groupname`).
     --separator=STRING, -S STRING
         Specify separator string for expanding nodesets (default: " ").

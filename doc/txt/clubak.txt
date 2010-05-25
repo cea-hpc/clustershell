@@ -48,6 +48,8 @@ OPTIONS
 -r, --regroup  fold nodeset using node groups
 -s GROUPSOURCE, --groupsource=GROUPSOURCE
                optional ``groups.conf``\(5) group source to use
+-G, --groupbase
+               do not display group source prefix (always `@groupname`)
 -S SEPARATOR, --separator=SEPARATOR
                node / line content separator string (default: `:`)
 
