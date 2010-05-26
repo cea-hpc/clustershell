@@ -60,7 +60,8 @@ from ClusterShell.NodeUtils import GroupSourceException
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
 try:
     from ClusterShell.Event import EventHandler
-    from ClusterShell.NodeSet import NodeSet, STD_GROUP_RESOLVER
+    from ClusterShell.NodeSet import NodeSet
+    from ClusterShell.NodeSet import NOGROUP_RESOLVER, STD_GROUP_RESOLVER
     from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
     from ClusterShell.Task import Task, task_self
     from ClusterShell.Worker.Worker import WorkerSimple
@@ -703,27 +704,22 @@ def clush_main(args):
         nodeset_base.add(all_nodeset)
 
     if options.group:
-        if '[' in str(options.group):
-            parser.error("group ranges are not supported with -g, please " \
-                         "use -w @group[range]")
-        grp_nodeset = NodeSet()
-        for grpopt in options.group:
-            for grp in grpopt.split(','):
-                addingrp = NodeSet("@" + grp)
-                config.verbose_print(VERB_DEBUG, \
-                    "Adding nodes from option -g %s: %s" % (grp, addingrp))
-                nodeset_base.update(addingrp)
+        grp_nodeset = NodeSet.fromlist(options.group,
+                                       resolver=NOGROUP_RESOLVER)
+        for grp in grp_nodeset:
+            addingrp = NodeSet("@" + grp)
+            config.verbose_print(VERB_DEBUG, \
+                "Adding nodes from option -g %s: %s" % (grp, addingrp))
+            nodeset_base.update(addingrp)
 
     if options.exgroup:
-        if '[' in str(options.exgroup):
-            parser.error("group ranges are not supported with -X, please " \
-                         "use -X @group[range]")
-        for grpopt in options.exgroup:
-            for grp in grpopt.split(','):
-                removingrp = NodeSet("@" + grp)
-                config.verbose_print(VERB_DEBUG, \
-                    "Excluding nodes from option -X %s: %s" % (grp, removingrp))
-                nodeset_exclude.update(removingrp)
+        grp_nodeset = NodeSet.fromlist(options.exgroup,
+                                       resolver=NOGROUP_RESOLVER)
+        for grp in grp_nodeset:
+            removingrp = NodeSet("@" + grp)
+            config.verbose_print(VERB_DEBUG, \
+                "Excluding nodes from option -X %s: %s" % (grp, removingrp))
+            nodeset_exclude.update(removingrp)
 
     # Do we have an exclude list? (-x ...)
     nodeset_base.difference_update(nodeset_exclude)
