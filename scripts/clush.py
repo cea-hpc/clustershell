@@ -144,11 +144,29 @@ class DirectOutputHandler(EventHandler):
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, label, gather_info, runtimer):
+    def __init__(self, label, gather_info, runtimer, nodes):
         self._label = label
         self._gather_print, self._regroup, self._groupsource, self._noprefix \
             = gather_info
         self._runtimer = runtimer
+        # needed for -L enhancement:
+        self._nodes = NodeSet(nodes)
+        self._nodemap_base = dict.fromkeys(self._nodes, 0)
+        self._nodemap = self._nodemap_base.copy()
+        self._nodes_cnt = 0
+
+    def ev_read(self, worker):
+        # Implementation of -bL "per line live gathering":
+        if self._gather_print != print_lines:
+            return
+        result = worker.last_read()
+        if type(result) is not tuple:
+            return
+        # keep counter and nodemap up-to-date
+        node = result[0]
+        self._nodes_cnt += 1
+        self._nodemap[node] += 1
+        self._live_line(worker)
 
     def ev_error(self, worker):
         t = worker.last_error()
@@ -165,6 +183,31 @@ class GatherOutputHandler(EventHandler):
         if self._runtimer:
             # Force redisplay of counter
             self._runtimer.eh.set_dirty()
+
+    def ev_hup(self, worker):
+        if self._gather_print == print_lines and \
+                self._nodemap[worker.last_node()] == 0:
+            # forget node that doesn't answer (used for live line gathering)
+            self._nodes.remove(worker.last_node())
+            del self._nodemap[worker.last_node()]
+            del self._nodemap_base[worker.last_node()]
+            self._live_line(worker)
+
+    def _live_line(self, worker):
+        # if all nodes replied 1 (or n) time(s), display gathered line(s)
+        if self._nodes and self._nodes_cnt % len(self._nodes) == 0 and \
+                max(self._nodemap.itervalues()) == (self._nodes_cnt \
+                                                    / len(self._nodes)):
+            nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+            for buf, nodeset in sorted(map(nodesetify,
+                                           worker.iter_buffers()),
+                                       cmp=bufnodeset_cmp):
+                self._gather_print(nodeset, buf, self._regroup,
+                                   self._groupsource, self._noprefix)
+            # clear worker buffers, reset nodemap and node counter
+            worker.flush_buffers()
+            self._nodemap = self._nodemap_base.copy()
+            self._nodes_cnt = 0
 
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
@@ -534,7 +577,7 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_info):
             runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
                                   autoclose=True)
         worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(label,
-                            gather_info, runtimer), timeout=timeout)
+                            gather_info, runtimer, ns), timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label),
                             timeout=timeout)

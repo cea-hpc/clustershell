@@ -42,7 +42,7 @@ commands). It should be efficient, in term of compute power and memory
 consumption, especially when remote messages are the same.
 """
 
-from itertools import imap
+from itertools import ifilterfalse, imap
 from operator import itemgetter
 
 
@@ -240,3 +240,24 @@ class MsgTree(object):
                 if len(mkeys):
                     yield elem, map(mapper, mkeys)
 
+    def remove(self, match=None):
+        """
+        Modify the tree by removing any matching key references from the
+        messages tree.
+
+        Example of use:
+            >>> msgtree.remove(lambda k: k > 3)
+        """
+        estack = [ self._root ]
+
+        # walk the tree to keep only matching keys
+        while estack:
+            elem = estack.pop()
+            if len(elem.children) > 0:
+                estack += elem.children.values()
+            if elem.keys: # has some keys
+                elem.keys = set(ifilterfalse(match, elem.keys))
+
+        # also remove key(s) from known keys dict
+        for key in filter(match, self._keys.keys()):
+            del self._keys[key]

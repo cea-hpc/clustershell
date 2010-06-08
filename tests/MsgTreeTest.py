@@ -153,6 +153,32 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
         self.assertEqual(tree._depth(), 2)
 
+    def testMsgTreeRemove(self):
+        """test MsgTree.remove()"""
+        # build tree
+        tree = MsgTree()
+        self.assertEqual(len(tree), 0)
+        tree.add(("w1", "key1"), "message0")
+        self.assertEqual(len(tree), 1)
+        tree.add(("w1", "key2"), "message0")
+        self.assertEqual(len(tree), 2)
+        tree.add(("w1", "key3"), "message0")
+        self.assertEqual(len(tree), 3)
+        tree.add(("w2", "key4"), "message1")
+        self.assertEqual(len(tree), 4)
+        tree.remove(lambda k: k[1] == "key2")
+        self.assertEqual(len(tree), 3)
+        for msg, keys in tree.walk(match=lambda k: k[0] == "w1",
+                                   mapper=itemgetter(1)):
+            self.assertEqual(msg, "message0")
+            self.assertEqual(len(keys), 2)
+        tree.remove(lambda k: k[0] == "w1")
+        self.assertEqual(len(tree), 1)
+        tree.remove(lambda k: k[0] == "w2")
+        self.assertEqual(len(tree), 0)
+        tree.clear()
+        self.assertEqual(len(tree), 0)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(MsgTreeTest)

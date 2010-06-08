@@ -108,6 +108,19 @@ class Worker(object):
         self._task_bound_check()
         return self.task._num_timeout_by_worker(self) > 0
 
+    def flush_buffers(self):
+        """
+        Flush any messages associated to this worker.
+        """
+        self._task_bound_check()
+        self.task._flush_buffers_by_worker(self)
+
+    def flush_errors(self):
+        """
+        Flush any error messages associated to this worker.
+        """
+        self._task_bound_check()
+        self.task._flush_errors_by_worker(self)
 
 class DistantWorker(Worker):
     """
@@ -287,7 +300,6 @@ class DistantWorker(Worker):
         """
         self._task_bound_check()
         return self.task._iter_keys_timeout_by_worker(self)
-
 
 class WorkerSimple(EngineClient, Worker):
     """

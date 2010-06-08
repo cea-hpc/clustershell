@@ -82,6 +82,32 @@ class TaskMsgTreeTest(unittest.TestCase):
         # but this should:
         self.assertRaises(TaskMsgTreeError, task.iter_errors)
 
+    def testTaskFlushBuffers(self):
+        """test Task.flush_buffers"""
+        task = task_self()
+        self.assert_(task != None)
+        # init worker
+        worker = task.shell("echo foo bar")
+        self.assert_(worker != None)
+        task.set_default('stdout_msgtree', True)
+        # run task
+        task.resume()
+        task.flush_buffers()
+        self.assertEqual(len(list(task.iter_buffers())), 0)
+
+    def testTaskFlushErrors(self):
+        """test Task.flush_errors"""
+        task = task_self()
+        self.assert_(task != None)
+        # init worker
+        worker = task.shell("echo foo bar 1>&2")
+        self.assert_(worker != None)
+        task.set_default('stderr_msgtree', True)
+        # run task
+        task.resume()
+        task.flush_errors()
+        self.assertEqual(len(list(task.iter_errors())), 0)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskMsgTreeTest)

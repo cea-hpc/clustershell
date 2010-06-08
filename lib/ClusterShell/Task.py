@@ -803,6 +803,18 @@ class Task(object):
             if w is worker:
                 yield k
 
+    def _flush_buffers_by_worker(self, worker):
+        """
+        Remove any messages from specified worker.
+        """
+        self._msgtree.remove(lambda k: k[0] == worker)
+
+    def _flush_errors_by_worker(self, worker):
+        """
+        Remove any error messages from specified worker.
+        """
+        self._errtree.remove(lambda k: k[0] == worker)
+
     def key_buffer(self, key):
         """
         Get buffer for a specific key. When the key is associated
@@ -903,6 +915,18 @@ class Task(object):
         """
         for (w, k) in self._timeout_sources:
             yield k
+
+    def flush_buffers(self):
+        """
+        Flush all task messages (from all task workers).
+        """
+        self._msgtree.clear()
+
+    def flush_errors(self):
+        """
+        Flush all task error messages (from all task workers).
+        """
+        self._errtree.clear()
 
     @classmethod
     def wait(cls, from_thread):
