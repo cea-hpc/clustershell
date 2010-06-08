@@ -12,10 +12,17 @@ endif
 
 " shut case off
 syn case ignore
-syn match groupsDefaultValue "\(:\|=\)\s*[a-zA-Z0-9_]\+$"ms=s+1 contained
+
+" Main/default
+syn match groupsDefaultValue "\(:\|=\)\s*\w\+$"ms=s+1 contained
 syn match groupsColonValue "\(:\|=\).*" contained contains=groupsDefaultValue
 syn match groupsDefaultKey "^default\(:\|=\).*$" contains=groupsColonValue
-syn match groupsKeys "^\(map\|all\|list\|reverse\)\(:\|=\)"me=e-1
+
+" Sources
+syn match groupsVars "\(\$GROUP\|\$NODE\)" contained
+syn match groupsKeys "^\w\+\(:\|=\)"me=e-1 contained
+syn match groupsKeyValue "^\(map\|all\|list\|reverse\)\+\(:\|=\).*$" contains=groupsKeys,groupsVars
+
 
 syn match  groupsComment    "#.*$"
 syn match  groupsComment    ";.*$"
@@ -39,6 +46,7 @@ if version >= 508 || !exists("did_groupsconf_syntax_inits")
   HiLink groupsDefaultKey	Identifier
   HiLink groupsDefaultValue	Special
   HiLink groupsKeys		Identifier
+  HiLink groupsVars		Keyword
 
   delcommand HiLink
 endif
