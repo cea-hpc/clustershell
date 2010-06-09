@@ -1,3 +1,12 @@
+2010-06-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Automatically increase open files soft limit (trac
+	ticket #61). Handle "Too many open files" exception.
+
+	* Task.py: Add excepthook and default_excepthook methods to handle
+	uncaught exception in a Task thread. Make it compliant with sys.excepthook
+	also.
+
 2010-06-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.3 beta 4 released.

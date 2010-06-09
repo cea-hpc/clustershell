@@ -47,9 +47,12 @@ When no command are specified, clush runs interactively.
 
 """
 
+import errno
+import exceptions
 import fcntl
 import optparse
 import os
+import resource
 import sys
 import signal
 import ConfigParser
@@ -312,6 +315,17 @@ class ClushConfig(ConfigParser.ConfigParser):
     def verbose_print(self, level, message):
         if self.get_verbosity() >= level:
             print message
+
+    def max_fdlimit(self):
+        """Make open file descriptors soft limit the max."""
+        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+        if soft < hard:
+            self.verbose_print(VERB_DEBUG, "Setting max soft limit "
+                               "RLIMIT_NOFILE: %d -> %d" % (soft, hard))
+            resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
+        else:
+            self.verbose_print(VERB_DEBUG, "Soft limit RLIMIT_NOFILE already "
+                               "set to the max (%d)" % soft)
 
     def set_main(self, option, value):
         self.set("Main", option, str(value))
@@ -610,6 +624,15 @@ def clush_exit(status):
     # Use os._exit to avoid threads cleanup
     os._exit(status)
 
+def clush_excepthook(type, value, traceback):
+    """Excepthook for clush: unhandled exception ends here..."""
+    if type == exceptions.OSError and value.errno == errno.EMFILE:
+        print >> sys.stderr, "ERROR: %s (%s)" % (value, type)
+    else:
+        # not handled
+        task_self().default_excepthook(type, value, traceback)
+    os._exit(1)
+    
 def clush_main(args):
     """Main clush script function"""
 
@@ -771,6 +794,9 @@ def clush_main(args):
 
     config.verbose_print(VERB_DEBUG, "Final NodeSet: %s" % nodeset_base)
 
+    # Make soft fd limit the max.
+    config.max_fdlimit()
+
     #
     # Task management
     #
@@ -792,6 +818,8 @@ def clush_main(args):
     else:
         # Perform everything in main thread.
         task.set_default("USER_handle_SIGUSR1", False)
+
+    task.excepthook = clush_excepthook
 
     task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or
                                                options.nostdin))

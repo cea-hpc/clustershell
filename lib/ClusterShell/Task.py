@@ -302,7 +302,8 @@ class Task(object):
             Task._task_lock.release()
 
             # create new thread if needed
-            if thread:
+            self._thread_foreign = bool(thread)
+            if self._thread_foreign:
                 self.thread = thread
             else:
                 self.thread = thread = \
@@ -318,10 +319,31 @@ class Task(object):
         task_self(), but do not create any task_self() instance."""
         return self.thread == threading.currentThread()
 
-    def _handle_exception(self):
+    def default_excepthook(self, type, value, tb):
+        """Default excepthook for a newly Task. When an exception is
+        raised and uncaught on Task thread, excepthook is called, which
+        is default_excepthook by default. Once excepthook overriden,
+        you can still call default_excepthook if needed."""
         print >> sys.stderr, 'Exception in thread %s:' % self.thread
-        traceback.print_exc(file=sys.stderr)
-        self._quit = True
+        traceback.print_exception(type, value, tb, file=sys.stderr)
+
+    _excepthook = default_excepthook
+
+    def _getexcepthook(self):
+        return self._excepthook
+
+    def _setexcepthook(self, hook):
+        self._excepthook = hook
+        # If thread has not been created by us, install sys.excepthook which
+        # might handle uncaught exception.
+        if self._thread_foreign:
+            sys.excepthook = self._excepthook
+
+    # When an exception is raised and uncaught on Task's thread,
+    # excepthook is called. You may want to override this three
+    # arguments method (very similar of what you can do with
+    # sys.excepthook)."""
+    excepthook = property(_getexcepthook, _setexcepthook)
         
     def _thread_start(self):
         """Task-managed thread entry point"""
@@ -332,7 +354,8 @@ class Task(object):
             try:
                 self._resume()
             except:
-                self._handle_exception()
+                self.excepthook(*sys.exc_info())
+                self._quit = True
 
         self._terminate(kill=True)
 
