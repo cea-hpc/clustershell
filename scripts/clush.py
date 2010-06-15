@@ -74,6 +74,7 @@ except GroupResolverConfigError, e:
         "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
     sys.exit(1)
 
+WHENCOLOR_CHOICES = ["never", "always", "auto"]
 VERB_QUIET = 0
 VERB_STD = 1
 VERB_VERB = 2
@@ -97,30 +98,16 @@ class StdInputHandler(EventHandler):
 class DirectOutputHandler(EventHandler):
     """Direct output event handler class."""
 
-    def __init__(self, label=None):
-        self._label = label
+    def __init__(self, display=None):
+        self._display = display
 
     def ev_read(self, worker):
-        result = worker.last_read()
-        if type(result) is tuple:
-            (ns, buf) = result
-        else:
-            buf = result
-        if self._label:
-            print "%s: %s" % (ns, buf)
-        else:
-            print "%s" % buf
+        ns, buf = worker.last_read()
+        self._display.print_line(ns, buf)
 
     def ev_error(self, worker):
-        t = worker.last_error()
-        if type(t) is tuple:
-            (ns, buf) = t
-        else:
-            buf = t
-        if self._label:
-            print >> sys.stderr, "%s: %s" % (ns, buf)
-        else:
-            print >> sys.stderr,"%s" % buf
+        ns, buf = worker.last_error()
+        self._display.print_line_error(ns, buf)
 
     def ev_hup(self, worker):
         if hasattr(worker, "last_retcode"):
@@ -147,10 +134,8 @@ class DirectOutputHandler(EventHandler):
 class GatherOutputHandler(EventHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, label, gather_info, runtimer, nodes):
-        self._label = label
-        self._gather_print, self._regroup, self._groupsource, self._noprefix \
-            = gather_info
+    def __init__(self, display, runtimer, nodes):
+        self._display = display
         self._runtimer = runtimer
         # needed for -L enhancement:
         self._nodes = NodeSet(nodes)
@@ -160,11 +145,9 @@ class GatherOutputHandler(EventHandler):
 
     def ev_read(self, worker):
         # Implementation of -bL "per line live gathering":
-        if self._gather_print != print_lines:
+        if not self._display.line_mode:
             return
         result = worker.last_read()
-        if type(result) is not tuple:
-            return
         # keep counter and nodemap up-to-date
         node = result[0]
         self._nodes_cnt += 1
@@ -172,24 +155,16 @@ class GatherOutputHandler(EventHandler):
         self._live_line(worker)
 
     def ev_error(self, worker):
-        t = worker.last_error()
-        if type(t) is tuple:
-            (ns, buf) = t
-        else:
-            buf = t
+        ns, buf = worker.last_error()
         if self._runtimer:
             self._runtimer.eh.erase_line()
-        if self._label:
-            print >> sys.stderr, "%s: %s" % (ns, buf)
-        else:
-            print >> sys.stderr,"%s" % buf
+        self._display.print_line_error(ns, buf)
         if self._runtimer:
             # Force redisplay of counter
             self._runtimer.eh.set_dirty()
 
     def ev_hup(self, worker):
-        if self._gather_print == print_lines and \
-                self._nodemap[worker.last_node()] == 0:
+        if self._display.line_mode and self._nodemap[worker.last_node()] == 0:
             # forget node that doesn't answer (used for live line gathering)
             self._nodes.remove(worker.last_node())
             del self._nodemap[worker.last_node()]
@@ -205,8 +180,7 @@ class GatherOutputHandler(EventHandler):
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers()),
                                        cmp=bufnodeset_cmp):
-                self._gather_print(nodeset, buf, self._regroup,
-                                   self._groupsource, self._noprefix)
+                self._display.print_gather(nodeset, buf)
             # clear worker buffers, reset nodemap and node counter
             worker.flush_buffers()
             self._nodemap = self._nodemap_base.copy()
@@ -224,8 +198,7 @@ class GatherOutputHandler(EventHandler):
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
                                        cmp=bufnodeset_cmp):
-                self._gather_print(nodeset, buf, self._regroup,
-                                   self._groupsource, self._noprefix)
+                self._display.print_gather(nodeset, buf)
 
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
@@ -282,7 +255,7 @@ class RunTimer(EventHandler):
         sys.stderr.write(fmt % (self.tslen, self.total, self.tslen, self.total))
 
 class ClushConfigError(Exception):
-    """Exception used by the signal handler"""
+    """Exception used by ClushConfig to report an error."""
 
     def __init__(self, section, option, msg):
         Exception.__init__(self)
@@ -300,6 +273,7 @@ class ClushConfig(ConfigParser.ConfigParser):
                       "connect_timeout" : "30",
                       "command_timeout" : "0",
                       "history_size" : "100",
+                      "color" : WHENCOLOR_CHOICES[0],
                       "verbosity" : "%d" % VERB_STD }
 
     def __init__(self):
@@ -347,6 +321,13 @@ class ClushConfig(ConfigParser.ConfigParser):
             return self.get(section, option)
         except ConfigParser.Error, e:
             pass
+
+    def get_color(self):
+        whencolor = self._get_optional("Main", "color")
+        if whencolor not in WHENCOLOR_CHOICES:
+            raise ClushConfigError("Main", "color", "choose from %s" % \
+                                   WHENCOLOR_CHOICES)
+        return whencolor
 
     def get_verbosity(self):
         try:
@@ -397,23 +378,82 @@ def readline_setup():
 
 # Start of clubak.py common functions
 
-def print_buffer(nodeset, content, regroup, groupsource, noprefix):
-    """Display a dshbak-like header block and content."""
-    sep = "-" * 15
-    if regroup:
-        header = nodeset.regroup(groupsource, noprefix=noprefix)
-    else:
-        header = str(nodeset)
-    sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
+class Display(object):
+    """
+    Output display class for clush script.
+    """
+    COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
+    COLOR_STDERR_FMT = "\033[31m%s\033[0m"
+    SEP = "-" * 15
 
-def print_lines(nodeset, msg, regroup, groupsource, noprefix):
-    """Display a MsgTree buffer by line with prefixed header."""
-    if regroup:
-        header = nodeset.regroup(groupsource, noprefix=noprefix)
-    else:
-        header = str(nodeset)
-    for line in msg:
-        sys.stdout.write("%s: %s\n" % (header, line))
+    def __init__(self, color=True):
+        self._color = color
+        self._display = self._print_buffer
+        self.out = sys.stdout
+        self.err = sys.stderr
+        self.label = True
+        self.regroup = False
+        self.groupsource = None
+
+        if self._color:
+            self.color_stdout_fmt = self.COLOR_STDOUT_FMT
+            self.color_stderr_fmt = self.COLOR_STDERR_FMT
+        else:
+            self.color_stdout_fmt = self.color_stderr_fmt = "%s"
+
+        self.noprefix = False
+
+    def _getlmode(self):
+        return self._display == self._print_lines
+
+    def _setlmode(self, value):
+        if value:
+            self._display = self._print_lines
+        else:
+            self._display = self._print_buffer
+    line_mode = property(_getlmode, _setlmode)
+
+    def _format_header(self, nodeset):
+        """Format nodeset-based header."""
+        if self.regroup:
+            return nodeset.regroup(self.groupsource, noprefix=self.noprefix)
+        return str(nodeset)
+
+    def print_line(self, nodeset, line):
+        """Display a line with optional label."""
+        if self.label:
+            prefix = self.color_stdout_fmt % ("%s: " % nodeset)
+            self.out.write("%s %s\n" % (prefix, line))
+        else:
+            self.out.write("%s\n", line)
+
+    def print_line_error(self, nodeset, line):
+        """Display an error line with optional label."""
+        if self.label:
+            prefix = self.color_stderr_fmt % ("%s: " % nodeset)
+            self.err.write("%s%s\n" % (prefix, line))
+        else:
+            self.err.write("%s\n", line)
+
+    def print_gather(self, nodeset, obj):
+        """Generic method for displaying nodeset/content according to current
+        object settings."""
+        return self._display(nodeset, obj)
+
+    def _print_buffer(self, nodeset, content):
+        """Display a dshbak-like header block and content."""
+        header = self.color_stdout_fmt % ("%s\n%s\n%s\n" % (self.SEP,
+                                            self._format_header(nodeset),
+                                            self.SEP))
+        self.out.write("%s%s\n" % (header, content))
+        
+    def _print_lines(self, nodeset, msg):
+        """Display a MsgTree buffer by line with prefixed header."""
+        header = self.color_stdout_fmt % \
+                    ("%s: " % self._format_header(nodeset))
+        for line in msg:
+            self.out.write("%s%s\n" % (header, line))
+
 
 def nodeset_cmp(ns1, ns2):
     """Compare 2 nodesets by their length (we want larger nodeset
@@ -436,8 +476,7 @@ def bufnodeset_cmp(bn1, bn2):
     # Extract nodesets and call nodeset_cmp
     return nodeset_cmp(bn1[1], bn2[1])
 
-def ttyloop(task, nodeset, gather, timeout, label, verbosity,
-            (gather_print, regroup, groupsource, noprefix)):
+def ttyloop(task, nodeset, gather, timeout, verbosity, display):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
@@ -457,7 +496,8 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
     cmd = ""
     while task.default("USER_running") or cmd.lower() != 'quit':
         try:
-            if task.default("USER_interactive") and not task.default("USER_running"):
+            if task.default("USER_interactive") and \
+                    not task.default("USER_running"):
                 if ns_info:
                     print "Working with nodes: %s" % ns
                     ns_info = False
@@ -488,7 +528,7 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
                     if not print_warn:
                         print_warn = True
                         print >> sys.stderr, "Warning: Caught keyboard interrupt!"
-                    gather_print(nodeset, buf, regroup, groupsource, noprefix)
+                    display.print_gather(nodeset, buf)
                     
                 # Return code handling
                 ns_ok = NodeSet()
@@ -550,15 +590,13 @@ def ttyloop(task, nodeset, gather, timeout, label, verbosity,
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
                 run_command(task, cmd[1:], None, gather, timeout, None,
-                            verbosity, (gather_print, regroup, groupsource,
-                                        noprefix))
+                            verbosity, display)
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                run_command(task, cmd, ns, gather, timeout, label, verbosity,
-                            (gather_print, regroup, groupsource, noprefix))
+                run_command(task, cmd, ns, gather, timeout, verbosity, display)
     return rc
 
 def bind_stdin(worker):
@@ -576,7 +614,7 @@ def bind_stdin(worker):
     # Add stdin worker to the same task than given worker
     worker.task.schedule(worker_stdin)
 
-def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_info):
+def run_command(task, cmd, ns, gather, timeout, verbosity, display):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
@@ -590,10 +628,12 @@ def run_command(task, cmd, ns, gather, timeout, label, verbosity, gather_info):
             # number of completed commands
             runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
                                   autoclose=True)
-        worker = task.shell(cmd, nodes=ns, handler=GatherOutputHandler(label,
-                            gather_info, runtimer, ns), timeout=timeout)
+        worker = task.shell(cmd, nodes=ns,
+                            handler=GatherOutputHandler(display, runtimer,
+                            ns), timeout=timeout)
     else:
-        worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(label),
+        worker = task.shell(cmd, nodes=ns,
+                            handler=DirectOutputHandler(display),
                             timeout=timeout)
 
     if task.default("USER_stdin_worker"):
@@ -694,6 +734,10 @@ def clush_main(args):
     optgrp.add_option("-s", "--groupsource", action="store",
                       dest="groupsource", help="optional groups.conf(5) " \
                       "group source to use")
+    parser.add_option_group(optgrp)
+    optgrp.add_option("--color", action="store", dest="whencolor",
+                      choices=WHENCOLOR_CHOICES,
+                      help="whether to use ANSI colors (never, always or auto)")
     parser.add_option_group(optgrp)
 
     # Copy
@@ -878,13 +922,22 @@ def clush_main(args):
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
-    # Select gather-mode print function
-    if options.line_mode:
-        gather_info = print_lines, options.regroup, options.groupsource, \
-                        options.groupbase
+    # Should we use ANSI colors for nodes?
+    if not options.whencolor:
+        options.whencolor = config.get_color()
+    if options.whencolor == "auto":
+        color = sys.stdout.isatty() and (options.gatherall or \
+                                         sys.stderr.isatty())
     else:
-        gather_info = print_buffer, options.regroup, options.groupsource, \
-                        options.groupbase
+        color = options.whencolor == "always"
+        
+    # Create and configure display object.
+    display = Display(color)
+    display.line_mode = options.line_mode
+    display.label = options.label
+    display.regroup = options.regroup
+    display.groupsource = options.groupsource
+    display.noprefix = options.groupbase
 
     if not task.default("USER_interactive"):
         if options.source_path:
@@ -892,11 +945,10 @@ def clush_main(args):
                     0, options.preserve_flag)
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
-                        options.label, config.get_verbosity(), gather_info)
+                        config.get_verbosity(), display)
 
     if user_interaction:
-        ttyloop(task, nodeset_base, gather, timeout, options.label,
-                config.get_verbosity(), gather_info)
+        ttyloop(task, nodeset_base, gather, timeout, config.get_verbosity(), display)
     elif task.default("USER_interactive"):
         print >> sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)

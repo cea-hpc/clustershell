@@ -17,7 +17,7 @@ syn match  clushComment	    "#.*$"
 syn match  clushComment	    ";.*$"
 syn match  clushHeader	    "\[\w\+\]"
 
-syn keyword clushKeys       fanout command_timeout connect_timeout history_size verbosity ssh_user ssh_path ssh_options
+syn keyword clushKeys       fanout command_timeout connect_timeout history_size color verbosity ssh_user ssh_path ssh_options
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already

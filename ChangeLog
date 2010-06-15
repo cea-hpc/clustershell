@@ -1,3 +1,10 @@
+2010-06-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Add --color={never,always,auto} command line option
+	and color: {never,always,auto} config option (trac ticket #68), defaulting
+	to `never'. Also did some code refactoring/lightening (created a Display
+	class). Updated clush and clush.conf man pages.
+
 2010-06-09 S. Thiell <stephane.thiell@cea.fr>
 
 	* scripts/clush.py: Automatically increase open files soft limit (trac

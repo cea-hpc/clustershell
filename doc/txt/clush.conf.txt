@@ -7,7 +7,7 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-04-08
+:Date:   2010-06-15
 :Copyright: CeCILL-C V1
 :Version: 1.3
 :Manual section: 5
@@ -50,6 +50,8 @@ command_timeout
 history_size
   Set the maximum number of history entries saved in the GNU readline history
   list. Negative values imply unlimited history file size.
+color
+  Whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. Valid arguments are ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
 verbosity
   Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more (debug).
 ssh_user
@@ -74,6 +76,7 @@ Simple configuration file.
 | connect_timeout: 15
 | command_timeout: 0
 | history_size: 100
+| color: auto
 | 
 
 
