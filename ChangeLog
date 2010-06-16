@@ -1,5 +1,9 @@
 2010-06-16 S. Thiell <stephane.thiell@cea.fr>
 
+	* NodeSet.py, NodeUtils.py: Add a way to retrieve all nodes when "all"
+	external call is missing but "map" and "list" calls are specified (trac
+	ticket #90).
+
 	* Task.py: Add handling of stderr during task.copy().
 
 	* Worker/Ssh.py: Add handling of stderr (when needed) during scp.

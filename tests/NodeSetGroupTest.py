@@ -185,8 +185,7 @@ class NodeSetGroupTest(unittest.TestCase):
         self.assertEqual(nodeset, NodeSet("montana[38-41]"))
         self.assertEqual(str(nodeset), "montana[38-41]")
 
-        NodeSet.fromall(resolver=res)
-        #self.assertRaises(NodeSetExternalError, NodeSet.fromall)
+        self.assertRaises(NodeSetExternalError, NodeSet.fromall, resolver=res)
 
     
     def testConfigEmpty(self):

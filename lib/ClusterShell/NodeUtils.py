@@ -171,8 +171,6 @@ class GroupResolver(object):
     from multiple GroupSource's.
     """
     
-    GROUP_ALL_NAME = 'all'
-
     def __init__(self, default_source=None):
         """
         Initialize GroupResolver object.
@@ -236,10 +234,7 @@ class GroupResolver(object):
         Find all nodes. You may specify an optional namespace.
         """
         source = self._source(namespace)
-        try:
-            return self._list(source, 'all')
-        except GroupSourceNoUpcall:
-            return self._list(source, 'map', GroupResolver.GROUP_ALL_NAME)
+        return self._list(source, 'all')
 
     def grouplist(self, namespace=None):
         """

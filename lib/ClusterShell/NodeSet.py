@@ -1386,17 +1386,35 @@ class NodeSet(NodeSetBase):
         return inst
 
     @classmethod
-    def fromall(cls, namespace=None, autostep=None, resolver=None):
+    def fromall(cls, groupsource=None, autostep=None, resolver=None):
         """
         Class method that returns a new NodeSet with all nodes from
-        optional namespace.
+        optional groupsource.
         """
         inst = NodeSet(autostep=autostep, resolver=resolver)
         if not inst._resolver:
             raise NodeSetExternalError("No node group resolver")
         try:
-            for nodes in inst._resolver.all_nodes(namespace):
+            # Ask resolver to provide all nodes.
+            for nodes in inst._resolver.all_nodes(groupsource):
                 inst.update(nodes)
+        except NodeUtils.GroupSourceNoUpcall:
+            # As the resolver is not able to provide all nodes directly,
+            # failback to list + map(s) method:
+            try:
+                # Like in regroup(), we get a NodeSet of all groups in
+                # specified group source.
+                allgrpns = NodeSet.fromlist( \
+                                inst._resolver.grouplist(groupsource),
+                                resolver=NOGROUP_RESOLVER)
+                # For each individual group, resolve it to node and accumulate.
+                for grp in allgrpns:
+                    inst.update(NodeSet.fromlist( \
+                                inst._resolver.group_nodes(grp, groupsource)))
+            except NodeUtils.GroupSourceNoUpcall:
+                # We are not able to find "all" nodes, definitely.
+                raise NodeSetExternalError("Not enough working external " \
+                    "calls (all, or map + list) defined to get all nodes")
         except NodeUtils.GroupSourceQueryFailed, exc:
             raise NodeSetExternalError("Unable to get all nodes due to the " \
                 "following external failure:\n\t%s" % exc)

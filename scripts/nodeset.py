@@ -92,7 +92,8 @@ from ClusterShell.NodeUtils import GroupResolverSourceError
 from ClusterShell.NodeUtils import GroupSourceException
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
 try:
-    from ClusterShell.NodeSet import NodeSet, NodeSetParseError
+    from ClusterShell.NodeSet import NodeSet
+    from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
     from ClusterShell.NodeSet import RangeSet, RangeSetParseError
     from ClusterShell.NodeSet import grouplist, STD_GROUP_RESOLVER
     from ClusterShell import __version__
@@ -298,6 +299,9 @@ if __name__ == '__main__':
         sys.exit(1)
     except SyntaxError:
         print >> sys.stderr, "ERROR: invalid separator"
+        sys.exit(1)
+    except NodeSetExternalError, e:
+        print >> sys.stderr, "ERROR: external error:", e
         sys.exit(1)
     except GroupResolverSourceError, e:
         print >> sys.stderr, "ERROR: unknown group source: \"%s\"" % e
