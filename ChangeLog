@@ -1,5 +1,12 @@
 2010-06-16 S. Thiell <stephane.thiell@cea.fr>
 
+	* Task.py: Add handling of stderr during task.copy().
+
+	* Worker/Ssh.py: Add handling of stderr (when needed) during scp.
+
+	* scripts/clush.py: Fix display issue with clush --copy when some nodes
+	are not reachable.
+
 	* Version 1.3 beta 5 released.
 
 2010-06-15 S. Thiell <stephane.thiell@cea.fr>

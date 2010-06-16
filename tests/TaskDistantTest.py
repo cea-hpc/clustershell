@@ -75,6 +75,30 @@ class TaskDistantTest(unittest.TestCase):
         # run task
         self._task.resume()
 
+    def testCopyNodeFailure(self):
+        """test node failure error handling on simple copy"""
+        # == stderr merged ==
+        self._task.set_default("stderr", False)
+        worker = self._task.copy("/etc/hosts",
+                "/tmp/cs-test_testLocalhostCopyF", nodes='unlikely-node,localhost')
+        self.assert_(worker != None)
+        self._task.resume()
+        self.assert_(worker.node_error_buffer("unlikely-node") is None)
+        self.assert_(len(worker.node_buffer("unlikely-node")) > 2)
+
+        # == stderr separated ==
+        self._task.set_default("stderr", True)
+        try:
+            worker = self._task.copy("/etc/hosts",
+                    "/tmp/cs-test_testLocalhostCopyF2", nodes='unlikely-node,localhost')
+            self.assert_(worker != None)
+            # run task
+            self._task.resume()
+            self.assert_(worker.node_buffer("unlikely-node") is None)
+            self.assert_(len(worker.node_error_buffer("unlikely-node")) > 2)
+        finally:
+            self._task.set_default("stderr", False)
+
     def testLocalhostCopyDir(self):
         """test simple localhost directory copy"""
         # assume there is a /etc/rc.d directory

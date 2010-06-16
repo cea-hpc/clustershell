@@ -98,7 +98,7 @@ class StdInputHandler(EventHandler):
 class DirectOutputHandler(EventHandler):
     """Direct output event handler class."""
 
-    def __init__(self, display=None):
+    def __init__(self, display):
         self._display = display
 
     def ev_read(self, worker):
@@ -641,7 +641,7 @@ def run_command(task, cmd, ns, gather, timeout, verbosity, display):
  
     task.resume()
 
-def run_copy(task, source, dest, ns, timeout, preserve_flag):
+def run_copy(task, source, dest, ns, timeout, preserve_flag, display):
     """
     run copy command
     """
@@ -652,7 +652,7 @@ def run_copy(task, source, dest, ns, timeout, preserve_flag):
         print >> sys.stderr, "ERROR: file \"%s\" not found" % source
         clush_exit(1)
 
-    task.copy(source, dest, ns, handler=DirectOutputHandler(),
+    task.copy(source, dest, ns, handler=DirectOutputHandler(display),
               timeout=timeout, preserve=preserve_flag)
 
     task.resume()
@@ -942,7 +942,7 @@ def clush_main(args):
     if not task.default("USER_interactive"):
         if options.source_path:
             run_copy(task, options.source_path, options.dest_path, nodeset_base,
-                    0, options.preserve_flag)
+                    0, options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
                         config.get_verbosity(), display)

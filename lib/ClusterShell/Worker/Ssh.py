@@ -177,8 +177,6 @@ class Scp(Ssh):
         self.source = source
         self.dest = dest
         self.popen = None
-        self.file_reader = None
-        self.file_writer = None
 
         # Directory check
         self.isdir = os.path.isdir(self.source)
@@ -234,6 +232,7 @@ class Scp(Ssh):
 
         self.popen = self._exec_nonblock(cmd_l)
         self.file_reader = self.popen.stdout
+        self.file_error = self.popen.stderr
         self.file_writer = self.popen.stdin
 
         return self
