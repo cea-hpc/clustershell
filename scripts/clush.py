@@ -941,8 +941,12 @@ def clush_main(args):
 
     if not task.default("USER_interactive"):
         if options.source_path:
-            run_copy(task, options.source_path, options.dest_path, nodeset_base,
-                    0, options.preserve_flag, display)
+            if not args:
+                run_copy(task, options.source_path, options.dest_path,
+                         nodeset_base, 0, options.preserve_flag, display)
+            else:
+                parser.error("please use `--dest' to specify a different " \
+                             "destination")
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
                         config.get_verbosity(), display)
