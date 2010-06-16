@@ -667,7 +667,9 @@ def clush_exit(status):
 def clush_excepthook(type, value, traceback):
     """Excepthook for clush: unhandled exception ends here..."""
     if type == exceptions.OSError and value.errno == errno.EMFILE:
-        print >> sys.stderr, "ERROR: %s (%s)" % (value, type)
+        print >> sys.stderr, "ERROR: %s" % value
+        print >> sys.stderr, "ERROR: current `nofile' limits: " \
+                "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
     else:
         # not handled
         task_self().default_excepthook(type, value, traceback)
