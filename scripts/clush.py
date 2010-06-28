@@ -665,16 +665,47 @@ def clush_exit(status):
     os._exit(status)
 
 def clush_excepthook(type, value, traceback):
-    """Excepthook for clush: unhandled exception ends here..."""
-    if type == exceptions.OSError and value.errno == errno.EMFILE:
+    """Exceptions hook for clush: this method centralizes exception
+    handling from main thread and from (possible) separate task thread.
+    This hook has to be previously installed on startup by overriding
+    sys.excepthook and task.excepthook."""
+    try:
+        raise type, value
+    except ClushConfigError, e:
+        print >> sys.stderr, "ERROR: %s" % e
+    except NodeSetExternalError, e:
+        print >> sys.stderr, "clush: external error:", e
+    except NodeSetParseError, e:
+        print >> sys.stderr, "clush: parse error:", e
+    except GroupResolverSourceError, e:
+        print >> sys.stderr, "ERROR: unknown group source: \"%s\"" % e
+    except GroupSourceNoUpcall, e:
+        print >> sys.stderr, "ERROR: no %s upcall defined for group " \
+            "source \"%s\"" % (e, e.group_source.name)
+    except GroupSourceException, e:
+        print >> sys.stderr, "ERROR: other group error:", e
+    except IOError:
+        # Ignore broken pipe
+        pass
+    except KeyboardInterrupt, e:
+        uncomp_nodes = getattr(e, 'uncompleted_nodes', None)
+        if uncomp_nodes:
+            print >> sys.stderr, "Keyboard interrupt (%s did not complete)." \
+                                    % uncomp_nodes
+        else:
+            print >> sys.stderr, "Keyboard interrupt."
+        clush_exit(128 + signal.SIGINT)
+    except OSError, value:
         print >> sys.stderr, "ERROR: %s" % value
-        print >> sys.stderr, "ERROR: current `nofile' limits: " \
+        if value.errno == errno.EMFILE:
+            print >> sys.stderr, "ERROR: current `nofile' limits: " \
                 "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
-    else:
-        # not handled
+    except:
+        # Not handled
         task_self().default_excepthook(type, value, traceback)
-    os._exit(1)
-    
+    # Exit with error code 1 (generic failure)
+    clush_exit(1)
+
 def clush_main(args):
     """Main clush script function"""
 
@@ -865,7 +896,7 @@ def clush_main(args):
         # Perform everything in main thread.
         task.set_default("USER_handle_SIGUSR1", False)
 
-    task.excepthook = clush_excepthook
+    task.excepthook = sys.excepthook = clush_excepthook
 
     task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or
                                                options.nostdin))
@@ -968,36 +999,4 @@ def clush_main(args):
     clush_exit(rc)
 
 if __name__ == '__main__':
-    try:
-        clush_main(sys.argv)
-    except ClushConfigError, e:
-        print >> sys.stderr, "ERROR: %s" % e
-        sys.exit(1)
-    except NodeSetExternalError, e:
-        print >> sys.stderr, "clush: external error:", e
-        sys.exit(1)
-    except NodeSetParseError, e:
-        print >> sys.stderr, "clush: parse error:", e
-        sys.exit(1)
-    except GroupResolverSourceError, e:
-        print >> sys.stderr, "ERROR: unknown group source: \"%s\"" % e
-        sys.exit(1)
-    except GroupSourceNoUpcall, e:
-        print >> sys.stderr, "ERROR: no %s upcall defined for group " \
-            "source \"%s\"" % (e, e.group_source.name)
-        sys.exit(1)
-    except GroupSourceException, e:
-        print >> sys.stderr, "ERROR: other group error:", e
-        sys.exit(1)
-    except IOError:
-        # Ignore broken pipe
-        os._exit(1)
-    except KeyboardInterrupt, e:
-        uncomp_nodes = getattr(e, 'uncompleted_nodes', None)
-        if uncomp_nodes:
-            print >> sys.stderr, "Keyboard interrupt (%s did not complete)." \
-                                    % uncomp_nodes
-        else:
-            print >> sys.stderr, "Keyboard interrupt."
-        clush_exit(128 + signal.SIGINT)
-
+    clush_main(sys.argv)

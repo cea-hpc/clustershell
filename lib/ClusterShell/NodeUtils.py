@@ -219,7 +219,7 @@ class GroupResolver(object):
         else:
             source = self._sources.get(namespace)
         if not source:
-            raise GroupResolverSourceError(namespace or "default")
+            raise GroupResolverSourceError(namespace or "<default>")
         return source
         
     def group_nodes(self, group, namespace=None):

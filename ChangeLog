@@ -1,3 +1,9 @@
+2010-06-28 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Centralized handling of exceptions raised from Main
+	and separate Task thread because some exceptions handled only in Main
+	thread were not caught (fix btw trac ticket #93).
+
 2010-06-17 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.3 beta 6 released.
