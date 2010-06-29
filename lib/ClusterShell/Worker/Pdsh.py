@@ -185,24 +185,6 @@ class WorkerPdsh(EngineClient, DistantWorker):
 
         return self
 
-    def _read(self, size=-1):
-        """
-        Read data from process.
-        """
-        result = self.file_reader.read(size)
-        if result > 0:
-            self._set_reading()
-        return result
-
-    def _readerr(self, size=-1):
-        """
-        Read error from process.
-        """
-        result = self.file_error.read(size)
-        if result > 0:
-            self._set_reading_error()
-        return result
-
     def write(self, buf):
         """
         Write data to process. Not supported with Pdsh worker.
