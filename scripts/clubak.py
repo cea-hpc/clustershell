@@ -59,23 +59,84 @@ except GroupResolverConfigError, e:
         "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
     sys.exit(1)
 
-def print_buffer(nodeset, content, regroup, groupsource, noprefix):
-    """Display a dshbak-like header block and content."""
-    sep = "-" * 15
-    if regroup:
-        header = nodeset.regroup(groupsource, noprefix=noprefix)
-    else:
-        header = str(nodeset)
-    sys.stdout.write("%s\n%s\n%s\n%s\n" % (sep, header, sep, content))
 
-def print_lines(nodeset, msg, regroup, groupsource, noprefix):
-    """Display a MsgTree buffer by line with prefixed header."""
-    if regroup:
-        header = nodeset.regroup(groupsource, noprefix=noprefix)
-    else:
-        header = str(nodeset)
-    for line in msg:
-        sys.stdout.write("%s: %s\n" % (header, line))
+# Start of clush.py common code
+
+WHENCOLOR_CHOICES = ["never", "always", "auto"]
+
+class Display(object):
+    """
+    Output display class for clush script.
+    """
+    COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
+    COLOR_STDERR_FMT = "\033[31m%s\033[0m"
+    SEP = "-" * 15
+
+    def __init__(self, color=True):
+        self._color = color
+        self._display = self._print_buffer
+        self.out = sys.stdout
+        self.err = sys.stderr
+        self.label = True
+        self.regroup = False
+        self.groupsource = None
+        if self._color:
+            self.color_stdout_fmt = self.COLOR_STDOUT_FMT
+            self.color_stderr_fmt = self.COLOR_STDERR_FMT
+        else:
+            self.color_stdout_fmt = self.color_stderr_fmt = "%s"
+        self.noprefix = False
+
+    def _getlmode(self):
+        return self._display == self._print_lines
+
+    def _setlmode(self, value):
+        if value:
+            self._display = self._print_lines
+        else:
+            self._display = self._print_buffer
+    line_mode = property(_getlmode, _setlmode)
+
+    def _format_header(self, nodeset):
+        """Format nodeset-based header."""
+        if self.regroup:
+            return nodeset.regroup(self.groupsource, noprefix=self.noprefix)
+        return str(nodeset)
+
+    def print_line(self, nodeset, line):
+        """Display a line with optional label."""
+        if self.label:
+            prefix = self.color_stdout_fmt % ("%s: " % nodeset)
+            self.out.write("%s%s\n" % (prefix, line))
+        else:
+            self.out.write("%s\n", line)
+
+    def print_line_error(self, nodeset, line):
+        """Display an error line with optional label."""
+        if self.label:
+            prefix = self.color_stderr_fmt % ("%s: " % nodeset)
+            self.err.write("%s%s\n" % (prefix, line))
+        else:
+            self.err.write("%s\n", line)
+
+    def print_gather(self, nodeset, obj):
+        """Generic method for displaying nodeset/content according to current
+        object settings."""
+        return self._display(nodeset, obj)
+
+    def _print_buffer(self, nodeset, content):
+        """Display a dshbak-like header block and content."""
+        header = self.color_stdout_fmt % ("%s\n%s\n%s\n" % (self.SEP,
+                                            self._format_header(nodeset),
+                                            self.SEP))
+        self.out.write("%s%s\n" % (header, content))
+        
+    def _print_lines(self, nodeset, msg):
+        """Display a MsgTree buffer by line with prefixed header."""
+        header = self.color_stdout_fmt % \
+                    ("%s: " % self._format_header(nodeset))
+        for line in msg:
+            self.out.write("%s%s\n" % (header, line))
 
 def nodeset_cmp(ns1, ns2):
     """Compare 2 nodesets by their length (we want larger nodeset
@@ -89,33 +150,21 @@ def nodeset_cmp(ns1, ns2):
             return 1
     return len_cmp
 
-def display(tree, line_mode, gather, regroup, groupsource, noprefix):
+# End of clush.py common code
+
+def display(tree, gather, disp):
     """Display results"""
     try:
         if gather:
             # lambda to create a NodeSet from keys list returned by walk()
             ns_getter = lambda x: NodeSet.fromlist(x[1])
-
             for nodeset in sorted(imap(ns_getter, tree.walk()),
                                   cmp=nodeset_cmp):
-                if line_mode:
-                    print_lines(nodeset, tree[nodeset[0]], regroup,
-                                groupsource, noprefix)
-                else:
-                    print_buffer(NodeSet.fromlist(nodeset), tree[nodeset[0]],
-                                 regroup, groupsource, noprefix)
+                disp.print_gather(nodeset, tree[nodeset[0]])
         else:
-            # automagically sorted by NodeSet
-            nodes = NodeSet.fromlist(tree.keys())
-
-            if line_mode:
-                for node in nodes:
-                    print_lines(node, tree[node], regroup, groupsource,
-                                noprefix)
-            else:
-                for node in nodes:
-                    print_buffer(node, tree[node], regroup, groupsource,
-                                 noprefix)
+            # nodes are automagically sorted by NodeSet
+            for node in NodeSet.fromlist(tree.keys()):
+                disp.print_gather(node, tree[node])
     finally:
         sys.stdout.flush()
 
@@ -147,6 +196,9 @@ def clubak():
     parser.add_option("-S", "--separator", action="store", dest="separator",
                       default=':', help="node / line content separator " \
                       "string (default: ':')")
+    parser.add_option("--color", action="store", dest="whencolor",
+                      choices=WHENCOLOR_CHOICES,
+                      help="whether to use ANSI colors (never, always or auto)")
     options = parser.parse_args()[0]
 
     # Create new message tree
@@ -159,12 +211,25 @@ def clubak():
             raise ValueError("No node found for line: %s" % line.rstrip('\r\n'))
         tree.add(node, content)
 
-    # Display results
     if options.debug:
         print >> sys.stderr, "clubak: line_mode=%s gather=%s tree_depth=%d" % \
             (bool(options.line_mode), bool(options.gather), tree._depth())
-    display(tree, options.line_mode, options.gather, options.regroup,
-            options.groupsource, options.groupbase)
+
+    # Should we use ANSI colors?
+    color = False
+    if options.whencolor == "auto":
+        color = sys.stdout.isatty()
+    elif options.whencolor == "always":
+        color = True
+
+    # Display results
+    disp = Display(color)
+    disp.line_mode = options.line_mode
+    disp.label = True
+    disp.regroup = options.regroup
+    disp.groupsource = options.groupsource
+    disp.noprefix = options.groupbase
+    display(tree, options.gather, disp)
     sys.exit(0)
 
 if __name__ == '__main__':

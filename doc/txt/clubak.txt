@@ -7,7 +7,7 @@ format output from clush/pdsh-like output
 -----------------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-05-25
+:Date:   2010-07-06
 :Copyright: CeCILL-C V1
 :Version: 1.3
 :Manual section: 1
@@ -27,7 +27,8 @@ provides additonal features. For instance, ``clubak`` always displays
 its results sorted by node/nodeset.
 
 You do not need to use ``clubak`` when using ``clush``\(1) as all output
-formatting features are already included in.
+formatting features are already included in. It is provided for other usages,
+like post-processing results of the form "`node:output`".
 
 Like ``clush``\(1), ``clubak`` uses the `ClusterShell.MsgTree` module of the
 ClusterShell library (see ``pydoc ClusterShell.MsgTree``).
@@ -52,6 +53,8 @@ OPTIONS
                do not display group source prefix (always `@groupname`)
 -S SEPARATOR, --separator=SEPARATOR
                node / line content separator string (default: `:`)
+--color=WHENCOLOR   whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
+
 
 EXIT STATUS
 ===========

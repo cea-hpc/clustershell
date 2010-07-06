@@ -1,4 +1,11 @@
+2010-07-06 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clubak.py: Merge latest code display changes made on clush to
+	clubak, including "--color={never,always,auto}" (trac ticket #89). Updated
+	documentation accordingly.
+
 2010-06-29 H. Doreau <henri.doreau@gmail.com>
+
 	* Worker/Pdsh.py: removed obsolete _read() and _readerr() methods that
 	overrode EngineClient methods without raising an EOFException when
 	read() reads nothing (trac ticket #97).

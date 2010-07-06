@@ -74,11 +74,109 @@ except GroupResolverConfigError, e:
         "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
     sys.exit(1)
 
-WHENCOLOR_CHOICES = ["never", "always", "auto"]
 VERB_QUIET = 0
 VERB_STD = 1
 VERB_VERB = 2
 VERB_DEBUG = 3
+
+# Start of clubak.py common code
+
+WHENCOLOR_CHOICES = ["never", "always", "auto"]
+
+class Display(object):
+    """
+    Output display class for clush script.
+    """
+    COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
+    COLOR_STDERR_FMT = "\033[31m%s\033[0m"
+    SEP = "-" * 15
+
+    def __init__(self, color=True):
+        self._color = color
+        self._display = self._print_buffer
+        self.out = sys.stdout
+        self.err = sys.stderr
+        self.label = True
+        self.regroup = False
+        self.groupsource = None
+        if self._color:
+            self.color_stdout_fmt = self.COLOR_STDOUT_FMT
+            self.color_stderr_fmt = self.COLOR_STDERR_FMT
+        else:
+            self.color_stdout_fmt = self.color_stderr_fmt = "%s"
+        self.noprefix = False
+
+    def _getlmode(self):
+        return self._display == self._print_lines
+
+    def _setlmode(self, value):
+        if value:
+            self._display = self._print_lines
+        else:
+            self._display = self._print_buffer
+    line_mode = property(_getlmode, _setlmode)
+
+    def _format_header(self, nodeset):
+        """Format nodeset-based header."""
+        if self.regroup:
+            return nodeset.regroup(self.groupsource, noprefix=self.noprefix)
+        return str(nodeset)
+
+    def print_line(self, nodeset, line):
+        """Display a line with optional label."""
+        if self.label:
+            prefix = self.color_stdout_fmt % ("%s: " % nodeset)
+            self.out.write("%s%s\n" % (prefix, line))
+        else:
+            self.out.write("%s\n", line)
+
+    def print_line_error(self, nodeset, line):
+        """Display an error line with optional label."""
+        if self.label:
+            prefix = self.color_stderr_fmt % ("%s: " % nodeset)
+            self.err.write("%s%s\n" % (prefix, line))
+        else:
+            self.err.write("%s\n", line)
+
+    def print_gather(self, nodeset, obj):
+        """Generic method for displaying nodeset/content according to current
+        object settings."""
+        return self._display(nodeset, obj)
+
+    def _print_buffer(self, nodeset, content):
+        """Display a dshbak-like header block and content."""
+        header = self.color_stdout_fmt % ("%s\n%s\n%s\n" % (self.SEP,
+                                            self._format_header(nodeset),
+                                            self.SEP))
+        self.out.write("%s%s\n" % (header, content))
+        
+    def _print_lines(self, nodeset, msg):
+        """Display a MsgTree buffer by line with prefixed header."""
+        header = self.color_stdout_fmt % \
+                    ("%s: " % self._format_header(nodeset))
+        for line in msg:
+            self.out.write("%s%s\n" % (header, line))
+
+def nodeset_cmp(ns1, ns2):
+    """Compare 2 nodesets by their length (we want larger nodeset
+    first) and then by first node."""
+    len_cmp = cmp(len(ns2), len(ns1))
+    if not len_cmp:
+        smaller = NodeSet.fromlist([ns1[0], ns2[0]])[0]
+        if smaller == ns1[0]:
+            return -1
+        else:
+            return 1
+    return len_cmp
+
+# End of clubak.py common code
+
+def bufnodeset_cmp(bn1, bn2):
+    """Convenience function to compare 2 (buf, nodeset) tuples by their
+    nodeset length (we want larger nodeset first) and then by first
+    node."""
+    # Extract nodesets and call nodeset_cmp
+    return nodeset_cmp(bn1[1], bn2[1])
 
 class UpdatePromptException(Exception):
     """Exception used by the signal handler"""
@@ -375,106 +473,6 @@ def readline_setup():
         readline.read_history_file(get_history_file())
     except IOError:
         pass
-
-# Start of clubak.py common functions
-
-class Display(object):
-    """
-    Output display class for clush script.
-    """
-    COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
-    COLOR_STDERR_FMT = "\033[31m%s\033[0m"
-    SEP = "-" * 15
-
-    def __init__(self, color=True):
-        self._color = color
-        self._display = self._print_buffer
-        self.out = sys.stdout
-        self.err = sys.stderr
-        self.label = True
-        self.regroup = False
-        self.groupsource = None
-
-        if self._color:
-            self.color_stdout_fmt = self.COLOR_STDOUT_FMT
-            self.color_stderr_fmt = self.COLOR_STDERR_FMT
-        else:
-            self.color_stdout_fmt = self.color_stderr_fmt = "%s"
-
-        self.noprefix = False
-
-    def _getlmode(self):
-        return self._display == self._print_lines
-
-    def _setlmode(self, value):
-        if value:
-            self._display = self._print_lines
-        else:
-            self._display = self._print_buffer
-    line_mode = property(_getlmode, _setlmode)
-
-    def _format_header(self, nodeset):
-        """Format nodeset-based header."""
-        if self.regroup:
-            return nodeset.regroup(self.groupsource, noprefix=self.noprefix)
-        return str(nodeset)
-
-    def print_line(self, nodeset, line):
-        """Display a line with optional label."""
-        if self.label:
-            prefix = self.color_stdout_fmt % ("%s: " % nodeset)
-            self.out.write("%s %s\n" % (prefix, line))
-        else:
-            self.out.write("%s\n", line)
-
-    def print_line_error(self, nodeset, line):
-        """Display an error line with optional label."""
-        if self.label:
-            prefix = self.color_stderr_fmt % ("%s: " % nodeset)
-            self.err.write("%s%s\n" % (prefix, line))
-        else:
-            self.err.write("%s\n", line)
-
-    def print_gather(self, nodeset, obj):
-        """Generic method for displaying nodeset/content according to current
-        object settings."""
-        return self._display(nodeset, obj)
-
-    def _print_buffer(self, nodeset, content):
-        """Display a dshbak-like header block and content."""
-        header = self.color_stdout_fmt % ("%s\n%s\n%s\n" % (self.SEP,
-                                            self._format_header(nodeset),
-                                            self.SEP))
-        self.out.write("%s%s\n" % (header, content))
-        
-    def _print_lines(self, nodeset, msg):
-        """Display a MsgTree buffer by line with prefixed header."""
-        header = self.color_stdout_fmt % \
-                    ("%s: " % self._format_header(nodeset))
-        for line in msg:
-            self.out.write("%s%s\n" % (header, line))
-
-
-def nodeset_cmp(ns1, ns2):
-    """Compare 2 nodesets by their length (we want larger nodeset
-    first) and then by first node."""
-    len_cmp = cmp(len(ns2), len(ns1))
-    if not len_cmp:
-        smaller = NodeSet.fromlist([ns1[0], ns2[0]])[0]
-        if smaller == ns1[0]:
-            return -1
-        else:
-            return 1
-    return len_cmp
-
-# End of clubak.py common functions
-
-def bufnodeset_cmp(bn1, bn2):
-    """Convenience function to compare 2 (buf, nodeset) tuples by their
-    nodeset length (we want larger nodeset first) and then by first
-    node."""
-    # Extract nodesets and call nodeset_cmp
-    return nodeset_cmp(bn1[1], bn2[1])
 
 def ttyloop(task, nodeset, gather, timeout, verbosity, display):
     """Manage the interactive prompt to run command"""
