@@ -374,6 +374,7 @@ class Task(object):
     def default(self, default_key, def_val=None):
         """
         Return per-task value for key from the "default" dictionary.
+        See set_default() for a list of reserved task default_keys.
         """
         self._default_lock.acquire()
         try:
@@ -387,6 +388,22 @@ class Task(object):
         Users may store their own task-specific key, value pairs
         using this method and retrieve them with default().
         
+        Task default_keys are:
+            * "stderr"
+                Boolean value indicating whether to enable stdout/stderr
+                separation when using task.shell(), if not specified
+                explicitly (default: False).
+            * "stdout_msgtree"
+                Whether to enable standard output MsgTree for automatic
+                internal gathering of result messages (default: True).
+            * "stderr_msgtree"
+                Same for stderr (default: True).
+            * "engine"
+                Used to specify an underlying Engine explicitly
+                (default: "auto").
+            * "port_qlimit"
+                Size of port messages queue (default: 32).
+
         Threading considerations:
           Unlike set_info(), when called from the task's thread or
           not, set_default() immediately updates the underlying
@@ -401,7 +418,8 @@ class Task(object):
 
     def info(self, info_key, def_val=None):
         """
-        Return per-task information.
+        Return per-task information. See set_info() for a list of
+        reserved task info_keys.
         """
         return self._info.get(info_key, def_val)
 
@@ -412,6 +430,25 @@ class Task(object):
         pairs can be passed to the engine and/or workers.
         Users may store their own task-specific info key, value pairs
         using this method and retrieve them with info().
+
+        Task info_keys are:
+            * "debug"
+                Boolean value indicating whether to enable library
+                debugging messages (default: False).
+            * "print_debug"
+                Debug messages processing function. This function
+                takes 2 arguments: the task instance and the message
+                string (default: an internal function doing standard
+                print).
+            * "fanout"
+                Max number of registered clients in Engine at a time
+                (default: 64).
+            * "connect_timeout"
+                Time in seconds to wait for connecting to remote host
+                before aborting (default: 10).
+            * "command_timeout"
+                Time in seconds to wait for a command to complete
+                before aborting (default: 0, which means unlimited).
         
         Threading considerations:
           Unlike set_default(), the underlying info dictionary is only

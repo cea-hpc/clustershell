@@ -1,5 +1,8 @@
 2010-07-06 S. Thiell <stephane.thiell@cea.fr>
 
+	* Task.py: Added documentation for reserved set_default() and set_info()
+	keys (trac ticket #101).
+
 	* scripts/clubak.py: Merge latest code display changes made on clush to
 	clubak, including "--color={never,always,auto}" (trac ticket #89). Updated
 	documentation accordingly.
