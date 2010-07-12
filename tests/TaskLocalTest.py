@@ -214,15 +214,27 @@ class TaskLocalTest(unittest.TestCase):
         for buf, keys in task.iter_buffers():
             self.assert_(False)
 
-    def testLocalEmptyBuffer(self):
-        """test task local empty buffer"""
+    def testLocalEmptyError(self):
+        """test task local empty error buffer"""
         task = task_self()
         self.assert_(task != None)
         task.shell("/bin/true", key="empty")
         task.resume()
-        self.assertEqual(task.key_buffer("empty"), '')
-        for buf, keys in task.iter_buffers():
+        self.assertEqual(task.key_error("empty"), '')
+        for buf, keys in task.iter_errors():
             self.assert_(False)
+
+    def testTaskKeyErrors(self):
+        """test some task methods raising KeyError"""
+        task = task_self()
+        self.assert_(task != None)
+        task.shell("/bin/true", key="dummy")
+        task.resume()
+        # task.key_retcode raises KeyError
+        self.assertRaises(KeyError, task.key_retcode, "not_known")
+        # unlike task.key_buffer/error
+        self.assertEqual(task.key_buffer("not_known"), '')
+        self.assertEqual(task.key_error("not_known"), '')
 
     def testLocalSingleLineBuffers(self):
         """test task local single line buffers gathering"""
@@ -309,12 +321,16 @@ class TaskLocalTest(unittest.TestCase):
         task.shell("/bin/sh -c 'exit 3'", key="worker3")
         task.shell("/bin/sh -c 'exit 3'", key="worker3bis")
         task.shell("/bin/sh -c 'exit 4'", key="worker4")
+        task.shell("/bin/sh -c 'exit 1'", key="worker4")
         task.shell("/bin/sh -c 'exit 5'", key="worker5")
         task.shell("/bin/sh -c 'exit 5'", key="worker5bis")
 
         task.resume()
 
-        self.assertEqual(task.key_retcode("worker4"), 4)
+        # test key_retcode(key)
+        self.assertEqual(task.key_retcode("worker2"), 2) # single
+        self.assertEqual(task.key_retcode("worker4"), 4) # multiple
+        self.assertRaises(KeyError, task.key_retcode, "worker9") # error
 
         cnt = 6
         for rc, keys in task.iter_retcodes():
@@ -323,20 +339,20 @@ class TaskLocalTest(unittest.TestCase):
                 self.assertEqual(len(keys), 1)
                 self.assert_(keys[0] == "worker0" )
             elif rc == 1:
-                self.assertEqual(len(keys), 2)
-                self.assert_(keys[0] == "worker1" or keys[0] == "worker1bis")
+                self.assertEqual(len(keys), 3)
+                self.assert_(keys[0] in ("worker1", "worker1bis", "worker4"))
             elif rc == 2:
                 self.assertEqual(len(keys), 1)
                 self.assert_(keys[0] == "worker2" )
             elif rc == 3:
                 self.assertEqual(len(keys), 2)
-                self.assert_(keys[0] == "worker3" or keys[0] == "worker3bis")
+                self.assert_(keys[0] in ("worker3", "worker3bis"))
             elif rc == 4:
                 self.assertEqual(len(keys), 1)
                 self.assert_(keys[0] == "worker4" )
             elif rc == 5:
                 self.assertEqual(len(keys), 2)
-                self.assert_(keys[0] == "worker5" or keys[0] == "worker5bis")
+                self.assert_(keys[0] in ("worker5", "worker5bis"))
 
         self.assertEqual(cnt, 0)
 

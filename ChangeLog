@@ -1,3 +1,8 @@
+2010-07-12 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Raise proper KeyError exception in Task.key_retcode(key) when
+	key is not found in any finished workers (trac ticket #102).
+
 2010-07-06 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Added documentation for reserved set_default() and set_info()

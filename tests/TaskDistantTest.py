@@ -381,8 +381,12 @@ class TaskDistantTest(unittest.TestCase):
 
         self.assertEqual(cnt, 0)
 
-        # test node_rc
+        # test node_retcode
+        self.assertEqual(worker.node_retcode("localhost"), 3)   # 1.2.91+
         self.assertEqual(worker.node_rc("localhost"), 3)
+
+        # test node_retcode failure
+        self.assertRaises(KeyError, worker.node_retcode, "dummy")
 
         # test max retcode API
         self.assertEqual(task.max_retcode(), 3)

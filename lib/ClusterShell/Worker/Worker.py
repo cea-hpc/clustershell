@@ -218,19 +218,29 @@ class DistantWorker(Worker):
         self._task_bound_check()
         return self.task._msg_by_source((self, node))
         
-    def node_error_buffer(self, node):
+    def node_error(self, node):
         """
         Get specific node error buffer.
         """
         self._task_bound_check()
         return self.task._errmsg_by_source((self, node))
 
-    def node_rc(self, node):
+    node_error_buffer = node_error
+
+    def node_retcode(self, node):
         """
-        Get specific node return code.
+        Get specific node return code. Raises a KeyError if command on
+        node has not yet finished (no return code available), or is
+        node is not known by this worker.
         """
         self._task_bound_check()
-        return self.task._rc_by_source((self, node))
+        try:
+            rc = self.task._rc_by_source((self, node))
+        except KeyError:
+            raise KeyError(node)
+        return rc
+
+    node_rc = node_retcode
 
     def iter_buffers(self, match_keys=None):
         """

@@ -809,7 +809,7 @@ class Task(object):
         """
         Get a return code by its source (worker, key).
         """
-        return self._d_source_rc.get(source, 0)
+        return self._d_source_rc[source]
    
     def _rc_iter_by_key(self, key):
         """
@@ -880,7 +880,8 @@ class Task(object):
         """
         Get buffer for a specific key. When the key is associated
         to multiple workers, the resulting buffer will contain
-        all workers content that may overlap.
+        all workers content that may overlap. This method returns an
+        empty buffer if key is not found in any workers.
         """
         select_key = lambda k: k[1] == key
         return "".join(imap(str, self._msgtree.messages(select_key)))
@@ -891,7 +892,8 @@ class Task(object):
         """
         Get error buffer for a specific key. When the key is associated
         to multiple workers, the resulting buffer will contain all
-        workers content that may overlap.
+        workers content that may overlap. This method returns an empty
+        error buffer if key is not found in any workers.
         """
         select_key = lambda k: k[1] == key
         return "".join(imap(str, self._errtree.messages(select_key)))
@@ -902,9 +904,13 @@ class Task(object):
         """
         Return return code for a specific key. When the key is
         associated to multiple workers, return the max return
-        code from these workers.
+        code from these workers. Raises a KeyError if key is not found
+        in any finished workers.
         """
-        return max(self._rc_iter_by_key(key))
+        codes = list(self._rc_iter_by_key(key))
+        if not codes:
+            raise KeyError(key)
+        return max(codes)
     
     node_retcode = key_retcode
 
