@@ -36,6 +36,16 @@
 WorkerPopen
 
 ClusterShell worker for executing local commands.
+
+Usage example:
+   >>> worker = WorkerPopen("/bin/uname", key="mykernel") 
+   >>> task.schedule(worker)    # schedule worker
+   >>> task.resume()            # run task
+   >>> worker.retcode()         # get return code
+   0
+   >>> worker.read()            # read command output
+   'Linux'
+
 """
 
 import os

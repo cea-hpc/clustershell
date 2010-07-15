@@ -37,20 +37,22 @@ ClusterShell Task module.
 
 Simple example of use:
 
-    from ClusterShell.Task import *
-
-    # get task associated with calling thread
-    task = task_self()
-
-    # add a command to execute on distant nodes
-    task.shell("/bin/uname -r", nodes="tiger[1-30,35]")
-
-    # run task in calling thread
-    task.resume()
-
-    # get results
-    for buf, nodelist in task.iter_buffers():
-        print NodeSet.fromlist(nodelist), buf
+>>> from ClusterShell.Task import *
+>>>  
+>>> # get task associated with calling thread
+... task = task_self()
+>>> 
+>>> # add a command to execute on distant nodes
+... task.shell("/bin/uname -r", nodes="tiger[1-30,35]")
+<ClusterShell.Worker.Ssh.WorkerSsh object at 0x7f41da71b890>
+>>> 
+>>> # run task in calling thread
+... task.resume()
+>>> 
+>>> # get results
+... for buf, nodelist in task.iter_buffers():
+...     print NodeSet.fromlist(nodelist), buf
+... 
 
 """
 
@@ -95,9 +97,9 @@ class _TaskMsgTree(object):
     Task special MsgTree wrapper class, for easy disabling of MsgTree
     buffering. This class checks if task.default(keyword) is set before
     effective MsgTree attribute lookup, according to following rules:
-        If set, allow all MsgTree methods, else:
-            - ignore add() calls
-            - disallow MsgTree methods except clear()
+      - If set, allow all MsgTree methods, else:
+        - ignore add() calls
+        - disallow MsgTree methods except clear()
     """
     def __init__(self, task, keyword):
         self._task = task
@@ -126,26 +128,26 @@ def _task_print_debug(task, s):
 
 class Task(object):
     """
-    Task to execute. May be bound to a specific thread.
+    Always bound to a thread, the Task class allows you to execute
+    commands in parallel and get their results.
 
     To create a task in a new thread:
-        task = Task()
+        >>> task = Task()
 
     To create or get the instance of the task associated with the
     thread object thr (threading.Thread):
-        task = Task(thread=thr)
+        >>> task = Task(thread=thr)
 
-    Add command to execute locally in task with:
-        task.shell("/bin/hostname")
+    Add a command to execute locally within task with:
+        >>> task.shell("/bin/hostname")
 
-    Add command to execute in a distant node in task with:
-        task.shell("/bin/hostname", nodes="tiger[1-20]")
+    Add a command to execute to a distant node within task with:
+        >>> task.shell("/bin/hostname", nodes="tiger[1-20]")
 
     Run task in its associated thread (will block only if the calling
-    thread is the associated thread:
-        task.resume()
+    thread is the task associated thread):
+        >>> task.resume()
     """
-
     _std_default = {  "stderr"              : False,
                       "stdout_msgtree"      : True,
                       "stderr_msgtree"      : True,
@@ -389,22 +391,19 @@ class Task(object):
         using this method and retrieve them with default().
         
         Task default_keys are:
-            * "stderr"
-                Boolean value indicating whether to enable stdout/stderr
-                separation when using task.shell(), if not specified
-                explicitly (default: False).
-            * "stdout_msgtree"
-                Whether to enable standard output MsgTree for automatic
-                internal gathering of result messages (default: True).
-            * "stderr_msgtree"
-                Same for stderr (default: True).
-            * "engine"
-                Used to specify an underlying Engine explicitly
-                (default: "auto").
-            * "port_qlimit"
-                Size of port messages queue (default: 32).
+          - "stderr": Boolean value indicating whether to enable
+            stdout/stderr separation when using task.shell(), if not
+            specified explicitly (default: False).
+          - "stdout_msgtree": Whether to enable standard output MsgTree
+            for automatic internal gathering of result messages
+            (default: True).
+          - "stderr_msgtree": Same for stderr (default: True).
+          - "engine": Used to specify an underlying Engine explicitly
+            (default: "auto").
+          - "port_qlimit": Size of port messages queue (default: 32).
 
-        Threading considerations:
+        Threading considerations
+        ========================
           Unlike set_info(), when called from the task's thread or
           not, set_default() immediately updates the underlying
           dictionary in a thread-safe manner. This method doesn't
@@ -432,25 +431,22 @@ class Task(object):
         using this method and retrieve them with info().
 
         Task info_keys are:
-            * "debug"
-                Boolean value indicating whether to enable library
-                debugging messages (default: False).
-            * "print_debug"
-                Debug messages processing function. This function
-                takes 2 arguments: the task instance and the message
-                string (default: an internal function doing standard
-                print).
-            * "fanout"
-                Max number of registered clients in Engine at a time
-                (default: 64).
-            * "connect_timeout"
-                Time in seconds to wait for connecting to remote host
-                before aborting (default: 10).
-            * "command_timeout"
-                Time in seconds to wait for a command to complete
-                before aborting (default: 0, which means unlimited).
-        
-        Threading considerations:
+          - "debug": Boolean value indicating whether to enable library
+            debugging messages (default: False).
+          - "print_debug": Debug messages processing function. This
+            function takes 2 arguments: the task instance and the
+            message string (default: an internal function doing standard
+            print).
+          - "fanout": Max number of registered clients in Engine at a
+            time (default: 64).
+          - "connect_timeout": Time in seconds to wait for connecting to
+            remote host before aborting (default: 10).
+          - "command_timeout": Time in seconds to wait for a command to
+            complete before aborting (default: 0, which means
+            unlimited).
+
+        Threading considerations
+        ========================
           Unlike set_default(), the underlying info dictionary is only
           modified from the task's thread. So calling set_info() from
           another thread leads to queueing the request for late apply
@@ -464,12 +460,12 @@ class Task(object):
         """
         Schedule a shell command for local or distant execution.
 
-        Local usage:
+        Local usage::
             task.shell(command [, key=key] [, handler=handler]
                   [, timeout=secs] [, autoclose=enable_autoclose]
                   [, stderr=enable_stderr])
 
-        Distant usage:
+        Distant usage::
             task.shell(command, nodes=nodeset [, handler=handler]
                   [, timeout=secs], [, autoclose=enable_autoclose]
                   [, strderr=enable_stderr])
@@ -533,12 +529,12 @@ class Task(object):
         deliver messages reliably between tasks.
 
         Basic rules:
-            A task can send messages to another task port (thread safe).
-            A task can receive messages from an acquired port either by
+          - A task can send messages to another task port (thread safe).
+          - A task can receive messages from an acquired port either by
             setting up a notification mechanism or using a polling
             mechanism that may block the task waiting for a message
             sent on the port.
-            A port can be acquired by one task only.
+          - A port can be acquired by one task only.
 
         If handler is set to a valid EventHandler object, the port is
         a send-once port, ie. a message sent to this port generates an
@@ -918,7 +914,8 @@ class Task(object):
         """
         Get max return code encountered during last run.
 
-        How retcodes work:
+        How retcodes work
+        =================
           If the process exits normally, the return code is its exit
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.
@@ -936,9 +933,9 @@ class Task(object):
 
         Usage example:
 
-            for buffer, nodelist in task.iter_buffers():
-                print NodeSet.fromlist(nodelist)
-                print buffer
+        >>> for buffer, nodelist in task.iter_buffers():
+        ...     print NodeSet.fromlist(nodelist)
+        ...     print buffer
         """
         return self._call_tree_matcher(self._msgtree.walk, match_keys)
 
@@ -956,7 +953,8 @@ class Task(object):
 
         Optional parameter match_keys add filtering on these keys.
 
-        How retcodes work:
+        How retcodes work
+        =================
           If the process exits normally, the return code is its exit
           status. If the process is terminated by a signal, the return
           code is 128 + signal number.

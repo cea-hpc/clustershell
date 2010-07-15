@@ -90,13 +90,13 @@ class EventHandler(object):
         """
         Handle port message.
 
-        @port: The port object on which a message is available.
+        @param port: The port object on which a message is available.
         """
 
     def ev_timer(self, timer):
         """
         Handle firing timer.
 
-        @timer: The timer that is firing. 
+        @param timer: The timer that is firing. 
         """
 

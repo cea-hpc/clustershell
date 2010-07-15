@@ -39,13 +39,14 @@ ClusterShell is a python event-based python library to execute commands
 on local or distant cluster nodes in parallel depending on the selected
 engine and worker mechanisms.
 
-Please see: ClusterShell.NodeSet
-            ClusterShell.Task
+Please see first:
+  - ClusterShell.NodeSet
+  - ClusterShell.Task
 """
 
 __version__ = '1.3'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2010/07/12'
+__date__    = '2010/07/16'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 

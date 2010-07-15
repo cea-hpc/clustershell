@@ -56,21 +56,22 @@ class WorkerPdsh(EngineClient, DistantWorker):
     ClusterShell pdsh-based worker Class.
 
     Remote Shell (pdsh) usage example:
-        worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
-                        timeout=30, command="/bin/hostname")
-    Remote Copy (pdcp) usage example: 
-        worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
-                        timeout=30, source="/etc/my.conf",
-                        dest="/etc/my.conf")
-        ...
-        task.schedule(worker)   # schedule worker for execution
-        ...
-        task.resume()           # run
+       >>> worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
+       ...                     timeout=30, command="/bin/hostname")
+       >>> task.schedule(worker)      # schedule worker for execution
+       >>> task.resume()              # run
 
-    Known Limitations:
-        * write() is not supported by WorkerPdsh
-        * return codes == 0 are not garanteed when a timeout is used (rc > 0
-          are fine)
+    Remote Copy (pdcp) usage example: 
+       >>> worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
+       ...                     timeout=30, source="/etc/my.conf",
+       ...                     dest="/etc/my.conf")
+       >>> task.schedule(worker)      # schedule worker for execution
+       >>> task.resume()              # run
+
+    Known limitations:
+      - write() is not supported by WorkerPdsh
+      - return codes == 0 are not garanteed when a timeout is used (rc > 0
+        are fine)
     """
 
     def __init__(self, nodes, handler, timeout, **kwargs):

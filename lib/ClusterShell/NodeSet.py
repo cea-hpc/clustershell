@@ -33,33 +33,31 @@
 # $Id$
 
 """
-Cluster node set.
+Cluster node set module.
 
 A module to deal efficiently with 1D rangesets and nodesets (pdsh-like).
 Instances of RangeSet and NodeSet both provide similar operations than
 the builtin set() type and Set object.
-   [ See http://www.python.org/doc/lib/set-objects.html ]
+See http://www.python.org/doc/lib/set-objects.html
 
-Usage example:
-
-    # Import NodeSet class
-    from ClusterShell.NodeSet import NodeSet
-
-    # Create a new nodeset from pdsh-like pattern
-    nodeset = NodeSet("cluster[1-30]")
-
-    # Add cluster32 to nodeset
-    nodeset.update("cluster32")
-
-    # Remove from nodeset
-    nodeset.difference_update("cluster[2-5]")
-
-    # Print nodeset as a pdsh-like pattern
-    print nodeset
-
-    # Iterate over node names in nodeset
-    for node in nodeset:
-        print node
+Usage example
+=============
+  >>> # Import NodeSet class
+  ... from ClusterShell.NodeSet import NodeSet
+  >>>
+  >>> # Create a new nodeset from string
+  ... nodeset = NodeSet("cluster[1-30]")
+  >>> # Add cluster32 to nodeset
+  ... nodeset.update("cluster32")
+  >>> # Remove from nodeset
+  ... nodeset.difference_update("cluster[2-5]")
+  >>> # Print nodeset as a pdsh-like pattern
+  ... print nodeset
+  cluster[1,6-30,32]
+  >>> # Iterate over node names in nodeset
+  ... for node in nodeset:
+  ...     print node
+  [...]
 """
 
 import copy
@@ -118,9 +116,9 @@ class RangeSet:
     Advanced range sets.
 
     RangeSet creation examples:
-        rset = RangeSet()            # empty RangeSet
-        rset = RangeSet("5,10-42")   # contains 5, 10 to 42
-        rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
+       >>> rset = RangeSet()            # empty RangeSet
+       >>> rset = RangeSet("5,10-42")   # contains 5, 10 to 42
+       >>> rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
      
     Also, RangeSet provides methods like update(), intersection_update()
     or difference_update(), which conform to the Python Set API.
@@ -1339,11 +1337,11 @@ class NodeSet(NodeSetBase):
     Iterable class of nodes with node ranges support.
 
     NodeSet creation examples:
-        nodeset = NodeSet()                   # empty NodeSet
-        nodeset = NodeSet("clustername3")     # contains only clustername3
-        nodeset = NodeSet("clustername[5,10-42]")
-        nodeset = NodeSet("clustername[0-10/2]")
-        nodeset = NodeSet("clustername[0-10/2],othername[7-9,120-300]")
+       >>> nodeset = NodeSet()               # empty NodeSet
+       >>> nodeset = NodeSet("cluster3")     # contains only cluster3
+       >>> nodeset = NodeSet("cluster[5,10-42]")
+       >>> nodeset = NodeSet("cluster[0-10/2]")
+       >>> nodeset = NodeSet("cluster[0-10/2],othername[7-9,120-300]")
 
     NodeSet provides methods like update(), intersection_update() or
     difference_update() methods, which conform to the Python Set API.
@@ -1351,7 +1349,7 @@ class NodeSet(NodeSetBase):
     so strict for convenience, and understands NodeSet instance or
     NodeSet string as argument. Also, there is no strict definition of
     one element, for example, it IS allowed to do:
-        nodeset.remove("blue[36-40]").
+    >>> nodeset.remove("blue[36-40]").
     """
     def __init__(self, nodes=None, autostep=None, resolver=None):
         """

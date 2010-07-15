@@ -36,7 +36,7 @@
 """
 clubak formats clush/dsh/pdsh output for humans.
 
-For help, type:
+For help, type::
     $ clubak --help
 """
 

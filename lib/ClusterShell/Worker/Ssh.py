@@ -243,16 +243,17 @@ class WorkerSsh(DistantWorker):
     ClusterShell ssh-based worker Class.
 
     Remote Shell (ssh) usage example:
-        worker = WorkerSsh(nodeset, handler=MyEventHandler(),
-                        timeout=30, command="/bin/hostname")
+       >>> worker = WorkerSsh(nodeset, handler=MyEventHandler(),
+       ...                    timeout=30, command="/bin/hostname")
+       >>> task.schedule(worker)      # schedule worker for execution
+       >>> task.resume()              # run
+
     Remote Copy (scp) usage example: 
-        worker = WorkerSsh(nodeset, handler=MyEventHandler(),
-                        timeout=30, source="/etc/my.conf",
-                        dest="/etc/my.conf")
-        ...
-        task.schedule(worker)   # schedule worker for execution
-        ...
-        task.resume()           # run
+       >>> worker = WorkerSsh(nodeset, handler=MyEventHandler(),
+       ...                    timeout=30, source="/etc/my.conf",
+       ...                    dest="/etc/my.conf")
+       >>> task.schedule(worker)      # schedule worker for execution
+       >>> task.resume()              # run
     """
 
     def __init__(self, nodes, handler, timeout, **kwargs):
