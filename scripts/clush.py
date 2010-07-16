@@ -706,6 +706,7 @@ def clush_excepthook(type, value, traceback):
 
 def clush_main(args):
     """Main clush script function"""
+    sys.excepthook = clush_excepthook
 
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
@@ -894,8 +895,7 @@ def clush_main(args):
         # Perform everything in main thread.
         task.set_default("USER_handle_SIGUSR1", False)
 
-    task.excepthook = sys.excepthook = clush_excepthook
-
+    task.excepthook = sys.excepthook
     task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or
                                                options.nostdin))
     config.verbose_print(VERB_DEBUG, "Create STDIN worker: %s" % \
