@@ -357,7 +357,7 @@ class Engine:
         self._clients = set()
         self._ports = set()
 
-        # keep track of the number of registered clients
+        # keep track of the number of registered clients (delayable only)
         self.reg_clients = 0
 
         # keep track of registered file descriptors in a dict where keys
@@ -435,6 +435,14 @@ class Engine:
             elif self.info["fanout"] > self.reg_clients:
                 self.register(client._start())
 
+    def _remove(self, client, did_timeout=False, force=False):
+        """
+        Remove a client from engine (subroutine).
+        """
+        if client.registered:
+            self.unregister(client)
+            client._close(force=force, timeout=did_timeout)
+
     def remove(self, client, did_timeout=False):
         """
         Remove a client from engine. Subclasses that override this
@@ -445,12 +453,9 @@ class Engine:
             self._clients.remove(client)
         else:
             self._ports.remove(client)
-
-        if client.registered:
-            self.unregister(client)
-            client._close(force=False, timeout=did_timeout)
-            self.start_all()
-
+        self._remove(client, did_timeout, force=False)
+        self.start_all()
+    
     def clear(self, did_timeout=False, clear_ports=False):
         """
         Remove all clients. Subclasses that override this method should
@@ -463,9 +468,7 @@ class Engine:
         for clients in all_clients:
             while len(clients) > 0:
                 client = clients.pop()
-                if client.registered:
-                    self.unregister(client)
-                    client._close(force=True, timeout=did_timeout)
+                self._remove(client, did_timeout, force=True)
 
     def register(self, client):
         """
@@ -581,7 +584,8 @@ class Engine:
 
         client._new_events = 0
         client.registered = False
-        self.reg_clients -= 1
+        if client.delayable:
+            self.reg_clients -= 1
 
     def modify(self, client, setmask, clearmask):
         """
@@ -788,7 +792,7 @@ class Engine:
         if self.running:
             raise EngineAbortException(kill)
 
-        self.clear()
+        self.clear(clear_ports=kill)
 
     def exited(self):
         """

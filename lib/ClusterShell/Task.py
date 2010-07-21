@@ -186,11 +186,13 @@ class Task(object):
                 # check if the calling task is the current thread task
                 if task._is_task_self():
                     return f(task, *fargs, **kwargs)
-                else:
+                elif task._dispatch_port:
                     # no, safely call the task method by message 
                     # through the task special dispatch port
                     task._dispatch_port.msg_send((f, fargs, kwargs))
-
+                else:
+                    task.info("print_debug")(task, "%s: dropped call: %s" % \
+                                                   (task, fargs))
             # modify the decorator meta-data for pydoc
             # Note: should be later replaced  by @wraps (functools)
             # as of Python 2.5
@@ -687,9 +689,16 @@ class Task(object):
         """
         Abort completion subroutine.
         """
+        if kill:
+            # invalidate dispatch port
+            self._dispatch_port = None
+        # clear engine
         self._engine.clear()
+
+        # clear result objects
         self._reset()
 
+        # destroy task if needed
         if kill:
             Task._task_lock.acquire()
             try:

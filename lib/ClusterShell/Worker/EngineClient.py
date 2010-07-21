@@ -382,7 +382,18 @@ class EnginePort(EngineClient):
 
     def _close(self, force, timeout):
         """
+        Close port pipes.
         """
+        if not self._msgq.empty():
+            # purge msgq
+            try:
+                while not self._msgq.empty():
+                    pmsg = self._msgq.get(block=False)
+                    self.task.info("print_debug")(self.task,
+                        "EnginePort: dropped msg: %s" % pmsg.get())
+            except Queue.Empty:
+                pass
+        self._msgq = None
         self.file_reader.close()
         self.file_writer.close()
 
