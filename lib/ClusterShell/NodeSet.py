@@ -1166,6 +1166,10 @@ class ParsingEngine(object):
         """
         Parse provided object if possible and return a NodeSetBase object.
         """
+        # passing None is supported
+        if nsobj is None:
+            return NodeSetBase()
+
         # is nsobj a NodeSetBase instance?
         if isinstance(nsobj, NodeSetBase):
             return nsobj
@@ -1369,8 +1373,7 @@ class NodeSet(NodeSetBase):
         # Initialize default parser.
         self._parser = ParsingEngine(self._resolver)
 
-        if nodes is not None:
-            self.update(nodes)
+        self.update(nodes)
 
     @classmethod
     def fromlist(cls, nodelist, autostep=None, resolver=None):
