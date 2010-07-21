@@ -81,6 +81,27 @@ class TaskAdvancedTest(unittest.TestCase):
         # verify that the worker has completed
         self.assertEqual(worker.read(), match)
 
+    def testTaskInNewThread3(self):
+        """test task in new thread 3"""
+        # create a task in a new thread
+        task = Task()
+        self.assert_(task != None)
+
+        match = "once again"
+
+        # schedule a command in that task
+        worker = task.shell("/bin/echo %s" % match)
+
+        # run this task
+        task.resume()
+
+        # wait for the task to complete
+        task_wait()
+
+        # verify that the worker has completed
+        self.assertEqual(worker.read(), match)
+
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskAdvancedTest)

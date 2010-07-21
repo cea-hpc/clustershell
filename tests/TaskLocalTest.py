@@ -716,6 +716,34 @@ class TaskLocalTest(unittest.TestCase):
         task.resume()
         self.assertEqual(worker.read(), "okay")
 
+    def testLocalFanout(self):
+        """test local task fanout"""
+        task = task_self()
+        self.assert_(task != None)
+        fanout = task.info("fanout")
+        try:
+            task.set_info("fanout", 3)
+
+            # Test #1: simple
+            for i in range(0, 10):
+                worker = task.shell("/bin/echo test %d" % i)
+                self.assert_(worker != None)
+            task.resume()
+
+            # Test #2: fanout change during run
+            class TestFanoutChanger(EventHandler):
+                def ev_timer(self, timer):
+                    task_self().set_info("fanout", 1)
+            timer = task.timer(2.0, handler=TestFanoutChanger())
+            for i in range(0, 10):
+                worker = task.shell("/bin/echo sleep 1")
+                self.assert_(worker != None)
+            task.resume()
+        finally:
+            # restore original fanout value
+            task.set_info("fanout", fanout)
+
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)

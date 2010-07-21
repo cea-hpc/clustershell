@@ -409,6 +409,30 @@ class TaskTimerTest(unittest.TestCase):
         task.resume()
         self.assertEqual(test_handler.count, 2)
 
+    def testMultipleAddSameTimerPrivate(self):
+        """test multiple add() of same timer [private]"""
+        task = task_self()
+        self.assert_(task != None)
+        test_handler = self.__class__.TSimpleTimerChecker()
+        timer = EngineTimer(1.0, -1.0, False, test_handler)
+        self.assert_(timer != None)
+        task._engine.add_timer(timer)
+        self.assertRaises(EngineIllegalOperationError, task._engine.add_timer, timer)
+        task_terminate()
+
+    def testRemoveTimerPrivate(self):
+        """test engine.remove_timer() [private]"""
+        # [private] because engine methods are currently private,
+        # users should use timer.invalidate() instead
+        task = task_self()
+        self.assert_(task != None)
+        test_handler = self.__class__.TSimpleTimerChecker()
+        timer = EngineTimer(1.0, -1.0, False, test_handler)
+        self.assert_(timer != None)
+        task._engine.add_timer(timer)
+        task._engine.remove_timer(timer)
+        task_terminate()
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskTimerTest)

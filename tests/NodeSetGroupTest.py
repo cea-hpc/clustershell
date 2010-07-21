@@ -132,6 +132,8 @@ class NodeSetGroupTest(unittest.TestCase):
 
         # create custom resolver with default source
         res = GroupResolver(source)
+        self.assertFalse(res.has_node_groups())
+        self.assertFalse(res.has_node_groups("dummy_namespace"))
 
         nodeset = NodeSet("@gpu", resolver=res)
         self.assertEqual(nodeset, NodeSet("montana[38-41]"))
@@ -169,6 +171,21 @@ class NodeSetGroupTest(unittest.TestCase):
         self.assertRaises(NodeSetExternalError, NodeSet.fromall,
                           resolver=NOGROUP_RESOLVER)
             
+    def testGroupResolverAddSourceError(self):
+        """test GroupResolver.add_source() error"""
+
+        test_groups1 = makeTestG1()
+
+        source = GroupSource("simple",
+                             "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups1.name,
+                             "awk -F: '/^all:/ {print $2}' %s" % test_groups1.name,
+                             "awk -F: '/^\w/ {print $1}' %s" % test_groups1.name,
+                             None)
+
+        res = GroupResolver(source)
+        # adding the same source again should raise ValueError
+        self.assertRaises(ValueError, res.add_source, source)
+
     def testGroupResolverMinimal(self):
         """test NodeSet with minimal GroupResolver"""
         
@@ -218,6 +235,11 @@ list: echo foo
         self.assertEqual(nodeset.regroup(), "@foo")
         self.assertEqual(str(NodeSet("@foo", resolver=res)), "example[1-100]")
 
+        # No 'all' defined: all_nodes() should raise an error
+        self.assertRaises(GroupSourceNoUpcall, res.all_nodes)
+        # No 'reverse' defined: node_groups() should raise an error
+        self.assertRaises(GroupSourceNoUpcall, res.node_groups, "example1")
+
         # regroup with rest
         nodeset = NodeSet("example[1-101]", resolver=res)
         self.assertEqual(nodeset.regroup(), "@foo,example101")
@@ -229,6 +251,19 @@ list: echo foo
         # regroup no matching
         nodeset = NodeSet("example[102-200]", resolver=res)
         self.assertEqual(nodeset.regroup(), "example[102-200]")
+
+    def testConfigWrongSyntax(self):
+        """test wrong groups config syntax"""
+        f = makeTestFile("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+something: echo example[1-100]
+        """)
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
 
     def testConfigBasicLocalVerbose(self):
         """test groups with a basic local config file (verbose)"""
@@ -399,6 +434,25 @@ reverse: echo foo
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
         self.assertEqual(nodeset.regroup(), "@foo")
+
+    def testConfigResolverSources(self):
+        """test sources() with groups config of 2 sources"""
+        f = makeTestFile("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+
+[other]
+map: echo example[1-10]
+        """)
+        res = GroupResolverConfig(f.name)
+        self.assertEqual(len(res.sources()), 2)
+        self.assert_('local' in res.sources())
+        self.assert_('other' in res.sources())
 
     def testConfigCrossRefs(self):
         """test groups config with cross references"""

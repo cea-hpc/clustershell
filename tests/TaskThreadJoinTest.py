@@ -46,7 +46,7 @@ class TaskThreadJoinTest(unittest.TestCase):
 
 
     def testThreadTaskWaitWhenAllFinished(self):
-        """test task_wait() when some workers finished"""
+        """test task_wait() when all workers finished"""
 
         for i in range(1, 3):
             task = Task()
