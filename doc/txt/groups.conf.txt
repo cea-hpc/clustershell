@@ -43,7 +43,7 @@ Configuration parameters of each group source section are described below.
 
 map
   Specify the external shell command used to resolve a group name into a
-  nodeset, list of nodes or list of nodeset (seperated by space characters or
+  nodeset, list of nodes or list of nodeset (separated by space characters or
   by carriage returns). The variable *$GROUP* is replaced before executing the
   command.
 all

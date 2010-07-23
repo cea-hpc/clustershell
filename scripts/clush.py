@@ -128,7 +128,7 @@ class Display(object):
             prefix = self.color_stdout_fmt % ("%s: " % nodeset)
             self.out.write("%s%s\n" % (prefix, line))
         else:
-            self.out.write("%s\n", line)
+            self.out.write("%s\n" % line)
 
     def print_line_error(self, nodeset, line):
         """Display an error line with optional label."""
@@ -136,7 +136,7 @@ class Display(object):
             prefix = self.color_stderr_fmt % ("%s: " % nodeset)
             self.err.write("%s%s\n" % (prefix, line))
         else:
-            self.err.write("%s\n", line)
+            self.err.write("%s\n" % line)
 
     def print_gather(self, nodeset, obj):
         """Generic method for displaying nodeset/content according to current
