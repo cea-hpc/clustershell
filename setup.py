@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library. 
@@ -44,8 +44,8 @@ if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
 setup(name='ClusterShell',
-      version='1.2.92',
-      license='CeCILL-C',
+      version='1.3',
+      license='CeCILL-C (French equivalent to LGPLv2+)',
       description='ClusterShell library',
       author='Stephane Thiell',
       author_email='stephane.thiell@cea.fr',
