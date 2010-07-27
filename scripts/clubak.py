@@ -207,6 +207,7 @@ def clubak():
     # Feed the tree from standard input lines
     for line in sys.stdin:
         node, content = line.rstrip('\r\n').split(options.separator, 1)
+        node = node.strip()
         if not node:
             raise ValueError("No node found for line: %s" % line.rstrip('\r\n'))
         tree.add(node, content)
