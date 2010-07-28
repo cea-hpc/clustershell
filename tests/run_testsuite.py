@@ -57,6 +57,7 @@ if __name__ == '__main__':
                                         "TaskThreadJoinTest",
                                         "TaskThreadSuspendTest",
                                         "TopologyTest",
+                                        "PropagationTest",
                                         ])
 
     unittest.TextTestRunner(verbosity=verb).run(suite)

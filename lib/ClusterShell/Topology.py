@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright CEA/DAM/DIF (2008, 2009, 2010)
-#  Contributor: Henri DOREAU <henri.doreau.ocre@cea.fr>
+#  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #
 # This file is part of the ClusterShell library.
 #
@@ -31,7 +31,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-# $Id: $
+# $Id$
 
 """
 ClusterShell topology module
@@ -50,11 +50,8 @@ This file must be written using the following syntax:
 """
 
 import sys
-import copy
 import signal
 import ConfigParser
-
-from collections import deque
 
 from ClusterShell.NodeSet import NodeSet
 
@@ -77,46 +74,8 @@ class TopologyNodeGroup:
         # List of children TNG instances
         self._children = []
         self._children_len = 0
-
-    def divide(self, subnodeset):
-        """divide a nodegroup into two parts:
-            1) subnodeset
-            2) original_nodeset - subnodeset
-        """
-        assert isinstance(subnodeset, NodeSet)
-        assert subnodeset in self.nodeset
-
-        if subnodeset == self.nodeset:
-            return
-
-        self.nodeset.difference_update(subnodeset)
-        new_tng = TopologyNodeGroup(subnodeset)
-        new_tng._children = self._children
-        if self.parent is not None:
-            self.parent.add_child(new_tng)
-
-        return [self, new_tng]
-
-    def split(self, parts):
-        """split a topology nodes group into several ones and return them as a
-        list. Nodes have their attributes copied from `self'. Copied items are
-        also added into the parent's children list.
-        """
-        assert parts > 0
-
-        res = []
-        nodeset_itersplit = self.nodeset.split(parts)
-        #print '--[%s]--' % str(self)
-        for sub_nodeset in nodeset_itersplit:
-            if len(sub_nodeset) == 0:
-                break
-            #print 'itersplit: %s' % str(sub_nodeset)
-            tng = copy.copy(self)
-            tng.nodeset = sub_nodeset
-            res.append(tng)
-        if self.parent is not None:
-            self.parent._children = res
-        return res
+        # provided for convenience
+        self._children_ns = NodeSet()
 
     def printable_subtree(self, prefix=''):
         """recursive method that returns a printable version the subtree from
@@ -154,14 +113,13 @@ class TopologyNodeGroup:
             return
         child.parent = self
         self._children.append(child)
-        self._children_len += len(child.nodeset)
+        self._children_ns.add(child.nodeset)
 
     def clear_child(self, child, strict=False):
         """remove a child"""
         try:
             self._children.remove(child)
-            self._children_len -= len(child.nodeset)
-            assert self._children_len >= 0
+            self._children_ns.difference_update(child.nodeset)
         except ValueError:
             if strict:
                 raise
@@ -169,17 +127,21 @@ class TopologyNodeGroup:
     def clear_children(self):
         """delete all children"""
         self._children = []
-        self._children_len = 0
+        self._children_ns = NodeSet()
 
     def children(self):
         """get the children list"""
         return self._children
 
+    def children_ns(self):
+        """return the children as a nodeset"""
+        return self._children_ns
+
     def children_len(self):
         """returns the number of children as the sum of the size of the
         children's nodeset
         """
-        return self._children_len
+        return len(self._children_ns)
 
     def _is_last(self):
         """used to display the subtree: we won't prefix the line the same way if
@@ -354,7 +316,6 @@ class TopologyGraph:
         """
         self._routing = TopologyRoutingTable()
         self._nodegroups = {}
-        self._tree_nodes = {}
         self._root = ''
 
     def add_route(self, src_ns, dst_ns):
@@ -372,35 +333,23 @@ class TopologyGraph:
         """return the aggregation of the destinations for a given nodeset"""
         return self._routing.connected(from_nodeset)
 
-    def next_hop(self, src_node, dst_node):
-        """perform next hop resolution and returns a nodeset of every directly
-        connected nodes that src_node can use to forward a message to dst_node.
-        """
-        base = None
-        for group in self._tree_nodes.itervalues():
-            if dst_node in group.nodeset:
-                base = group
-                break
-
-        if base is None:
-            return None
-
-        fifo = deque([base])
-        while len(fifo) > 0:
-            current = fifo.pop()
-            parent = current.parent
-            if parent is None:
-                continue
-            if src_node in parent.nodeset:
-                return current.nodeset
-            fifo.appendleft(current.parent)
+    def to_tree(self, root):
+        """convert the routing table to a topology tree of nodegroups"""
+        # convert the routing table into a table of linked TopologyNodeGroup's
+        self._routes_to_tng()
+        # ensure this is a valid pseudo-tree
+        self._validate(root)
+        tree = TopologyTree()
+        tree.root = self._nodegroups[self._root]
+        return tree
 
     def __str__(self):
         """return the current graph out using <src> -> <dst> relations"""
         if len(self._nodegroups) == 0:
             return self._routing.__str__()
         else:
-            return '\n'.join([grp for grp in self._nodegroups])
+            return '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in \
+                self._nodegroups.iteritems()])
 
     def _routes_to_tng(self):
         """convert the routing table into a graph of TopologyNodeGroup
@@ -424,85 +373,6 @@ class TopologyGraph:
                     if child.nodeset in dst_ns:
                         nodegroup.add_child(child)
 
-    def to_tree(self, root):
-        """convert the graph into a tree. the algorithm starts from the leaves
-        and split every nodegroups into as many groups as the parentgroup' size,
-        and the same for the parents... until it reaches the root.
-        """
-        ## -- 0 --
-        # convert the routing table into a table of linked TopologyNodeGroup's
-        self._routes_to_tng()
-        self._validate(root)
-
-        self._tree_nodes = {}
-        ## -- 1 --
-        # Split objects and relink them to build the actual tree
-        ns_processed = NodeSet()
-        fifo = deque(
-            [grp for grp in self._nodegroups.itervalues() \
-                if grp.children() == []])
-
-        while len(fifo) > 0:
-            #print 'fifo: %s' % str([str(p.nodeset) for p in fifo])
-            current_nodes = fifo.pop()
-
-            # if current_node is the root => just add it to the tree and
-            # continue
-            if current_nodes.parent is None:
-                self._tree_nodes[str(current_nodes.nodeset)] = current_nodes
-                continue
-
-            # divide each group into N subgroups, where N is the number of
-            # parents nodes.
-            div_rate = len(current_nodes.parent.nodeset)
-            group_split = current_nodes.split(div_rate)
-            # also split the parent group into "1-host-groups"
-            parent_split = current_nodes.parent.split(div_rate)
-
-            # insert the subgroup in the tree
-            for child in group_split:
-                self._tree_nodes.setdefault(str(child.nodeset), child)
-
-            # parents processing
-            for parent in parent_split:
-                # if the group is not already in the tree, then clean it and
-                # add it.
-                if not self._tree_nodes.has_key(str(parent.nodeset)):
-                    parent.clear_children()
-                    self._tree_nodes[str(parent.nodeset)] = parent
-                # if the parent group as not been already processed in this
-                # loop, then append it in our FIFO and mark it as processed.
-                if len(parent.nodeset & ns_processed) == 0:
-                    fifo.appendleft(parent)
-                    ns_processed.add(parent.nodeset)
-
-            # "children" processing
-            for k in group_split:
-                child_p = self._tree_nodes[str(k.nodeset)]
-                #print "current child : %s" % str(k.nodeset)
-
-                # the current subgroup is linked to the available parents who
-                # has the minimum number of children
-                selected = None
-                for parent_p in parent_split:
-                    key = str(parent_p.nodeset)
-                    if selected is None \
-                        or self._tree_nodes[key].children_len() \
-                            < selected.children_len():
-
-                        selected = self._tree_nodes[key]
-                # a fitting parent must have been found
-                assert selected is not None
-                # establish the parent-child relationship between the nodegroups
-                selected.add_child(child_p)
-
-        ## -- 2 --
-        # return the actual tree instance
-        # instanciate and return the tree
-        tree = TopologyTree()
-        tree.root = self._tree_nodes[self._root]
-        return tree
-
     def _validate(self, root):
         """ensure that the graph is valid for conversion to tree"""
         assert len(self._nodegroups) != 0
@@ -519,7 +389,10 @@ class TopologyGraph:
 
         # if several root are available, then remove the unused ones
         try:
-            self._nodegroups[str(root_candidates)].nodeset = NodeSet(root)
+            root_grp = self._nodegroups[str(root_candidates)]
+            root_grp.nodeset = NodeSet(root)
+            del self._nodegroups[str(root_candidates)]
+            self._nodegroups[root] = root_grp
         except KeyError:
             raise InvalidTopologyError('Invalid topology or specification!')
 

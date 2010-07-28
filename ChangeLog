@@ -1,3 +1,14 @@
+2010-07-26 H. Doreau <henri.doreau@gmail.com>
+	* Topology.py: Decided to skip the topology tree generation phase. In
+	place, we only build a complete connections graph that will be used
+	for dynamic propagation. Also removed two unused and obsolete methods.
+	* tests/TopologyTest.py: Updated the unit test suite for this module to
+	deal with these major changes.
+	* Propagation.py: Added the base implementation of the dynamic
+	propagation tree, and routing mecanism for message passing within the
+	propagation tree.
+	* tests/PropagationTest.py: Added unit tests for the Propagation module.
+
 2010-07-22 H. Doreau <henri.doreau@gmail.com>
 	* Topology.py: Added network topology configuration parser and
 	experimental tree generation code.

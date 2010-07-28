@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ClusterShell.Topology test suite
 # Written by H. Doreau
-# $Id: $
+# $Id$
 
 
 """Unit test for Topology"""
@@ -163,22 +163,8 @@ class TopologyTest(unittest.TestCase):
         parser = TopologyParser()
         parser.load(tmpfile.name)
 
-        output = str(parser.tree('admin'))
-        # We could maybe find out something better...
-        self.assertEqual(output,
-"""admin
-|_ nodes0
-|  |_ nodes2
-|  |_ nodes4
-|     |_ nodes[6-7]
-|_ nodes1
-   |_ nodes3
-   |_ nodes5
-      |_ nodes[8-9]
-""")
-
+        parser.tree('admin')
         ns_all = NodeSet('admin,nodes[0-9]')
-        print output
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
@@ -288,24 +274,6 @@ class TopologyTest(unittest.TestCase):
         parser = TopologyParser()
         self.assertRaises(InvalidTopologyError, parser.load, tmpfile.name)
 
-    @chrono
-    def testRoutesResolution(self):
-        """routes resolver and pathfinder"""
-        g = TopologyGraph()
-
-        g.add_route(NodeSet('admin'), NodeSet('node[0-9]'))
-        for i in xrange(0, 50, 10):
-            src_ns = NodeSet('node[%d-%d]' % (i, i+9))
-            dst_ns = NodeSet('node[%d-%d]' % (i+10, i+19))
-            g.add_route(src_ns, dst_ns)
-        g.to_tree('admin')
-        self.assertEqual(g.next_hop('node1', 'node10'), None)
-        self.assertEqual(g.next_hop('node32', 'node43'), None)
-        self.assertEqual(g.next_hop('node32', 'node666'), None)
-        self.assertEqual(g.next_hop('admin', 'node0'), NodeSet('node0'))
-        self.assertEqual(g.next_hop('admin', 'node23'), NodeSet('node3'))
-        self.assertEqual(g.next_hop('node20', 'node40'), NodeSet('node30'))
-        self.assertEqual(g.next_hop('node13', 'node53'), NodeSet('node23'))
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TopologyTest)
