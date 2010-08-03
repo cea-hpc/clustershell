@@ -41,12 +41,13 @@ These classes are used to build a topology tree of nodegroups according to the
 configuration file.
 
 This file must be written using the following syntax:
-    # for now only DEFAULT tree is taken in account
-    [DEFAULT]
-    admin: first_level_gateways[0-10]
-    first_level_gateways[0-10]: second_level_gateways[0-100]
-    second_level_gateways[0-100]: nodes[0-2000]
-    ...
+
+# for now only DEFAULT tree is taken in account
+[DEFAULT]
+admin: first_level_gateways[0-10]
+first_level_gateways[0-10]: second_level_gateways[0-100]
+second_level_gateways[0-100]: nodes[0-2000]
+...
 """
 
 import sys
