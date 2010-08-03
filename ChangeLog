@@ -1,4 +1,9 @@
 2010-08-03 H. Doreau <henri.doreau@gmail.com>
+	* Propagation.py: fixed a bug that disallowed the lib to respect the
+	value of the fanout to correctly dispatch tasks within the propagation
+	tree.
+
+2010-08-03 H. Doreau <henri.doreau@gmail.com>
 	* Propagation.py: Heavily improved the propagation tree router, and
 	added the ability for the nodes to mark a host as invalid if this host
 	appears to be down. The propagation tree can now be used to simulate

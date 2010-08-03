@@ -168,7 +168,7 @@ class PropagationTest(unittest.TestCase):
         topo_tree = parser.tree('admin0')
 
         ptree = PropagationTree()
-        ptree.load(topo_tree, 'node[0-2,6000-6002]', 64)
+        ptree.load(topo_tree, 'node[0-5,6000-6005]', 3)
         ptree.execute('uname -a')
 
 

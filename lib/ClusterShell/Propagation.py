@@ -147,6 +147,7 @@ class GatewayNode(CommunicatingNode):
         """process an incoming message not destinated to us"""
         self._dbg('forwarding msg: <%s>' % str(msg))
         self.send_message(msg)
+        self.job_counter += 1
 
     def recv_message(self, msg):
         """process an incoming message destinated to us"""
@@ -317,15 +318,12 @@ class PropagationTree:
     def execute(self, cmd):
         """execute `cmd' on the nodeset specified at loading"""
         admin = self.nodes[self.admin]
-        for sub_nodeset in self.targets.split(self.fanout):
-            # a fanout > number of available targets will ends with a zero
-            # length sub_nodeset
-            if len(sub_nodeset) > 0:
-                msg = PropagationMessage()
-                msg.src = admin.name
-                msg.add_info('target', str(sub_nodeset))
-                msg.add_info('task', cmd)
-                admin.send_message(msg)
+        for node in self.targets:
+            msg = PropagationMessage()
+            msg.src = admin.name
+            msg.add_info('target', node)
+            msg.add_info('task', cmd)
+            admin.send_message(msg)
 
 class PropagationMessage:
     """message to a node. This is just a stub"""
