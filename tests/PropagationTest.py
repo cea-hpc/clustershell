@@ -27,7 +27,7 @@ def chrono(func):
     def timing(*args):
         start = time.time()
         res = func(*args)
-        #print "execution time: %f s" % (time.time() - start)
+        print "execution time: %f s" % (time.time() - start)
         return res
     return timing
 
@@ -78,15 +78,15 @@ class PropagationTest(unittest.TestCase):
         admin = 'admin1'
         admin_inst = ptree.nodes[admin]
 
-        msg['src'] = admin
-        msg['dst'] = 'STB1564'
-        msg['str'] = 'Hello, world!'
+        msg.src = admin
+        msg.dst = 'STB1564'
+        msg.add_info('str', 'Hello, world!')
 
         before = time.time()
         admin_inst.send_message(msg)
         time_msg0 = time.time() - before
 
-        msg['str'] = 'Hello, world, again!'
+        msg.add_info('str', 'Hello, world, again!')
         before = time.time()
         admin_inst.send_message(msg)
         time_msg1 = time.time() - before
@@ -95,18 +95,81 @@ class PropagationTest(unittest.TestCase):
 
     @chrono
     def testRouting(self):
-        """
-        """
+        """test basic routing mecanisms"""
         ptree = PropagationTree()
         ptree.load(self._gen_tree(), 'node[0-10000]', 64)
         msg = PropagationMessage()
         admin = 'admin1'
         admin_inst = ptree.nodes[admin]
 
-        msg['src'] = admin
-        msg['dst'] = 'nonexistentnode'
-        msg['str'] = 'Hello, world!'
+        msg.src = admin
+        msg.dst = 'nonexistentnode'
+        msg.add_info('str', 'Hello, world!')
         self.assertRaises(RoutesResolvingError, admin_inst.send_message, msg)
+
+
+    @chrono
+    def testHostRepudiation(self):
+        """test marking hosts as unreachable"""
+        ptree = PropagationTree()
+        ptree.load(self._gen_tree(), 'node[0-10000]', 64)
+
+        admin_inst = ptree.nodes['admin1']
+        admin_inst.dst_invalidate('STA[0-399]')
+
+        msg = PropagationMessage()
+        msg.src = 'admin1'
+        msg.dst = 'STB666'
+        msg.add_info('str', 'Hello, world!')
+        admin_inst.send_message(msg)
+
+    @chrono
+    def testUnroutableMessage(self):
+        """test detecting lack of routes to a destination"""
+        ptree = PropagationTree()
+        ptree.load(self._gen_tree(), 'node[0-10000]', 64)
+
+        admin_inst = ptree.nodes['admin1']
+        admin_inst.dst_invalidate('STA[0-400]')
+
+        msg = PropagationMessage()
+        msg.src = 'admin1'
+        msg.dst = 'STB666'
+        msg.add_info('str', 'Hello, world!')
+        self.assertRaises(RoutesResolvingError, admin_inst.send_message, msg)
+
+    @chrono
+    def testUnreachableDestination(self):
+        """test unreachable destination detection"""
+        ptree = PropagationTree()
+        ptree.load(self._gen_tree(), 'node[0-10000]', 64)
+
+        admin_inst = ptree.nodes['admin1']
+        admin_inst.dst_invalidate('STB666')
+
+        msg = PropagationMessage()
+        msg.src = 'admin1'
+        msg.dst = 'STB666'
+        msg.add_info('str', 'Hello, world!')
+        self.assertRaises(UnavailableDestinationError, admin_inst.send_message, msg)
+
+    @chrono
+    def testDistributeTasks(self):
+        """test sending work to edge nodes"""
+        tmpfile = tempfile.NamedTemporaryFile()
+        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('admin0: gwa[0-9]\n')
+        tmpfile.write('gwa[0-9]: gwb[0-99]\n')
+        tmpfile.write('gwb[0-49]: node[0-4999]\n')
+        tmpfile.write('gwb[50-99]: node[5000-9999]\n')
+        tmpfile.flush()
+        parser = TopologyParser()
+        parser.load(tmpfile.name)
+        topo_tree = parser.tree('admin0')
+
+        ptree = PropagationTree()
+        ptree.load(topo_tree, 'node[0-2,6000-6002]', 64)
+        ptree.execute('uname -a')
 
 
 def main():

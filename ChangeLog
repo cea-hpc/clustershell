@@ -1,3 +1,11 @@
+2010-08-03 H. Doreau <henri.doreau@gmail.com>
+	* Propagation.py: Heavily improved the propagation tree router, and
+	added the ability for the nodes to mark a host as invalid if this host
+	appears to be down. The propagation tree can now be used to simulate
+	remote commands execution.
+	* tests/PropagationTest.py: Added unit tests to cover these new
+	mechanisms.
+
 2010-07-26 H. Doreau <henri.doreau@gmail.com>
 	* Topology.py: Decided to skip the topology tree generation phase. In
 	place, we only build a complete connections graph that will be used
