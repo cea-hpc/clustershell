@@ -15,6 +15,12 @@
 	* tests/Propagation.py: updated the tests to adapt to these code
 	improvements.
 
+	* Communication.py: initial version of the Communication module to let
+	the nodes exchange messages whithin the propagation tree.
+
+	* tests/CommunicationTests.py: PyUnit regression tests for the new
+	module Communication.py
+
 2010-08-03 H. Doreau <henri.doreau@gmail.com>
 	* Propagation.py: fixed a bug that disallowed the lib to respect the
 	value of the fanout to correctly dispatch tasks within the propagation
