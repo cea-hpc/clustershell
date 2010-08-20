@@ -42,14 +42,15 @@ SSH links.
 In the other side, XML is parsed and new message objects are instanciated.
 """
 
+import time
 import cPickle
 import xml.sax
 
 from xml.sax.handler import ContentHandler
 from xml.sax.saxutils import XMLGenerator
 
-from cStringIO import StringIO
 from collections import deque
+from cStringIO import StringIO
 
 
 # GLOBAL MESSAGE TYPES
@@ -73,24 +74,41 @@ class XMLMsgHandler(ContentHandler):
     def startElement(self, name, attrs):
         """read a starting xml tag"""
         if name == 'message':
+            # new message => we assume that the previous one was ready
+            # some additional checks will occur at higher levels
+            previous = self._msg_factory.deliver()
+            if previous is not None:
+                self.msg_queue.appendleft(previous)
             self._msg_factory.new(attrs)
         else:
             self._msg_factory.update(name, attrs)
+        # If this element was the last one and the message instance is complete,
+        # then we queue the message
+        if self._msg_factory.msg_available():
+            self.msg_queue.appendleft(self._msg_factory.deliver())
 
     def endElement(self, name):
         """read an ending xml tag"""
-        if name == 'message':
-            self.msg_queue.appendleft(self._msg_factory.deliver())
+        pass
 
     def characters(self, content):
         """read content characters"""
         self._msg_factory.data_update(content)
 
+    def msg_available(self):
+        """return whether a message is available for delivery or not"""
+        if len(self.msg_queue) > 0:
+            return True
+        elif self._msg_factory.msg_available():
+            self.msg_queue.appendleft(self._msg_factory.deliver())
+            return True
+        else:
+            return False
+
     def pop_msg(self):
         """pop and return the oldest message queued"""
-        if len(self.msg_queue) < 1:
-            self.msg_queue.appendleft(self._msg_factory.deliver())
-        return self.msg_queue.pop()
+        if len(self.msg_queue) > 0:
+            return self.msg_queue.pop()
 
 class CSMessageFactory:
     """XML -> instance deserialization class"""
@@ -99,7 +117,7 @@ class CSMessageFactory:
         """
         # current packet under construction
         self._draft = None
-        self._attr_map = None
+        self._sections_map = None
 
     def new(self, attributes):
         """start a new packet construction"""
@@ -112,30 +130,34 @@ class CSMessageFactory:
             MSG_BYE: ExitMessage,
             MSG_ERR: ErrorMessage
         }
-        msg_type = attributes['type']
         try:
+            msg_type = attributes['type']
             # select the good constructor
             ctor = ctors_map[msg_type]
         except KeyError:
             raise MessageProcessingError('Unknown message type')
         self._draft = ctor()
         # obtain expected sections map for this type of messages
-        self._attr_map = self._draft.expected_sections()
+        self._sections_map = self._draft.expected_sections()
         self.update('message', attributes)
 
     def update(self, name, attributes):
         """update the current message draft with a new section"""
         try:
-            handle = self._attr_map[name]
-        except KeyError:
+            handle = self._sections_map[name]
+        except (KeyError, TypeError), e:
             raise MessageProcessingError(
-                'Invalid call to CSMessageFactory::update()')
+                'Invalid call to CSMessageFactory.update()')
         else:
             handle(attributes)
 
     def data_update(self, raw):
         """update the current message draft with characters"""
         self._draft.data_update(raw)
+
+    def msg_available(self):
+        """return whether a message is available for delivery or not"""
+        return self._draft is not None and self._draft.is_complete()
 
     def deliver(self):
         """release the current packet"""
@@ -162,12 +184,17 @@ class MessagesProcessor:
         self.name = name
         self.parent = parent
 
-    def read_msg(self):
+    def read_msg(self, timeout=None):
         """read and parse incoming messages"""
-        while len(self._handler.msg_queue) < 1:
+        if timeout is not None:
+            timeout += time.time()
+        while not self._handler.msg_available():
             data = self.recv()
             if not data:
-                break
+                if timeout is not None and time.time() >= timeout:
+                    break
+                else:
+                    continue
             self._parser.feed(data)
         return self._handler.pop_msg()
 
@@ -205,6 +232,13 @@ class CSMessage:
         self.id = CSMessage._inst_counter
         CSMessage._inst_counter += 1
 
+    def data_update(self, data):
+        """
+        Process raw data contained in messages between tags. Not every message
+        types need this, so subclasses must implement if necessary.
+        """
+        raise MessageProcessingError('This type of message have no data field')
+
     def expected_sections(self):
         """return an associative array made of sections name (keys) and methods
         to handle these sections (values)
@@ -222,7 +256,11 @@ class CSMessage:
             self.dst = attributes['dst']
         except KeyError, k:
             raise MessageProcessingError(
-                'Invalid attributes set: missing key "%s"' % k)
+                'Invalid "message" attributes: missing key "%s"' % k)
+
+    def is_complete(self):
+        """return whether every fields are set or not"""
+        return self.src != '' and self.dst != ''
 
     def xml(self):
         """return the XML representation of the current instance"""
@@ -250,6 +288,11 @@ class ConfigurationMessage(CSMessage):
         # TODO : bufferize and use ''.join() for performance
         self.data += raw
 
+    def is_complete(self):
+        """return whether every fields are set or not"""
+        base = CSMessage.is_complete(self)
+        return base and self.data != ''
+
     def xml(self):
         """generate XML version of a configuration message"""
         out = StringIO()
@@ -269,6 +312,7 @@ class ConfigurationMessage(CSMessage):
 
 class ControlMessage(CSMessage):
     """action request"""
+    # TODO : remove hardcoded values (action type, parameters...)
     def __init__(self):
         """
         """
@@ -294,7 +338,7 @@ class ControlMessage(CSMessage):
             self.action_target = attributes['target']
         except KeyError, k:
             raise MessageProcessingError(
-                'Invalid attributes set: missing key "%s"' % k)
+                'Invalid "action" attributes: missing key "%s"' % k)
 
     def handle_param(self, attributes):
         """handle attributes associated to a "param" section"""
@@ -302,7 +346,30 @@ class ControlMessage(CSMessage):
             self.params['cmd'] = attributes['cmd']
         except KeyError, k:
             raise MessageProcessingError(
-                'Invalid attributes set: missing key "%s"' % k)
+                'Invalid "param" attributes: missing key "%s"' % k)
+
+    def is_complete(self):
+        """return whether every fields are set or not"""
+        base = CSMessage.is_complete(self)
+        return base \
+            and self.action_type != '' \
+            and self.action_target != '' \
+            and self._param_got_all()
+
+    def _param_got_all(self):
+        """ensure that for the given action type, we've received at least every
+        mandatory parameters
+        """
+        if self.action_type == 'shell':
+            expected_params = ['cmd']
+        else:
+            # we don't even know what parameters we need
+            return False
+        # ---
+        for p in expected_params:
+            if not self.params.has_key(p):
+                return False
+        return True
 
     def xml(self):
         """generate XML version of a control message"""
@@ -336,8 +403,8 @@ class ACKMessage(CSMessage):
         """
         CSMessage.__init__(self)
         self.type = MSG_ACK
-        self.ack_id = 0
-    
+        self.ack_id = -1
+
     def handle_message(self, attributes):
         """handle attributes associated to a "message" section"""
         CSMessage.handle_message(self, attributes)
@@ -345,7 +412,12 @@ class ACKMessage(CSMessage):
             self.ack_id = attributes['ack']
         except KeyError, k:
             raise MessageProcessingError(
-                'Invalid attributes set: missing key "%s"' % k)
+                'Invalid "message" attributes: missing key "%s"' % k)
+
+    def is_complete(self):
+        """return whether every fields are set or not"""
+        base = CSMessage.is_complete(self)
+        return base and self.ack_id > 0
 
     def xml(self):
         """generate XML version of an acknowledgement message"""
@@ -394,17 +466,20 @@ class ErrorMessage(CSMessage):
         CSMessage.__init__(self)
         self.type = MSG_ERR
         self.reason = ''
-        self.id_ref = 0
-    
+
     def handle_message(self, attributes):
         """handle attributes associated to a "message" section"""
         CSMessage.handle_message(self, attributes)
         try:
             self.reason = attributes['reason']
-            self.id_ref = attributes['id_ref']
         except KeyError, k:
             raise MessageProcessingError(
-                'Invalid attributes set: missing key "%s"' % k)
+                'Invalid "message" attributes: missing key "%s"' % k)
+
+    def is_complete(self):
+        """return whether every fields are set or not"""
+        base = CSMessage.is_complete(self)
+        return base and self.reason != ''
 
     def xml(self):
         """generate XML version of an error message"""
@@ -416,7 +491,6 @@ class ErrorMessage(CSMessage):
             'dst': self.dst,
             'id': str(self.id),
             'reason': self.reason,
-            'id_ref': str(self.id_ref)
         }
         generator.startElement('message', msg_attr)
         xml_msg = out.getvalue()
