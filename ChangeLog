@@ -2,8 +2,18 @@
 	* Topology.py: pruned the exception tree so that the module now only
 	have a unique exception type. This helps keeping higher level code
 	clean.  Details can still be added using the exception string.
+
 	* tests/TopologyTests.py: updated the tests to use this unique
 	exception.
+
+	* Propagation.py: code improvements to increase maintainability and
+	performances. The propagation router has been put as a part of the
+	propagation tree. The router's internals have been improved so that
+	caching is not necessary anymore. The module now also have a reduced
+	exception tree.
+
+	* tests/Propagation.py: updated the tests to adapt to these code
+	improvements.
 
 2010-08-03 H. Doreau <henri.doreau@gmail.com>
 	* Propagation.py: fixed a bug that disallowed the lib to respect the
@@ -15,6 +25,7 @@
 	added the ability for the nodes to mark a host as invalid if this host
 	appears to be down. The propagation tree can now be used to simulate
 	remote commands execution.
+
 	* tests/PropagationTest.py: Added unit tests to cover these new
 	mechanisms.
 
@@ -22,16 +33,20 @@
 	* Topology.py: Decided to skip the topology tree generation phase. In
 	place, we only build a complete connections graph that will be used
 	for dynamic propagation. Also removed two unused and obsolete methods.
+
 	* tests/TopologyTest.py: Updated the unit test suite for this module to
 	deal with these major changes.
+
 	* Propagation.py: Added the base implementation of the dynamic
 	propagation tree, and routing mecanism for message passing within the
 	propagation tree.
+
 	* tests/PropagationTest.py: Added unit tests for the Propagation module.
 
 2010-07-22 H. Doreau <henri.doreau@gmail.com>
 	* Topology.py: Added network topology configuration parser and
 	experimental tree generation code.
+
 	* tests/TopologyTest.py: Added unit tests for network topology related
 	code.
 

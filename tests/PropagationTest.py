@@ -20,6 +20,7 @@ import tempfile
 sys.path.insert(0, '../lib')
 
 from ClusterShell.Propagation import *
+from ClusterShell.Topology import TopologyParser
 from ClusterShell.NodeSet import NodeSet
 
 
@@ -80,18 +81,12 @@ class PropagationTest(unittest.TestCase):
 
         msg.src = admin
         msg.dst = 'STB1564'
+        msg.add_info('msgtype', PropagationMessage.TYPE_CTRL_MSG)
         msg.add_info('str', 'Hello, world!')
-
-        before = time.time()
         admin_inst.send_message(msg)
-        time_msg0 = time.time() - before
 
         msg.add_info('str', 'Hello, world, again!')
-        before = time.time()
         admin_inst.send_message(msg)
-        time_msg1 = time.time() - before
-        # test the router's cache mecanism
-        self.failUnless(time_msg1 < time_msg0)
 
     @chrono
     def testRouting(self):
@@ -104,9 +99,9 @@ class PropagationTest(unittest.TestCase):
 
         msg.src = admin
         msg.dst = 'nonexistentnode'
+        msg.add_info('msgtype', PropagationMessage.TYPE_CTRL_MSG)
         msg.add_info('str', 'Hello, world!')
         self.assertRaises(RoutesResolvingError, admin_inst.send_message, msg)
-
 
     @chrono
     def testHostRepudiation(self):
@@ -120,6 +115,7 @@ class PropagationTest(unittest.TestCase):
         msg = PropagationMessage()
         msg.src = 'admin1'
         msg.dst = 'STB666'
+        msg.add_info('msgtype', PropagationMessage.TYPE_CTRL_MSG)
         msg.add_info('str', 'Hello, world!')
         admin_inst.send_message(msg)
 
@@ -135,6 +131,7 @@ class PropagationTest(unittest.TestCase):
         msg = PropagationMessage()
         msg.src = 'admin1'
         msg.dst = 'STB666'
+        msg.add_info('msgtype', PropagationMessage.TYPE_CTRL_MSG)
         msg.add_info('str', 'Hello, world!')
         self.assertRaises(RoutesResolvingError, admin_inst.send_message, msg)
 
@@ -150,8 +147,9 @@ class PropagationTest(unittest.TestCase):
         msg = PropagationMessage()
         msg.src = 'admin1'
         msg.dst = 'STB666'
+        msg.add_info('msgtype', PropagationMessage.TYPE_CTRL_MSG)
         msg.add_info('str', 'Hello, world!')
-        self.assertRaises(UnavailableDestinationError, admin_inst.send_message, msg)
+        self.assertRaises(RoutesResolvingError, admin_inst.send_message, msg)
 
     @chrono
     def testDistributeTasks(self):
@@ -169,6 +167,22 @@ class PropagationTest(unittest.TestCase):
 
         ptree = PropagationTree()
         ptree.load(topo_tree, 'node[0-5,6000-6005]', 3)
+        ptree.execute('uname -a')
+
+    @chrono
+    def testDistributeTasksBigConfig(self):
+        """test sending work to edge nodes on large topology"""
+        tmpfile = tempfile.NamedTemporaryFile()
+        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('admin[0-2]: gw[0-4]\n')
+        tmpfile.write('gw[0-4]: node[0-4300]\n')
+        tmpfile.flush()
+        parser = TopologyParser()
+        parser.load(tmpfile.name)
+        topo_tree = parser.tree('admin0')
+
+        ptree = PropagationTree()
+        ptree.load(topo_tree, 'node[0-4300]', 512)
         ptree.execute('uname -a')
 
 
