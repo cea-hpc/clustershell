@@ -209,7 +209,7 @@ class TopologyRoute:
         self.src = src_ns
         self.dst = dst_ns
         if len(src_ns & dst_ns) != 0:
-            raise InvalidTopologyError(
+            raise TopologyError(
                 'Source and destination nodesets overlap')
 
     def dest(self, nodeset=None):
@@ -249,10 +249,10 @@ class TopologyRoutingTable:
         TopologyRoute instance
         """
         if self._introduce_circular_reference(route):
-            raise InvalidTopologyError(
+            raise TopologyError(
                 'Loop detected! Cannot add route %s' % str(route))
         if self._introduce_convergent_paths(route):
-            raise InvalidTopologyError(
+            raise TopologyError(
                 'Convergent path detected! Cannot add route %s' % str(route))
 
         self._routes.append(route)
@@ -322,7 +322,7 @@ class TopologyGraph:
     def add_route(self, src_ns, dst_ns):
         """add a new route from src nodeset to dst nodeset. The destination
         nodeset must not overlap with already known destination nodesets
-        (otherwise an InvalidTopologyError is raised)
+        (otherwise a TopologyError is raised)
         """
         assert isinstance(src_ns, NodeSet)
         assert isinstance(dst_ns, NodeSet)
@@ -385,7 +385,7 @@ class TopologyGraph:
         # every node is a destination, appart the root
         root_candidates = src_all - dst_all
         if root not in root_candidates:
-            raise InvalidTopologyError('"%s" is not a valid root node!' % root)
+            raise TopologyError('"%s" is not a valid root node!' % root)
         self._root = root
 
         # if several root are available, then remove the unused ones
@@ -395,7 +395,7 @@ class TopologyGraph:
             del self._nodegroups[str(root_candidates)]
             self._nodegroups[root] = root_grp
         except KeyError:
-            raise InvalidTopologyError('Invalid topology or specification!')
+            raise TopologyError('Invalid topology or specification!')
 
 class TopologyParser(ConfigParser.ConfigParser):
     """This class offers a way to interpret network topologies supplied under
@@ -418,8 +418,8 @@ class TopologyParser(ConfigParser.ConfigParser):
         self._routes. Then build a propagation tree.
         """
         if self.read(filename) == []:
-            raise InternalTopologyParserError(
-                'Invalid configuration file: %s'% filename)
+            raise TopologyError(
+                'Invalid configuration file: %s' % filename)
         self._topology = self.defaults()
         self._build_graph()
 
@@ -445,18 +445,14 @@ class TopologyParser(ConfigParser.ConfigParser):
         propagation tree is cached. you can force a re-generation using the
         optionnal `force_rebuild' parameter.
         """
-        if self._tree is None or force_rebuild == True:
+        if self._tree is None or force_rebuild:
             self._tree = self._graph.to_tree(root)
         return self._tree
 
-class BaseTopologyParserError(Exception):
-    """base topology parser error from which inherits the other ones"""
-
-class InternalTopologyParserError(BaseTopologyParserError):
-    """error raised on internal parser errors"""
-
-class InvalidTopologyError(BaseTopologyParserError):
-    """error raised on dealing with invalid topologies"""
+class TopologyError(Exception):
+    """topology parser error to report invalid configurations or parsing
+    errors
+    """
 
 
 def _main(args):

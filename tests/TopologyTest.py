@@ -54,13 +54,13 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns0, ns1)
         # Add the same nodeset twice
         ns2 = NodeSet('nodes[20-29]')
-        self.assertRaises(InvalidTopologyError, g.add_route, ns2, ns2)
+        self.assertRaises(TopologyError, g.add_route, ns2, ns2)
         # Add an already src nodeset to a new dst nodeset
         g.add_route(ns0, ns2)
         # Add the same dst nodeset twice
-        self.assertRaises(InvalidTopologyError, g.add_route, ns2, ns1)
+        self.assertRaises(TopologyError, g.add_route, ns2, ns1)
         # Add a known src nodeset as a dst nodeset
-        self.assertRaises(InvalidTopologyError, g.add_route, ns2, ns0)
+        self.assertRaises(TopologyError, g.add_route, ns2, ns0)
         # Add a known dst nodeset as a src nodeset
         ns3 = NodeSet('nodes[30-39]')
         g.add_route(ns1, ns3)
@@ -70,16 +70,16 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns0_sub, ns4)
         # Add a subset of a known dst nodeset as src
         ns1_sub = NodeSet(','.join(ns1[:3:]))
-        self.assertRaises(InvalidTopologyError, g.add_route, ns4, ns1_sub)
+        self.assertRaises(TopologyError, g.add_route, ns4, ns1_sub)
         # Add a subset of a known src nodeset as dst
-        self.assertRaises(InvalidTopologyError, g.add_route, ns4, ns0_sub)
+        self.assertRaises(TopologyError, g.add_route, ns4, ns0_sub)
         # Add a subset of a known dst nodeset as dst
-        self.assertRaises(InvalidTopologyError, g.add_route, ns4, ns1_sub)
+        self.assertRaises(TopologyError, g.add_route, ns4, ns1_sub)
         # src <- subset of -> dst
         ns5 = NodeSet('nodes[50-59]')
         ns5_sub = NodeSet(','.join(ns5[:3:]))
-        self.assertRaises(InvalidTopologyError, g.add_route, ns5, ns5_sub)
-        self.assertRaises(InvalidTopologyError, g.add_route, ns5_sub, ns5)
+        self.assertRaises(TopologyError, g.add_route, ns5, ns5_sub)
+        self.assertRaises(TopologyError, g.add_route, ns5_sub, ns5)
 
         #g.to_tree("admin")._display()
 
@@ -101,13 +101,13 @@ class TopologyTest(unittest.TestCase):
 
         g.add_route(root, ns01)
         g.add_route(root, ns23 | ns45)
-        self.assertRaises(InvalidTopologyError, g.add_route, ns23, ns23)
-        self.assertRaises(InvalidTopologyError, g.add_route, ns45, root)
+        self.assertRaises(TopologyError, g.add_route, ns23, ns23)
+        self.assertRaises(TopologyError, g.add_route, ns45, root)
         g.add_route(ns23, ns67)
         g.add_route(ns67, ns89)
-        self.assertRaises(InvalidTopologyError, g.add_route, ns89, ns67)
-        self.assertRaises(InvalidTopologyError, g.add_route, ns89, ns89)
-        self.assertRaises(InvalidTopologyError, g.add_route, ns89, ns23)
+        self.assertRaises(TopologyError, g.add_route, ns89, ns67)
+        self.assertRaises(TopologyError, g.add_route, ns89, ns89)
+        self.assertRaises(TopologyError, g.add_route, ns89, ns23)
 
         ns_all = NodeSet('root,nodes[0-9]')
         for nodegroup in g.to_tree('root'):
@@ -272,7 +272,7 @@ class TopologyTest(unittest.TestCase):
 
         tmpfile.flush()
         parser = TopologyParser()
-        self.assertRaises(InvalidTopologyError, parser.load, tmpfile.name)
+        self.assertRaises(TopologyError, parser.load, tmpfile.name)
 
 
 def main():
