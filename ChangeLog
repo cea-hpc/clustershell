@@ -1,3 +1,14 @@
+2010-08-26 H. Doreau <henri.doreau@gmail.com>
+	* Communication.py: Added event based communication channels for
+	efficient communications between the nodes. Also did some cosmetic
+	fixes in the code.
+
+	* test/CommunicationTests.py: Updated the tests to test the new
+	functionnalities and improve general coverage.
+
+	* Propagation.py: changed the execution method to use the new
+	mechanisms.
+
 2010-08-20 H. Doreau <henri.doreau@gmail.com>
 	* Topology.py: pruned the exception tree so that the module now only
 	have a unique exception type. This helps keeping higher level code

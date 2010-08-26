@@ -42,8 +42,8 @@ SSH links.
 In the other side, XML is parsed and new message objects are instanciated.
 """
 
-import time
 import cPickle
+import base64
 import xml.sax
 
 from xml.sax.handler import ContentHandler
@@ -52,15 +52,15 @@ from xml.sax.saxutils import XMLGenerator
 from collections import deque
 from cStringIO import StringIO
 
-
-# GLOBAL MESSAGE TYPES
-MSG_CFG = 'CFG'
-MSG_CTL = 'CTL'
-MSG_ACK = 'ACK'
-MSG_BYE = 'BYE'
-MSG_ERR = 'ERR'
+from ClusterShell.Event import EventHandler
 
 
+def strdel(s, badchars):
+    """return s a copy of s with every badchar occurences removed"""
+    stripped = s
+    for ch in badchars:
+        stripped = stripped.replace(ch, '')
+    return stripped
 
 class XMLMsgHandler(ContentHandler):
     """SAX handler for XML -> CSMessages instances conversion"""
@@ -73,37 +73,36 @@ class XMLMsgHandler(ContentHandler):
 
     def startElement(self, name, attrs):
         """read a starting xml tag"""
-        if name == 'message':
-            # new message => we assume that the previous one was ready
-            # some additional checks will occur at higher levels
-            previous = self._msg_factory.deliver()
-            if previous is not None:
-                self.msg_queue.appendleft(previous)
+        if name == 'channel':
+            self._msg_factory.name = attrs['dst']
+            self._msg_factory.parent = attrs['src']
+        elif name == 'message':
             self._msg_factory.new(attrs)
         else:
             self._msg_factory.update(name, attrs)
-        # If this element was the last one and the message instance is complete,
-        # then we queue the message
-        if self._msg_factory.msg_available():
-            self.msg_queue.appendleft(self._msg_factory.deliver())
 
     def endElement(self, name):
         """read an ending xml tag"""
-        pass
+        # end of message
+        if name == 'message':
+            # if the message is available (ie. complete)...
+            if self._msg_factory.msg_available():
+                # ... then take it and queue it
+                self.msg_queue.appendleft(self._msg_factory.deliver())
+            else:
+                # ... otherwise raise an exception
+                raise MessageProcessingError('Incomplete message received')
 
     def characters(self, content):
         """read content characters"""
-        self._msg_factory.data_update(content)
+        content = content.encode('utf-8')
+        content = strdel(content, [' ', '\t', '\r', '\n'])
+        if content != '':
+            self._msg_factory.data_update(content)
 
     def msg_available(self):
         """return whether a message is available for delivery or not"""
-        if len(self.msg_queue) > 0:
-            return True
-        elif self._msg_factory.msg_available():
-            self.msg_queue.appendleft(self._msg_factory.deliver())
-            return True
-        else:
-            return False
+        return len(self.msg_queue) > 0
 
     def pop_msg(self):
         """pop and return the oldest message queued"""
@@ -115,6 +114,8 @@ class CSMessageFactory:
     def __init__(self):
         """
         """
+        self.name = ''
+        self.parent = ''
         # current packet under construction
         self._draft = None
         self._sections_map = None
@@ -124,11 +125,10 @@ class CSMessageFactory:
         # associative array to select to correct constructor according to the
         # message type field contained in the serialized representation
         ctors_map = {
-            MSG_CFG: ConfigurationMessage,
-            MSG_CTL: ControlMessage,
-            MSG_ACK: ACKMessage,
-            MSG_BYE: ExitMessage,
-            MSG_ERR: ErrorMessage
+            ConfigurationMessage.ident: ConfigurationMessage,
+            ControlMessage.ident: ControlMessage,
+            ACKMessage.ident: ACKMessage,
+            ErrorMessage.ident: ErrorMessage
         }
         try:
             msg_type = attributes['type']
@@ -137,6 +137,8 @@ class CSMessageFactory:
         except KeyError:
             raise MessageProcessingError('Unknown message type')
         self._draft = ctor()
+        self._draft.src = self.parent
+        self._draft.dst = self.name
         # obtain expected sections map for this type of messages
         self._sections_map = self._draft.expected_sections()
         self.update('message', attributes)
@@ -145,9 +147,12 @@ class CSMessageFactory:
         """update the current message draft with a new section"""
         try:
             handle = self._sections_map[name]
-        except (KeyError, TypeError), e:
-            raise MessageProcessingError(
-                'Invalid call to CSMessageFactory.update()')
+        except KeyError:
+            # this type of message do not have such elements
+            raise MessageProcessingError('Invalid element: %s' % name)
+        except TypeError:
+            # no message being crafted, we shouldn't be there!
+            raise MessageProcessingError('Syntax error/orphan element detected')
         else:
             handle(attributes)
 
@@ -161,72 +166,105 @@ class CSMessageFactory:
 
     def deliver(self):
         """release the current packet"""
-        return self._draft
+        msg = self._draft
+        self._draft = None
+        self._sections_map = None
+        return msg
 
-class MessagesProcessor:
-    """abstraction layer over XML that let external modules only deal with
-    messages as instances.
+class CommunicationChannel(EventHandler):
+    """Use this event handler to establish a communication channel between to
+    hosts whithin the propagation tree.
+
+    Instances use a driver that describes their behavior, and send/recv messages
+    over the channel.
     """
-    def __init__(self, ifile, ofile):
+    def __init__(self, driver):
         """
         """
-        self.exit = False
-        self.name = ''
-        self.parent = ''
-        self._ifile = ifile
-        self._ofile = ofile
+        EventHandler.__init__(self)
+        self._driver = driver
         self._handler = XMLMsgHandler()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
         self._parser.setContentHandler(self._handler)
 
-    def set_ident(self, name, parent):
-        """set self and parent hostnames"""
-        self.name = name
-        self.parent = parent
+    def ev_start(self, worker):
+        """connection established. Open higher level channel"""
+        worker.write(self._channel_open())
+        msg = self._driver.next_msg()
+        if msg is not None:
+            worker.write(msg.xml())
 
-    def read_msg(self, timeout=None):
-        """read and parse incoming messages"""
-        if timeout is not None:
-            timeout += time.time()
-        while not self._handler.msg_available():
-            data = self.recv()
-            if not data:
-                if timeout is not None and time.time() >= timeout:
-                    break
-                else:
-                    continue
-            self._parser.feed(data)
-        return self._handler.pop_msg()
+    def _channel_open(self):
+        """open a new communication channel from src to dst"""
+        opener = u'<?xlm version="1.0" encoding="UTF-8"?>\n'
+        out = StringIO()
+        generator = XMLGenerator(out)
+        channel_attr = {
+            'src': self._driver.src,
+            'dst': self._driver.dst
+        }
+        generator.startElement('channel', channel_attr)
+        return opener + out.getvalue()
 
-    def shutdown(self):
-        """free resources and set the exit flag to True"""
-        self._parser.close()
-        self.exit = True
+    def _channel_close(self):
+        """close an already opened channel"""
+        out = StringIO()
+        generator = XMLGenerator(out)
+        generator.endElement('channel')
+        return out.getvalue()
 
-    def ack(self, msg_id):
-        """acknowledge a message"""
-        ack = ACKMessage()
-        ack.src = self.name
-        ack.dst = self.parent
-        ack.ack_id = msg_id
-        self.send(ack.xml())
+    def ev_read(self, worker):
+        """channel has data to read"""
+        # feed the message factory with received data
+        _, raw = worker.last_read()
+        self._parser.feed(raw)
+        # pass next message to the driver if ready
+        if self._handler.msg_available():
+            msg = self._handler.pop_msg()
+            assert msg is not None
+            self._driver.read_msg(msg)
+        # eventually reply
+        while True:
+            msg = self._driver.next_msg()
+            if msg is None:
+                break
+            worker.write(msg.xml())
+        # close the connection if asked to do so by the driver
+        if self._driver.exit:
+            worker.write(self._channel_close())
 
-    def send(self, raw):
-        """send a raw message to output"""
-        self._ofile.write(raw)
+    def ev_hup(self, worker):
+        """do some cleanup when the connection is over"""
+        # TODO: call this statement on </channel>
+        #self._parser.close()
 
-    def recv(self, size=1024):
-        """read up to `size' bytes from input"""
-        return self._ifile.read(size)
+class CommunicationDriver:
+    """describes the behavior of a communicating node"""
+    def __init__(self, src, dst):
+        """
+        """
+        self.exit = False
+        self.src = src
+        self.dst = dst
+
+    def read_msg(self, msg):
+        """process incoming message"""
+        NotImplementedError('Abstract method: subclasses must implement')
+
+    def next_msg(self):
+        """return next outgoing message"""
+        NotImplementedError('Abstract method: subclasses must implement')
 
 class CSMessage:
     """base message class"""
+
     _inst_counter = 0
+    ident = 'GEN'
 
     def __init__(self):
         """
         """
-        self.type = 0
+        self.type = CSMessage.ident
         self.src = ''
         self.dst = ''
         self.id = CSMessage._inst_counter
@@ -252,15 +290,14 @@ class CSMessage:
         """handle a "message" section"""
         try:
             self.type = attributes['type']
-            self.src = attributes['src']
-            self.dst = attributes['dst']
+            self.id = attributes['msgid']
         except KeyError, k:
             raise MessageProcessingError(
                 'Invalid "message" attributes: missing key "%s"' % k)
 
     def is_complete(self):
         """return whether every fields are set or not"""
-        return self.src != '' and self.dst != ''
+        return self.src != '' and self.dst != '' and self.type != ''
 
     def xml(self):
         """return the XML representation of the current instance"""
@@ -268,20 +305,23 @@ class CSMessage:
 
 class ConfigurationMessage(CSMessage):
     """configuration propagation container"""
+    
+    ident = 'CFG'
+    
     def __init__(self):
         """
         """
         CSMessage.__init__(self)
-        self.type = MSG_CFG
+        self.type = ConfigurationMessage.ident
         self.data = ''
 
     def data_encode(self, inst):
         """serialize an instance and store the result"""
-        self.data = cPickle.dumps(inst)
+        self.data = base64.encodestring(cPickle.dumps(inst))
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
-        return cPickle.loads(self.data)
+        return cPickle.loads(base64.decodestring(self.data))
 
     def data_update(self, raw):
         """append data to the instance (used for deserialization)"""
@@ -299,9 +339,7 @@ class ConfigurationMessage(CSMessage):
         generator = XMLGenerator(out)
         msg_attr = {
             'type': self.type,
-            'src': self.src,
-            'dst': self.dst,
-            'id': str(self.id)
+            'msgid': str(self.id)
         }
         generator.startElement('message', msg_attr)
         generator.characters(self.data)
@@ -312,12 +350,15 @@ class ConfigurationMessage(CSMessage):
 
 class ControlMessage(CSMessage):
     """action request"""
+
+    ident = 'CTL'
+
     # TODO : remove hardcoded values (action type, parameters...)
     def __init__(self):
         """
         """
         CSMessage.__init__(self)
-        self.type = MSG_CTL
+        self.type = ControlMessage.ident
         self.action_type = ''
         self.action_target = ''
         self.params = {}
@@ -350,8 +391,7 @@ class ControlMessage(CSMessage):
 
     def is_complete(self):
         """return whether every fields are set or not"""
-        base = CSMessage.is_complete(self)
-        return base \
+        return  CSMessage.is_complete(self) \
             and self.action_type != '' \
             and self.action_target != '' \
             and self._param_got_all()
@@ -363,13 +403,12 @@ class ControlMessage(CSMessage):
         if self.action_type == 'shell':
             expected_params = ['cmd']
         else:
-            # we don't even know what parameters we need
-            return False
+            # unknown action type
+            raise MessageProcessingError('Unknown action type %s' % \
+                self.action_type)
         # ---
-        for p in expected_params:
-            if not self.params.has_key(p):
-                return False
-        return True
+        # '<=' stands for "is subset of" here
+        return expected_params <= self.params.keys()
 
     def xml(self):
         """generate XML version of a control message"""
@@ -377,9 +416,7 @@ class ControlMessage(CSMessage):
         generator = XMLGenerator(out)
         msg_attr = {
             'type': self.type,
-            'src': self.src,
-            'dst': self.dst,
-            'id': str(self.id)
+            'msgid': str(self.id)
         }
         generator.startElement('message', msg_attr)
         action_attr = {
@@ -398,11 +435,14 @@ class ControlMessage(CSMessage):
 
 class ACKMessage(CSMessage):
     """acknowledgement message"""
+
+    ident = 'ACK'
+
     def __init__(self):
         """
         """
         CSMessage.__init__(self)
-        self.type = MSG_ACK
+        self.type = ACKMessage.ident
         self.ack_id = -1
 
     def handle_message(self, attributes):
@@ -425,46 +465,25 @@ class ACKMessage(CSMessage):
         generator = XMLGenerator(out)
         msg_attr = {
             'type': self.type,
-            'src': self.src,
-            'dst': self.dst,
-            'id': str(self.id),
+            'msgid': str(self.id),
             'ack': str(self.ack_id)
         }
         generator.startElement('message', msg_attr)
-        xml_msg = out.getvalue()
-        out.close()
-        return xml_msg
-
-class ExitMessage(CSMessage):
-    """request termination"""
-    def __init__(self):
-        """
-        """
-        CSMessage.__init__(self)
-        self.type = MSG_BYE
-
-    def xml(self):
-        """generate XML version of an exit request message"""
-        out = StringIO()
-        generator = XMLGenerator(out)
-        msg_attr = {
-            'type': self.type,
-            'src': self.src,
-            'dst': self.dst,
-            'id': str(self.id)
-        }
-        generator.startElement('message', msg_attr)
+        generator.endElement('message')
         xml_msg = out.getvalue()
         out.close()
         return xml_msg
 
 class ErrorMessage(CSMessage):
     """error message"""
+
+    ident = 'ERR'
+
     def __init__(self):
         """
         """
         CSMessage.__init__(self)
-        self.type = MSG_ERR
+        self.type = ErrorMessage.ident
         self.reason = ''
 
     def handle_message(self, attributes):
@@ -487,12 +506,11 @@ class ErrorMessage(CSMessage):
         generator = XMLGenerator(out)
         msg_attr = {
             'type': self.type,
-            'src': self.src,
-            'dst': self.dst,
-            'id': str(self.id),
+            'msgid': str(self.id),
             'reason': self.reason,
         }
         generator.startElement('message', msg_attr)
+        generator.endElement('message')
         xml_msg = out.getvalue()
         out.close()
         return xml_msg

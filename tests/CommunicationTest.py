@@ -7,24 +7,27 @@
 """Unit test for Communication"""
 
 import sys
-import time
 import unittest
+import tempfile
+import xml
 
 # profiling imports
 #import cProfile
 #from guppy import hpy
 # ---
 
-from cStringIO import StringIO
-
 sys.path.insert(0, '../lib')
 
-from ClusterShell.Communication import CSMessageFactory, MessagesProcessor
+from ClusterShell.Task import task_self
+
+from ClusterShell.Communication import XMLMsgHandler
+from ClusterShell.Communication import CSMessageFactory
+from ClusterShell.Communication import CommunicationChannel
+from ClusterShell.Communication import CommunicationDriver
 from ClusterShell.Communication import MessageProcessingError
 from ClusterShell.Communication import ConfigurationMessage
 from ClusterShell.Communication import ControlMessage
 from ClusterShell.Communication import ACKMessage
-from ClusterShell.Communication import ExitMessage
 from ClusterShell.Communication import ErrorMessage
 
 
@@ -35,7 +38,7 @@ def gen_cfg():
     msg.id = 0
     msg.src = 'admin'
     msg.dst = 'gateway'
-    msg.data = 'azerty'
+    msg.data = 'KGxwMApJMQphSTIKYUkzCmEu'
     return msg
 
 def gen_ctl():
@@ -58,22 +61,22 @@ def gen_ack():
     msg.ack_id = 123
     return msg
 
-def gen_bye():
-    """return a generic exit message instance"""
-    msg = ExitMessage()
-    msg.id = 0
-    msg.src = 'admin'
-    msg.dst = 'gateway'
-    return msg
-
 def gen_err():
     """return a generic error message instance"""
     msg = ErrorMessage()
     msg.id = 0
     msg.src = 'admin'
     msg.dst = 'gateway'
-    msg.reason = 'something wrong happened'
+    msg.reason = 'bad stuff'
     return msg
+
+# sample message generators
+gen_map = {
+    ConfigurationMessage.ident: gen_cfg,
+    ControlMessage.ident: gen_ctl,
+    ACKMessage.ident: gen_ack,
+    ErrorMessage.ident: gen_err
+}
 
 
 class CommunicationTest(unittest.TestCase):
@@ -83,59 +86,28 @@ class CommunicationTest(unittest.TestCase):
     def testXMLConfigurationMessage(self):
         """test configuration message XML serialization"""
         res = gen_cfg().xml()
-        ref = '<message src="admin" dst="gateway" type="CFG" id="0">azerty</message>'
+        ref = '<message msgid="0" type="CFG">KGxwMApJMQphSTIKYUkzCmEu</message>'
         self.assertEquals(res, ref)
-        
+
     def testXMLControlMessage(self):
         """test control message XML serialization"""
         res = gen_ctl().xml()
-        ref = '<message src="admin" dst="gateway" type="CTL" id="0"><action' \
-              ' type="shell" target="node[0-10]"><param cmd="uname -a"></param>' \
-              '</action></message>'
+        ref = '<message msgid="0" type="CTL">'\
+                '<action type="shell" target="node[0-10]">'\
+                '<param cmd="uname -a"></param></action></message>'
         self.assertEquals(res, ref)
-        
+
     def testXMLACKMessage(self):
         """test acknowledgement message XML serialization"""
         res = gen_ack().xml()
-        ref = '<message ack="123" src="admin" dst="gateway" type="ACK" id="0">'
+        ref = '<message ack="123" msgid="0" type="ACK"></message>'
         self.assertEquals(res, ref)
-        
-    def testXMLExitMessage(self):
-        """test exit message XML serialization"""
-        res = gen_bye().xml()
-        ref = '<message src="admin" dst="gateway" type="BYE" id="0">'
-        self.assertEquals(res, ref)
-        
+
     def testXMLErrorMessage(self):
         """test error message XML serialization"""
         res = gen_err().xml()
-        ref = '<message reason="something wrong happened" src="admin" dst="gateway" type="ERR" id="0">'
+        ref = '<message msgid="0" reason="bad stuff" type="ERR"></message>'
         self.assertEquals(res, ref)
-        
-    def testConfigurationMessageDeserialize(self):
-        """test XML deserialization of every message types"""
-        generik_msg = {
-            'cfg': gen_cfg,
-            'ctl': gen_ctl,
-            'ack': gen_ack,
-            'bye': gen_bye,
-            'err': gen_err
-        }
-        for name, ctor in generik_msg.iteritems():
-            print 'trying %s message' % name
-            i_str = StringIO(ctor().xml())
-            o_str = StringIO()
-
-            proc = MessagesProcessor(i_str, o_str)
-            msg = proc.read_msg()
-
-            self.assertNotEqual(msg, None)
-        
-            msg.id = 0 # this is mandatory as we want to compare this object with
-                       # a generic one whose id is set to zero
-            self.assertEquals(msg.xml(), i_str.getvalue())
-            i_str.close()
-            o_str.close()
 
     def testBuildingInvalidMessage(self):
         """test building invalid messages and ensure exceptions are raised"""
@@ -145,44 +117,120 @@ class CommunicationTest(unittest.TestCase):
 
     def testReadTimeout(self):
         """test read timeout"""
-        read_to = 1.0 # read timeout, in seconds
-        margin = read_to * 0.01 # margin allowed for the test to succeed
-
-        i_str = StringIO()
-        o_str = StringIO()
-
-        proc = MessagesProcessor(i_str, o_str)
-        before = time.time()
-        msg = proc.read_msg(timeout=read_to)
-        end = time.time()
-
-        self.assertEquals(msg, None)
-        self.assertTrue(end - before > read_to - margin)
-        self.assertTrue(end - before < read_to + margin)
+        raise NotImplementedError('This test has not been implemented yet')
 
     def testInvalidMsgStreams(self):
         """test detecting invalid messages"""
         patterns = [
-            '<message src="a" dst="a" type="BLA" id="-1"></message>',
-            '<message src="a" dst="b" type="ACK"><foo></foo></message>',
-            '<message src="a" dst="b" type="CFG"><foo></bar></message>',
-            '<message src="a" dst="b" type="CFG"><foo></message>',
-            '<message src="a" dst="b" type="CTL"><param></param></message>',
-            '<message src="a" dst="b" type="CTL"><param><action target="node123" type="foobar"></action></param></message>',
+            '<message type="BLA" msgid="-1"></message>',
+            '<message type="ACK"></message>',
+            '<message type="ACK" msgid="0" ack="12"><foo></foo></message>',
+            '<message type="ACK" msgid="0" ack="12">some stuff</message>',
+            '<message type="ACK" msgid="123"></message>',
+            '<message type="CFG" msgid="123"><foo></bar></message>',
+            '<message type="CFG" msgid="123"><foo></message>',
+            '<message type="CTL" msgid="123"><param></param></message>',
+            '<message type="CTL" msgid="123"></message>',
+            '<message type="CTL" msgid="123"><param><action target="node123" type="foobar"></action></param></message>',
+            '<message type="CTL" msgid="123"><action type="foobar"></message>',
+            '<message type="CTL" msgid="123"><action type="foobar" target="node1"><param cmd="yeepee"></param></action></message>',
+            '<message type="CTL" msgid="123"><action type="foobar"><param cmd="echo fnords"></param></action></message>',
+            '<message type="CTL" msgid="123"><action type="shell" target="node1"></action></message>',
+            '<message type="CTL" msgid="123"><action type="" target="node1"><param cmd="echo fnords"></param></action></message>',
             '<param cmd=""></param></message>',
+            '<message type="ERR" msgid="123"></message>',
         ]
         for msg_xml in patterns:
-            i_str = StringIO(msg_xml)
-            o_str = StringIO()
-
-            proc = MessagesProcessor(i_str, o_str)
+            parser = xml.sax.make_parser(['IncrementalParser'])
+            parser.setContentHandler(XMLMsgHandler())
+            
+            parser.feed('<?xml version="1.0" encoding="UTF-8"?>\n')
+            parser.feed('<channel src="localhost" dst="localhost">\n')
+            
             try:
-                proc.read_msg()
-            except MessageProcessingError, e:
+                parser.feed(msg_xml)
+            except MessageProcessingError, m:
                 # actually this is Ok, we want this exception to be raised
                 pass
             else:
                 self.fail('Invalid message goes undetected: %s' % msg_xml)
+
+    def testConfigMsgEncoding(self):
+        """test configuration message serialization abilities"""
+        msg = gen_cfg()
+        msg.data = ''
+        inst = {'foo': 'plop', 'blah': 123, 'fnords': 456}
+        msg.data_encode(inst)
+        self.assertEquals(inst, msg.data_decode())
+
+    def testCommunicationChannel(self):
+        """schyzophrenic self communication test"""
+        class _TestingDriver(CommunicationDriver):
+            """internal driver that handle read messages"""
+            def __init__(self, src, dst):
+                """
+                """
+                CommunicationDriver.__init__(self, src, dst)
+                self.queue = []
+                self._counter = 0
+                self._last_id = 0
+
+            def read_msg(self, msg):
+                """process an incoming messages"""
+                self._last_id = msg.id
+                self.queue.append(msg)
+
+            def next_msg(self):
+                """send a messgae if any"""
+                self._counter += 1
+                if self._counter > 1:
+                    self._counter = 0
+                    return None
+                msg = ACKMessage()
+                msg.ack_id = self._last_id
+                return msg
+
+            def validate(self, spec):
+                """check whether the test was successful or not by comparing the
+                current state with the test specifications
+                """
+                for msg_type in spec.iterkeys():
+                    elemt = [p for p in self.queue if p.type == msg_type]
+                    if len(elemt) != spec[msg_type]:
+                        print '%d %s messages but %d expected!' % (len(elemt), \
+                            msg_type, spec[msg_type])
+                        return False
+                return True
+
+        # create a bunch of messages
+        spec = {
+            # msg type: number of samples
+            ConfigurationMessage.ident: 1,
+            ControlMessage.ident: 1,
+            ACKMessage.ident: 1,
+            ErrorMessage.ident: 1
+        }
+        ftest = tempfile.NamedTemporaryFile()
+        ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        ftest.write('<channel src="localhost" dst="localhost">\n')
+        for mtype, count in spec.iteritems():
+            for i in xrange(count):
+                sample = gen_map[mtype]()
+                sample.id = i
+                ftest.write(sample.xml() + '\n')
+        ftest.write('</channel>\n')
+
+        ## write data on the disk
+        # actually we should do more but this seems sufficient
+        ftest.flush()
+
+        driver = _TestingDriver('localhost', 'localhost')
+        chan = CommunicationChannel(driver)
+        task = task_self()
+        task.shell('cat ' + ftest.name, nodes='localhost', handler=chan)
+        task.resume()
+        ftest.close()
+        self.assertEquals(driver.validate(spec), True)
 
 
 def main():
