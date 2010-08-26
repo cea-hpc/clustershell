@@ -37,9 +37,19 @@ ClusterShell inter-nodes communication module
 This module contains the required material for nodes to communicate between each
 others whithin the propagation tree. At the highest level, messages are
 instances of several classes. Then they're converted into XML to be sent over
-SSH links.
+SSH links through a CommunicationChannel instance.
 
 In the other side, XML is parsed and new message objects are instanciated.
+
+Communication channels have been implemented as ClusterShell events handlers.
+Whenever a message chunk is read, the data is given to a SAX XML parser, that
+will use it to create corresponding messages instances through a messages
+factory.
+
+As soon as an instance is ready, it is then passed to a CommunicationDriver. The
+driver is an interface able to get and emit messages instances. Subclassing this
+interface offers the ability to connect whatever logic you want over a
+communication channel.
 """
 
 import cPickle
