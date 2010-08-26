@@ -1,73 +1,95 @@
-# $Id$
+%if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%endif
 
-%define name clustershell
-%define release 1%{?dist}
+Name:          clustershell
+Version:       %{version}
+Release:       4%{?dist}
+Summary:       Python framework for efficient cluster administration
 
-Summary: ClusterShell Python framework
-Name: %{name}
-Version: %{version}
-Release: %{release}
-Source0: %{name}-%{version}.tar.gz
-License: CeCILL-C
-Group: Development/Libraries
-BuildRoot: %{_tmppath}/%{name}-buildroot
-Prefix: %{_prefix}
-BuildArchitectures: noarch
-Vendor: Stephane Thiell <stephane.thiell@cea.fr>
-Url: http://clustershell.sourceforge.net/
+Group:         Development/Libraries
+License:       CeCILL-C
+URL:           http://clustershell.sourceforge.net/
+Source0:       http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+BuildArch:     noarch
+BuildRequires: python-devel python-setuptools vim-common
 
 %description
-ClusterShell is an event-based Python library to execute commands on local
-or distant cluster nodes in parallel depending on the selected engine and
-worker mechanisms. The library provides also advanced nodeset handling
-methods. Finally, clush, clubak and nodeset, three convenient command-line
-tools using the library are included.
+Event-based Python library to execute commands on cluster nodes in parallel
+depending on selected engine and worker mechanisms. The library provides also
+advanced NodeSet and NodeGroups handling methods to ease and improve
+administration of large compute clusters or server farms. Finally, clush,
+clubak and nodeset, three convenient command-line tools allow traditional
+shell scripts to benefit some useful features offered by the library.
+
 
 %prep
-%setup
+%setup -q -n clustershell-%{version}
 
 %build
-python setup.py build
+%{__python} setup.py build
 
 %install
-python setup.py install --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/clustershell
+rm -rf %{buildroot}
+%{__python} setup.py install -O1 --skip-build --root %{buildroot}
+install -d %{buildroot}/%{_sysconfdir}/clustershell
 
-# detecting vim version
-VIMDATADIR=`ls /usr/share/vim/vim[0-9]* -1d | tail -1`
-if [ ! -d "$VIMDATADIR" ]; then
-    VIMDATADIR=%{_datadir}/%{name}/vim
-fi
+# detect vim version
+%define vimdatadir %(ls /usr/share/vim/vim[0-9]* -1d | tail -1)
+%if "%{vimdatadir}" == ""
+%define vimdatadir %{_datadir}/clustershell/vim
+install -d %{buildroot}/%{vimdatadir}
+%endif
 
 # man pages
-mkdir -p $RPM_BUILD_ROOT/%{_mandir}/{man1,man5}
-gzip -c doc/man/man1/clubak.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/clubak.1.gz
-gzip -c doc/man/man1/clush.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/clush.1.gz
-gzip -c doc/man/man1/nodeset.1 >$RPM_BUILD_ROOT/%{_mandir}/man1/nodeset.1.gz
-gzip -c doc/man/man5/clush.conf.5 >$RPM_BUILD_ROOT/%{_mandir}/man5/clush.conf.5.gz
-gzip -c doc/man/man5/groups.conf.5 >$RPM_BUILD_ROOT/%{_mandir}/man5/groups.conf.5.gz
+install -d %{buildroot}/%{_mandir}/{man1,man5}
+install -p -m 0644 doc/man/man1/clubak.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 0644 doc/man/man1/clush.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 0644 doc/man/man1/nodeset.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 0644 doc/man/man5/clush.conf.5 %{buildroot}/%{_mandir}/man5/
+install -p -m 0644 doc/man/man5/groups.conf.5 %{buildroot}/%{_mandir}/man5/
 
 # vim addons
-cp conf/clush.conf conf/groups.conf $RPM_BUILD_ROOT/%{_sysconfdir}/clustershell
-mkdir -p $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
-cp doc/extras/vim/ftdetect/clustershell.vim $RPM_BUILD_ROOT/$VIMDATADIR/ftdetect
-mkdir -p $RPM_BUILD_ROOT/$VIMDATADIR/syntax
-cp doc/extras/vim/syntax/clushconf.vim $RPM_BUILD_ROOT/$VIMDATADIR/syntax
-cp doc/extras/vim/syntax/groupsconf.vim $RPM_BUILD_ROOT/$VIMDATADIR/syntax
-echo $VIMDATADIR/ftdetect/clustershell.vim >>INSTALLED_FILES
-echo $VIMDATADIR/syntax/clushconf.vim >>INSTALLED_FILES
-echo $VIMDATADIR/syntax/groupsconf.vim >>INSTALLED_FILES
+install -p -m 0644 conf/*.conf %{buildroot}/%{_sysconfdir}/clustershell/
+install -d %{buildroot}/%{vimdatadir}/{ftdetect,syntax}
+install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim %{buildroot}/%{vimdatadir}/ftdetect/
+install -p -m 0644 doc/extras/vim/syntax/clushconf.vim %{buildroot}/%{vimdatadir}/syntax/
+install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadir}/syntax/
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
-%files -f INSTALLED_FILES
-%defattr(-,root,root)
+%files
+%defattr(-,root,root,-)
 %doc README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
-%doc %{_mandir}/man1/clubak.1.gz
-%doc %{_mandir}/man1/clush.1.gz
-%doc %{_mandir}/man1/nodeset.1.gz
-%doc %{_mandir}/man5/clush.conf.5.gz
-%doc %{_mandir}/man5/groups.conf.5.gz
+%{_mandir}/man1/clubak.1*
+%{_mandir}/man1/clush.1*
+%{_mandir}/man1/nodeset.1*
+%{_mandir}/man5/clush.conf.5*
+%{_mandir}/man5/groups.conf.5*
 %config(noreplace) %{_sysconfdir}/clustershell/clush.conf
 %config(noreplace) %{_sysconfdir}/clustershell/groups.conf
+%{python_sitelib}/ClusterShell/
+%{python_sitelib}/ClusterShell-*-py?.?.egg-info
+%{_bindir}/clubak
+%{_bindir}/clush
+%{_bindir}/nodeset
+%{vimdatadir}/ftdetect/clustershell.vim
+%{vimdatadir}/syntax/clushconf.vim
+%{vimdatadir}/syntax/groupsconf.vim
+
+%changelog
+* Sun Aug 22 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3-4
+- fixed BuildRoot tag in accordance with EPEL guidelines
+- python_sitelib definition: prefer global vs define
+- preserve timestamps and fix permissions when installing files
+
+* Sat Aug 21 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3-3
+- use a full URL to the package in Source0
+
+* Fri Aug 20 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3-2
+- various improvements per first review request
+
+* Thu Aug 19 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3-1
+- initial build candidate for Fedora
