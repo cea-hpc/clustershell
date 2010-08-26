@@ -55,8 +55,9 @@ Messages are forwarded in the tree using a router, shared between the nodes
 import time
 
 from ClusterShell.NodeSet import NodeSet
-
-
+from ClusterShell.Task import Task, task_self
+from ClusterShell.Event import EventHandler
+from ClusterShell.Communication import CommunicationChannel, CommunicationDriver
 
 class PropagationNode:
     """base class that implements common operations and attributes for every
@@ -74,7 +75,7 @@ class PropagationNode:
 
     def _dbg(self, msg):
         """debug method: print sth out"""
-        print '<%s>: %s' % (self.name, msg)
+        #print '<%s>: %s' % (self.name, msg)
         pass
 
     def __str__(self):
@@ -91,6 +92,7 @@ class CommunicatingNode(PropagationNode):
         """
         PropagationNode.__init__(self, name, tree)
         self.connected = []
+        self.active_connections = 0
 
     def recv_message(self, msg):
         """this method is a stub to simulate communication between nodes"""
@@ -211,17 +213,17 @@ class PropagationTreeRouter:
     def _best_next_hop(self, candidates):
         """find out a good next hop gateway"""
         backup = None
-        backup_connected = 1e400 # infinity
+        backup_connections = 1e400 # infinity
 
         for host in candidates:
             if host not in self._unreachable_hosts:
-                connected = len(self.nodes_table[host].connected)
-                if connected < self.fanout:
+                connections = self.nodes_table[host].active_connections
+                if connections < self.fanout:
                     # currently, the first one is the best
                     return host
-                if backup_connected > connected:
+                if backup_connections > connections:
                     backup = host
-                    backup_connected = connected
+                    backup_connections = connections
         return backup
 
 class PropagationTree:
@@ -285,14 +287,28 @@ class PropagationTree:
 
     def execute(self, cmd):
         """execute `cmd' on the nodeset specified at loading"""
-        admin = self.nodes[self.admin]
+        task = task_self()
+        next_hops = self._distribute()
+        for gw, target in next_hops.iteritems():
+            admin_driver = PropagationDriver(self.admin, gw)
+            channel = CommunicationChannel(admin_driver)
+            # TODO : remove hardcoded timeout & script name
+            task.shell('gateway.py', nodes=gw, handler=channel, timeout=4)
+        task.resume()
+
+    def _distribute(self):
+        """distribute target nodes between next hop gateways"""
+        # TODO : bad performances issue
+        distribution = {}
         for node in self.targets:
-            msg = PropagationMessage()
-            msg.src = admin.name
-            msg.dst = node
-            msg.add_info('msgtype', PropagationMessage.TYPE_TASK_SHELL)
-            msg.add_info('task', cmd)
-            admin.send_message(msg)
+            gw = self.next_hop(self.admin, node)
+            gw_name = gw.name
+            if distribution.has_key(gw_name):
+                distribution[gw_name].add(node)
+            else:
+                distribution[gw_name] = NodeSet(node)
+            gw.active_connections += 1
+        return distribution
 
     def __getitem__(self, nodename):
         """return a reference on the instance of a node given a node name"""
@@ -305,6 +321,29 @@ class PropagationTree:
     def mark_unreachable(self, dst):
         """routing operation: mark an host as unreachable"""
         return self.router.mark_unreachable(dst)
+
+class PropagationDriver(CommunicationDriver):
+    """Admin node propagation logic. Instances are able to handle incoming
+    messages from a directly connected gateway, process them and reply.
+
+    In order to take decisions, the instance acts as a finite states machine,
+    whose current state evolves according to received data.
+    """
+    def __init__(self, src, dst):
+        """
+        """
+        CommunicationDriver.__init__(self, src, dst)
+        # TODO: implement state machine
+
+    def read_msg(self, msg):
+        """
+        """
+        pass
+
+    def next_msg(self):
+        """
+        """
+        pass
 
 class PropagationMessage:
     """message to a node. This is just a stub"""
