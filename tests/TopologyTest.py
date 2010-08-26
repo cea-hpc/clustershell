@@ -130,21 +130,21 @@ class TopologyTest(unittest.TestCase):
 
     @chrono
     def testTopologyGraphManyRoutes(self):
-        """test adding 200 routes (400+ nodes)"""
+        """test adding 80 routes"""
         g = TopologyGraph()
 
         ns_begin = NodeSet('admin')
         ns_end = NodeSet('nodes[0-1]')
         g.add_route(ns_begin, ns_end)
 
-        for i in xrange(0, 200*2, 2):
+        for i in xrange(0, 80*2, 2):
             ns_begin = NodeSet('nodes[%d-%d]' % (i, i+1))
             ns_end = NodeSet('nodes[%d-%d]' % (i+2, i+3))
             g.add_route(ns_begin, ns_end)
             self.assertEqual(g.dest(ns_begin), ns_end)
 
         tree = g.to_tree('admin')
-        ns_all = NodeSet('admin,nodes[0-401]')
+        ns_all = NodeSet('admin,nodes[0-161]')
         ns_tree = NodeSet()
         for nodegroup in tree:
            ns_tree.add(nodegroup.nodeset)
