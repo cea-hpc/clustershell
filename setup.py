@@ -33,7 +33,7 @@
 #
 # $Id$
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 import os
 
 if not os.access('scripts/clubak', os.F_OK):
@@ -51,9 +51,7 @@ setup(name='ClusterShell',
       author_email='stephane.thiell@cea.fr',
       url='http://clustershell.sourceforge.net/',
       package_dir={'': 'lib'},
-      packages=['ClusterShell',
-               'ClusterShell.Engine',
-               'ClusterShell.Worker'],
+      packages=find_packages('lib'),
       scripts=['scripts/clubak',
                'scripts/clush',
                'scripts/nodeset']
