@@ -133,6 +133,7 @@ class DistantWorker(Worker):
 
         self._last_node = None
         self._last_msg = None
+        self._last_errmsg = None
         self._last_rc = 0
         self.started = False
 
@@ -324,7 +325,9 @@ class WorkerSimple(EngineClient, Worker):
         Worker.__init__(self, handler)
         EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
-        self.last_msg = None
+        self._last_msg = None
+        self._last_errmsg = None
+
         if key is None: # allow key=0
             self.key = self
         else:
@@ -446,20 +449,20 @@ class WorkerSimple(EngineClient, Worker):
         """
         Read last msg, useful in an EventHandler.
         """
-        return self.last_msg
+        return self._last_msg
 
     def last_error(self):
         """
         Get last error message from event handler.
         """
-        return self.last_errmsg
+        return self._last_errmsg
 
     def _on_msgline(self, msg):
         """
         Add a message.
         """
         # add last msg to local buffer
-        self.last_msg = msg
+        self._last_msg = msg
 
         # update task
         self.task._msg_add((self, self.key), msg)
@@ -471,7 +474,7 @@ class WorkerSimple(EngineClient, Worker):
         Add a message.
         """
         # add last msg to local buffer
-        self.last_errmsg = msg
+        self._last_errmsg = msg
 
         # update task
         self.task._errmsg_add((self, self.key), msg)
