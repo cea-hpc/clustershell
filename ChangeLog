@@ -1,5 +1,10 @@
 2010-08-29 S. Thiell <stephane.thiell@cea.fr>
 
+	* Task.py: Add docstring for timer's autoclose feature (trac ticket #109).
+
+	* Worker/Worker.py: Attribute 'last_errmsg' not properly initialized (trac
+	ticket #107).
+
 	* setup.py: Switch to setuptools.
 
     * clustershell.spec.in: Fix issue on el5 with if condition when defining

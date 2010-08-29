@@ -551,7 +551,31 @@ class Task(object):
     @tasksyncmethod()
     def timer(self, fire, handler, interval=-1.0, autoclose=False):
         """
-        Create task's timer.
+        Create a timer bound to this task that fires at a preset time
+        in the future by invoking the ev_timer() method of `handler'
+        (provided EventHandler object). Timers can fire either only
+        once or repeatedly at fixed time intervals. Repeating timers
+        can also have their next firing time manually adjusted.
+
+        The mandatory parameter `fire' sets the firing delay in seconds.
+        
+        The optional parameter `interval' sets the firing interval of
+        the timer. If not specified, the timer fires once and then is
+        automatically invalidated.
+
+        Time values are expressed in second using floating point
+        values. Precision is implementation (and system) dependent.
+
+        The optional parameter `autoclose', if set to True, creates
+        an "autoclosing" timer: it will be automatically invalidated
+        as soon as all other non-autoclosing task's objects (workers,
+        ports, timers) have finished. Default value is False, which
+        means the timer will retain task's runloop until it is
+        invalidated.
+
+        Return a new EngineTimer instance.
+
+        See ClusterShell.Engine.Engine.EngineTimer for more details.
         """
         assert fire >= 0.0, \
             "timer's relative fire time must be a positive floating number"
