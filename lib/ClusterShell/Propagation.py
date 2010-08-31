@@ -57,7 +57,7 @@ import time
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import Task, task_self
 from ClusterShell.Event import EventHandler
-from ClusterShell.Communication import CommunicationChannel, CommunicationDriver
+from ClusterShell.Communication import Channel, Driver
 
 class PropagationNode:
     """base class that implements common operations and attributes for every
@@ -291,9 +291,9 @@ class PropagationTree:
         next_hops = self._distribute()
         for gw, target in next_hops.iteritems():
             admin_driver = PropagationDriver(self.admin, gw)
-            channel = CommunicationChannel(admin_driver)
+            channel = Channel(admin_driver)
             # TODO : remove hardcoded timeout & script name
-            task.shell('gateway.py', nodes=gw, handler=channel, timeout=4)
+            task.shell('python -m gateway', nodes=gw, handler=channel, timeout=4)
         task.resume()
 
     def _distribute(self):
@@ -322,7 +322,7 @@ class PropagationTree:
         """routing operation: mark an host as unreachable"""
         return self.router.mark_unreachable(dst)
 
-class PropagationDriver(CommunicationDriver):
+class PropagationDriver(Driver):
     """Admin node propagation logic. Instances are able to handle incoming
     messages from a directly connected gateway, process them and reply.
 
@@ -332,7 +332,7 @@ class PropagationDriver(CommunicationDriver):
     def __init__(self, src, dst):
         """
         """
-        CommunicationDriver.__init__(self, src, dst)
+        Driver.__init__(self, src, dst)
         # TODO: implement state machine
 
     def read_msg(self, msg):

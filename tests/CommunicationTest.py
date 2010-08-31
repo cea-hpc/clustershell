@@ -20,10 +20,7 @@ sys.path.insert(0, '../lib')
 
 from ClusterShell.Task import task_self
 
-from ClusterShell.Communication import XMLMsgHandler
-from ClusterShell.Communication import CSMessageFactory
-from ClusterShell.Communication import CommunicationChannel
-from ClusterShell.Communication import CommunicationDriver
+from ClusterShell.Communication import XMLReader, Channel, Driver
 from ClusterShell.Communication import MessageProcessingError
 from ClusterShell.Communication import ConfigurationMessage
 from ClusterShell.Communication import ControlMessage
@@ -35,38 +32,31 @@ from ClusterShell.Communication import ErrorMessage
 def gen_cfg():
     """return a generic configuration message instance"""
     msg = ConfigurationMessage()
-    msg.id = 0
-    msg.src = 'admin'
-    msg.dst = 'gateway'
+    msg.msgid = 0
     msg.data = 'KGxwMApJMQphSTIKYUkzCmEu'
     return msg
 
 def gen_ctl():
     """return a generic control message instance"""
     msg = ControlMessage()
-    msg.id = 0
-    msg.src = 'admin'
-    msg.dst = 'gateway'
-    msg.action_type = 'shell'
-    msg.action_target = 'node[0-10]'
-    msg.params['cmd'] = 'uname -a'
+    msg.msgid = 0
+    msg.action = 'shell'
+    msg.targets = 'node[0-10]'
+    params = {'cmd': 'uname -a'}
+    msg.data_encode(params)
     return msg
 
 def gen_ack():
     """return a generic acknowledgement message instance"""
     msg = ACKMessage()
-    msg.id = 0
-    msg.src = 'admin'
-    msg.dst = 'gateway'
-    msg.ack_id = 123
+    msg.msgid = 0
+    msg.ack = 123
     return msg
 
 def gen_err():
     """return a generic error message instance"""
     msg = ErrorMessage()
-    msg.id = 0
-    msg.src = 'admin'
-    msg.dst = 'gateway'
+    msg.msgid = 0
     msg.reason = 'bad stuff'
     return msg
 
@@ -92,9 +82,8 @@ class CommunicationTest(unittest.TestCase):
     def testXMLControlMessage(self):
         """test control message XML serialization"""
         res = gen_ctl().xml()
-        ref = '<message msgid="0" type="CTL">'\
-                '<action type="shell" target="node[0-10]">'\
-                '<param cmd="uname -a"></param></action></message>'
+        ref = '<message action="shell" msgid="0" type="CTL" targets="node[0-10]">' \
+            'KGRwMQpTJ2NtZCcKcDIKUyd1bmFtZSAtYScKcDMKcy4=</message>'
         self.assertEquals(res, ref)
 
     def testXMLACKMessage(self):
@@ -109,15 +98,9 @@ class CommunicationTest(unittest.TestCase):
         ref = '<message msgid="0" reason="bad stuff" type="ERR"></message>'
         self.assertEquals(res, ref)
 
-    def testBuildingInvalidMessage(self):
-        """test building invalid messages and ensure exceptions are raised"""
-        factory = CSMessageFactory()
-        self.assertRaises(MessageProcessingError, factory.new, {'foo': 'bar'})
-        self.assertRaises(MessageProcessingError, factory.new, {'type': -1})
-
-    def testReadTimeout(self):
-        """test read timeout"""
-        raise NotImplementedError('This test has not been implemented yet')
+    #def testReadTimeout(self):
+    #    """test read timeout"""
+    #    raise NotImplementedError('This test has not been implemented yet')
 
     def testInvalidMsgStreams(self):
         """test detecting invalid messages"""
@@ -139,10 +122,12 @@ class CommunicationTest(unittest.TestCase):
             '<message type="CTL" msgid="123"><action type="" target="node1"><param cmd="echo fnords"></param></action></message>',
             '<param cmd=""></param></message>',
             '<message type="ERR" msgid="123"></message>',
+            '<message type="ERR" msgid="123" reason="blah">unexpected payload</message>',
+            '<message type="ERR" msgid="123" reason="blah"><foo bar="boo"></foo></message>',
         ]
         for msg_xml in patterns:
             parser = xml.sax.make_parser(['IncrementalParser'])
-            parser.setContentHandler(XMLMsgHandler())
+            parser.setContentHandler(XMLReader())
             
             parser.feed('<?xml version="1.0" encoding="UTF-8"?>\n')
             parser.feed('<channel src="localhost" dst="localhost">\n')
@@ -163,32 +148,38 @@ class CommunicationTest(unittest.TestCase):
         msg.data_encode(inst)
         self.assertEquals(inst, msg.data_decode())
 
-    def testCommunicationChannel(self):
+    def testDriverAbstractMethods(self):
+        """test driver interface"""
+        d = Driver('spam', 'egg')
+        self.assertRaises(NotImplementedError, d.recv, None)
+        self.assertRaises(NotImplementedError, d.run)
+
+    def testChannel(self):
         """schyzophrenic self communication test"""
-        class _TestingDriver(CommunicationDriver):
+        class _TestingDriver(Driver):
             """internal driver that handle read messages"""
             def __init__(self, src, dst):
                 """
                 """
-                CommunicationDriver.__init__(self, src, dst)
+                Driver.__init__(self, src, dst)
                 self.queue = []
-                self._counter = 0
+                self._counter = 1
                 self._last_id = 0
 
-            def read_msg(self, msg):
+            def recv(self, msg):
                 """process an incoming messages"""
-                self._last_id = msg.id
+                self._last_id = msg.msgid
                 self.queue.append(msg)
-
-            def next_msg(self):
-                """send a messgae if any"""
-                self._counter += 1
-                if self._counter > 1:
-                    self._counter = 0
-                    return None
                 msg = ACKMessage()
-                msg.ack_id = self._last_id
-                return msg
+                msg.ack = self._last_id
+                self.send(msg)
+                self._counter += 1
+                if self._counter == 4:
+                    self.exit = True
+                    self.channel.close(self.worker)
+
+            def run(self):
+                self.channel.open(self.worker)
 
             def validate(self, spec):
                 """check whether the test was successful or not by comparing the
@@ -216,7 +207,7 @@ class CommunicationTest(unittest.TestCase):
         for mtype, count in spec.iteritems():
             for i in xrange(count):
                 sample = gen_map[mtype]()
-                sample.id = i
+                sample.msgid = i
                 ftest.write(sample.xml() + '\n')
         ftest.write('</channel>\n')
 
@@ -224,11 +215,15 @@ class CommunicationTest(unittest.TestCase):
         # actually we should do more but this seems sufficient
         ftest.flush()
 
-        driver = _TestingDriver('localhost', 'localhost')
-        chan = CommunicationChannel(driver)
+        hostname = 'localhost'
+
+        driver = _TestingDriver(hostname, hostname)
+        chan = Channel(driver)
+
         task = task_self()
-        task.shell('cat ' + ftest.name, nodes='localhost', handler=chan)
+        task.shell('cat ' + ftest.name, nodes=hostname, handler=chan)
         task.resume()
+
         ftest.close()
         self.assertEquals(driver.validate(spec), True)
 
