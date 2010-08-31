@@ -150,18 +150,18 @@ class CommunicationTest(unittest.TestCase):
 
     def testDriverAbstractMethods(self):
         """test driver interface"""
-        d = Driver('spam', 'egg')
+        d = Driver()
         self.assertRaises(NotImplementedError, d.recv, None)
-        self.assertRaises(NotImplementedError, d.run)
+        self.assertRaises(NotImplementedError, d.start)
 
     def testChannel(self):
         """schyzophrenic self communication test"""
         class _TestingDriver(Driver):
             """internal driver that handle read messages"""
-            def __init__(self, src, dst):
+            def __init__(self):
                 """
                 """
-                Driver.__init__(self, src, dst)
+                Driver.__init__(self)
                 self.queue = []
                 self._counter = 1
                 self._last_id = 0
@@ -178,7 +178,7 @@ class CommunicationTest(unittest.TestCase):
                     self.exit = True
                     self.channel.close(self.worker)
 
-            def run(self):
+            def start(self):
                 self.channel.open(self.worker)
 
             def validate(self, spec):
@@ -217,8 +217,8 @@ class CommunicationTest(unittest.TestCase):
 
         hostname = 'localhost'
 
-        driver = _TestingDriver(hostname, hostname)
-        chan = Channel(driver)
+        driver = _TestingDriver()
+        chan = Channel(hostname, hostname, driver)
 
         task = task_self()
         task.shell('cat ' + ftest.name, nodes=hostname, handler=chan)

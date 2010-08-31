@@ -151,20 +151,19 @@ class Channel(EventHandler):
     Instances use a driver that describes their behavior, and send/recv messages
     over the channel.
     """
-    def __init__(self, driver):
+    def __init__(self, src, dst, driver):
         """
         """
         EventHandler.__init__(self)
         self.driver = driver
         driver.channel = self
+
+        self.src = src
+        self.dst = dst
+
         self._handler = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
         self._parser.setContentHandler(self._handler)
-
-    def ev_start(self, worker):
-        """connection established. Open higher level channel"""
-        self.driver.worker = worker
-        self.driver.run()
 
     def open(self, worker):
         """open a new communication channel from src to dst"""
@@ -172,8 +171,8 @@ class Channel(EventHandler):
         out = StringIO()
         generator = XMLGenerator(out)
         channel_attr = {
-            'src': self.driver.src,
-            'dst': self.driver.dst
+            'src': self.src,
+            'dst': self.dst
         }
         generator.startElement('channel', channel_attr)
         worker.write(opener + out.getvalue())
@@ -184,6 +183,11 @@ class Channel(EventHandler):
         generator = XMLGenerator(out)
         generator.endElement('channel')
         worker.write(out.getvalue())
+
+    def ev_start(self, worker):
+        """connection established. Open higher level channel"""
+        self.driver.worker = worker
+        self.driver.start()
 
     def ev_read(self, worker):
         """channel has data to read"""
@@ -201,17 +205,27 @@ class Channel(EventHandler):
         #self._parser.close()
 
 class Driver:
-    """describes the behavior of a communicating node"""
-    def __init__(self, src, dst):
+    """Describes the behavior of a communicating node. A driver contains the
+    logic to apply at the endpoint of a communication channel.
+    
+    This class is an interface, or abstract class, that requires to be
+    subclassed.
+
+    Usage:
+      >> drv = MyDriver() # implement abstract methods
+      >> chan = Channel('host1', 'host2', drv)
+      >> task = task_self()
+      >> task.shell("uname -a", node="host2", handler=chan)
+      >> task.resume()
+    """
+    def __init__(self):
         """
         """
         self.exit = False
-        self.src = src
-        self.dst = dst
-        self.channel = None # will be externally set by the channel
-        self.worker = None
+        self.worker = None # will be externally set by the channel
+        self.channel = None # likewise
 
-    def run(self):
+    def start(self):
         """main logic"""
         raise NotImplementedError('Abstract method: subclasses must implement')
     
@@ -220,7 +234,7 @@ class Driver:
         raise NotImplementedError('Abstract method: subclasses must implement')
 
     def send(self, msg):
-        """return next outgoing message"""
+        """write an outgoing message as its XML representation"""
         self.worker.write(msg.xml())
 
 class Message:
