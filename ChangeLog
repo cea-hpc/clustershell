@@ -1,3 +1,8 @@
+2010-08-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Fixed Task.timer() when called from another thread - it used to
+	return None (trac ticket #112).
+
 2010-08-29 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Add docstring for timer's autoclose feature (trac ticket #109).

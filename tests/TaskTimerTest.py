@@ -7,8 +7,9 @@
 """Unit test for ClusterShell Task's timer"""
 
 import copy
-import sys
+import thread
 from time import sleep, time
+import sys
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -432,6 +433,18 @@ class TaskTimerTest(unittest.TestCase):
         task._engine.add_timer(timer)
         task._engine.remove_timer(timer)
         task_terminate()
+
+    def _thread_timer_create_func(self, task):
+        """thread used to create a timer for another task; hey why not?"""
+        timer = task.timer(0.5, self.__class__.TSimpleTimerChecker())
+        self.assert_(timer != None)
+
+    def testTimerAddFromAnotherThread(self):
+        """test timer creation from another thread"""
+        task = task_self()
+        thread.start_new_thread(TaskTimerTest._thread_timer_create_func, (self, task))
+        task.resume()
+        task_wait()
 
 
 if __name__ == '__main__':
