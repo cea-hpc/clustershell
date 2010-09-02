@@ -245,7 +245,7 @@ class Message:
     def __init__(self):
         """
         """
-        self.attr = ['type', 'msgid']
+        self.attr = {'type': str, 'msgid': int}
         self.type = Message.ident
         self.msgid = Message._inst_counter
         self.data = ''
@@ -278,9 +278,9 @@ class Message:
 
     def handle_message(self, attributes):
         """handle a "message" section"""
-        for k in self.attr:
+        for k, format in self.attr.iteritems():
             if attributes.has_key(k):
-                self.__dict__[k] = attributes[k]
+                self.__dict__[k] = format(attributes[k])
             else:
                 raise MessageProcessingError(
                     'Invalid "message" attributes: missing key "%s"' % k)
@@ -321,8 +321,10 @@ class ControlMessage(Message):
         """
         """
         Message.__init__(self)
-        self.attr += ['action', 'targets']
+        self.attr.update({'action': str, 'target': str})
         self.type = ControlMessage.ident
+        self.action = ''
+        self.target = ''
 
 class ACKMessage(Message):
     """acknowledgement message"""
@@ -332,8 +334,9 @@ class ACKMessage(Message):
         """
         """
         Message.__init__(self)
-        self.attr += ['ack']
+        self.attr.update({'ack': int})
         self.type = ACKMessage.ident
+        self.ack = 0
 
     def data_update(self, raw):
         """override method to ensure that incoming ACK messages don't contain
@@ -349,8 +352,9 @@ class ErrorMessage(Message):
         """
         """
         Message.__init__(self)
-        self.attr += ['reason']
+        self.attr.update({'reason': str})
         self.type = ErrorMessage.ident
+        self.reason = ''
 
     def data_update(self, raw):
         """override method to ensure that incoming ACK messages don't contain

@@ -41,7 +41,7 @@ def gen_ctl():
     msg = ControlMessage()
     msg.msgid = 0
     msg.action = 'shell'
-    msg.targets = 'node[0-10]'
+    msg.target = 'node[0-10]'
     params = {'cmd': 'uname -a'}
     msg.data_encode(params)
     return msg
@@ -82,7 +82,7 @@ class CommunicationTest(unittest.TestCase):
     def testXMLControlMessage(self):
         """test control message XML serialization"""
         res = gen_ctl().xml()
-        ref = '<message action="shell" msgid="0" type="CTL" targets="node[0-10]">' \
+        ref = '<message action="shell" msgid="0" type="CTL" target="node[0-10]">' \
             'KGRwMQpTJ2NtZCcKcDIKUyd1bmFtZSAtYScKcDMKcy4=</message>'
         self.assertEquals(res, ref)
 
