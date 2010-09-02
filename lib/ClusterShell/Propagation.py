@@ -148,6 +148,8 @@ class PropagationTreeRouter:
 
         for host in candidates:
             if host not in self._unreachable_hosts:
+                # the router tracks established connections in the nodes_fanin
+                # table to avoid overloading a gateway
                 connections = self.nodes_fanin.setdefault(host, 0)
                 if connections < self.fanout:
                     # currently, the first one is the best
@@ -170,7 +172,7 @@ class PropagationTree:
         self.admin = admin
         # builtin router
         self.router = PropagationTreeRouter(admin, topology)
-        # communication endpoint
+        # command to invoke remote communication endpoint
         self.invoke_gateway = 'python -m gateway.py'
 
     def execute(self, cmd, nodes, fanout=32, timeout=4):
@@ -214,6 +216,26 @@ class PropagationDriver(Driver):
 
     In order to take decisions, the instance acts as a finite states machine,
     whose current state evolves according to received data.
+
+    -- INTERNALS --
+    Instance can be in one of the 4 different states:
+      - init
+        This is the very first state. The instance enters the init state at
+        start() method, and will then send the configuration to the remote node.
+        Once the configuration is sent away, the state changes to cfg.
+
+      - cfg
+        During this second state, the instance will wait for a valid
+        acknowledgement from the gateway to the previously sent configuration
+        message. If such a message is delivered, the control message (the one
+        that contains the actions to perform) is sent, and the state is set to ctl.
+
+      - ctl
+        Third state, the instance is waiting for a valid ack for from the
+        gateway to the ctl packet. Then, the state switch to gtr (gather).
+
+      - gtr
+        Final state: wait for results from the subtree and store them.
     """
     def __init__(self, cmd, target, topology):
         """
@@ -266,7 +288,9 @@ class PropagationDriver(Driver):
 
     def _state_gather(self, msg):
         """handle incoming messages for state 'gather results'"""
-        # !! this class, and especially this method, is stub to be improved !! #
+        # Storing incoming results in a stack will allow us to rebuild the final
+        # string with the fast str.join function
+        # This method should use a ClusterShell.MessageTree instance.
         self.results.append(msg.data_decode())
 
 class RoutesResolvingError(Exception):
