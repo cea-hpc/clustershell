@@ -34,7 +34,7 @@ def chrono(func):
 
 class TopologyTest(unittest.TestCase):
 
-    @chrono
+    #@chrono
     def testTopologyGraphGeneration(self):
         """test graph generation"""
         g = TopologyGraph()
@@ -43,7 +43,7 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns1, ns2)
         self.assertEqual(g.dest(ns1), ns2)
 
-    @chrono
+    #@chrono
     def testTopologyGraphNoOverlap(self):
         """test invalid routes detection"""
         g = TopologyGraph()
@@ -114,7 +114,7 @@ class TopologyTest(unittest.TestCase):
             ns_all.difference_update(nodegroup.nodeset)
         self.assertEqual(len(ns_all), 0)
 
-    @chrono
+    #@chrono
     def testTopologyGraphBigGroups(self):
         """test adding huge nodegroups in routes"""
         g = TopologyGraph()
@@ -128,7 +128,7 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns2, ns3)
         self.assertEqual(g.dest(ns2), ns3)
 
-    @chrono
+    #@chrono
     def testTopologyGraphManyRoutes(self):
         """test adding 80 routes"""
         g = TopologyGraph()
@@ -150,7 +150,7 @@ class TopologyTest(unittest.TestCase):
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(ns_all, ns_tree)
 
-    @chrono
+    #@chrono
     def testConfigurationParser(self):
         """test configuration parsing"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -170,7 +170,7 @@ class TopologyTest(unittest.TestCase):
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(ns_all, ns_tree)
 
-    @chrono
+    #@chrono
     def testConfigurationShortSyntax(self):
         """test short topology specification syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -189,7 +189,7 @@ class TopologyTest(unittest.TestCase):
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(ns_all, ns_tree)
 
-    @chrono
+    #@chrono
     def testConfigurationLongSyntax(self):
         """test detailed topology description syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -215,7 +215,7 @@ class TopologyTest(unittest.TestCase):
         self.assertEqual(ns_all, ns_tree)
 
 
-    @chrono
+    #@chrono
     def testConfigurationParserDeepTree(self):
         """test a configuration that generates a deep tree"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -237,7 +237,7 @@ class TopologyTest(unittest.TestCase):
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(ns_all, ns_tree)
 
-    @chrono
+    #@chrono
     def testConfigurationParserBigTree(self):
         """test configuration parser against big propagation tree"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -255,11 +255,8 @@ class TopologyTest(unittest.TestCase):
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(ns_all, ns_tree)
-        #print hpy().heap()
-        #print hpy().heap().more
-        #print hpy().heap().more.more
 
-    @chrono
+    #@chrono
     def testConfigurationParserConvergentPaths(self):
         """convergent paths detection"""
         tmpfile = tempfile.NamedTemporaryFile()

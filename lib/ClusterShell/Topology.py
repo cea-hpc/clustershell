@@ -189,6 +189,19 @@ class TopologyTree:
         """
         """
         self.root = None
+        self.groups = []
+
+    def load(self, rootnode):
+        """
+        """
+        self.root = rootnode
+
+        stack = [rootnode]
+        while len(stack) > 0:
+            curr = stack.pop()
+            self.groups.append(curr)
+            if curr.children_len() > 0:
+                stack += curr.children()
 
     def __iter__(self):
         """provide an iterator on the tree's elements"""
@@ -281,7 +294,7 @@ class TopologyRoutingTable:
         return iter(self._routes)
 
     def _introduce_circular_reference(self, route):
-        """check for loops that were introduced on adding routes"""
+        """check whether the last added route adds a topology loop or not"""
         current_ns = route.dst
         # iterate over the destinations until we find None or we come back on
         # the src
@@ -294,7 +307,7 @@ class TopologyRoutingTable:
             current_ns = _dest
 
     def _introduce_convergent_paths(self, route):
-        """check for convergent paths"""
+        """check for undesired convergent paths"""
         for known_route in self._routes:
             # source cannot be a superset of an already known destination
             if route.src > known_route.dst:
@@ -341,7 +354,7 @@ class TopologyGraph:
         # ensure this is a valid pseudo-tree
         self._validate(root)
         tree = TopologyTree()
-        tree.root = self._nodegroups[self._root]
+        tree.load(self._nodegroups[self._root])
         return tree
 
     def __str__(self):
