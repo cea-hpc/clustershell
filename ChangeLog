@@ -1,4 +1,14 @@
 2010-08-31 H. Doreau <henri.doreau@gmail.com>
+	* Propagation.py: This module has been completely rewritten. It doesn't
+	differenciate the topology nodes anymore, but simply use the topology
+	tree to generate efficient routing tables. The router is much more
+	efficient right now, and will behaves differently on each node.
+
+	Also improved integration with the recent Communication module.
+
+	* tests/PropagationTest.py: Also completely rewritten indeed.
+
+2010-08-31 H. Doreau <henri.doreau@gmail.com>
 	
 	* Communication.py: Refactored the code to improve cleanliness and
 	flexibility. The Messages are now implemented as small pieces of code,

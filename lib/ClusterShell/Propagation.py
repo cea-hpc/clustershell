@@ -34,172 +34,103 @@
 # $Id$
 
 """
-ClusterShell propagation module
-
-The ClusterShell's commands propagation tree consists of three different kind of
-nodes:
-  - admin node: at the root of the tree
-  - gateways nodes: that forward commands from the root to the leaves, and
-    harvest outputs from their subtree to send it to the root.
-  - edge nodes: the leaves of the tree, that simply receive and execute
-    commands.
-
-This module contains everything needed to convert a TopologyTree, with
-undifferenciated nodes, into a PropagationTree, made of an admin node, gateways
-and edge nodes.
-
-Specialized nodes are able to communicate using a message passing system.
-Messages are forwarded in the tree using a router, shared between the nodes
+ClusterShell Propagation module. Use the topology tree to send commands through
+gateways, and gather results.
 """
 
-import time
 
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import Task, task_self
-from ClusterShell.Event import EventHandler
+from ClusterShell.Task import task_self
 from ClusterShell.Communication import Channel, Driver
+from ClusterShell.Communication import ConfigurationMessage
+from ClusterShell.Communication import ControlMessage
 
-class PropagationNode:
-    """base class that implements common operations and attributes for every
-    nodes of the propagation tree
-    """
-    def __init__(self, name, tree):
-        """
-        """
-        self.name = name
-        # the propagation tree we're in
-        self.tree = tree
-        # parent and children nodesets
-        self.parents = None
-        self.children = None
-
-    def _dbg(self, msg):
-        """debug method: print sth out"""
-        #print '<%s>: %s' % (self.name, msg)
-        pass
-
-    def __str__(self):
-        """printable representation of the node"""
-        return self.name
-
-class CommunicatingNode(PropagationNode):
-    """subclass that provides inter nodes communication code. both admin and
-    gateways are communicating nodes. Edge nodes are not, as they are only
-    reachable by volatile SSH connections to execute commands.
-    """
-    def __init__(self, name, tree):
-        """
-        """
-        PropagationNode.__init__(self, name, tree)
-        self.connected = []
-        self.active_connections = 0
-
-    def recv_message(self, msg):
-        """this method is a stub to simulate communication between nodes"""
-        if msg.dst != self.name:
-            raise InvalidMessageError(
-                'Received message at %s while destination set for %s' \
-                % (self.name, msg.dst))
-
-        self._dbg('received message: %s' % str(msg))
-
-    def send_message(self, msg):
-        """send a message to a directly connected node or to the next hop
-        gateway for forwarding
-        """
-        dst = msg.dst
-        if dst is None:
-            raise InvalidMessageError(
-                'Mandatory destination field not set on message %s' % str(msg))
-        elif dst in self.children:
-            data = msg.decode()
-            
-            if data['msgtype'] == PropagationMessage.TYPE_TASK_SHELL:
-                if dst in self.children:
-                    cmd = data['task']
-                    self._dbg('Execute command %s on %s' % (cmd, dst))
-            elif data['msgtype'] == PropagationMessage.TYPE_CTRL_MSG:
-                self._dbg('Forwarding message to neighbour node %s' % dst)
-                self.tree[dst].recv_message(msg)
-        else:
-            self._dbg('Forwarding message to remote node %s' % dst)
-            self.tree.next_hop(self.name, dst).forward(msg)
-
-    def dst_invalidate(self, dst):
-        """mark a route from self to dst as invalid"""
-        self.tree.mark_unreachable(dst)
-
-class AdminNode(CommunicatingNode):
-    """administration node. This kind of node is instanciated only once per
-    propagation tree. It is mainly charged to distribute tasks to the directly
-    connected gateways, perform retransmissions on failure and gather outputs
-    """
-
-class GatewayNode(CommunicatingNode):
-    """the gateway nodes are able to forward message to both their children and
-    their parent (another gateway node or admin).
-    """
-    def forward(self, msg):
-        """process an incoming message not destinated to us"""
-        if msg.dst not in self.connected:
-            self.connected.append(msg.dst)
-        self.send_message(msg)
-
-class EdgeNode(PropagationNode):
-    """the edge nodes are the leaves of the propagation tree. They know nothing
-    about the propagation tree and are only able to receive messages and return
-    outputs
-    """
 
 class PropagationTreeRouter:
-    """performs routes resolving operations on a propagation tree. This object
-    provides a next_hop function to know to which hop forward a message for a
-    given destination. The routes resolution is only performed in the sense
-    root -> leaves. For the other sense, a node just need to forward the message
-    to one of its parent, as upward routes are convergent.
+    """performs routes resolving operations whithin a propagation tree. This
+    object provides a next_hop method, that will look for the best directly
+    connected node to use to forward a message to a remote node.
+
+    Upon instanciation, the router will parse the topology tree to generate its
+    routing table.
     """
-    def __init__(self):
+    def __init__(self, root, topology):
         """
         """
-        self.nodes_table = {}
+        self.topology = topology
         self.fanout = 32 # some default
+        self.nodes_fanin = {}
+        self.table = None
+        self.root = root
+
+        self.table_generate(root, topology)
         self._unreachable_hosts = NodeSet()
 
-    def next_hop(self, src, dst):
+    def table_generate(self, root, topology):
+        """The router relies on a routing table. The keys are the destination
+        nodes, and the values are the next hop gateways to use to reach these
+        nodes.
+        """
+        self.table = {}
+        root_group = None
+
+        for entry in topology.groups:
+            if root in entry.nodeset:
+                root_group = entry
+                break
+
+        if root_group is None:
+            raise RoutesResolvingError('Invalid admin node: %s' % root)
+
+        for group in root_group.children():
+            self.table[group.nodeset] = NodeSet()
+            stack = [group]
+            while len(stack) > 0:
+                curr = stack.pop()
+                self.table[group.nodeset].add(curr.children_ns())
+                stack += curr.children()
+
+        # reverse table (it was crafted backward)
+        self.table = dict((v, k) for k, v in self.table.iteritems())
+
+    def dispatch(self, dst):
+        """dispatch nodes from a target nodeset to the directly connected
+        gateways.
+
+        The method acts as an iterator, returning a gateway, and the associated
+        hosts. It should provide a rather good load balancing between the
+        gateways.
+        """
+        nb_parts = len(dst)/self.fanout or 1
+        for networks in self.table.iterkeys():
+            dst_inter = networks & dst
+            for subnet in dst_inter.split(nb_parts):
+                dst.difference_update(subnet)
+                yield self.next_hop(subnet), subnet
+
+    def next_hop(self, dst):
         """perform the next hop resolution. If several hops are available, then,
         the one with the least number of current jobs will be returned
         """
-        # check for arguments validity
-        if not self.nodes_table.has_key(src):
-            raise RoutesResolvingError('Invalid source: %s' % src)
-        if not self.nodes_table.has_key(dst):
-            raise RoutesResolvingError('Invalid destination: %s' % dst)
-
         if dst in self._unreachable_hosts:
             raise RoutesResolvingError(
                 'Invalid destination: %s, host is unreachable' % dst)
 
-        src_inst = self.nodes_table[src]
-        dst_current = dst
-        while True:
-            # start from the destination for efficiency
-            dst_inst = self.nodes_table[dst_current]
-            ng = dst_inst.parents
-            # compute the intersection between current node's parents and
-            # source's children
-            inter = src_inst.children & ng
-            if len(inter) != 0:
-                # return the best
-                best_nh = self._best_next_hop(inter)
-                nexthop = self.nodes_table[best_nh]
-                return nexthop
-            else:
-                # iterate once again on the upper level
-                valid_gw = ng - self._unreachable_hosts
-                if len(valid_gw) < 1:
-                    raise RoutesResolvingError('No route available to %s' % dst)
+        # can't resolve if source == destination
+        if self.root == dst:
+            raise RoutesResolvingError(
+                'Invalid resolution request: %s -> %s' % (self.root, dst))
 
-                dst_current = valid_gw[0]
+        for network, nxthops in self.table.iteritems():
+            if dst in network:
+                res = self._best_next_hop(nxthops)
+                self.nodes_fanin[res] += len(dst)
+                return res
+            if dst in nxthops:
+                return dst
+
+        raise RoutesResolvingError(
+            'No route from %s to host %s' % (self.root, dst))
 
     def mark_unreachable(self, dst):
         """mark node dst as unreachable and don't advertise routes through it
@@ -217,7 +148,7 @@ class PropagationTreeRouter:
 
         for host in candidates:
             if host not in self._unreachable_hosts:
-                connections = self.nodes_table[host].active_connections
+                connections = self.nodes_fanin.setdefault(host, 0)
                 if connections < self.fanout:
                     # currently, the first one is the best
                     return host
@@ -230,93 +161,48 @@ class PropagationTree:
     """This class represents the complete propagation tree and provides the
     ability to propagate tasks through it.
     """
-    def __init__(self):
+    def __init__(self, topology, admin):
         """
         """
-        # list of available nodes, available by their name
-        self.nodes = {}
+        # topology tree
+        self.topology = topology
         # name of the administration node, at the root of the tree
-        self.admin = ''
-        # destination nodeset
-        self.targets = None
+        self.admin = admin
         # builtin router
-        self.router = None
+        self.router = PropagationTreeRouter(admin, topology)
+        # communication endpoint
+        self.invoke_gateway = 'python -m gateway.py'
 
-    def __str__(self):
-        """printable representation of the tree"""
-        return '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in
-            self.nodes.iteritems()])
-
-    def load(self, topology_tree, nodeset, fanout):
-        """load data from a previously generated topology tree, a destination
-        nodeset and the selected fanout.
-        """
-        self.nodes = {}
-        self.targets = NodeSet(nodeset)
-        self.router = PropagationTreeRouter()
-        self.router.fanout = fanout
-
-        # --- generate one specialized instance per node --- #
-        for nodegroup in topology_tree:
-            group_key = str(nodegroup.nodeset)
-            if nodegroup.parent is None:
-                # Admin node (no parents)
-                curr = AdminNode(group_key, self)
-                curr.children = nodegroup.children_ns()
-                self.nodes[group_key] = curr
-                self.admin = group_key
-            elif nodegroup.children_len() == 0:
-                # Edge node (no children)
-                ns_util = nodegroup.nodeset & self.targets
-                for node in ns_util:
-                    node_key = str(node)
-                    curr = EdgeNode(node_key, self)
-                    curr.parents = nodegroup.parent.nodeset
-                    self.nodes[node_key] = curr
-            else:
-                # Gateway node (no other possibility)
-                for node in nodegroup.nodeset:
-                    node_key = str(node)
-                    curr = GatewayNode(node_key, self)
-                    curr.parents = nodegroup.parent.nodeset
-                    curr.children = nodegroup.children_ns()
-                    self.nodes[node_key] = curr
-
-        # --- instanciate and return the actual tree --- #
-        self.router.nodes_table = self.nodes
-
-    def execute(self, cmd):
+    def execute(self, cmd, nodes, fanout=32, timeout=4):
         """execute `cmd' on the nodeset specified at loading"""
         task = task_self()
-        next_hops = self._distribute()
+        dst_nodeset = NodeSet(nodes)
+        next_hops = self._distribute(fanout, dst_nodeset)
         for gw, target in next_hops.iteritems():
-            admin_driver = PropagationDriver(self.admin, gw)
-            channel = Channel(admin_driver)
-            # TODO : remove hardcoded timeout & script name
-            task.shell('python -m gateway', nodes=gw, handler=channel, timeout=4)
+            # high level logic
+            driver = PropagationDriver(cmd, target, self.topology)
+            # tunnelled message passing
+            chan = Channel(self.admin, gw, driver)
+            # invoke remote gateway engine
+            task.shell(self.invoke_gateway, nodes=gw, handler=chan,
+                timeout=timeout)
         task.resume()
 
-    def _distribute(self):
+    def _distribute(self, fanout, dst_nodeset):
         """distribute target nodes between next hop gateways"""
-        # TODO : bad performances issue
         distribution = {}
-        for node in self.targets:
-            gw = self.next_hop(self.admin, node)
-            gw_name = gw.name
-            if distribution.has_key(gw_name):
-                distribution[gw_name].add(node)
+        self.router.fanout = fanout
+
+        for gw, dstset in self.router.dispatch(dst_nodeset):
+            if distribution.has_key(gw):
+                distribution[gw].add(dstset)
             else:
-                distribution[gw_name] = NodeSet(node)
-            gw.active_connections += 1
+                distribution[gw] = dstset
         return distribution
 
-    def __getitem__(self, nodename):
-        """return a reference on the instance of a node given a node name"""
-        return self.nodes[nodename]
-    
-    def next_hop(self, src, dst):
+    def next_hop(self, dst):
         """routing operation: resolve next hop gateway"""
-        return self.router.next_hop(src, dst)
+        return self.router.next_hop(dst)
 
     def mark_unreachable(self, dst):
         """routing operation: mark an host as unreachable"""
@@ -329,53 +215,59 @@ class PropagationDriver(Driver):
     In order to take decisions, the instance acts as a finite states machine,
     whose current state evolves according to received data.
     """
-    def __init__(self, src, dst):
+    def __init__(self, cmd, target, topology):
         """
         """
-        Driver.__init__(self, src, dst)
-        # TODO: implement state machine
+        Driver.__init__(self)
+        self.cmd = cmd
+        self.target = target
+        self.topology = topology
 
-    def read_msg(self, msg):
-        """
-        """
-        pass
+        self.current_state = None
+        self.states = {
+            'STATE_CFG': self._state_config,
+            'STATE_CTL': self._state_control,
+            'STATE_GTR': self._state_gather,
+        }
 
-    def next_msg(self):
-        """
-        """
-        pass
+        self._history = {} # track informations about previous states
+        self.results = [] # (<-- stub)
 
-class PropagationMessage:
-    """message to a node. This is just a stub"""
-    # Message types
-    TYPE_TASK_SHELL = 1
-    TYPE_CTRL_MSG = 2
-    # this class variable is used to uniquely identify each message
-    class_counter = 0
+    def start(self):
+        """initial actions"""
+        cfg = ConfigurationMessage()
+        cfg.data_encode(self.topology)
+        self._history['cfg_id'] = cfg.msgid
+        self.send(cfg)
+        self.current_state = self.states['STATE_CFG']
 
-    def __init__(self):
-        """
-        """
-        self.src = None
-        self.dst = None
-        self._infos = {}
-        PropagationMessage.class_counter += 1
-        self._msg_id = PropagationMessage.class_counter
+    def recv(self, msg):
+        """process incoming messages"""
+        #print 'RCVD: %s' % msg.xml()
+        self.current_state(msg)
 
-    def decode(self):
-        """return raw data, as a dictionnary"""
-        return self._infos
+    def _state_config(self, msg):
+        """handle incoming messages for state 'propagate configuration'"""
+        if msg.ack == self._history['cfg_id']:
+            self.current_state = self.states['STATE_CTL']
 
-    def add_info(self, key, arg):
-        """add a key/value couple to the message"""
-        self._infos[key] = arg
+            ctl = ControlMessage()
+            ctl.action = 'shell'
+            ctl.target = self.target
+            ctl.data_encode({'cmd': self.cmd})
 
-    def __str__(self):
-        """printable summary of the message"""
-        return 'message #%d: %s -> %s' % (self._msg_id, self.src, self.dst)
+            self._history['ctl_id'] = ctl.msgid
+            self.send(ctl)
 
-class InvalidMessageError(Exception):
-    """error raised on performing operations on invalid messages"""
+    def _state_control(self, msg):
+        """handle incoming messages for state 'control'"""
+        if msg.ack == self._history['ctl_id']:
+            self.current_state = self.states['STATE_GTR']
+
+    def _state_gather(self, msg):
+        """handle incoming messages for state 'gather results'"""
+        # !! this class, and especially this method, is stub to be improved !! #
+        self.results.append(msg.data_decode())
 
 class RoutesResolvingError(Exception):
     """error raised on invalid conditions during routing operations"""
