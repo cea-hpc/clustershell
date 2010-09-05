@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008, 2009)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -73,7 +73,8 @@ class Ssh(EngineClient):
 
         user = task.info("ssh_user")
         if user:
-            cmd_l.append("-l %s" % user)
+            cmd_l.append("-l")
+            cmd_l.append(user)
 
         connect_timeout = task.info("connect_timeout", 0)
         if connect_timeout > 0:
@@ -204,7 +205,8 @@ class Scp(Ssh):
 
         user = task.info("scp_user") or task.info("ssh_user")
         if user:
-            cmd_l.append("-l %s" % user)
+            cmd_l.append("-l")
+            cmd_l.append(user)
 
         connect_timeout = task.info("connect_timeout", 0)
         if connect_timeout > 0:

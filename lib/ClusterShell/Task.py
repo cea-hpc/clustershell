@@ -548,7 +548,6 @@ class Task(object):
         self._add_port(port)
         return port
 
-    @tasksyncmethod()
     def timer(self, fire, handler, interval=-1.0, autoclose=False):
         """
         Create a timer bound to this task that fires at a preset time
@@ -581,8 +580,16 @@ class Task(object):
             "timer's relative fire time must be a positive floating number"
         
         timer = EngineTimer(fire, interval, autoclose, handler)
-        self._engine.add_timer(timer)
+        # The following method may be sent through msg port (async
+        # call) if called from another task.
+        self._add_timer(timer)
+        # always return new timer (sync)
         return timer
+
+    @tasksyncmethod()
+    def _add_timer(self, timer):
+        """Add a timer to task engine (thread-safe)."""
+        self._engine.add_timer(timer)
 
     @tasksyncmethod()
     def schedule(self, worker):

@@ -2,28 +2,28 @@
 
 Name:          clustershell
 Version:       %{version}
-Release:       4%{?dist}
+Release:       1%{?dist}
 Summary:       Python framework for efficient cluster administration
 
-Group:         Development/Libraries
+Group:         System Environment/Base
 License:       CeCILL-C
 URL:           http://clustershell.sourceforge.net/
 Source0:       http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch:     noarch
-BuildRequires: python-devel python-setuptools vim-common
+BuildRequires: python-devel python-setuptools
 
 %description
-Event-based Python library to execute commands on cluster nodes in parallel
-depending on selected engine and worker mechanisms. The library provides also
-advanced NodeSet and NodeGroups handling methods to ease and improve
-administration of large compute clusters or server farms. Finally, clush,
-clubak and nodeset, three convenient command-line tools allow traditional
+Tools and event-based Python library to execute commands on cluster nodes in
+parallel depending on selected engine and worker mechanisms. The library
+provides also advanced NodeSet and NodeGroups handling methods to ease and
+improve administration of large compute clusters or server farms. Three
+convenient command line utilities, clush, clubak and nodeset, allow traditional
 shell scripts to benefit some useful features offered by the library.
 
 
 %prep
-%setup -q -n clustershell-%{version}
+%setup -q
 
 %build
 %{__python} setup.py build
@@ -31,14 +31,10 @@ shell scripts to benefit some useful features offered by the library.
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
-install -d %{buildroot}/%{_sysconfdir}/clustershell
 
-# detect vim version
-%define vimdatadir %(ls /usr/share/vim/vim[0-9]* -1d | tail -1)
-%if "%{vimdatadir}" == ""
-%define vimdatadir %{_datadir}/clustershell/vim
-install -d %{buildroot}/%{vimdatadir}
-%endif
+# config files
+install -d %{buildroot}/%{_sysconfdir}/clustershell
+install -p -m 0644 conf/*.conf %{buildroot}/%{_sysconfdir}/clustershell/
 
 # man pages
 install -d %{buildroot}/%{_mandir}/{man1,man5}
@@ -49,11 +45,12 @@ install -p -m 0644 doc/man/man5/clush.conf.5 %{buildroot}/%{_mandir}/man5/
 install -p -m 0644 doc/man/man5/groups.conf.5 %{buildroot}/%{_mandir}/man5/
 
 # vim addons
-install -p -m 0644 conf/*.conf %{buildroot}/%{_sysconfdir}/clustershell/
+%define vimdatadir %{_datadir}/vim/vimfiles
 install -d %{buildroot}/%{vimdatadir}/{ftdetect,syntax}
 install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim %{buildroot}/%{vimdatadir}/ftdetect/
 install -p -m 0644 doc/extras/vim/syntax/clushconf.vim %{buildroot}/%{vimdatadir}/syntax/
 install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadir}/syntax/
+
 
 %clean
 rm -rf %{buildroot}
@@ -66,6 +63,7 @@ rm -rf %{buildroot}
 %{_mandir}/man1/nodeset.1*
 %{_mandir}/man5/clush.conf.5*
 %{_mandir}/man5/groups.conf.5*
+%dir %{_sysconfdir}/clustershell
 %config(noreplace) %{_sysconfdir}/clustershell/clush.conf
 %config(noreplace) %{_sysconfdir}/clustershell/groups.conf
 %{python_sitelib}/ClusterShell/
@@ -78,6 +76,12 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Fri Sep 03 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3.1-1
+- removed -n from setup line
+- own clustershell config directory for proper uninstall
+- install vim syntax addons in vimfiles, thus avoiding vim version detection
+- update to 1.3.1
+
 * Sun Aug 22 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3-4
 - fixed BuildRoot tag in accordance with EPEL guidelines
 - python_sitelib definition: prefer global vs define

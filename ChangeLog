@@ -1,3 +1,15 @@
+2010-09-03 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Ssh.py: Fix issue with clush -l USER by separating underlying ssh
+	"-l USER" in two shell arguments (trac ticket #113).
+
+2010-08-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Live per-line gathering (-bL mode) improvements.
+
+	* Task.py: Fixed Task.timer() when called from another thread - it used to
+	return None (trac ticket #112).
+
 2010-08-29 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Add docstring for timer's autoclose feature (trac ticket #109).
