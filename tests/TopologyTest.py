@@ -34,7 +34,11 @@ def chrono(func):
 
 class TopologyTest(unittest.TestCase):
 
-    #@chrono
+    def testInvalidConfigurationFile(self):
+        """test detecting invalid configuration file"""
+        parser = TopologyParser()
+        self.assertRaises(TopologyError, parser.load, '/invalid/path/for/testing')
+
     def testTopologyGraphGeneration(self):
         """test graph generation"""
         g = TopologyGraph()
@@ -43,31 +47,68 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns1, ns2)
         self.assertEqual(g.dest(ns1), ns2)
 
-    #@chrono
-    def testTopologyGraphNoOverlap(self):
-        """test invalid routes detection"""
+    def testAddingSeveralRoutes(self):
+        """test adding several valid routes"""
         g = TopologyGraph()
         admin = NodeSet('admin')
         ns0 = NodeSet('nodes[0-9]')
         ns1 = NodeSet('nodes[10-19]')
         g.add_route(admin, ns0)
         g.add_route(ns0, ns1)
-        # Add the same nodeset twice
+        # Connect a new dst nodeset to an existing src
         ns2 = NodeSet('nodes[20-29]')
-        self.assertRaises(TopologyError, g.add_route, ns2, ns2)
-        # Add an already src nodeset to a new dst nodeset
         g.add_route(ns0, ns2)
-        # Add the same dst nodeset twice
-        self.assertRaises(TopologyError, g.add_route, ns2, ns1)
-        # Add a known src nodeset as a dst nodeset
-        self.assertRaises(TopologyError, g.add_route, ns2, ns0)
+        # Add the same dst nodeset twice (no error)
+        g.add_route(ns0, ns2)
+
+        self.assertEquals(g.dest(admin), ns0)
+        self.assertEquals(g.dest(ns0), ns1 | ns2)
+
+    def testBadLink(self):
+        """test detecting bad links in graph"""
+        g = TopologyGraph()
+        admin = NodeSet('admin')
+        ns0 = NodeSet('nodes[0-9]')
+        ns1 = NodeSet('nodes[10-19]')
+        g.add_route(admin, ns0)
+        g.add_route(ns0, ns1)
+        # Add a known src nodeset as a dst nodeset (error!)
+        self.assertRaises(TopologyError, g.add_route, ns1, ns0)
+
+    def testOverlappingRoutes(self):
+        """
+        """
+        g = TopologyGraph()
+        admin = NodeSet('admin')
+        # Add the same nodeset twice
+        ns0 = NodeSet('nodes[0-9]')
+        ns1 = NodeSet('nodes[10-19]')
+        ns2 = NodeSet('nodes[20-29]')
+
+        self.assertRaises(TopologyError, g.add_route, ns0, ns0)
+
+    def testBadTopologies(self):
+        """test detecting invalid topologies"""
+        g = TopologyGraph()
+        admin = NodeSet('admin')
+        # Add the same nodeset twice
+        ns0 = NodeSet('nodes[0-9]')
+        ns1 = NodeSet('nodes[10-19]')
+        ns2 = NodeSet('nodes[20-29]')
+
+        g.add_route(admin, ns0)
+        g.add_route(ns0, ns1)
+        g.add_route(ns0, ns2)
+
         # Add a known dst nodeset as a src nodeset
         ns3 = NodeSet('nodes[30-39]')
         g.add_route(ns1, ns3)
+
         # Add a subset of a known src nodeset as src
         ns0_sub = NodeSet(','.join(ns0[:3:]))
         ns4 = NodeSet('nodes[40-49]')
         g.add_route(ns0_sub, ns4)
+
         # Add a subset of a known dst nodeset as src
         ns1_sub = NodeSet(','.join(ns1[:3:]))
         self.assertRaises(TopologyError, g.add_route, ns4, ns1_sub)
@@ -80,8 +121,6 @@ class TopologyTest(unittest.TestCase):
         ns5_sub = NodeSet(','.join(ns5[:3:]))
         self.assertRaises(TopologyError, g.add_route, ns5, ns5_sub)
         self.assertRaises(TopologyError, g.add_route, ns5_sub, ns5)
-
-        #g.to_tree("admin")._display()
 
         self.assertEqual(g.dest(ns0), (ns1 | ns2))
         self.assertEqual(g.dest(ns1), ns3)
@@ -114,7 +153,6 @@ class TopologyTest(unittest.TestCase):
             ns_all.difference_update(nodegroup.nodeset)
         self.assertEqual(len(ns_all), 0)
 
-    #@chrono
     def testTopologyGraphBigGroups(self):
         """test adding huge nodegroups in routes"""
         g = TopologyGraph()
@@ -128,29 +166,31 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns2, ns3)
         self.assertEqual(g.dest(ns2), ns3)
 
-    #@chrono
-    def testTopologyGraphManyRoutes(self):
-        """test adding 80 routes"""
-        g = TopologyGraph()
+    #chrono
+    def testNodeString(self):
+        """test loading a linear string topology"""
+        tmpfile = tempfile.NamedTemporaryFile()
+        tmpfile.write('[DEFAULT]\n')
 
-        ns_begin = NodeSet('admin')
-        ns_end = NodeSet('nodes[0-1]')
-        g.add_route(ns_begin, ns_end)
+        # TODO : increase the size
+        ns = NodeSet('node[0-10]')
 
-        for i in xrange(0, 80*2, 2):
-            ns_begin = NodeSet('nodes[%d-%d]' % (i, i+1))
-            ns_end = NodeSet('nodes[%d-%d]' % (i+2, i+3))
-            g.add_route(ns_begin, ns_end)
-            self.assertEqual(g.dest(ns_begin), ns_end)
+        prev = 'admin'
+        for n in ns:
+            tmpfile.write('%s: %s\n' % (prev, str(n)))
+            prev = n
+        tmpfile.flush()
+        parser = TopologyParser()
+        parser.load(tmpfile.name)
 
-        tree = g.to_tree('admin')
-        ns_all = NodeSet('admin,nodes[0-161]')
+        tree = parser.tree('admin')
+
+        ns.add('admin')
         ns_tree = NodeSet()
         for nodegroup in tree:
-           ns_tree.add(nodegroup.nodeset)
-        self.assertEqual(ns_all, ns_tree)
+            ns_tree.add(nodegroup.nodeset)
+        self.assertEquals(ns, ns_tree)
 
-    #@chrono
     def testConfigurationParser(self):
         """test configuration parsing"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -168,9 +208,8 @@ class TopologyTest(unittest.TestCase):
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
-        self.assertEqual(ns_all, ns_tree)
+        self.assertEqual(str(ns_all), str(ns_tree))
 
-    #@chrono
     def testConfigurationShortSyntax(self):
         """test short topology specification syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -187,9 +226,8 @@ class TopologyTest(unittest.TestCase):
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
-        self.assertEqual(ns_all, ns_tree)
+        self.assertEqual(str(ns_all), str(ns_tree))
 
-    #@chrono
     def testConfigurationLongSyntax(self):
         """test detailed topology description syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -212,10 +250,8 @@ class TopologyTest(unittest.TestCase):
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
-        self.assertEqual(ns_all, ns_tree)
+        self.assertEqual(str(ns_all), str(ns_tree))
 
-
-    #@chrono
     def testConfigurationParserDeepTree(self):
         """test a configuration that generates a deep tree"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -235,9 +271,8 @@ class TopologyTest(unittest.TestCase):
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
-        self.assertEqual(ns_all, ns_tree)
+        self.assertEqual(str(ns_all), str(ns_tree))
 
-    #@chrono
     def testConfigurationParserBigTree(self):
         """test configuration parser against big propagation tree"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -254,9 +289,8 @@ class TopologyTest(unittest.TestCase):
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
            ns_tree.add(nodegroup.nodeset)
-        self.assertEqual(ns_all, ns_tree)
+        self.assertEqual(str(ns_all), str(ns_tree))
 
-    #@chrono
     def testConfigurationParserConvergentPaths(self):
         """convergent paths detection"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -270,6 +304,59 @@ class TopologyTest(unittest.TestCase):
         tmpfile.flush()
         parser = TopologyParser()
         self.assertRaises(TopologyError, parser.load, tmpfile.name)
+
+    def testPrintingTree(self):
+        """test printing tree"""
+        tmpfile = tempfile.NamedTemporaryFile()
+        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('n0: n[1-2]\n')
+        tmpfile.write('n1: n[10-49]\n')
+        tmpfile.write('n2: n[50-89]\n')
+
+        tmpfile.flush()
+        parser = TopologyParser()
+        parser.load(tmpfile.name)
+
+        tree = parser.tree('n0')
+
+        display_ref = 'n0\n|_ n1\n|  |_ n[10-49]\n|_ n2\n   |_ n[50-89]\n'
+        display = str(tree)
+        print "\n%s" % display
+        self.assertEquals(display, display_ref)
+
+        self.assertEquals(str(TopologyTree()), '<TopologyTree instance (empty)>')
+
+    def testAddingInvalidChildren(self):
+        """test detecting invalid children"""
+        t0 = TopologyNodeGroup(NodeSet('node[0-9]'))
+        self.assertRaises(AssertionError, t0.add_child, 'foobar')
+        t1 = TopologyNodeGroup(NodeSet('node[10-19]'))
+
+        t0.add_child(t1)
+        self.assertEquals(t0.children_ns(), t1.nodeset)
+        t0.add_child(t1)
+        self.assertEquals(t0.children_ns(), t1.nodeset)
+
+    def testRemovingChild(self):
+        """test child removal operation"""
+        t0 = TopologyNodeGroup(NodeSet('node[0-9]'))
+        t1 = TopologyNodeGroup(NodeSet('node[10-19]'))
+
+        t0.add_child(t1)
+        self.assertEquals(t0.children_ns(), t1.nodeset)
+        t0.clear_child(t1)
+        self.assertEquals(t0.children_ns(), None)
+
+        t0.clear_child(t1) # error discarded
+        self.assertRaises(ValueError, t0.clear_child, t1, strict=True)
+
+        t2 = TopologyNodeGroup(NodeSet('node[20-29]'))
+        t0.add_child(t1)
+        t0.add_child(t2)
+        self.assertEquals(t0.children_ns(), t1.nodeset | t2.nodeset)
+        t0.clear_children()
+        self.assertEquals(t0.children_ns(), None)
+        self.assertEquals(t0.children_len(), 0)
 
 
 def main():
