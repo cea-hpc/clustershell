@@ -50,7 +50,6 @@ class PropagationTest(unittest.TestCase):
 
         self.topology = parser.tree('admin1')
 
-    #@chrono
     def testRouting(self):
         """test basic routing mecanisms"""
         ptree = PropagationTree(self.topology, 'admin1')
@@ -69,10 +68,9 @@ class PropagationTest(unittest.TestCase):
         ptree = PropagationTree(self.topology, 'STB7')
         self.assertRaises(RoutesResolvingError, ptree.next_hop, 'foo')
         self.assertRaises(RoutesResolvingError, ptree.next_hop, 'admin1')
-        
+
         self.assertRaises(RoutesResolvingError, PropagationTree, self.topology, 'bar')
 
-    #@chrono
     def testHostRepudiation(self):
         """test marking hosts as unreachable"""
         ptree = PropagationTree(self.topology, 'STA42')
@@ -87,7 +85,6 @@ class PropagationTest(unittest.TestCase):
         self.assertEquals(res2 in NodeSet('STB[0-2000]'), True)
         self.assertNotEquals(res1, res2)
 
-    #@chrono
     def testRoutingTableGeneration(self):
         """test routing table generation"""
         ptree = PropagationTree(self.topology, 'admin1')
@@ -98,7 +95,6 @@ class PropagationTest(unittest.TestCase):
         res = [str(v) for v in ptree.router.table.values()]
         self.assertEquals(res, ['STB[0-2000]'])
 
-    #@chrono
     def testFullGateway(self):
         """test router's ability to share the tasks between gateways"""
         ptree = PropagationTree(self.topology, 'admin1')
@@ -106,7 +102,6 @@ class PropagationTest(unittest.TestCase):
         for node in NodeSet('STB[0-200]'):
             self.assertEquals(ptree.router.next_hop(node), 'proxy')
 
-    #@chrono
     def testPropagationDriver(self):
         """test propagation logic"""
         ## --------
@@ -144,7 +139,6 @@ class PropagationTest(unittest.TestCase):
         ptree.invoke_gateway = 'cat %s' % gwfile.name
         ptree.execute('uname -a', 'node[0-500]', 128, 1)
 
-    #@chrono
     def testDistributeTasksSimple(self):
         """test dispatch work between several gateways (simple case)"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -164,7 +158,6 @@ class PropagationTest(unittest.TestCase):
         self.assertEquals(str(dist['gw0']), 'node[2-9]')
         self.assertEquals(str(dist['gw2']), 'node[10-18]')
 
-    #@chrono
     def testDistributeTasksComplex(self):
         """test dispatch work between several gateways (more complex case)"""
         tmpfile = tempfile.NamedTemporaryFile()
