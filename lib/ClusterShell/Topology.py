@@ -123,6 +123,8 @@ class TopologyNodeGroup(object):
         try:
             self._children.remove(child)
             self._children_ns.difference_update(child.nodeset)
+            if len(self._children_ns) == 0:
+                self._children_ns = None
         except ValueError:
             if strict:
                 raise
@@ -154,9 +156,6 @@ class TopologyNodeGroup(object):
         the current instance is the last child of the children list of its
         parent.
         """
-        # Root node, not concerned
-        if self.parent is None:
-            return True
         return self.parent._children[-1::][0] == self
 
     def __str__(self):
@@ -209,7 +208,7 @@ class TopologyTree(object):
     def __str__(self):
         """printable representation of the tree"""
         if self.root is None:
-            return ''
+            return '<TopologyTree instance (empty)>'
         return self.root.printable_subtree()
 
 class TopologyRoute(object):
@@ -233,13 +232,6 @@ class TopologyRoute(object):
             return self.dst
         else:
             return None
-
-    def update_union(self, other):
-        """update the route by adding both source and destination nodes of
-        another route to current instance
-        """
-        self.src.add(other.src)
-        self.dst.add(other.dst)
 
     def __str__(self):
         """printable representation"""
@@ -424,7 +416,7 @@ class TopologyParser(ConfigParser.ConfigParser):
         self.optionxform = str # case sensitive parser
 
         self._topology = {}
-        self._graph = None
+        self.graph = None
         self._tree = None
 
     def load(self, filename):
@@ -441,17 +433,11 @@ class TopologyParser(ConfigParser.ConfigParser):
         """build a network topology graph according to the information we got
         from the configuration file.
         """
-        self._graph = TopologyGraph()
+        self.graph = TopologyGraph()
         for k, v in self._topology.iteritems():
             src = NodeSet(k)
             dst = NodeSet(v)
-            self._graph.add_route(src, dst)
-
-    def graph(self):
-        """return the loaded graph or None if graph generation has not been
-        done yet
-        """
-        return self._graph
+            self.graph.add_route(src, dst)
 
     def tree(self, root, force_rebuild=False):
         """Return a previously generated propagation tree or build it if
@@ -460,32 +446,11 @@ class TopologyParser(ConfigParser.ConfigParser):
         optionnal `force_rebuild' parameter.
         """
         if self._tree is None or force_rebuild:
-            self._tree = self._graph.to_tree(root)
+            self._tree = self.graph.to_tree(root)
         return self._tree
 
 class TopologyError(Exception):
     """topology parser error to report invalid configurations or parsing
     errors
     """
-
-
-def _main(args):
-    """Main script function"""
-    if len(args) < 2:
-        sys.exit(__doc__)
-    parser = TopologyParser()
-    parser.load(args[1])
-    try:
-        admin = sys.argv[2]
-    except IndexError:
-        import socket
-        admin = socket.gethostname().split('.')[0]
-    print parser.tree(admin)
-
-
-if __name__ == '__main__':
-    try:
-        _main(sys.argv)
-    except KeyboardInterrupt:
-        sys.exit(128 + signal.SIGINT)
 
