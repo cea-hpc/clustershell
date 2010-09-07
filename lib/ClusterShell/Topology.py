@@ -57,7 +57,7 @@ import ConfigParser
 from ClusterShell.NodeSet import NodeSet
 
 
-class TopologyNodeGroup:
+class TopologyNodeGroup(object):
     """Base element for in-memory representation of the propagation tree.
     Contains a nodeset, with parent-children relationships with other
     instances.
@@ -76,7 +76,7 @@ class TopologyNodeGroup:
         self._children = []
         self._children_len = 0
         # provided for convenience
-        self._children_ns = NodeSet()
+        self._children_ns = None
 
     def printable_subtree(self, prefix=''):
         """recursive method that returns a printable version the subtree from
@@ -114,6 +114,8 @@ class TopologyNodeGroup:
             return
         child.parent = self
         self._children.append(child)
+        if self._children_ns is None:
+            self._children_ns = NodeSet()
         self._children_ns.add(child.nodeset)
 
     def clear_child(self, child, strict=False):
@@ -128,7 +130,7 @@ class TopologyNodeGroup:
     def clear_children(self):
         """delete all children"""
         self._children = []
-        self._children_ns = NodeSet()
+        self._children_ns = None
 
     def children(self):
         """get the children list"""
@@ -142,7 +144,10 @@ class TopologyNodeGroup:
         """returns the number of children as the sum of the size of the
         children's nodeset
         """
-        return len(self._children_ns)
+        if self._children_ns is None:
+            return 0
+        else:
+            return len(self._children_ns)
 
     def _is_last(self):
         """used to display the subtree: we won't prefix the line the same way if
@@ -156,15 +161,9 @@ class TopologyNodeGroup:
 
     def __str__(self):
         """printable representation of the nodegroup"""
-        if self.parent is None:
-            parent_str = ''
-        else:
-            parent_str = '%s -> ' % str(self.parent.nodeset)
-        ch_str = ','.join([str(ch.nodeset) for ch in self._children])
+        return '<TopologyNodeGroup (%s)>' % str(self.nodeset)
 
-        return '%s%s -> <%s>' % ( parent_str, str(self.nodeset), ch_str )
-
-class TopologyTree:
+class TopologyTree(object):
     """represent a simplified network topology as a tree of machines to use to
     connect to other ones
     """
@@ -213,7 +212,7 @@ class TopologyTree:
             return ''
         return self.root.printable_subtree()
 
-class TopologyRoute:
+class TopologyRoute(object):
     """A single route between two nodesets"""
     def __init__(self, src_ns, dst_ns):
         """both src_ns and dst_ns are expected to be non-empty NodeSet
@@ -246,7 +245,7 @@ class TopologyRoute:
         """printable representation"""
         return '%s -> %s' % (str(self.src), str(self.dst))
 
-class TopologyRoutingTable:
+class TopologyRoutingTable(object):
     """This class provides a convenient way to store and manage topology
     routes
     """
@@ -321,7 +320,7 @@ class TopologyRoutingTable:
                 return True
         return False
 
-class TopologyGraph:
+class TopologyGraph(object):
     """represent a complete network topology by storing every "can reach"
     relations between nodes.
     """
@@ -375,17 +374,19 @@ class TopologyGraph:
         aggregated_src = self._routing.aggregated_src
         for route in self._routing:
             self._nodegroups[str(route.src)] = TopologyNodeGroup(route.src)
-            uniq = route.dst - aggregated_src
-            if len(uniq) > 0:
-                self._nodegroups[str(uniq)] = TopologyNodeGroup(uniq)
-
+            # create a nodegroup for the destination if it is a leaf group.
+            # Otherwise, it will be created as src for another route
+            leaf = route.dst - aggregated_src
+            if len(leaf) > 0:
+                self._nodegroups[str(leaf)] = TopologyNodeGroup(leaf)
+        
         # add the parent <--> children relationships
-        for nodegroup in self._nodegroups.itervalues():
-            dst_ns = self._routing.connected(nodegroup.nodeset)
+        for group in self._nodegroups.itervalues():
+            dst_ns = self._routing.connected(group.nodeset)
             if dst_ns is not None:
                 for child in self._nodegroups.itervalues():
                     if child.nodeset in dst_ns:
-                        nodegroup.add_child(child)
+                        group.add_child(child)
 
     def _validate(self, root):
         """ensure that the graph is valid for conversion to tree"""
