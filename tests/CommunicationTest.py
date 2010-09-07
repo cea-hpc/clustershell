@@ -98,10 +98,6 @@ class CommunicationTest(unittest.TestCase):
         ref = '<message msgid="0" reason="bad stuff" type="ERR"></message>'
         self.assertEquals(res, ref)
 
-    #def testReadTimeout(self):
-    #    """test read timeout"""
-    #    raise NotImplementedError('This test has not been implemented yet')
-
     def testInvalidMsgStreams(self):
         """test detecting invalid messages"""
         patterns = [
