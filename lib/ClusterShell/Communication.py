@@ -51,17 +51,21 @@ interface offers the ability to connect whatever logic you want over a
 communication channel.
 """
 
+import sys
 import cPickle
 import base64
 import xml.sax
 
 from xml.sax.handler import ContentHandler
 from xml.sax.saxutils import XMLGenerator
+from xml.sax import SAXParseException
 
 from collections import deque
 from cStringIO import StringIO
 
 from ClusterShell.Event import EventHandler
+from ClusterShell.Worker.Worker import WorkerSimple
+
 
 
 def strdel(s, badchars):
@@ -191,8 +195,18 @@ class Channel(EventHandler):
 
     def ev_read(self, worker):
         """channel has data to read"""
-        _, raw = worker.last_read()
-        self._parser.feed(raw)
+        # XXX this check is a hack to circumvent an interface inconsistency
+        # between Worker subclasses
+        if isinstance(worker, WorkerSimple):
+            raw = worker.last_read()
+        else:
+            _, raw = worker.last_read()
+        try:
+            self._parser.feed(raw)
+        except SAXParseException, e:
+            raise MessageProcessingError(
+                'Invalid communication (%s): "%s"' % (e.getMessage(), raw))
+
         # pass next message to the driver if ready
         if self._handler.msg_available():
             msg = self._handler.pop_msg()
@@ -204,7 +218,7 @@ class Channel(EventHandler):
         # TODO: call this statement on </channel>
         #self._parser.close()
 
-class Driver:
+class Driver(object):
     """Describes the behavior of a communicating node. A driver contains the
     logic to apply at the endpoint of a communication channel.
     
@@ -237,7 +251,7 @@ class Driver:
         """write an outgoing message as its XML representation"""
         self.worker.write(msg.xml())
 
-class Message:
+class Message(object):
     """base message class"""
     _inst_counter = 0
     ident = 'GEN'
@@ -284,6 +298,12 @@ class Message:
             else:
                 raise MessageProcessingError(
                     'Invalid "message" attributes: missing key "%s"' % k)
+
+    def __str__(self):
+        """printable representation"""
+        elts = ['%s: %s' % (k, str(self.__dict__[k])) for k in self.attr.keys()]
+        attributes = ', '.join(elts)
+        return "Message %s (%s)" % (self.type, attributes)
 
     def xml(self):
         """generate XML version of a configuration message"""
