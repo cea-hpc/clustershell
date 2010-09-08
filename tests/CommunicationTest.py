@@ -19,7 +19,7 @@ import xml
 sys.path.insert(0, '../lib')
 
 from ClusterShell.Task import task_self
-
+from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Communication import XMLReader, Channel, Driver
 from ClusterShell.Communication import MessageProcessingError
 from ClusterShell.Communication import ConfigurationMessage
@@ -68,6 +68,42 @@ gen_map = {
     ErrorMessage.ident: gen_err
 }
 
+class _TestingDriver(Driver):
+    """internal driver that handle read messages"""
+    def __init__(self):
+        """
+        """
+        Driver.__init__(self)
+        self.queue = []
+        self._counter = 1
+        self._last_id = 0
+
+    def recv(self, msg):
+        """process an incoming messages"""
+        self._last_id = msg.msgid
+        self.queue.append(msg)
+        msg = ACKMessage()
+        msg.ack = self._last_id
+        self.send(msg)
+        self._counter += 1
+        if self._counter == 4:
+            self.exit = True
+            self.channel.close(self.worker)
+
+    def start(self):
+        self.channel.open(self.worker)
+
+    def validate(self, spec):
+        """check whether the test was successful or not by comparing the
+        current state with the test specifications
+        """
+        for msg_type in spec.iterkeys():
+            elemt = [p for p in self.queue if p.type == msg_type]
+            if len(elemt) != spec[msg_type]:
+                print '%d %s messages but %d expected!' % (len(elemt), \
+                    msg_type, spec[msg_type])
+                return False
+        return True
 
 class CommunicationTest(unittest.TestCase):
     ## -------------
@@ -124,10 +160,10 @@ class CommunicationTest(unittest.TestCase):
         for msg_xml in patterns:
             parser = xml.sax.make_parser(['IncrementalParser'])
             parser.setContentHandler(XMLReader())
-            
+
             parser.feed('<?xml version="1.0" encoding="UTF-8"?>\n')
             parser.feed('<channel src="localhost" dst="localhost">\n')
-            
+
             try:
                 parser.feed(msg_xml)
             except MessageProcessingError, m:
@@ -150,45 +186,8 @@ class CommunicationTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, d.recv, None)
         self.assertRaises(NotImplementedError, d.start)
 
-    def testChannel(self):
-        """schyzophrenic self communication test"""
-        class _TestingDriver(Driver):
-            """internal driver that handle read messages"""
-            def __init__(self):
-                """
-                """
-                Driver.__init__(self)
-                self.queue = []
-                self._counter = 1
-                self._last_id = 0
-
-            def recv(self, msg):
-                """process an incoming messages"""
-                self._last_id = msg.msgid
-                self.queue.append(msg)
-                msg = ACKMessage()
-                msg.ack = self._last_id
-                self.send(msg)
-                self._counter += 1
-                if self._counter == 4:
-                    self.exit = True
-                    self.channel.close(self.worker)
-
-            def start(self):
-                self.channel.open(self.worker)
-
-            def validate(self, spec):
-                """check whether the test was successful or not by comparing the
-                current state with the test specifications
-                """
-                for msg_type in spec.iterkeys():
-                    elemt = [p for p in self.queue if p.type == msg_type]
-                    if len(elemt) != spec[msg_type]:
-                        print '%d %s messages but %d expected!' % (len(elemt), \
-                            msg_type, spec[msg_type])
-                        return False
-                return True
-
+    def testDistantChannel(self):
+        """schyzophrenic self communication test over SSH"""
         # create a bunch of messages
         spec = {
             # msg type: number of samples
@@ -223,6 +222,81 @@ class CommunicationTest(unittest.TestCase):
         ftest.close()
         self.assertEquals(driver.validate(spec), True)
 
+    def testLocalChannel(self):
+        """schyzophrenic self local communication"""
+        # create a bunch of messages
+        spec = {
+            # msg type: number of samples
+            ConfigurationMessage.ident: 1,
+            ControlMessage.ident: 1,
+            ACKMessage.ident: 1,
+            ErrorMessage.ident: 1
+        }
+        ftest = tempfile.NamedTemporaryFile()
+        ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        ftest.write('<channel src="localhost" dst="localhost">\n')
+        for mtype, count in spec.iteritems():
+            for i in xrange(count):
+                sample = gen_map[mtype]()
+                sample.msgid = i
+                ftest.write(sample.xml() + '\n')
+        ftest.write('</channel>\n')
+
+        ## write data on the disk
+        # actually we should do more but this seems sufficient
+        ftest.flush()
+
+        hostname = 'localhost'
+
+        driver = _TestingDriver()
+        chan = Channel(hostname, hostname, driver)
+        task = task_self()
+
+        fin = open(ftest.name)
+        fout = open('/dev/null', 'w')
+        worker = WorkerSimple(fin, fout, None, None, handler=chan)
+
+        task.schedule(worker)
+        task.resume()
+
+        ftest.close()
+        fin.close()
+        fout.close()
+        self.assertEquals(driver.validate(spec), True)
+
+    def testInvalidCommunication(self):
+        """test detecting invalid data upon reception"""
+        ftest = tempfile.NamedTemporaryFile()
+        ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        ftest.write('This is an invalid line\n')
+        ftest.write('<channel src="localhost" dst="localhost">\n')
+        ftest.write('</channel>\n')
+
+        ## write data on the disk
+        # actually we should do more but this seems sufficient
+        ftest.flush()
+
+        hostname = 'localhost'
+
+        driver = _TestingDriver()
+        chan = Channel(hostname, hostname, driver)
+        task = task_self()
+
+        fin = open(ftest.name)
+        fout = open('/dev/null', 'w')
+        worker = WorkerSimple(fin, fout, None, None, handler=chan)
+        task.schedule(worker)
+
+        self.assertRaises(MessageProcessingError, task.resume)
+
+        fin.close()
+        fout.close()
+        ftest.close()
+
+    def testPrintableRepresentations(self):
+        """test printing messages"""
+        msg = gen_cfg()
+        self.assertEquals(str(msg), 'Message CFG (msgid: 0, type: CFG)')
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(CommunicationTest)
