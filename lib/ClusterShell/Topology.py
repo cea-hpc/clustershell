@@ -57,6 +57,11 @@ import ConfigParser
 from ClusterShell.NodeSet import NodeSet
 
 
+class TopologyError(Exception):
+    """topology parser error to report invalid configurations or parsing
+    errors
+    """
+
 class TopologyNodeGroup(object):
     """Base element for in-memory representation of the propagation tree.
     Contains a nodeset, with parent-children relationships with other
@@ -444,9 +449,4 @@ class TopologyParser(ConfigParser.ConfigParser):
         if self._tree is None or force_rebuild:
             self._tree = self.graph.to_tree(root)
         return self._tree
-
-class TopologyError(Exception):
-    """topology parser error to report invalid configurations or parsing
-    errors
-    """
 
