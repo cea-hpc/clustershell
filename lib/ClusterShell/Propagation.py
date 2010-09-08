@@ -35,19 +35,22 @@
 
 """
 ClusterShell Propagation module. Use the topology tree to send commands through
-gateways, and gather results.
+gateways and gather results.
 """
 
 
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import task_self
+from ClusterShell.Task import task_self, AlreadyRunningError
 from ClusterShell.Communication import Channel, Driver
 from ClusterShell.Communication import ConfigurationMessage
 from ClusterShell.Communication import ControlMessage
 
 
-class PropagationTreeRouter:
-    """performs routes resolving operations whithin a propagation tree. This
+class RouteResolvingError(Exception):
+    """error raised on invalid conditions during routing operations"""
+
+class PropagationTreeRouter(object):
+    """performs routes resolving operations within a propagation tree. This
     object provides a next_hop method, that will look for the best directly
     connected node to use to forward a message to a remote node.
 
@@ -68,7 +71,7 @@ class PropagationTreeRouter:
 
     def table_generate(self, root, topology):
         """The router relies on a routing table. The keys are the destination
-        nodes, and the values are the next hop gateways to use to reach these
+        nodes and the values are the next hop gateways to use to reach these
         nodes.
         """
         self.table = {}
@@ -80,7 +83,7 @@ class PropagationTreeRouter:
                 break
 
         if root_group is None:
-            raise RoutesResolvingError('Invalid admin node: %s' % root)
+            raise RouteResolvingError('Invalid admin node: %s' % root)
 
         for group in root_group.children():
             self.table[group.nodeset] = NodeSet()
@@ -97,39 +100,61 @@ class PropagationTreeRouter:
         """dispatch nodes from a target nodeset to the directly connected
         gateways.
 
-        The method acts as an iterator, returning a gateway, and the associated
+        The method acts as an iterator, returning a gateway and the associated
         hosts. It should provide a rather good load balancing between the
         gateways.
         """
+        nexthop = NodeSet()
+        res = [tmp & dst for tmp in self.table.values()]
+        map(lambda x: nexthop.add(x), res)
+        if len(nexthop) > 0:
+            yield nexthop, nexthop
+
         nb_parts = len(dst)/self.fanout or 1
         for networks in self.table.iterkeys():
             dst_inter = networks & dst
             for subnet in dst_inter.split(nb_parts):
-                dst.difference_update(subnet)
-                yield self.next_hop(subnet), subnet
+                if len(subnet) > 0:
+                    dst.difference_update(subnet)
+                    yield self.next_hop(subnet), subnet
 
     def next_hop(self, dst):
         """perform the next hop resolution. If several hops are available, then,
         the one with the least number of current jobs will be returned
         """
         if dst in self._unreachable_hosts:
-            raise RoutesResolvingError(
+            raise RouteResolvingError(
                 'Invalid destination: %s, host is unreachable' % dst)
 
         # can't resolve if source == destination
         if self.root == dst:
-            raise RoutesResolvingError(
+            raise RouteResolvingError(
                 'Invalid resolution request: %s -> %s' % (self.root, dst))
 
-        for network, nxthops in self.table.iteritems():
+        ## ------------------
+        # the routing table is organized this way:
+        # 
+        #  NETWORK    | NEXT HOP
+        # ------------+-----------
+        # node[0-9]   | gateway0
+        # node[10-19] | gateway[1-2]
+        #            ...
+        #---------
+        for network, nexthops in self.table.iteritems():
+            # destination contained in current network
             if dst in network:
-                res = self._best_next_hop(nxthops)
+                res = self._best_next_hop(nexthops)
+                if res is None:
+                    raise RouteResolvingError('No route available to %s' % \
+                        str(dst))
                 self.nodes_fanin[res] += len(dst)
                 return res
-            if dst in nxthops:
+            # destination contained in current next hops (ie. directly
+            # connected)
+            if dst in nexthops:
                 return dst
 
-        raise RoutesResolvingError(
+        raise RouteResolvingError(
             'No route from %s to host %s' % (self.root, dst))
 
     def mark_unreachable(self, dst):
@@ -146,49 +171,49 @@ class PropagationTreeRouter:
         backup = None
         backup_connections = 1e400 # infinity
 
-        for host in candidates:
-            if host not in self._unreachable_hosts:
-                # the router tracks established connections in the nodes_fanin
-                # table to avoid overloading a gateway
-                connections = self.nodes_fanin.setdefault(host, 0)
-                if connections < self.fanout:
-                    # currently, the first one is the best
-                    return host
-                if backup_connections > connections:
-                    backup = host
-                    backup_connections = connections
+        for host in candidates.difference(self._unreachable_hosts):
+            # the router tracks established connections in the nodes_fanin table
+            # to avoid overloading a gateway
+            connections = self.nodes_fanin.setdefault(host, 0)
+            if connections < self.fanout:
+                # currently, the first one is the best
+                return host
+            if backup_connections > connections:
+                backup = host
+                backup_connections = connections
         return backup
 
-class PropagationTree:
+class PropagationTree(object):
     """This class represents the complete propagation tree and provides the
     ability to propagate tasks through it.
     """
-    def __init__(self, topology, admin):
+    def __init__(self, topology, admin=''):
         """
         """
         # topology tree
         self.topology = topology
         # name of the administration node, at the root of the tree
-        self.admin = admin
+        self.admin = admin or str(topology.root.nodeset)
         # builtin router
         self.router = PropagationTreeRouter(admin, topology)
         # command to invoke remote communication endpoint
-        self.invoke_gateway = 'python -m gateway.py'
+        #self.invoke_gateway = 'python -m CluserShell/gateway'
+        self.invoke_gateway = 'bash -c python clustershell/branches/exp-2.0/scripts/gateway.py'
 
     def execute(self, cmd, nodes, fanout=32, timeout=4):
         """execute `cmd' on the nodeset specified at loading"""
         task = task_self()
-        dst_nodeset = NodeSet(nodes)
-        next_hops = self._distribute(fanout, dst_nodeset)
+        next_hops = self._distribute(fanout, NodeSet(nodes))
         for gw, target in next_hops.iteritems():
-            # high level logic
-            driver = PropagationDriver(cmd, target, self.topology)
-            # tunnelled message passing
-            chan = Channel(self.admin, gw, driver)
-            # invoke remote gateway engine
-            task.shell(self.invoke_gateway, nodes=gw, handler=chan,
-                timeout=timeout)
-        task.resume()
+            if gw == target:
+                self._execute_direct(cmd, target, timeout)
+            else:
+                self._execute_remote(cmd, target, gw, timeout)
+
+        if not task.running():
+            task.resume()
+
+        return task
 
     def _distribute(self, fanout, dst_nodeset):
         """distribute target nodes between next hop gateways"""
@@ -201,6 +226,24 @@ class PropagationTree:
             else:
                 distribution[gw] = dstset
         return distribution
+
+    def _execute_direct(self, cmd, target, timeout):
+        """
+        """
+        task = task_self()
+        task.shell(cmd, nodes=target, timeout=timeout)
+
+    def _execute_remote(self, cmd, target, gateway, timeout):
+        """
+        """
+        task = task_self()
+        # high level logic
+        driver = PropagationDriver(cmd, target, self.topology)
+        # tunnelled message passing
+        chan = Channel(self.admin, gateway, driver)
+        # invoke remote gateway engine
+        task.shell(self.invoke_gateway, nodes=gateway, handler=chan, \
+            timeout=timeout)
 
     def next_hop(self, dst):
         """routing operation: resolve next hop gateway"""
@@ -219,7 +262,7 @@ class PropagationDriver(Driver):
 
     -- INTERNALS --
     Instance can be in one of the 4 different states:
-      - init
+      - init (implicit)
         This is the very first state. The instance enters the init state at
         start() method, and will then send the configuration to the remote node.
         Once the configuration is sent away, the state changes to cfg.
@@ -265,7 +308,6 @@ class PropagationDriver(Driver):
 
     def recv(self, msg):
         """process incoming messages"""
-        #print 'RCVD: %s' % msg.xml()
         self.current_state(msg)
 
     def _state_config(self, msg):
@@ -292,7 +334,4 @@ class PropagationDriver(Driver):
         # string with the fast str.join function
         # This method should use a ClusterShell.MessageTree instance.
         self.results.append(msg.data_decode())
-
-class RoutesResolvingError(Exception):
-    """error raised on invalid conditions during routing operations"""
 

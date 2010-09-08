@@ -1,3 +1,7 @@
+2010-09-08 H. Doreau <henri.doreau@gmail.com>
+	* Propagation.py: Added the ability to execute a command to a directly
+	connected target.
+
 2010-08-31 H. Doreau <henri.doreau@gmail.com>
 	* Propagation.py: This module has been completely rewritten. It doesn't
 	differenciate the topology nodes anymore, but simply use the topology

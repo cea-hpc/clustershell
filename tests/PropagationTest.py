@@ -13,7 +13,7 @@ import unittest
 import tempfile
 
 # profiling imports
-import cProfile
+#import cProfile
 #from guppy import hpy
 # ---
 
@@ -53,7 +53,7 @@ class PropagationTest(unittest.TestCase):
     def testRouting(self):
         """test basic routing mecanisms"""
         ptree = PropagationTree(self.topology, 'admin1')
-        self.assertRaises(RoutesResolvingError, ptree.next_hop, 'admin1')
+        self.assertRaises(RouteResolvingError, ptree.next_hop, 'admin1')
 
         self.assertEquals(ptree.next_hop('STA0'), 'proxy')
         self.assertEquals(ptree.next_hop('STB2000'), 'proxy')
@@ -66,10 +66,10 @@ class PropagationTest(unittest.TestCase):
         self.assertEquals(ptree.next_hop('node500'), 'node500')
 
         ptree = PropagationTree(self.topology, 'STB7')
-        self.assertRaises(RoutesResolvingError, ptree.next_hop, 'foo')
-        self.assertRaises(RoutesResolvingError, ptree.next_hop, 'admin1')
+        self.assertRaises(RouteResolvingError, ptree.next_hop, 'foo')
+        self.assertRaises(RouteResolvingError, ptree.next_hop, 'admin1')
 
-        self.assertRaises(RoutesResolvingError, PropagationTree, self.topology, 'bar')
+        self.assertRaises(RouteResolvingError, PropagationTree, self.topology, 'bar')
 
     def testHostRepudiation(self):
         """test marking hosts as unreachable"""
@@ -79,7 +79,7 @@ class PropagationTest(unittest.TestCase):
         self.assertEquals(res1 in NodeSet('STB[0-2000]'), True)
 
         ptree.mark_unreachable(res1)
-        self.assertRaises(RoutesResolvingError, ptree.next_hop, res1)
+        self.assertRaises(RouteResolvingError, ptree.next_hop, res1)
 
         res2 = ptree.next_hop('node42')
         self.assertEquals(res2 in NodeSet('STB[0-2000]'), True)
@@ -123,8 +123,11 @@ class PropagationTest(unittest.TestCase):
         gwfile.write('<message type="ACK" msgid="0" ack="0"></message>\n')
         gwfile.write('<message type="ACK" msgid="1" ack="1"></message>\n')
         gwfile.write('<message type="ACK" msgid="2" ack="2"></message>\n')
-        gwfile.write('<message type="CTL" target="node[0-500]" msgid="3"' \
-            ' action="res">UydMaW51eCAyLjYuMTgtOTIuZWw1ICMxIFNNUCBUdWUgQXByIDI5IDEzOjE2OjE1IEVEVCAyMDA4\nIHg4Nl82NCB4ODZfNjQgeDg2XzY0IEdOVS9MaW51eCcKcDEKLg==\n</message>\n')
+        gwfile.write('<message type="CTL" target="node[0-500]" msgid="3" ' \
+            'action="res">' \
+            'UydMaW51eCAyLjYuMTgtOTIuZWw1ICMxIFNNUCBUdWUgQXByIDI5IDEzOjE2OjE1IEVEVCAyMDA4' \
+            'IHg4Nl82NCB4ODZfNjQgeDg2XzY0IEdOVS9MaW51eCcKcDEKLg==' \
+            '</message>\n')
         gwfile.write('</channel>\n')
 
         tmpfile.flush()
@@ -178,6 +181,30 @@ class PropagationTest(unittest.TestCase):
         dist = ptree._distribute(5, NodeSet('n[0-29]'))
         self.assertEquals(str(dist['gw0']), 'n[0-9]')
         self.assertEquals(str(dist['gw1']), 'n[10-29]')
+
+    def testExecuteTasksOnNeighbors(self):
+        """test execute tasks on directly connected machines"""
+        tmpfile = tempfile.NamedTemporaryFile()
+
+        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('fortoy33: fortoy[34-35]\n')
+        tmpfile.write('fortoy[34-35]: fortoy[36-37]\n')
+
+        tmpfile.flush()
+        parser = TopologyParser()
+        parser.load(tmpfile.name)
+
+        tree = parser.tree('fortoy33')
+        ptree = PropagationTree(tree, 'fortoy33')
+        #task_self().set_info('debug', True)
+        task = ptree.execute('uname -a', NodeSet('fortoy[34-36]'))
+
+        for buf, nodes in task.iter_buffers():
+            print '-' * 15
+            print str(nodes)
+            print '-' * 15
+            print buf
+            print ''
 
 
 def main():
