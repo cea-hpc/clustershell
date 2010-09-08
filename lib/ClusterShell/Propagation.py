@@ -197,8 +197,7 @@ class PropagationTree(object):
         # builtin router
         self.router = PropagationTreeRouter(admin, topology)
         # command to invoke remote communication endpoint
-        #self.invoke_gateway = 'python -m CluserShell/gateway'
-        self.invoke_gateway = 'bash -c python clustershell/branches/exp-2.0/scripts/gateway.py'
+        self.invoke_gateway = 'python -m CluserShell/gateway'
 
     def execute(self, cmd, nodes, fanout=32, timeout=4):
         """execute `cmd' on the nodeset specified at loading"""
