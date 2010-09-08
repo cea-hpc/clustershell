@@ -35,9 +35,9 @@
 ClusterShell inter-nodes communication module
 
 This module contains the required material for nodes to communicate between each
-others whithin the propagation tree. At the highest level, messages are
-instances of several classes. Then they're converted into XML to be sent over
-SSH links through a CommunicationChannel instance.
+others within the propagation tree. At the highest level, messages are instances
+of several classes. They can be converted into XML to be sent over SSH links
+through a Channel instance.
 
 In the other side, XML is parsed and new message objects are instanciated.
 
@@ -45,10 +45,10 @@ Communication channels have been implemented as ClusterShell events handlers.
 Whenever a message chunk is read, the data is given to a SAX XML parser, that
 will use it to create corresponding messages instances as a messages factory.
 
-As soon as an instance is ready, it is then passed to a CommunicationDriver. The
-driver is an interface able to get and emit messages instances. Subclassing this
-interface offers the ability to connect whatever logic you want over a
-communication channel.
+As soon as an instance is ready, it is then passed to a Driver. The driver is an
+interface able to get and emit messages instances. Subclassing this interface
+offers the ability to connect whatever logic you want over a communication
+channel.
 """
 
 import sys
@@ -74,6 +74,11 @@ def strdel(s, badchars):
     for ch in badchars:
         stripped = stripped.replace(ch, '')
     return stripped
+
+class MessageProcessingError(Exception):
+    """base exception raised when an error occurs while processing incoming or
+    outgoing messages.
+    """
 
 class XMLReader(ContentHandler):
     """SAX handler for XML -> Messages instances conversion"""
@@ -145,8 +150,11 @@ class XMLReader(ContentHandler):
     def _draft_update(self, name, attributes):
         """update the current message draft with a new section"""
         assert(self._draft is not None)
-        handle = self._draft.tag_demux(name)
-        handle(attributes)
+        
+        if name == 'message':
+            self._draft.selfbuild(attributes)
+        else:
+            raise MessageProcessingError('Invalid tag %s' % name)
 
 class Channel(EventHandler):
     """Use this event handler to establish a communication channel between to
@@ -171,15 +179,15 @@ class Channel(EventHandler):
 
     def open(self, worker):
         """open a new communication channel from src to dst"""
-        opener = u'<?xlm version="1.0" encoding="UTF-8"?>\n'
         out = StringIO()
-        generator = XMLGenerator(out)
+        generator = XMLGenerator(out, encoding='UTF-8')
         channel_attr = {
             'src': self.src,
             'dst': self.dst
         }
+        generator.startDocument()
         generator.startElement('channel', channel_attr)
-        worker.write(opener + out.getvalue())
+        worker.write(out.getvalue())
 
     def close(self, worker):
         """close an already opened channel"""
@@ -260,7 +268,7 @@ class Message(object):
         """
         """
         self.attr = {'type': str, 'msgid': int}
-        self.type = Message.ident
+        self.type = self.__class__.ident
         self.msgid = Message._inst_counter
         self.data = ''
         Message._inst_counter += 1
@@ -278,24 +286,12 @@ class Message(object):
         # TODO : bufferize and use ''.join() for performance
         self.data += raw
 
-    def tag_demux(self, tagname):
-        """return the funcion to use to handle an specific tag or raises a
-        MessageProcessingError on failure
-        """
-        construction_map = {
-            'message': self.handle_message
-        }
-        try:
-            return construction_map[tagname]
-        except KeyError:
-            raise MessageProcessingError('Invalid tag %s' % tagname)
-
-    def handle_message(self, attributes):
-        """handle a "message" section"""
+    def selfbuild(self, attributes):
+        """self construction from a table of attributes"""
         for k, format in self.attr.iteritems():
-            if attributes.has_key(k):
-                self.__dict__[k] = format(attributes[k])
-            else:
+            try:
+                setattr(self, k, format(attributes[k]))
+            except KeyError:
                 raise MessageProcessingError(
                     'Invalid "message" attributes: missing key "%s"' % k)
 
@@ -313,7 +309,7 @@ class Message(object):
         # "stringify" entries for XML conversion
         state = {}
         for k in self.attr:
-            state[k] = str(self.__dict__[k])
+            state[k] = str(getattr(self, k))
 
         generator.startElement('message', state)
         content = strdel(self.data, [' ', '\t', '\r', '\n'])
@@ -327,12 +323,6 @@ class ConfigurationMessage(Message):
     """configuration propagation container"""
     ident = 'CFG'
 
-    def __init__(self):
-        """
-        """
-        Message.__init__(self)
-        self.type = ConfigurationMessage.ident
-
 class ControlMessage(Message):
     """action request"""
     ident = 'CTL'
@@ -342,7 +332,6 @@ class ControlMessage(Message):
         """
         Message.__init__(self)
         self.attr.update({'action': str, 'target': str})
-        self.type = ControlMessage.ident
         self.action = ''
         self.target = ''
 
@@ -355,7 +344,6 @@ class ACKMessage(Message):
         """
         Message.__init__(self)
         self.attr.update({'ack': int})
-        self.type = ACKMessage.ident
         self.ack = 0
 
     def data_update(self, raw):
@@ -373,7 +361,6 @@ class ErrorMessage(Message):
         """
         Message.__init__(self)
         self.attr.update({'reason': str})
-        self.type = ErrorMessage.ident
         self.reason = ''
 
     def data_update(self, raw):
@@ -381,9 +368,4 @@ class ErrorMessage(Message):
         unexpected payloads
         """
         raise MessageProcessingError('Error message have no payload')
-
-class MessageProcessingError(Exception):
-    """base exception raised when an error occurs while processing incoming or
-    outgoing messages.
-    """
 
