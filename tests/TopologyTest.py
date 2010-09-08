@@ -100,6 +100,11 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns0, ns1)
         g.add_route(ns0, ns2)
 
+        # add a superset of a known destination as source
+        ns2_sup = NodeSet('somenode[0-10]')
+        ns2_sup.add(ns2)
+        self.assertRaises(TopologyError, g.add_route, ns2_sup, NodeSet('foo1'))
+        
         # Add a known dst nodeset as a src nodeset
         ns3 = NodeSet('nodes[30-39]')
         g.add_route(ns1, ns3)
@@ -357,6 +362,24 @@ class TopologyTest(unittest.TestCase):
         t0.clear_children()
         self.assertEquals(t0.children_ns(), None)
         self.assertEquals(t0.children_len(), 0)
+
+    def testStrConversions(self):
+        """test str() casts"""
+        t = TopologyNodeGroup(NodeSet('admin0'))
+        self.assertEquals(str(t), '<TopologyNodeGroup (admin0)>')
+
+        t = TopologyRoutingTable()
+        r0 = TopologyRoute(NodeSet('src[0-9]'), NodeSet('dst[5-8]'))
+        r1 = TopologyRoute(NodeSet('src[10-19]'), NodeSet('dst[15-18]'))
+
+        self.assertEquals(str(r0), 'src[0-9] -> dst[5-8]')
+        
+        t.add_route(r0)
+        t.add_route(r1)
+        self.assertEquals(str(t), 'src[0-9] -> dst[5-8]\nsrc[10-19] -> dst[15-18]')
+
+        g = TopologyGraph()
+        # TODO str(g)
 
 
 def main():

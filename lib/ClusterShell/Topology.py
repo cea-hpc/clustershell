@@ -62,12 +62,9 @@ class TopologyNodeGroup(object):
     Contains a nodeset, with parent-children relationships with other
     instances.
     """
-    def __init__(self, nodeset):
+    def __init__(self, nodeset=None):
         """
         """
-        assert isinstance(nodeset, NodeSet)
-        assert len(nodeset) > 0
-
         # Base nodeset
         self.nodeset = nodeset
         # Parent TopologyNodeGroup (TNG) instance
@@ -349,12 +346,11 @@ class TopologyGraph(object):
         return tree
 
     def __str__(self):
-        """return the current graph out using <src> -> <dst> relations"""
-        if len(self._nodegroups) == 0:
-            return self._routing.__str__()
-        else:
-            return '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in \
-                self._nodegroups.iteritems()])
+        """printable representation of the graph"""
+        res = '<TopologyGraph>\n'
+        res += '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in \
+            self._nodegroups.iteritems()])
+        return res
 
     def _routes_to_tng(self):
         """convert the routing table into a graph of TopologyNodeGroup
