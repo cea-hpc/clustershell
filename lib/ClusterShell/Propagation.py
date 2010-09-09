@@ -236,10 +236,8 @@ class PropagationTree(object):
         """
         """
         task = task_self()
-        # high level logic
-        driver = PropagationDriver(cmd, target, self.topology)
         # tunnelled message passing
-        chan = Channel(self.admin, gateway, driver)
+        chan = Channel(PropagationDriver(cmd, target, self.topology))
         # invoke remote gateway engine
         task.shell(self.invoke_gateway, nodes=gateway, handler=chan, \
             timeout=timeout)

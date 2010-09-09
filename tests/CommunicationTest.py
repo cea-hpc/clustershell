@@ -162,7 +162,7 @@ class CommunicationTest(unittest.TestCase):
             parser.setContentHandler(XMLReader())
 
             parser.feed('<?xml version="1.0" encoding="UTF-8"?>\n')
-            parser.feed('<channel src="localhost" dst="localhost">\n')
+            parser.feed('<channel>\n')
 
             try:
                 parser.feed(msg_xml)
@@ -198,7 +198,7 @@ class CommunicationTest(unittest.TestCase):
         }
         ftest = tempfile.NamedTemporaryFile()
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        ftest.write('<channel src="localhost" dst="localhost">\n')
+        ftest.write('<channel>\n')
         for mtype, count in spec.iteritems():
             for i in xrange(count):
                 sample = gen_map[mtype]()
@@ -210,13 +210,10 @@ class CommunicationTest(unittest.TestCase):
         # actually we should do more but this seems sufficient
         ftest.flush()
 
-        hostname = 'localhost'
-
         driver = _TestingDriver()
-        chan = Channel(hostname, hostname, driver)
 
         task = task_self()
-        task.shell('cat ' + ftest.name, nodes=hostname, handler=chan)
+        task.shell('cat ' + ftest.name, nodes='localhost', handler=Channel(driver))
         task.resume()
 
         ftest.close()
@@ -234,7 +231,7 @@ class CommunicationTest(unittest.TestCase):
         }
         ftest = tempfile.NamedTemporaryFile()
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        ftest.write('<channel src="localhost" dst="localhost">\n')
+        ftest.write('<channel>\n')
         for mtype, count in spec.iteritems():
             for i in xrange(count):
                 sample = gen_map[mtype]()
@@ -246,16 +243,13 @@ class CommunicationTest(unittest.TestCase):
         # actually we should do more but this seems sufficient
         ftest.flush()
 
-        hostname = 'localhost'
-
-        driver = _TestingDriver()
-        chan = Channel(hostname, hostname, driver)
-        task = task_self()
-
         fin = open(ftest.name)
         fout = open('/dev/null', 'w')
-        worker = WorkerSimple(fin, fout, None, None, handler=chan)
+        
+        driver = _TestingDriver()
+        worker = WorkerSimple(fin, fout, None, None, handler=Channel(driver))
 
+        task = task_self()
         task.schedule(worker)
         task.resume()
 
@@ -269,17 +263,14 @@ class CommunicationTest(unittest.TestCase):
         ftest = tempfile.NamedTemporaryFile()
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         ftest.write('This is an invalid line\n')
-        ftest.write('<channel src="localhost" dst="localhost">\n')
+        ftest.write('<channel>\n')
         ftest.write('</channel>\n')
 
         ## write data on the disk
         # actually we should do more but this seems sufficient
         ftest.flush()
 
-        hostname = 'localhost'
-
-        driver = _TestingDriver()
-        chan = Channel(hostname, hostname, driver)
+        chan = Channel(_TestingDriver())
         task = task_self()
 
         fin = open(ftest.name)

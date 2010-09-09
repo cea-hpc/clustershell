@@ -119,7 +119,7 @@ class PropagationTest(unittest.TestCase):
 
         gwfile = tempfile.NamedTemporaryFile()
         gwfile.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        gwfile.write('<channel src="admin" dst="gateway">\n')
+        gwfile.write('<channel>\n')
         gwfile.write('<message type="ACK" msgid="0" ack="0"></message>\n')
         gwfile.write('<message type="ACK" msgid="1" ack="1"></message>\n')
         gwfile.write('<message type="ACK" msgid="2" ack="2"></message>\n')

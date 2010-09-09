@@ -87,8 +87,6 @@ class XMLReader(ContentHandler):
         """
         ContentHandler.__init__(self)
         self.msg_queue = deque()
-        self.name = ''
-        self.parent = ''
         # current packet under construction
         self._draft = None
         self._sections_map = None
@@ -96,8 +94,7 @@ class XMLReader(ContentHandler):
     def startElement(self, name, attrs):
         """read a starting xml tag"""
         if name == 'channel':
-            self.name = attrs['dst']
-            self.parent = attrs['src']
+            pass
         elif name == 'message':
             self._draft_new(attrs)
         elif self._draft is not None:
@@ -163,15 +160,12 @@ class Channel(EventHandler):
     Instances use a driver that describes their behavior, and send/recv messages
     over the channel.
     """
-    def __init__(self, src, dst, driver):
+    def __init__(self, driver):
         """
         """
         EventHandler.__init__(self)
         self.driver = driver
         driver.channel = self
-
-        self.src = src
-        self.dst = dst
 
         self._handler = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
@@ -181,12 +175,8 @@ class Channel(EventHandler):
         """open a new communication channel from src to dst"""
         out = StringIO()
         generator = XMLGenerator(out, encoding='UTF-8')
-        channel_attr = {
-            'src': self.src,
-            'dst': self.dst
-        }
         generator.startDocument()
-        generator.startElement('channel', channel_attr)
+        generator.startElement('channel', {})
         worker.write(out.getvalue())
 
     def close(self, worker):
@@ -235,7 +225,7 @@ class Driver(object):
 
     Usage:
       >> drv = MyDriver() # implement abstract methods
-      >> chan = Channel('host1', 'host2', drv)
+      >> chan = Channel(drv)
       >> task = task_self()
       >> task.shell("uname -a", node="host2", handler=chan)
       >> task.resume()
