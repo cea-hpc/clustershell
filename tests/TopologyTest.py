@@ -76,16 +76,17 @@ class TopologyTest(unittest.TestCase):
         self.assertRaises(TopologyError, g.add_route, ns1, ns0)
 
     def testOverlappingRoutes(self):
-        """
-        """
+        """test overlapping routes detection"""
         g = TopologyGraph()
         admin = NodeSet('admin')
         # Add the same nodeset twice
         ns0 = NodeSet('nodes[0-9]')
         ns1 = NodeSet('nodes[10-19]')
-        ns2 = NodeSet('nodes[20-29]')
+        ns1_overlap = NodeSet('nodes[5-29]')
 
         self.assertRaises(TopologyError, g.add_route, ns0, ns0)
+        g.add_route(ns0, ns1)
+        self.assertRaises(TopologyError, g.add_route, ns0, ns1_overlap)
 
     def testBadTopologies(self):
         """test detecting invalid topologies"""
@@ -157,6 +158,38 @@ class TopologyTest(unittest.TestCase):
         for nodegroup in g.to_tree('root'):
             ns_all.difference_update(nodegroup.nodeset)
         self.assertEqual(len(ns_all), 0)
+    
+    def testInvalidRootNode(self):
+        """test invalid root node specification"""
+        g = TopologyGraph()
+        ns0 = NodeSet('node[0-9]')
+        ns1 = NodeSet('node[10-19]')
+        g.add_route(ns0, ns1)
+        self.assertRaises(TopologyError, g.to_tree, 'admin1')
+
+    def testMultipleAdminGroups(self):
+        """test topology with several admin groups"""
+        ## -------------------
+        # TODO : uncommenting following lines should not produce an error. This
+        # is a valid topology!!
+        # ----------
+        tmpfile = tempfile.NamedTemporaryFile()
+        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('admin0: nodes[0-1]\n')
+        #tmpfile.write('admin1: nodes[0-1]\n')
+        tmpfile.write('admin2: nodes[2-3]\n')
+        #tmpfile.write('admin3: nodes[2-3]\n')
+        tmpfile.write('nodes[0-1]: nodes[10-19]\n')
+        tmpfile.write('nodes[2-3]: nodes[20-29]\n')
+        tmpfile.flush()
+        parser = TopologyParser()
+        parser.load(tmpfile.name)
+
+        ns_all = NodeSet('admin2,nodes[2-3,20-29]')
+        ns_tree = NodeSet()
+        for nodegroup in parser.tree('admin2'):
+           ns_tree.add(nodegroup.nodeset)
+        self.assertEqual(str(ns_all), str(ns_tree))
 
     def testTopologyGraphBigGroups(self):
         """test adding huge nodegroups in routes"""
@@ -171,7 +204,6 @@ class TopologyTest(unittest.TestCase):
         g.add_route(ns2, ns3)
         self.assertEqual(g.dest(ns2), ns3)
 
-    #chrono
     def testNodeString(self):
         """test loading a linear string topology"""
         tmpfile = tempfile.NamedTemporaryFile()
@@ -324,6 +356,14 @@ class TopologyTest(unittest.TestCase):
 
         tree = parser.tree('n0')
 
+        # In fact it looks like this:
+        # ---------------------------
+        # n0
+        # |_ n1
+        # |  |_ n[10-49]
+        # |_ n2
+        #    |_ n[50-89]
+        # ---------------------------
         display_ref = 'n0\n|_ n1\n|  |_ n[10-49]\n|_ n2\n   |_ n[50-89]\n'
         display = str(tree)
         print "\n%s" % display
@@ -379,7 +419,8 @@ class TopologyTest(unittest.TestCase):
         self.assertEquals(str(t), 'src[0-9] -> dst[5-8]\nsrc[10-19] -> dst[15-18]')
 
         g = TopologyGraph()
-        # TODO str(g)
+        # XXX: Actually if g is not empty other things will be printed out...
+        self.assertEquals(str(g), '<TopologyGraph>\n')
 
 
 def main():

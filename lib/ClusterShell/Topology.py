@@ -389,20 +389,15 @@ class TopologyGraph(object):
         src_all = self._routing.aggregated_src
         dst_all = self._routing.aggregated_dst
 
-        # every node is a destination, appart the root
-        root_candidates = src_all - dst_all
-        if root not in root_candidates:
+        res = [(k, v) for k, v in self._nodegroups.items() if root in v.nodeset]
+        if len(res) > 0:
+            kgroup, group = res[0]
+            del self._nodegroups[kgroup]
+            self._nodegroups[root] = group
+        else:
             raise TopologyError('"%s" is not a valid root node!' % root)
+        
         self._root = root
-
-        # if several root are available, then remove the unused ones
-        try:
-            root_grp = self._nodegroups[str(root_candidates)]
-            root_grp.nodeset = NodeSet(root)
-            del self._nodegroups[str(root_candidates)]
-            self._nodegroups[root] = root_grp
-        except KeyError:
-            raise TopologyError('Invalid topology or specification!')
 
 class TopologyParser(ConfigParser.ConfigParser):
     """This class offers a way to interpret network topologies supplied under
