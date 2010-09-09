@@ -805,7 +805,6 @@ def clush_main(args):
     optgrp.add_option("-s", "--groupsource", action="store",
                       dest="groupsource", help="optional groups.conf(5) " \
                       "group source to use")
-    parser.add_option_group(optgrp)
     optgrp.add_option("--color", action="store", dest="whencolor",
                       choices=WHENCOLOR_CHOICES,
                       help="whether to use ANSI colors (never, always or auto)")
