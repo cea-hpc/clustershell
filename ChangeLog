@@ -1,4 +1,8 @@
-2010-09-09 S. Thiell <stephane.thiell@cea.fr>
+2010-09-10 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.3.2 released.
+
+	* clustershell.spec.in: Last fixes (Fedora approved).
 
 	* scripts/clush.py: Removed duplicate add_option_group() (Output behaviour
 	option group was displayed twice in clush -h).
