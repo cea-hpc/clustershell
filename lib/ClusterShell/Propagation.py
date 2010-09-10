@@ -40,8 +40,8 @@ gateways and gather results.
 
 
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import task_self, AlreadyRunningError
-from ClusterShell.Communication import Channel, Driver
+from ClusterShell.Task import task_self
+from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ConfigurationMessage
 from ClusterShell.Communication import ControlMessage
 
@@ -106,7 +106,7 @@ class PropagationTreeRouter(object):
         """
         nexthop = NodeSet()
         res = [tmp & dst for tmp in self.table.values()]
-        map(lambda x: nexthop.add(x), res)
+        [nexthop.add(x) for x in res]
         if len(nexthop) > 0:
             yield nexthop, nexthop
 
@@ -205,7 +205,8 @@ class PropagationTree(object):
         next_hops = self._distribute(fanout, NodeSet(nodes))
         for gw, target in next_hops.iteritems():
             if gw == target:
-                self._execute_direct(cmd, target, timeout)
+                task = task_self()
+                task.shell(cmd, nodes=target, timeout=timeout)
             else:
                 self._execute_remote(cmd, target, gw, timeout)
 
@@ -226,18 +227,11 @@ class PropagationTree(object):
                 distribution[gw] = dstset
         return distribution
 
-    def _execute_direct(self, cmd, target, timeout):
-        """
-        """
-        task = task_self()
-        task.shell(cmd, nodes=target, timeout=timeout)
-
     def _execute_remote(self, cmd, target, gateway, timeout):
-        """
-        """
+        """run command against a remote node via a gateway"""
         task = task_self()
         # tunnelled message passing
-        chan = Channel(PropagationDriver(cmd, target, self.topology))
+        chan = PropagationChannel(cmd, target, self.topology)
         # invoke remote gateway engine
         task.shell(self.invoke_gateway, nodes=gateway, handler=chan, \
             timeout=timeout)
@@ -250,7 +244,7 @@ class PropagationTree(object):
         """routing operation: mark an host as unreachable"""
         return self.router.mark_unreachable(dst)
 
-class PropagationDriver(Driver):
+class PropagationChannel(Channel):
     """Admin node propagation logic. Instances are able to handle incoming
     messages from a directly connected gateway, process them and reply.
 
@@ -280,7 +274,7 @@ class PropagationDriver(Driver):
     def __init__(self, cmd, target, topology):
         """
         """
-        Driver.__init__(self)
+        Channel.__init__(self)
         self.cmd = cmd
         self.target = target
         self.topology = topology

@@ -20,7 +20,7 @@ sys.path.insert(0, '../lib')
 
 from ClusterShell.Task import task_self
 from ClusterShell.Worker.Worker import WorkerSimple
-from ClusterShell.Communication import XMLReader, Channel, Driver
+from ClusterShell.Communication import XMLReader, Channel
 from ClusterShell.Communication import MessageProcessingError
 from ClusterShell.Communication import ConfigurationMessage
 from ClusterShell.Communication import ControlMessage
@@ -68,12 +68,12 @@ gen_map = {
     ErrorMessage.ident: gen_err
 }
 
-class _TestingDriver(Driver):
-    """internal driver that handle read messages"""
+class _TestingChannel(Channel):
+    """internal channel that handle read messages"""
     def __init__(self):
         """
         """
-        Driver.__init__(self)
+        Channel.__init__(self)
         self.queue = []
         self._counter = 1
         self._last_id = 0
@@ -88,10 +88,12 @@ class _TestingDriver(Driver):
         self._counter += 1
         if self._counter == 4:
             self.exit = True
-            self.channel.close(self.worker)
+            self._close()
 
     def start(self):
-        self.channel.open(self.worker)
+        """
+        """
+        self._open()
 
     def validate(self, spec):
         """check whether the test was successful or not by comparing the
@@ -180,11 +182,11 @@ class CommunicationTest(unittest.TestCase):
         msg.data_encode(inst)
         self.assertEquals(inst, msg.data_decode())
 
-    def testDriverAbstractMethods(self):
+    def testChannelAbstractMethods(self):
         """test driver interface"""
-        d = Driver()
-        self.assertRaises(NotImplementedError, d.recv, None)
-        self.assertRaises(NotImplementedError, d.start)
+        c = Channel()
+        self.assertRaises(NotImplementedError, c.recv, None)
+        self.assertRaises(NotImplementedError, c.start)
 
     def testDistantChannel(self):
         """schyzophrenic self communication test over SSH"""
@@ -210,14 +212,13 @@ class CommunicationTest(unittest.TestCase):
         # actually we should do more but this seems sufficient
         ftest.flush()
 
-        driver = _TestingDriver()
-
         task = task_self()
-        task.shell('cat ' + ftest.name, nodes='localhost', handler=Channel(driver))
+        chan = _TestingChannel()
+        task.shell('cat ' + ftest.name, nodes='localhost', handler=chan)
         task.resume()
 
         ftest.close()
-        self.assertEquals(driver.validate(spec), True)
+        self.assertEquals(chan.validate(spec), True)
 
     def testLocalChannel(self):
         """schyzophrenic self local communication"""
@@ -246,8 +247,8 @@ class CommunicationTest(unittest.TestCase):
         fin = open(ftest.name)
         fout = open('/dev/null', 'w')
         
-        driver = _TestingDriver()
-        worker = WorkerSimple(fin, fout, None, None, handler=Channel(driver))
+        chan = _TestingChannel()
+        worker = WorkerSimple(fin, fout, None, None, handler=chan)
 
         task = task_self()
         task.schedule(worker)
@@ -256,7 +257,7 @@ class CommunicationTest(unittest.TestCase):
         ftest.close()
         fin.close()
         fout.close()
-        self.assertEquals(driver.validate(spec), True)
+        self.assertEquals(chan.validate(spec), True)
 
     def testInvalidCommunication(self):
         """test detecting invalid data upon reception"""
@@ -270,7 +271,7 @@ class CommunicationTest(unittest.TestCase):
         # actually we should do more but this seems sufficient
         ftest.flush()
 
-        chan = Channel(_TestingDriver())
+        chan = _TestingChannel()
         task = task_self()
 
         fin = open(ftest.name)

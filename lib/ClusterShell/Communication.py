@@ -45,13 +45,15 @@ Communication channels have been implemented as ClusterShell events handlers.
 Whenever a message chunk is read, the data is given to a SAX XML parser, that
 will use it to create corresponding messages instances as a messages factory.
 
-As soon as an instance is ready, it is then passed to a Driver. The driver is an
-interface able to get and emit messages instances. Subclassing this interface
-offers the ability to connect whatever logic you want over a communication
-channel.
+As soon as an instance is ready, it is then passed to a recv() method in the
+channel. The recv() method of the Channel class is a stub, that requires to be
+implemented in subclass to process incoming messages. So is the start() method
+too.
+
+Subclassing the Channel class allows implementing whatever logic you want on the
+top of a communication channel.
 """
 
-import sys
 import cPickle
 import base64
 import xml.sax
@@ -157,39 +159,45 @@ class Channel(EventHandler):
     """Use this event handler to establish a communication channel between to
     hosts whithin the propagation tree.
 
-    Instances use a driver that describes their behavior, and send/recv messages
-    over the channel.
+    The endpoint's logic has to be implemented by subclassing the Channel class
+    and overriding the start() and recv() methods.
+    
+    There is no default behavior for these methods apart raising a
+    NotImplementedError.
+    
+    Usage:
+      >> chan = MyChannel() # inherits Channel
+      >> task = task_self()
+      >> task.shell("uname -a", node="host2", handler=chan)
+      >> task.resume()
     """
-    def __init__(self, driver):
+    def __init__(self):
         """
         """
         EventHandler.__init__(self)
-        self.driver = driver
-        driver.channel = self
+        
+        self.exit = False
+        self.worker = None
 
-        self._handler = XMLReader()
+        self._xml_reader = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
-        self._parser.setContentHandler(self._handler)
+        self._parser.setContentHandler(self._xml_reader)
 
-    def open(self, worker):
+    def _open(self):
         """open a new communication channel from src to dst"""
-        out = StringIO()
-        generator = XMLGenerator(out, encoding='UTF-8')
+        generator = XMLGenerator(self.worker, encoding='UTF-8')
         generator.startDocument()
         generator.startElement('channel', {})
-        worker.write(out.getvalue())
 
-    def close(self, worker):
+    def _close(self):
         """close an already opened channel"""
-        out = StringIO()
-        generator = XMLGenerator(out)
+        generator = XMLGenerator(self.worker)
         generator.endElement('channel')
-        worker.write(out.getvalue())
 
     def ev_start(self, worker):
         """connection established. Open higher level channel"""
-        self.driver.worker = worker
-        self.driver.start()
+        self.worker = worker
+        self.start()
 
     def ev_read(self, worker):
         """channel has data to read"""
@@ -206,48 +214,27 @@ class Channel(EventHandler):
                 'Invalid communication (%s): "%s"' % (e.getMessage(), raw))
 
         # pass next message to the driver if ready
-        if self._handler.msg_available():
-            msg = self._handler.pop_msg()
+        if self._xml_reader.msg_available():
+            msg = self._xml_reader.pop_msg()
             assert msg is not None
-            self.driver.recv(msg)
+            self.recv(msg)
 
     def ev_hup(self, worker):
         """do some cleanup when the connection is over"""
         # TODO: call this statement on </channel>
         #self._parser.close()
-
-class Driver(object):
-    """Describes the behavior of a communicating node. A driver contains the
-    logic to apply at the endpoint of a communication channel.
     
-    This class is an interface, or abstract class, that requires to be
-    subclassed.
-
-    Usage:
-      >> drv = MyDriver() # implement abstract methods
-      >> chan = Channel(drv)
-      >> task = task_self()
-      >> task.shell("uname -a", node="host2", handler=chan)
-      >> task.resume()
-    """
-    def __init__(self):
-        """
-        """
-        self.exit = False
-        self.worker = None # will be externally set by the channel
-        self.channel = None # likewise
+    def send(self, msg):
+        """write an outgoing message as its XML representation"""
+        self.worker.write(msg.xml())
 
     def start(self):
-        """main logic"""
+        """initialization logic"""
         raise NotImplementedError('Abstract method: subclasses must implement')
     
     def recv(self, msg):
         """callback: process incoming message"""
         raise NotImplementedError('Abstract method: subclasses must implement')
-
-    def send(self, msg):
-        """write an outgoing message as its XML representation"""
-        self.worker.write(msg.xml())
 
 class Message(object):
     """base message class"""
@@ -278,9 +265,9 @@ class Message(object):
 
     def selfbuild(self, attributes):
         """self construction from a table of attributes"""
-        for k, format in self.attr.iteritems():
+        for k, fmt in self.attr.iteritems():
             try:
-                setattr(self, k, format(attributes[k]))
+                setattr(self, k, fmt(attributes[k]))
             except KeyError:
                 raise MessageProcessingError(
                     'Invalid "message" attributes: missing key "%s"' % k)
@@ -329,12 +316,12 @@ class ACKMessage(Message):
     """acknowledgement message"""
     ident = 'ACK'
 
-    def __init__(self):
+    def __init__(self, ackid=0):
         """
         """
         Message.__init__(self)
         self.attr.update({'ack': int})
-        self.ack = 0
+        self.ack = ackid
 
     def data_update(self, raw):
         """override method to ensure that incoming ACK messages don't contain

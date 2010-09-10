@@ -1,3 +1,7 @@
+2010-09-10 H. Doreau <henri.doreau@gmail.com>
+	* Communication.py: Merged Channel and Driver classes to simplify the
+	API. These two classes were always used together in the code.
+
 2010-09-08 H. Doreau <henri.doreau@gmail.com>
 	* Propagation.py: Added the ability to execute a command to a directly
 	connected target.
