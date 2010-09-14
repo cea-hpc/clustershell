@@ -22,10 +22,8 @@ from ClusterShell.Task import task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Communication import XMLReader, Channel
 from ClusterShell.Communication import MessageProcessingError
-from ClusterShell.Communication import ConfigurationMessage
-from ClusterShell.Communication import ControlMessage
-from ClusterShell.Communication import ACKMessage
-from ClusterShell.Communication import ErrorMessage
+from ClusterShell.Communication import ConfigurationMessage, ControlMessage
+from ClusterShell.Communication import ACKMessage, ErrorMessage, OutputMessage
 
 
 
@@ -60,12 +58,22 @@ def gen_err():
     msg.reason = 'bad stuff'
     return msg
 
+def gen_out():
+    """return a generic output message instance"""
+    msg = OutputMessage()
+    msg.msgid = 0
+    msg.output = "node5"
+    msg.output = "Linux galion25 2.6.18-92.el5 #1 SMP Tue Apr 29 " \
+                 "03:13:37 EDT 2008 x86_64 x86_64 x86_64 GNU/Linux"
+    return msg
+
 # sample message generators
 gen_map = {
     ConfigurationMessage.ident: gen_cfg,
     ControlMessage.ident: gen_ctl,
     ACKMessage.ident: gen_ack,
-    ErrorMessage.ident: gen_err
+    ErrorMessage.ident: gen_err,
+    OutputMessage.ident: gen_out,
 }
 
 class _TestingChannel(Channel):
@@ -136,6 +144,13 @@ class CommunicationTest(unittest.TestCase):
         ref = '<message msgid="0" reason="bad stuff" type="ERR"></message>'
         self.assertEquals(res, ref)
 
+    def testXMLOutputMessage(self):
+        """test output message XML serialization"""
+        res = gen_out().xml()
+        ref = '<message msgid="0" nodes="" type="OUT" output=' \
+        '"Linux galion25 2.6.18-92.el5 #1 SMP Tue Apr 29 03:13:37 EDT 2008 x86_64 x86_64 x86_64 GNU/Linux"></message>'
+        self.assertEquals(res, ref)
+
     def testInvalidMsgStreams(self):
         """test detecting invalid messages"""
         patterns = [
@@ -144,6 +159,8 @@ class CommunicationTest(unittest.TestCase):
             '<message type="ACK" msgid="0" ack="12"><foo></foo></message>',
             '<message type="ACK" msgid="0" ack="12">some stuff</message>',
             '<message type="ACK" msgid="123"></message>',
+            '<message type="OUT" msgid="123" reason="foo"></message>',
+            '<message type="OUT" msgid="123" output="foo" nodes="bar">shoomp</message>',
             '<message type="CFG" msgid="123"><foo></bar></message>',
             '<message type="CFG" msgid="123"><foo></message>',
             '<message type="CTL" msgid="123"><param></param></message>',

@@ -1,3 +1,8 @@
+2010-09-14 H. Doreau <henri.doreau@gmail.com>
+	* Communication.py: Added a new type of message to handle replies
+
+	* tests/CommunicationTests.py: Updated tests to use this new class
+
 2010-09-10 H. Doreau <henri.doreau@gmail.com>
 	* Communication.py: Merged Channel and Driver classes to simplify the
 	API. These two classes were always used together in the code.

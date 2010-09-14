@@ -54,6 +54,7 @@ Subclassing the Channel class allows implementing whatever logic you want on the
 top of a communication channel.
 """
 
+import sys
 import cPickle
 import base64
 import xml.sax
@@ -109,6 +110,8 @@ class XMLReader(ContentHandler):
         # end of message
         if name == 'message':
             self.msg_queue.appendleft(self._draft)
+        elif name == 'channel':
+            sys.exit()
 
     def characters(self, content):
         """read content characters"""
@@ -134,7 +137,8 @@ class XMLReader(ContentHandler):
             ConfigurationMessage.ident: ConfigurationMessage,
             ControlMessage.ident: ControlMessage,
             ACKMessage.ident: ACKMessage,
-            ErrorMessage.ident: ErrorMessage
+            ErrorMessage.ident: ErrorMessage,
+            OutputMessage.ident: OutputMessage,
         }
         try:
             msg_type = attributes['type']
@@ -219,14 +223,10 @@ class Channel(EventHandler):
             assert msg is not None
             self.recv(msg)
 
-    def ev_hup(self, worker):
-        """do some cleanup when the connection is over"""
-        # TODO: call this statement on </channel>
-        #self._parser.close()
-    
     def send(self, msg):
         """write an outgoing message as its XML representation"""
-        self.worker.write(msg.xml())
+        #print '[DBG] send: %s' % str(msg)
+        self.worker.write(msg.xml() + '\n')
 
     def start(self):
         """initialization logic"""
@@ -333,12 +333,30 @@ class ErrorMessage(Message):
     """error message"""
     ident = 'ERR'
 
-    def __init__(self):
+    def __init__(self, err=''):
         """
         """
         Message.__init__(self)
         self.attr.update({'reason': str})
-        self.reason = ''
+        self.reason = err
+
+    def data_update(self, raw):
+        """override method to ensure that incoming ACK messages don't contain
+        unexpected payloads
+        """
+        raise MessageProcessingError('Error message have no payload')
+
+class OutputMessage(Message):
+    """container message for output"""
+    ident = 'OUT'
+
+    def __init__(self, nodes='', output=''):
+        """
+        """
+        Message.__init__(self)
+        self.attr.update({'output': str, 'nodes': str})
+        self.output = output
+        self.nodes = nodes
 
     def data_update(self, raw):
         """override method to ensure that incoming ACK messages don't contain
