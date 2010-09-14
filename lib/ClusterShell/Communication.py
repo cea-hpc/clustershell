@@ -54,7 +54,6 @@ Subclassing the Channel class allows implementing whatever logic you want on the
 top of a communication channel.
 """
 
-import sys
 import cPickle
 import base64
 import xml.sax
@@ -110,8 +109,6 @@ class XMLReader(ContentHandler):
         # end of message
         if name == 'message':
             self.msg_queue.appendleft(self._draft)
-        elif name == 'channel':
-            sys.exit()
 
     def characters(self, content):
         """read content characters"""

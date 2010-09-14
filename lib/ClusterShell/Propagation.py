@@ -41,9 +41,8 @@ gateways and gather results.
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self
-from ClusterShell.Communication import Channel
+from ClusterShell.Communication import Channel, ControlMessage, OutputMessage
 from ClusterShell.Communication import ConfigurationMessage
-from ClusterShell.Communication import ControlMessage
 
 
 class RouteResolvingError(Exception):
@@ -195,7 +194,7 @@ class PropagationTree(object):
         # name of the administration node, at the root of the tree
         self.admin = admin or str(topology.root.nodeset)
         # builtin router
-        self.router = PropagationTreeRouter(admin, topology)
+        self.router = PropagationTreeRouter(self.admin, topology)
         # command to invoke remote communication endpoint
         self.invoke_gateway = 'python -m CluserShell/gateway'
 
@@ -287,10 +286,11 @@ class PropagationChannel(Channel):
         }
 
         self._history = {} # track informations about previous states
-        self.results = [] # (<-- stub)
 
     def start(self):
         """initial actions"""
+        #print '[DBG] start'
+        self._open()
         cfg = ConfigurationMessage()
         cfg.data_encode(self.topology)
         self._history['cfg_id'] = cfg.msgid
@@ -299,11 +299,12 @@ class PropagationChannel(Channel):
 
     def recv(self, msg):
         """process incoming messages"""
+        print '[DBG] rcvd %s' % str(msg)
         self.current_state(msg)
 
     def _state_config(self, msg):
         """handle incoming messages for state 'propagate configuration'"""
-        if msg.ack == self._history['cfg_id']:
+        if msg.type == 'ACK' and msg.ack == self._history['cfg_id']:
             self.current_state = self.states['STATE_CTL']
 
             ctl = ControlMessage()
@@ -313,16 +314,20 @@ class PropagationChannel(Channel):
 
             self._history['ctl_id'] = ctl.msgid
             self.send(ctl)
+        else:
+            print str(msg)
 
     def _state_control(self, msg):
         """handle incoming messages for state 'control'"""
-        if msg.ack == self._history['ctl_id']:
+        if msg.type == 'ACK' and msg.ack == self._history['ctl_id']:
             self.current_state = self.states['STATE_GTR']
+        else:
+            print str(msg)
 
     def _state_gather(self, msg):
         """handle incoming messages for state 'gather results'"""
-        # Storing incoming results in a stack will allow us to rebuild the final
-        # string with the fast str.join function
-        # This method should use a ClusterShell.MessageTree instance.
-        self.results.append(msg.data_decode())
+        if msg.type == OutputMessage.ident:
+            print msg.output
+        else:
+            print "rcvd: %s" % str(msg)
 

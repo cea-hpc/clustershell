@@ -6,6 +6,7 @@
 
 """Unit test for Propagation"""
 
+import os
 import copy
 import sys
 import time
@@ -196,7 +197,10 @@ class PropagationTest(unittest.TestCase):
 
         tree = parser.tree('fortoy33')
         ptree = PropagationTree(tree, 'fortoy33')
-        #task_self().set_info('debug', True)
+        task_self().set_info('debug', True)
+
+        testpath = os.path.expanduser('~/clustershell/branches/exp-2.0/tests/')
+        ptree.invoke_gateway = 'cd %s; python -m ClusterShell/Gateway' % testpath
         task = ptree.execute('uname -a', NodeSet('fortoy[34-36]'))
 
         for buf, nodes in task.iter_buffers():
