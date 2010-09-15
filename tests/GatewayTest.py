@@ -58,16 +58,21 @@ class GatewayTest(unittest.TestCase):
                 os.remove(TEST_DIR + filename)
 
         dst = NodeSet('fortoy[83-103,112-130]')
-        task = ptree.execute('echo $(date) > ' + TEST_DIR + '$(hostname)', dst)
+        task = ptree.execute('python -c "import time; print time.time()" > ' + TEST_DIR + '$(hostname)', dst)
 
         res = NodeSet()
-        for f in os.listdir(TEST_DIR):
+        times = []
+        for filename in os.listdir(TEST_DIR):
             for k in dst:
-                if f.startswith(str(k)):
+                if filename.startswith(str(k)):
                     res.add(k)
 
-        self.assertEquals(str(res), str(dst))
+                    fd = open(TEST_DIR + filename)
+                    times.append(float(fd.read()))
+                    fd.close()
 
+        self.assertEquals(str(res), str(dst))
+        print "Complete propagation time: %fs for %d nodes" % (max(times) - min(times), len(dst))
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(GatewayTest)

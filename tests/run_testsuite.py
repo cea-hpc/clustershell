@@ -59,6 +59,7 @@ if __name__ == '__main__':
                                         "TopologyTest",
                                         "PropagationTest",
                                         "CommunicationTest",
+                                        "GatewayTest",
                                         ])
 
     unittest.TextTestRunner(verbosity=verb).run(suite)
