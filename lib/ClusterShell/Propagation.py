@@ -110,7 +110,6 @@ class PropagationTreeRouter(object):
             yield nexthop, nexthop
 
         # Check for remote targets, that require a gateway to be reached
-        nb_parts = len(dst)/self.fanout + 1
         for network in self.table.iterkeys():
             dst_inter = network & dst
             for host in [NodeSet(h) for h in dst_inter]:
