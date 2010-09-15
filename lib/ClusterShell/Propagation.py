@@ -38,7 +38,6 @@ ClusterShell Propagation module. Use the topology tree to send commands through
 gateways and gather results.
 """
 
-
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self
 from ClusterShell.Communication import Channel, ControlMessage, OutputMessage
@@ -103,19 +102,20 @@ class PropagationTreeRouter(object):
         hosts. It should provide a rather good load balancing between the
         gateways.
         """
-        nexthop = NodeSet()
+        # Check for directly connected targets
         res = [tmp & dst for tmp in self.table.values()]
+        nexthop = NodeSet()
         [nexthop.add(x) for x in res]
         if len(nexthop) > 0:
             yield nexthop, nexthop
 
-        nb_parts = len(dst)/self.fanout or 1
-        for networks in self.table.iterkeys():
-            dst_inter = networks & dst
-            for subnet in dst_inter.split(nb_parts):
-                if len(subnet) > 0:
-                    dst.difference_update(subnet)
-                    yield self.next_hop(subnet), subnet
+        # Check for remote targets, that require a gateway to be reached
+        nb_parts = len(dst)/self.fanout + 1
+        for network in self.table.iterkeys():
+            dst_inter = network & dst
+            for host in [NodeSet(h) for h in dst_inter]:
+                dst.difference_update(host)
+                yield self.next_hop(host), host
 
     def next_hop(self, dst):
         """perform the next hop resolution. If several hops are available, then,
@@ -138,7 +138,7 @@ class PropagationTreeRouter(object):
         # node[0-9]   | gateway0
         # node[10-19] | gateway[1-2]
         #            ...
-        #---------
+        # ---------
         for network, nexthops in self.table.iteritems():
             # destination contained in current network
             if dst in network:
@@ -196,11 +196,15 @@ class PropagationTree(object):
         # builtin router
         self.router = PropagationTreeRouter(self.admin, topology)
         # command to invoke remote communication endpoint
-        self.invoke_gateway = 'python -m CluserShell/gateway'
+        self.invoke_gateway = 'python -m CluserShell/Gateway'
 
-    def execute(self, cmd, nodes, fanout=32, timeout=4):
+    def execute(self, cmd, nodes, fanout=None, timeout=4):
         """execute `cmd' on the nodeset specified at loading"""
         task = task_self()
+        if fanout == None:
+            fanout = self.router.fanout
+        task.set_info('fanout', fanout)
+
         next_hops = self._distribute(fanout, NodeSet(nodes))
         for gw, target in next_hops.iteritems():
             if gw == target:
@@ -229,8 +233,10 @@ class PropagationTree(object):
     def _execute_remote(self, cmd, target, gateway, timeout):
         """run command against a remote node via a gateway"""
         task = task_self()
+
         # tunnelled message passing
-        chan = PropagationChannel(cmd, target, self.topology)
+        chan = PropagationChannel(cmd, target, self.topology, \
+            self.invoke_gateway)
         # invoke remote gateway engine
         task.shell(self.invoke_gateway, nodes=gateway, handler=chan, \
             timeout=timeout)
@@ -270,13 +276,14 @@ class PropagationChannel(Channel):
       - gtr
         Final state: wait for results from the subtree and store them.
     """
-    def __init__(self, cmd, target, topology):
+    def __init__(self, cmd, target, topology, invoke_gw):
         """
         """
         Channel.__init__(self)
         self.cmd = cmd
         self.target = target
         self.topology = topology
+        self.invoke_gw = invoke_gw
 
         self.current_state = None
         self.states = {
@@ -310,7 +317,12 @@ class PropagationChannel(Channel):
             ctl = ControlMessage()
             ctl.action = 'shell'
             ctl.target = self.target
-            ctl.data_encode({'cmd': self.cmd})
+
+            ctl_data = {
+                'cmd': self.cmd,
+                'invoke_gateway': self.invoke_gw,
+            }
+            ctl.data_encode(ctl_data)
 
             self._history['ctl_id'] = ctl.msgid
             self.send(ctl)
