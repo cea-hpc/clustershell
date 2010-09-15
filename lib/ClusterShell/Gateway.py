@@ -43,7 +43,6 @@ import os
 import sys
 import fcntl
 import socket
-import traceback
 
 
 from ClusterShell.Task import task_self
@@ -81,7 +80,7 @@ class GatewayChannel(Channel):
         try:
             self.current_state(msg)
         except Exception, ex:
-            self.send(ErrorMessage(str(ex) + traceback.format_exc()))
+            self.send(ErrorMessage(str(ex)))
 
     def _state_cfg(self, msg):
         """receive topology configuration"""
@@ -98,6 +97,9 @@ class GatewayChannel(Channel):
             if msg.action == 'shell':
                 data = msg.data_decode()
                 cmd = data['cmd']
+
+                self.propagation.invoke_gateway = data['invoke_gateway']
+
                 self.current_state = self.states['GTR']
                 self.propagation.execute(cmd, msg.target)
 
@@ -110,12 +112,12 @@ class GatewayChannel(Channel):
         """acknowledge a received message"""
         self.send(ACKMessage(msg.msgid))
 
+
 if __name__ == '__main__':
     fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
     task = task_self()
     chan = GatewayChannel()
     worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)
-    #task.set_info("debug", True)
     task.schedule(worker)
     task.resume()
 
