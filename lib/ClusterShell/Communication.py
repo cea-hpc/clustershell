@@ -109,13 +109,15 @@ class XMLReader(ContentHandler):
         # end of message
         if name == 'message':
             self.msg_queue.appendleft(self._draft)
+            self._draft = None
 
     def characters(self, content):
         """read content characters"""
-        content = content.encode('utf-8')
-        content = strdel(content, [' ', '\t', '\r', '\n'])
-        if content != '':
-            self._draft.data_update(content)
+        if self._draft is not None:
+            content = content.decode('utf-8')
+            content = strdel(content, [' ', '\t', '\r', '\n'])
+            if content != '':
+                self._draft.data_update(content)
 
     def msg_available(self):
         """return whether a message is available for delivery or not"""

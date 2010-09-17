@@ -2,6 +2,10 @@
 	* Gateway.py: Added logging code to help debugging this code, executed
 	remotely.
 
+	* Communication.py, Propagation.py: fixed a bug in message recontruction
+	code. Trailing characters sometimes corrupted already terminated
+	instances instead of being simpy ignored.
+
 2010-09-14 H. Doreau <henri.doreau@gmail.com>
 	* Communication.py: Added a new type of message to handle replies
 
