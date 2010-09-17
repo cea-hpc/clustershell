@@ -59,7 +59,7 @@ class PropagationTreeRouter(object):
         """
         """
         self.topology = topology
-        self.fanout = 32 # some default
+        self.fanout = task_self().info('fanout')
         self.nodes_fanin = {}
         self.table = None
         self.root = root
@@ -320,6 +320,7 @@ class PropagationChannel(Channel):
             ctl_data = {
                 'cmd': self.cmd,
                 'invoke_gateway': self.invoke_gw,
+                'taskinfo': task_self()._info,
             }
             ctl.data_encode(ctl_data)
 

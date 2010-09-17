@@ -6,6 +6,9 @@
 	code. Trailing characters sometimes corrupted already terminated
 	instances instead of being simpy ignored.
 
+	* Propagation.py: now send the whole informations for task to the remote
+	node so that parameters are also propagated and used within the tree.
+
 2010-09-14 H. Doreau <henri.doreau@gmail.com>
 	* Communication.py: Added a new type of message to handle replies
 
