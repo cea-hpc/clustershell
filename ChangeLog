@@ -1,3 +1,7 @@
+2010-09-17 H. Doreau <henri.doreau@gmail.com>
+	* Gateway.py: Added logging code to help debugging this code, executed
+	remotely.
+
 2010-09-14 H. Doreau <henri.doreau@gmail.com>
 	* Communication.py: Added a new type of message to handle replies
 

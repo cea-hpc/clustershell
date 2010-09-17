@@ -44,6 +44,7 @@ import sys
 import fcntl
 import socket
 
+import logging
 
 from ClusterShell.Task import task_self
 from ClusterShell.Worker.Worker import WorkerSimple
@@ -54,11 +55,11 @@ from ClusterShell.Communication import ControlMessage, ACKMessage, ErrorMessage
 
 class GatewayChannel(Channel):
     """high level logic for gateways"""
-    def __init__(self):
+    def __init__(self, hostname):
         """
         """
         Channel.__init__(self)
-        self.hostname = socket.gethostname().split('.')[0]
+        self.hostname = hostname
         self.topology = None
         self.propagation = None
 
@@ -74,12 +75,15 @@ class GatewayChannel(Channel):
         self._open()
         # prepare to receive topology configuration
         self.current_state = self.states['CFG']
+        logging.debug('entering config state')
 
     def recv(self, msg):
         """handle incoming message"""
         try:
+            logging.debug('handling incoming message: %s' % str(msg))
             self.current_state(msg)
         except Exception, ex:
+            logging.exception('on recv(): %s' % str(ex))
             self.send(ErrorMessage(str(ex)))
 
     def _state_cfg(self, msg):
@@ -87,8 +91,12 @@ class GatewayChannel(Channel):
         if msg.type == ConfigurationMessage.ident:
             self.topology = msg.data_decode()
             self.propagation = PropagationTree(self.topology, self.hostname)
+            logging.debug('decoded propagation tree')
             self._ack(msg)
             self.current_state = self.states['CTL']
+            logging.debug('entering control state')
+        else:
+            logging.error('unexpected message: %s' % str(msg))
 
     def _state_ctl(self, msg):
         """receive control message with actions to perform"""
@@ -99,13 +107,22 @@ class GatewayChannel(Channel):
                 cmd = data['cmd']
 
                 self.propagation.invoke_gateway = data['invoke_gateway']
+                logging.debug('decoded gw invoke (%s)' % data['invoke_gateway'])
+
+                task_self()._info = data['taskinfo']
+                logging.debug('assigning task infos (%s)' % str(data['taskinfo']))
 
                 self.current_state = self.states['GTR']
+                logging.debug('launching execution/entering gathering state')
+
                 self.propagation.execute(cmd, msg.target)
+        else:
+            logging.error('unexpected message: %s' % str(msg))
 
     def _state_gtr(self, msg):
         """gather outputs"""
         # TODO!!
+        logging.debug('incoming output msg: %s' % str(msg))
         pass
 
     def _ack(self, msg):
@@ -114,10 +131,25 @@ class GatewayChannel(Channel):
 
 
 if __name__ == '__main__':
+    host = socket.gethostname().split('.')[0]
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(levelname)s %(message)s',
+        filename=os.path.expanduser("~/dbg/%s.gw" % host),
+        filemode='a+'
+    )
+    logging.debug('Starting gateway')
     fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
+
     task = task_self()
-    chan = GatewayChannel()
+    chan = GatewayChannel(host)
+
     worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)
     task.schedule(worker)
-    task.resume()
+    logging.debug('Starting task')
+    try:
+        task.resume()
+    except:
+        logging.exception('Gateway failure!!')
+    logging.debug('Task performed')
 
