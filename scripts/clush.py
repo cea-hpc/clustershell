@@ -57,6 +57,7 @@ import sys
 import signal
 import ConfigParser
 
+from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeUtils import GroupResolverConfigError
 from ClusterShell.NodeUtils import GroupResolverSourceError
 from ClusterShell.NodeUtils import GroupSourceException
@@ -193,7 +194,19 @@ class StdInputHandler(EventHandler):
     def ev_close(self, worker):
         self.master_worker.set_write_eof()
 
-class DirectOutputHandler(EventHandler):
+class OutputHandler(EventHandler):
+    """Base class for clush output handlers."""
+    def update_prompt(self, worker):
+        """
+        If needed, notify main thread to update its prompt by sending
+        a SIGUSR1 signal. We use task-specific user-defined variable
+        to record current states (prefixed by USER_).
+        """
+        worker.task.set_default("USER_running", False)
+        if worker.task.default("USER_handle_SIGUSR1"):
+            os.kill(os.getpid(), signal.SIGUSR1)
+        
+class DirectOutputHandler(OutputHandler):
     """Direct output event handler class."""
 
     def __init__(self, display):
@@ -222,72 +235,39 @@ class DirectOutputHandler(EventHandler):
                 NodeSet.fromlist(worker.iter_keys_timeout())
 
     def ev_close(self, worker):
-        # If needed, notify main thread to update its prompt by sending
-        # a SIGUSR1 signal. We use task-specific user-defined variable
-        # to record current states (prefixed by USER_).
-        worker.task.set_default("USER_running", False)
-        if worker.task.default("USER_handle_SIGUSR1"):
-            os.kill(os.getpid(), signal.SIGUSR1)
+        self.update_prompt(worker)
 
-class GatherOutputHandler(EventHandler):
+class GatherOutputHandler(OutputHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, display, runtimer, nodes):
+    def __init__(self, display, runtimer):
         self._display = display
         self._runtimer = runtimer
-        # needed for -L enhancement:
-        self._nodes = NodeSet(nodes)
-        self._nodemap_base = dict.fromkeys(self._nodes, 0)
-        self._nodemap = self._nodemap_base.copy()
-        self._nodes_cnt = 0
-
-    def ev_read(self, worker):
-        # Implementation of -bL "per line live gathering":
-        if not self._display.line_mode:
-            return
-        result = worker.last_read()
-        # keep counter and nodemap up-to-date
-        node = result[0]
-        self._nodes_cnt += 1
-        self._nodemap[node] += 1
-        self._live_line(worker)
 
     def ev_error(self, worker):
         ns, buf = worker.last_error()
+        self._runtimer_clean()
+        self._display.print_line_error(ns, buf)
+        self._runtimer_set_dirty()
+
+    def _runtimer_clean(self):
+        """Hide runtimer counter"""
         if self._runtimer:
             self._runtimer.eh.erase_line()
-        self._display.print_line_error(ns, buf)
+
+    def _runtimer_set_dirty(self):
+        """Force redisplay of counter"""
         if self._runtimer:
-            # Force redisplay of counter
             self._runtimer.eh.set_dirty()
 
-    def ev_hup(self, worker):
-        if self._display.line_mode and self._nodemap[worker.last_node()] == 0:
-            # forget node that doesn't answer (used for live line gathering)
-            self._nodes.remove(worker.last_node())
-            del self._nodemap[worker.last_node()]
-            del self._nodemap_base[worker.last_node()]
-            self._live_line(worker)
-
-    def _live_line(self, worker):
-        # if all nodes replied 1 (or n) time(s), display gathered line(s)
-        if self._nodes and self._nodes_cnt % len(self._nodes) == 0 and \
-                max(self._nodemap.itervalues()) == (self._nodes_cnt \
-                                                    / len(self._nodes)):
-            nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
-            for buf, nodeset in sorted(map(nodesetify,
-                                           worker.iter_buffers()),
-                                       cmp=bufnodeset_cmp):
-                self._display.print_gather(nodeset, buf)
-            # clear worker buffers, reset nodemap and node counter
-            worker.flush_buffers()
-            self._nodemap = self._nodemap_base.copy()
-            self._nodes_cnt = 0
+    def _runtimer_finalize(self, worker):
+        """Finalize display of runtimer counter"""
+        if self._runtimer:
+            self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
 
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
-        if self._runtimer:
-            self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
+        self._runtimer_finalize(worker)
 
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
@@ -298,6 +278,12 @@ class GatherOutputHandler(EventHandler):
                                        cmp=bufnodeset_cmp):
                 self._display.print_gather(nodeset, buf)
 
+        self._close_common(worker)
+
+        # Notify main thread to update its prompt
+        self.update_prompt(worker)
+
+    def _close_common(self, worker):
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
@@ -310,10 +296,60 @@ class GatherOutputHandler(EventHandler):
             print >> sys.stderr, "clush: %s: command timeout" % \
                     NodeSet.fromlist(worker.iter_keys_timeout())
 
+
+class LiveGatherOutputHandler(GatherOutputHandler):
+    """Live line-gathered output event handler class."""
+
+    def __init__(self, display, runtimer, nodes):
+        GatherOutputHandler.__init__(self, display, runtimer)
+        self._nodes = NodeSet(nodes)
+        self._nodecnt = dict.fromkeys(self._nodes, 0)
+        self._mtreeq = []
+        self._offload = 0
+
+    def ev_read(self, worker):
+        # Read new line from node
+        node, line = worker.last_read()
+        self._nodecnt[node] += 1
+        cnt = self._nodecnt[node]
+        if len(self._mtreeq) < cnt:
+            self._mtreeq.append(MsgTree())
+        self._mtreeq[cnt - self._offload - 1].add(node, line)
+        self._live_line(worker)
+
+    def ev_hup(self, worker):
+        if self._mtreeq and worker.last_node() not in self._mtreeq[0]:
+            # forget a node that doesn't answer to continue live line
+            # gathering anyway
+            self._nodes.remove(worker.last_node())
+            self._live_line(worker)
+
+    def _live_line(self, worker):
+        # if all nodes have replied, display gathered line
+        while self._mtreeq and len(self._mtreeq[0]) == len(self._nodes):
+            mtree = self._mtreeq.pop(0)
+            self._offload += 1
+            self._runtimer_clean()
+            nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+            for buf, nodeset in sorted(map(nodesetify, mtree.walk()),
+                                       cmp=bufnodeset_cmp):
+                self._display.print_gather(nodeset, buf)
+            self._runtimer_set_dirty()
+
+    def ev_close(self, worker):
+        # Worker is closing -- it's time to gather results...
+        self._runtimer_finalize(worker)
+
+        for mtree in self._mtreeq:
+            nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+            for buf, nodeset in sorted(map(nodesetify, mtree.walk()),
+                                       cmp=bufnodeset_cmp):
+                self._display.print_gather(nodeset, buf)
+
+        self._close_common(worker)
+
         # Notify main thread to update its prompt
-        worker.task.set_default("USER_running", False)
-        if worker.task.default("USER_handle_SIGUSR1"):
-            os.kill(os.getpid(), signal.SIGUSR1)
+        self.update_prompt(worker)
 
 class RunTimer(EventHandler):
     def __init__(self, task, total):
@@ -626,9 +662,12 @@ def run_command(task, cmd, ns, gather, timeout, verbosity, display):
             # number of completed commands
             runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
                                   autoclose=True)
-        worker = task.shell(cmd, nodes=ns,
-                            handler=GatherOutputHandler(display, runtimer,
-                            ns), timeout=timeout)
+        if display.line_mode:
+            handler = LiveGatherOutputHandler(display, runtimer, ns)
+        else:
+            handler = GatherOutputHandler(display, runtimer)
+
+        worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns,
                             handler=DirectOutputHandler(display),
@@ -766,7 +805,6 @@ def clush_main(args):
     optgrp.add_option("-s", "--groupsource", action="store",
                       dest="groupsource", help="optional groups.conf(5) " \
                       "group source to use")
-    parser.add_option_group(optgrp)
     optgrp.add_option("--color", action="store", dest="whencolor",
                       choices=WHENCOLOR_CHOICES,
                       help="whether to use ANSI colors (never, always or auto)")
@@ -925,7 +963,7 @@ def clush_main(args):
     task.set_default("stderr", not options.gatherall)
 
     # Disable MsgTree buffering if not gathering outputs
-    task.set_default("stdout_msgtree", gather)
+    task.set_default("stdout_msgtree", gather and not options.line_mode)
     # Always disable stderr MsgTree buffering
     task.set_default("stderr_msgtree", False)
 

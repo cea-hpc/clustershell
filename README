@@ -1,12 +1,11 @@
- -------------------------------
- ClusterShell 1.3 Python Library
- -------------------------------
+ -----------------------------------------
+ ClusterShell 1.3 Python Library and Tools
+ -----------------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
 distant cluster nodes in parallel depending on the selected engine and worker
-mechanisms.
-
-This is the source tarball. When possible, please use the RPM distribution.
+mechanisms. Also, clush, clubak and nodeset, three convenient command-line
+tools using the library are included.
 
  -------------------
  Requirements (v1.3)
@@ -37,7 +36,9 @@ This is the source tarball. When possible, please use the RPM distribution.
  Installation from source
  ------------------------
 
-In the source directory, please type :
+When possible, please use the RPM/deb distribution.
+
+Otherwise in the source directory, use:
 
     # python setup.py install
 

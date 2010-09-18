@@ -35,18 +35,20 @@
 
 """ClusterShell Python Library
 
-ClusterShell is a python event-based python library to execute commands
-on local or distant cluster nodes in parallel depending on the selected
-engine and worker mechanisms.
+Event-based Python library to execute commands on local or distant
+cluster nodes in parallel depending on the selected engine and worker
+mechanisms. It also provides advanced NodeSet and NodeGroups handling
+methods to ease and improve administration of large compute clusters
+or server farms.
 
 Please see first:
   - ClusterShell.NodeSet
   - ClusterShell.Task
 """
 
-__version__ = '1.3'
+__version__ = '1.3.2'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2010/07/21'
+__date__    = '2010/09/10'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 

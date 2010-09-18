@@ -33,7 +33,7 @@
 #
 # $Id$
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 import os
 
 if not os.access('scripts/clubak', os.F_OK):
@@ -44,16 +44,14 @@ if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
 setup(name='ClusterShell',
-      version='1.2.92',
-      license='CeCILL-C',
+      version='1.3.2',
+      license='CeCILL-C (French equivalent to LGPLv2+)',
       description='ClusterShell library',
       author='Stephane Thiell',
       author_email='stephane.thiell@cea.fr',
       url='http://clustershell.sourceforge.net/',
       package_dir={'': 'lib'},
-      packages=['ClusterShell',
-               'ClusterShell.Engine',
-               'ClusterShell.Worker'],
+      packages=find_packages('lib'),
       scripts=['scripts/clubak',
                'scripts/clush',
                'scripts/nodeset']

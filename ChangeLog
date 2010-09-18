@@ -121,6 +121,51 @@
 	* tests/TopologyTest.py: Added unit tests for network topology related
 	code.
 
+2010-09-10 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.3.2 released.
+
+	* clustershell.spec.in: Last fixes (Fedora approved).
+
+	* scripts/clush.py: Removed duplicate add_option_group() (Output behaviour
+	option group was displayed twice in clush -h).
+
+2010-09-03 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.3.1 released.
+
+	* Worker/Ssh.py: Fix issue with clush -l USER by separating underlying ssh
+	"-l USER" in two shell arguments (trac ticket #113).
+
+2010-08-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Live per-line gathering (-bL mode) improvements.
+
+	* Task.py: Fixed Task.timer() when called from another thread - it used to
+	return None (trac ticket #112).
+
+2010-08-29 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Add docstring for timer's autoclose feature (trac ticket #109).
+
+	* Worker/Worker.py: Attribute 'last_errmsg' not properly initialized (trac
+	ticket #107).
+
+	* setup.py: Switch to setuptools.
+
+    * clustershell.spec.in: Fix issue on el5 with if condition when defining
+	python_sitelib.
+
+2010-08-26 S. Thiell <stephane.thiell@cea.fr>
+
+	* Packaging automation engineering and improved specfile.
+
+	* License files converted to UTF-8.
+
+2010-07-27 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.3 released.
+
 2010-07-21 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.3 RC 2 released.
