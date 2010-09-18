@@ -1,5 +1,5 @@
  -----------------------------------------
- ClusterShell 1.3 Python Library and Tools
+ ClusterShell 2.0 Python Library and Tools
  -----------------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
@@ -8,18 +8,21 @@ mechanisms. Also, clush, clubak and nodeset, three convenient command-line
 tools using the library are included.
 
  -------------------
- Requirements (v1.3)
+ Requirements (v2.0)
  -------------------
 
  * OpenSSH (ssh/scp)
 
  * Python 2.x (x >= 4) with select.poll available (eg. Linux)
 
+ * Python 2.x (x >= 6) to use v2.0 propagation tree (highly
+   scalable execution mode)
+
  ------------------------
  Supported Engine workers
  ------------------------
 
- Two workers are supported as of version 1.1:
+ Two base workers are supported:
 
  * Ssh (default, requires ssh): support writes, fanout and reliable timeouts
 
@@ -112,5 +115,6 @@ ClusterShell was first created for Shine, the Lustre Administration Utility:
 
 Stephane Thiell           <stephane.thiell@cea.fr>
 Aurelien Degremont     <aurelien.degremont@cea.fr>
+Henri Doreau              <henri.doreau@gmail.com>
 
 CEA/DAM 2010 - http://www-hpc.cea.fr

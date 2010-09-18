@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2010)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #
 # This file is part of the ClusterShell library.
