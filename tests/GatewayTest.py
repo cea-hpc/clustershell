@@ -32,10 +32,21 @@ class GatewayTest(unittest.TestCase):
 
         hostname = socket.gethostname().split('.')[0]
 
+        # ----------------------------
+        # Gateways
+        CS2_GATEWAYS = os.getenv("CS2_GATEWAYS")
+
+        # Targeted nodes
+        CS2_TARGETS = os.getenv("CS2_TARGETS")
+        # ----------------------------
+
+        self.assertTrue(CS2_GATEWAYS and CS2_TARGETS,
+                        "please define CS2_GATEWAYS and CS2_TARGETS")
+
         # XXX hardcoded topology!
         tmpfile.write('[DEFAULT]\n')
-        tmpfile.write('%s: fortoy[34-35]\n' % hostname)
-        tmpfile.write('fortoy[34-35]: fortoy[83-103,112-130]\n')
+        tmpfile.write('%s: %s\n' % (hostname, CS2_GATEWAYS))
+        tmpfile.write('%s: %s\n' % (CS2_GATEWAYS, CS2_TARGETS))
 
         tmpfile.flush()
         parser = TopologyParser()
@@ -47,18 +58,20 @@ class GatewayTest(unittest.TestCase):
         TEST_DIR = os.path.expanduser('~/tmp/')
 
         tree = parser.tree(hostname)
-        ptree = PropagationTree(tree)
-        ptree.fanout = 64
+        ptree = PropagationTree(tree, hostname)
+        ptree.fanout = 20
         # XXX hardcoded path!
-        ptree.invoke_gateway = 'cd clustershell/branches/exp-2.0/tests; python -m ClusterShell/Gateway'
+        ptree.invoke_gateway = \
+            'cd %s/../lib; python -m ClusterShell/Gateway -B' % os.getcwd()
 
         ## delete remaining files from previous tests
         for filename in os.listdir(TEST_DIR):
             if filename.startswith("fortoy"):
                 os.remove(TEST_DIR + filename)
 
-        dst = NodeSet('fortoy[83-103,112-130]')
-        task = ptree.execute('python -c "import time; print time.time()" > ' + TEST_DIR + '$(hostname)', dst)
+        dst = NodeSet(CS2_TARGETS)
+        task = ptree.execute('python -c "import time; print time.time()" > ' + \
+                             TEST_DIR + '$(hostname)', dst, 20)
 
         res = NodeSet()
         times = []

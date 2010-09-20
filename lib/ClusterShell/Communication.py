@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2010)
 # Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #
 # This file is part of the ClusterShell library.
@@ -57,6 +57,7 @@ top of a communication channel.
 import cPickle
 import base64
 import xml.sax
+import traceback
 
 from xml.sax.handler import ContentHandler
 from xml.sax.saxutils import XMLGenerator
@@ -69,13 +70,6 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Worker import WorkerSimple
 
 
-
-def strdel(s, badchars):
-    """return s a copy of s with every badchar occurences removed"""
-    stripped = s
-    for ch in badchars:
-        stripped = stripped.replace(ch, '')
-    return stripped
 
 class MessageProcessingError(Exception):
     """base exception raised when an error occurs while processing incoming or
@@ -110,14 +104,14 @@ class XMLReader(ContentHandler):
         if name == 'message':
             self.msg_queue.appendleft(self._draft)
             self._draft = None
+        elif name == 'channel':
+            self.msg_queue.append(CloseMessage())
 
     def characters(self, content):
         """read content characters"""
         if self._draft is not None:
-            content = content.decode('utf-8')
-            content = strdel(content, [' ', '\t', '\r', '\n'])
-            if content != '':
-                self._draft.data_update(content)
+            #content = content.decode('utf-8')
+            self._draft.data_update(content)
 
     def msg_available(self):
         """return whether a message is available for delivery or not"""
@@ -182,6 +176,8 @@ class Channel(EventHandler):
         self.exit = False
         self.worker = None
 
+        self._invalid = False
+
         self._xml_reader = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
         self._parser.setContentHandler(self._xml_reader)
@@ -210,11 +206,18 @@ class Channel(EventHandler):
             raw = worker.last_read()
         else:
             _, raw = worker.last_read()
+
+        if self._invalid:
+            print "!! %s" % raw
+            return
+
         try:
             self._parser.feed(raw)
         except SAXParseException, e:
-            raise MessageProcessingError(
-                'Invalid communication (%s): "%s"' % (e.getMessage(), raw))
+            self._invalid = True
+            print "!! %s" % raw
+            #raise MessageProcessingError(
+            #    'Invalid communication (%s): "%s"' % (e.getMessage(), raw))
 
         # pass next message to the driver if ready
         if self._xml_reader.msg_available():
@@ -288,8 +291,7 @@ class Message(object):
             state[k] = str(getattr(self, k))
 
         generator.startElement('message', state)
-        content = strdel(self.data, [' ', '\t', '\r', '\n'])
-        generator.characters(content)
+        generator.characters(self.data)
         generator.endElement('message')
         xml_msg = out.getvalue()
         out.close()
@@ -362,4 +364,8 @@ class OutputMessage(Message):
         unexpected payloads
         """
         raise MessageProcessingError('Error message have no payload')
+
+class CloseMessage(Message):
+    """end of channel message"""
+    ident = 'END'
 

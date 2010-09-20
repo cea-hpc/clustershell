@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library. 
@@ -33,7 +33,7 @@
 #
 # $Id$
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 import os
 
 if not os.access('scripts/clubak', os.F_OK):
@@ -44,16 +44,14 @@ if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
 setup(name='ClusterShell',
-      version='1.2.92',
-      license='CeCILL-C',
-      description='ClusterShell library',
+      version='1.9.70',
+      license='CeCILL-C (French equivalent to LGPLv2+)',
+      description='ClusterShell library and tools',
       author='Stephane Thiell',
       author_email='stephane.thiell@cea.fr',
       url='http://clustershell.sourceforge.net/',
       package_dir={'': 'lib'},
-      packages=['ClusterShell',
-               'ClusterShell.Engine',
-               'ClusterShell.Worker'],
+      packages=find_packages('lib'),
       scripts=['scripts/clubak',
                'scripts/clush',
                'scripts/nodeset']

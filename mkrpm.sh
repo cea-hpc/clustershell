@@ -6,48 +6,59 @@ if [ -z "$2" ]; then
     exit 1
 fi
 
-
 VERS=$1
 DIST=".$2"
 
 PKGNAME=clustershell-$VERS
+TMPROOT=/tmp/clustershell-mkrpm
+TMPDIR=$TMPROOT/build/$PKGNAME
 
-TMPDIR=/tmp/clustershell-build/$PKGNAME
-rm -vrf /tmp/clustershell-build
+rm -rf $TMPROOT
 
-mkdir -vp "$TMPDIR/lib/ClusterShell"
-mkdir -vp "$TMPDIR/lib/ClusterShell/Engine"
-mkdir -vp "$TMPDIR/lib/ClusterShell/Worker"
-mkdir -vp "$TMPDIR/scripts"
-mkdir -vp "$TMPDIR/conf"
-mkdir -vp "$TMPDIR"/doc/man/{man1,man5}
-mkdir -vp "$TMPDIR"/doc/extras/vim/{ftdetect,syntax}
+echo "Building tarball..."
 
+install -d $TMPDIR/lib/ClusterShell || exit 1
+install -d $TMPDIR/lib/ClusterShell/Engine
+install -d $TMPDIR/lib/ClusterShell/Worker
+install -d $TMPDIR/scripts
+install -d $TMPDIR/conf
+install -d $TMPDIR/doc/man/{man1,man5}
+install -d $TMPDIR/doc/extras/vim/{ftdetect,syntax}
+install -d $TMPDIR/doc/epydoc
+install -d $TMPDIR/tests
 
-sed -e "s/^Version: %{version}$/Version: $VERS/" <clustershell.spec.in >"$TMPDIR/clustershell.spec"
+install -p -m 0644 setup.cfg setup.py $TMPDIR/
+install -p -m 0644 README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt $TMPDIR/
+install -p -m 0644 lib/ClusterShell/*.py $TMPDIR/lib/ClusterShell
+install -p -m 0644 lib/ClusterShell/Engine/*.py $TMPDIR/lib/ClusterShell/Engine/
+install -p -m 0644 lib/ClusterShell/Worker/*.py $TMPDIR/lib/ClusterShell/Worker/
+install -p -m 0755 scripts/clubak.py $TMPDIR/scripts/
+install -p -m 0755 scripts/clush.py $TMPDIR/scripts/
+install -p -m 0755 scripts/nodeset.py $TMPDIR/scripts/
+install -p -m 0644 conf/clush.conf $TMPDIR/conf/
+install -p -m 0644 conf/groups.conf $TMPDIR/conf/
+install -p -m 0644 doc/man/man1/clubak.1 $TMPDIR/doc/man/man1/
+install -p -m 0644 doc/man/man1/clush.1 $TMPDIR/doc/man/man1/
+install -p -m 0644 doc/man/man1/nodeset.1 $TMPDIR/doc/man/man1/
+install -p -m 0644 doc/man/man5/clush.conf.5 $TMPDIR/doc/man/man5/
+install -p -m 0644 doc/man/man5/groups.conf.5 $TMPDIR/doc/man/man5/
+install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim $TMPDIR/doc/extras/vim/ftdetect/
+install -p -m 0644 doc/extras/vim/syntax/clushconf.vim $TMPDIR/doc/extras/vim/syntax/
+install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim $TMPDIR/doc/extras/vim/syntax/
+install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
+install -p -m 0644 tests/*.py $TMPDIR/tests/
+chmod 0755 $TMPDIR/tests/run_testsuite.py
 
-cp -v setup.cfg setup.py "$TMPDIR/"
-cp -v README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt "$TMPDIR/"
-cp -v lib/ClusterShell/*.py "$TMPDIR/lib/ClusterShell"
-cp -v lib/ClusterShell/Engine/*.py "$TMPDIR/lib/ClusterShell/Engine/"
-cp -v lib/ClusterShell/Worker/*.py "$TMPDIR/lib/ClusterShell/Worker/"
-cp -v scripts/clubak.py "$TMPDIR/scripts/"
-cp -v scripts/clush.py "$TMPDIR/scripts/"
-cp -v scripts/nodeset.py "$TMPDIR/scripts/"
-cp -v conf/clush.conf "$TMPDIR/conf/"
-cp -v conf/groups.conf "$TMPDIR/conf/"
-cp -v doc/nodeset.py "$TMPDIR/scripts/"
-cp -v doc/man/man1/clubak.1 "$TMPDIR/doc/man/man1/"
-cp -v doc/man/man1/clush.1 "$TMPDIR/doc/man/man1/"
-cp -v doc/man/man1/nodeset.1 "$TMPDIR/doc/man/man1/"
-cp -v doc/man/man5/clush.conf.5 "$TMPDIR/doc/man/man5/"
-cp -v doc/man/man5/groups.conf.5 "$TMPDIR/doc/man/man5/"
-cp -v doc/extras/vim/ftdetect/clustershell.vim "$TMPDIR/doc/extras/vim/ftdetect/"
-cp -v doc/extras/vim/syntax/clushconf.vim "$TMPDIR/doc/extras/vim/syntax/"
-cp -v doc/extras/vim/syntax/groupsconf.vim "$TMPDIR/doc/extras/vim/syntax/"
+sed -e "s/^Version:       %{version}$/Version:       $VERS/" <clustershell.spec.in >$TMPDIR/clustershell.spec
 
-cd "$TMPDIR/.."
+tar -cvzf $TMPROOT/$PKGNAME.tar.gz -C $TMPROOT/build $PKGNAME || exit 1
 
-tar -czf $PKGNAME.tar.gz $PKGNAME
-rpmbuild -ta --define "dist $DIST" $PKGNAME.tar.gz
+sleep 1
+
+echo "Building RPMS..."
+
+rpmbuild -ta --define "dist $DIST" $TMPROOT/$PKGNAME.tar.gz
+
+echo "Wrote: $TMPROOT/$PKGNAME.tar.gz"
+md5sum $TMPROOT/$PKGNAME.tar.gz
 

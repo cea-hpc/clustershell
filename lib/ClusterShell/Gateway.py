@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2010)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #
 # This file is part of the ClusterShell library.
@@ -49,8 +49,9 @@ import logging
 from ClusterShell.Task import task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Propagation import PropagationTree
-from ClusterShell.Communication import Channel, ConfigurationMessage
-from ClusterShell.Communication import ControlMessage, ACKMessage, ErrorMessage
+from ClusterShell.Communication import Channel, ConfigurationMessage, ACKMessage
+from ClusterShell.Communication import ControlMessage, ErrorMessage
+from ClusterShell.Communication import CloseMessage
 
 
 class GatewayChannel(Channel):
@@ -81,7 +82,10 @@ class GatewayChannel(Channel):
         """handle incoming message"""
         try:
             logging.debug('handling incoming message: %s' % str(msg))
-            self.current_state(msg)
+            if msg.ident == CloseMessage.ident:
+                task_self().cancel()
+            else:
+                self.current_state(msg)
         except Exception, ex:
             logging.exception('on recv(): %s' % str(ex))
             self.send(ErrorMessage(str(ex)))
@@ -139,9 +143,11 @@ if __name__ == '__main__':
         filemode='a+'
     )
     logging.debug('Starting gateway')
-    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
+    flags = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
+    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     task = task_self()
+    task.set_info("debug", True)
     chan = GatewayChannel(host)
 
     worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)

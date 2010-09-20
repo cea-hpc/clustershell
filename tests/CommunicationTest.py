@@ -129,7 +129,7 @@ class CommunicationTest(unittest.TestCase):
         """test control message XML serialization"""
         res = gen_ctl().xml()
         ref = '<message action="shell" msgid="0" type="CTL" target="node[0-10]">' \
-            'KGRwMQpTJ2NtZCcKcDIKUyd1bmFtZSAtYScKcDMKcy4=</message>'
+            'KGRwMQpTJ2NtZCcKcDIKUyd1bmFtZSAtYScKcDMKcy4=\n</message>'
         self.assertEquals(res, ref)
 
     def testXMLACKMessage(self):
@@ -280,9 +280,8 @@ class CommunicationTest(unittest.TestCase):
         """test detecting invalid data upon reception"""
         ftest = tempfile.NamedTemporaryFile()
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        ftest.write('This is an invalid line\n')
-        ftest.write('<channel>\n')
-        ftest.write('</channel>\n')
+        ftest.write('We are\n')
+        ftest.write('invalid lines\n')
 
         ## write data on the disk
         # actually we should do more but this seems sufficient
@@ -296,7 +295,8 @@ class CommunicationTest(unittest.TestCase):
         worker = WorkerSimple(fin, fout, None, None, handler=chan)
         task.schedule(worker)
 
-        self.assertRaises(MessageProcessingError, task.resume)
+        # the line should appears prepended by "!!"
+        task.resume()
 
         fin.close()
         fout.close()

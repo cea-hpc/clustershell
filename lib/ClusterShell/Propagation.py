@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2010)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #
 # This file is part of the ClusterShell library.
@@ -143,8 +143,8 @@ class PropagationTreeRouter(object):
             if dst in network:
                 res = self._best_next_hop(nexthops)
                 if res is None:
-                    raise RouteResolvingError('No route available to %s' % \
-                        str(dst))
+                    raise RouteResolvingError(
+                        'No route available to %s' % str(dst))
                 self.nodes_fanin[res] += len(dst)
                 return res
             # destination contained in current next hops (ie. directly
@@ -333,6 +333,7 @@ class PropagationChannel(Channel):
         """handle incoming messages for state 'control'"""
         if msg.type == 'ACK' and msg.ack == self._history['ctl_id']:
             self.current_state = self.states['STATE_GTR']
+            self._close() # XXX Temporary
         else:
             print str(msg)
 
