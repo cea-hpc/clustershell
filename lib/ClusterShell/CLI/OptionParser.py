@@ -1,0 +1,217 @@
+#!/usr/bin/env python
+#
+# Copyright CEA/DAM/DIF (2010)
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#
+# This file is part of the ClusterShell library.
+#
+# This software is governed by the CeCILL-C license under French law and
+# abiding by the rules of distribution of free software.  You can  use,
+# modify and/ or redistribute the software under the terms of the CeCILL-C
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info".
+#
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+#
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or
+# data to be ensured and,  more generally, to use and operate it in the
+# same conditions as regards security.
+#
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL-C license and that you accept its terms.
+#
+# $Id$
+
+"""
+common ClusterShell CLI OptionParser
+
+With few exceptions, ClusterShell command-lines share most option
+arguments. This module provides a common OptionParser class.
+"""
+
+import optparse
+
+from ClusterShell import __version__
+from ClusterShell.CLI.Display import WHENCOLOR_CHOICES
+
+class OptionParser(optparse.OptionParser):
+    """OptionParser"""
+    
+    def __init__(self, usage, **kwargs):
+        """Initialize ClusterShell CLI OptionParser"""
+        optparse.OptionParser.__init__(self, usage,
+                                       version="%%prog %s" % __version__,
+                                       **kwargs)
+
+        # Set parsing to stop on the first non-option
+        self.disable_interspersed_args()
+
+        # Always install groupsource support
+        self.add_option("-s", "--groupsource", action="store",
+                        dest="groupsource",
+                        help="optional groups.conf(5) group source to use")
+
+    def install_nodes_options(self):
+        """Install nodes selection options"""
+        optgrp = optparse.OptionGroup(self, "Selecting target nodes")
+        optgrp.add_option("-w", action="append", dest="nodes",
+                          help="nodes where to run the command")
+        optgrp.add_option("-x", action="append", dest="exclude",
+                          help="exclude nodes from the node list")
+        optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
+                          help="run command on all nodes")
+        optgrp.add_option("-g", "--group", action="append", dest="group",
+                          help="run command on a group of nodes")
+        optgrp.add_option("-X", action="append", dest="exgroup",
+                          help="exclude nodes from this group")
+        self.add_option_group(optgrp)
+
+    def install_display_options(self,
+            debug_option=True,
+            verbose_options=False,
+            separator_option=False,
+            dshbak_compat=False):
+        """Install options needed by Display class"""
+        optgrp = optparse.OptionGroup(self, "Output behaviour")
+        if verbose_options:
+            optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
+                help="be quiet, print essential output only")
+            optgrp.add_option("-v", "--verbose", action="store_true",
+                dest="verbose", help="be verbose, print informative messages")
+        if debug_option:
+            optgrp.add_option("-d", "--debug", action="store_true",
+                dest="debug",
+                help="output more messages for debugging purpose")
+        optgrp.add_option("-G", "--groupbase", action="store_true",
+            dest="groupbase", default=False,
+            help="do not display group source prefix")
+        optgrp.add_option("-L", action="store_true", dest="line_mode",
+            help="disable header block and order output by nodes")
+        optgrp.add_option("-N", action="store_false", dest="label",
+            default=True, help="disable labeling of command line")
+        if dshbak_compat:
+            bopts = ("-b", "-c", "--dshbak")
+        else:
+            bopts = ("-b", "--dshbak")
+        optgrp.add_option(*bopts, action="store_true",
+            dest="gather", help="gather nodes with same output")
+        optgrp.add_option("-B", action="store_true", dest="gatherall",
+            default=False, help="like -b but including standard error")
+        optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
+                          default=False, help="fold nodeset using node groups")
+
+        if separator_option:
+            optgrp.add_option("-S", "--separator", action="store", dest="separator",
+                              default=':', help="node / line content separator " \
+                              "string (default: ':')")
+        else:
+            optgrp.add_option("-S", action="store_true", dest="maxrc",
+                              help="return the largest of command return codes")
+
+        optgrp.add_option("--color", action="store", dest="whencolor",
+                          choices=WHENCOLOR_CHOICES,
+                          help="whether to use ANSI colors (never, always or auto)")
+        self.add_option_group(optgrp)
+
+    def install_filecopy_options(self):
+        """Install file copying specific options"""
+        optgrp = optparse.OptionGroup(self, "File copying")
+        optgrp.add_option("-c", "--copy", action="store", dest="source_path",
+                          help="copy local file or directory to the nodes")
+        optgrp.add_option("--dest", action="store", dest="dest_path",
+                          help="destination file or directory on the nodes")
+        optgrp.add_option("-p", action="store_true", dest="preserve_flag",
+                          help="preserve modification times and modes")
+        self.add_option_group(optgrp)
+
+    
+    def install_ssh_options(self):
+        """Install engine/connector (ssh) options"""
+        optgrp = optparse.OptionGroup(self, "Ssh options")
+        optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
+                          help="use a specified fanout", type="int")
+        optgrp.add_option("-l", "--user", action="store", dest="user",
+                          help="execute remote command as user")
+        optgrp.add_option("-o", "--options", action="store", dest="options",
+                          help="can be used to give ssh options")
+        optgrp.add_option("-t", "--connect_timeout", action="store",
+                          dest="connect_timeout", help="limit time to connect to " \
+                          "a node" ,type="float")
+        optgrp.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
+                          help="limit time for command to run on the node", type="float")
+        self.add_option_group(optgrp)
+
+    def install_nodeset_commands(self):
+        """Install nodeset commands"""
+        optgrp = optparse.OptionGroup(self, "Commands")
+        optgrp.add_option("-c", "--count", action="store_true", dest="count", 
+                          default=False, help="show number of nodes in " \
+                          "nodeset(s)")
+        optgrp.add_option("-e", "--expand", action="store_true",
+                          dest="expand", default=False, help="expand " \
+                          "nodeset(s) to separate nodes")
+        optgrp.add_option("-f", "--fold", action="store_true", dest="fold", 
+                          default=False, help="fold nodeset(s) (or " \
+                          "separate nodes) into one nodeset")
+        optgrp.add_option("-l", "--list", action="store_true", dest="list", 
+                          default=False, help="list node groups (see -s " \
+                          "GROUPSOURCE)")
+        optgrp.add_option("-r", "--regroup", action="store_true",
+                          dest="regroup", default=False, help="fold nodes " \
+                          "using node groups (see -s GROUPSOURCE)")
+        optgrp.add_option("--groupsources", action="store_true",
+                          dest="groupsources", default=False, help="list " \
+                          "all configured group sources (see groups.conf(5))")
+        self.add_option_group(optgrp)
+
+    def install_nodeset_operations(self):
+        """Install nodeset operations"""
+        optgrp = optparse.OptionGroup(self, "Operations")
+        optgrp.add_option("-x", "--exclude", action="store", dest="sub_nodes", 
+                          help="exclude specified nodeset", type="string")
+        optgrp.add_option("-i", "--intersection", action="store",
+                          dest="and_nodes", help="calculate nodesets " \
+                               "intersection", type="string")
+        optgrp.add_option("-X", "--xor", action="store",
+                          dest="xor_nodes", help="calculate symmetric difference " \
+                               "between nodesets", type="string")
+        self.add_option_group(optgrp)
+
+    def install_nodeset_options(self):
+        """Install nodeset options"""
+        optgrp = optparse.OptionGroup(self, "Options")
+        optgrp.add_option("-a", "--all", action="store_true", dest="all", 
+                          help="call external node groups support to " \
+                               "display all nodes")
+        optgrp.add_option("--autostep", action="store", dest="autostep", 
+                          help="auto step threshold number when folding " \
+                               "nodesets", type="int")
+        optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
+                          help="output more messages for debugging purpose")
+        optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
+                          help="be quiet, hide any parse error messages (on " \
+                               "stderr)")
+        optgrp.add_option("-R", "--rangeset", action="store_true",
+                          dest="rangeset", help="switch to RangeSet instead " \
+                          "of NodeSet. Useful when working on numerical " \
+                          "cluster ranges, eg. 1,5,18-31")
+        optgrp.add_option("-G", "--groupbase", action="store_true",
+                          dest="groupbase", help="hide group source prefix " \
+                          "(always \"@groupname\")")
+        optgrp.add_option("-S", "--separator", action="store", dest="separator",
+                          default=' ', help="separator string to use when " \
+                          "expanding nodesets (default: ' ')")
+        self.add_option_group(optgrp)
+
+

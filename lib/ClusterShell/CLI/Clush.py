@@ -34,150 +34,39 @@
 # $Id$
 
 """
-Utility program to run commands on a cluster using the ClusterShell
-library.
+execute cluster commands in parallel
 
-clush is a pdsh-like command which benefits from the ClusterShell
-library and its Ssh worker. It features an integrated output results
-gathering system (dshbak-like), can get node groups by running
-predefined external commands and can redirect lines read on its
-standard input to the remote commands.
+clush is an utility program to run commands on a cluster which benefits
+from the ClusterShell library and its Ssh worker. It features an
+integrated output results gathering system (dshbak-like), can get node
+groups by running predefined external commands and can redirect lines
+read on its standard input to the remote commands.
 
 When no command are specified, clush runs interactively.
 
 """
 
 import errno
-import exceptions
 import fcntl
-import optparse
 import os
 import resource
 import sys
 import signal
-import ConfigParser
 
+from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
+from ClusterShell.CLI.Config import VERB_STD, VERB_VERB, VERB_DEBUG
+from ClusterShell.CLI.Display import Display
+from ClusterShell.CLI.OptionParser import OptionParser
+from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
+from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp
+
+from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
-from ClusterShell.NodeUtils import GroupResolverConfigError
-from ClusterShell.NodeUtils import GroupResolverSourceError
-from ClusterShell.NodeUtils import GroupSourceException
-from ClusterShell.NodeUtils import GroupSourceNoUpcall
-try:
-    from ClusterShell.Event import EventHandler
-    from ClusterShell.NodeSet import NodeSet
-    from ClusterShell.NodeSet import NOGROUP_RESOLVER, STD_GROUP_RESOLVER
-    from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
-    from ClusterShell.Task import Task, task_self
-    from ClusterShell.Worker.Worker import WorkerSimple
-    from ClusterShell import __version__
-except GroupResolverConfigError, e:
-    print >> sys.stderr, \
-        "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
-    sys.exit(1)
+from ClusterShell.NodeSet import NOGROUP_RESOLVER, STD_GROUP_RESOLVER
+from ClusterShell.NodeSet import NodeSetParseError
+from ClusterShell.Task import Task, task_self
+from ClusterShell.Worker.Worker import WorkerSimple
 
-VERB_QUIET = 0
-VERB_STD = 1
-VERB_VERB = 2
-VERB_DEBUG = 3
-
-# Start of clubak.py common code
-
-WHENCOLOR_CHOICES = ["never", "always", "auto"]
-
-class Display(object):
-    """
-    Output display class for clush script.
-    """
-    COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
-    COLOR_STDERR_FMT = "\033[31m%s\033[0m"
-    SEP = "-" * 15
-
-    def __init__(self, color=True):
-        self._color = color
-        self._display = self._print_buffer
-        self.out = sys.stdout
-        self.err = sys.stderr
-        self.label = True
-        self.regroup = False
-        self.groupsource = None
-        if self._color:
-            self.color_stdout_fmt = self.COLOR_STDOUT_FMT
-            self.color_stderr_fmt = self.COLOR_STDERR_FMT
-        else:
-            self.color_stdout_fmt = self.color_stderr_fmt = "%s"
-        self.noprefix = False
-
-    def _getlmode(self):
-        return self._display == self._print_lines
-
-    def _setlmode(self, value):
-        if value:
-            self._display = self._print_lines
-        else:
-            self._display = self._print_buffer
-    line_mode = property(_getlmode, _setlmode)
-
-    def _format_header(self, nodeset):
-        """Format nodeset-based header."""
-        if self.regroup:
-            return nodeset.regroup(self.groupsource, noprefix=self.noprefix)
-        return str(nodeset)
-
-    def print_line(self, nodeset, line):
-        """Display a line with optional label."""
-        if self.label:
-            prefix = self.color_stdout_fmt % ("%s: " % nodeset)
-            self.out.write("%s%s\n" % (prefix, line))
-        else:
-            self.out.write("%s\n" % line)
-
-    def print_line_error(self, nodeset, line):
-        """Display an error line with optional label."""
-        if self.label:
-            prefix = self.color_stderr_fmt % ("%s: " % nodeset)
-            self.err.write("%s%s\n" % (prefix, line))
-        else:
-            self.err.write("%s\n" % line)
-
-    def print_gather(self, nodeset, obj):
-        """Generic method for displaying nodeset/content according to current
-        object settings."""
-        return self._display(nodeset, obj)
-
-    def _print_buffer(self, nodeset, content):
-        """Display a dshbak-like header block and content."""
-        header = self.color_stdout_fmt % ("%s\n%s\n%s\n" % (self.SEP,
-                                            self._format_header(nodeset),
-                                            self.SEP))
-        self.out.write("%s%s\n" % (header, content))
-        
-    def _print_lines(self, nodeset, msg):
-        """Display a MsgTree buffer by line with prefixed header."""
-        header = self.color_stdout_fmt % \
-                    ("%s: " % self._format_header(nodeset))
-        for line in msg:
-            self.out.write("%s%s\n" % (header, line))
-
-def nodeset_cmp(ns1, ns2):
-    """Compare 2 nodesets by their length (we want larger nodeset
-    first) and then by first node."""
-    len_cmp = cmp(len(ns2), len(ns1))
-    if not len_cmp:
-        smaller = NodeSet.fromlist([ns1[0], ns2[0]])[0]
-        if smaller == ns1[0]:
-            return -1
-        else:
-            return 1
-    return len_cmp
-
-# End of clubak.py common code
-
-def bufnodeset_cmp(bn1, bn2):
-    """Convenience function to compare 2 (buf, nodeset) tuples by their
-    nodeset length (we want larger nodeset first) and then by first
-    node."""
-    # Extract nodesets and call nodeset_cmp
-    return nodeset_cmp(bn1[1], bn2[1])
 
 class UpdatePromptException(Exception):
     """Exception used by the signal handler"""
@@ -186,6 +75,7 @@ class StdInputHandler(EventHandler):
     """Standard input event handler class."""
 
     def __init__(self, worker):
+        EventHandler.__init__(self)
         self.master_worker = worker
 
     def ev_read(self, worker):
@@ -210,21 +100,32 @@ class DirectOutputHandler(OutputHandler):
     """Direct output event handler class."""
 
     def __init__(self, display):
+        OutputHandler.__init__(self)
         self._display = display
 
     def ev_read(self, worker):
-        ns, buf = worker.last_read()
+        res = worker.last_read()
+        if len(res) == 2:
+            ns, buf = res
+        else:
+            buf = res
+            ns = "LOCAL"
         self._display.print_line(ns, buf)
 
     def ev_error(self, worker):
-        ns, buf = worker.last_error()
+        res = worker.last_error()
+        if len(res) == 2:
+            ns, buf = res
+        else:
+            buf = res
+            ns = "LOCAL"
         self._display.print_line_error(ns, buf)
 
     def ev_hup(self, worker):
         if hasattr(worker, "last_retcode"):
             ns, rc = worker.last_retcode()
         else:
-            ns = "local"
+            ns = "LOCAL"
             rc = worker.retcode()
         if rc > 0:
             print >> sys.stderr, "clush: %s: exited with exit code %d" \
@@ -241,6 +142,7 @@ class GatherOutputHandler(OutputHandler):
     """Gathered output event handler class."""
 
     def __init__(self, display, runtimer):
+        OutputHandler.__init__(self)
         self._display = display
         self._runtimer = runtimer
 
@@ -295,7 +197,6 @@ class GatherOutputHandler(OutputHandler):
         if worker.num_timeout() > 0:
             print >> sys.stderr, "clush: %s: command timeout" % \
                     NodeSet.fromlist(worker.iter_keys_timeout())
-
 
 class LiveGatherOutputHandler(GatherOutputHandler):
     """Live line-gathered output event handler class."""
@@ -353,11 +254,13 @@ class LiveGatherOutputHandler(GatherOutputHandler):
 
 class RunTimer(EventHandler):
     def __init__(self, task, total):
+        EventHandler.__init__(self)
         self.task = task
         self.total = total
         self.cnt_last = -1
         self.tslen = len(str(self.total))
         self.wholelen = 0
+        self.started = False
 
     def ev_timer(self, timer):
         self.update()
@@ -378,8 +281,11 @@ class RunTimer(EventHandler):
                 self.tslen, self.total)
             self.wholelen = len(towrite)
             sys.stderr.write(towrite)
+            self.started = True
 
     def finalize(self, cr):
+        if not self.started:
+            return
         # display completed/total clients
         fmt = 'clush: %*d/%*d'
         if cr:
@@ -387,105 +293,6 @@ class RunTimer(EventHandler):
         else:
             fmt += '\r'
         sys.stderr.write(fmt % (self.tslen, self.total, self.tslen, self.total))
-
-class ClushConfigError(Exception):
-    """Exception used by ClushConfig to report an error."""
-
-    def __init__(self, section, option, msg):
-        Exception.__init__(self)
-        self.section = section
-        self.option = option
-        self.msg = msg
-
-    def __str__(self):
-        return "(Config %s.%s): %s" % (self.section, self.option, self.msg)
-
-class ClushConfig(ConfigParser.ConfigParser):
-    """Config class for clush (specialized ConfigParser)"""
-
-    main_defaults = { "fanout" : "64",
-                      "connect_timeout" : "30",
-                      "command_timeout" : "0",
-                      "history_size" : "100",
-                      "color" : WHENCOLOR_CHOICES[0],
-                      "verbosity" : "%d" % VERB_STD }
-
-    def __init__(self):
-        ConfigParser.ConfigParser.__init__(self)
-        # create Main section with default values
-        self.add_section("Main")
-        for key, value in ClushConfig.main_defaults.iteritems():
-            self.set("Main", key, value)
-        # config files override defaults values
-        self.read(['/etc/clustershell/clush.conf',
-                   os.path.expanduser('~/.clush.conf')])
-
-    def verbose_print(self, level, message):
-        if self.get_verbosity() >= level:
-            print message
-
-    def max_fdlimit(self):
-        """Make open file descriptors soft limit the max."""
-        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-        if soft < hard:
-            self.verbose_print(VERB_DEBUG, "Setting max soft limit "
-                               "RLIMIT_NOFILE: %d -> %d" % (soft, hard))
-            resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
-        else:
-            self.verbose_print(VERB_DEBUG, "Soft limit RLIMIT_NOFILE already "
-                               "set to the max (%d)" % soft)
-
-    def set_main(self, option, value):
-        self.set("Main", option, str(value))
-
-    def getint(self, section, option):
-        try:
-            return ConfigParser.ConfigParser.getint(self, section, option)
-        except (ConfigParser.Error, TypeError, ValueError), e:
-            raise ClushConfigError(section, option, e)
-
-    def getfloat(self, section, option):
-        try:
-            return ConfigParser.ConfigParser.getfloat(self, section, option)
-        except (ConfigParser.Error, TypeError, ValueError), e:
-            raise ClushConfigError(section, option, e)
-
-    def _get_optional(self, section, option):
-        try:
-            return self.get(section, option)
-        except ConfigParser.Error, e:
-            pass
-
-    def get_color(self):
-        whencolor = self._get_optional("Main", "color")
-        if whencolor not in WHENCOLOR_CHOICES:
-            raise ClushConfigError("Main", "color", "choose from %s" % \
-                                   WHENCOLOR_CHOICES)
-        return whencolor
-
-    def get_verbosity(self):
-        try:
-            return self.getint("Main", "verbosity")
-        except ClushConfigError:
-            return 0
-
-    def get_fanout(self):
-        return self.getint("Main", "fanout")
-    
-    def get_connect_timeout(self):
-        return self.getfloat("Main", "connect_timeout")
-
-    def get_command_timeout(self):
-        return self.getfloat("Main", "command_timeout")
-
-    def get_ssh_user(self):
-        return self._get_optional("Main", "ssh_user")
-
-    def get_ssh_path(self):
-        return self._get_optional("Main", "ssh_path")
-
-    def get_ssh_options(self):
-        return self._get_optional("Main", "ssh_options")
 
 
 def signal_handler(signum, frame):
@@ -546,7 +353,7 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
             if task.default("USER_interactive"):
                 continue
             return
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt, kbe:
             signal.signal(signal.SIGUSR1, signal.SIG_IGN)
             if gather:
                 # Suspend task, so we can safely access its data from
@@ -561,7 +368,8 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
                                             cmp=bufnodeset_cmp):
                     if not print_warn:
                         print_warn = True
-                        print >> sys.stderr, "Warning: Caught keyboard interrupt!"
+                        print >> sys.stderr, \
+                                "Warning: Caught keyboard interrupt!"
                     display.print_gather(nodeset, buf)
                     
                 # Return code handling
@@ -574,13 +382,13 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
                         print >> sys.stderr, \
                             "clush: %s: exited with exit code %s" % (ns, rc)
                 # Add uncompleted nodeset to exception object
-                e.uncompleted_nodes = ns - ns_ok
+                kbe.uncompleted_nodes = ns - ns_ok
 
                 # Display nodes that didn't answer within command timeout delay
                 if task.num_timeout() > 0:
                     print >> sys.stderr, "clush: %s: command timeout" % \
                             NodeSet.fromlist(task.iter_keys_timeout())
-            raise e
+            raise kbe
 
         if task.default("USER_running"):
             ns_reg, ns_unreg = NodeSet(), NodeSet()
@@ -594,7 +402,7 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
             else:
                 pending = ""
             print >> sys.stderr, "clush: interrupt (^C to abort task)\n" \
-                    "clush: in progress(%d): %s%s" % (len(ns_reg), ns_reg, pending)
+                "clush: in progress(%d): %s%s" % (len(ns_reg), ns_reg, pending)
         else:
             cmdl = cmd.lower()
             try:
@@ -623,8 +431,8 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
                 continue
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
-                run_command(task, cmd[1:], None, gather, timeout, None,
-                            verbosity, display)
+                run_command(task, cmd[1:], None, gather, timeout, verbosity,
+                            display)
             elif cmdl != "quit":
                 if not cmd:
                     continue
@@ -701,31 +509,17 @@ def clush_exit(status):
     # Use os._exit to avoid threads cleanup
     os._exit(status)
 
-def clush_excepthook(type, value, traceback):
+def clush_excepthook(extype, value, traceback):
     """Exceptions hook for clush: this method centralizes exception
     handling from main thread and from (possible) separate task thread.
     This hook has to be previously installed on startup by overriding
     sys.excepthook and task.excepthook."""
     try:
-        raise type, value
-    except ClushConfigError, e:
-        print >> sys.stderr, "ERROR: %s" % e
-    except NodeSetExternalError, e:
-        print >> sys.stderr, "clush: external error:", e
-    except NodeSetParseError, e:
-        print >> sys.stderr, "clush: parse error:", e
-    except GroupResolverSourceError, e:
-        print >> sys.stderr, "ERROR: unknown group source: \"%s\"" % e
-    except GroupSourceNoUpcall, e:
-        print >> sys.stderr, "ERROR: no %s upcall defined for group " \
-            "source \"%s\"" % (e, e.group_source.name)
-    except GroupSourceException, e:
-        print >> sys.stderr, "ERROR: other group error:", e
-    except IOError:
-        # Ignore broken pipe
-        pass
-    except KeyboardInterrupt, e:
-        uncomp_nodes = getattr(e, 'uncompleted_nodes', None)
+        raise extype, value
+    except ClushConfigError, econf:
+        print >> sys.stderr, "ERROR: %s" % econf
+    except KeyboardInterrupt, kbe:
+        uncomp_nodes = getattr(kbe, 'uncompleted_nodes', None)
         if uncomp_nodes:
             print >> sys.stderr, "Keyboard interrupt (%s did not complete)." \
                                     % uncomp_nodes
@@ -737,15 +531,15 @@ def clush_excepthook(type, value, traceback):
         if value.errno == errno.EMFILE:
             print >> sys.stderr, "ERROR: current `nofile' limits: " \
                 "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
-    except:
-        # Not handled
-        task_self().default_excepthook(type, value, traceback)
-    # Exit with error code 1 (generic failure)
-    clush_exit(1)
+    except GENERIC_ERRORS, exc:
+        clush_exit(handle_generic_error(exc))
 
-def clush_main(args):
-    """Main clush script function"""
-    sys.excepthook = clush_excepthook
+    # Error not handled
+    task_self().default_excepthook(extype, value, traceback)
+
+def main(args=sys.argv):
+    """clush script entry point"""
+    #sys.excepthook = clush_excepthook
 
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
@@ -755,111 +549,22 @@ def clush_main(args):
     #
     usage = "%prog [options] command"
 
-    parser = optparse.OptionParser(usage, version="%%prog %s" % __version__)
-    parser.disable_interspersed_args()
+    parser = OptionParser(usage)
 
     parser.add_option("--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
 
-    # Node selections
-    optgrp = optparse.OptionGroup(parser, "Selecting target nodes")
-    optgrp.add_option("-w", action="append", dest="nodes",
-                      help="nodes where to run the command")
-    optgrp.add_option("-x", action="append", dest="exclude",
-                      help="exclude nodes from the node list")
-    optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
-                      help="run command on all nodes")
-    optgrp.add_option("-g", "--group", action="append", dest="group",
-                      help="run command on a group of nodes")
-    optgrp.add_option("-X", action="append", dest="exgroup",
-                      help="exclude nodes from this group")
-    parser.add_option_group(optgrp)
+    parser.install_nodes_options()
+    parser.install_display_options(verbose_options=True)
+    parser.install_filecopy_options()
+    parser.install_ssh_options()
 
-    # Output behaviour
-    optgrp = optparse.OptionGroup(parser, "Output behaviour")
-    optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
-                      help="be quiet, print essential output only")
-    optgrp.add_option("-v", "--verbose", action="store_true", dest="verbose",
-                      help="be verbose, print informative messages")
-    optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
-                      help="output more messages for debugging purpose")
-
-    optgrp.add_option("-G", "--groupbase", action="store_true",
-                      dest="groupbase", default=False, help="do not display " \
-                      "group source prefix")
-    optgrp.add_option("-L", action="store_true", dest="line_mode",
-                      default=False, help="disable header block and order " \
-                      "output by nodes")
-    optgrp.add_option("-N", action="store_false", dest="label", default=True,
-                      help="disable labeling of command line")
-    optgrp.add_option("-S", action="store_true", dest="maxrc",
-                      help="return the largest of command return codes")
-    optgrp.add_option("-b", "--dshbak", action="store_true", dest="gather",
-                      default=False, help="display gathered results in a " \
-                      "dshbak-like way")
-    optgrp.add_option("-B", action="store_true", dest="gatherall",
-                      default=False, help="like -b but including standard " \
-                      "error")
-    optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
-                      default=False, help="fold nodeset using node groups")
-    optgrp.add_option("-s", "--groupsource", action="store",
-                      dest="groupsource", help="optional groups.conf(5) " \
-                      "group source to use")
-    parser.add_option_group(optgrp)
-    optgrp.add_option("--color", action="store", dest="whencolor",
-                      choices=WHENCOLOR_CHOICES,
-                      help="whether to use ANSI colors (never, always or auto)")
-    parser.add_option_group(optgrp)
-
-    # Copy
-    optgrp = optparse.OptionGroup(parser, "File copying")
-    optgrp.add_option("-c", "--copy", action="store", dest="source_path",
-                      help="copy local file or directory to the nodes")
-    optgrp.add_option("--dest", action="store", dest="dest_path",
-                      help="destination file or directory on the nodes")
-    optgrp.add_option("-p", action="store_true", dest="preserve_flag",
-                      help="preserve modification times and modes")
-    parser.add_option_group(optgrp)
-
-    # Ssh options
-    optgrp = optparse.OptionGroup(parser, "Ssh options")
-    optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
-                      help="use a specified fanout", type="int")
-    optgrp.add_option("-l", "--user", action="store", dest="user",
-                      help="execute remote command as user")
-    optgrp.add_option("-o", "--options", action="store", dest="options",
-                      help="can be used to give ssh options")
-    optgrp.add_option("-t", "--connect_timeout", action="store",
-                      dest="connect_timeout", help="limit time to connect to " \
-                      "a node" ,type="float")
-    optgrp.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
-                      help="limit time for command to run on the node", type="float")
-    parser.add_option_group(optgrp)
-
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_args(args[1:])
 
     #
-    # Load config file
+    # Load config file and apply overrides
     #
-    config = ClushConfig()
-
-    # Apply command line overrides
-    if options.quiet:
-        config.set_main("verbosity", VERB_QUIET)
-    if options.verbose:
-        config.set_main("verbosity", VERB_VERB)
-    if options.debug:
-        config.set_main("verbosity", VERB_DEBUG)
-    if options.fanout:
-        config.set_main("fanout", options.fanout)
-    if options.user:
-        config.set_main("ssh_user", options.user)
-    if options.options:
-        config.set_main("ssh_options", options.options)
-    if options.connect_timeout:
-        config.set_main("connect_timeout", options.connect_timeout)
-    if options.command_timeout:
-        config.set_main("command_timeout", options.command_timeout)
+    config = ClushConfig(options)
 
     #
     # Compute the nodeset
@@ -985,29 +690,22 @@ def clush_main(args):
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
-    # print debug values (fanout value is get from the config object and not task
-    # itself as set_info() is an asynchronous call.
-    config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout conn=%.1f " \
-            "cmd=%.1f] %s" %  (nodeset_base, config.get_fanout(),
+    # print debug values (fanout value is get from the config object
+    # and not task itself as set_info() is an asynchronous call.
+    config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout " \
+            "conn=%.1f cmd=%.1f] %s" %  (nodeset_base, config.get_fanout(),
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
     # Should we use ANSI colors for nodes?
-    if not options.whencolor:
-        options.whencolor = config.get_color()
-    if options.whencolor == "auto":
+    if config.get_color() == "auto":
         color = sys.stdout.isatty() and (options.gatherall or \
                                          sys.stderr.isatty())
     else:
-        color = options.whencolor == "always"
-        
+        color = config.get_color() == "always"
+
     # Create and configure display object.
-    display = Display(color)
-    display.line_mode = options.line_mode
-    display.label = options.label
-    display.regroup = options.regroup
-    display.groupsource = options.groupsource
-    display.noprefix = options.groupbase
+    display = Display(options, color)
 
     if not task.default("USER_interactive"):
         if options.source_path:
@@ -1022,7 +720,8 @@ def clush_main(args):
                         config.get_verbosity(), display)
 
     if user_interaction:
-        ttyloop(task, nodeset_base, gather, timeout, config.get_verbosity(), display)
+        ttyloop(task, nodeset_base, gather, timeout, config.get_verbosity(),
+                display)
     elif task.default("USER_interactive"):
         print >> sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)
@@ -1036,4 +735,4 @@ def clush_main(args):
     clush_exit(rc)
 
 if __name__ == '__main__':
-    clush_main(sys.argv)
+    main()
