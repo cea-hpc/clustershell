@@ -56,6 +56,9 @@ if __name__ == '__main__':
                                         "TaskTimerTest",
                                         "TaskThreadJoinTest",
                                         "TaskThreadSuspendTest",
+                                        "CLIConfig",
+                                        "CLIDisplay",
+                                        "CLIOptionParser",
                                         ])
 
     unittest.TextTestRunner(verbosity=verb).run(suite)
