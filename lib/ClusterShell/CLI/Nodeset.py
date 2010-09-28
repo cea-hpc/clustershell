@@ -45,10 +45,9 @@ import sys
 
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
-from ClusterShell.CLI.Utils import NodeSet
+from ClusterShell.CLI.Utils import NodeSet  # safe import
 
-from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
-from ClusterShell.NodeSet import grouplist, STD_GROUP_RESOLVER
+from ClusterShell.NodeSet import RangeSet, grouplist, STD_GROUP_RESOLVER
 
 
 def process_stdin(xset, autostep):
@@ -82,11 +81,6 @@ def compute_nodeset(xset, args, autostep):
 
     return xset
 
-def error_exit(progname, message, status=1):
-    print >> sys.stderr, message
-    print >> sys.stderr, "Try `%s -h' for more information." % progname
-    sys.exit(status)
-    
 def nodeset():
     """script subroutine"""
     class_set = NodeSet
@@ -140,44 +134,39 @@ def nodeset():
             dispdefault = ""
         return
 
-    try:
-        # We want -s <groupsource> to act as a substition of default groupsource
-        # (ie. it's not necessary to prefix group names by this group source).
-        if options.groupsource:
-            STD_GROUP_RESOLVER.default_sourcename = options.groupsource
+    # We want -s <groupsource> to act as a substition of default groupsource
+    # (ie. it's not necessary to prefix group names by this group source).
+    if options.groupsource:
+        STD_GROUP_RESOLVER.default_sourcename = options.groupsource
 
-        # Instantiate RangeSet or NodeSet object
-        xset = class_set()
+    # Instantiate RangeSet or NodeSet object
+    xset = class_set()
 
-        if options.all:
-            # Include all nodes from external node groups support.
-            xset.update(NodeSet.fromall()) # uses default_sourcename
-            # FIXME: only union operation is supported when using -a due to
-            # current options handling.
-        elif not args:
-            # No need to specify '-' to read stdin if no argument at all.
-            process_stdin(xset, options.autostep)
-        
-        # Finish xset computing from args
-        compute_nodeset(xset, args, options.autostep)
+    if options.all:
+        # Include all nodes from external node groups support.
+        xset.update(NodeSet.fromall()) # uses default_sourcename
+        # FIXME: only union operation is supported when using -a due to
+        # current options handling.
+    elif not args:
+        # No need to specify '-' to read stdin if no argument at all.
+        process_stdin(xset, options.autostep)
+    
+    # Finish xset computing from args
+    compute_nodeset(xset, args, options.autostep)
 
-        # Interprate special characters (may raise SyntaxError)
-        separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
+    # Interprate special characters (may raise SyntaxError)
+    separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
 
-        # Display result according to command choice
-        if options.expand:
-            print separator.join(xset)
-        elif options.fold:
-            print xset
-        elif options.regroup:
-            print xset.regroup(options.groupsource, noprefix=options.groupbase)
-        else:
-            print len(xset)
+    # Display result according to command choice
+    if options.expand:
+        print separator.join(xset)
+    elif options.fold:
+        print xset
+    elif options.regroup:
+        print xset.regroup(options.groupsource, noprefix=options.groupbase)
+    else:
+        print len(xset)
 
-    except (NodeSetParseError, RangeSetParseError), exc:
-        if not options.quiet:
-            print >> sys.stderr, "%s parse error:" % class_set.__name__, exc
-        sys.exit(1)
 
 def main():
     """main script function"""

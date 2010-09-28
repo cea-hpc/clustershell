@@ -39,8 +39,8 @@ CLI utility functions
 
 import sys
 
+# CLI modules might safely import the NodeSet class from here.
 from ClusterShell.NodeUtils import GroupResolverConfigError
-
 try:
     from ClusterShell.NodeSet import NodeSet
 except GroupResolverConfigError, e:

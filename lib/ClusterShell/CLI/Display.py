@@ -84,9 +84,11 @@ class Display(object):
             self.color_stdout_fmt = self.color_stderr_fmt = "%s"
 
     def _getlmode(self):
+        """line_mode getter"""
         return self._display == self._print_lines
 
     def _setlmode(self, value):
+        """line_mode setter"""
         if value:
             self._display = self._print_lines
         else:

@@ -40,18 +40,12 @@ CLI error handling helper functions
 import signal
 import sys
 
-
-from ClusterShell.NodeUtils import GroupResolverConfigError
+from ClusterShell.CLI.Utils import GroupResolverConfigError  # dummy but safe
 from ClusterShell.NodeUtils import GroupResolverSourceError
 from ClusterShell.NodeUtils import GroupSourceException
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
-try:
-    from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
-    from ClusterShell.NodeSet import RangeSetParseError
-except GroupResolverConfigError, e:
-    print >> sys.stderr, \
-        "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
-    sys.exit(1)
+from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
+from ClusterShell.NodeSet import RangeSetParseError
 
 
 GENERIC_ERRORS = (NodeSetExternalError,
@@ -64,25 +58,27 @@ GENERIC_ERRORS = (NodeSetExternalError,
                   KeyboardInterrupt)
 
 def handle_generic_error(excobj, prog=sys.argv[0]):
+    """handle error given `excobj' generic script exception"""
     try:
         raise excobj
-    except NodeSetExternalError, e:
-        print >> sys.stderr, "%s: External error:" % prog, e
-    except (NodeSetParseError, RangeSetParseError), e:
-        print >> sys.stderr, "%s: Parse error:" % prog, e
-    except GroupResolverSourceError, e:
-        print >> sys.stderr, "%s: Unknown group source: \"%s\"" % (prog, e)
-    except GroupSourceNoUpcall, e:
+    except NodeSetExternalError, exc:
+        print >> sys.stderr, "%s: External error:" % prog, exc
+    except (NodeSetParseError, RangeSetParseError), exc:
+        print >> sys.stderr, "%s: Parse error:" % prog, exc
+    except GroupResolverSourceError, exc:
+        print >> sys.stderr, "%s: Unknown group source: \"%s\"" % (prog, exc)
+    except GroupSourceNoUpcall, exc:
         print >> sys.stderr, "%s: No %s upcall defined for group " \
-            "source \"%s\"" % (prog, e, e.group_source.name)
-    except GroupSourceException, e:
-        print >> sys.stderr, "%s: Other group error:" % prog, e
+            "source \"%s\"" % (prog, exc, exc.group_source.name)
+    except GroupSourceException, exc:
+        print >> sys.stderr, "%s: Other group error:" % prog, exc
     except IOError:
         # ignore broken pipe
         pass
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt, exc:
         return 128 + signal.SIGINT
-    except: assert False, "wrong GENERIC_ERRORS"
+    except:
+        assert False, "wrong GENERIC_ERRORS"
 
     # Exit with error code 1 (generic failure)
     return 1

@@ -1,5 +1,5 @@
  -----------------------------------------
- ClusterShell 1.3 Python Library and Tools
+ ClusterShell 1.4 Python Library and Tools
  -----------------------------------------
 
 ClusterShell is an event-based python library to execute commands on local or
@@ -8,7 +8,7 @@ mechanisms. Also, clush, clubak and nodeset, three convenient command-line
 tools using the library are included.
 
  -------------------
- Requirements (v1.3)
+ Requirements (v1.4)
  -------------------
 
  * OpenSSH (ssh/scp)

@@ -40,18 +40,38 @@ With few exceptions, ClusterShell command-lines share most option
 arguments. This module provides a common OptionParser class.
 """
 
+from copy import copy
 import optparse
 
 from ClusterShell import __version__
 from ClusterShell.CLI.Display import WHENCOLOR_CHOICES
 
+def check_safestring(option, opt, value):
+    """type-checker function for safestring"""
+    try:
+        safestr = str(value)
+        # check if the string is not empty and not an option
+        if not safestr or safestr.startswith('-'):
+            raise ValueError()
+        return safestr
+    except ValueError:
+        raise optparse.OptionValueError(
+            "option %s: invalid value: %r" % (opt, value))
+
+class Option(optparse.Option):
+    """This Option subclass adds a new safestring type."""
+    TYPES = optparse.Option.TYPES + ("safestring",)
+    TYPE_CHECKER = copy(optparse.Option.TYPE_CHECKER)
+    TYPE_CHECKER["safestring"] = check_safestring
+
 class OptionParser(optparse.OptionParser):
-    """OptionParser"""
+    """Derived OptionParser for all CLIs"""
     
     def __init__(self, usage, **kwargs):
         """Initialize ClusterShell CLI OptionParser"""
         optparse.OptionParser.__init__(self, usage,
                                        version="%%prog %s" % __version__,
+                                       option_class=Option,
                                        **kwargs)
 
         # Set parsing to stop on the first non-option
@@ -59,22 +79,24 @@ class OptionParser(optparse.OptionParser):
 
         # Always install groupsource support
         self.add_option("-s", "--groupsource", action="store",
-                        dest="groupsource",
+                        type="safestring", dest="groupsource",
                         help="optional groups.conf(5) group source to use")
 
     def install_nodes_options(self):
         """Install nodes selection options"""
         optgrp = optparse.OptionGroup(self, "Selecting target nodes")
-        optgrp.add_option("-w", action="append", dest="nodes",
-                          help="nodes where to run the command")
-        optgrp.add_option("-x", action="append", dest="exclude",
-                          help="exclude nodes from the node list")
+        optgrp.add_option("-w", action="append", type="safestring",
+                          dest="nodes", help="nodes where to run the command")
+        optgrp.add_option("-x", action="append", type="safestring",
+                          dest="exclude", help="exclude nodes from the node " \
+                          "list")
         optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
                           help="run command on all nodes")
-        optgrp.add_option("-g", "--group", action="append", dest="group",
-                          help="run command on a group of nodes")
+        optgrp.add_option("-g", "--group", action="append", type="safestring",
+                          dest="group", help="run command on a group of nodes")
         optgrp.add_option("-X", action="append", dest="exgroup",
-                          help="exclude nodes from this group")
+                          type="safestring", help="exclude nodes from this " \
+                          "group")
         self.add_option_group(optgrp)
 
     def install_display_options(self,
@@ -85,8 +107,8 @@ class OptionParser(optparse.OptionParser):
         """Install options needed by Display class"""
         optgrp = optparse.OptionGroup(self, "Output behaviour")
         if verbose_options:
-            optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
-                help="be quiet, print essential output only")
+            optgrp.add_option("-q", "--quiet", action="store_true",
+                dest="quiet", help="be quiet, print essential output only")
             optgrp.add_option("-v", "--verbose", action="store_true",
                 dest="verbose", help="be verbose, print informative messages")
         if debug_option:
@@ -108,20 +130,23 @@ class OptionParser(optparse.OptionParser):
             dest="gather", help="gather nodes with same output")
         optgrp.add_option("-B", action="store_true", dest="gatherall",
             default=False, help="like -b but including standard error")
-        optgrp.add_option("-r", "--regroup", action="store_true", dest="regroup",
-                          default=False, help="fold nodeset using node groups")
+        optgrp.add_option("-r", "--regroup", action="store_true",
+                          dest="regroup", default=False,
+                          help="fold nodeset using node groups")
 
         if separator_option:
-            optgrp.add_option("-S", "--separator", action="store", dest="separator",
-                              default=':', help="node / line content separator " \
-                              "string (default: ':')")
+            optgrp.add_option("-S", "--separator", action="store",
+                              dest="separator", default=':',
+                              help="node / line content separator string " \
+                              "(default: ':')")
         else:
             optgrp.add_option("-S", action="store_true", dest="maxrc",
                               help="return the largest of command return codes")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
                           choices=WHENCOLOR_CHOICES,
-                          help="whether to use ANSI colors (never, always or auto)")
+                          help="whether to use ANSI colors (never, always " \
+                               "or auto)")
         self.add_option_group(optgrp)
 
     def install_filecopy_options(self):
@@ -141,15 +166,16 @@ class OptionParser(optparse.OptionParser):
         optgrp = optparse.OptionGroup(self, "Ssh options")
         optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
                           help="use a specified fanout", type="int")
-        optgrp.add_option("-l", "--user", action="store", dest="user",
-                          help="execute remote command as user")
+        optgrp.add_option("-l", "--user", action="store", type="safestring",
+                          dest="user", help="execute remote command as user")
         optgrp.add_option("-o", "--options", action="store", dest="options",
                           help="can be used to give ssh options")
         optgrp.add_option("-t", "--connect_timeout", action="store",
-                          dest="connect_timeout", help="limit time to connect to " \
-                          "a node" ,type="float")
-        optgrp.add_option("-u", "--command_timeout", action="store", dest="command_timeout", 
-                          help="limit time for command to run on the node", type="float")
+                          dest="connect_timeout", help="limit time to " \
+                          "connect to a node" ,type="float")
+        optgrp.add_option("-u", "--command_timeout", action="store",
+                          dest="command_timeout", help="limit time for " \
+                          "command to run on the node", type="float")
         self.add_option_group(optgrp)
 
     def install_nodeset_commands(self):
@@ -184,8 +210,8 @@ class OptionParser(optparse.OptionParser):
                           dest="and_nodes", help="calculate nodesets " \
                                "intersection", type="string")
         optgrp.add_option("-X", "--xor", action="store",
-                          dest="xor_nodes", help="calculate symmetric difference " \
-                               "between nodesets", type="string")
+                          dest="xor_nodes", help="calculate symmetric " \
+                               "difference between nodesets", type="string")
         self.add_option_group(optgrp)
 
     def install_nodeset_options(self):
@@ -200,8 +226,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
                           help="output more messages for debugging purpose")
         optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
-                          help="be quiet, hide any parse error messages (on " \
-                               "stderr)")
+                          help="be quiet, print essential output only")
         optgrp.add_option("-R", "--rangeset", action="store_true",
                           dest="rangeset", help="switch to RangeSet instead " \
                           "of NodeSet. Useful when working on numerical " \
