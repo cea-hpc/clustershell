@@ -639,6 +639,8 @@ class Task(object):
         In that case, you may then want to call task_wait() to wait for
         completion.
         """
+        # If you change options here, check Task.run() compatibility.
+
         self.timeout = timeout
 
         self._suspend_cond.atomic_dec()
@@ -647,6 +649,41 @@ class Task(object):
             self._resume()
         else:
             self._resume_thread()
+
+    def run(self, command=None, **kwargs):
+        """
+        With arguments, it will schedule a command exactly like a Task.shell()
+        would have done it and run it.
+        This is the easiest way to simply run a command.
+        >>> task.run("hostname", nodes="foo")
+
+        Without argument, it starts all outstanding actions. 
+        It behaves like Task.resume().
+        >>> task.shell("hostname", nodes="foo")
+        >>> task.shell("hostname", nodes="bar")
+        >>> task.run()
+        """
+        worker = None
+        timeout = 0
+
+        # Both resume() and shell() support a 'timeout' parameter. We need a
+        # trick to behave correctly for both cases.
+        #
+        # Here, we mock: task.resume(10)
+        if type(command) in (int, float):
+            timeout = command
+            command = None
+        # Here, we mock: task.resume(timeout=10)
+        elif 'timeout' in kwargs and command is None:
+            timeout = kwargs.pop('timeout')
+        # All other cases mean a classical: shell(...)
+        # we mock: task.shell("mycommand", [timeout=..., ...])
+        elif command is not None:
+            worker = self.shell(command, **kwargs)
+
+        self.resume(timeout)
+
+        return worker
 
     @tasksyncmethod()
     def _suspend_wait(self):

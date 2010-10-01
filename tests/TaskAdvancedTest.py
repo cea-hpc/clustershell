@@ -20,6 +20,36 @@ class TaskAdvancedTest(unittest.TestCase):
     def tearDown(self):
         task_cleanup()
 
+    def testTaskRun(self):
+        """test task.run() behaving like task.resume()"""
+        wrk = task_self().shell("/bin/true")
+        task_self().run()
+
+    def testTaskRunTimeout(self):
+        """test task.run() behaving like task.resume(timeout)"""
+        wrk = task_self().shell("/bin/sleep 1")
+        self.assertRaises(TimeoutError, task_self().run, 0.3)
+
+        wrk = task_self().shell("/bin/sleep 1")
+        self.assertRaises(TimeoutError, task_self().run, timeout=0.3)
+
+    def testTaskShellRunLocal(self):
+        """test task.run() used as a synchronous task.shell() (local)"""
+        wrk = task_self().run("/bin/false")
+        self.assertTrue(wrk)
+        self.assertEqual(task_self().max_retcode(), 1)
+
+        # Timeout in shell() fashion way.
+        wrk = task_self().run("/bin/sleep 1", timeout=0.3)
+        self.assertTrue(wrk)
+        self.assertEqual(task_self().num_timeout(), 1)
+
+    def testTaskShellRunDistant(self):
+        """test task.run() used as a synchronous task.shell() (distant)"""
+        wrk = task_self().run("/bin/false", nodes="localhost")
+        self.assertTrue(wrk)
+        self.assertEqual(wrk.node_retcode("localhost"), 1)
+
     def testTaskEngineUserSelection(self):
         """test task engine user selection hack"""
         task_terminate()

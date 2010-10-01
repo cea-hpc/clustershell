@@ -1,3 +1,7 @@
+2010-10-01 A. Degremont <aurelien.degremont@cea.fr>
+
+	* Task.py: Add Task.run() new method (trac ticket #119).
+
 2010-09-28 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/OptionParser.py: Do not allow option value starting with '-' in some
