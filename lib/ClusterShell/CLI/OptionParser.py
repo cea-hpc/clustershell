@@ -123,11 +123,11 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-N", action="store_false", dest="label",
             default=True, help="disable labeling of command line")
         if dshbak_compat:
-            bopts = ("-b", "-c", "--dshbak")
+            optgrp.add_option("-b", "-c", "--dshbak", action="store_true",
+                dest="gather", help="gather nodes with same output")
         else:
-            bopts = ("-b", "--dshbak")
-        optgrp.add_option(*bopts, action="store_true",
-            dest="gather", help="gather nodes with same output")
+            optgrp.add_option("-b", "--dshbak", action="store_true",
+                dest="gather", help="gather nodes with same output")
         optgrp.add_option("-B", action="store_true", dest="gatherall",
             default=False, help="like -b but including standard error")
         optgrp.add_option("-r", "--regroup", action="store_true",

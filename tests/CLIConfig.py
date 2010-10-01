@@ -6,7 +6,6 @@
 
 """Unit test for CLI.Config"""
 
-import os
 import resource
 import sys
 import tempfile
@@ -28,11 +27,10 @@ class CLIClushConfigTest(unittest.TestCase):
     def testClushConfigEmpty(self):
         """test CLI.Config.ClushConfig (empty)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 """)
 
-        f.close()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -48,17 +46,16 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assertEqual(config.get_ssh_user(), None)
         self.assertEqual(config.get_ssh_path(), None)
         self.assertEqual(config.get_ssh_options(), None)
-        os.remove(f.name)
+        f.close()
 
     def testClushConfigAlmostEmpty(self):
         """test CLI.Config.ClushConfig (almost empty)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
 """)
 
-        f.close()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -74,12 +71,12 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assertEqual(config.get_ssh_user(), None)
         self.assertEqual(config.get_ssh_path(), None)
         self.assertEqual(config.get_ssh_options(), None)
-        os.remove(f.name)
+        f.close()
         
     def testClushConfigDefault(self):
         """test CLI.Config.ClushConfig (default)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
 fanout: 42
@@ -93,7 +90,7 @@ verbosity: 1
 #ssh_options: -oStrictHostKeyChecking=no
 """)
 
-        f.close()
+        f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -111,12 +108,12 @@ verbosity: 1
         self.assertEqual(config.get_ssh_user(), None)
         self.assertEqual(config.get_ssh_path(), None)
         self.assertEqual(config.get_ssh_options(), None)
-        os.remove(f.name)
+        f.close()
         
     def testClushConfigFull(self):
         """test CLI.Config.ClushConfig (full)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
 fanout: 42
@@ -130,7 +127,7 @@ ssh_path: /usr/bin/ssh
 ssh_options: -oStrictHostKeyChecking=no
 """)
 
-        f.close()
+        f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -146,12 +143,12 @@ ssh_options: -oStrictHostKeyChecking=no
         self.assertEqual(config.get_ssh_user(), "root")
         self.assertEqual(config.get_ssh_path(), "/usr/bin/ssh")
         self.assertEqual(config.get_ssh_options(), "-oStrictHostKeyChecking=no")
-        os.remove(f.name)
+        f.close()
         
     def testClushConfigError(self):
         """test CLI.Config.ClushConfig (error)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
 fanout: 3.2
@@ -165,7 +162,7 @@ ssh_path: /usr/bin/ssh
 ssh_options: -oStrictHostKeyChecking=no
 """)
 
-        f.close()
+        f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -183,13 +180,12 @@ ssh_options: -oStrictHostKeyChecking=no
 
         self.assertRaises(ClushConfigError, config.get_connect_timeout)
         self.assertRaises(ClushConfigError, config.get_command_timeout)
+        f.close()
 
-        os.remove(f.name)
-        
     def testClushConfigSetRlimit(self):
         """test CLI.Config.ClushConfig (setrlimit)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
 fanout: 42
@@ -200,7 +196,7 @@ color: auto
 verbosity: 1
 """)
 
-        f.close()
+        f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -216,12 +212,12 @@ verbosity: 1
         # verify
         soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
         self.assertEqual(soft, hard)
-        os.remove(f.name)
+        f.close()
        
     def testClushConfigDefaultWithOptions(self):
         """test CLI.Config.ClushConfig (default with options)"""
 
-        f = tempfile.NamedTemporaryFile(prefix='testclushconfig', delete=False)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
 fanout: 42
@@ -235,7 +231,7 @@ verbosity: 1
 #ssh_options: -oStrictHostKeyChecking=no
 """)
 
-        f.close()
+        f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
         parser.install_ssh_options()
@@ -256,7 +252,7 @@ verbosity: 1
         self.assertEqual(config.get_ssh_user(), "foobar")
         self.assertEqual(config.get_ssh_path(), None)
         self.assertEqual(config.get_ssh_options(), "-oSomething")
-        os.remove(f.name)
+        f.close()
         
     def testClushConfigWithInstalledConfig(self):
         """test CLI.Config.ClushConfig (installed config required)"""
