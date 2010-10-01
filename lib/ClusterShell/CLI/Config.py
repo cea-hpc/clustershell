@@ -51,7 +51,6 @@ VERB_DEBUG = 3
 
 class ClushConfigError(Exception):
     """Exception used by ClushConfig to report an error."""
-
     def __init__(self, section, option, msg):
         Exception.__init__(self)
         self.section = section
@@ -61,7 +60,7 @@ class ClushConfigError(Exception):
     def __str__(self):
         return "(Config %s.%s): %s" % (self.section, self.option, self.msg)
 
-class ClushConfig(ConfigParser.ConfigParser):
+class ClushConfig(ConfigParser.ConfigParser, object):
     """Config class for clush (specialized ConfigParser)"""
 
     main_defaults = { "fanout" : "64",
@@ -72,6 +71,8 @@ class ClushConfig(ConfigParser.ConfigParser):
                       "verbosity" : "%d" % VERB_STD }
 
     def __init__(self, options, filename=None):
+        """Initialize ClushConfig object from corresponding
+        OptionParser options."""
         ConfigParser.ConfigParser.__init__(self)
         # create Main section with default values
         self.add_section("Main")
@@ -87,26 +88,28 @@ class ClushConfig(ConfigParser.ConfigParser):
 
         # Apply command line overrides
         if options.quiet:
-            self.set_main("verbosity", VERB_QUIET)
+            self._set_main("verbosity", VERB_QUIET)
         if options.verbose:
-            self.set_main("verbosity", VERB_VERB)
+            self._set_main("verbosity", VERB_VERB)
         if options.debug:
-            self.set_main("verbosity", VERB_DEBUG)
+            self._set_main("verbosity", VERB_DEBUG)
         if options.fanout:
-            self.set_main("fanout", options.fanout)
+            self._set_main("fanout", options.fanout)
         if options.user:
-            self.set_main("ssh_user", options.user)
+            self._set_main("ssh_user", options.user)
         if options.options:
-            self.set_main("ssh_options", options.options)
+            self._set_main("ssh_options", options.options)
         if options.connect_timeout:
-            self.set_main("connect_timeout", options.connect_timeout)
+            self._set_main("connect_timeout", options.connect_timeout)
         if options.command_timeout:
-            self.set_main("command_timeout", options.command_timeout)
+            self._set_main("command_timeout", options.command_timeout)
         if options.whencolor:
-            self.set_main("color", options.whencolor)
+            self._set_main("color", options.whencolor)
 
     def verbose_print(self, level, message):
-        if self.get_verbosity() >= level:
+        """Utility method to print a message if verbose level is high
+        enough."""
+        if self.verbosity >= level:
             print message
 
     def max_fdlimit(self):
@@ -120,55 +123,78 @@ class ClushConfig(ConfigParser.ConfigParser):
             self.verbose_print(VERB_DEBUG, "Soft limit RLIMIT_NOFILE already "
                                "set to the max (%d)" % soft)
 
-    def set_main(self, option, value):
+    def _set_main(self, option, value):
+        """Set given option/value pair in the Main section."""
         self.set("Main", option, str(value))
 
     def getint(self, section, option):
+        """Return an integer value for the named option."""
         try:
             return ConfigParser.ConfigParser.getint(self, section, option)
-        except (ConfigParser.Error, TypeError, ValueError), e:
-            raise ClushConfigError(section, option, e)
+        except (ConfigParser.Error, TypeError, ValueError), exc:
+            raise ClushConfigError(section, option, exc)
 
     def getfloat(self, section, option):
+        """Return a float value for the named option."""
         try:
             return ConfigParser.ConfigParser.getfloat(self, section, option)
-        except (ConfigParser.Error, TypeError, ValueError), e:
-            raise ClushConfigError(section, option, e)
+        except (ConfigParser.Error, TypeError, ValueError), exc:
+            raise ClushConfigError(section, option, exc)
 
     def _get_optional(self, section, option):
+        """Utility method to get a value for the named option, but do
+        not raise an exception if the option doesn't exist."""
         try:
             return self.get(section, option)
         except ConfigParser.Error:
             pass
 
-    def get_color(self):
+    def _get_verbosity(self):
+        """verbosity value as an integer"""
+        try:
+            return self.getint("Main", "verbosity")
+        except ClushConfigError:
+            return 0
+
+    def _get_fanout(self):
+        """fanout value as an integer"""
+        return self.getint("Main", "fanout")
+
+    def _get_connect_timeout(self):
+        """connect_timeout value as a float"""
+        return self.getfloat("Main", "connect_timeout")
+
+    def _get_command_timeout(self):
+        """command_timeout value as a float"""
+        return self.getfloat("Main", "command_timeout")
+
+    def _get_ssh_user(self):
+        """ssh_user value as a string (optional)"""
+        return self._get_optional("Main", "ssh_user")
+
+    def _get_ssh_path(self):
+        """ssh_path value as a string (optional)"""
+        return self._get_optional("Main", "ssh_path")
+
+    def _get_ssh_options(self):
+        """ssh_options value as a string (optional)"""
+        return self._get_optional("Main", "ssh_options")
+
+    def _get_color(self):
+        """color value as a string in (never, always, auto)"""
         whencolor = self._get_optional("Main", "color")
         if whencolor not in WHENCOLOR_CHOICES:
             raise ClushConfigError("Main", "color", "choose from %s" % \
                                    WHENCOLOR_CHOICES)
         return whencolor
 
-    def get_verbosity(self):
-        try:
-            return self.getint("Main", "verbosity")
-        except ClushConfigError:
-            return 0
-
-    def get_fanout(self):
-        return self.getint("Main", "fanout")
-    
-    def get_connect_timeout(self):
-        return self.getfloat("Main", "connect_timeout")
-
-    def get_command_timeout(self):
-        return self.getfloat("Main", "command_timeout")
-
-    def get_ssh_user(self):
-        return self._get_optional("Main", "ssh_user")
-
-    def get_ssh_path(self):
-        return self._get_optional("Main", "ssh_path")
-
-    def get_ssh_options(self):
-        return self._get_optional("Main", "ssh_options")
+    # Read only properties
+    verbosity = property(_get_verbosity)
+    fanout = property(_get_fanout)
+    connect_timeout = property(_get_connect_timeout)
+    command_timeout = property(_get_command_timeout)
+    ssh_user = property(_get_ssh_user)
+    ssh_path = property(_get_ssh_path)
+    ssh_options = property(_get_ssh_options)
+    color = property(_get_color)
 

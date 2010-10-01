@@ -580,8 +580,8 @@ def main(args=sys.argv):
 
     # Do we have nodes group?
     task = task_self()
-    task.set_info("debug", config.get_verbosity() > 1)
-    if config.get_verbosity() > 1:
+    task.set_info("debug", config.verbosity > 1)
+    if config.verbosity > 1:
         STD_GROUP_RESOLVER.set_verbosity(1)
     if options.nodes_all:
         all_nodeset = NodeSet.fromall()
@@ -645,23 +645,19 @@ def main(args=sys.argv):
     config.verbose_print(VERB_DEBUG, "Create STDIN worker: %s" % \
                                         task.default("USER_stdin_worker"))
 
-    task.set_info("debug", config.get_verbosity() >= VERB_DEBUG)
-    task.set_info("fanout", config.get_fanout())
+    task.set_info("debug", config.verbosity >= VERB_DEBUG)
+    task.set_info("fanout", config.fanout)
 
-    ssh_user = config.get_ssh_user()
-    if ssh_user:
-        task.set_info("ssh_user", ssh_user)
-    ssh_path = config.get_ssh_path()
-    if ssh_path:
-        task.set_info("ssh_path", ssh_path)
-    ssh_options = config.get_ssh_options()
-    if ssh_options:
-        task.set_info("ssh_options", ssh_options)
+    if config.ssh_user:
+        task.set_info("ssh_user", config.ssh_user)
+    if config.ssh_path:
+        task.set_info("ssh_path", config.ssh_path)
+    if config.ssh_options:
+        task.set_info("ssh_options", config.ssh_options)
 
     # Set detailed timeout values
-    connect_timeout = config.get_connect_timeout()
-    task.set_info("connect_timeout", connect_timeout)
-    command_timeout = config.get_command_timeout()
+    task.set_info("connect_timeout", config.connect_timeout)
+    command_timeout = config.command_timeout
     task.set_info("command_timeout", command_timeout)
 
     gather = options.gatherall or options.gather
@@ -693,16 +689,16 @@ def main(args=sys.argv):
     # print debug values (fanout value is get from the config object
     # and not task itself as set_info() is an asynchronous call.
     config.verbose_print(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout " \
-            "conn=%.1f cmd=%.1f] %s" %  (nodeset_base, config.get_fanout(),
+            "conn=%.1f cmd=%.1f] %s" %  (nodeset_base, config.fanout,
                 task.info("connect_timeout"),
                 task.info("command_timeout"), op))
 
     # Should we use ANSI colors for nodes?
-    if config.get_color() == "auto":
+    if config.color == "auto":
         color = sys.stdout.isatty() and (options.gatherall or \
                                          sys.stderr.isatty())
     else:
-        color = config.get_color() == "always"
+        color = config.color == "always"
 
     # Create and configure display object.
     display = Display(options, color)
@@ -717,11 +713,10 @@ def main(args=sys.argv):
                              "destination")
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
-                        config.get_verbosity(), display)
+                        config.verbosity, display)
 
     if user_interaction:
-        ttyloop(task, nodeset_base, gather, timeout, config.get_verbosity(),
-                display)
+        ttyloop(task, nodeset_base, gather, timeout, config.verbosity, display)
     elif task.default("USER_interactive"):
         print >> sys.stderr, "ERROR: interactive mode requires a tty"
         clush_exit(1)

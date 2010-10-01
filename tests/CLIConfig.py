@@ -38,14 +38,14 @@ class CLIClushConfigTest(unittest.TestCase):
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
         config.max_fdlimit()
-        self.assertEqual(config.get_color(), WHENCOLOR_CHOICES[0])
-        self.assertEqual(config.get_verbosity(), VERB_STD)
-        self.assertEqual(config.get_fanout(), 64)
-        self.assertEqual(config.get_connect_timeout(), 30)
-        self.assertEqual(config.get_command_timeout(), 0)
-        self.assertEqual(config.get_ssh_user(), None)
-        self.assertEqual(config.get_ssh_path(), None)
-        self.assertEqual(config.get_ssh_options(), None)
+        self.assertEqual(config.color, WHENCOLOR_CHOICES[0])
+        self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.fanout, 64)
+        self.assertEqual(config.connect_timeout, 30)
+        self.assertEqual(config.command_timeout, 0)
+        self.assertEqual(config.ssh_user, None)
+        self.assertEqual(config.ssh_path, None)
+        self.assertEqual(config.ssh_options, None)
         f.close()
 
     def testClushConfigAlmostEmpty(self):
@@ -63,14 +63,14 @@ class CLIClushConfigTest(unittest.TestCase):
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
         config.max_fdlimit()
-        self.assertEqual(config.get_color(), WHENCOLOR_CHOICES[0])
-        self.assertEqual(config.get_verbosity(), VERB_STD)
-        self.assertEqual(config.get_fanout(), 64)
-        self.assertEqual(config.get_connect_timeout(), 30)
-        self.assertEqual(config.get_command_timeout(), 0)
-        self.assertEqual(config.get_ssh_user(), None)
-        self.assertEqual(config.get_ssh_path(), None)
-        self.assertEqual(config.get_ssh_options(), None)
+        self.assertEqual(config.color, WHENCOLOR_CHOICES[0])
+        self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.fanout, 64)
+        self.assertEqual(config.connect_timeout, 30)
+        self.assertEqual(config.command_timeout, 0)
+        self.assertEqual(config.ssh_user, None)
+        self.assertEqual(config.ssh_path, None)
+        self.assertEqual(config.ssh_options, None)
         f.close()
         
     def testClushConfigDefault(self):
@@ -100,14 +100,14 @@ verbosity: 1
         config.max_fdlimit()
         config.verbose_print(VERB_STD, "test")
         config.verbose_print(VERB_DEBUG, "shouldn't see this")
-        self.assertEqual(config.get_color(), WHENCOLOR_CHOICES[2])
-        self.assertEqual(config.get_verbosity(), VERB_STD)
-        self.assertEqual(config.get_fanout(), 42)
-        self.assertEqual(config.get_connect_timeout(), 14)
-        self.assertEqual(config.get_command_timeout(), 0)
-        self.assertEqual(config.get_ssh_user(), None)
-        self.assertEqual(config.get_ssh_path(), None)
-        self.assertEqual(config.get_ssh_options(), None)
+        self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
+        self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.fanout, 42)
+        self.assertEqual(config.connect_timeout, 14)
+        self.assertEqual(config.command_timeout, 0)
+        self.assertEqual(config.ssh_user, None)
+        self.assertEqual(config.ssh_path, None)
+        self.assertEqual(config.ssh_options, None)
         f.close()
         
     def testClushConfigFull(self):
@@ -135,14 +135,14 @@ ssh_options: -oStrictHostKeyChecking=no
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
         config.max_fdlimit()
-        self.assertEqual(config.get_color(), WHENCOLOR_CHOICES[2])
-        self.assertEqual(config.get_verbosity(), VERB_STD)
-        self.assertEqual(config.get_fanout(), 42)
-        self.assertEqual(config.get_connect_timeout(), 14)
-        self.assertEqual(config.get_command_timeout(), 0)
-        self.assertEqual(config.get_ssh_user(), "root")
-        self.assertEqual(config.get_ssh_path(), "/usr/bin/ssh")
-        self.assertEqual(config.get_ssh_options(), "-oStrictHostKeyChecking=no")
+        self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
+        self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.fanout, 42)
+        self.assertEqual(config.connect_timeout, 14)
+        self.assertEqual(config.command_timeout, 0)
+        self.assertEqual(config.ssh_user, "root")
+        self.assertEqual(config.ssh_path, "/usr/bin/ssh")
+        self.assertEqual(config.ssh_options, "-oStrictHostKeyChecking=no")
         f.close()
         
     def testClushConfigError(self):
@@ -170,16 +170,32 @@ ssh_options: -oStrictHostKeyChecking=no
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
         config.max_fdlimit()
-        self.assertRaises(ClushConfigError, config.get_color)
-        self.assertEqual(config.get_verbosity(), 0) # probably for compatibility
-        self.assertRaises(ClushConfigError, config.get_fanout)
         try:
-            config.get_fanout()
+            c = config.color
+            self.fail("Exception ClushConfigError not raised (color)")
+        except ClushConfigError:
+            pass
+        self.assertEqual(config.verbosity, 0) # probably for compatibility
+        try:
+            f = config.fanout
+            self.fail("Exception ClushConfigError not raised (fanout)")
+        except ClushConfigError:
+            pass
+        try:
+            f = config.fanout
         except ClushConfigError, e:
             self.assertEqual(str(e)[0:20], "(Config Main.fanout)")
 
-        self.assertRaises(ClushConfigError, config.get_connect_timeout)
-        self.assertRaises(ClushConfigError, config.get_command_timeout)
+        try:
+            t = config.connect_timeout
+            self.fail("Exception ClushConfigError not raised (connect_timeout)")
+        except ClushConfigError:
+            pass
+        try:
+            m = config.command_timeout
+            self.fail("Exception ClushConfigError not raised (command_timeout)")
+        except ClushConfigError:
+            pass
         f.close()
 
     def testClushConfigSetRlimit(self):
@@ -244,14 +260,14 @@ verbosity: 1
         config.max_fdlimit()
         config.verbose_print(VERB_STD, "test")
         config.verbose_print(VERB_DEBUG, "test")
-        self.assertEqual(config.get_color(), WHENCOLOR_CHOICES[1])
-        self.assertEqual(config.get_verbosity(), VERB_DEBUG) # takes biggest
-        self.assertEqual(config.get_fanout(), 36)
-        self.assertEqual(config.get_connect_timeout(), 7)
-        self.assertEqual(config.get_command_timeout(), 3)
-        self.assertEqual(config.get_ssh_user(), "foobar")
-        self.assertEqual(config.get_ssh_path(), None)
-        self.assertEqual(config.get_ssh_options(), "-oSomething")
+        self.assertEqual(config.color, WHENCOLOR_CHOICES[1])
+        self.assertEqual(config.verbosity, VERB_DEBUG) # takes biggest
+        self.assertEqual(config.fanout, 36)
+        self.assertEqual(config.connect_timeout, 7)
+        self.assertEqual(config.command_timeout, 3)
+        self.assertEqual(config.ssh_user, "foobar")
+        self.assertEqual(config.ssh_path, None)
+        self.assertEqual(config.ssh_options, "-oSomething")
         f.close()
         
     def testClushConfigWithInstalledConfig(self):
