@@ -44,7 +44,7 @@ import signal
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClient
-from ClusterShell.Worker.Worker import DistantWorker, WorkerBadArgumentError
+from ClusterShell.Worker.Worker import DistantWorker
 
 
 class Ssh(EngineClient):
@@ -286,7 +286,8 @@ class WorkerSsh(DistantWorker):
                 self.clients.append(Scp(node, self.source, self.dest,
                     self, stderr, timeout, kwargs.get('preserve', False)))
         else:
-            raise WorkerBadArgumentError()
+            raise ValueError("missing command or source parameter in " \
+			     "WorkerSsh constructor")
 
     def _engine_clients(self):
         """

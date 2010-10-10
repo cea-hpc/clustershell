@@ -21,6 +21,7 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
+from ClusterShell.Worker.Worker import WorkerBadArgumentError
 
 import socket
 
@@ -742,6 +743,13 @@ class TaskLocalTest(unittest.TestCase):
         finally:
             # restore original fanout value
             task.set_info("fanout", fanout)
+
+    def testPopenBadArgumentOption(self):
+        """test WorkerPopen constructor bad argument"""
+	# Check code < 1.4 compatibility
+        self.assertRaises(WorkerBadArgumentError, WorkerPopen, None, None)
+	# As of 1.4, ValueError is raised for missing parameter
+        self.assertRaises(ValueError, WorkerPopen, None, None) # 1.4+
 
 
 

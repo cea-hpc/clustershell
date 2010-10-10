@@ -48,8 +48,9 @@ class WorkerException(Exception):
 class WorkerError(WorkerException):
     """Generic worker error."""
 
-class WorkerBadArgumentError(WorkerError):
-    """Bad argument in worker error."""
+# DEPRECATED: WorkerBadArgumentError exception is deprecated as of 1.4,
+# use ValueError instead.
+WorkerBadArgumentError = ValueError
 
 class Worker(object):
     """

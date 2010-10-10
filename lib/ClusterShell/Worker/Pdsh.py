@@ -48,7 +48,7 @@ from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.EngineClient import EngineClientError
 from ClusterShell.Worker.EngineClient import EngineClientNotSupportedError
 from ClusterShell.Worker.Worker import DistantWorker
-from ClusterShell.Worker.Worker import WorkerError, WorkerBadArgumentError
+from ClusterShell.Worker.Worker import WorkerError
 
 
 class WorkerPdsh(EngineClient, DistantWorker):
@@ -105,8 +105,9 @@ class WorkerPdsh(EngineClient, DistantWorker):
             # Preserve modification times and modes?
             self.preserve = kwargs.get('preserve', False)
         else:
-            raise WorkerBadArgumentError("missing command or source in " \
-                                         "WorkerPdsh constructor")
+            raise ValueError("missing command or source parameter in " \
+			     "WorkerPdsh constructor")
+
         self.popen = None
         self._buf = ""
 

@@ -51,7 +51,7 @@ Usage example:
 import os
 import signal
 
-from ClusterShell.Worker.Worker import WorkerSimple, WorkerBadArgumentError
+from ClusterShell.Worker.Worker import WorkerSimple
 
 
 class WorkerPopen(WorkerSimple):
@@ -69,7 +69,8 @@ class WorkerPopen(WorkerSimple):
 
         self.command = command
         if not self.command:
-            raise WorkerBadArgumentError()
+            raise ValueError("missing command parameter in WorkerPopen " \
+			     "constructor")
 
         self.popen = None
         self.rc = None

@@ -363,8 +363,13 @@ class TaskDistantTest(unittest.TestCase):
         self._task.set_info("command_timeout", command_timeout_orig)
 
     def testPdshBadArgumentOption(self):
-        """test WorkerPdsh bad argument option"""
-        self.assertRaises(WorkerBadArgumentError, WorkerPdsh, "localhost", None, None)
+        """test WorkerPdsh constructor bad argument"""
+	# Check code < 1.4 compatibility
+        self.assertRaises(WorkerBadArgumentError, WorkerPdsh, "localhost",
+			  None, None)
+	# As of 1.4, ValueError is raised for missing parameter
+        self.assertRaises(ValueError, WorkerPdsh, "localhost",
+			  None, None) # 1.4+
 
 
 if __name__ == '__main__':

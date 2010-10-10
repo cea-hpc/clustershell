@@ -18,6 +18,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.EngineClient import *
+from ClusterShell.Worker.Worker import WorkerBadArgumentError
 
 import socket
 
@@ -507,6 +508,15 @@ class TaskDistantTest(unittest.TestCase):
                                   handler=WriteOnReadHandler(reader))
         self._task.resume()
         self.assertEqual(reader.node_buffer("localhost"), "localhost:foobar")
+
+    def testSshBadArgumentOption(self):
+        """test WorkerSsh constructor bad argument"""
+	# Check code < 1.4 compatibility
+        self.assertRaises(WorkerBadArgumentError, WorkerSsh, "localhost",
+			  None, None)
+	# As of 1.4, ValueError is raised for missing parameter
+        self.assertRaises(ValueError, WorkerSsh, "localhost",
+			  None, None) # 1.4+
 
 
 if __name__ == '__main__':
