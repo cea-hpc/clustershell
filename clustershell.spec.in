@@ -21,6 +21,14 @@ improve administration of large compute clusters or server farms. Three
 convenient command line utilities, clush, clubak and nodeset, allow traditional
 shell scripts to benefit some useful features offered by the library.
 
+%package -n vim-%{name}
+Summary:       VIM files for ClusterShell
+Group:         System Environment/Base
+Requires:      clustershell = %{version}-%{release}, vim-common
+
+%description -n vim-%{name}
+Syntax highlighting in the VIM editor for ClusterShell configuration files.
+
 
 %prep
 %setup -q
@@ -71,11 +79,21 @@ rm -rf %{buildroot}
 %{_bindir}/clubak
 %{_bindir}/clush
 %{_bindir}/nodeset
+
+%files -n vim-%{name}
+%defattr(-,root,root,-)
 %{vimdatadir}/ftdetect/clustershell.vim
 %{vimdatadir}/syntax/clushconf.vim
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Fri Sep 10 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3.2-1
+- renamed Vim subpackage to vim-clustershell
+- update to 1.3.2
+
+* Sun Sep 05 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3.1-2
+- added -vim subpackage for .vim files
+
 * Fri Sep 03 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3.1-1
 - removed -n from setup line
 - own clustershell config directory for proper uninstall
