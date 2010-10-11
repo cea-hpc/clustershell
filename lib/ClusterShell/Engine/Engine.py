@@ -435,15 +435,16 @@ class Engine:
             elif self.info["fanout"] > self.reg_clients:
                 self.register(client._start())
 
-    def _remove(self, client, did_timeout=False, force=False):
+    def _remove(self, client, abort, did_timeout=False, force=False):
         """
         Remove a client from engine (subroutine).
         """
         if client.registered:
             self.unregister(client)
-            client._close(force=force, timeout=did_timeout)
+            # care should be taken to ensure correct closing flags
+            client._close(abort=abort, flush=not force, timeout=did_timeout)
 
-    def remove(self, client, did_timeout=False):
+    def remove(self, client, abort=False, did_timeout=False):
         """
         Remove a client from engine. Subclasses that override this
         method should call base class method.
@@ -453,7 +454,7 @@ class Engine:
             self._clients.remove(client)
         else:
             self._ports.remove(client)
-        self._remove(client, did_timeout, force=False)
+        self._remove(client, abort, did_timeout)
         self.start_all()
     
     def clear(self, did_timeout=False, clear_ports=False):
@@ -468,7 +469,7 @@ class Engine:
         for clients in all_clients:
             while len(clients) > 0:
                 client = clients.pop()
-                self._remove(client, did_timeout, force=True)
+                self._remove(client, True, did_timeout, force=True)
 
     def register(self, client):
         """

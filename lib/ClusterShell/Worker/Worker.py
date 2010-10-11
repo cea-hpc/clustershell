@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -56,7 +56,6 @@ class Worker(object):
     """
     Base class Worker.
     """
-
     def __init__(self, handler):
         """
         Initializer. Should be called from derived classes.
@@ -90,6 +89,8 @@ class Worker(object):
         if self.eh:
             self.eh._invoke(ev_type, self)
 
+    # Base getters
+
     def last_read(self):
         """
         Get last read message from event handler.
@@ -104,10 +105,18 @@ class Worker(object):
 
     def did_timeout(self):
         """
-        Return True if this worker aborted due to timeout.
+        Return whether this worker has aborted due to timeout.
         """
         self._task_bound_check()
         return self.task._num_timeout_by_worker(self) > 0
+
+    # Base actions
+
+    def abort(self):
+        """
+        Abort processing any action by this worker.
+        """
+        raise NotImplementedError("Derived classes must implement.")
 
     def flush_buffers(self):
         """
@@ -397,13 +406,11 @@ class WorkerSimple(EngineClient, Worker):
         """
         return EngineClient._readerr(self, size)
 
-    def _close(self, force, timeout):
+    def _close(self, abort, flush, timeout):
         """
-        Close worker. Called by engine after worker has been
-        unregistered. This method should handle all termination types
-        (normal, forced or on timeout).
+        Close client. See EngineClient._close().
         """
-        if not force and self._rbuf:
+        if flush and self._rbuf:
             # We still have some read data available in buffer, but no
             # EOL. Generate a final message before closing.
             self.worker._on_msgline(self._rbuf)
@@ -416,6 +423,7 @@ class WorkerSimple(EngineClient, Worker):
             self.file_error.close()
 
         if timeout:
+            assert abort, "abort flag not set on timeout"
             self._on_timeout()
 
         self._invoke("ev_close")

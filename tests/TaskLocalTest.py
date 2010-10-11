@@ -751,6 +751,35 @@ class TaskLocalTest(unittest.TestCase):
 	# As of 1.4, ValueError is raised for missing parameter
         self.assertRaises(ValueError, WorkerPopen, None, None) # 1.4+
 
+    def testWorkerAbort(self):
+        """test local Worker abort() on timer"""
+        task = task_self()
+        self.assert_(task != None)
+
+        class AbortOnTimer(EventHandler):
+            def __init__(self, worker):
+                EventHandler.__init__(self)
+                self.ext_worker = worker
+                self.testtimer = False
+            def ev_timer(self, timer):
+                self.ext_worker.abort()
+                self.testtimer = True
+
+        aot = AbortOnTimer(task.shell("sleep 10"))
+        self.assertEqual(aot.testtimer, False)
+        task.timer(1.0, handler=aot)
+        task.resume()
+        self.assertEqual(aot.testtimer, True)
+        
+    def testWorkerAbortSanity(self):
+        """test local Worker abort() (sanity)"""
+        task = task_self()
+        worker = task.shell("sleep 1")
+        worker.abort()
+
+        # test noop abort() on unscheduled worker
+        worker = WorkerPopen("sleep 1")
+        worker.abort()
 
 
 if __name__ == '__main__':

@@ -371,6 +371,38 @@ class TaskDistantTest(unittest.TestCase):
         self.assertRaises(ValueError, WorkerPdsh, "localhost",
 			  None, None) # 1.4+
 
+    def testWorkerAbort(self):
+        """test WorkerPdsh abort() on timer"""
+        task = task_self()
+        self.assert_(task != None)
+
+        class AbortOnTimer(EventHandler):
+            def __init__(self, worker):
+                EventHandler.__init__(self)
+                self.ext_worker = worker
+                self.testtimer = False
+            def ev_timer(self, timer):
+                self.ext_worker.abort()
+                self.testtimer = True
+
+        worker = WorkerPdsh("localhost", command="sleep 10",
+                handler=None, timeout=None)
+        task.schedule(worker)
+
+        aot = AbortOnTimer(worker)
+        self.assertEqual(aot.testtimer, False)
+        task.timer(2.0, handler=aot)
+        task.resume()
+        self.assertEqual(aot.testtimer, True)
+
+    def testWorkerAbortSanity(self):
+        """test WorkerPdsh abort() (sanity)"""
+        task = task_self()
+        # test noop abort() on unscheduled worker
+        worker = WorkerPdsh("localhost", command="sleep 1", handler=None,
+                            timeout=None)
+        worker.abort()
+        
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)

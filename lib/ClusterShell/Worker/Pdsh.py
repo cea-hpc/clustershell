@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -194,13 +194,11 @@ class WorkerPdsh(EngineClient, DistantWorker):
         raise EngineClientNotSupportedError("writing is not " \
                                             "supported by pdsh worker")
 
-    def _close(self, force, timeout):
+    def _close(self, abort, flush, timeout):
         """
-        Close worker. Called by engine after worker has been
-        unregistered. This method should handle all termination types
-        (normal, forced or on timeout).
+        Close client. See EngineClient._close().
         """
-        if force or timeout:
+        if abort:
             prc = self.popen.poll()
             if prc is None:
                 # process is still running, kill it
@@ -219,6 +217,7 @@ class WorkerPdsh(EngineClient, DistantWorker):
         self.popen.stdout.close()
 
         if timeout:
+            assert abort, "abort flag not set on timeout"
             for node in (self.nodes - self.closed_nodes):
                 self._on_node_timeout(node)
         else:

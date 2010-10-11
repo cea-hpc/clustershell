@@ -93,19 +93,17 @@ class WorkerPopen(WorkerSimple):
 
         return self
 
-    def _close(self, force, timeout):
+    def _close(self, abort, flush, timeout):
         """
-        Close worker. Called by engine after worker has been
-        unregistered. This method should handle all termination types
-        (normal, forced or on timeout).
+        Close client. See EngineClient._close().
         """
-        if not force and self._rbuf:
+        if flush and self._rbuf:
             # We still have some read data available in buffer, but no
             # EOL. Generate a final message before closing.
             self.worker._on_msgline(self._rbuf)
 
         rc = -1
-        if force or timeout:
+        if abort:
             # check if process has terminated
             prc = self.popen.poll()
             if prc is None:
@@ -128,6 +126,7 @@ class WorkerPopen(WorkerSimple):
         if rc >= 0:
             self._on_rc(rc)
         elif timeout:
+            assert abort, "abort flag not set on timeout"
             self._on_timeout()
 
         self._invoke("ev_close")

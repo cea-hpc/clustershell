@@ -103,19 +103,17 @@ class Ssh(EngineClient):
 
         return self
 
-    def _close(self, force, timeout):
+    def _close(self, abort, flush, timeout):
         """
-        Close client. Called by engine after the client has been
-        unregistered. This method should handle all termination types
-        (normal, forced or on timeout).
+        Close client. See EngineClient._close().
         """
-        if not force and self._rbuf:
+        if flush and self._rbuf:
             # We still have some read data available in buffer, but no
             # EOL. Generate a final message before closing.
             self.worker._on_node_msgline(self.key, self._rbuf)
 
         rc = -1
-        if force or timeout:
+        if abort:
             prc = self.popen.poll()
             if prc is None:
                 # process is still running, kill it
@@ -131,6 +129,7 @@ class Ssh(EngineClient):
         if rc >= 0:
             self.worker._on_node_rc(self.key, rc)
         elif timeout:
+            assert abort, "abort flag not set on timeout"
             self.worker._on_node_timeout(self.key)
 
         self.worker._check_fini()
@@ -324,4 +323,11 @@ class WorkerSsh(DistantWorker):
         """
         for c in self.clients:
             c._set_write_eof()
+
+    def abort(self):
+        """
+        Abort processing any action by this worker.
+        """
+        for c in self.clients:
+            c.abort()
 

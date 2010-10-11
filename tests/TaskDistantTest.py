@@ -518,6 +518,39 @@ class TaskDistantTest(unittest.TestCase):
         self.assertRaises(ValueError, WorkerSsh, "localhost",
 			  None, None) # 1.4+
 
+    def testWorkerAbort(self):
+        """test distant/ssh Worker abort() on timer"""
+        task = task_self()
+        self.assert_(task != None)
+        
+        # Test worker.abort() in an event handler.
+
+        class AbortOnTimer(EventHandler):
+            def __init__(self, worker):
+                EventHandler.__init__(self)
+                self.ext_worker = worker
+                self.testtimer = False
+            def ev_timer(self, timer):
+                self.ext_worker.abort()
+                self.testtimer = True
+
+        aot = AbortOnTimer(task.shell("sleep 10", nodes="localhost"))
+        self.assertEqual(aot.testtimer, False)
+        task.timer(1.5, handler=aot)
+        task.resume()
+        self.assertEqual(aot.testtimer, True)
+        
+    def testWorkerAbortSanity(self):
+        """test distant/ssh Worker abort() (sanity)"""
+        task = task_self()
+        worker = task.shell("sleep 1", nodes="localhost")
+        worker.abort()
+
+        # test noop abort() on unscheduled worker
+        worker = WorkerSsh("localhost", command="sleep 1", handler=None,
+                           timeout=None)
+        worker.abort()
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)

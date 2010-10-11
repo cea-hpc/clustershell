@@ -106,7 +106,7 @@ class EngineClient(EngineBaseTimer):
         Fire timeout timer.
         """
         if self._engine:
-            self._engine.remove(self, did_timeout=True)
+            self._engine.remove(self, abort=True, did_timeout=True)
 
     def _start(self):
         """
@@ -139,11 +139,13 @@ class EngineClient(EngineBaseTimer):
             return self.file_writer.fileno()
         return None
 
-    def _close(self, force, timeout):
+    def _close(self, abort, flush, timeout):
         """
         Close client. Called by the engine after client has been
         unregistered. This method should handle all termination types
-        (normal, forced or on timeout).
+        (normal or aborted) with some options like flushing I/O buffers
+        or setting timeout status.
+
         Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
@@ -320,6 +322,12 @@ class EngineClient(EngineBaseTimer):
             self.file_writer.close()
             self.file_writer = None
 
+    def abort(self):
+        """
+        Abort processing any action by this client.
+        """
+        if self._engine:
+            self._engine.remove(self, abort=True)
 
 class EnginePort(EngineClient):
     """
@@ -380,7 +388,7 @@ class EnginePort(EngineClient):
     def _start(self):
         return self
 
-    def _close(self, force, timeout):
+    def _close(self, abort, flush, timeout):
         """
         Close port pipes.
         """
