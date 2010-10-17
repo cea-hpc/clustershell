@@ -1,5 +1,10 @@
 2010-10-17 S. Thiell <stephane.thiell@cea.fr>
 
+	* Engine/Factory.py: Re-enable EPoll engine (closes trac ticket #56).
+
+	* Engine/EPoll.py: Cleanup and minor fix in the way event masks are
+	modified.
+
 	* CLI/Clush.py: Changed the way of reading stdin, which is now based on
 	blocking reads using a specified thread and thread-safe messaging with
 	acknowledgement using a task port (part of trac ticket #56).

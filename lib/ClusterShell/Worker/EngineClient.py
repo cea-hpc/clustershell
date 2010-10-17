@@ -424,22 +424,21 @@ class EnginePort(EngineClient):
 
     def msg(self, send_msg, send_once=False):
         """
-        Port message send with optional reply.
+        Port message send method that will wait for acknowledgement
+        unless the send_once parameter if set.
         """
         pmsg = EnginePort._Msg(send_msg, not send_once)
         self._msgq.put(pmsg, block=True, timeout=None)
-
         try:
             ret = os.write(self.writer_fileno(), "M")
         except OSError:
             raise
-
         pmsg.sync()
         return ret == 1
 
     def msg_send(self, send_msg):
         """
-        Port message send-once method (no reply).
+        Port message send-once method (no acknowledgement).
         """
         self.msg(send_msg, send_once=True)
 
