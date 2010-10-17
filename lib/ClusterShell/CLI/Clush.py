@@ -52,6 +52,7 @@ import os
 import resource
 import sys
 import signal
+import threading
 
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
 from ClusterShell.CLI.Config import VERB_STD, VERB_VERB, VERB_DEBUG
@@ -73,16 +74,16 @@ class UpdatePromptException(Exception):
 
 class StdInputHandler(EventHandler):
     """Standard input event handler class."""
-
     def __init__(self, worker):
         EventHandler.__init__(self)
         self.master_worker = worker
 
-    def ev_read(self, worker):
-        self.master_worker.write(worker.last_read() + '\n')
-
-    def ev_close(self, worker):
-        self.master_worker.set_write_eof()
+    def ev_msg(self, port, msg):
+        if not msg:
+            self.master_worker.set_write_eof()
+            return
+        # Forward messages to master worker
+        self.master_worker.write(msg)
 
 class OutputHandler(EventHandler):
     """Base class for clush output handlers."""
@@ -441,20 +442,35 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
                 run_command(task, cmd, ns, gather, timeout, verbosity, display)
     return rc
 
+def _stdin_thread_start(stdin_port):
+    """Standard input reader thread entry point."""
+    # Note: read length should be larger and a multiple of 4096 for best
+    # performance to avoid excessive unreg/register of writer fd in
+    # engine; however, it shouldn't be too large.
+    bufsize = 4096 * 8
+    # thread loop: blocking read stdin + send messages to specified
+    #              port object
+    buf = sys.stdin.read(bufsize)
+    while buf:
+        # send message to specified port object (with ack)
+        stdin_port.msg(buf)
+        buf = sys.stdin.read(bufsize)
+    # send a None message to indicate EOF
+    stdin_port.msg(None)
+
 def bind_stdin(worker):
-    """Create a ClusterShell stdin-reader worker bound to specified
-    worker."""
+    """Create a stdin->port->worker binding: connect specified worker
+    to stdin with the help of a reader thread and a ClusterShell Port
+    object."""
     assert not sys.stdin.isatty()
-    # Switch stdin to non blocking mode
-    fcntl.fcntl(sys.stdin, fcntl.F_SETFL, \
-        fcntl.fcntl(sys.stdin, fcntl.F_GETFL) | os.O_NDELAY)
-
-    # Create a simple worker attached to stdin in autoclose mode
-    worker_stdin = WorkerSimple(sys.stdin, None, None, None,
-            handler=StdInputHandler(worker), timeout=-1, autoclose=True)
-
-    # Add stdin worker to the same task than given worker
-    worker.task.schedule(worker_stdin)
+    # Create a ClusterShell Port object bound to worker's task. This object
+    # is able to receive messages in a thread-safe manner and then will safely
+    # trigger ev_msg() on a specified event handler.
+    port = worker.task.port(handler=StdInputHandler(worker), autoclose=True)
+    # Launch a dedicated thread to read stdin in blocking mode. Indeed stdin
+    # can be a file, so we cannot use a WorkerSimple here as polling on file
+    # may result in different behaviors depending on selected engine.
+    threading.Thread(None, _stdin_thread_start, args=(port,)).start()
 
 def run_command(task, cmd, ns, gather, timeout, verbosity, display):
     """
@@ -539,7 +555,7 @@ def clush_excepthook(extype, value, traceback):
 
 def main(args=sys.argv):
     """clush script entry point"""
-    #sys.excepthook = clush_excepthook
+    sys.excepthook = clush_excepthook
 
     # Default values
     nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
