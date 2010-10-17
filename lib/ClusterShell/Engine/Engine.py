@@ -599,7 +599,10 @@ class Engine:
 
         if not client._processing:
             # modifying a non processing client?
-            self.reg_clifds_changed = True
+            if clearmask:
+                # set changed boolean only if we clear some flags to
+                # avoid a pseudo race condition on write() flooding
+                self.reg_clifds_changed = True
             # apply new_events now
             self.set_events(client, client._new_events)
 
@@ -803,6 +806,6 @@ class Engine:
 
     def _debug(self, s):
         # library engine debugging hook
-        #print s
+        #print >>sys.stderr, s
         pass
 
