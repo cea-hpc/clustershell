@@ -123,6 +123,8 @@ class WorkerPopen(WorkerSimple):
 
         self.popen.stdin.close()
         self.popen.stdout.close()
+        if self.popen.stderr:
+            self.popen.stderr.close()
 
         if rc >= 0:
             self._on_rc(rc)

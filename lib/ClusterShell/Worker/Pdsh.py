@@ -216,6 +216,8 @@ class WorkerPdsh(EngineClient, DistantWorker):
         # close
         self.popen.stdin.close()
         self.popen.stdout.close()
+        if self.popen.stderr:
+            self.popen.stderr.close()
 
         if timeout:
             for node in (self.nodes - self.closed_nodes):

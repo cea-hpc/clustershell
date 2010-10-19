@@ -1,3 +1,11 @@
+2010-10-19 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Popen.py: Fix stderr pipe leak (trac ticket #121).
+	* Worker/Ssh.py: Fix stderr pipe leak (trac ticket #121).
+	* Worker/Pdsh.py: Fix stderr pipe leak (trac ticket #121).
+
+	* tests/TaskRLimitsTest.py: New test.
+
 2010-09-10 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.3.2 released.
