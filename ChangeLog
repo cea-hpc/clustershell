@@ -1,6 +1,6 @@
 2010-10-20 S. Thiell <stephane.thiell@cea.fr>
 
-	* Task.py: Docstring improvements (trac ticket #122).
+	* Task.py: Docstring improvements (trac tickets #120, #122).
 
 	* scripts/clush.py: Backport 1.4 minor bugfix on clush -b progress
 	counter, ie. do not display it when the command is fast -- not always seen

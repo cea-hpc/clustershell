@@ -466,7 +466,28 @@ class Task(object):
 
     def shell(self, command, **kwargs):
         """
-        Schedule a shell command for local or distant execution.
+        Schedule a shell command for local or distant parallel
+        execution. This key method in the ClusterShell library creates
+        a local or remote Worker (depending on the presence of the
+        nodes parameter) and immediately schedule it for execution in
+        task runloop. So, if the task is already running (ie. called
+        from an event handler), the command is started immediately,
+        assuming the fanout constraint is met. If the task is not
+        running, the command is not started but scheduled for late
+        execution. See resume() to start task runloop.
+
+        The following optional parameters are passed to the underlying
+        local or remote Worker constructor:
+          - handler: EventHandler instance to notify (on event) --
+            default is no handler (None)
+          - timeout: command timeout delay expressed in second using
+            a floating point value -- default is unlimited (None)
+          - autoclose: if set to True, the underlying Worker is
+            automatically aborted as soon as all other non-autoclosing
+            task objects (workers, ports, timers) have finished --
+            default is False
+          - stderr: separate stdout/stderr if set to True -- default
+            is False.
 
         Local usage::
             task.shell(command [, key=key] [, handler=handler]
@@ -477,6 +498,11 @@ class Task(object):
             task.shell(command, nodes=nodeset [, handler=handler]
                   [, timeout=secs], [, autoclose=enable_autoclose]
                   [, strderr=enable_stderr])
+
+        Example:
+        >>> task = task_self()
+        >>> task.shell("/bin/date", nodes="node[1-2345]")
+        >>> task.resume()
         """
 
         handler = kwargs.get("handler", None)
