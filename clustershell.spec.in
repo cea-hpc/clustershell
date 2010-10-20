@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Wed Oct 20 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3.3-1
+- update to 1.3.3
+
 * Fri Sep 10 2010 Stephane Thiell <stephane.thiell@cea.fr> 1.3.2-1
 - renamed Vim subpackage to vim-clustershell
 - update to 1.3.2

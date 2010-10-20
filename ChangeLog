@@ -1,5 +1,7 @@
 2010-10-20 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.3.3 released.
+
 	* Task.py: Docstring improvements (trac tickets #120, #122).
 
 	* scripts/clush.py: Backport 1.4 minor bugfix on clush -b progress
