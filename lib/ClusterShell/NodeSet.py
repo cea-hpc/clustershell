@@ -760,9 +760,8 @@ class NodeSetBase(object):
         for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
                 for start, stop, step, pad in rangeset._ranges:
-                    while start <= stop:
-                        yield pat, start, pad
-                        start += step
+                    for idx in xrange(start, stop + 1, step):
+                        yield pat, idx, pad
             else:
                 yield pat, None, None
 
