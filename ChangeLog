@@ -1,3 +1,9 @@
+2010-10-20 S. Thiell <stephane.thiell@cea.fr>
+
+	* scripts/clush.py: Backport 1.4 minor bugfix on clush -b progress
+	counter, ie. do not display it when the command is fast -- not always seen
+	as the prompt could hide that minor problem.
+
 2010-10-19 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/Popen.py: Fix stderr pipe leak (trac ticket #121).

@@ -358,6 +358,7 @@ class RunTimer(EventHandler):
         self.cnt_last = -1
         self.tslen = len(str(self.total))
         self.wholelen = 0
+        self.started = False
 
     def ev_timer(self, timer):
         self.update()
@@ -378,8 +379,11 @@ class RunTimer(EventHandler):
                 self.tslen, self.total)
             self.wholelen = len(towrite)
             sys.stderr.write(towrite)
+            self.started = True
 
     def finalize(self, cr):
+        if not self.started:
+            return
         # display completed/total clients
         fmt = 'clush: %*d/%*d'
         if cr:
