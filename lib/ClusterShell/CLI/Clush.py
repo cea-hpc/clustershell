@@ -640,8 +640,14 @@ def main(args=sys.argv):
     if options.nostdin and interactive:
         parser.error("illegal option `--nostdin' in interactive mode")
 
-    user_interaction = not options.nostdin and sys.stdin.isatty() and \
-                       sys.stdout.isatty()
+    user_interaction = False
+    if not options.nostdin:
+        # Try user interaction: check for foreground ttys presence
+        stdin_isafgtty = sys.stdin.isatty() and \
+            os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
+        stdout_isafgtty = sys.stdout.isatty() and \
+            os.tcgetpgrp(sys.stdout.fileno()) == os.getpgrp()
+        user_interaction = stdin_isafgtty and stdout_isafgtty
     config.verbose_print(VERB_DEBUG, "User interaction: %s" % user_interaction)
     if user_interaction:
         # Standard input is a terminal and we want to perform some user
@@ -656,7 +662,7 @@ def main(args=sys.argv):
         task.set_default("USER_handle_SIGUSR1", False)
 
     task.excepthook = sys.excepthook
-    task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or
+    task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or \
                                                options.nostdin))
     config.verbose_print(VERB_DEBUG, "Create STDIN worker: %s" % \
                                         task.default("USER_stdin_worker"))
