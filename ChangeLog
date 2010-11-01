@@ -1,3 +1,7 @@
+2010-11-01 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Clush.py: Improve signal handling (trac ticket #65).
+
 2010-10-25 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Add launched-in-background checks before enabling user

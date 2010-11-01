@@ -299,6 +299,7 @@ class RunTimer(EventHandler):
 def signal_handler(signum, frame):
     """Signal handler used for main thread notification"""
     if signum == signal.SIGUSR1:
+        signal.signal(signal.SIGUSR1, signal.SIG_IGN)
         raise UpdatePromptException()
 
 def get_history_file():
@@ -346,7 +347,13 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
                 prompt = "clush> "
             else:
                 prompt = ""
-            cmd = raw_input(prompt)
+            # Set SIGUSR1 handler if needed
+            if task.default("USER_handle_SIGUSR1"):
+                signal.signal(signal.SIGUSR1, signal_handler)
+            try:
+                cmd = raw_input(prompt)
+            finally:
+                signal.signal(signal.SIGUSR1, signal.SIG_IGN)
         except EOFError:
             print
             return
@@ -355,7 +362,6 @@ def ttyloop(task, nodeset, gather, timeout, verbosity, display):
                 continue
             return
         except KeyboardInterrupt, kbe:
-            signal.signal(signal.SIGUSR1, signal.SIG_IGN)
             if gather:
                 # Suspend task, so we can safely access its data from
                 # the main thread
@@ -655,11 +661,10 @@ def main(args=sys.argv):
         # we run cluster commands in a new ClusterShell Task (a new
         # thread is created).
         task = Task()
-        signal.signal(signal.SIGUSR1, signal_handler)
-        task.set_default("USER_handle_SIGUSR1", True)
-    else:
-        # Perform everything in main thread.
-        task.set_default("USER_handle_SIGUSR1", False)
+    # else: perform everything in the main thread
+
+    # Handle special signal only when user_interaction is set
+    task.set_default("USER_handle_SIGUSR1", user_interaction)
 
     task.excepthook = sys.excepthook
     task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or \
