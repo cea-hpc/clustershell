@@ -433,10 +433,10 @@ class Task(object):
         using this method and retrieve them with info().
         
         The following example changes the fanout value to 128:
-        >>> task.set_info('fanout', 128)
+            >>> task.set_info('fanout', 128)
 
         The following example enables debug messages:
-        >>> task.set_info('debug', True)
+            >>> task.set_info('debug', True)
 
         Task info_keys are:
           - "debug": Boolean value indicating whether to enable library
@@ -500,6 +500,7 @@ class Task(object):
                   [, strderr=enable_stderr])
 
         Example:
+
         >>> task = task_self()
         >>> task.shell("/bin/date", nodes="node[1-2345]")
         >>> task.resume()
@@ -631,6 +632,7 @@ class Task(object):
         running (eg. called from an event handler) or as soon as the
         task is started otherwise. Only useful for manually instantiated
         workers, for example:
+
         >>> task = task_self()
         >>> worker = WorkerSsh("node[2-3]", None, 10, command="/bin/ls")
         >>> task.schedule(worker)
@@ -694,10 +696,12 @@ class Task(object):
         With arguments, it will schedule a command exactly like a Task.shell()
         would have done it and run it.
         This is the easiest way to simply run a command.
+
         >>> task.run("hostname", nodes="foo")
 
         Without argument, it starts all outstanding actions. 
         It behaves like Task.resume().
+
         >>> task.shell("hostname", nodes="foo")
         >>> task.shell("hostname", nodes="bar")
         >>> task.run()
