@@ -1,5 +1,8 @@
 2010-11-01 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/OptionParser.py: Make -c/--copy an option that can take several
+	source arguments.
+
 	* CLI/Clush.py: Improve signal handling (trac ticket #65).
 
 2010-10-25 S. Thiell <stephane.thiell@cea.fr>

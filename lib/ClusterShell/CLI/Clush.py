@@ -508,19 +508,19 @@ def run_command(task, cmd, ns, gather, timeout, verbosity, display):
  
     task.resume()
 
-def run_copy(task, source, dest, ns, timeout, preserve_flag, display):
+def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     """
     run copy command
     """
     task.set_default("USER_running", True)
 
-    # Source check
-    if not os.path.exists(source):
-        print >> sys.stderr, "ERROR: file \"%s\" not found" % source
-        clush_exit(1)
-
-    task.copy(source, dest, ns, handler=DirectOutputHandler(display),
-              timeout=timeout, preserve=preserve_flag)
+    # Sources check
+    for source in sources:
+        if not os.path.exists(source):
+            print >> sys.stderr, "ERROR: file \"%s\" not found" % source
+            clush_exit(1)
+        task.copy(source, dest, ns, handler=DirectOutputHandler(display),
+                  timeout=timeout, preserve=preserve_flag)
 
     task.resume()
 
@@ -642,7 +642,7 @@ def main(args=sys.argv):
     #
     # Task management
     #
-    interactive = not len(args) and not options.source_path
+    interactive = not len(args) and not options.copyfiles
     if options.nostdin and interactive:
         parser.error("illegal option `--nostdin' in interactive mode")
 
@@ -706,10 +706,10 @@ def main(args=sys.argv):
     task.set_default("USER_interactive", interactive)
     task.set_default("USER_running", False)
 
-    if options.source_path:
+    if options.copyfiles:
         if not options.dest_path:
-            options.dest_path = os.path.dirname(options.source_path)
-        op = "copy source=%s dest=%s" % (options.source_path, options.dest_path)
+            options.dest_path = os.path.dirname(options.copyfiles[0])
+        op = "copy sources=%s dest=%s" % (options.copyfiles, options.dest_path)
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
@@ -731,9 +731,9 @@ def main(args=sys.argv):
     display = Display(options, color)
 
     if not task.default("USER_interactive"):
-        if options.source_path:
+        if options.copyfiles:
             if not args:
-                run_copy(task, options.source_path, options.dest_path,
+                run_copy(task, options.copyfiles, options.dest_path,
                          nodeset_base, 0, options.preserve_flag, display)
             else:
                 parser.error("please use `--dest' to specify a different " \
