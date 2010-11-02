@@ -371,6 +371,16 @@ class TaskDistantTest(unittest.TestCase):
         self.assertRaises(ValueError, WorkerPdsh, "localhost",
 			  None, None) # 1.4+
 
+    def testCopyEvents(self):
+        """test triggered events on WorkerPdsh copy"""
+        test_eh = self.__class__.TEventHandlerChecker(self)
+        dest = "/tmp/cs-test_testLocalhostPdshCopyEvents"
+        worker = WorkerPdsh("localhost", source="/etc/hosts",
+                dest=dest, handler=test_eh, timeout=10)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
+
     def testWorkerAbort(self):
         """test WorkerPdsh abort() on timer"""
         task = task_self()

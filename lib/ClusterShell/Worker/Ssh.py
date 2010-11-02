@@ -100,7 +100,6 @@ class Ssh(EngineClient):
         self.file_writer = self.popen.stdin
 
         self.worker._on_start()
-
         return self
 
     def _close(self, abort, flush, timeout):
@@ -236,6 +235,7 @@ class Scp(Ssh):
         self.file_error = self.popen.stderr
         self.file_writer = self.popen.stdin
 
+        self.worker._on_start()
         return self
 
 

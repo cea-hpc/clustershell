@@ -518,6 +518,17 @@ class TaskDistantTest(unittest.TestCase):
         self.assertRaises(ValueError, WorkerSsh, "localhost",
 			  None, None) # 1.4+
 
+    def testCopyEvents(self):
+        """test triggered events on task.copy()"""
+        test_eh = self.__class__.TEventHandlerChecker(self)
+        worker = self._task.copy("/etc/hosts",
+                "/tmp/cs-test_testLocalhostCopyEvents", nodes='localhost',
+                handler=test_eh)
+        self.assert_(worker != None)
+        # run task
+        self._task.resume()
+        self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
+
     def testWorkerAbort(self):
         """test distant/ssh Worker abort() on timer"""
         task = task_self()

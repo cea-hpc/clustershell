@@ -951,7 +951,6 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(n), 0)
 
 
-
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

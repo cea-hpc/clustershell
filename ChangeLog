@@ -1,3 +1,8 @@
+2010-11-02 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Ssh.py: Fix missing ev_start trigger when using task.copy() (trac
+	ticket #125).
+
 2010-11-01 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/OptionParser.py: Make -c/--copy an option that can take several

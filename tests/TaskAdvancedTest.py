@@ -132,7 +132,6 @@ class TaskAdvancedTest(unittest.TestCase):
         self.assertEqual(worker.read(), match)
 
 
-
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskAdvancedTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
