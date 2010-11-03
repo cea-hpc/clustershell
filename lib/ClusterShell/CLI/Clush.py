@@ -524,6 +524,26 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
 
     task.resume()
 
+def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
+    """
+    run reverse copy command
+    """
+    task.set_default("USER_running", True)
+
+    # Sources check
+    if not os.path.exists(dest):
+        print >> sys.stderr, "ERROR: directory \"%s\" not found" % dest
+        clush_exit(1)
+    if not os.path.isdir(dest):
+        print >> sys.stderr, \
+            "ERROR: destination \"%s\" is not a directory" % dest
+        clush_exit(1)
+    for source in sources:
+        task.rcopy(source, dest, ns, handler=DirectOutputHandler(display),
+                   timeout=timeout, preserve=preserve_flag)
+
+    task.resume()
+
 def clush_exit(status):
     # Flush stdio buffers
     for stream in [sys.stdout, sys.stderr]:
@@ -642,7 +662,7 @@ def main(args=sys.argv):
     #
     # Task management
     #
-    interactive = not len(args) and not options.copy
+    interactive = not len(args) and not (options.copy or options.rcopy)
     if options.nostdin and interactive:
         parser.error("illegal option `--nostdin' in interactive mode")
 
@@ -706,12 +726,16 @@ def main(args=sys.argv):
     task.set_default("USER_interactive", interactive)
     task.set_default("USER_running", False)
 
-    if options.copy and not args:
-        parser.error("--copy option requires at least one argument")
+    if (options.copy or options.rcopy) and not args:
+        parser.error("--[r]copy option requires at least one argument")
     if options.copy:
         if not options.dest_path:
             options.dest_path = os.path.dirname(args[0])
         op = "copy sources=%s dest=%s" % (args, options.dest_path)
+    elif options.rcopy:
+        if not options.dest_path:
+            options.dest_path = os.path.dirname(args[0])
+        op = "rcopy sources=%s dest=%s" % (args, options.dest_path)
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
@@ -736,6 +760,9 @@ def main(args=sys.argv):
         if options.copy:
             run_copy(task, args, options.dest_path, nodeset_base, 0,
                      options.preserve_flag, display)
+        elif options.rcopy:
+            run_rcopy(task, args, options.dest_path, nodeset_base, 0,
+                      options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
                         config.verbosity, display)

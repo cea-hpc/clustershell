@@ -151,7 +151,7 @@ class OptionParser(optparse.OptionParser):
         self.add_option_group(optgrp)
 
     def _copy_callback(self, option, opt_str, value, parser):
-        """special callback method for copy toggle"""
+        """special callback method for copy and rcopy toggles"""
         # enable interspersed args again
         self.enable_interspersed_args()
         # set True to dest option attribute
@@ -163,6 +163,9 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-c", "--copy", action="callback", dest="copy",
                           callback=self._copy_callback,
                           help="copy local file or directory to remote nodes")
+        optgrp.add_option("--rcopy", action="callback", dest="rcopy",
+                          callback=self._copy_callback,
+                          help="copy file or directory from remote nodes")
         optgrp.add_option("--dest", action="store", dest="dest_path",
                           help="destination file or directory on the nodes")
         optgrp.add_option("-p", action="store_true", dest="preserve_flag",
