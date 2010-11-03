@@ -642,7 +642,7 @@ def main(args=sys.argv):
     #
     # Task management
     #
-    interactive = not len(args) and not options.copyfiles
+    interactive = not len(args) and not options.copy
     if options.nostdin and interactive:
         parser.error("illegal option `--nostdin' in interactive mode")
 
@@ -706,10 +706,12 @@ def main(args=sys.argv):
     task.set_default("USER_interactive", interactive)
     task.set_default("USER_running", False)
 
-    if options.copyfiles:
+    if options.copy and not args:
+        parser.error("--copy option requires at least one argument")
+    if options.copy:
         if not options.dest_path:
-            options.dest_path = os.path.dirname(options.copyfiles[0])
-        op = "copy sources=%s dest=%s" % (options.copyfiles, options.dest_path)
+            options.dest_path = os.path.dirname(args[0])
+        op = "copy sources=%s dest=%s" % (args, options.dest_path)
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
@@ -731,13 +733,9 @@ def main(args=sys.argv):
     display = Display(options, color)
 
     if not task.default("USER_interactive"):
-        if options.copyfiles:
-            if not args:
-                run_copy(task, options.copyfiles, options.dest_path,
-                         nodeset_base, 0, options.preserve_flag, display)
-            else:
-                parser.error("please use `--dest' to specify a different " \
-                             "destination")
+        if options.copy:
+            run_copy(task, args, options.dest_path, nodeset_base, 0,
+                     options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, gather, timeout,
                         config.verbosity, display)

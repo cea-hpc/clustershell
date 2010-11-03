@@ -58,24 +58,6 @@ def check_safestring(option, opt, value):
         raise optparse.OptionValueError(
             "option %s: invalid value: %r" % (opt, value))
 
-def varcopy_callback(option, opt_str, value, parser):
-    """callback method for copy and rcopy which take a variable number
-    of arguments."""
-    # based on http://docs.python.org/library/optparse.html?highlight=optionparser#callback-example-6-variable-arguments"""
-    assert value is None
-    value = []
-    for arg in parser.rargs:
-        # stop on --foo like options
-        if arg[:2] == "--":
-            break
-        # note: -foo like options are not filtered here
-        value.append(arg)
-    if not value:
-        raise optparse.OptionValueError( \
-            "%s option needs at least one argument" % opt_str)
-    del parser.rargs[:len(value)]
-    setattr(parser.values, option.dest, value)
-
 
 class Option(optparse.Option):
     """This Option subclass adds a new safestring type."""
@@ -168,11 +150,18 @@ class OptionParser(optparse.OptionParser):
                                "or auto)")
         self.add_option_group(optgrp)
 
+    def _copy_callback(self, option, opt_str, value, parser):
+        """special callback method for copy toggle"""
+        # enable interspersed args again
+        self.enable_interspersed_args()
+        # set True to dest option attribute
+        setattr(parser.values, option.dest, True)
+
     def install_filecopy_options(self):
         """Install file copying specific options"""
         optgrp = optparse.OptionGroup(self, "File copying")
-        optgrp.add_option("-c", "--copy", action="callback", dest="copyfiles",
-                          callback=varcopy_callback,
+        optgrp.add_option("-c", "--copy", action="callback", dest="copy",
+                          callback=self._copy_callback,
                           help="copy local file or directory to remote nodes")
         optgrp.add_option("--dest", action="store", dest="dest_path",
                           help="destination file or directory on the nodes")
