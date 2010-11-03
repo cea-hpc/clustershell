@@ -413,6 +413,43 @@ class TaskDistantTest(unittest.TestCase):
                             timeout=None)
         worker.abort()
         
+    def testLocalhostExplicitPdshReverseCopy(self):
+        """test simple localhost rcopy with explicit pdsh worker"""
+        dest = "/tmp/cs-test_testLocalhostExplicitPdshRCopy"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerPdsh("localhost", source="/etc/hosts",
+                dest=dest, handler=None, timeout=10, reverse=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assertEqual(worker.source, "/etc/hosts")
+        self.assertEqual(worker.dest, dest)
+        self.assert_(os.path.exists(os.path.join(dest, "hosts.localhost")))
+
+    def testLocalhostExplicitPdshReverseCopyDir(self):
+        """test simple localhost rcopy dir with explicit pdsh worker"""
+        dest = "/tmp/cs-test_testLocalhostExplicitPdshRCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerPdsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=30, reverse=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+
+    def testLocalhostExplicitPdshReverseCopyDirPreserve(self):
+        """test simple localhost preserve rcopy dir with explicit pdsh worker"""
+        # pdcp worker doesn't create custom destination directory
+        dest = "/tmp/cs-test_testLocalhostExplicitPdshPreserveCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerPdsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=30, preserve=True,
+                reverse=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)

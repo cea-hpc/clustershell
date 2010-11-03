@@ -562,6 +562,43 @@ class TaskDistantTest(unittest.TestCase):
                            timeout=None)
         worker.abort()
 
+    def testLocalhostExplicitSshReverseCopy(self):
+        """test simple localhost rcopy with explicit ssh worker"""
+        dest = "/tmp/cs-test_testLocalhostExplicitSshRCopy"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerSsh("localhost", source="/etc/hosts",
+                dest=dest, handler=None, timeout=10, reverse=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assertEqual(worker.source, "/etc/hosts")
+        self.assertEqual(worker.dest, dest)
+        self.assert_(os.path.exists(os.path.join(dest, "hosts.localhost")))
+
+    def testLocalhostExplicitSshReverseCopyDir(self):
+        """test simple localhost rcopy dir with explicit ssh worker"""
+        dest = "/tmp/cs-test_testLocalhostExplicitSshRCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerSsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=30, reverse=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+
+    def testLocalhostExplicitSshReverseCopyDirPreserve(self):
+        """test simple localhost preserve rcopy dir with explicit ssh worker"""
+        # pdcp worker doesn't create custom destination directory
+        dest = "/tmp/cs-test_testLocalhostExplicitSshPreserveCopyDirectory"
+        shutil.rmtree(dest, ignore_errors=True)
+        os.mkdir(dest)
+        worker = WorkerSsh("localhost", source="/etc/rc.d",
+                dest=dest, handler=None, timeout=30, preserve=True,
+                reverse=True)
+        self._task.schedule(worker) 
+        self._task.resume()
+        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)
