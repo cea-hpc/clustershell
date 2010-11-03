@@ -101,9 +101,16 @@ class WorkerPdsh(EngineClient, DistantWorker):
             # PDCP
             self.command = None
             self.mode = 'pdcp'
-            self.isdir = os.path.isdir(self.source)
             # Preserve modification times and modes?
             self.preserve = kwargs.get('preserve', False)
+            # Reverse copy (rpdcp)?
+            self.reverse = kwargs.get('reverse', False)
+            if self.reverse:
+                self.isdir = os.path.isdir(self.dest)
+                if not self.isdir:
+                    raise ValueError("reverse copy dest must be a directory")
+            else:
+                self.isdir = os.path.isdir(self.source)
         else:
             raise ValueError("missing command or source parameter in " \
 			     "WorkerPdsh constructor")
@@ -152,7 +159,10 @@ class WorkerPdsh(EngineClient, DistantWorker):
                                                             ' '.join(cmd_l))
         else:
             # Build pdcp command
-            executable = self.task.info("pdcp_path") or "pdcp"
+            if self.reverse:
+                executable  = self.task.info('rpdcp_path') or "rpdcp"
+            else:
+                executable = self.task.info("pdcp_path") or "pdcp"
             cmd_l = [ executable, "-b" ]
 
             fanout = self.task.info("fanout", 0)

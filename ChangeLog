@@ -4,6 +4,8 @@
 
 	* Task.py: Added rcopy() method (part of trac ticket #55).
 
+	* Worker/Pdsh.py: Support for reverse file copy (part of trac ticket #55).
+
 	* Worker/Ssh.py: Support for reverse file copy (part of trac ticket #55).
 
 2010-11-02 S. Thiell <stephane.thiell@cea.fr>
