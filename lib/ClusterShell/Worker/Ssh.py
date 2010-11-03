@@ -168,7 +168,8 @@ class Scp(Ssh):
     Scp EngineClient.
     """
 
-    def __init__(self, node, source, dest, worker, stderr, timeout, preserve):
+    def __init__(self, node, source, dest, worker, stderr, timeout, preserve,
+        reverse):
         """
         Initialize Scp instance.
         """
@@ -177,14 +178,22 @@ class Scp(Ssh):
         self.dest = dest
         self.popen = None
 
-        # Directory check
-        self.isdir = os.path.isdir(self.source)
-        # Note: file sanity checks can be added to Scp._start() as
-        # soon as Task._start_thread is able to dispatch exceptions on
-        # _start (need trac ticket #21).
-    
         # Preserve modification times and modes?
         self.preserve = preserve
+
+        # Reverse copy?
+        self.reverse = reverse
+
+        # Directory?
+        if self.reverse:
+            self.isdir = os.path.isdir(self.dest)
+            if not self.isdir:
+                raise ValueError("reverse copy dest must be a directory")
+        else:
+            self.isdir = os.path.isdir(self.source)
+        # Note: file sanity checks can be added to Scp._start() as
+        # soon as Task._start_thread is able to dispatch exceptions on
+        # _start (need trac ticket #21). FIXME
 
     def _start(self):
         """
@@ -219,13 +228,23 @@ class Scp(Ssh):
             if ssh_options:
                 cmd_l.append(ssh_options)
 
-        cmd_l.append(self.source)
+        if self.reverse:
+            user = task.info("ssh_user")
+            if user:
+                cmd_l.append("%s@%s:%s" % (user, self.key, self.source))
+            else:
+                cmd_l.append("%s:%s" % (self.key, self.source))
 
-        user = task.info("ssh_user")
-        if user:
-            cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
+            cmd_l.append(os.path.join(self.dest, "%s.%s" % \
+                         (os.path.basename(self.source), self.key)))
         else:
-            cmd_l.append("%s:%s" % (self.key, self.dest))
+            cmd_l.append(self.source)
+
+            user = task.info("ssh_user")
+            if user:
+                cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
+            else:
+                cmd_l.append("%s:%s" % (self.key, self.dest))
 
         if task.info("debug", False):
             task.info("print_debug")(task, "SCP: %s" % ' '.join(cmd_l))
@@ -283,7 +302,8 @@ class WorkerSsh(DistantWorker):
             # secure copy
             for node in self.nodes:
                 self.clients.append(Scp(node, self.source, self.dest,
-                    self, stderr, timeout, kwargs.get('preserve', False)))
+                    self, stderr, timeout, kwargs.get('preserve', False),
+                    kwargs.get('reverse', False)))
         else:
             raise ValueError("missing command or source parameter in " \
 			     "WorkerSsh constructor")

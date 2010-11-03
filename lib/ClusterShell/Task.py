@@ -537,16 +537,25 @@ class Task(object):
         assert nodes != None, "local copy not supported"
 
         handler = kwargs.get("handler", None)
+        stderr = kwargs.get("stderr", self.default("stderr"))
         timeo = kwargs.get("timeout", None)
         preserve = kwargs.get("preserve", None)
-        stderr = kwargs.get("stderr", self.default("stderr"))
+        reverse = kwargs.get("reverse", False)
 
         # create a new copy worker
         worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
-                           stderr=stderr, timeout=timeo, preserve=preserve)
+                           stderr=stderr, timeout=timeo, preserve=preserve,
+                           reverse=reverse)
 
         self.schedule(worker)
         return worker
+
+    def rcopy(self, source, dest, nodes, **kwargs):
+        """
+        Copy distant file or directory to local node.
+        """
+        kwargs['reverse'] = True
+        return self.copy(source, dest, nodes, **kwargs)
 
     @tasksyncmethod()
     def _add_port(self, port):

@@ -1,3 +1,9 @@
+2010-11-03 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Added rcopy() method (part of trac ticket #55).
+
+	* Worker/Ssh.py: Support for reverse file copy (part of trac ticket #55).
+
 2010-11-02 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/Ssh.py: Fix missing ev_start trigger when using task.copy() (trac
