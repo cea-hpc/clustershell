@@ -41,7 +41,11 @@ import sys
 
 from ClusterShell.NodeSet import NodeSet
 
-
+# Display constants
+VERB_QUIET = 0
+VERB_STD = 1
+VERB_VERB = 2
+VERB_DEBUG = 3
 WHENCOLOR_CHOICES = ["never", "always", "auto"]
 
 class Display(object):
@@ -52,13 +56,15 @@ class Display(object):
     COLOR_STDERR_FMT = "\033[31m%s\033[0m"
     SEP = "-" * 15
 
-    def __init__(self, options, color=None):
-        """Initialize a Display object from CLI.OptionParser options.
+    def __init__(self, options, config=None, color=None):
+        """Initialize a Display object from CLI.OptionParser options
+        and optional CLI.ClushConfig.
 
         If `color' boolean flag is not specified, it is auto detected
         according to options.whencolor.
         """
         self._display = self._print_buffer
+        self.gather = options.gatherall or options.gather
         self.line_mode = options.line_mode
         self.label = options.label
         self.regroup = options.regroup
@@ -82,6 +88,19 @@ class Display(object):
             self.color_stderr_fmt = self.COLOR_STDERR_FMT
         else:
             self.color_stdout_fmt = self.color_stderr_fmt = "%s"
+
+        # Set display verbosity
+        if config:
+            # config object does already apply options overrides
+            self.verbosity = config.verbosity
+        else:
+            self.verbosity = VERB_STD
+            if hasattr(options, 'quiet') and options.quiet:
+                self.verbosity = VERB_QUIET
+            if hasattr(options, 'verbose') and options.verbose:
+                self.verbosity = VERB_VERB
+            if hasattr(options, 'debug') and options.debug:
+                self.verbosity = VERB_DEBUG
 
     def _getlmode(self):
         """line_mode getter"""
@@ -141,4 +160,16 @@ class Display(object):
         else:
             for line in msg:
                 self.out.write(line + '\n')
+
+    def vprint(self, level, message):
+        """Utility method to print a message if verbose level is high
+        enough."""
+        if self.verbosity >= level:
+            print message
+
+    def vprint_err(self, level, message):
+        """Utility method to print a message on stderr if verbose level
+        is high enough."""
+        if self.verbosity >= level:
+            print >> sys.stderr, message
 

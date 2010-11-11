@@ -39,14 +39,9 @@ CLI configuration classes
 
 import ConfigParser
 import os
-import resource
 
-from ClusterShell.CLI.Display import WHENCOLOR_CHOICES
-
-VERB_QUIET = 0
-VERB_STD = 1
-VERB_VERB = 2
-VERB_DEBUG = 3
+from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, \
+    VERB_VERB, VERB_DEBUG, WHENCOLOR_CHOICES
 
 
 class ClushConfigError(Exception):
@@ -106,23 +101,6 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         if options.whencolor:
             self._set_main("color", options.whencolor)
 
-    def verbose_print(self, level, message):
-        """Utility method to print a message if verbose level is high
-        enough."""
-        if self.verbosity >= level:
-            print message
-
-    def max_fdlimit(self):
-        """Make open file descriptors soft limit the max."""
-        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-        if soft < hard:
-            self.verbose_print(VERB_DEBUG, "Setting max soft limit "
-                               "RLIMIT_NOFILE: %d -> %d" % (soft, hard))
-            resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
-        else:
-            self.verbose_print(VERB_DEBUG, "Soft limit RLIMIT_NOFILE already "
-                               "set to the max (%d)" % soft)
-
     def _set_main(self, option, value):
         """Set given option/value pair in the Main section."""
         self.set("Main", option, str(value))
@@ -149,52 +127,50 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         except ConfigParser.Error:
             pass
 
-    def _get_verbosity(self):
+    @property
+    def verbosity(self):
         """verbosity value as an integer"""
         try:
             return self.getint("Main", "verbosity")
         except ClushConfigError:
             return 0
 
-    def _get_fanout(self):
+    @property
+    def fanout(self):
         """fanout value as an integer"""
         return self.getint("Main", "fanout")
 
-    def _get_connect_timeout(self):
+    @property
+    def connect_timeout(self):
         """connect_timeout value as a float"""
         return self.getfloat("Main", "connect_timeout")
 
-    def _get_command_timeout(self):
+    @property
+    def command_timeout(self):
         """command_timeout value as a float"""
         return self.getfloat("Main", "command_timeout")
 
-    def _get_ssh_user(self):
+    @property
+    def ssh_user(self):
         """ssh_user value as a string (optional)"""
         return self._get_optional("Main", "ssh_user")
 
-    def _get_ssh_path(self):
+    @property
+    def ssh_path(self):
         """ssh_path value as a string (optional)"""
         return self._get_optional("Main", "ssh_path")
 
-    def _get_ssh_options(self):
+    @property
+    def ssh_options(self):
         """ssh_options value as a string (optional)"""
         return self._get_optional("Main", "ssh_options")
 
-    def _get_color(self):
+    @property
+    def color(self):
         """color value as a string in (never, always, auto)"""
         whencolor = self._get_optional("Main", "color")
         if whencolor not in WHENCOLOR_CHOICES:
             raise ClushConfigError("Main", "color", "choose from %s" % \
                                    WHENCOLOR_CHOICES)
         return whencolor
-
-    # Read only properties
-    verbosity = property(_get_verbosity)
-    fanout = property(_get_fanout)
-    connect_timeout = property(_get_connect_timeout)
-    command_timeout = property(_get_command_timeout)
-    ssh_user = property(_get_ssh_user)
-    ssh_path = property(_get_ssh_path)
-    ssh_options = property(_get_ssh_options)
-    color = property(_get_color)
 
