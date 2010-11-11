@@ -330,7 +330,7 @@ def ttyloop(task, nodeset, timeout, display):
             readline_avail = True
         except ImportError:
             pass
-        self.display.vprint(VERB_STD, \
+        display.vprint(VERB_STD, \
             "Enter 'quit' to leave this interactive mode")
 
     rc = 0
@@ -342,8 +342,8 @@ def ttyloop(task, nodeset, timeout, display):
             if task.default("USER_interactive") and \
                     not task.default("USER_running"):
                 if ns_info:
-                    self.display.vprint(VERB_QUIET, \
-                                        "Working with nodes: %s" % ns)
+                    display.vprint(VERB_QUIET, \
+                                   "Working with nodes: %s" % ns)
                     ns_info = False
                 prompt = "clush> "
             else:
@@ -376,7 +376,7 @@ def ttyloop(task, nodeset, timeout, display):
                                             cmp=bufnodeset_cmp):
                     if not print_warn:
                         print_warn = True
-                        self.display.vprint_err(VERB_STD, \
+                        display.vprint_err(VERB_STD, \
                             "Warning: Caught keyboard interrupt!")
                     display.print_gather(nodeset, buf)
                     
@@ -387,14 +387,14 @@ def ttyloop(task, nodeset, timeout, display):
                     if rc != 0:
                         # Display return code if not ok ( != 0)
                         ns = NodeSet.fromlist(nodelist)
-                        self.display.vprint_err(VERB_QUIET, \
+                        display.vprint_err(VERB_QUIET, \
                             "clush: %s: exited with exit code %s" % (ns, rc))
                 # Add uncompleted nodeset to exception object
                 kbe.uncompleted_nodes = ns - ns_ok
 
                 # Display nodes that didn't answer within command timeout delay
                 if task.num_timeout() > 0:
-                    self.display.vprint_err(VERB_QUIET, \
+                    display.vprint_err(VERB_QUIET, \
                         "clush: %s: command timeout" % \
                             NodeSet.fromlist(task.iter_keys_timeout()))
             raise kbe
@@ -410,7 +410,7 @@ def ttyloop(task, nodeset, timeout, display):
                 pending = "\nclush: pending(%d): %s" % (len(ns_unreg), ns_unreg)
             else:
                 pending = ""
-            self.display.vprint_err(VERB_QUIET, "clush: interrupt (^C to " \
+            display.vprint_err(VERB_QUIET, "clush: interrupt (^C to " \
                 "abort task)\nclush: in progress(%d): %s%s" % (len(ns_reg), \
                 ns_reg, pending))
         else:
@@ -426,17 +426,17 @@ def ttyloop(task, nodeset, timeout, display):
                 elif cmdl == '=':
                     display.gather = not display.gather
                     if display.gather:
-                        self.display.vprint(VERB_STD, \
+                        display.vprint(VERB_STD, \
                             "Switching to gathered output format")
                     else:
-                        self.display.vprint(VERB_STD, \
+                        display.vprint(VERB_STD, \
                             "Switching to standard output format")
                     ns_info = False
                     continue
                 elif not cmdl.startswith('?'): # if ?, just print ns_info
                     ns_info = False
             except NodeSetParseError:
-                self.display.vprint_err(VERB_QUIET, \
+                display.vprint_err(VERB_QUIET, \
                     "clush: nodeset parse error (ignoring)")
 
             if ns_info:
