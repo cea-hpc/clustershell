@@ -47,7 +47,6 @@ When no command are specified, clush runs interactively.
 """
 
 import errno
-import fcntl
 import os
 import resource
 import sys
@@ -66,7 +65,6 @@ from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeSet import NOGROUP_RESOLVER, STD_GROUP_RESOLVER
 from ClusterShell.NodeSet import NodeSetParseError
 from ClusterShell.Task import Task, task_self
-from ClusterShell.Worker.Worker import WorkerSimple
 
 
 class UpdatePromptException(Exception):
@@ -79,6 +77,7 @@ class StdInputHandler(EventHandler):
         self.master_worker = worker
 
     def ev_msg(self, port, msg):
+        """invoked when a message is received from port object"""
         if not msg:
             self.master_worker.set_write_eof()
             return
