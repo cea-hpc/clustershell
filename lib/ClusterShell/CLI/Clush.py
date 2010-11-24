@@ -54,8 +54,8 @@ import signal
 import threading
 
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
-from ClusterShell.CLI.Config import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.Display import Display
+from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp
