@@ -131,6 +131,7 @@ class RangeSet:
         if autostep is None:
             # disabled by default for pdsh compat (+inf is 1E400, but a bug in
             # python 2.4 makes it impossible to be pickled, so we use less).
+            # NOTE: Later, we could consider sys.maxint here.
             self._autostep = 1E100
         else:
             # - 1 because user means node count, but we means
@@ -360,24 +361,54 @@ class RangeSet:
         self._binary_sanity_check(other)
         return len(self) > len(other) and self.issuperset(other)
 
-    def __getitem__(self, i):
+    def __getitem__(self, index):
         """
-        Return the element at index i.
+        Return the element at index or a subrange when a slice is specified.
         """
-        length = 0
-        for start, stop, step, pad in self._ranges:
-            cnt =  (stop - start) / step + 1
-            if i < length + cnt:
-                return start + (i - length) * step
-            length += cnt
-
-    def __getslice__(self, i, j):
-        """
-        Return the slice from index i to index j-1. For convenience
-        only, not optimized as of version 1.0.
-        """
-        return RangeSet.fromlist(list(self)[i:j])
-
+        if isinstance(index, slice):
+            inst = RangeSet(autostep=self._autostep)
+            sl_start = index.start or 0
+            sl_stop = index.stop
+            sl_step = index.step or 1
+            if not isinstance(sl_start, int) or not isinstance(sl_stop, int) \
+                or not isinstance(sl_step, int):
+                raise TypeError, "RangeSet slice indices must be integers"
+            length = 0
+            for start, stop, step, pad in self._ranges:
+                cnt =  (stop - start) / step + 1
+                if sl_step == 1:
+                    # O(1) code when slice step==1
+                    if sl_start < length + cnt:
+                        num = min(sl_stop - length, cnt)
+                        rangestop = start + (num - 1) * step
+                        inst.add_range(start + (sl_start - length) * step,
+                                       start + (num - 1) * step,
+                                       step,
+                                       pad)
+                        sl_start += num
+                        if sl_start >= sl_stop:
+                            return inst
+                else:
+                    # O(n), generic code, supports sl_step>=1 AND range_step>=1
+                    while sl_start < length + cnt:
+                        inst.add(start + (sl_start - length)  * step, pad)
+                        sl_start += sl_step
+                        if sl_start >= sl_stop:
+                            return inst
+                    # else skip until sl_start is reached
+                length += cnt
+            return inst
+        elif isinstance(index, int):
+            length = 0
+            for start, stop, step, pad in self._ranges:
+                cnt =  (stop - start) / step + 1
+                if index < length + cnt:
+                    return start + (index - length) * step
+                length += cnt
+            raise IndexError, "%d out of range" % index
+        else:
+            raise TypeError, "RangeSet indices must be integers"
+            
     def split(self, nbr):
         """
         Split the rangeset into nbr sub-rangeset. Each sub-rangeset will have

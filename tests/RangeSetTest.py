@@ -301,13 +301,43 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r2[31], 102)
         self.assertEqual(r2[32], 104)
         self.assertEqual(r2[33], 106)
+        #self.assertRaises(TypeError, r2['foo'])
 
     def testGetSlice(self):
         """test RangeSet __getslice__()"""
+        r0 = RangeSet("1-12")
+        self.assertEqual(r0[0:3], RangeSet("1-3"))
+        self.assertEqual(r0[2:7], RangeSet("3-7"))
+
         r1 = RangeSet("1-2,4,9,10-12")
         self.assertEqual(r1[0:3], RangeSet("1-2,4"))
+        self.assertEqual(r1[0:4], RangeSet("1-2,4,9"))
         self.assertEqual(r1[2:6], RangeSet("4,9,10-11"))
         self.assertEqual(r1[2:4], RangeSet("4,9"))
+        self.assertEqual(r1[5:6], RangeSet("11"))
+        self.assertEqual(r1[6:7], RangeSet("12"))
+        self.assertEqual(r1[4:7], RangeSet("10-12"))
+
+        #Slice indices are silently truncated to fall in the allowed range
+        self.assertEqual(r1[2:100], RangeSet("4,9-12"))
+        self.assertEqual(r1[9:10], RangeSet())
+
+        #Slice stepping
+        self.assertEqual(r1[0:6:2], RangeSet("1,4,10"))
+        self.assertEqual(r1[0:7:3], RangeSet("1,9,12"))
+        self.assertEqual(r1[0:7:4], RangeSet("1,10"))
+
+        # Twisted
+        r2 = RangeSet("1-9/2,12-32/4")
+        self.assertEqual(r2[1:12:3], RangeSet("3,9,20,32"))
+
+        # FIXME: b0rken test, use @raises to do that...
+        #self.assertRaises(TypeError, r1['foo':'bar'])
+        #self.assertRaises(TypeError, r1[1:3:'bar'])
+
+        # TODO: timeit?
+        r3 = RangeSet("0-6000")
+        self.assertEqual(r3[300:3890], RangeSet("300-3889"))
 
     def testSplit(self):
         """test RangeSet split()"""
