@@ -62,6 +62,7 @@ Usage example
 
 import copy
 import re
+import sys
 
 import ClusterShell.NodeUtils as NodeUtils
 
@@ -368,7 +369,7 @@ class RangeSet:
         if isinstance(index, slice):
             inst = RangeSet(autostep=self._autostep)
             sl_start = sl_next = index.start or 0
-            sl_stop = index.stop
+            sl_stop = index.stop or sys.maxint
             sl_step = index.step or 1
             if not isinstance(sl_next, int) or not isinstance(sl_stop, int) \
                 or not isinstance(sl_step, int):
@@ -379,14 +380,15 @@ class RangeSet:
             length = 0
             for start, stop, step, pad in self._ranges:
                 cnt =  (stop - start) / step + 1
-                if sl_next < length + cnt:
-                    num = min(sl_stop - length, cnt)
-                    inst.add_range(start + (sl_next - length) * step,
-                                   start + (num - 1) * step,
+                offset = sl_next - length
+                if offset < cnt:
+                    num = min(sl_stop - sl_next, cnt - offset)
+                    inst.add_range(start + offset * step,
+                                   start + (offset + num - 1) * step,
                                    sl_step * step,  # slice_step * range_step
                                    pad)
+                    # adjust sl_next...
                     sl_next += num
-                    # the tricky part: adjust sl_next
                     if (sl_next - sl_start) % sl_step:
                         sl_next = sl_start + \
                             ((sl_next - sl_start)/sl_step + 1) * sl_step
@@ -405,7 +407,7 @@ class RangeSet:
             raise IndexError, "%d out of range" % index
         else:
             raise TypeError, "RangeSet indices must be integers"
-            
+
     def split(self, nbr):
         """
         Split the rangeset into nbr sub-rangeset. Each sub-rangeset will have
@@ -417,7 +419,6 @@ class RangeSet:
         RangeSet("3-4")
         RangeSet("foo5")
         """
-        # XXX: This uses the non-optimized __getslice__ method.
         assert(nbr > 0)
 
         # We put the same number of element in each sub-nodeset.
@@ -429,7 +430,6 @@ class RangeSet:
             length = slice_size + int(i < left)
             yield self[begin:begin + length]
             begin += length
-
 
     def _expand(self):
         """

@@ -309,6 +309,10 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r0[0:3], RangeSet("1-3"))
         self.assertEqual(r0[2:7], RangeSet("3-7"))
 
+        r1 = RangeSet("10-14,16-20")
+        self.assertEqual(r1[2:6], RangeSet("12-14,16"))
+        self.assertEqual(r1[2:7], RangeSet("12-14,16-17"))
+
         r1 = RangeSet("1-2,4,9,10-12")
         self.assertEqual(r1[0:3], RangeSet("1-2,4"))
         self.assertEqual(r1[0:4], RangeSet("1-2,4,9"))
