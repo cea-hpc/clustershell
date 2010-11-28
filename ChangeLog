@@ -1,6 +1,10 @@
+2010-11-28 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Optimized NodeSet.__getitem__() (trac ticket #18).
+
 2010-11-25 S. Thiell <stephane.thiell@cea.fr>
 
-	* NodeSet.py: Write a slice-optimized version of RangeSet.__getitem__().
+	* NodeSet.py: Slice-optimized version of RangeSet.__getitem__().
 
 2010-11-03 S. Thiell <stephane.thiell@cea.fr>
 

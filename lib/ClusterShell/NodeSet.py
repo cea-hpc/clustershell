@@ -906,12 +906,59 @@ class NodeSetBase(object):
         self._binary_sanity_check(other)
         return len(self) > len(other) and self.issuperset(other)
 
-    def __getitem__(self, i):
+    def __getitem__(self, index):
         """
-        Return the node at index i. For convenience only, not
-        optimized as of version 1.0.
+        Return the node at specified index or a subnodeset when a slice is
+        specified.
         """
-        return list(self)[i]
+        if isinstance(index, slice):
+            inst = NodeSetBase()
+            sl_start = sl_next = index.start or 0
+            sl_stop = index.stop or sys.maxint
+            sl_step = index.step or 1
+            if not isinstance(sl_next, int) or not isinstance(sl_stop, int) \
+                or not isinstance(sl_step, int):
+                raise TypeError, "NodeSet slice indices must be integers"
+            if sl_stop <= sl_next:
+                return inst
+            length = 0
+            for pat, rangeset in sorted(self._patterns.iteritems()):
+                if rangeset:
+                    cnt = len(rangeset)
+                    offset = sl_next - length
+                    if offset < cnt:
+                        num = min(sl_stop - sl_next, cnt - offset)
+                        inst._add(pat, rangeset[offset:offset + num:sl_step])
+                    else:
+                        #skip until sl_next is reached
+                        length += cnt
+                        continue
+                else:
+                    cnt = num = 1
+                    inst._add(pat, None)
+                # adjust sl_next...
+                sl_next += num
+                if (sl_next - sl_start) % sl_step:
+                    sl_next = sl_start + \
+                        ((sl_next - sl_start)/sl_step + 1) * sl_step
+                if sl_next >= sl_stop:
+                    break
+                length += cnt
+            return inst
+        else:
+            length = 0
+            for pat, rangeset in sorted(self._patterns.iteritems()):
+                if rangeset:
+                    cnt = len(rangeset)
+                    if index < length + cnt:
+                        # return a subrangeset of size 1 to manage padding
+                        return pat % rangeset[index - length:index - length + 1]
+                else:
+                    cnt = 1
+                    if index == length:
+                        return pat
+                length += cnt
+            raise IndexError, "%d out of range" % index
 
     def _add(self, pat, rangeset):
         """
@@ -1564,12 +1611,19 @@ class NodeSet(NodeSetBase):
         ns = self._parser.parse(other, self._autostep)
         return NodeSetBase.issuperset(self, ns)
 
-    def __getslice__(self, i, j):
+    def __getitem__(self, index):
         """
-        Return the slice from index i to index j-1. For convenience
-        only, not optimized as of version 1.0.
+        Return the node at specified index or a subnodeset when a slice is
+        specified.
         """
-        return NodeSet.fromlist(list(self)[i:j])
+        base = NodeSetBase.__getitem__(self, index)
+        if not isinstance(base, NodeSetBase):
+            return base
+        # return a real NodeSet
+        inst = NodeSet(autostep=self._autostep, resolver=self._resolver)
+        inst._length = base._length
+        inst._patterns = base._patterns
+        return inst
 
     def split(self, nbr):
         """
@@ -1582,7 +1636,6 @@ class NodeSet(NodeSetBase):
         NodeSet("foo[3-4]")
         NodeSet("foo5")
         """
-        # XXX: This uses the non-optimized __getslice__ method.
         assert(nbr > 0)
 
         # We put the same number of element in each sub-nodeset.
