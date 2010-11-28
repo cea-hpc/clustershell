@@ -367,7 +367,7 @@ class RangeSet:
         """
         if isinstance(index, slice):
             inst = RangeSet(autostep=self._autostep)
-            sl_next = index.start or 0
+            sl_start = sl_next = index.start or 0
             sl_stop = index.stop
             sl_step = index.step or 1
             if not isinstance(sl_next, int) or not isinstance(sl_stop, int) \
@@ -387,9 +387,9 @@ class RangeSet:
                                    pad)
                     sl_next += num
                     # the tricky part: adjust sl_next
-                    if (sl_next - index.start) % sl_step:
-                        sl_next = index.start + \
-                            ((sl_next - index.start)/sl_step + 1) * sl_step
+                    if (sl_next - sl_start) % sl_step:
+                        sl_next = sl_start + \
+                            ((sl_next - sl_start)/sl_step + 1) * sl_step
                     if sl_next >= sl_stop:
                         return inst
                 # else: skip until sl_next is reached
