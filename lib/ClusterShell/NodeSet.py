@@ -367,35 +367,32 @@ class RangeSet:
         """
         if isinstance(index, slice):
             inst = RangeSet(autostep=self._autostep)
-            sl_start = index.start or 0
+            sl_next = index.start or 0
             sl_stop = index.stop
             sl_step = index.step or 1
-            if not isinstance(sl_start, int) or not isinstance(sl_stop, int) \
+            if not isinstance(sl_next, int) or not isinstance(sl_stop, int) \
                 or not isinstance(sl_step, int):
                 raise TypeError, "RangeSet slice indices must be integers"
+            if sl_stop <= sl_next:
+                return inst
+            # get items from slice, O(n) algorithm for n = number of ranges
             length = 0
             for start, stop, step, pad in self._ranges:
                 cnt =  (stop - start) / step + 1
-                if sl_step == 1:
-                    # O(1) code when slice step==1
-                    if sl_start < length + cnt:
-                        num = min(sl_stop - length, cnt)
-                        rangestop = start + (num - 1) * step
-                        inst.add_range(start + (sl_start - length) * step,
-                                       start + (num - 1) * step,
-                                       step,
-                                       pad)
-                        sl_start += num
-                        if sl_start >= sl_stop:
-                            return inst
-                else:
-                    # O(n), generic code, supports sl_step>=1 AND range_step>=1
-                    while sl_start < length + cnt:
-                        inst.add(start + (sl_start - length)  * step, pad)
-                        sl_start += sl_step
-                        if sl_start >= sl_stop:
-                            return inst
-                    # else skip until sl_start is reached
+                if sl_next < length + cnt:
+                    num = min(sl_stop - length, cnt)
+                    inst.add_range(start + (sl_next - length) * step,
+                                   start + (num - 1) * step,
+                                   sl_step * step,  # slice_step * range_step
+                                   pad)
+                    sl_next += num
+                    # the tricky part: adjust sl_next
+                    if (sl_next - index.start) % sl_step:
+                        sl_next = index.start + \
+                            ((sl_next - index.start)/sl_step + 1) * sl_step
+                    if sl_next >= sl_stop:
+                        return inst
+                # else: skip until sl_next is reached
                 length += cnt
             return inst
         elif isinstance(index, int):

@@ -323,12 +323,32 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r1[9:10], RangeSet())
 
         #Slice stepping
+        self.assertEqual(r1[0:1:2], RangeSet("1"))
+        self.assertEqual(r1[0:2:2], RangeSet("1"))
+        self.assertEqual(r1[0:3:2], RangeSet("1,4"))
+        self.assertEqual(r1[0:4:2], RangeSet("1,4"))
+        self.assertEqual(r1[0:5:2], RangeSet("1,4,10"))
         self.assertEqual(r1[0:6:2], RangeSet("1,4,10"))
+        self.assertEqual(r1[0:7:2], RangeSet("1,4,10,12"))
+        self.assertEqual(r1[0:8:2], RangeSet("1,4,10,12"))
+        self.assertEqual(r1[0:9:2], RangeSet("1,4,10,12"))
+        self.assertEqual(r1[0:10:2], RangeSet("1,4,10,12"))
+
         self.assertEqual(r1[0:7:3], RangeSet("1,9,12"))
         self.assertEqual(r1[0:7:4], RangeSet("1,10"))
 
+        self.assertEqual(len(r1[1:1:2]), 0)
+        self.assertEqual(r1[1:2:2], RangeSet("2"))
+        self.assertEqual(r1[1:3:2], RangeSet("2"))
+        self.assertEqual(r1[1:4:2], RangeSet("2,9"))
+        self.assertEqual(r1[1:5:2], RangeSet("2,9"))
+        self.assertEqual(r1[1:6:2], RangeSet("2,9,11"))
+        self.assertEqual(r1[1:7:2], RangeSet("2,9,11"))
+
         # Twisted
         r2 = RangeSet("1-9/2,12-32/4")
+        self.assertEqual(r2[5:10:2], RangeSet("12-28/8"))
+        self.assertEqual(r2[5:10:2], RangeSet("12-28/8", autostep=2))
         self.assertEqual(r2[1:12:3], RangeSet("3,9,20,32"))
 
         # FIXME: b0rken test, use @raises to do that...
@@ -338,6 +358,9 @@ class RangeSetTest(unittest.TestCase):
         # TODO: timeit?
         r3 = RangeSet("0-6000")
         self.assertEqual(r3[300:3890], RangeSet("300-3889"))
+        r3 = RangeSet("0-6000")
+        self.assertEqual(r3[300:3890:2], RangeSet("300-3889/2"))
+        self.assertEqual(r3[300:3890:2], RangeSet("300-3889/2", autostep=2))
 
     def testSplit(self):
         """test RangeSet split()"""
