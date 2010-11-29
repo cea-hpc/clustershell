@@ -200,17 +200,17 @@ class RangeSet:
                 self.add_range(start, stop, step, pad)
         
     @classmethod
-    def fromlist(cls, rglist, autostep=None):
+    def fromlist(cls, rnglist, autostep=None):
         """
         Class method that returns a new RangeSet with ranges from
         provided list.
         """
         inst = RangeSet(autostep=autostep)
-        for rg in rglist:
-            if isinstance(rg, RangeSet):
-                inst.update(rg)
+        for rng in rnglist:
+            if isinstance(rng, RangeSet):
+                inst.update(rng)
             else:
-                inst.update(RangeSet(rg))
+                inst.update(RangeSet(rng))
         return inst
 
     @classmethod
@@ -241,21 +241,21 @@ class RangeSet:
         Get range-based string.
         """
         cnt = 0
-        s = ""
+        res = ""
         for start, stop, step, pad in self._ranges:
             assert pad != None
             if cnt > 0:
-                s += ","
+                res += ","
             if start == stop:
-                s += "%0*d" % (pad, start)
+                res += "%0*d" % (pad, start)
             else:
                 assert step >= 0, "Internal error: step < 0"
                 if step == 1:
-                    s += "%0*d-%0*d" % (pad, start, pad, stop)
+                    res += "%0*d-%0*d" % (pad, start, pad, stop)
                 else:
-                    s += "%0*d-%0*d/%d" % (pad, start, pad, stop, step)
+                    res += "%0*d-%0*d/%d" % (pad, start, pad, stop, step)
             cnt += stop - start + 1
-        return s
+        return res
 
     # __repr__ is the same as __str__ as it is a valid expression that
     # could be used to recreate a RangeSet with the same value
@@ -447,7 +447,7 @@ class RangeSet:
         Fold items as ranges and group them by step.
         Return: (ranges, total_length)
         """
-        cnt, k, m, istart, rg = 0, -1, 0, None, []
+        cnt, k, m, istart, rng = 0, -1, 0, None, []
 
         # iterate over items and regroup them using steps
         for i in items:
@@ -459,16 +459,16 @@ class RangeSet:
                     if m != i - k:
                         if m == 1 or k - istart >= self._autostep * m:
                             # add one range with possible autostep
-                            rg.append((istart, k, m, pad))
+                            rng.append((istart, k, m, pad))
                             istart = k = i
                         elif k - istart > m:
                             # stepped without autostep
                             # be careful to let the last one "pending"
                             for j in range(istart, k, m):
-                                rg.append((j, j, 1, pad))
+                                rng.append((j, j, 1, pad))
                             istart = k
                         else:
-                            rg.append((istart, istart, 1, pad))
+                            rng.append((istart, istart, 1, pad))
                             istart = k
                 m = i - k
                 k = i
@@ -478,18 +478,18 @@ class RangeSet:
             if m > 0:
                 if m == 1 or k - istart >= self._autostep * m:
                     # add one range with possible autostep
-                    rg.append((istart, k, m, pad))
+                    rng.append((istart, k, m, pad))
                 elif k - istart > m:
                     # stepped without autostep
                     for j in range(istart, k + m, m):
-                        rg.append((j, j, 1, pad))
+                        rng.append((j, j, 1, pad))
                 else:
-                    rg.append((istart, istart, 1, pad))
-                    rg.append((k, k, 1, pad))
+                    rng.append((istart, istart, 1, pad))
+                    rng.append((k, k, 1, pad))
             else:
-                rg.append((istart, istart, 1, pad))
+                rng.append((istart, istart, 1, pad))
 
-        return rg, cnt
+        return rng, cnt
 
     def add_range(self, start, stop, step=1, pad=0):
         """
@@ -665,7 +665,7 @@ class RangeSet:
 
         try:
             items1.remove(elem)
-        except ValueError, e:
+        except ValueError:
             raise KeyError, elem
 
         self._ranges, self._length = self._fold(items1, pad1)
@@ -853,7 +853,8 @@ class NodeSetBase(object):
         # check that the other argument to a binary operation is also
         # a NodeSet, raising a TypeError otherwise.
         if not isinstance(other, NodeSetBase):
-            raise TypeError, "Binary operation only permitted between NodeSetBase"
+            raise TypeError, \
+                "Binary operation only permitted between NodeSetBase"
 
     def issubset(self, other):
         """
@@ -1261,7 +1262,7 @@ class ParsingEngine(object):
         """
         Parse provided string and return a NodeSetBase object.
         """
-        ns = NodeSetBase()
+        nodeset = NodeSetBase()
 
         for opc, pat, rangeset in self._scan_string(nsstr, autostep):
             # Parser main debugging:
@@ -1275,11 +1276,11 @@ class ParsingEngine(object):
                         # convert result and apply operation
                         ns_group.update(self.parse(ns_string_ext, autostep))
                 # perform operation
-                getattr(ns, opc)(ns_group)
+                getattr(nodeset, opc)(ns_group)
             else:
-                getattr(ns, opc)(NodeSetBase(pat, rangeset))
+                getattr(nodeset, opc)(NodeSetBase(pat, rangeset))
 
-        return ns
+        return nodeset
         
     def parse_group(self, group, namespace=None, autostep=None):
         """Parse provided single group name (without @ prefix)."""
@@ -1339,7 +1340,7 @@ class ParsingEngine(object):
                 # eg. "forbin[3,4-10]-ilo" -> "forbin", "3,4-10", "-ilo"
                 pfx, sfx = pat.split('[', 1)
                 try:
-                    rg, sfx = sfx.split(']', 1)
+                    rng, sfx = sfx.split(']', 1)
                 except ValueError:
                     raise NodeSetParseError(pat, "missing bracket")
 
@@ -1359,7 +1360,7 @@ class ParsingEngine(object):
 
                 # Process comma-separated ranges
                 try:
-                    rset = RangeSet(rg, autostep)
+                    rset = RangeSet(rng, autostep)
                 except RangeSetParseError, e:
                     raise NodeSetParseRangeError(e)
 
@@ -1407,7 +1408,7 @@ class ParsingEngine(object):
 
 # Special constant for NodeSet's resolver parameter to avoid any group
 # resolution at all.
-NOGROUP_RESOLVER=-1
+NOGROUP_RESOLVER = -1
 
 
 class NodeSet(NodeSetBase):
@@ -1502,10 +1503,10 @@ class NodeSet(NodeSetBase):
         del odict['_parser']
         return odict
 
-    def __setstate__(self, dict):
+    def __setstate__(self, dic):
         """Called when unpickling: restore parser using non group
         resolver."""
-        self.__dict__.update(dict)
+        self.__dict__.update(dic)
         self._resolver = None
         self._parser = ParsingEngine(None)
 
@@ -1513,8 +1514,8 @@ class NodeSet(NodeSetBase):
         """Find groups of node by namespace."""
         if allgroups:
             # find node groups using in-memory allgroups
-            for grp, ns in allgroups.iteritems():
-                if node in ns:
+            for grp, nodeset in allgroups.iteritems():
+                if node in nodeset:
                     yield grp
         else:
             # find node groups using resolver
@@ -1564,21 +1565,21 @@ class NodeSet(NodeSetBase):
         for node in self._iterbase():
             for grp in self._find_groups(node, groupsource, allgroups):
                 if grp not in groups:
-                    ns = self._parser.parse_group(grp, groupsource, autostep)
-                    groups[grp] = (0, ns)
-                i, m = groups[grp]
-                groups[grp] = (i + 1, m)
+                    nodes = self._parser.parse_group(grp, groupsource, autostep)
+                    groups[grp] = (0, nodes)
+                i, nodes = groups[grp]
+                groups[grp] = (i + 1, nodes)
                 
         # Keep only groups that are full.
         fulls = []
-        for k, (i, m) in groups.iteritems():
-            assert i <= len(m)
-            if i == len(m):
+        for k, (i, nodes) in groups.iteritems():
+            assert i <= len(nodes)
+            if i == len(nodes):
                 fulls.append((i, k))
 
         regrouped = NodeSet(resolver=NOGROUP_RESOLVER)
 
-        bigalpha = lambda x,y: cmp(y[0],x[0]) or cmp(x[1],y[1])
+        bigalpha = lambda x, y: cmp(y[0], x[0]) or cmp(x[1], y[1])
 
         # Build regrouped NodeSet by selecting largest groups first.
         for num, grp in sorted(fulls, cmp=bigalpha):
@@ -1601,15 +1602,15 @@ class NodeSet(NodeSetBase):
         """
         Report whether another nodeset contains this nodeset.
         """
-        ns = self._parser.parse(other, self._autostep)
-        return NodeSetBase.issuperset(ns, self)
+        nodeset = self._parser.parse(other, self._autostep)
+        return NodeSetBase.issuperset(nodeset, self)
 
     def issuperset(self, other):
         """
         Report whether this nodeset contains another nodeset.
         """
-        ns = self._parser.parse(other, self._autostep)
-        return NodeSetBase.issuperset(self, ns)
+        nodeset = self._parser.parse(other, self._autostep)
+        return NodeSetBase.issuperset(self, nodeset)
 
     def __getitem__(self, index):
         """
@@ -1652,16 +1653,16 @@ class NodeSet(NodeSetBase):
         """
         s.update(t) returns nodeset s with elements added from t.
         """
-        ns = self._parser.parse(other, self._autostep)
-        NodeSetBase.update(self, ns)
+        nodeset = self._parser.parse(other, self._autostep)
+        NodeSetBase.update(self, nodeset)
 
     def intersection_update(self, other):
         """
         s.intersection_update(t) returns nodeset s keeping only
         elements also found in t.
         """
-        ns = self._parser.parse(other, self._autostep)
-        NodeSetBase.intersection_update(self, ns)
+        nodeset = self._parser.parse(other, self._autostep)
+        NodeSetBase.intersection_update(self, nodeset)
 
     def difference_update(self, other, strict=False):
         """
@@ -1669,16 +1670,16 @@ class NodeSet(NodeSetBase):
         elements found in t. If strict is True, raise KeyError
         if an element cannot be removed.
         """
-        ns = self._parser.parse(other, self._autostep)
-        NodeSetBase.difference_update(self, ns, strict)
+        nodeset = self._parser.parse(other, self._autostep)
+        NodeSetBase.difference_update(self, nodeset, strict)
 
     def symmetric_difference_update(self, other):
         """
         s.symmetric_difference_update(t) returns nodeset s keeping all
         nodes that are in exactly one of the nodesets.
         """
-        ns = self._parser.parse(other, self._autostep)
-        NodeSetBase.symmetric_difference_update(self, ns)
+        nodeset = self._parser.parse(other, self._autostep)
+        NodeSetBase.symmetric_difference_update(self, nodeset)
 
 
 def expand(pat):
