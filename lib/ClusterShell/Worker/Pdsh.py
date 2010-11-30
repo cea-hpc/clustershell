@@ -225,6 +225,8 @@ class WorkerPdsh(EngineClient, DistantWorker):
         # close
         self.popen.stdin.close()
         self.popen.stdout.close()
+        if self.popen.stderr:
+            self.popen.stderr.close()
 
         if timeout:
             assert abort, "abort flag not set on timeout"

@@ -1,3 +1,11 @@
+2010-11-30 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Popen.py: Fix stderr pipe leak (trac ticket #121).
+	* Worker/Ssh.py: Fix stderr pipe leak (trac ticket #121).
+	* Worker/Pdsh.py: Fix stderr pipe leak (trac ticket #121).
+
+	* tests/TaskRLimitsTest.py: New test.
+
 2010-11-28 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Optimized NodeSet.__getitem__() (trac ticket #18).

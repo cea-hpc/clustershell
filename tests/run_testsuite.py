@@ -52,6 +52,7 @@ if __name__ == '__main__':
                                         "TaskDistantPdshTest",
                                         "TaskMsgTreeTest",
                                         "TaskPortTest",
+                                        "TaskRLimitsTest",
                                         "TaskTimeoutTest",
                                         "TaskTimerTest",
                                         "TaskThreadJoinTest",
