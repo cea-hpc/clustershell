@@ -179,6 +179,16 @@ class MsgTreeTest(unittest.TestCase):
         tree.clear()
         self.assertEqual(len(tree), 0)
 
+    def testMsgTreeScalability(self):
+        """test MsgTree scalability"""
+        # build tree...
+        tree = MsgTree()
+        for i in xrange(0, 10000):
+            tree.add("node%d" % i, "message%d" % i)
+        self.assertEqual(len(tree), 10000)
+        cnt = 0
+        for msg, keys in tree.walk():
+            cnt += 1
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(MsgTreeTest)

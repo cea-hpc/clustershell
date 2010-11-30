@@ -725,6 +725,12 @@ class NodeSetTest(unittest.TestCase):
         self.assert_("dark3002" not in nodeset)
         for node in nodeset:
             self.assert_(node in nodeset)
+        nodeset = NodeSet("scale[0-1000000]")
+        self.assert_("black64" not in nodeset)
+        self.assert_("scale93406" in nodeset)
+        nodeset = NodeSet("scale[0-1000000]", autostep=2)
+        self.assert_("scale93406" in nodeset[::2])
+        self.assert_("scale93407" not in nodeset[::2])
 
     def testContainsUsingPadding(self):
         """test NodeSet contains() when using padding"""
