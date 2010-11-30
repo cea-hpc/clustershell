@@ -116,11 +116,11 @@ class Ssh(EngineClient):
             prc = self.popen.poll()
             if prc is None:
                 # process is still running, kill it
+                # NOTE: later, use Popen.send_signal(SIGKILL) [python2.6+]
                 os.kill(self.popen.pid, signal.SIGKILL)
-        else:
-            prc = self.popen.wait()
-            if prc >= 0:
-                rc = prc
+        prc = self.popen.wait()
+        if prc >= 0:
+            rc = prc
 
         self.popen.stdin.close()
         self.popen.stdout.close()

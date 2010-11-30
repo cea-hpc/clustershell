@@ -1,5 +1,10 @@
 2010-11-30 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/{Popen,Pdsh,Ssh}.py: Tell system to release associated resources
+	with the child process on abort.
+
+2010-11-30 S. Thiell <stephane.thiell@cea.fr>
+
 	* Worker/Popen.py: Fix stderr pipe leak (trac ticket #121).
 	* Worker/Ssh.py: Fix stderr pipe leak (trac ticket #121).
 	* Worker/Pdsh.py: Fix stderr pipe leak (trac ticket #121).

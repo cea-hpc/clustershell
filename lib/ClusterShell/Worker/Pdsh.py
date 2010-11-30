@@ -213,14 +213,13 @@ class WorkerPdsh(EngineClient, DistantWorker):
             if prc is None:
                 # process is still running, kill it
                 os.kill(self.popen.pid, signal.SIGKILL)
-            if timeout:
-                self._invoke("ev_timeout")
-        else:
-            prc = self.popen.wait()
-            if prc >= 0:
-                rc = prc
-                if rc != 0:
-                    raise WorkerError("Cannot run pdsh (error %d)" % rc)
+        prc = self.popen.wait()
+        if prc >= 0:
+            rc = prc
+            if rc != 0:
+                raise WorkerError("Cannot run pdsh (error %d)" % rc)
+        if abort and timeout:
+            self._invoke("ev_timeout")
 
         # close
         self.popen.stdin.close()

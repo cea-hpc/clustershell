@@ -109,16 +109,15 @@ class WorkerPopen(WorkerSimple):
             if prc is None:
                 # process is still running, kill it
                 os.kill(self.popen.pid, signal.SIGKILL)
+        # release process
+        prc = self.popen.wait()
+        # get exit status
+        if prc >= 0:
+            # process exited normally
+            rc = prc
         else:
-            # close process / check if it has terminated
-            prc = self.popen.wait()
-            # get exit status
-            if prc >= 0:
-                # process exited normally
-                rc = prc
-            else:
-                # if process was signaled, return 128 + signum (bash-like)
-                rc = 128 + -prc
+            # if process was signaled, return 128 + signum (bash-like)
+            rc = 128 + -prc
 
         self.popen.stdin.close()
         self.popen.stdout.close()
