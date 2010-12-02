@@ -394,9 +394,12 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 241)
         self.assertEqual(r1[240], 801)
         r1.add(788)
+        self.assertEqual(str(r1), "1-100,102,105-242,788,800-801")
         self.assertEqual(len(r1), 242)
         self.assertEqual(r1[239], 788)
         self.assertEqual(r1[240], 800)
+        r1.add(812)
+        self.assertEqual(len(r1), 243)
 
     def testUnion(self):
         """test RangeSet union()"""

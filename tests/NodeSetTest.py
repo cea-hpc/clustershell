@@ -647,6 +647,25 @@ class NodeSetTest(unittest.TestCase):
         self.assert_("black64" in nodeset)
         self.assert_("orange046" in nodeset)
 
+    def testAddAdjust(self):
+        """test NodeSet adjusting add()"""
+        # autostep OFF
+        nodeset = NodeSet()
+        nodeset.add("green[1-8/2]")
+        self.assertEqual(str(nodeset), "green[1,3,5,7]")
+        self.assertEqual(len(nodeset), 4)
+        nodeset.add("green[6-17/2]")
+        self.assertEqual(str(nodeset), "green[1,3,5-8,10,12,14,16]")
+        self.assertEqual(len(nodeset), 10)
+        # autostep ON
+        nodeset = NodeSet(autostep=2)
+        nodeset.add("green[1-8/2]")
+        self.assertEqual(str(nodeset), "green[1-7/2]")
+        self.assertEqual(len(nodeset), 4)
+        nodeset.add("green[6-17/2]")
+        self.assertEqual(str(nodeset), "green[1-5/2,6-8,10-16/2]")
+        self.assertEqual(len(nodeset), 10)
+
     def testRemove(self):
         """test NodeSet remove()"""
         # from empty nodeset

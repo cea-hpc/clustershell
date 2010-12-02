@@ -1,3 +1,7 @@
+2010-12-02 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Much improved algorithm for RangeSet.add_range().
+
 2010-11-30 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/{Popen,Pdsh,Ssh}.py: Tell system to release associated resources

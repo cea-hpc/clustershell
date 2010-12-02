@@ -496,24 +496,92 @@ class RangeSet:
         Add a range (start, stop, step and padding length) to RangeSet.
         """
         assert start <= stop, "please provide ordered node index ranges"
-        assert step != None
         assert step > 0
-        assert pad != None
         assert pad >= 0
         assert stop - start < 1e9, "range too large"
 
-        if self._length == 0:
-            # first add optimization
+        if self._length == 0: # first-add switch
             stop_adjust = stop - (stop - start) % step
             if step == 1 or stop_adjust - start >= self._autostep * step:
                 self._ranges = [ (start, stop_adjust, step, pad) ]
             else:
+                # case: step > 1 and no proper autostep
                 for j in range(start, stop_adjust + step, step):
                     self._ranges.append((j, j, step, pad))
             self._length = (stop_adjust - start) / step + 1
+        elif step > 1:
+            # use generic expand/fold method in that case
+            self._add_range_exfold(start, stop, step, pad)
         else:
-            self._ranges, self._length = self._add_range_exfold(start, stop, \
-                    step, pad)
+            # step == 1 specific method (no expand/folding if possible)
+            self._add_range_inline(start, stop, step, pad)
+
+    def _add_range_inline(self, start, stop, step, pad):
+        """
+        Add range without expanding then folding all items.
+        """
+        assert start <= stop, "please provide ordered node index ranges"
+        assert step > 0
+        assert pad >= 0
+
+        new_ranges = []
+        new_length = 0
+        pstart = pstop = -1  # pending start and stop range
+        included = False
+        rgpad = 0
+
+        # iterate over existing ranges
+        for rgstart, rgstop, rgstep, rgpad in self._ranges:
+            if rgstep > 1:
+                # failback to generic method when step > 1 is found
+                self._add_range_exfold(start, stop, step, pad)
+                return
+            # handle pending range...
+            if rgstop <= pstop:
+                # just gobble up smaller ranges
+                continue
+            if pstart >= 0:
+                if pstop + 1 < rgstart:
+                    # out of range: add pending range
+                    new_ranges.append((pstart, pstop, 1, rgpad or pad))
+                    new_length += pstop - pstart + 1
+                else:
+                    # in range: merge left by modifying rgstart
+                    rgstart = pstart
+                # invalidate pending range
+                pstart = -1
+            # out of range checks...
+            if included or start > rgstop + 1:
+                # simple case: just copy this range "as it"
+                new_ranges.append((rgstart, rgstop, 1, rgpad or pad))
+                new_length += rgstop - rgstart + 1
+                continue
+            elif stop + 1 < rgstart:
+                # this range is greater than us and not mergeable:
+                # add specified range and also this range "as it"
+                new_ranges.append((start, stop, 1, rgpad or pad))
+                new_ranges.append((rgstart, rgstop, 1, rgpad or pad))
+                new_length += stop - start + rgstop - rgstart + 2
+                included = True
+                continue
+            # we are "in range", set pending range
+            pstart, pstop = min(rgstart, start), max(rgstop, stop)
+            included = True
+
+        # finish
+        if not included:
+            # specified range is greater that all ranges
+            assert new_length == self._length
+            new_ranges.append((start, stop, 1, rgpad or pad))
+            new_length += stop - start + 1
+        elif pstart >= 0:
+            # do not forget pending range
+            new_ranges.append((pstart, pstop, 1, rgpad or pad))
+            new_length += pstop - pstart + 1
+
+        # assign new values
+        self._ranges = new_ranges
+        self._length = new_length
 
     def _add_range_exfold(self, start, stop, step, pad):
         """
@@ -521,14 +589,12 @@ class RangeSet:
         """
         assert start <= stop, "please provide ordered node index ranges"
         assert step > 0
-        assert pad != None
         assert pad >= 0
 
         items, rgpad = self._expand()
         items += range(start, stop + 1, step)
         items.sort()
-
-        return self._fold(items, pad or rgpad)
+        self._ranges, self._length = self._fold(items, pad or rgpad)
 
     def union(self, other):
         """
@@ -1236,6 +1302,7 @@ class ParsingEngine(object):
         Initialize Parsing Engine.
         """
         self.group_resolver = group_resolver
+        self.single_node_re = re.compile("(\D*)(\d*)(.*)")
 
     def parse(self, nsobj, autostep):
         """
@@ -1316,7 +1383,6 @@ class ParsingEngine(object):
         """
         Parsing engine's string scanner method.
         """
-        single_node_re = None
         pat = nsstr.strip()
         # avoid misformatting
         if pat.find('%') >= 0:
@@ -1381,10 +1447,7 @@ class ParsingEngine(object):
                     raise NodeSetParseError(pat, "empty node name")
 
                 # single node parsing
-                if single_node_re is None:
-                    single_node_re = re.compile("(\D*)(\d*)(.*)")
-
-                mo = single_node_re.match(node)
+                mo = self.single_node_re.match(node)
                 if not mo:
                     raise NodeSetParseError(pat, "parse error")
                 pfx, idx, sfx = mo.groups()
