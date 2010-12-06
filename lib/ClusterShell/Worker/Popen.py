@@ -115,7 +115,7 @@ class WorkerPopen(WorkerSimple):
         if prc >= 0:
             # process exited normally
             rc = prc
-        else:
+        elif not abort:
             # if process was signaled, return 128 + signum (bash-like)
             rc = 128 + -prc
 
