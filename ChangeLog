@@ -1,3 +1,8 @@
+2010-12-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Avoid overflow by returning truncated results when there are
+	not enough elements in the set for RangeSet.split(n) and NodeSet.split(n).
+
 2010-12-02 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Much improved algorithm for RangeSet.add_range().

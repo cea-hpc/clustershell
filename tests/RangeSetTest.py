@@ -373,18 +373,22 @@ class RangeSetTest(unittest.TestCase):
 
     def testSplit(self):
         """test RangeSet split()"""
-
-        # Empty nodeset
+        # Empty rangeset
         rangeset = RangeSet()
-        self.assertEqual((RangeSet(), RangeSet()), tuple(rangeset.split(2)))
-
+        self.assertEqual(len(list(rangeset.split(2))), 0)
         # Not enough element
         rangeset = RangeSet("1")
-        self.assertEqual((RangeSet("1"), RangeSet()), tuple(rangeset.split(2)))
-
+        self.assertEqual((RangeSet("1"),), tuple(rangeset.split(2)))
         # Exact number of elements
         rangeset = RangeSet("1-6")
-        self.assertEqual((RangeSet("1-2"), RangeSet("3-4"), RangeSet("5-6")), tuple(rangeset.split(3)))
+        self.assertEqual((RangeSet("1-2"), RangeSet("3-4"), RangeSet("5-6")), \
+                         tuple(rangeset.split(3)))
+        # Check limit results
+        rangeset = RangeSet("0-3")
+        for i in (4, 5):
+            self.assertEqual((RangeSet("0"), RangeSet("1"), \
+                             RangeSet("2"), RangeSet("3")), \
+                             tuple(rangeset.split(i)))
 
     def testAdd(self):
         """test RangeSet add()"""

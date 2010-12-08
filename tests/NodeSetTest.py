@@ -611,19 +611,23 @@ class NodeSetTest(unittest.TestCase):
 
     def testSplit(self):
         """test NodeSet split()"""
-
         # Empty nodeset
         nodeset = NodeSet()
-        self.assertEqual((NodeSet(), NodeSet()), tuple(nodeset.split(2)))
-
+        self.assertEqual((), tuple(nodeset.split(2)))
         # Not enough element
         nodeset = NodeSet("foo[1]")
-        self.assertEqual((NodeSet("foo[1]"), NodeSet()), tuple(nodeset.split(2)))
-
+        self.assertEqual((NodeSet("foo[1]"),), \
+                         tuple(nodeset.split(2)))
         # Exact number of elements
         nodeset = NodeSet("foo[1-6]")
-        self.assertEqual((NodeSet("foo[1-2]"), NodeSet("foo[3-4]"), NodeSet("foo[5-6]")), tuple(nodeset.split(3)))
-
+        self.assertEqual((NodeSet("foo[1-2]"), NodeSet("foo[3-4]"), \
+                         NodeSet("foo[5-6]")), tuple(nodeset.split(3)))
+        # Check limit results
+        nodeset = NodeSet("bar[2-4]")
+        for i in (3, 4):
+            self.assertEqual((NodeSet("bar2"), NodeSet("bar3"), \
+                             NodeSet("bar4")), tuple(nodeset.split(i)))
+        
     def testAdd(self):
         """test NodeSet add()"""
         nodeset = NodeSet()

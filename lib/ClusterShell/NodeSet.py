@@ -410,9 +410,10 @@ class RangeSet:
 
     def split(self, nbr):
         """
-        Split the rangeset into nbr sub-rangeset. Each sub-rangeset will have
-        the same number of element more or less 1. Current rangeset remains
-        unmodified. Returns an iterator.
+        Split the rangeset into nbr sub-rangesets (at most). Each
+        sub-rangeset will have the same number of elements more or
+        less 1. Current rangeset remains unmodified. Returns an
+        iterator.
 
         >>> RangeSet("1-5").split(3) 
         RangeSet("1-2")
@@ -426,7 +427,7 @@ class RangeSet:
         left = len(self) % nbr
 
         begin = 0
-        for i in range(0, nbr):
+        for i in range(0, min(nbr, len(self))):
             length = slice_size + int(i < left)
             yield self[begin:begin + length]
             begin += length
@@ -1677,8 +1678,8 @@ class NodeSet(NodeSetBase):
 
     def __getitem__(self, index):
         """
-        Return the node at specified index or a subnodeset when a slice is
-        specified.
+        Return the node at specified index or a subnodeset when a slice
+        is specified.
         """
         base = NodeSetBase.__getitem__(self, index)
         if not isinstance(base, NodeSetBase):
@@ -1691,9 +1692,9 @@ class NodeSet(NodeSetBase):
 
     def split(self, nbr):
         """
-        Split the nodeset into nbr sub-nodeset. Each sub-nodeset will have the
-        same number of element more or less 1. Current nodeset remains
-        unmodified.
+        Split the nodeset into nbr sub-nodesets (at most). Each
+        sub-nodeset will have the same number of elements more or
+        less 1. Current nodeset remains unmodified.
 
         >>> NodeSet("foo[1-5]").split(3) 
         NodeSet("foo[1-2]")
@@ -1707,7 +1708,7 @@ class NodeSet(NodeSetBase):
         left = len(self) % nbr
 
         begin = 0
-        for i in range(0, nbr):
+        for i in range(0, min(nbr, len(self))):
             length = slice_size + int(i < left)
             yield self[begin:begin + length]
             begin += length
