@@ -1003,6 +1003,9 @@ class NodeSetBase(object):
                         continue
                 else:
                     cnt = num = 1
+                    if sl_next > length:
+                        length += cnt
+                        continue
                     inst._add(pat, None)
                 # adjust sl_next...
                 sl_next += num
