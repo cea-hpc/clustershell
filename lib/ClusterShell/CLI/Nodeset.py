@@ -159,14 +159,20 @@ def nodeset():
 
     # Display result according to command choice
     if options.expand:
-        print separator.join(xset)
+        xsubres = separator.join
     elif options.fold:
-        print xset
+        xsubres = lambda x: x
     elif options.regroup:
-        print xset.regroup(options.groupsource, noprefix=options.groupbase)
+        xsubres = lambda x: x.regroup(options.groupsource, \
+                                      noprefix=options.groupbase)
     else:
-        print len(xset)
+        xsubres = len
 
+    if not xset:
+        print xsubres(xset)
+    else:
+        for xsubset in xset.split(options.maxsplit):
+            print xsubres(xsubset)
 
 def main():
     """main script function"""

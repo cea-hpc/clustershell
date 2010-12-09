@@ -249,6 +249,9 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-S", "--separator", action="store", dest="separator",
                           default=' ', help="separator string to use when " \
                           "expanding nodesets (default: ' ')")
+        optgrp.add_option("--split", action="store", dest="maxsplit", 
+                          help="split result into a number of subsets",
+                          type="int", default=1)
         self.add_option_group(optgrp)
 
 

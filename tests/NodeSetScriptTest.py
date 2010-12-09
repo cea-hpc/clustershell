@@ -146,6 +146,26 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["-f","-"], "foo", stdin="foo\n")
         self._launchAndCompare(["-f","-"], "foo[1-3]", stdin="foo1 foo2 foo3\n")
         
+    def testSplit(self):
+        """test nodeset.py --split"""
+        self._launchAndCompare(["--split=2","-f", "bar"], "bar")
+        self._launchAndCompare(["--split", "2","-f", "foo,bar"], "bar\nfoo")
+        self._launchAndCompare(["--split", "2","-e", "foo", "bar", "bur", "oof", "gcc"], "bar bur foo\ngcc oof")
+        self._launchAndCompare(["--split=2","-f", "foo[2-9]"], "foo[2-5]\nfoo[6-9]")
+        self._launchAndCompare(["--split=2","-f", "foo[2-3,7]", "bar9"], "bar9,foo2\nfoo[3,7]")
+        self._launchAndCompare(["--split=3","-f", "foo[2-9]"], "foo[2-4]\nfoo[5-7]\nfoo[8-9]")
+        self._launchAndCompare(["--split=1","-f", "foo2", "foo3"], "foo[2-3]")
+        self._launchAndCompare(["--split=4","-f", "foo[2-3]"], "foo2\nfoo3")
+        self._launchAndCompare(["--split=4","-f", "foo3", "foo2"], "foo2\nfoo3")
+        self._launchAndCompare(["--split=2","-e", "foo[2-9]"], "foo2 foo3 foo4 foo5\nfoo6 foo7 foo8 foo9")
+        self._launchAndCompare(["--split=3","-e", "foo[2-9]"], "foo2 foo3 foo4\nfoo5 foo6 foo7\nfoo8 foo9")
+        self._launchAndCompare(["--split=1","-e", "foo3", "foo2"], "foo2 foo3")
+        self._launchAndCompare(["--split=4","-e", "foo[2-3]"], "foo2\nfoo3")
+        self._launchAndCompare(["--split=4","-e", "foo2", "foo3"], "foo2\nfoo3")
+        self._launchAndCompare(["--split=2","-c", "foo2", "foo3"], "1\n1")
+        self._launchAndCompare(["--split=2","-r", "foo2", "foo3"], "foo2\nfoo3")
+
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetScriptTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
