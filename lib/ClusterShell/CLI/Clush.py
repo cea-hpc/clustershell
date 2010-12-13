@@ -590,6 +590,7 @@ def clush_excepthook(extype, value, traceback):
         if value.errno == errno.EMFILE:
             print >> sys.stderr, "ERROR: current `nofile' limits: " \
                 "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
+        clush_exit(1)
     except GENERIC_ERRORS, exc:
         clush_exit(handle_generic_error(exc))
 

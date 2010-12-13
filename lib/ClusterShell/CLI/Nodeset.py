@@ -107,8 +107,8 @@ def nodeset():
     if options.rangeset:
         class_set = RangeSet
 
-    if options.all:
-        assert class_set == NodeSet, "-a is only supported in NodeSet mode"
+    if options.all or options.regroup:
+        assert class_set == NodeSet, "-a/-r only supported in NodeSet mode"
 
     if options.groupsource and not options.quiet and \
        (class_set == RangeSet or options.groupsources):
