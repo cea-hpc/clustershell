@@ -173,11 +173,16 @@ class GatherOutputHandler(OutputHandler):
 
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+        cleaned = False
         for rc, nodelist in worker.iter_retcodes():
             # Then order by node/nodeset (see bufnodeset_cmp)
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
                                        cmp=bufnodeset_cmp):
+                if not cleaned:
+                    # clean runtimer line before printing first result
+                    self._runtimer_clean()
+                    cleaned = True
                 self._display.print_gather(nodeset, buf)
 
         self._close_common(worker)
@@ -284,12 +289,13 @@ class RunTimer(EventHandler):
             sys.stderr.write(towrite)
             self.started = True
 
-    def finalize(self, cr):
+    def finalize(self, force_cr):
+        """finalize display of runtimer"""
         if not self.started:
             return
         # display completed/total clients
         fmt = 'clush: %*d/%*d'
-        if cr:
+        if force_cr:
             fmt += '\n'
         else:
             fmt += '\r'
