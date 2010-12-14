@@ -64,7 +64,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
                       "history_size" : "100",
                       "color" : WHENCOLOR_CHOICES[0],
                       "verbosity" : "%d" % VERB_STD,
-                      "node_count" : True }
+                      "node_count" : "yes" }
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
