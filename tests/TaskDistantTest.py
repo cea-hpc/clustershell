@@ -7,6 +7,7 @@
 """Unit test for ClusterShell Task (distant)"""
 
 import copy
+import pwd
 import shutil
 import sys
 import unittest
@@ -429,7 +430,7 @@ class TaskDistantTest(unittest.TestCase):
     def testSshUserOption(self):
         """test task.shell() with ssh_user set"""
         ssh_user_orig = self._task.info("ssh_user")
-        self._task.set_info("ssh_user", os.getlogin())
+        self._task.set_info("ssh_user", pwd.getpwuid(os.getuid())[0])
         worker = self._task.shell("/bin/echo foobar", nodes="localhost")
         self.assert_(worker != None)
         self._task.resume()
@@ -440,7 +441,7 @@ class TaskDistantTest(unittest.TestCase):
     def testSshUserOptionForScp(self):
         """test task.copy() with ssh_user set"""
         ssh_user_orig = self._task.info("ssh_user")
-        self._task.set_info("ssh_user", os.getlogin())
+        self._task.set_info("ssh_user", pwd.getpwuid(os.getuid())[0])
         worker = self._task.copy("/etc/hosts",
                 "/tmp/cs-test_testLocalhostCopyU", nodes='localhost')
         self.assert_(worker != None)

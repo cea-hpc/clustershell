@@ -21,7 +21,7 @@ class TaskRLimitsTest(unittest.TestCase):
     def setUp(self):
         """set soft nofile resource limit to 50"""
         self.soft, self.hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-        resource.setrlimit(resource.RLIMIT_NOFILE, (50, self.hard))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (80, self.hard))
 
     def tearDown(self):
         """restore original resource limits"""
@@ -30,8 +30,8 @@ class TaskRLimitsTest(unittest.TestCase):
     def _testPopen(self, stderr):
         task = task_self()
         self.assert_(task != None)
-        task.set_info("fanout", 6)
-        for i in xrange(100):
+        task.set_info("fanout", 10)
+        for i in xrange(200):
             worker = task.shell("/bin/hostname", stderr=stderr)
             self.assert_(worker != None)
         # run task
@@ -48,8 +48,8 @@ class TaskRLimitsTest(unittest.TestCase):
     def _testRemote(self, stderr):
         task = task_self()
         self.assert_(task != None)
-        task.set_info("fanout", 6)
-        for i in xrange(100):
+        task.set_info("fanout", 10)
+        for i in xrange(200):
             worker = task.shell("/bin/hostname", nodes="localhost",
                                 stderr=False)
             self.assert_(worker != None)
@@ -67,8 +67,8 @@ class TaskRLimitsTest(unittest.TestCase):
     def _testRemotePdsh(self, stderr):
         task = task_self()
         self.assert_(task != None)
-        task.set_info("fanout", 6)
-        for i in xrange(100):
+        task.set_info("fanout", 10)
+        for i in xrange(200):
             worker = WorkerPdsh("localhost", handler=None,
                                 timeout=0,
                                 command="/bin/hostname",
