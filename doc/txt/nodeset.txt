@@ -7,9 +7,9 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-05-25
+:Date:   2010-12-14
 :Copyright: CeCILL-C V1
-:Version: 1.3
+:Version: 1.4
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -29,52 +29,41 @@ It provides easy manipulation of indexed cluster nodes and node groups.
 OPTIONS
 =======
 
-Commands:
-    --count, -c
-        Return the number of nodes in nodesets.
-    --expand, -e
-        Expand nodesets to separate nodes.
-    --fold, -f
-        Compact/fold nodesets (or separate nodes) into one nodeset.
-    --list, -l
-        List node groups (see --groupsource).
-    --regroup, -r
-        Fold nodes using node groups (see --groupsource).
-    --groupsources
-        List all configured group sources (see ``groups.conf``\(5)).
-
 Options:
-    --all, -a
-        Call external node groups support to display all nodes.
-    --autostep=NUMBER
-        Specify auto step threshold number when folding nodesets.
-        If not specified, auto step is disabled.
-        Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2]
-    --help, -h
-        This help page.
-    --quiet, -q
-        Quiet mode, hide any parse error messages (on stderr).
-    --rangeset, -R
-        Switch to RangeSet instead of NodeSet. Useful when working on
-        numerical cluster ranges, eg. 1,5,18-31.
-    --groupsource=GROUPSOURCE, -s GROUPSOURCE
-        Specify group source (section to use in ``groups.conf``\(5)).
-    --groupbase, -G
-        Do not display group source prefix (always `@groupname`).
-    --separator=STRING, -S STRING
-        Specify separator string for expanding nodesets (default: " ").
-    --version, -v
-        Show ClusterShell version and exit.
-Operations (default is union):
-    --exclude=NODESET, -x NODESET
-        Exclude provided node or nodeset.
-    --intersection=NODESET, -i NODESET
-        Calculate nodesets intersection. This means that only nodes that
-        are in the two provided nodesets are used.
-    --xor=NODESET, -X NODESET
-        Calculate symmetric difference (XOR) between two nodesets. This
-        This means that nodes present in only one of the nodesets are
-        used.
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -s GROUPSOURCE, --groupsource=GROUPSOURCE
+                        optional ``groups.conf``\(5) group source to use
+
+  Commands:
+    -c, --count         show number of nodes in nodeset(s)
+    -e, --expand        expand nodeset(s) to separate nodes
+    -f, --fold          fold nodeset(s) (or separate nodes) into one nodeset
+    -l, --list          list node groups (see -s GROUPSOURCE)
+    -r, --regroup       fold nodes using node groups (see -s GROUPSOURCE)
+    --groupsources      list all configured group sources (see ``groups.conf``\(5))
+
+  Operations:
+    -x SUB_NODES, --exclude=SUB_NODES
+                        exclude specified nodeset
+    -i AND_NODES, --intersection=AND_NODES
+                        calculate nodesets intersection
+    -X XOR_NODES, --xor=XOR_NODES
+                        calculate symmetric difference between nodesets
+
+  Options:
+    -a, --all           call external node groups support to display all nodes
+    --autostep=AUTOSTEP
+                        auto step threshold number when folding nodesets, if not specified, auto step is disabled. Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2]
+    -d, --debug         output more messages for debugging purpose
+    -q, --quiet         be quiet, print essential output only
+    -R, --rangeset      switch to RangeSet instead of NodeSet. Useful when
+                        working on numerical cluster ranges, eg. 1,5,18-31
+    -G, --groupbase     hide group source prefix (always `@groupname`)
+    -S SEPARATOR, --separator=SEPARATOR
+                        separator string to use when expanding nodesets
+                        (default: ' ')
+    --split=MAXSPLIT    split result into a number of subsets
 
 
 For a short explanation of these options, see ``-h, --help``.

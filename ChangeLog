@@ -1,5 +1,7 @@
 2010-12-14 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.4 beta 1 released.
+
 	* CLI/Display.py: In buffer header (for -b/-B without -L), print node
 	count in brackets if > 1 and enabled by configuration (trac ticket #130).
 	

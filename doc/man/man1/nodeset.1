@@ -1,14 +1,15 @@
 .\" Man page generated from reStructeredText.
-.TH nodeset 1 "2010-05-25" "1.3" "ClusterShell User Manual"
+.
+.TH NODESET 1 "2010-12-14" "1.4" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
-
+.
 .nr rst2man-indent-level 0
 .
 .de1 rstReportMargin
 \\$1 \\n[an-margin]
 level \\n[rst2man-indent-level]
-level magin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 -
 \\n[rst2man-indent0]
 \\n[rst2man-indent1]
@@ -29,364 +30,312 @@ level magin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-
 .SH SYNOPSIS
 .INDENT 0.0
 .INDENT 3.5
-\fBnodeset\fP [COMMAND] [OPTIONS] [nodeset1 [\-ixX] nodeset2|...]
-
+.sp
+\fCnodeset\fP [COMMAND] [OPTIONS] [nodeset1 [\-ixX] nodeset2|...]
 .UNINDENT
 .UNINDENT
-
 .SH DESCRIPTION
-The \fBnodeset\fP command is an utility command provided with the ClusterShell
+.sp
+The \fCnodeset\fP command is an utility command provided with the ClusterShell
 library which implements some features of the NodeSet and RangeSet classes.
 It provides easy manipulation of indexed cluster nodes and node groups.
-
-
 .SH OPTIONS
 .INDENT 0.0
-
-.TP
-.B Commands:
-.INDENT 7.0
-
-.TP
-.B \-\-count , \-c
-Return the number of nodes in nodesets.
-
-
-.TP
-.B \-\-expand , \-e
-Expand nodesets to separate nodes.
-
-
-.TP
-.B \-\-fold , \-f
-Compact/fold nodesets (or separate nodes) into one nodeset.
-
-
-.TP
-.B \-\-list , \-l
-List node groups (see \-\-groupsource).
-
-
-.TP
-.B \-\-regroup , \-r
-Fold nodes using node groups (see \-\-groupsource).
-
-
-.TP
-.B \-\-groupsources
-List all configured group sources (see \fBgroups.conf\fP(5)).
-
-.UNINDENT
-
 .TP
 .B Options:
 .INDENT 7.0
-
 .TP
-.B \-\-all , \-a
-Call external node groups support to display all nodes.
-
-
+.B \-\-version
+.
+show program\(aqs version number and exit
 .TP
-.BI \-\-autostep\fn= NUMBER
-Specify auto step threshold number when folding nodesets.
-If not specified, auto step is disabled.
-Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2\-6/2]
-
-
+.B \-h,  \-\-help
+.
+show this help message and exit
 .TP
-.B \-\-help , \-h
-This help page.
-
-
-.TP
-.B \-\-quiet , \-q
-Quiet mode, hide any parse error messages (on stderr).
-
-
-.TP
-.B \-\-rangeset , \-R
-Switch to RangeSet instead of NodeSet. Useful when working on
-numerical cluster ranges, eg. 1,5,18\-31.
-
-
-.TP
-.BI \-\-groupsource\fn= GROUPSOURCE ,\ \-s\  GROUPSOURCE
-Specify group source (section to use in \fBgroups.conf\fP(5)).
-
-
-.TP
-.B \-\-groupbase , \-G
-Do not display group source prefix (always \fI@groupname\fP).
-
-
-.TP
-.BI \-\-separator\fn= STRING ,\ \-S\  STRING
-Specify separator string for expanding nodesets (default: " ").
-
-
-.TP
-.B \-\-version , \-v
-Show ClusterShell version and exit.
-
+.BI \-s \ GROUPSOURCE, \ \-\-groupsource\fB= GROUPSOURCE
+.
+optional \fCgroups.conf\fP(5) group source to use
 .UNINDENT
-
-.TP
-.B Operations (default is union):
 .INDENT 7.0
-
 .TP
-.BI \-\-exclude\fn= NODESET ,\ \-x\  NODESET
-Exclude provided node or nodeset.
-
-
+.B Commands:
+.INDENT 7.0
 .TP
-.BI \-\-intersection\fn= NODESET ,\ \-i\  NODESET
-Calculate nodesets intersection. This means that only nodes that
-are in the two provided nodesets are used.
-
-
+.B \-c,  \-\-count
+.
+show number of nodes in nodeset(s)
 .TP
-.BI \-\-xor\fn= NODESET ,\ \-X\  NODESET
-Calculate symmetric difference (XOR) between two nodesets. This
-This means that nodes present in only one of the nodesets are
-used.
-
+.B \-e,  \-\-expand
+.
+expand nodeset(s) to separate nodes
+.TP
+.B \-f,  \-\-fold
+.
+fold nodeset(s) (or separate nodes) into one nodeset
+.TP
+.B \-l,  \-\-list
+.
+list node groups (see \-s GROUPSOURCE)
+.TP
+.B \-r,  \-\-regroup
+.
+fold nodes using node groups (see \-s GROUPSOURCE)
+.TP
+.B \-\-groupsources
+.
+list all configured group sources (see \fCgroups.conf\fP(5))
+.UNINDENT
+.TP
+.B Operations:
+.INDENT 7.0
+.TP
+.BI \-x \ SUB_NODES, \ \-\-exclude\fB= SUB_NODES
+.
+exclude specified nodeset
+.TP
+.BI \-i \ AND_NODES, \ \-\-intersection\fB= AND_NODES
+.
+calculate nodesets intersection
+.TP
+.BI \-X \ XOR_NODES, \ \-\-xor\fB= XOR_NODES
+.
+calculate symmetric difference between nodesets
+.UNINDENT
+.TP
+.B Options:
+.INDENT 7.0
+.TP
+.B \-a,  \-\-all
+.
+call external node groups support to display all nodes
+.TP
+.BI \-\-autostep\fB= AUTOSTEP
+.
+auto step threshold number when folding nodesets, if not specified, auto step is disabled. Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2\-6/2]
+.TP
+.B \-d,  \-\-debug
+.
+output more messages for debugging purpose
+.TP
+.B \-q,  \-\-quiet
+.
+be quiet, print essential output only
+.TP
+.B \-R,  \-\-rangeset
+.
+switch to RangeSet instead of NodeSet. Useful when
+working on numerical cluster ranges, eg. 1,5,18\-31
+.TP
+.B \-G,  \-\-groupbase
+.
+hide group source prefix (always \fI@groupname\fP)
+.TP
+.BI \-S \ SEPARATOR, \ \-\-separator\fB= SEPARATOR
+.
+separator string to use when expanding nodesets
+(default: \(aq \(aq)
+.TP
+.BI \-\-split\fB= MAXSPLIT
+.
+split result into a number of subsets
 .UNINDENT
 .UNINDENT
-For a short explanation of these options, see \fB\-h, \-\-help\fP.
-
-
+.UNINDENT
+.sp
+For a short explanation of these options, see \fC\-h, \-\-help\fP.
 .SH EXTENDED PATTERNS
-The \fBnodeset\fP command benefits from ClusterShell 1.3 NodeSet basic
+.sp
+The \fCnodeset\fP command benefits from ClusterShell 1.3 NodeSet basic
 arithmetic addition. This feature extends recognized string patterns by
 supporting operators matching all Operations seen previously. String
 patterns are read from left to right, by proceeding any character
 operators accordinately.
-
 .INDENT 0.0
-
 .TP
 .B Supported character operators
 .INDENT 7.0
-
 .TP
-.B \fB,\fP
+.B \fC,\fP
+.sp
 indicates that the \fIunion\fP of both left and right nodeset should be
 computed before continuing
-
-
 .TP
-.B \fB!\fP
+.B \fC!\fP
+.sp
 indicates the \fIdifference\fP operation
-
-
 .TP
-.B \fB&\fP
+.B \fC&\fP
+.sp
 indicates the \fIintersection\fP operation
-
-
 .TP
-.B \fB^\fP
+.B \fC^\fP
+.sp
 indicates the \fIsymmetric difference\fP (XOR) operation
-
 .UNINDENT
+.sp
 Care should be taken to escape these characters as needed when the shell
 does not interpret them literally.
-
-
 .TP
 .B Examples of use of extended patterns
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[0\-7],node[8\-10]
 .UNINDENT
-
+.nf
 node[0\-10]
-.br
-
+.fi
+.sp
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[0\-10]!node[8\-10]
 .UNINDENT
-
+.nf
 node[0\-7]
-.br
-
+.fi
+.sp
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[0\-10]&node[5\-13]
 .UNINDENT
-
+.nf
 node[5\-10]
-.br
-
+.fi
+.sp
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[0\-10]^node[5\-13]
 .UNINDENT
-
+.nf
 node[0\-4,11\-13]
-.br
-
-
+.fi
+.sp
 .TP
 .B Example of advanced usage
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f @gpu^@slurm:bigmem!@chassis[1\-9/2]
 .UNINDENT
+.sp
 This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
-
 .UNINDENT
-
 .SH EXIT STATUS
-An exit status of zero indicates success of the \fBnodeset\fP command. A non\-zero
+.sp
+An exit status of zero indicates success of the \fCnodeset\fP command. A non\-zero
 exit status indicates failure.
-
-
 .SH EXAMPLES
 .INDENT 0.0
-
 .TP
 .B Getting the node count
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-c node[0\-7,32\-159]
 .UNINDENT
-
+.nf
 136
-.br
-
+.fi
+.sp
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-c node[0\-7,32\-159] node[160\-163]
 .UNINDENT
-
+.nf
 140
-.br
-
-
+.fi
+.sp
 .TP
 .B Folding nodesets
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[0\-7,32\-159] node[160\-163]
 .UNINDENT
-
+.nf
 node[0\-7,32\-163]
-.br
-
-
+.fi
+.sp
 .TP
 .B Expanding nodesets
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-e node[160\-163]
 .UNINDENT
-
+.nf
 node160 node161 node162 node163
-.br
-
-
+.fi
+.sp
 .TP
 .B Excluding nodes from nodeset
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[32\-159] \-x node33
 .UNINDENT
-
+.nf
 node[32,34\-159]
-.br
-
-
+.fi
+.sp
 .TP
 .B Computing nodesets intersection
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[32\-159] \-i node[0\-7,20\-21,32,156\-159]
 .UNINDENT
-
+.nf
 node[32,156\-159]
-.br
-
-
+.fi
+.sp
 .TP
 .B Computing nodesets symmetric difference (xor)
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[33\-159] \-\-xor node[32\-33,156\-159]
 .UNINDENT
-
+.nf
 node[32,34\-155]
-.br
-
+.fi
+.sp
 .UNINDENT
-
 .SH HISTORY
-Command syntax has been changed since \fBnodeset\fP command available with ClusterShell v1.1. Operations, like \fI\-\-intersection\fP or \fI\-x\fP, are now specified between nodesets in the command line.
-
+.sp
+Command syntax has been changed since \fCnodeset\fP command available with ClusterShell v1.1. Operations, like \fI\-\-intersection\fP or \fI\-x\fP, are now specified between nodesets in the command line.
 .INDENT 0.0
-
 .TP
 .B ClusterShell v1.1:
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f \-x node[3,5\-6,9] node[1\-9]
 .UNINDENT
-
+.nf
 node[1\-2,4,7\-8]
-.br
-
-
+.fi
+.sp
 .TP
 .B ClusterShell v1.2+:
 .INDENT 7.0
-
 .TP
 .B $ nodeset \-f node[1\-9] \-x node[3,5\-6,9]
 .UNINDENT
-
+.nf
 node[1\-2,4,7\-8]
-.br
-
+.fi
+.sp
 .UNINDENT
-
 .SH SEE ALSO
-\fBclush\fP(1), \fBclubak\fP(1), \fBgroups.conf\fP(5).
-
-
+.sp
+\fCclush\fP(1), \fCclubak\fP(1), \fCgroups.conf\fP(5).
 .SH BUG REPORTS
 .INDENT 0.0
-
 .TP
 .B Use the following URL to submit a bug report or feedback:
+.
 \fI\%http://sourceforge.net/apps/trac/clustershell/report\fP
-
 .UNINDENT
-
 .SH AUTHOR
 Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-
 .SH COPYRIGHT
 CeCILL-C V1
-
-.\" Generated by docutils manpage writer on 2010-05-25 10:43.
+.\" Generated by docutils manpage writer.
 .\" 
+.
