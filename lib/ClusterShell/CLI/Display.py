@@ -92,8 +92,10 @@ class Display(object):
         # Set display verbosity
         if config:
             # config object does already apply options overrides
+            self.node_count = config.node_count
             self.verbosity = config.verbosity
         else:
+            self.node_count = True
             self.verbosity = VERB_STD
             if hasattr(options, 'quiet') and options.quiet:
                 self.verbosity = VERB_QUIET
@@ -145,9 +147,12 @@ class Display(object):
 
     def _print_buffer(self, nodeset, content):
         """Display a dshbak-like header block and content."""
-        header = self.color_stdout_fmt % ("%s\n%s\n%s\n" % (self.SEP,
+        nodecntstr = ""
+        if self.node_count and len(nodeset) > 1:
+            nodecntstr = " (%d)" % len(nodeset)
+        header = self.color_stdout_fmt % ("%s\n%s%s\n%s\n" % (self.SEP,
                                             self._format_header(nodeset),
-                                            self.SEP))
+                                            nodecntstr, self.SEP))
         self.out.write("%s%s\n" % (header, content))
         
     def _print_lines(self, nodeset, msg):

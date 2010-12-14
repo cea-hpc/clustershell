@@ -63,7 +63,8 @@ class ClushConfig(ConfigParser.ConfigParser, object):
                       "command_timeout" : "0",
                       "history_size" : "100",
                       "color" : WHENCOLOR_CHOICES[0],
-                      "verbosity" : "%d" % VERB_STD }
+                      "verbosity" : "%d" % VERB_STD,
+                      "node_count" : True }
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
@@ -105,19 +106,25 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         """Set given option/value pair in the Main section."""
         self.set("Main", option, str(value))
 
-    def getint(self, section, option):
-        """Return an integer value for the named option."""
+    def _getx(self, xtype, section, option):
+        """Return a value of specified type for the named option."""
         try:
-            return ConfigParser.ConfigParser.getint(self, section, option)
+            return getattr(ConfigParser.ConfigParser, 'get%s' % xtype)(self, \
+                section, option)
         except (ConfigParser.Error, TypeError, ValueError), exc:
             raise ClushConfigError(section, option, exc)
 
+    def getboolean(self, section, option):
+        """Return a boolean value for the named option."""
+        return self._getx('boolean', section, option)
+
     def getfloat(self, section, option):
         """Return a float value for the named option."""
-        try:
-            return ConfigParser.ConfigParser.getfloat(self, section, option)
-        except (ConfigParser.Error, TypeError, ValueError), exc:
-            raise ClushConfigError(section, option, exc)
+        return self._getx('float', section, option)
+
+    def getint(self, section, option):
+        """Return an integer value for the named option."""
+        return self._getx('int', section, option)
 
     def _get_optional(self, section, option):
         """Utility method to get a value for the named option, but do
@@ -173,4 +180,9 @@ class ClushConfig(ConfigParser.ConfigParser, object):
             raise ClushConfigError("Main", "color", "choose from %s" % \
                                    WHENCOLOR_CHOICES)
         return whencolor
+
+    @property
+    def node_count(self):
+        """node_count value as a boolean"""
+        return self.getboolean("Main", "node_count")
 

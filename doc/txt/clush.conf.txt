@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-06-15
+:Date:   2010-12-14
 :Copyright: CeCILL-C V1
-:Version: 1.3
+:Version: 1.4
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -52,6 +52,8 @@ history_size
   list. Negative values imply unlimited history file size.
 color
   Whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. Valid arguments are ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
+node_count
+  Should ``clush`` display additional (node count) information in buffer header? (`yes`/`no`)
 verbosity
   Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more (debug).
 ssh_user
@@ -77,6 +79,7 @@ Simple configuration file.
 | command_timeout: 0
 | history_size: 100
 | color: auto
+| node_count: yes
 | 
 
 
@@ -94,7 +97,7 @@ HISTORY
 =======
 
 As of ClusterShell version 1.3, the ``External`` section has been removed
-from *clush.conf*.  External commands whose outputs were used by `clush``
+from *clush.conf*.  External commands whose outputs were used by ``clush``
 (-a, -g, -X) are now handled by the library itself and defined in
 ``groups.conf``\(5).
 
