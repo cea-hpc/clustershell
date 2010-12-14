@@ -41,6 +41,7 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assertEqual(config.color, WHENCOLOR_CHOICES[0])
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.fanout, 64)
+        self.assertEqual(config.node_count, True)
         self.assertEqual(config.connect_timeout, 30)
         self.assertEqual(config.command_timeout, 0)
         self.assertEqual(config.ssh_user, None)
@@ -64,6 +65,7 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assert_(config != None)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[0])
         self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 64)
         self.assertEqual(config.connect_timeout, 30)
         self.assertEqual(config.command_timeout, 0)
@@ -102,6 +104,7 @@ verbosity: 1
         display.vprint(VERB_DEBUG, "shouldn't see this")
         self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
         self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 42)
         self.assertEqual(config.connect_timeout, 14)
         self.assertEqual(config.command_timeout, 0)
@@ -121,6 +124,7 @@ connect_timeout: 14
 command_timeout: 0
 history_size: 100
 color: auto
+node_count: yes
 verbosity: 1
 ssh_user: root
 ssh_path: /usr/bin/ssh
@@ -136,6 +140,7 @@ ssh_options: -oStrictHostKeyChecking=no
         self.assert_(config != None)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
         self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 42)
         self.assertEqual(config.connect_timeout, 14)
         self.assertEqual(config.command_timeout, 0)
@@ -155,6 +160,7 @@ connect_timeout: foo
 command_timeout: bar
 history_size: 100
 color: maybe
+node_count: 3
 verbosity: bar
 ssh_user: root
 ssh_path: /usr/bin/ssh
@@ -177,6 +183,11 @@ ssh_options: -oStrictHostKeyChecking=no
         try:
             f = config.fanout
             self.fail("Exception ClushConfigError not raised (fanout)")
+        except ClushConfigError:
+            pass
+        try:
+            f = config.node_count
+            self.fail("Exception ClushConfigError not raised (node_count)")
         except ClushConfigError:
             pass
         try:
