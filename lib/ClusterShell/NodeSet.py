@@ -1495,7 +1495,19 @@ class NodeSet(NodeSetBase):
     so strict for convenience, and understands NodeSet instance or
     NodeSet string as argument. Also, there is no strict definition of
     one element, for example, it IS allowed to do:
-    >>> nodeset.remove("blue[36-40]").
+        >>> nodeset.remove("blue[36-40]")
+
+    Additionally, the NodeSet class recognizes the "extended string
+    pattern" which adds support for union (special character ","),
+    difference ("!"), intersection ("&") and symmetric difference ("^")
+    operations. String patterns are read from left to right, by
+    proceeding any character operators accordinately.
+
+    Extended string pattern usage examples:
+        >>> nodeset = NodeSet("node[0-10],node[14-16]") # union
+        >>> nodeset = NodeSet("node[0-10]!node[8-10]")  # difference
+        >>> nodeset = NodeSet("node[0-10]&node[5-13]")  # intersection
+        >>> nodeset = NodeSet("node[0-10]^node[5-13]")  # xor
     """
     def __init__(self, nodes=None, autostep=None, resolver=None):
         """
