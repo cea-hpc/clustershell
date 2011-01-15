@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
