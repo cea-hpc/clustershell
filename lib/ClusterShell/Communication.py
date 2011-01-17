@@ -56,6 +56,7 @@ top of a communication channel.
 
 import cPickle
 import base64
+import logging
 import xml.sax
 
 from xml.sax.handler import ContentHandler
@@ -110,6 +111,8 @@ class XMLReader(ContentHandler):
         if name == 'message':
             self.msg_queue.appendleft(self._draft)
             self._draft = None
+        elif name == 'channel':
+            self.msg_queue.append(EndMessage())
 
     def characters(self, content):
         """read content characters"""
@@ -137,7 +140,8 @@ class XMLReader(ContentHandler):
             ControlMessage.ident: ControlMessage,
             ACKMessage.ident: ACKMessage,
             ErrorMessage.ident: ErrorMessage,
-            OutputMessage.ident: OutputMessage,
+            StdOutMessage.ident: StdOutMessage,
+            RetcodeMessage.ident: RetcodeMessage,
         }
         try:
             msg_type = attributes['type']
@@ -196,11 +200,19 @@ class Channel(EventHandler):
         """close an already opened channel"""
         generator = XMLGenerator(self.worker)
         generator.endElement('channel')
+        # XXX
+        self.worker.write('\n')
+        self.exit = True
 
     def ev_start(self, worker):
         """connection established. Open higher level channel"""
         self.worker = worker
         self.start()
+
+    def ev_written(self, worker):
+        if self.exit:
+            logging.debug("aborting worker after last write")
+            self.worker.abort()
 
     def ev_read(self, worker):
         """channel has data to read"""
@@ -345,8 +357,8 @@ class ErrorMessage(Message):
         """
         raise MessageProcessingError('Error message have no payload')
 
-class OutputMessage(Message):
-    """container message for output"""
+class StdOutMessage(Message):
+    """container message for standard output"""
     ident = 'OUT'
 
     def __init__(self, nodes='', output=''):
@@ -362,4 +374,23 @@ class OutputMessage(Message):
         unexpected payloads
         """
         raise MessageProcessingError('Error message have no payload')
+
+class StdErrMessage(StdOutMessage):
+    ident = 'SER'
+
+class RetcodeMessage(Message):
+    """container message for return code"""
+    ident = 'RET'
+
+    def __init__(self, nodes='', retcode=0):
+        """
+        """
+        Message.__init__(self)
+        self.attr.update({'retcode': int, 'nodes': str})
+        self.retcode = retcode
+        self.nodes = nodes
+
+class EndMessage(Message):
+    """end of channel message"""
+    ident = 'END'
 

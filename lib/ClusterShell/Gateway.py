@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2011)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
 #
@@ -46,11 +47,14 @@ import socket
 
 import logging
 
+from ClusterShell.Event import EventHandler
 from ClusterShell.Task import task_self
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Propagation import PropagationTree
 from ClusterShell.Communication import Channel, ConfigurationMessage
-from ClusterShell.Communication import ControlMessage, ACKMessage, ErrorMessage
+from ClusterShell.Communication import ControlMessage, ACKMessage
+from ClusterShell.Communication import ErrorMessage, EndMessage
+from ClusterShell.Communication import StdOutMessage, StdErrMessage
 
 
 class GatewayChannel(Channel):
@@ -77,11 +81,21 @@ class GatewayChannel(Channel):
         self.current_state = self.states['CFG']
         logging.debug('entering config state')
 
+    def close(self):
+        """close gw channel"""
+        logging.debug('closing gw channel')
+        self._close()
+        self.current_state = None
+
     def recv(self, msg):
         """handle incoming message"""
         try:
             logging.debug('handling incoming message: %s' % str(msg))
-            self.current_state(msg)
+            if msg.ident == EndMessage.ident:
+                logging.debug('recv: got EndMessage')
+                task_self().abort()
+            else:
+                self.current_state(msg)
         except Exception, ex:
             logging.exception('on recv(): %s' % str(ex))
             self.send(ErrorMessage(str(ex)))
@@ -91,7 +105,9 @@ class GatewayChannel(Channel):
         if msg.type == ConfigurationMessage.ident:
             self.topology = msg.data_decode()
             self.propagation = PropagationTree(self.topology, self.hostname)
+            self.propagation.upchannel = self
             logging.debug('decoded propagation tree')
+            logging.debug('%s' % str(self.topology))
             self._ack(msg)
             self.current_state = self.states['CTL']
             logging.debug('entering control state')
@@ -135,21 +151,32 @@ if __name__ == '__main__':
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s %(levelname)s %(message)s',
-        filename=os.path.expanduser("~/dbg/%s.gw" % host),
+        filename=os.path.expanduser("~/dbg/%s.gw" % host), # FIXME
         filemode='a+'
     )
     logging.debug('Starting gateway')
-    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
+    flags = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
+    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
+    flags = fcntl.fcntl(sys.stdout.fileno(), fcntl.F_GETFL)
+    fcntl.fcntl(sys.stdout.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
+    flags = fcntl.fcntl(sys.stderr.fileno(), fcntl.F_GETFL)
+    fcntl.fcntl(sys.stderr.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     task = task_self()
     chan = GatewayChannel(host)
 
-    worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)
+    if sys.stdin.isatty():
+        #print "isatty"
+        worker = WorkerSimple(sys.stdout, sys.stdin, None, None, handler=chan)
+    else:
+        worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)
     task.schedule(worker)
     logging.debug('Starting task')
     try:
         task.resume()
-    except:
-        logging.exception('Gateway failure!!')
+    except IOError, e:
+        logging.debug('Broken pipe')
+    except Exception, e:
+        logging.exception('Gateway failure: %s' % e)
     logging.debug('Task performed')
 

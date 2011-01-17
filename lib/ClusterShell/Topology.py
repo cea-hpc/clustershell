@@ -36,9 +36,9 @@
 """
 ClusterShell topology module
 
-This module contains the network topology parser and its related classes.
-These classes are used to build a topology tree of nodegroups according to the
-configuration file.
+This module contains the network topology parser and its related
+classes. These classes are used to build a topology tree of nodegroups
+according to the configuration file.
 
 This file must be written using the following syntax:
 
@@ -437,9 +437,9 @@ class TopologyParser(ConfigParser.ConfigParser):
 
     def tree(self, root, force_rebuild=False):
         """Return a previously generated propagation tree or build it if
-        required. As rebuilding tree can be quite expensive, once built, the
-        propagation tree is cached. you can force a re-generation using the
-        optionnal `force_rebuild' parameter.
+        required. As rebuilding tree can be quite expensive, once built,
+        the propagation tree is cached. you can force a re-generation
+        using the optionnal `force_rebuild' parameter.
         """
         if self._tree is None or force_rebuild:
             self._tree = self.graph.to_tree(root)
