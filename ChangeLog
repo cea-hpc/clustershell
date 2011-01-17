@@ -1,5 +1,7 @@
 2011-01-15 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.4 released.
+
 	* NodeSet.py: Add docstring for NodeSet string arithmetics (, ! & ^),
 	which is also called extended string pattern (trac ticket #127).
 
