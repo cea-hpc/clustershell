@@ -1,3 +1,10 @@
+2011-01-17 S. Thiell <stephane.thiell@cea.fr>
+
+	* Communication.py: New module from 2.0 dev branch (author: H. Doreau).
+	* Gateway.py: New module from 2.0 dev branch (author: H. Doreau).
+	* Propagation.py: New module from 2.0 dev branch (author: H. Doreau).
+	* Topology.py: New module from 2.0 dev branch (author: H. Doreau).
+
 2011-01-15 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.4 released.

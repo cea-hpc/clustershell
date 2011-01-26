@@ -23,7 +23,8 @@ from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Communication import XMLReader, Channel
 from ClusterShell.Communication import MessageProcessingError
 from ClusterShell.Communication import ConfigurationMessage, ControlMessage
-from ClusterShell.Communication import ACKMessage, ErrorMessage, OutputMessage
+from ClusterShell.Communication import ACKMessage, ErrorMessage
+from ClusterShell.Communication import StdOutMessage, StdErrMessage
 
 
 
@@ -60,7 +61,7 @@ def gen_err():
 
 def gen_out():
     """return a generic output message instance"""
-    msg = OutputMessage()
+    msg = StdOutMessage()
     msg.msgid = 0
     msg.output = "node5"
     msg.output = "Linux galion25 2.6.18-92.el5 #1 SMP Tue Apr 29 " \
@@ -73,7 +74,7 @@ gen_map = {
     ControlMessage.ident: gen_ctl,
     ACKMessage.ident: gen_ack,
     ErrorMessage.ident: gen_err,
-    OutputMessage.ident: gen_out,
+    StdOutMessage.ident: gen_out,
 }
 
 class _TestingChannel(Channel):
