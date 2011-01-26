@@ -25,23 +25,7 @@ sys.path.insert(0, '../lib')
 from ClusterShell.Propagation import *
 from ClusterShell.Topology import TopologyParser
 from ClusterShell.NodeSet import NodeSet
-
-
-def load_cfg(name):
-    """Load test configuration file as a new ConfigParser"""
-    cfgparser = ConfigParser()
-    cfgparser.read([ \
-        os.path.expanduser('~/.clustershell/tests/%s' % name),
-        '/etc/clustershell/tests/%s' % name])
-    return cfgparser
-
-def chrono(func):
-    def timing(*args):
-        start = time.time()
-        res = func(*args)
-        print "execution time: %f s" % (time.time() - start)
-        return res
-    return timing
+from TLib import chrono, load_cfg
 
 
 class PropagationTest(unittest.TestCase):
