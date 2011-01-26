@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.Gateway test suite
-# Written by H. Doreau
+# Written by H. Doreau and S. Thiell
 # $Id$
 
 
@@ -9,83 +9,105 @@
 import os
 import sys
 import unittest
-import socket
 import tempfile
+
+import logging
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.Task import task_self
+from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Topology import TopologyParser
 from ClusterShell.Propagation import PropagationTree
+from ClusterShell.Topology import TopologyParser
+from TLib import load_cfg, my_node
+
+
+class DirectHandler(EventHandler):
+    """
+    Test Direct EventHandler
+    """
+    def ev_read(self, worker):
+        """stdout event"""
+        node, buf = worker.last_read()
+        print "%s: %s" % (node, buf)
+
+    def ev_error(self, worker):
+        """stderr event"""
+        node, buf = worker.last_error()
+        print "(stderr) %s: %s" % (node, buf)
+
+    def ev_close(self, worker):
+        """close event"""
+        print "ev_close %s" % worker
 
 
 class GatewayTest(unittest.TestCase):
+    """TestCase for ClusterShell.Gateway module."""
+    
     def testCompletePropagation(self):
         """test a complete command propagation trip"""
         #
-        # This test relies on hardcoded parameters (topology, path...)
-        # We have to find something more generic and reliable to efficiently
-        # test the gateway module.
-        ##
+        # This test relies on configured parameters (topology2.conf)
         tmpfile = tempfile.NamedTemporaryFile()
 
-        hostname = socket.gethostname().split('.')[0]
+        logging.basicConfig(
+                level=logging.DEBUG
+                )
+        logging.debug("STARTING")
 
-        # ----------------------------
-        # Gateways
-        CS2_GATEWAYS = os.getenv("CS2_GATEWAYS")
+        hostname = my_node()
+        cfgparser = load_cfg('topology2.conf')
+        neighbors = cfgparser.get('CONFIG', 'NEIGHBORS')
+        targets = cfgparser.get('CONFIG', 'TARGETS')
 
-        # Targeted nodes
-        CS2_TARGETS = os.getenv("CS2_TARGETS")
-        # ----------------------------
-
-        self.assertTrue(CS2_GATEWAYS and CS2_TARGETS,
-                        "please define CS2_GATEWAYS and CS2_TARGETS")
-
-        # XXX hardcoded topology!
         tmpfile.write('[DEFAULT]\n')
-        tmpfile.write('%s: %s\n' % (hostname, CS2_GATEWAYS))
-        tmpfile.write('%s: %s\n' % (CS2_GATEWAYS, CS2_TARGETS))
-
+        tmpfile.write('%s: %s\n' % (hostname, neighbors))
+        tmpfile.write('%s: %s\n' % (neighbors, targets))
         tmpfile.flush()
         parser = TopologyParser()
         parser.load(tmpfile.name)
-
         tmpfile.close()
 
-        # XXX hardcoded path!
-        TEST_DIR = os.path.expanduser('~/tmp/')
+        nfs_tmpdir = os.path.expanduser('~/.clustershell/tests/tmp')
 
         tree = parser.tree(hostname)
+        print tree
+
         ptree = PropagationTree(tree, hostname)
+        ptree.upchannel = None
+        ptree.edgehandler = DirectHandler()
+
         ptree.fanout = 20
-        # XXX hardcoded path!
         ptree.invoke_gateway = \
-            'cd %s/../lib; python -m ClusterShell/Gateway -B' % os.getcwd()
+            'cd %s; PYTHONPATH=../lib python -m ClusterShell/Gateway -Bu' % \
+                os.getcwd()
+        #print ptree.invoke_gateway
 
         ## delete remaining files from previous tests
-        for filename in os.listdir(TEST_DIR):
+        for filename in os.listdir(nfs_tmpdir):
             if filename.startswith("fortoy"):
-                os.remove(TEST_DIR + filename)
+                os.remove(os.path.join(nfs_tmpdir, filename))
 
-        dst = NodeSet(CS2_TARGETS)
+        dst = NodeSet(targets)
         task = ptree.execute('python -c "import time; print time.time()" > ' + \
-                             TEST_DIR + '$(hostname)', dst, 20)
+                             os.path.join(nfs_tmpdir, '$(hostname)'), dst, 20)
+        #task = ptree.execute('sleep 2; echo "output from $(hostname)"', \
+        #                      dst, 20)
+        self.assert_(task)
 
         res = NodeSet()
         times = []
-        for filename in os.listdir(TEST_DIR):
+        for filename in os.listdir(nfs_tmpdir):
             for k in dst:
                 if filename.startswith(str(k)):
                     res.add(k)
-
-                    fd = open(TEST_DIR + filename)
+                    fd = open(os.path.join(nfs_tmpdir, filename))
                     times.append(float(fd.read()))
                     fd.close()
 
         self.assertEquals(str(res), str(dst))
-        print "Complete propagation time: %fs for %d nodes" % (max(times) - min(times), len(dst))
+        print "Complete propagation time: %fs for %d nodes" % \
+                (max(times) - min(times), len(dst))
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(GatewayTest)

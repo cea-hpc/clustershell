@@ -7,13 +7,9 @@
 """Unit test for Propagation"""
 
 import os
-import copy
 import sys
-import time
 import unittest
 import tempfile
-
-from ConfigParser import ConfigParser
 
 # profiling imports
 #import cProfile
@@ -25,7 +21,7 @@ sys.path.insert(0, '../lib')
 from ClusterShell.Propagation import *
 from ClusterShell.Topology import TopologyParser
 from ClusterShell.NodeSet import NodeSet
-from TLib import chrono, load_cfg
+from TLib import load_cfg, my_node
 
 
 class PropagationTest(unittest.TestCase):
@@ -55,7 +51,7 @@ class PropagationTest(unittest.TestCase):
         self.assertEquals(ptree.next_hop('node10'), 'proxy')
 
         ptree = PropagationTree(self.topology, 'proxy')
-        self.assertEquals(ptree.next_hop('STB0') in NodeSet('STA[0-4000]'), True)
+        self.assert_(ptree.next_hop('STB0') in NodeSet('STA[0-4000]'))
 
         ptree = PropagationTree(self.topology, 'STB7')
         self.assertEquals(ptree.next_hop('node500'), 'node500')
@@ -64,7 +60,8 @@ class PropagationTest(unittest.TestCase):
         self.assertRaises(RouteResolvingError, ptree.next_hop, 'foo')
         self.assertRaises(RouteResolvingError, ptree.next_hop, 'admin1')
 
-        self.assertRaises(RouteResolvingError, PropagationTree, self.topology, 'bar')
+        self.assertRaises(RouteResolvingError, PropagationTree, self.topology,
+                          'bar')
 
     def testHostRepudiation(self):
         """test marking hosts as unreachable"""
@@ -181,7 +178,7 @@ class PropagationTest(unittest.TestCase):
         """test execute tasks on directly connected machines"""
         tmpfile = tempfile.NamedTemporaryFile()
 
-        myhost = socket.gethostname().split('.')[0]
+        myhost = my_node()
         cfgparser = load_cfg('topology1.conf')
         neighbor = cfgparser.get('CONFIG', 'NEIGHBOR')
         gateways = cfgparser.get('CONFIG', 'GATEWAYS')

@@ -3,10 +3,15 @@
 """Unit test small library"""
 
 import os
+import socket
 import time
 
 from ConfigParser import ConfigParser
 
+
+def my_node():
+    """Helper to get local short hostname."""
+    return socket.gethostname().split('.')[0]
 
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
