@@ -13,6 +13,8 @@ import time
 import unittest
 import tempfile
 
+from ConfigParser import ConfigParser
+
 # profiling imports
 #import cProfile
 #from guppy import hpy
@@ -24,6 +26,14 @@ from ClusterShell.Propagation import *
 from ClusterShell.Topology import TopologyParser
 from ClusterShell.NodeSet import NodeSet
 
+
+def load_cfg(name):
+    """Load test configuration file as a new ConfigParser"""
+    cfgparser = ConfigParser()
+    cfgparser.read([ \
+        os.path.expanduser('~/.clustershell/tests/%s' % name),
+        '/etc/clustershell/tests/%s' % name])
+    return cfgparser
 
 def chrono(func):
     def timing(*args):
@@ -159,8 +169,8 @@ class PropagationTest(unittest.TestCase):
         tree = parser.tree('admin1')
         ptree = PropagationTree(tree, 'admin1')
         dist = ptree._distribute(128, NodeSet('node[2-18]'))
-        self.assertEquals(str(dist['gw0']), 'node[2-9]')
-        self.assertEquals(str(dist['gw2']), 'node[10-18]')
+        self.assertEquals(dist['gw0'], NodeSet('node[2-8/2]'))
+        self.assertEquals(dist['gw2'], NodeSet('node[10-18/2]'))
 
     def testDistributeTasksComplex(self):
         """test dispatch work between several gateways (more complex case)"""
@@ -187,21 +197,29 @@ class PropagationTest(unittest.TestCase):
         """test execute tasks on directly connected machines"""
         tmpfile = tempfile.NamedTemporaryFile()
 
-        tmpfile.write('[DEFAULT]\n')
-        tmpfile.write('fortoy33: fortoy[34-35]\n')
-        tmpfile.write('fortoy[34-35]: fortoy[36-37]\n')
+        myhost = socket.gethostname().split('.')[0]
+        cfgparser = load_cfg('topology1.conf')
+        neighbor = cfgparser.get('CONFIG', 'NEIGHBOR')
+        gateways = cfgparser.get('CONFIG', 'GATEWAYS')
+        targets = cfgparser.get('CONFIG', 'TARGETS')
 
+        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('%s: %s\n' % (myhost, neighbor))
+        tmpfile.write('%s: %s\n' % (neighbor, gateways))
+        tmpfile.write('%s: %s\n' % (gateways, targets))
         tmpfile.flush()
         parser = TopologyParser()
         parser.load(tmpfile.name)
 
-        tree = parser.tree('fortoy33')
-        ptree = PropagationTree(tree, 'fortoy33')
+        tree = parser.tree(myhost)
+        ptree = PropagationTree(tree, myhost)
         task_self().set_info('debug', True)
 
-        testpath = os.path.expanduser('~/clustershell/branches/exp-2.0/tests/')
-        ptree.invoke_gateway = 'cd %s; python -m ClusterShell/Gateway' % testpath
-        task = ptree.execute('uname -a', NodeSet('fortoy[34-36]'))
+        testpath = os.getcwd()
+        ptree.invoke_gateway = \
+            'cd %s; PYTHONPATH=../lib python -m ClusterShell/Gateway -Bu' % \
+                testpath
+        task = ptree.execute('uname -a', NodeSet(targets))
 
         for buf, nodes in task.iter_buffers():
             print '-' * 15

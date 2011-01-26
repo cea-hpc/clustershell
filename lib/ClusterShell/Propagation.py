@@ -206,17 +206,20 @@ class EdgeHandler(EventHandler):
     def ev_read(self, worker):
         node, buf = worker.last_read()
         logging.debug('EdgeHandler ev_read %s: %s' % (node, buf))
-        self.ptree.upchannel.send(StdOutMessage(node, buf))
+        if self.ptree.upchannel:
+            self.ptree.upchannel.send(StdOutMessage(node, buf))
 
     def ev_error(self, worker):
         node, buf = worker.last_error()
         logging.debug('EdgeHandler ev_error %s: %s' % (node, buf))
-        self.ptree.upchannel.send(StdErrMessage(node, buf))
+        if self.ptree.upchannel:
+            self.ptree.upchannel.send(StdErrMessage(node, buf))
 
     def ev_hup(self, worker):
         node, rc = worker.last_retcode()
         logging.debug('EdgeHandler ev_hup %s: %d' % (node, rc))
-        self.ptree.upchannel.send(RetcodeMessage(node, rc))
+        if self.ptree.upchannel:
+            self.ptree.upchannel.send(RetcodeMessage(node, rc))
 
     def ev_close(self, worker):
         self.ptree.notify_close()
