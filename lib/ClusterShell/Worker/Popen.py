@@ -125,7 +125,7 @@ class WorkerPopen(WorkerSimple):
         if self.popen.stderr:
             self.popen.stderr.close()
 
-        if rc >= 0:
+        if rc >= 0: # filter valid rc
             self._on_rc(rc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
@@ -138,11 +138,8 @@ class WorkerPopen(WorkerSimple):
         """
         Set return code.
         """
-        self.rc = rc
-        self.task._rc_set((self, self.key), rc)
-
-        if self.eh:
-            self.eh.ev_hup(self)
+        self.rc = rc        # 1.4- compat
+        WorkerSimple._on_rc(self, rc)
 
     def retcode(self):
         """

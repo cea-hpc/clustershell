@@ -197,7 +197,7 @@ class DistantWorker(Worker):
         """
         Update on node timeout.
         """
-        # Update last_node to allow node resolution after ev_timeout.
+        # Update current_node to allow node resolution after ev_timeout.
         self.current_node = node
 
         self.task._timeout_add((self, node))
@@ -503,6 +503,17 @@ class WorkerSimple(EngineClient, Worker):
 
         if self.eh:
             self.eh.ev_error(self)
+
+    def _on_rc(self, rc):
+        """
+        Set return code received.
+        """
+        self.current_rc = rc
+
+        self.task._rc_set((self, self.key), rc)
+
+        if self.eh:
+            self.eh.ev_hup(self)
 
     def _on_timeout(self):
         """
