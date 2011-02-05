@@ -82,13 +82,6 @@ class Worker(object):
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _invoke(self, ev_type):
-        """
-        Invoke user EventHandler method if needed.
-        """
-        if self.eh:
-            self.eh._invoke(ev_type, self)
-
     # Base getters
 
     def last_read(self):
@@ -153,29 +146,41 @@ class DistantWorker(Worker):
         """
         if not self.started:
             self.started = True
-            self._invoke("ev_start")
+            if self.eh:
+                self.eh.ev_start(self)
 
     def _on_node_msgline(self, node, msg):
         """
         Message received from node, update last* stuffs.
         """
+        # Maxoptimize this method as it might be called very often.
+        task = self.task
+        handler = self.eh
+
         self._last_node = node
         self._last_msg = msg
 
-        self.task._msg_add((self, node), msg)
+        if task._msgtree is not None:   # don't waste time
+            task._msg_add((self, node), msg)
 
-        self._invoke("ev_read")
+        if handler is not None:
+            handler.ev_read(self)
 
     def _on_node_errline(self, node, msg):
         """
         Error message received from node, update last* stuffs.
         """
+        task = self.task
+        handler = self.eh
+
         self._last_node = node
         self._last_errmsg = msg
 
-        self.task._errmsg_add((self, node), msg)
+        if task._errtree is not None:
+            task._errmsg_add((self, node), msg)
 
-        self._invoke("ev_error")
+        if handler is not None:
+            handler.ev_error(self)
 
     def _on_node_rc(self, node, rc):
         """
@@ -186,7 +191,8 @@ class DistantWorker(Worker):
 
         self.task._rc_set((self, node), rc)
 
-        self._invoke("ev_hup")
+        if self.eh:
+            self.eh.ev_hup(self)
 
     def _on_node_timeout(self, node):
         """
@@ -363,7 +369,8 @@ class WorkerSimple(EngineClient, Worker):
         """
         Start worker.
         """
-        self._invoke("ev_start")
+        if self.eh:
+            self.eh.ev_start(self)
 
         return self
 
@@ -394,13 +401,13 @@ class WorkerSimple(EngineClient, Worker):
         
         return None
     
-    def _read(self, size=4096):
+    def _read(self, size=65536):
         """
         Read data from process.
         """
         return EngineClient._read(self, size)
 
-    def _readerr(self, size=4096):
+    def _readerr(self, size=65536):
         """
         Read error data from process.
         """
@@ -426,33 +433,43 @@ class WorkerSimple(EngineClient, Worker):
             assert abort, "abort flag not set on timeout"
             self._on_timeout()
 
-        self._invoke("ev_close")
+        if self.eh:
+            self.eh.ev_close(self)
 
     def _handle_read(self):
         """
         Engine is telling us there is data available for reading.
         """
-        debug = self.task.info("debug", False)
-        if debug:
-            print_debug = self.task.info("print_debug")
+        # Local variables optimization
+        task = self.worker.task
+        msgline = self._on_msgline
 
-        for msg in self._readlines():
-            if debug:
-                print_debug(self.task, "LINE %s" % msg)
-            self._on_msgline(msg)
+        debug = task.info("debug", False)
+        if debug:
+            print_debug = task.info("print_debug")
+            for msg in self._readlines():
+                print_debug(task, "LINE %s" % msg)
+                msgline(msg)
+        else:
+            for msg in self._readlines():
+                msgline(msg)
 
     def _handle_error(self):
         """
         Engine is telling us there is error available for reading.
         """
-        debug = self.task.info("debug", False)
-        if debug:
-            print_debug = self.task.info("print_debug")
+        task = self.worker.task
+        errmsgline = self._on_errmsgline
 
-        for msg in self._readerrlines():
-            if debug:
-                print_debug(self.task, "LINE@STDERR %s" % msg)
-            self._on_errmsgline(msg)
+        debug = task.info("debug", False)
+        if debug:
+            print_debug = task.info("print_debug")
+            for msg in self._readerrlines():
+                print_debug(task, "LINE@STDERR %s" % msg)
+                errmsgline(msg)
+        else:
+            for msg in self._readerrlines():
+                errmsgline(msg)
 
     def last_read(self):
         """
@@ -476,7 +493,8 @@ class WorkerSimple(EngineClient, Worker):
         # update task
         self.task._msg_add((self, self.key), msg)
 
-        self._invoke("ev_read")
+        if self.eh:
+            self.eh.ev_read(self)
 
     def _on_errmsgline(self, msg):
         """
@@ -488,7 +506,8 @@ class WorkerSimple(EngineClient, Worker):
         # update task
         self.task._errmsg_add((self, self.key), msg)
 
-        self._invoke("ev_error")
+        if self.eh:
+            self.eh.ev_error(self)
 
     def _on_timeout(self):
         """
@@ -497,7 +516,8 @@ class WorkerSimple(EngineClient, Worker):
         self.task._timeout_add((self, self.key))
 
         # trigger timeout event
-        self._invoke("ev_timeout")
+        if self.eh:
+            self.eh.ev_timeout(self)
 
     def read(self):
         """

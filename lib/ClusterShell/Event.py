@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -43,13 +43,6 @@ class EventHandler(object):
     """
     Base class EventHandler.
     """
-    def _invoke(self, ev_type, *args):
-        """
-        Invoke a specific event handler.
-        """
-        ev_handler = getattr(self, ev_type)
-        ev_handler(*args)
-
     def ev_start(self, worker):
         """
         Called to indicate that a worker has just started.

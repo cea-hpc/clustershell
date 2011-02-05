@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -171,7 +171,7 @@ class EngineTimer(EngineBaseTimer):
         assert self.eh != None, "An event handler is needed for timer."
 
     def _fire(self):
-        self.eh._invoke("ev_timer", self)
+        self.eh.ev_timer(self)
 
 class _EngineTimerQ:
 

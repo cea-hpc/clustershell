@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -333,9 +333,11 @@ class WorkerSsh(DistantWorker):
 
     def _check_fini(self):
         if self._close_count >= len(self.clients):
-            if self._has_timeout:
-                self._invoke("ev_timeout")
-            self._invoke("ev_close")
+            handler = self.eh
+            if handler:
+                if self._has_timeout:
+                    handler.ev_timeout(self)
+                handler.ev_close(self)
 
     def write(self, buf):
         """
