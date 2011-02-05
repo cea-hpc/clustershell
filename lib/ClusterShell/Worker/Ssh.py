@@ -140,29 +140,35 @@ class Ssh(EngineClient):
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
         """
-        debug = self.worker.task.info("debug", False)
+        # Local variables optimization
+        worker = self.worker
+        task = worker.task
+        key = self.key
+        node_msgline = worker._on_node_msgline
+        debug = task.info("debug", False)
         if debug:
-            print_debug = self.worker.task.info("print_debug")
-
+            print_debug = task.info("print_debug")
         for msg in self._readlines():
             if debug:
-                print_debug(self.worker.task, "%s: %s" % (self.key, msg))
-            # handle full msg line
-            self.worker._on_node_msgline(self.key, msg)
+                print_debug(task, "%s: %s" % (key, msg))
+            node_msgline(key, msg)  # handle full msg line
 
     def _handle_error(self):
         """
         Handle a read error (stderr) notification.
         """
-        debug = self.worker.task.info("debug", False)
+        # Local variables optimization
+        worker = self.worker
+        task = worker.task
+        key = self.key
+        node_errline = worker._on_node_errline
+        debug = task.info("debug", False)
         if debug:
-            print_debug = self.worker.task.info("print_debug")
-
+            print_debug = task.info("print_debug")
         for msg in self._readerrlines():
             if debug:
-                print_debug(self.worker.task, "%s@STDERR: %s" % (self.key, msg))
-            # handle full msg line
-            self.worker._on_node_errline(self.key, msg)
+                print_debug(task, "%s@STDERR: %s" % (key, msg))
+            node_errline(key, msg)  # handle full stderr line
 
 
 class Scp(Ssh):

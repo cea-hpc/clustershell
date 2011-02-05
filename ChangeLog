@@ -1,5 +1,7 @@
 2011-02-05 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/Ssh.py: Local variables optimization.
+
 	* CLI/Clush.py: Do not disable internal messages gathering when using -bL
 	for proper display after Ctrl-C interruption (#133).
 
