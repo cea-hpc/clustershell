@@ -60,8 +60,16 @@ class Worker(object):
         """
         Initializer. Should be called from derived classes.
         """
-        self.eh = handler                   # associated EventHandler
+        # Associated EventHandler object
+        self.eh = handler
+        # Parent task (once bound)
         self.task = None
+        self.started = False
+        # current_x public variables (updated at each event accordingly)
+        self.current_node = None
+        self.current_msg = None
+        self.current_errmsg = None
+        self.current_rc = 0
 
     def _set_task(self, task):
         """
@@ -81,6 +89,15 @@ class Worker(object):
         Return a list of underlying engine clients.
         """
         raise NotImplementedError("Derived classes must implement.")
+
+    def _on_start(self):
+        """
+        Starting worker.
+        """
+        if not self.started:
+            self.started = True
+            if self.eh:
+                self.eh.ev_start(self)
 
     # Base getters
 
@@ -131,24 +148,6 @@ class DistantWorker(Worker):
     to use with distant workers like ssh or pdsh.
     """
 
-    def __init__(self, handler):
-        Worker.__init__(self, handler)
-
-        self._last_node = None
-        self._last_msg = None
-        self._last_errmsg = None
-        self._last_rc = 0
-        self.started = False
-
-    def _on_start(self):
-        """
-        Starting
-        """
-        if not self.started:
-            self.started = True
-            if self.eh:
-                self.eh.ev_start(self)
-
     def _on_node_msgline(self, node, msg):
         """
         Message received from node, update last* stuffs.
@@ -157,8 +156,8 @@ class DistantWorker(Worker):
         task = self.task
         handler = self.eh
 
-        self._last_node = node
-        self._last_msg = msg
+        self.current_node = node
+        self.current_msg = msg
 
         if task._msgtree is not None:   # don't waste time
             task._msg_add((self, node), msg)
@@ -173,8 +172,8 @@ class DistantWorker(Worker):
         task = self.task
         handler = self.eh
 
-        self._last_node = node
-        self._last_errmsg = msg
+        self.current_node = node
+        self.current_errmsg = msg
 
         if task._errtree is not None:
             task._errmsg_add((self, node), msg)
@@ -186,8 +185,8 @@ class DistantWorker(Worker):
         """
         Return code received from a node, update last* stuffs.
         """
-        self._last_node = node
-        self._last_rc = rc
+        self.current_node = node
+        self.current_rc = rc
 
         self.task._rc_set((self, node), rc)
 
@@ -198,8 +197,8 @@ class DistantWorker(Worker):
         """
         Update on node timeout.
         """
-        # Update _last_node to allow node resolution after ev_timeout.
-        self._last_node = node
+        # Update last_node to allow node resolution after ev_timeout.
+        self.current_node = node
 
         self.task._timeout_add((self, node))
 
@@ -208,25 +207,25 @@ class DistantWorker(Worker):
         Get last node, useful to get the node in an EventHandler
         callback like ev_timeout().
         """
-        return self._last_node
+        return self.current_node
 
     def last_read(self):
         """
         Get last (node, buffer), useful in an EventHandler.ev_read()
         """
-        return self._last_node, self._last_msg
+        return self.current_node, self.current_msg
 
     def last_error(self):
         """
         Get last (node, error_buffer), useful in an EventHandler.ev_error()
         """
-        return self._last_node, self._last_errmsg
+        return self.current_node, self.current_errmsg
 
     def last_retcode(self):
         """
         Get last (node, rc), useful in an EventHandler.ev_hup()
         """
-        return self._last_node, self._last_rc
+        return self.current_node, self.current_rc
 
     def node_buffer(self, node):
         """
@@ -341,9 +340,6 @@ class WorkerSimple(EngineClient, Worker):
         Worker.__init__(self, handler)
         EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
-        self._last_msg = None
-        self._last_errmsg = None
-
         if key is None: # allow key=0
             self.key = self
         else:
@@ -367,11 +363,10 @@ class WorkerSimple(EngineClient, Worker):
 
     def _start(self):
         """
-        Start worker.
+        Called on EngineClient start.
         """
-        if self.eh:
-            self.eh.ev_start(self)
-
+        # call Worker._on_start()
+        self._on_start()
         return self
 
     def error_fileno(self):
@@ -475,20 +470,20 @@ class WorkerSimple(EngineClient, Worker):
         """
         Read last msg, useful in an EventHandler.
         """
-        return self._last_msg
+        return self.current_msg
 
     def last_error(self):
         """
         Get last error message from event handler.
         """
-        return self._last_errmsg
+        return self.current_errmsg
 
     def _on_msgline(self, msg):
         """
         Add a message.
         """
         # add last msg to local buffer
-        self._last_msg = msg
+        self.current_msg = msg
 
         # update task
         self.task._msg_add((self, self.key), msg)
@@ -501,7 +496,7 @@ class WorkerSimple(EngineClient, Worker):
         Add a message.
         """
         # add last msg to local buffer
-        self._last_errmsg = msg
+        self.current_errmsg = msg
 
         # update task
         self.task._errmsg_add((self, self.key), msg)
