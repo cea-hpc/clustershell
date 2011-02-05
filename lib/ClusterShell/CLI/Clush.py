@@ -745,7 +745,7 @@ def main(args=sys.argv):
     task.set_default("stderr", not options.gatherall)
 
     # Disable MsgTree buffering if not gathering outputs
-    task.set_default("stdout_msgtree", display.gather and not display.line_mode)
+    task.set_default("stdout_msgtree", display.gather)
     # Always disable stderr MsgTree buffering
     task.set_default("stderr_msgtree", False)
 
