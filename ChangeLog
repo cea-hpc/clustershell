@@ -1,5 +1,8 @@
 2011-02-05 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clush.py: Fix issue when executing local command with clush -b in
+	interactive mode (eg. !uname).
+
 	* Worker/Worker.py: Define new current_node, current_msg, current_errmsg
 	and current_rc Worker variables, updated at each event (last_read(),
 	last_node() and last_retcode() will be deprecated from version 2.0).
@@ -806,6 +809,6 @@
 	* 1.0->1.1 internal design changes.
 
 
-Copyright CEA/DAM/DIF  (2009, 2010)
+Copyright CEA/DAM/DIF  (2009, 2010, 2011)
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.

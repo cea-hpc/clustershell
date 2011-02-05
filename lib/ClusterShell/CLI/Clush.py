@@ -104,32 +104,19 @@ class DirectOutputHandler(OutputHandler):
         self._display = display
 
     def ev_read(self, worker):
-        res = worker.last_read()
-        if len(res) == 2:
-            ns, buf = res
-        else:
-            buf = res
-            ns = "LOCAL"
-        self._display.print_line(ns, buf)
+        node = worker.current_node or worker.key
+        self._display.print_line(node, worker.current_msg)
 
     def ev_error(self, worker):
-        res = worker.last_error()
-        if len(res) == 2:
-            ns, buf = res
-        else:
-            buf = res
-            ns = "LOCAL"
-        self._display.print_line_error(ns, buf)
+        node = worker.current_node or worker.key
+        self._display.print_line_error(node, worker.current_errmsg)
 
     def ev_hup(self, worker):
-        if hasattr(worker, "last_retcode"):
-            ns, rc = worker.last_retcode()
-        else:
-            ns = "LOCAL"
-            rc = worker.retcode()
+        node = worker.current_node or worker.key
+        rc = worker.current_rc
         if rc > 0:
             self._display.vprint_err(VERB_QUIET, \
-                "clush: %s: exited with exit code %d" % (ns, rc))
+                "clush: %s: exited with exit code %d" % (node, rc))
 
     def ev_timeout(self, worker):
         self._display.vprint_err(VERB_QUIET, "clush: %s: command timeout" % \
@@ -147,9 +134,9 @@ class GatherOutputHandler(OutputHandler):
         self._runtimer = runtimer
 
     def ev_error(self, worker):
-        ns, buf = worker.last_error()
         self._runtimer_clean()
-        self._display.print_line_error(ns, buf)
+        self._display.print_line_error(worker.current_node,
+                                       worker.current_errmsg)
         self._runtimer_set_dirty()
 
     def _runtimer_clean(self):
@@ -170,7 +157,7 @@ class GatherOutputHandler(OutputHandler):
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
         self._runtimer_finalize(worker)
-
+        assert worker.current_node is not None, "cannot gather local command"
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
         cleaned = False
@@ -208,6 +195,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
     """Live line-gathered output event handler class."""
 
     def __init__(self, display, runtimer, nodes):
+        assert nodes is not None, "cannot gather local command"
         GatherOutputHandler.__init__(self, display, runtimer)
         self._nodes = NodeSet(nodes)
         self._nodecnt = dict.fromkeys(self._nodes, 0)
@@ -216,19 +204,19 @@ class LiveGatherOutputHandler(GatherOutputHandler):
 
     def ev_read(self, worker):
         # Read new line from node
-        node, line = worker.last_read()
+        node = worker.current_node
         self._nodecnt[node] += 1
         cnt = self._nodecnt[node]
         if len(self._mtreeq) < cnt:
             self._mtreeq.append(MsgTree())
-        self._mtreeq[cnt - self._offload - 1].add(node, line)
+        self._mtreeq[cnt - self._offload - 1].add(node, worker.current_msg)
         self._live_line(worker)
 
     def ev_hup(self, worker):
-        if self._mtreeq and worker.last_node() not in self._mtreeq[0]:
+        if self._mtreeq and worker.current_node not in self._mtreeq[0]:
             # forget a node that doesn't answer to continue live line
             # gathering anyway
-            self._nodes.remove(worker.last_node())
+            self._nodes.remove(worker.current_node)
             self._live_line(worker)
 
     def _live_line(self, worker):
@@ -495,7 +483,7 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
-    if display.gather:
+    if display.gather and ns is not None:
         runtimer = None
         if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
             # Create a ClusterShell timer used to display in live the
@@ -512,7 +500,8 @@ def run_command(task, cmd, ns, timeout, display):
         worker = task.shell(cmd, nodes=ns,
                             handler=DirectOutputHandler(display),
                             timeout=timeout)
-
+    if ns is None:
+        worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
         bind_stdin(worker)
  
