@@ -1,3 +1,8 @@
+2011-02-06 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/Ssh.py: Fix issue when more than one ssh options are specified
+	with -o or in clush.conf (ticket #138).
+
 2011-02-05 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Fix issue when executing local command with clush -b in

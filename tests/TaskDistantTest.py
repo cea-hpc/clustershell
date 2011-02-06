@@ -453,25 +453,41 @@ class TaskDistantTest(unittest.TestCase):
     def testSshOptionsOption(self):
         """test task.shell() with ssh_options set"""
         ssh_options_orig = self._task.info("ssh_options")
-        self._task.set_info("ssh_options", "-oLogLevel=DEBUG")
-        worker = self._task.shell("/bin/echo foobar", nodes="localhost")
-        self.assert_(worker != None)
-        self._task.resume()
-        # restore original ssh_user (None)
-        self.assertEqual(ssh_options_orig, None)
-        self._task.set_info("ssh_options", ssh_options_orig)
+        try:
+            self._task.set_info("ssh_options", "-oLogLevel=QUIET")
+            worker = self._task.shell("/bin/echo foobar", nodes="localhost")
+            self.assert_(worker != None)
+            self._task.resume()
+            self.assertEqual(worker.node_buffer("localhost"), "foobar")
+            # test 3 options
+            self._task.set_info("ssh_options", \
+                "-oLogLevel=QUIET -oStrictHostKeyChecking=no -oVerifyHostKeyDNS=no")
+            worker = self._task.shell("/bin/echo foobar3", nodes="localhost")
+            self.assert_(worker != None)
+            self._task.resume()
+            self.assertEqual(worker.node_buffer("localhost"), "foobar3")
+        finally:
+            # restore original ssh_user (None)
+            self.assertEqual(ssh_options_orig, None)
+            self._task.set_info("ssh_options", ssh_options_orig)
 
     def testSshOptionsOptionForScp(self):
         """test task.copy() with ssh_options set"""
         ssh_options_orig = self._task.info("ssh_options")
-        self._task.set_info("ssh_options", "-oLogLevel=DEBUG")
-        worker = self._task.copy("/etc/hosts",
-                "/tmp/cs-test_testLocalhostCopyO", nodes='localhost')
-        self.assert_(worker != None)
-        self._task.resume()
-        # restore original ssh_user (None)
-        self.assertEqual(ssh_options_orig, None)
-        self._task.set_info("ssh_options", ssh_options_orig)
+        try:
+            testfile = "/tmp/cs-test_testLocalhostCopyO"
+            if os.path.exists(testfile):
+                os.remove(testfile)
+            self._task.set_info("ssh_options", \
+                "-oLogLevel=QUIET -oStrictHostKeyChecking=no -oVerifyHostKeyDNS=no")
+            worker = self._task.copy("/etc/hosts", testfile, nodes='localhost')
+            self.assert_(worker != None)
+            self._task.resume()
+            self.assert_(os.path.exists(testfile))
+        finally:
+            # restore original ssh_user (None)
+            self.assertEqual(ssh_options_orig, None)
+            self._task.set_info("ssh_options", ssh_options_orig)
 
     def testShellStderrWithHandler(self):
         """test reading stderr of distant task.shell() on event handler"""

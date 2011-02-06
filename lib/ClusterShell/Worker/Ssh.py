@@ -86,7 +86,7 @@ class Ssh(EngineClient):
         # Add custom ssh options
         ssh_options = task.info("ssh_options")
         if ssh_options:
-            cmd_l.append(ssh_options)
+            map(cmd_l.append, ssh_options.split())
 
         cmd_l.append("%s" % self.key)
         cmd_l.append("%s" % self.command)
@@ -234,7 +234,7 @@ class Scp(Ssh):
         for key in [ "ssh_options", "scp_options" ]:
             ssh_options = task.info(key)
             if ssh_options:
-                cmd_l.append(ssh_options)
+                map(cmd_l.append, ssh_options.split())
 
         if self.reverse:
             user = task.info("ssh_user")
