@@ -685,15 +685,27 @@ def main(args=sys.argv):
     #
     # Task management
     #
-    interactive = not len(args) and not (options.copy or options.rcopy)
+    # check for clush interactive mode
+    interactive = not len(args) and \
+                  not (options.copy or options.rcopy)
+    # check for foreground ttys presence (input)
+    stdin_isafgtty = sys.stdin.isatty() and \
+        os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
+    # check for special condition (empty command and stdin not a tty)
+    if interactive and not stdin_isafgtty:
+        # looks like interactive but stdin is not a tty:
+        # switch to non-interactive + disable ssh pseudo-tty
+        interactive = False
+        # SSH: disable pseudo-tty allocation (-T)
+        ssh_options = config.ssh_options or ''
+        ssh_options += ' -T'
+        config._set_main("ssh_options", ssh_options)
     if options.nostdin and interactive:
-        parser.error("illegal option `--nostdin' in interactive mode")
+        parser.error("illegal option `--nostdin' in that case")
 
     user_interaction = False
     if not options.nostdin:
-        # Try user interaction: check for foreground ttys presence
-        stdin_isafgtty = sys.stdin.isatty() and \
-            os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
+        # Try user interaction: check for foreground ttys presence (ouput)
         stdout_isafgtty = sys.stdout.isatty() and \
             os.tcgetpgrp(sys.stdout.fileno()) == os.getpgrp()
         user_interaction = stdin_isafgtty and stdout_isafgtty
