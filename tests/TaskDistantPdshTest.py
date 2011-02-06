@@ -9,6 +9,7 @@
 import copy
 import shutil
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -67,31 +68,48 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitPdshCopyDir(self):
         """test simple localhost copy dir with explicit pdsh worker"""
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
         # pdcp worker doesn't create custom destination directory
-        # TODO: use tempfile.mkdtemp()
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerPdsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=10)
-        self._task.schedule(worker) 
-        self._task.resume()
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitPdshCopyDir")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerPdsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=10)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testLocalhostExplicitPdshCopyDirPreserve(self):
         """test simple localhost preserve copy dir with explicit pdsh worker"""
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
         # pdcp worker doesn't create custom destination directory
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshPreserveCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerPdsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=10, preserve=True)
-        self._task.schedule(worker) 
-        self._task.resume()
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitPdshCopyDirPreserve")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerPdsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=10, preserve=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testExplicitPdshWorker(self):
         """test simple localhost command with explicit pdsh worker"""
         # init worker
-        worker = WorkerPdsh("localhost", command="/bin/echo alright", handler=None, timeout=5)
+        worker = WorkerPdsh("localhost", command="echo alright", handler=None, timeout=5)
         self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
@@ -102,7 +120,7 @@ class TaskDistantTest(unittest.TestCase):
     def testExplicitPdshWorkerStdErr(self):
         """test simple localhost command with explicit pdsh worker (stderr)"""
         # init worker
-        worker = WorkerPdsh("localhost", command="/bin/echo alright 1>&2",
+        worker = WorkerPdsh("localhost", command="echo alright 1>&2",
                     handler=None, stderr=True, timeout=5)
         self.assert_(worker != None)
         self._task.schedule(worker)
@@ -112,7 +130,7 @@ class TaskDistantTest(unittest.TestCase):
         self.assertEqual(worker.node_error_buffer("localhost"), "alright")
 
         # Re-test with stderr=False
-        worker = WorkerPdsh("localhost", command="/bin/echo alright 1>&2",
+        worker = WorkerPdsh("localhost", command="echo alright 1>&2",
                     handler=None, stderr=False, timeout=5)
         self.assert_(worker != None)
         self._task.schedule(worker)
@@ -125,7 +143,7 @@ class TaskDistantTest(unittest.TestCase):
     def testPdshWorkerWriteNotSupported(self):
         """test that write is reported as not supported with pdsh"""
         # init worker
-        worker = WorkerPdsh("localhost", command="/bin/uname -r", handler=None, timeout=5)
+        worker = WorkerPdsh("localhost", command="uname -r", handler=None, timeout=5)
         self.assertRaises(EngineClientNotSupportedError, worker.write, "toto")
 
     class TEventHandlerChecker(EventHandler):
@@ -163,7 +181,7 @@ class TaskDistantTest(unittest.TestCase):
         """test triggered events with explicit pdsh worker"""
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="/bin/hostname", handler=test_eh, timeout=None)
+        worker = WorkerPdsh("localhost", command="hostname", handler=test_eh, timeout=None)
         self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
@@ -175,7 +193,7 @@ class TaskDistantTest(unittest.TestCase):
         """test triggered events (with timeout) with explicit pdsh worker"""
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="/bin/echo alright && /bin/sleep 10",
+        worker = WorkerPdsh("localhost", command="echo alright && sleep 10",
                 handler=test_eh, timeout=2)
         self.assert_(worker != None)
         self._task.schedule(worker)
@@ -189,7 +207,7 @@ class TaskDistantTest(unittest.TestCase):
         """test triggered events (no read, no timeout) with explicit pdsh worker"""
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="/bin/sleep 2",
+        worker = WorkerPdsh("localhost", command="sleep 2",
                 handler=test_eh, timeout=None)
         self.assert_(worker != None)
         self._task.schedule(worker)
@@ -204,7 +222,7 @@ class TaskDistantTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
 
-        worker = WorkerPdsh("localhost", command="/usr/bin/printf 'foo\nbar\nxxx\n'",
+        worker = WorkerPdsh("localhost", command="printf 'foo\nbar\nxxx\n'",
                             handler=None, timeout=None)
         task.schedule(worker)
         task.resume()
@@ -428,27 +446,42 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitPdshReverseCopyDir(self):
         """test simple localhost rcopy dir with explicit pdsh worker"""
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshRCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerPdsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=30, reverse=True)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitPdshReverseCopyDir")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerPdsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=30, reverse=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                "%s.localhost" % os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testLocalhostExplicitPdshReverseCopyDirPreserve(self):
         """test simple localhost preserve rcopy dir with explicit pdsh worker"""
-        # pdcp worker doesn't create custom destination directory
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshPreserveCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerPdsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=30, preserve=True,
-                reverse=True)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitPdshReverseCopyDirPreserve")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerPdsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=30, preserve=True,
+                    reverse=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                "%s.localhost" % os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
 
 if __name__ == '__main__':

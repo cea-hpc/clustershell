@@ -10,6 +10,7 @@ import copy
 import pwd
 import shutil
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -103,13 +104,21 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostCopyDir(self):
         """test simple localhost directory copy"""
-        # assume there is a /etc/rc.d directory
-        dest = "/tmp/cs-test_testLocalhostCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        worker = self._task.copy("/etc/rc.d", dest, nodes='localhost')
-        self.assert_(worker != None)
-        # run task
-        self._task.resume()
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostCopyDir")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = self._task.copy(dtmp_src, dtmp_dst, nodes='localhost')
+            self.assert_(worker != None)
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testLocalhostExplicitSshCopy(self):
         """test simple localhost copy with explicit ssh worker"""
@@ -122,25 +131,41 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshCopyDir(self):
         """test simple localhost copy dir with explicit ssh worker"""
-        # init worker
-        dest = "/tmp/cs-test_testLocalhostExplicitSshCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        worker = WorkerSsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=10)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assertEqual(worker.source, "/etc/rc.d")
-        self.assertEqual(worker.dest, dest)
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitSshCopyDir")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerSsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=10)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testLocalhostExplicitSshCopyDirPreserve(self):
         """test simple localhost preserve copy dir with explicit ssh worker"""
-        # init worker
-        dest = "/tmp/cs-test_testLocalhostExplicitSshPreserveCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        worker = WorkerSsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=10, preserve=True)
-        self._task.schedule(worker) 
-        self._task.resume()
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitSshCopyDirPreserve")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerSsh("localhost", source=dtmp_src, dest=dtmp_dst,
+                               handler=None, timeout=10, preserve=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testExplicitSshWorker(self):
         """test simple localhost command with explicit ssh worker"""
@@ -594,27 +619,41 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshReverseCopyDir(self):
         """test simple localhost rcopy dir with explicit ssh worker"""
-        dest = "/tmp/cs-test_testLocalhostExplicitSshRCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerSsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=30, reverse=True)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitSshReverseCopyDir")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerSsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=30, reverse=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                "%s.localhost" % os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
     def testLocalhostExplicitSshReverseCopyDirPreserve(self):
         """test simple localhost preserve rcopy dir with explicit ssh worker"""
-        # pdcp worker doesn't create custom destination directory
-        dest = "/tmp/cs-test_testLocalhostExplicitSshPreserveCopyDirectory"
-        shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerSsh("localhost", source="/etc/rc.d",
-                dest=dest, handler=None, timeout=30, preserve=True,
-                reverse=True)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assert_(os.path.isdir(os.path.join(dest, "rc.d.localhost")))
+        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_dst = tempfile.mkdtemp( \
+            "_cs-test_testLocalhostExplicitSshReverseCopyDirPreserve")
+        try:
+            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
+            worker = WorkerSsh("localhost", source=dtmp_src,
+                    dest=dtmp_dst, handler=None, timeout=30, reverse=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+                "%s.localhost" % os.path.basename(dtmp_src), "lev1_a", "lev2")))
+        finally:
+            shutil.rmtree(dtmp_dst, ignore_errors=True)
+            shutil.rmtree(dtmp_src, ignore_errors=True)
 
 
 if __name__ == '__main__':
