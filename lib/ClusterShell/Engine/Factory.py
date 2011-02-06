@@ -44,7 +44,7 @@ from ClusterShell.Engine.Engine import EngineNotSupportedError
 # Available event engines
 from ClusterShell.Engine.EPoll import EngineEPoll
 from ClusterShell.Engine.Poll import EnginePoll
-
+from ClusterShell.Engine.Select import EngineSelect
 
 class PreferredEngine(object):
     """
@@ -52,7 +52,8 @@ class PreferredEngine(object):
     """
 
     engines = { EngineEPoll.identifier: EngineEPoll,
-                EnginePoll.identifier: EnginePoll }
+                EnginePoll.identifier: EnginePoll,
+                EngineSelect.identifier: EngineSelect }
 
     def __new__(cls, hint, info):
         """
@@ -60,12 +61,12 @@ class PreferredEngine(object):
         """
         if not hint or hint == 'auto':
             # in order or preference
-            for engine_class in [ EngineEPoll, EnginePoll ]:
+            for engine_class in [ EngineEPoll, EnginePoll, EngineSelect ]:
                 try:
                     return engine_class(info)
                 except EngineNotSupportedError:
                     pass
-            raise RuntimeError("FATAL: No supported Engine found")
+            raise RuntimeError("FATAL: No supported ClusterShell.Engine found")
         else:
             # User overriding engine selection
             try:

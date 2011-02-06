@@ -1,5 +1,7 @@
 2011-02-06 S. Thiell <stephane.thiell@cea.fr>
 
+	* Engine/Select.py: New select()-based engine (from H. Doreau, ticket #8).
+
 	* CLI/{Clush,Display}.py: Do not display exit code with clush when -qS is
 	specified (ticket #117).
 
