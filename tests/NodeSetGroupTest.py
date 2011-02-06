@@ -369,7 +369,7 @@ list: echo foo
 default: local
 
 [local]
-map: /bin/false
+map: false
 #all:
 list: echo foo
 #reverse:
