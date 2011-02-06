@@ -70,6 +70,7 @@ class Display(object):
         self.regroup = options.regroup
         self.groupsource = options.groupsource
         self.noprefix = options.groupbase
+        self.maxrc = options.maxrc
 
         if color is None:
             # Should we use ANSI colors?

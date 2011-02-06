@@ -1,5 +1,8 @@
 2011-02-06 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/{Clush,Display}.py: Do not display exit code with clush when -qS is
+	specified (ticket #117).
+
 	* CLI/Clush.py: Allow clush to run without argument when stdin is not a
 	tty, by disabling ssh pseudo-tty allocation. You can now type `echo uname
 	| clush -w <nodes>` (ticket #134).

@@ -115,7 +115,10 @@ class DirectOutputHandler(OutputHandler):
         node = worker.current_node or worker.key
         rc = worker.current_rc
         if rc > 0:
-            self._display.vprint_err(VERB_QUIET, \
+            verb = VERB_QUIET
+            if self._display.maxrc:
+                verb = VERB_STD
+            self._display.vprint_err(verb, \
                 "clush: %s: exited with exit code %d" % (node, rc))
 
     def ev_timeout(self, worker):
@@ -182,7 +185,10 @@ class GatherOutputHandler(OutputHandler):
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
                 ns = NodeSet.fromlist(nodelist)
-                self._display.vprint_err(VERB_QUIET, \
+                verb = VERB_QUIET
+                if self._display.maxrc:
+                    verb = VERB_STD
+                self._display.vprint_err(verb, \
                     "clush: %s: exited with exit code %d" % (ns, rc))
 
         # Display nodes that didn't answer within command timeout delay
@@ -381,7 +387,10 @@ def ttyloop(task, nodeset, timeout, display):
                     if rc != 0:
                         # Display return code if not ok ( != 0)
                         ns = NodeSet.fromlist(nodelist)
-                        display.vprint_err(VERB_QUIET, \
+                        verb = VERB_QUIET
+                        if display.maxrc:
+                            verb = VERB_STD
+                        display.vprint_err(verb, \
                             "clush: %s: exited with exit code %s" % (ns, rc))
                 # Add uncompleted nodeset to exception object
                 kbe.uncompleted_nodes = ns - ns_ok
