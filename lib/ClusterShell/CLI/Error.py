@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -40,6 +40,7 @@ CLI error handling helper functions
 import signal
 import sys
 
+from ClusterShell.Engine.Engine import EngineNotSupportedError
 from ClusterShell.CLI.Utils import GroupResolverConfigError  # dummy but safe
 from ClusterShell.NodeUtils import GroupResolverSourceError
 from ClusterShell.NodeUtils import GroupSourceException
@@ -48,7 +49,8 @@ from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
 from ClusterShell.NodeSet import RangeSetParseError
 
 
-GENERIC_ERRORS = (NodeSetExternalError,
+GENERIC_ERRORS = (EngineNotSupportedError,
+                  NodeSetExternalError,
                   NodeSetParseError,
                   RangeSetParseError,
                   GroupResolverSourceError,
@@ -61,6 +63,9 @@ def handle_generic_error(excobj, prog=sys.argv[0]):
     """handle error given `excobj' generic script exception"""
     try:
         raise excobj
+    except EngineNotSupportedError, exc:
+        print >> sys.stderr, "%s: I/O events engine '%s' not supported on " \
+            "this host" % (prog, exc.engineid)
     except NodeSetExternalError, exc:
         print >> sys.stderr, "%s: External error:" % prog, exc
     except (NodeSetParseError, RangeSetParseError), exc:

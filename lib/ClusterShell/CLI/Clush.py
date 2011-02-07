@@ -652,6 +652,9 @@ def main(args=sys.argv):
         # Be sure -a/g -s source work as espected.
         STD_GROUP_RESOLVER.default_sourcename = options.groupsource
 
+    # FIXME: add public API to enforce engine
+    Task._std_default['engine'] = options.engine
+
     # Do we have nodes group?
     task = task_self()
     task.set_info("debug", config.verbosity > 1)

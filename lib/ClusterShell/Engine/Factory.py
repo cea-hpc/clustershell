@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010)
+# Copyright CEA/DAM/DIF (2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -70,6 +70,7 @@ class PreferredEngine(object):
         else:
             # User overriding engine selection
             try:
+                # constructor may raise EngineNotSupportedError
                 return cls.engines[hint](info)
             except KeyError, exc:
                 print >> sys.stderr, "Invalid engine identifier", exc
