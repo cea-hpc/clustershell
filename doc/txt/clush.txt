@@ -7,9 +7,9 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-12-14
+:Date:   2011-02-08
 :Copyright: CeCILL-C V1
-:Version: 1.4
+:Version: 1.4.1
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -68,14 +68,14 @@ Non-interactive mode
   Please see some other great examples in the EXAMPLES section below.
 
 Interactive session
-  If a *command* is not specified, ``clush`` runs interactively. In this mode,
-  ``clush`` uses the GNU ``readline`` library to read command lines. Readline
-  provides commands for searching through the command history for lines
-  containing a specified string. For instance, type Control-R to search in the
-  history for the next entry matching the search string typed so far.
-  ``clush`` also recognizes special single-character prefixes that allows the
-  user to see and modify the current nodeset (the nodes where the commands are
-  executed).
+  If a *command* is not specified, and its standard input is connected to a
+  terminal, ``clush`` runs interactively. In this mode, ``clush`` uses the GNU
+  ``readline`` library to read command lines. Readline provides commands for
+  searching through the command history for lines containing a specified
+  string. For instance, type Control-R to search in the history for the next
+  entry matching the search string typed so far.  ``clush`` also recognizes
+  special single-character prefixes that allows the user to see and modify
+  the current nodeset (the nodes where the commands are executed).
 
   Single-character interactive commands are:
     clush> ?
@@ -168,8 +168,9 @@ but gives no information about the remote commands exit status. However, when
 the ``-S`` option is specified, the exit status of ``clush`` is the largest
 value of the remote commands return codes.
 
-For failed remote commands whose exit status is non-zero, ``clush`` displays
-messages similar to:
+For failed remote commands whose exit status is non-zero, and unless the
+combination of options ``-qS`` is specified, ``clush`` displays messages
+similar to:
 
 :clush\: node[40-42]\: exited with exit code 1:
 
