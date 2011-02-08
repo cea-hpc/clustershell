@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-12-14
+:Date:   2011-02-08
 :Copyright: CeCILL-C V1
-:Version: 1.4
+:Version: 1.4.1
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -47,15 +47,27 @@ command_timeout
   been established. This parameter is passed to ssh.  In addition, the
   ClusterShell library ensures that any commands complete in less than
   ( connect_timeout + command_timeout ). If set to *0*, no timeout occurs.
+color
+  Whether to use ANSI colors to surround node or nodeset prefix/header with
+  escape sequences to display them in color on the terminal. Valid arguments
+  are ``never``, ``always`` or ``auto`` (which use color if standard
+  output/error refer to a terminal). Colors are set to [34m (blue foreground
+  text) for stdout and [31m (red foreground text) for stderr, and cannot be
+  modified.
+fd_max
+  Maximum number of open file descriptors permitted per clush process (soft
+  resource limit for open files). This limit can never exceed the system
+  (hard) limit. The `fd_max` (soft) and system (hard) limits should be high
+  enough to run ``clush``, although their values depend on your `fanout` value.
 history_size
   Set the maximum number of history entries saved in the GNU readline history
   list. Negative values imply unlimited history file size.
-color
-  Whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. Valid arguments are ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
 node_count
-  Should ``clush`` display additional (node count) information in buffer header? (`yes`/`no`)
+  Should ``clush`` display additional (node count) information in buffer
+  header? (`yes`/`no`)
 verbosity
-  Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more (debug).
+  Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more
+  (debug).
 ssh_user
   Set the ssh user to use for remote connection (default is to not specify).
 ssh_path
@@ -79,6 +91,7 @@ Simple configuration file.
 | command_timeout: 0
 | history_size: 100
 | color: auto
+| fd_max: 10240
 | node_count: yes
 | 
 

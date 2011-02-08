@@ -554,16 +554,17 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
 
     task.resume()
 
-def max_fdlimit(display):
+def set_fdlimit(fd_max, display):
     """Make open file descriptors soft limit the max."""
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-    if soft < hard:
-        display.vprint(VERB_DEBUG, "Setting max soft limit "
-                       "RLIMIT_NOFILE: %d -> %d" % (soft, hard))
-        resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
-    else:
-        display.vprint(VERB_DEBUG, "Soft limit RLIMIT_NOFILE already set to " \
-                                   "the max (%d)" % soft)
+    if hard < fd_max:
+        display.vprint(VERB_DEBUG, "Warning: Consider increasing max open " \
+            "files hard limit (%d)" % hard)
+    rlim_max = min(hard, fd_max)
+    if soft != rlim_max:
+        display.vprint(VERB_DEBUG, "Modifying max open files soft limit: " \
+            "%d -> %d" % (soft, rlim_max))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
 
 def clush_exit(status):
     # Flush stdio buffers
@@ -691,8 +692,8 @@ def main(args=sys.argv):
 
     display.vprint(VERB_DEBUG, "Final NodeSet: %s" % nodeset_base)
 
-    # Make soft fd limit the max.
-    max_fdlimit(display)
+    # Set open files limit.
+    set_fdlimit(config.fd_max, display)
 
     #
     # Task management

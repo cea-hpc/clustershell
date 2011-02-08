@@ -7,13 +7,13 @@ distant cluster nodes in parallel depending on the selected engine and worker
 mechanisms. Also, clush, clubak and nodeset, three convenient command-line
 tools using the library are included.
 
- -------------------
- Requirements (v1.4)
- -------------------
+ ---------------------
+ Requirements (v1.4.1)
+ ---------------------
 
  * OpenSSH (ssh/scp)
 
- * Python 2.x (x >= 4) with select.poll available (eg. Linux)
+ * Python 2.x (x >= 4)
 
  ------------------------
  Supported Engine workers
