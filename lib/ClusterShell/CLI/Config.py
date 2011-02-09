@@ -65,7 +65,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
                       "color" : WHENCOLOR_CHOICES[0],
                       "verbosity" : "%d" % VERB_STD,
                       "node_count" : "yes",
-                      "fd_max" : "1024" }
+                      "fd_max" : "16384" }
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
