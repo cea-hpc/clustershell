@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -48,7 +48,7 @@ Please see first:
 
 __version__ = '1.4.1'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2011/02/05'
+__date__    = '2011/02/09'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 

@@ -11,6 +11,8 @@ tools using the library are included.
  Requirements (v1.4.1)
  ---------------------
 
+ * GNU/Linux, *BSD, Mac OS X, etc.
+
  * OpenSSH (ssh/scp)
 
  * Python 2.x (x >= 4)
@@ -19,7 +21,7 @@ tools using the library are included.
  Supported Engine workers
  ------------------------
 
- Two workers are supported as of version 1.1:
+ Two workers are supported:
 
  * Ssh (default, requires ssh): support writes, fanout and reliable timeouts
 
@@ -41,6 +43,10 @@ When possible, please use the RPM/deb distribution.
 Otherwise in the source directory, use:
 
     # python setup.py install
+
+For installation on Mac OS X, please see:
+
+    http://sourceforge.net/apps/trac/clustershell/wiki/ClusterShellOnMacOSX
 
  ----------
  Test Suite
