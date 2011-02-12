@@ -46,6 +46,14 @@ class CLIOptionParserTest(unittest.TestCase):
         parser.install_display_options(dshbak_compat=True)
         self.assertRaises(OptionConflictError, parser.install_filecopy_options)
 
+    def testOptionParserClubak(self):
+        """test CLI.OptionParser for clubak"""
+        parser = OptionParser("dummy")
+        parser.install_nodes_options()
+        parser.install_display_options(separator_option=True, dshbak_compat=True)
+        options, _ = parser.parse_args([])
+
+
 if __name__ == '__main__':
     suites = [unittest.TestLoader().loadTestsFromTestCase(CLIOptionParserTest)]
     unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))
