@@ -106,7 +106,7 @@ list: echo all
         """test CLI.Display for clubak"""
         parser = OptionParser("dummy")
         parser.install_display_options(separator_option=True, dshbak_compat=True)
-        options, _ = parser.parse_args()
+        options, _ = parser.parse_args([])
         disp = Display(options)
         self.assertEqual(bool(disp.gather), False)
         self.assertEqual(disp.line_mode, False)

@@ -181,21 +181,20 @@ class GatherOutputHandler(OutputHandler):
         self.update_prompt(worker)
 
     def _close_common(self, worker):
+        verbexit = VERB_QUIET
+        if self._display.maxrc:
+            verbexit = VERB_STD
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
                 ns = NodeSet.fromlist(nodelist)
-                verb = VERB_QUIET
-                if self._display.maxrc:
-                    verb = VERB_STD
-                self._display.vprint_err(verb, \
+                self._display.vprint_err(verbexit, \
                     "clush: %s: exited with exit code %d" % (ns, rc))
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
-            self._display.vprint_err(VERB_QUIET,
-                "clush: %s: command timeout" % \
-                    NodeSet.fromlist(worker.iter_keys_timeout()))
+            self._display.vprint_err(verbexit, "clush: %s: command timeout" % \
+                NodeSet.fromlist(worker.iter_keys_timeout()))
 
 class LiveGatherOutputHandler(GatherOutputHandler):
     """Live line-gathered output event handler class."""
@@ -381,23 +380,23 @@ def ttyloop(task, nodeset, timeout, display):
                     display.print_gather(nodeset, buf)
                     
                 # Return code handling
+                verbexit = VERB_QUIET
+                if display.maxrc:
+                    verbexit = VERB_STD
                 ns_ok = NodeSet()
                 for rc, nodelist in task.iter_retcodes():
                     ns_ok.add(NodeSet.fromlist(nodelist))
                     if rc != 0:
                         # Display return code if not ok ( != 0)
                         ns = NodeSet.fromlist(nodelist)
-                        verb = VERB_QUIET
-                        if display.maxrc:
-                            verb = VERB_STD
-                        display.vprint_err(verb, \
+                        display.vprint_err(verbexit, \
                             "clush: %s: exited with exit code %s" % (ns, rc))
                 # Add uncompleted nodeset to exception object
                 kbe.uncompleted_nodes = ns - ns_ok
 
                 # Display nodes that didn't answer within command timeout delay
                 if task.num_timeout() > 0:
-                    display.vprint_err(VERB_QUIET, \
+                    display.vprint_err(verbexit, \
                         "clush: %s: command timeout" % \
                             NodeSet.fromlist(task.iter_keys_timeout()))
             raise kbe
