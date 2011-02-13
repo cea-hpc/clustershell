@@ -48,7 +48,7 @@ Please see first:
 
 __version__ = '1.4.1'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2011/02/09'
+__date__    = '2011/02/13'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 

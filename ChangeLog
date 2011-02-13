@@ -1,3 +1,7 @@
+2011-02-13 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.4.1 released.
+
 2011-02-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Config.py: Add fd_max integer parameter to set the max number of
