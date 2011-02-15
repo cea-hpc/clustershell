@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -54,6 +54,7 @@ class EngineAbortException(EngineException):
     Raised on user abort.
     """
     def __init__(self, kill):
+        EngineException.__init__(self)
         self.kill = kill
 
 class EngineTimeoutException(EngineException):
@@ -75,6 +76,9 @@ class EngineNotSupportedError(EngineException):
     """
     Error raised when the engine mechanism is not supported.
     """
+    def __init__(self, engineid):
+        EngineException.__init__(self)
+        self.engineid = engineid
 
 
 class EngineBaseTimer:
@@ -171,7 +175,7 @@ class EngineTimer(EngineBaseTimer):
         assert self.eh != None, "An event handler is needed for timer."
 
     def _fire(self):
-        self.eh._invoke("ev_timer", self)
+        self.eh.ev_timer(self)
 
 class _EngineTimerQ:
 

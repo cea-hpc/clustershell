@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010)
+# Copyright CEA/DAM/DIF (2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -44,7 +44,7 @@ from ClusterShell.Engine.Engine import EngineNotSupportedError
 # Available event engines
 from ClusterShell.Engine.EPoll import EngineEPoll
 from ClusterShell.Engine.Poll import EnginePoll
-
+from ClusterShell.Engine.Select import EngineSelect
 
 class PreferredEngine(object):
     """
@@ -52,7 +52,8 @@ class PreferredEngine(object):
     """
 
     engines = { EngineEPoll.identifier: EngineEPoll,
-                EnginePoll.identifier: EnginePoll }
+                EnginePoll.identifier: EnginePoll,
+                EngineSelect.identifier: EngineSelect }
 
     def __new__(cls, hint, info):
         """
@@ -60,16 +61,18 @@ class PreferredEngine(object):
         """
         if not hint or hint == 'auto':
             # in order or preference
-            #for engine_class in [ EngineEPoll, EnginePoll ]: # temporary workaround for 2.0 tests
-            for engine_class in [ EnginePoll ]:
+            # XXX temporary workaround for 2.0 tests
+            # for engine_class in [ EngineEPoll, EnginePoll, EngineSelect ]:
+            for engine_class in [ EnginePoll, EngineSelect ]:
                 try:
                     return engine_class(info)
                 except EngineNotSupportedError:
                     pass
-            raise RuntimeError("FATAL: No supported Engine found")
+            raise RuntimeError("FATAL: No supported ClusterShell.Engine found")
         else:
             # User overriding engine selection
             try:
+                # constructor may raise EngineNotSupportedError
                 return cls.engines[hint](info)
             except KeyError, exc:
                 print >> sys.stderr, "Invalid engine identifier", exc

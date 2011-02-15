@@ -1,3 +1,49 @@
+2011-02-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Config.py: Add fd_max integer parameter to set the max number of
+	open files (soft limit) permitted per clush process. This will fix an
+	issue on systems where hard limit is not reasonable.
+
+2011-02-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/OptionParser.py: Add clush -E <engine> hidden option to enforce a
+	specific I/O events engine (should not be needed, but can be useful for
+	testing). Improve engine selection error handling.
+
+2011-02-06 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine/Select.py: New select()-based engine (from H. Doreau, ticket #8).
+
+	* CLI/{Clush,Display}.py: Do not display exit code with clush when -qS is
+	specified (ticket #117).
+
+	* CLI/Clush.py: Allow clush to run without argument when stdin is not a
+	tty, by disabling ssh pseudo-tty allocation. You can now type `echo uname
+	| clush -w <nodes>` (ticket #134).
+
+	* Worker/Ssh.py: Fix issue when more than one ssh options are specified
+	with -o or in clush.conf (ticket #138).
+
+2011-02-05 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Clush.py: Fix issue when executing local command with clush -b in
+	interactive mode (eg. !uname).
+
+	* Worker/Worker.py: Define new current_node, current_msg, current_errmsg
+	and current_rc Worker variables, updated at each event (last_read(),
+	last_node() and last_retcode() will be deprecated from version 2.0).
+
+	* Worker/*.py: Performance: removed _invoke() indirections when generating
+	events + local variables optimization.
+
+	* Task.py: Performance: replaced _TaskMsgTree metaclass by direct calls to
+	MsgTree methods + local variables optimization.
+
+	* Worker/Ssh.py: Local variables optimization.
+
+	* CLI/Clush.py: Do not disable internal messages gathering when using -bL
+	for proper display after Ctrl-C interruption (#133).
+
 2011-01-26 S. Thiell <stephane.thiell@cea.fr>
 
 	* tests/config: test config-template directory created.
@@ -800,6 +846,6 @@
 	* 1.0->1.1 internal design changes.
 
 
-Copyright CEA/DAM/DIF  (2009, 2010)
+Copyright CEA/DAM/DIF  (2009, 2010, 2011)
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.

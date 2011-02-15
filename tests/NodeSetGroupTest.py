@@ -127,7 +127,7 @@ class NodeSetGroupTest(unittest.TestCase):
         source = GroupSource("simple",
                              "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups1.name,
                              "awk -F: '/^all:/ {print $2}' %s" % test_groups1.name,
-                             "awk -F: '/^\w/ {print $1}' %s" % test_groups1.name,
+                             "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % test_groups1.name,
                              None)
 
         # create custom resolver with default source
@@ -179,7 +179,7 @@ class NodeSetGroupTest(unittest.TestCase):
         source = GroupSource("simple",
                              "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups1.name,
                              "awk -F: '/^all:/ {print $2}' %s" % test_groups1.name,
-                             "awk -F: '/^\w/ {print $1}' %s" % test_groups1.name,
+                             "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % test_groups1.name,
                              None)
 
         res = GroupResolver(source)
@@ -369,7 +369,7 @@ list: echo foo
 default: local
 
 [local]
-map: /bin/false
+map: false
 #all:
 list: echo foo
 #reverse:
@@ -427,7 +427,7 @@ default: local
 [local]
 map: echo example[1-100]
 #all:
-list: echo -n
+list: :
 reverse: echo foo
         """)
         res = GroupResolverConfig(f.name)
@@ -487,13 +487,13 @@ class NodeSetGroup2GSTest(unittest.TestCase):
         default = GroupSource("default",
                               "awk -F: '/^$GROUP:/ {print $2}' %s" % self.test_groups1.name,
                               "awk -F: '/^all:/ {print $2}' %s" % self.test_groups1.name,
-                              "awk -F: '/^\w/ {print $1}' %s" % self.test_groups1.name,
+                              "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % self.test_groups1.name,
                               None)
 
         source2 = GroupSource("source2",
                               "awk -F: '/^$GROUP:/ {print $2}' %s" % self.test_groups2.name,
                               "awk -F: '/^all:/ {print $2}' %s" % self.test_groups2.name,
-                              "awk -F: '/^\w/ {print $1}' %s" % self.test_groups2.name,
+                              "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % self.test_groups2.name,
                               None)
 
         ClusterShell.NodeSet.STD_GROUP_RESOLVER = GroupResolver(default)
@@ -562,7 +562,7 @@ class NodeSetRegroupTest(unittest.TestCase):
         source = GroupSource("test",
                              "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups3.name,
                              "awk -F: '/^all:/ {print $2}' %s" % test_groups3.name,
-                             "awk -F: '/^\w/ { print $1 }' %s" % test_groups3.name,
+                             "awk -F: '/^[[:alnum:]_]/ { print $1 }' %s" % test_groups3.name,
                              "awk -F: '/^$NODE:/ { gsub(\",\",\"\\n\",$2); print $2 }' %s" % test_reverse3.name)
 
         # create custom resolver with default source

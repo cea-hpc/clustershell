@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -219,7 +219,8 @@ class WorkerPdsh(EngineClient, DistantWorker):
             if rc != 0:
                 raise WorkerError("Cannot run pdsh (error %d)" % rc)
         if abort and timeout:
-            self._invoke("ev_timeout")
+            if self.eh:
+                self.eh.ev_timeout(self)
 
         # close
         self.popen.stdin.close()
@@ -235,7 +236,8 @@ class WorkerPdsh(EngineClient, DistantWorker):
             for node in (self.nodes - self.closed_nodes):
                 self._on_node_rc(node, 0)
 
-        self._invoke("ev_close")
+        if self.eh:
+            self.eh.ev_close(self)
 
     def _parse_line(self, line, stderr):
         """

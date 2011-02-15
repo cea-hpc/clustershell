@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -89,7 +89,8 @@ class WorkerPopen(WorkerSimple):
         if self.task.info("debug", False):
             self.task.info("print_debug")(self.task, "POPEN: %s" % self.command)
 
-        self._invoke("ev_start")
+        if self.eh:
+            self.eh.ev_start(self)
 
         return self
 
@@ -124,22 +125,21 @@ class WorkerPopen(WorkerSimple):
         if self.popen.stderr:
             self.popen.stderr.close()
 
-        if rc >= 0:
+        if rc >= 0: # filter valid rc
             self._on_rc(rc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
             self._on_timeout()
 
-        self._invoke("ev_close")
+        if self.eh:
+            self.eh.ev_close(self)
 
     def _on_rc(self, rc):
         """
         Set return code.
         """
-        self.rc = rc
-        self.task._rc_set((self, self.key), rc)
-
-        self._invoke("ev_hup")
+        self.rc = rc        # 1.4- compat
+        WorkerSimple._on_rc(self, rc)
 
     def retcode(self):
         """

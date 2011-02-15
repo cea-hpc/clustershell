@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH 1 "2010-12-14" "1.4" "ClusterShell User Manual"
+.TH CLUSH 1 "2011-02-08" "1.4.1" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -84,14 +84,14 @@ Please see some other great examples in the EXAMPLES section below.
 .TP
 .B Interactive session
 .
-If a \fIcommand\fP is not specified, \fCclush\fP runs interactively. In this mode,
-\fCclush\fP uses the GNU \fCreadline\fP library to read command lines. Readline
-provides commands for searching through the command history for lines
-containing a specified string. For instance, type Control\-R to search in the
-history for the next entry matching the search string typed so far.
-\fCclush\fP also recognizes special single\-character prefixes that allows the
-user to see and modify the current nodeset (the nodes where the commands are
-executed).
+If a \fIcommand\fP is not specified, and its standard input is connected to a
+terminal, \fCclush\fP runs interactively. In this mode, \fCclush\fP uses the GNU
+\fCreadline\fP library to read command lines. Readline provides commands for
+searching through the command history for lines containing a specified
+string. For instance, type Control\-R to search in the history for the next
+entry matching the search string typed so far.  \fCclush\fP also recognizes
+special single\-character prefixes that allows the user to see and modify
+the current nodeset (the nodes where the commands are executed).
 .INDENT 7.0
 .TP
 .B Single\-character interactive commands are:
@@ -284,8 +284,9 @@ but gives no information about the remote commands exit status. However, when
 the \fC\-S\fP option is specified, the exit status of \fCclush\fP is the largest
 value of the remote commands return codes.
 .sp
-For failed remote commands whose exit status is non\-zero, \fCclush\fP displays
-messages similar to:
+For failed remote commands whose exit status is non\-zero, and unless the
+combination of options \fC\-qS\fP is specified, \fCclush\fP displays messages
+similar to:
 .INDENT 0.0
 .TP
 .B clush: node[40\-42]: exited with exit code 1

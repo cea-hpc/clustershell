@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Sun Feb 13 2011 Stephane Thiell <stephane.thiell@cea.fr> 1.4.1-1
+- update to 1.4.1
+
 * Sat Jan 15 2011 Stephane Thiell <stephane.thiell@cea.fr> 1.4-1
 - update to 1.4
 

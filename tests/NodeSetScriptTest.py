@@ -163,6 +163,7 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["--split=4","-e", "foo[2-3]"], "foo2\nfoo3")
         self._launchAndCompare(["--split=4","-e", "foo2", "foo3"], "foo2\nfoo3")
         self._launchAndCompare(["--split=2","-c", "foo2", "foo3"], "1\n1")
+        # following test requires a default group source set
         self._launchAndCompare(["--split=2","-r", "foo2", "foo3"], "foo2\nfoo3")
 
 

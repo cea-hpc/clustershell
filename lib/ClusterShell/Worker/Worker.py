@@ -60,8 +60,16 @@ class Worker(object):
         """
         Initializer. Should be called from derived classes.
         """
-        self.eh = handler                   # associated EventHandler
+        # Associated EventHandler object
+        self.eh = handler
+        # Parent task (once bound)
         self.task = None
+        self.started = False
+        # current_x public variables (updated at each event accordingly)
+        self.current_node = None
+        self.current_msg = None
+        self.current_errmsg = None
+        self.current_rc = 0
 
     def _set_task(self, task):
         """
@@ -82,12 +90,14 @@ class Worker(object):
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _invoke(self, ev_type):
+    def _on_start(self):
         """
-        Invoke user EventHandler method if needed.
+        Starting worker.
         """
-        if self.eh:
-            self.eh._invoke(ev_type, self)
+        if not self.started:
+            self.started = True
+            if self.eh:
+                self.eh.ev_start(self)
 
     # Base getters
 
@@ -138,62 +148,57 @@ class DistantWorker(Worker):
     to use with distant workers like ssh or pdsh.
     """
 
-    def __init__(self, handler):
-        Worker.__init__(self, handler)
-
-        self._last_node = None
-        self._last_msg = None
-        self._last_errmsg = None
-        self._last_rc = 0
-        self.started = False
-
-    def _on_start(self):
-        """
-        Starting
-        """
-        if not self.started:
-            self.started = True
-            self._invoke("ev_start")
-
     def _on_node_msgline(self, node, msg):
         """
         Message received from node, update last* stuffs.
         """
-        self._last_node = node
-        self._last_msg = msg
+        # Maxoptimize this method as it might be called very often.
+        task = self.task
+        handler = self.eh
 
-        self.task._msg_add((self, node), msg)
+        self.current_node = node
+        self.current_msg = msg
 
-        self._invoke("ev_read")
+        if task._msgtree is not None:   # don't waste time
+            task._msg_add((self, node), msg)
+
+        if handler is not None:
+            handler.ev_read(self)
 
     def _on_node_errline(self, node, msg):
         """
         Error message received from node, update last* stuffs.
         """
-        self._last_node = node
-        self._last_errmsg = msg
+        task = self.task
+        handler = self.eh
 
-        self.task._errmsg_add((self, node), msg)
+        self.current_node = node
+        self.current_errmsg = msg
 
-        self._invoke("ev_error")
+        if task._errtree is not None:
+            task._errmsg_add((self, node), msg)
+
+        if handler is not None:
+            handler.ev_error(self)
 
     def _on_node_rc(self, node, rc):
         """
         Return code received from a node, update last* stuffs.
         """
-        self._last_node = node
-        self._last_rc = rc
+        self.current_node = node
+        self.current_rc = rc
 
         self.task._rc_set((self, node), rc)
 
-        self._invoke("ev_hup")
+        if self.eh:
+            self.eh.ev_hup(self)
 
     def _on_node_timeout(self, node):
         """
         Update on node timeout.
         """
-        # Update _last_node to allow node resolution after ev_timeout.
-        self._last_node = node
+        # Update current_node to allow node resolution after ev_timeout.
+        self.current_node = node
 
         self.task._timeout_add((self, node))
 
@@ -202,25 +207,25 @@ class DistantWorker(Worker):
         Get last node, useful to get the node in an EventHandler
         callback like ev_timeout().
         """
-        return self._last_node
+        return self.current_node
 
     def last_read(self):
         """
         Get last (node, buffer), useful in an EventHandler.ev_read()
         """
-        return self._last_node, self._last_msg
+        return self.current_node, self.current_msg
 
     def last_error(self):
         """
         Get last (node, error_buffer), useful in an EventHandler.ev_error()
         """
-        return self._last_node, self._last_errmsg
+        return self.current_node, self.current_errmsg
 
     def last_retcode(self):
         """
         Get last (node, rc), useful in an EventHandler.ev_hup()
         """
-        return self._last_node, self._last_rc
+        return self.current_node, self.current_rc
 
     def node_buffer(self, node):
         """
@@ -335,9 +340,6 @@ class WorkerSimple(EngineClient, Worker):
         Worker.__init__(self, handler)
         EngineClient.__init__(self, self, stderr, timeout, autoclose)
 
-        self._last_msg = None
-        self._last_errmsg = None
-
         if key is None: # allow key=0
             self.key = self
         else:
@@ -361,10 +363,10 @@ class WorkerSimple(EngineClient, Worker):
 
     def _start(self):
         """
-        Start worker.
+        Called on EngineClient start.
         """
-        self._invoke("ev_start")
-
+        # call Worker._on_start()
+        self._on_start()
         return self
 
     def error_fileno(self):
@@ -394,13 +396,13 @@ class WorkerSimple(EngineClient, Worker):
         
         return None
     
-    def _read(self, size=4096):
+    def _read(self, size=65536):
         """
         Read data from process.
         """
         return EngineClient._read(self, size)
 
-    def _readerr(self, size=4096):
+    def _readerr(self, size=65536):
         """
         Read error data from process.
         """
@@ -426,69 +428,92 @@ class WorkerSimple(EngineClient, Worker):
             assert abort, "abort flag not set on timeout"
             self._on_timeout()
 
-        self._invoke("ev_close")
+        if self.eh:
+            self.eh.ev_close(self)
 
     def _handle_read(self):
         """
         Engine is telling us there is data available for reading.
         """
-        debug = self.task.info("debug", False)
-        if debug:
-            print_debug = self.task.info("print_debug")
+        # Local variables optimization
+        task = self.worker.task
+        msgline = self._on_msgline
 
-        for msg in self._readlines():
-            if debug:
-                print_debug(self.task, "LINE %s" % msg)
-            self._on_msgline(msg)
+        debug = task.info("debug", False)
+        if debug:
+            print_debug = task.info("print_debug")
+            for msg in self._readlines():
+                print_debug(task, "LINE %s" % msg)
+                msgline(msg)
+        else:
+            for msg in self._readlines():
+                msgline(msg)
 
     def _handle_error(self):
         """
         Engine is telling us there is error available for reading.
         """
-        debug = self.task.info("debug", False)
-        if debug:
-            print_debug = self.task.info("print_debug")
+        task = self.worker.task
+        errmsgline = self._on_errmsgline
 
-        for msg in self._readerrlines():
-            if debug:
-                print_debug(self.task, "LINE@STDERR %s" % msg)
-            self._on_errmsgline(msg)
+        debug = task.info("debug", False)
+        if debug:
+            print_debug = task.info("print_debug")
+            for msg in self._readerrlines():
+                print_debug(task, "LINE@STDERR %s" % msg)
+                errmsgline(msg)
+        else:
+            for msg in self._readerrlines():
+                errmsgline(msg)
 
     def last_read(self):
         """
         Read last msg, useful in an EventHandler.
         """
-        return self._last_msg
+        return self.current_msg
 
     def last_error(self):
         """
         Get last error message from event handler.
         """
-        return self._last_errmsg
+        return self.current_errmsg
 
     def _on_msgline(self, msg):
         """
         Add a message.
         """
         # add last msg to local buffer
-        self._last_msg = msg
+        self.current_msg = msg
 
         # update task
         self.task._msg_add((self, self.key), msg)
 
-        self._invoke("ev_read")
+        if self.eh:
+            self.eh.ev_read(self)
 
     def _on_errmsgline(self, msg):
         """
         Add a message.
         """
         # add last msg to local buffer
-        self._last_errmsg = msg
+        self.current_errmsg = msg
 
         # update task
         self.task._errmsg_add((self, self.key), msg)
 
-        self._invoke("ev_error")
+        if self.eh:
+            self.eh.ev_error(self)
+
+    def _on_rc(self, rc):
+        """
+        Set return code received.
+        """
+        self.current_rc = rc
+
+        self.task._rc_set((self, self.key), rc)
+
+        if self.eh:
+            self.eh.ev_hup(self)
 
     def _on_timeout(self):
         """
@@ -497,7 +522,8 @@ class WorkerSimple(EngineClient, Worker):
         self.task._timeout_add((self, self.key))
 
         # trigger timeout event
-        self._invoke("ev_timeout")
+        if self.eh:
+            self.eh.ev_timeout(self)
 
     def read(self):
         """

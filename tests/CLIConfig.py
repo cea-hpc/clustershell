@@ -14,7 +14,7 @@ import unittest
 sys.path.insert(0, '../lib')
 
 
-from ClusterShell.CLI.Clush import max_fdlimit
+from ClusterShell.CLI.Clush import set_fdlimit
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
 from ClusterShell.CLI.Display import *
 from ClusterShell.CLI.OptionParser import OptionParser
@@ -209,7 +209,8 @@ ssh_options: -oStrictHostKeyChecking=no
 
     def testClushConfigSetRlimit(self):
         """test CLI.Config.ClushConfig (setrlimit)"""
-
+        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+        hard2 = min(32768, hard)
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
         f.write("""
 [Main]
@@ -218,8 +219,9 @@ connect_timeout: 14
 command_timeout: 0
 history_size: 100
 color: auto
+fd_max: %d
 verbosity: 1
-""")
+""" % hard2)
 
         f.flush()
         parser = OptionParser("dummy")
@@ -232,13 +234,12 @@ verbosity: 1
         self.assert_(display != None)
 
         # force a lower soft limit
-        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-        resource.setrlimit(resource.RLIMIT_NOFILE, (hard/2, hard))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard2/2, hard))
         # max_fdlimit should increase soft limit again
-        max_fdlimit(display)
+        set_fdlimit(config.fd_max, display)
         # verify
         soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-        self.assertEqual(soft, hard)
+        self.assertEqual(soft, hard2)
         f.close()
        
     def testClushConfigDefaultWithOptions(self):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -64,7 +64,8 @@ class ClushConfig(ConfigParser.ConfigParser, object):
                       "history_size" : "100",
                       "color" : WHENCOLOR_CHOICES[0],
                       "verbosity" : "%d" % VERB_STD,
-                      "node_count" : "yes" }
+                      "node_count" : "yes",
+                      "fd_max" : "16384" }
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
@@ -185,4 +186,9 @@ class ClushConfig(ConfigParser.ConfigParser, object):
     def node_count(self):
         """node_count value as a boolean"""
         return self.getboolean("Main", "node_count")
+
+    @property
+    def fd_max(self):
+        """max number of open files (soft rlimit)"""
+        return self.getint("Main", "fd_max")
 

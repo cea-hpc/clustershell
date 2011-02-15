@@ -22,31 +22,31 @@ class TaskAdvancedTest(unittest.TestCase):
 
     def testTaskRun(self):
         """test task.run() behaving like task.resume()"""
-        wrk = task_self().shell("/bin/true")
+        wrk = task_self().shell("true")
         task_self().run()
 
     def testTaskRunTimeout(self):
         """test task.run() behaving like task.resume(timeout)"""
-        wrk = task_self().shell("/bin/sleep 1")
+        wrk = task_self().shell("sleep 1")
         self.assertRaises(TimeoutError, task_self().run, 0.3)
 
-        wrk = task_self().shell("/bin/sleep 1")
+        wrk = task_self().shell("sleep 1")
         self.assertRaises(TimeoutError, task_self().run, timeout=0.3)
 
     def testTaskShellRunLocal(self):
         """test task.run() used as a synchronous task.shell() (local)"""
-        wrk = task_self().run("/bin/false")
+        wrk = task_self().run("false")
         self.assertTrue(wrk)
         self.assertEqual(task_self().max_retcode(), 1)
 
         # Timeout in shell() fashion way.
-        wrk = task_self().run("/bin/sleep 1", timeout=0.3)
+        wrk = task_self().run("sleep 1", timeout=0.3)
         self.assertTrue(wrk)
         self.assertEqual(task_self().num_timeout(), 1)
 
     def testTaskShellRunDistant(self):
         """test task.run() used as a synchronous task.shell() (distant)"""
-        wrk = task_self().run("/bin/false", nodes="localhost")
+        wrk = task_self().run("false", nodes="localhost")
         self.assertTrue(wrk)
         self.assertEqual(wrk.node_retcode("localhost"), 1)
 
@@ -54,8 +54,8 @@ class TaskAdvancedTest(unittest.TestCase):
         """test task engine user selection hack"""
         task_terminate()
         # Uh ho! It's a test case, not an example!
-        Task._std_default['engine'] = 'poll'
-        self.assertEqual(task_self().info('engine'), 'poll')
+        Task._std_default['engine'] = 'select'
+        self.assertEqual(task_self().info('engine'), 'select')
         task_terminate()
 
     def testTaskEngineWrongUserSelection(self):

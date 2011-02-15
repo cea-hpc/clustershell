@@ -13,7 +13,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.CLI.Display import Display, WHENCOLOR_CHOICES
+from ClusterShell.CLI.Display import Display, WHENCOLOR_CHOICES, VERB_STD
 from ClusterShell.CLI.OptionParser import OptionParser
 
 from ClusterShell.MsgTree import MsgTree
@@ -101,6 +101,22 @@ list: echo all
 
         # nodeset.regroup() is performed by print_gather()
         disp.print_gather(ns, list(mtree.walk())[0][0])
+
+    def testDisplayClubak(self):
+        """test CLI.Display for clubak"""
+        parser = OptionParser("dummy")
+        parser.install_display_options(separator_option=True, dshbak_compat=True)
+        options, _ = parser.parse_args([])
+        disp = Display(options)
+        self.assertEqual(bool(disp.gather), False)
+        self.assertEqual(disp.line_mode, False)
+        self.assertEqual(disp.label, True)
+        self.assertEqual(disp.regroup, False)
+        self.assertEqual(bool(disp.groupsource), False)
+        self.assertEqual(disp.noprefix, False)
+        self.assertEqual(disp.maxrc, False)
+        self.assertEqual(disp.node_count, True)
+        self.assertEqual(disp.verbosity, VERB_STD)
 
 
 if __name__ == '__main__':

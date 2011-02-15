@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010)
+# Copyright CEA/DAM/DIF (2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -67,7 +67,7 @@ class EngineEPoll(Engine):
             # get an epoll object
             self.epolling = select.epoll()
         except AttributeError:
-            raise EngineNotSupportedError()
+            raise EngineNotSupportedError(EngineEPoll.identifier)
 
     def _register_specific(self, fd, event):
         """

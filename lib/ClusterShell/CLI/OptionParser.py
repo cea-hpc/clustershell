@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -44,6 +44,7 @@ from copy import copy
 import optparse
 
 from ClusterShell import __version__
+from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.CLI.Display import WHENCOLOR_CHOICES
 
 def check_safestring(option, opt, value):
@@ -98,6 +99,9 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-X", action="append", dest="exgroup",
                           type="safestring", help="exclude nodes from this " \
                           "group")
+        optgrp.add_option("-E", "--engine", action="store", dest="engine",
+                          choices=["auto"] + PreferredEngine.engines.keys(),
+                          default="auto", help=optparse.SUPPRESS_HELP)
         self.add_option_group(optgrp)
 
     def install_display_options(self,

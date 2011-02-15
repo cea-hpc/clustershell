@@ -104,32 +104,22 @@ class DirectOutputHandler(OutputHandler):
         self._display = display
 
     def ev_read(self, worker):
-        res = worker.last_read()
-        if len(res) == 2:
-            ns, buf = res
-        else:
-            buf = res
-            ns = "LOCAL"
-        self._display.print_line(ns, buf)
+        node = worker.current_node or worker.key
+        self._display.print_line(node, worker.current_msg)
 
     def ev_error(self, worker):
-        res = worker.last_error()
-        if len(res) == 2:
-            ns, buf = res
-        else:
-            buf = res
-            ns = "LOCAL"
-        self._display.print_line_error(ns, buf)
+        node = worker.current_node or worker.key
+        self._display.print_line_error(node, worker.current_errmsg)
 
     def ev_hup(self, worker):
-        if hasattr(worker, "last_retcode"):
-            ns, rc = worker.last_retcode()
-        else:
-            ns = "LOCAL"
-            rc = worker.retcode()
+        node = worker.current_node or worker.key
+        rc = worker.current_rc
         if rc > 0:
-            self._display.vprint_err(VERB_QUIET, \
-                "clush: %s: exited with exit code %d" % (ns, rc))
+            verb = VERB_QUIET
+            if self._display.maxrc:
+                verb = VERB_STD
+            self._display.vprint_err(verb, \
+                "clush: %s: exited with exit code %d" % (node, rc))
 
     def ev_timeout(self, worker):
         self._display.vprint_err(VERB_QUIET, "clush: %s: command timeout" % \
@@ -147,9 +137,9 @@ class GatherOutputHandler(OutputHandler):
         self._runtimer = runtimer
 
     def ev_error(self, worker):
-        ns, buf = worker.last_error()
         self._runtimer_clean()
-        self._display.print_line_error(ns, buf)
+        self._display.print_line_error(worker.current_node,
+                                       worker.current_errmsg)
         self._runtimer_set_dirty()
 
     def _runtimer_clean(self):
@@ -170,7 +160,7 @@ class GatherOutputHandler(OutputHandler):
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
         self._runtimer_finalize(worker)
-
+        assert worker.current_node is not None, "cannot gather local command"
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
         cleaned = False
@@ -191,23 +181,26 @@ class GatherOutputHandler(OutputHandler):
         self.update_prompt(worker)
 
     def _close_common(self, worker):
+        verbexit = VERB_QUIET
+        if self._display.maxrc:
+            verbexit = VERB_STD
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
                 ns = NodeSet.fromlist(nodelist)
-                self._display.vprint_err(VERB_QUIET, \
+                self._display.vprint_err(verbexit, \
                     "clush: %s: exited with exit code %d" % (ns, rc))
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
-            self._display.vprint_err(VERB_QUIET,
-                "clush: %s: command timeout" % \
-                    NodeSet.fromlist(worker.iter_keys_timeout()))
+            self._display.vprint_err(verbexit, "clush: %s: command timeout" % \
+                NodeSet.fromlist(worker.iter_keys_timeout()))
 
 class LiveGatherOutputHandler(GatherOutputHandler):
     """Live line-gathered output event handler class."""
 
     def __init__(self, display, runtimer, nodes):
+        assert nodes is not None, "cannot gather local command"
         GatherOutputHandler.__init__(self, display, runtimer)
         self._nodes = NodeSet(nodes)
         self._nodecnt = dict.fromkeys(self._nodes, 0)
@@ -216,19 +209,19 @@ class LiveGatherOutputHandler(GatherOutputHandler):
 
     def ev_read(self, worker):
         # Read new line from node
-        node, line = worker.last_read()
+        node = worker.current_node
         self._nodecnt[node] += 1
         cnt = self._nodecnt[node]
         if len(self._mtreeq) < cnt:
             self._mtreeq.append(MsgTree())
-        self._mtreeq[cnt - self._offload - 1].add(node, line)
+        self._mtreeq[cnt - self._offload - 1].add(node, worker.current_msg)
         self._live_line(worker)
 
     def ev_hup(self, worker):
-        if self._mtreeq and worker.last_node() not in self._mtreeq[0]:
+        if self._mtreeq and worker.current_node not in self._mtreeq[0]:
             # forget a node that doesn't answer to continue live line
             # gathering anyway
-            self._nodes.remove(worker.last_node())
+            self._nodes.remove(worker.current_node)
             self._live_line(worker)
 
     def _live_line(self, worker):
@@ -387,20 +380,23 @@ def ttyloop(task, nodeset, timeout, display):
                     display.print_gather(nodeset, buf)
                     
                 # Return code handling
+                verbexit = VERB_QUIET
+                if display.maxrc:
+                    verbexit = VERB_STD
                 ns_ok = NodeSet()
                 for rc, nodelist in task.iter_retcodes():
                     ns_ok.add(NodeSet.fromlist(nodelist))
                     if rc != 0:
                         # Display return code if not ok ( != 0)
                         ns = NodeSet.fromlist(nodelist)
-                        display.vprint_err(VERB_QUIET, \
+                        display.vprint_err(verbexit, \
                             "clush: %s: exited with exit code %s" % (ns, rc))
                 # Add uncompleted nodeset to exception object
                 kbe.uncompleted_nodes = ns - ns_ok
 
                 # Display nodes that didn't answer within command timeout delay
                 if task.num_timeout() > 0:
-                    display.vprint_err(VERB_QUIET, \
+                    display.vprint_err(verbexit, \
                         "clush: %s: command timeout" % \
                             NodeSet.fromlist(task.iter_keys_timeout()))
             raise kbe
@@ -495,7 +491,7 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
-    if display.gather:
+    if display.gather and ns is not None:
         runtimer = None
         if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
             # Create a ClusterShell timer used to display in live the
@@ -512,7 +508,8 @@ def run_command(task, cmd, ns, timeout, display):
         worker = task.shell(cmd, nodes=ns,
                             handler=DirectOutputHandler(display),
                             timeout=timeout)
-
+    if ns is None:
+        worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
         bind_stdin(worker)
  
@@ -556,16 +553,17 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
 
     task.resume()
 
-def max_fdlimit(display):
+def set_fdlimit(fd_max, display):
     """Make open file descriptors soft limit the max."""
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-    if soft < hard:
-        display.vprint(VERB_DEBUG, "Setting max soft limit "
-                       "RLIMIT_NOFILE: %d -> %d" % (soft, hard))
-        resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
-    else:
-        display.vprint(VERB_DEBUG, "Soft limit RLIMIT_NOFILE already set to " \
-                                   "the max (%d)" % soft)
+    if hard < fd_max:
+        display.vprint(VERB_DEBUG, "Warning: Consider increasing max open " \
+            "files hard limit (%d)" % hard)
+    rlim_max = min(hard, fd_max)
+    if soft != rlim_max:
+        display.vprint(VERB_DEBUG, "Modifying max open files soft limit: " \
+            "%d -> %d" % (soft, rlim_max))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
 
 def clush_exit(status):
     # Flush stdio buffers
@@ -654,6 +652,9 @@ def main(args=sys.argv):
         # Be sure -a/g -s source work as espected.
         STD_GROUP_RESOLVER.default_sourcename = options.groupsource
 
+    # FIXME: add public API to enforce engine
+    Task._std_default['engine'] = options.engine
+
     # Do we have nodes group?
     task = task_self()
     task.set_info("debug", config.verbosity > 1)
@@ -690,21 +691,33 @@ def main(args=sys.argv):
 
     display.vprint(VERB_DEBUG, "Final NodeSet: %s" % nodeset_base)
 
-    # Make soft fd limit the max.
-    max_fdlimit(display)
+    # Set open files limit.
+    set_fdlimit(config.fd_max, display)
 
     #
     # Task management
     #
-    interactive = not len(args) and not (options.copy or options.rcopy)
+    # check for clush interactive mode
+    interactive = not len(args) and \
+                  not (options.copy or options.rcopy)
+    # check for foreground ttys presence (input)
+    stdin_isafgtty = sys.stdin.isatty() and \
+        os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
+    # check for special condition (empty command and stdin not a tty)
+    if interactive and not stdin_isafgtty:
+        # looks like interactive but stdin is not a tty:
+        # switch to non-interactive + disable ssh pseudo-tty
+        interactive = False
+        # SSH: disable pseudo-tty allocation (-T)
+        ssh_options = config.ssh_options or ''
+        ssh_options += ' -T'
+        config._set_main("ssh_options", ssh_options)
     if options.nostdin and interactive:
-        parser.error("illegal option `--nostdin' in interactive mode")
+        parser.error("illegal option `--nostdin' in that case")
 
     user_interaction = False
     if not options.nostdin:
-        # Try user interaction: check for foreground ttys presence
-        stdin_isafgtty = sys.stdin.isatty() and \
-            os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
+        # Try user interaction: check for foreground ttys presence (ouput)
         stdout_isafgtty = sys.stdout.isatty() and \
             os.tcgetpgrp(sys.stdout.fileno()) == os.getpgrp()
         user_interaction = stdin_isafgtty and stdout_isafgtty
@@ -745,7 +758,7 @@ def main(args=sys.argv):
     task.set_default("stderr", not options.gatherall)
 
     # Disable MsgTree buffering if not gathering outputs
-    task.set_default("stdout_msgtree", display.gather and not display.line_mode)
+    task.set_default("stdout_msgtree", display.gather)
     # Always disable stderr MsgTree buffering
     task.set_default("stderr_msgtree", False)
 
