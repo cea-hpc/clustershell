@@ -37,6 +37,7 @@
 CLI error handling helper functions
 """
 
+import os.path
 import signal
 import sys
 
@@ -59,7 +60,7 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   IOError,
                   KeyboardInterrupt)
 
-def handle_generic_error(excobj, prog=sys.argv[0]):
+def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
     """handle error given `excobj' generic script exception"""
     try:
         raise excobj
