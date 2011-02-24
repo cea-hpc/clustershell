@@ -97,7 +97,7 @@ def nodeset():
 
     # Check for command presence
     cmdcount = int(options.count) + int(options.expand) + \
-               int(options.fold) + int(options.list) + \
+               int(options.fold) + int(bool(options.list)) + \
                int(options.regroup) + int(options.groupsources)
     if not cmdcount:
         parser.error("No command specified.")
@@ -116,12 +116,21 @@ def nodeset():
                                 % options.groupsource
 
     # The list command doesn't need any NodeSet, check for it first.
-    if options.list:
+    if options.list > 0:
+        list_level = options.list
         for group in grouplist(options.groupsource):
             if options.groupsource and not options.groupbase:
-                print "@%s:%s" % (options.groupsource, group)
+                nsgroup = "@%s:%s" % (options.groupsource, group)
             else:
-                print "@%s" % group
+                nsgroup = "@%s" % group
+            if list_level == 1:
+                print nsgroup
+            else:
+                nodes = NodeSet(nsgroup)
+                if list_level == 2:     # -ll ?
+                    print "%s %s" % (nsgroup, nodes)
+                else:                   # -lll ?
+                    print "%s %s %d" % (nsgroup, nodes, len(nodes))
         return
     # Also, the groupsources command simply lists group sources.
     elif options.groupsources:

@@ -206,7 +206,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-f", "--fold", action="store_true", dest="fold", 
                           default=False, help="fold nodeset(s) (or " \
                           "separate nodes) into one nodeset")
-        optgrp.add_option("-l", "--list", action="store_true", dest="list", 
+        optgrp.add_option("-l", "--list", action="count", dest="list", 
                           default=False, help="list node groups (see -s " \
                           "GROUPSOURCE)")
         optgrp.add_option("-r", "--regroup", action="store_true",
