@@ -280,10 +280,10 @@ class RangeSet:
                     pad = len(elem)
                 ielem = 0
             return self._contains_with_padding(ielem, pad)
-        
+
         # the following cast raises TypeError if elem is not an integer
         return self._contains(int(elem))
-    
+
     def _contains(self, ielem):
         """
         Contains subroutine that takes an integer.
@@ -343,7 +343,7 @@ class RangeSet:
         if not isinstance(other, RangeSet):
             return NotImplemented
         return len(self) == len(other) and self.issubset(other)
-        
+
     # inequality comparisons using the is-subset relation
     __le__ = issubset
     __ge__ = issuperset
@@ -362,18 +362,48 @@ class RangeSet:
         self._binary_sanity_check(other)
         return len(self) > len(other) and self.issuperset(other)
 
+    @staticmethod
+    def _extractslice(index, getlength, obj):
+        """Extract slice parameters from slice `index`."""
+        if index.start is None or index.start < 0:
+            sl_start = 0
+        else:
+            sl_start = index.start
+        if index.stop is None:
+            sl_stop = sys.maxint
+        elif index.stop < 0:
+            sl_stop = max(0, getlength(obj) + index.stop)
+        else:
+            sl_stop = index.stop
+        if index.step is None:
+            sl_step = 1
+        elif index.step < 0:
+            # We support negative step slicing with no start/stop, ie. r[::-n].
+            if index.start is not None or index.stop is not None:
+                raise IndexError, \
+                    "illegal start and stop when negative step is used"
+            # As RangeSet elements are ordered internally, adjust sl_start
+            # to fake backward stepping in case of negative slice step.
+            stepmod = (getlength(obj) + -index.step - 1) % -index.step
+            if stepmod > 0:
+                sl_start += stepmod
+            sl_step = -index.step
+        else:
+            sl_step = index.step
+        if not isinstance(sl_start, int) or not isinstance(sl_stop, int) \
+            or not isinstance(sl_step, int):
+            raise TypeError, "slice indices must be integers"
+        return sl_start, sl_stop, sl_step
+
     def __getitem__(self, index):
         """
         Return the element at index or a subrange when a slice is specified.
         """
         if isinstance(index, slice):
             inst = RangeSet(autostep=self._autostep)
-            sl_start = sl_next = index.start or 0
-            sl_stop = index.stop or sys.maxint
-            sl_step = index.step or 1
-            if not isinstance(sl_next, int) or not isinstance(sl_stop, int) \
-                or not isinstance(sl_step, int):
-                raise TypeError, "RangeSet slice indices must be integers"
+            sl_start, sl_stop, sl_step = \
+                RangeSet._extractslice(index, lambda o: o._length, self)
+            sl_next = sl_start
             if sl_stop <= sl_next:
                 return inst
             # get items from slice, O(n) algorithm for n = number of ranges
@@ -398,6 +428,11 @@ class RangeSet:
                 length += cnt
             return inst
         elif isinstance(index, int):
+            if index < 0:
+                if index >= -self._length:
+                    index = self._length + index # - -index
+                else:
+                    raise IndexError, "%d out of range" % index
             length = 0
             for start, stop, step, pad in self._ranges:
                 cnt =  (stop - start) / step + 1
@@ -981,12 +1016,9 @@ class NodeSetBase(object):
         """
         if isinstance(index, slice):
             inst = NodeSetBase()
-            sl_start = sl_next = index.start or 0
-            sl_stop = index.stop or sys.maxint
-            sl_step = index.step or 1
-            if not isinstance(sl_next, int) or not isinstance(sl_stop, int) \
-                or not isinstance(sl_step, int):
-                raise TypeError, "NodeSet slice indices must be integers"
+            sl_start, sl_stop, sl_step = \
+                RangeSet._extractslice(index, NodeSet.__len__, self)
+            sl_next = sl_start
             if sl_stop <= sl_next:
                 return inst
             length = 0
@@ -1016,7 +1048,13 @@ class NodeSetBase(object):
                     break
                 length += cnt
             return inst
-        else:
+        elif isinstance(index, int):
+            if index < 0:
+                length = len(self)
+                if index >= -length:
+                    index = length + index # - -index
+                else:
+                    raise IndexError, "%d out of range" % index
             length = 0
             for pat, rangeset in sorted(self._patterns.iteritems()):
                 if rangeset:
@@ -1030,6 +1068,8 @@ class NodeSetBase(object):
                         return pat
                 length += cnt
             raise IndexError, "%d out of range" % index
+        else:
+            raise TypeError, "NodeSet indices must be integers"
 
     def _add(self, pat, rangeset):
         """

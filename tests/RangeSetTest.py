@@ -286,6 +286,14 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r1[237], 241)
         self.assertEqual(r1[238], 242)
         self.assertEqual(r1[239], 800)
+        # negative indices
+        self.assertEqual(r1[-1], 800)
+        self.assertEqual(r1[-240], 1)
+        for n in range(1, len(r1)):
+            self.assertEqual(r1[-n], r1[len(r1)-n])
+        self.assertRaises(IndexError, r1.__getitem__, -len(r1)-1)
+        self.assertRaises(IndexError, r1.__getitem__, -len(r1)-2)
+
         r2 = RangeSet("1-37/3,43-52/3,58-67/3,73-100/3,102-106/2")
         self.assertEqual(len(r2), 34)
         self.assertEqual(r2[0], 1)
@@ -304,10 +312,40 @@ class RangeSetTest(unittest.TestCase):
         #self.assertRaises(TypeError, r2['foo'])
 
     def testGetSlice(self):
-        """test RangeSet __getslice__()"""
+        """test RangeSet __getitem__() with slice"""
         r0 = RangeSet("1-12")
         self.assertEqual(r0[0:3], RangeSet("1-3"))
         self.assertEqual(r0[2:7], RangeSet("3-7"))
+        # negative indices - sl_start
+        self.assertEqual(r0[-1:0], RangeSet())
+        self.assertEqual(r0[-2:0], RangeSet())
+        self.assertEqual(r0[-11:0], RangeSet())
+        self.assertEqual(r0[-12:0], RangeSet())
+        self.assertEqual(r0[-13:0], RangeSet())
+        self.assertEqual(r0[-1000:0], RangeSet())
+        self.assertEqual(r0[-1:], RangeSet("12"))
+        self.assertEqual(r0[-2:], RangeSet("11-12"))
+        self.assertEqual(r0[-11:], RangeSet("2-12"))
+        self.assertEqual(r0[-12:], RangeSet("1-12"))
+        self.assertEqual(r0[-13:], RangeSet("1-12"))
+        self.assertEqual(r0[-1000:], RangeSet("1-12"))
+        self.assertEqual(r0[-13:1], RangeSet("1"))
+        self.assertEqual(r0[-13:2], RangeSet("1-2"))
+        self.assertEqual(r0[-13:11], RangeSet("1-11"))
+        self.assertEqual(r0[-13:12], RangeSet("1-12"))
+        self.assertEqual(r0[-13:13], RangeSet("1-12"))
+        # negative indices - sl_stop
+        self.assertEqual(r0[0:-1], RangeSet("1-11"))
+        self.assertEqual(r0[:-1], RangeSet("1-11"))
+        self.assertEqual(r0[0:-2], RangeSet("1-10"))
+        self.assertEqual(r0[:-2], RangeSet("1-10"))
+        self.assertEqual(r0[1:-2], RangeSet("2-10"))
+        self.assertEqual(r0[4:-4], RangeSet("5-8"))
+        self.assertEqual(r0[5:-5], RangeSet("6-7"))
+        self.assertEqual(r0[6:-5], RangeSet("7"))
+        self.assertEqual(r0[6:-6], RangeSet())
+        self.assertEqual(r0[7:-6], RangeSet())
+        self.assertEqual(r0[0:-1000], RangeSet())
 
         r1 = RangeSet("10-14,16-20")
         self.assertEqual(r1[2:6], RangeSet("12-14,16"))
@@ -348,6 +386,19 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r1[1:5:2], RangeSet("2,9"))
         self.assertEqual(r1[1:6:2], RangeSet("2,9,11"))
         self.assertEqual(r1[1:7:2], RangeSet("2,9,11"))
+
+        # negative indices - sl_step
+        self.assertRaises(IndexError, r1.__getitem__, slice(1, None, -2))
+        self.assertEqual(r1[::-2], RangeSet("1,4,10,12"))
+        r2 = RangeSet("1-2,4,9,10-13")
+        self.assertEqual(r2[::-2], RangeSet("2,9,11,13"))
+        self.assertEqual(r2[::-3], RangeSet("2,10,13"))
+        self.assertEqual(r2[::-4], RangeSet("9,13"))
+        self.assertEqual(r2[::-5], RangeSet("4,13"))
+        self.assertEqual(r2[::-6], RangeSet("2,13"))
+        self.assertEqual(r2[::-7], RangeSet("1,13"))
+        self.assertEqual(r2[::-8], RangeSet("13"))
+        self.assertEqual(r2[::-9], RangeSet("13"))
 
         # Partial slices
         self.assertEqual(r1[2:], RangeSet("4,9-12"))

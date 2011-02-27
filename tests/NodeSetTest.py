@@ -536,6 +536,11 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodeset[19], "yeti59")
         self.assertEqual(nodeset[20], "yeti60")
         self.assertRaises(IndexError, nodeset.__getitem__, 21)
+        # negative indices
+        self.assertEqual(nodeset[-1], "yeti60")
+        for n in range(1, len(nodeset)):
+            self.assertEqual(nodeset[-n], nodeset[len(nodeset)-n])
+
         # test getitem with some nodes without range
         nodeset = NodeSet("abc,cde[3-9,11],fgh")
         self.assertEqual(len(nodeset), 10)
@@ -559,7 +564,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertRaises(IndexError, nodeset.__getitem__, 35)
 
     def testGetSlice(self):
-        """test NodeSet getslice()"""
+        """test NodeSet getitem() with slice"""
         nodeset = NodeSet("yeti[30,34-51,59-60]")
         self.assertEqual(len(nodeset), 21)
         self.assertEqual(len(nodeset[0:2]), 2)
@@ -572,6 +577,18 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset[20:22]), "yeti60")
         self.assertEqual(len(nodeset[21:24]), 0)
         self.assertEqual(str(nodeset[21:24]), "")
+        # negative indices
+        self.assertEqual(str(nodeset[:-1]), "yeti[30,34-51,59]")
+        self.assertEqual(str(nodeset[:-2]), "yeti[30,34-51]")
+        self.assertEqual(str(nodeset[1:-2]), "yeti[34-51]")
+        self.assertEqual(str(nodeset[2:-2]), "yeti[35-51]")
+        self.assertEqual(str(nodeset[9:-3]), "yeti[42-50]")
+        self.assertEqual(str(nodeset[10:-9]), "yeti[43-44]")
+        self.assertEqual(str(nodeset[10:-10]), "yeti43")
+        self.assertEqual(str(nodeset[11:-10]), "")
+        self.assertEqual(str(nodeset[11:-11]), "")
+        self.assertEqual(str(nodeset[::-2]), "yeti[30,35,37,39,41,43,45,47,49,51,60]")
+        self.assertEqual(str(nodeset[::-3]), "yeti[35,38,41,44,47,50,60]")
         # advanced
         self.assertEqual(str(nodeset[0:10:2]), "yeti[30,35,37,39,41]")
         self.assertEqual(str(nodeset[1:11:2]), "yeti[34,36,38,40,42]")

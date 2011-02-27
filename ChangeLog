@@ -1,3 +1,8 @@
+2011-02-27 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fix issue when using negative index or negative slice
+	indices for RangeSet and NodeSet.
+
 2011-02-24 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Nodeset.py: Add -ll and -lll extended options to list corresponding
