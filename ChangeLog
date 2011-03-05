@@ -1,3 +1,8 @@
+2011-03-05 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fix issue with in-place operators returning None. Added
+	tests.
+
 2011-02-27 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fix issue when using negative index or negative slice

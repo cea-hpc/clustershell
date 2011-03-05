@@ -255,14 +255,28 @@ class NodeSetTest(unittest.TestCase):
         """test union | operator"""
         nodeset = NodeSet("cluster[115-117,130,166-170]")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # 1
         n_test1 = nodeset | NodeSet("cluster171")
         self.assertEqual(str(n_test1), "cluster[115-117,130,166-171]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 |= NodeSet("cluster171")
+        self.assertEqual(str(nodeset2), "cluster[115-117,130,166-171]")
+        # 2
         n_test2 = n_test1 | NodeSet("cluster172")
         self.assertEqual(str(n_test2), "cluster[115-117,130,166-172]")
+        nodeset2 |= NodeSet("cluster172")
+        self.assertEqual(str(nodeset2), "cluster[115-117,130,166-172]")
+        # 3
         n_test1 = n_test2 | NodeSet("cluster113")
         self.assertEqual(str(n_test1), "cluster[113,115-117,130,166-172]")
+        nodeset2 |= NodeSet("cluster113")
+        self.assertEqual(str(nodeset2), "cluster[113,115-117,130,166-172]")
+        # 4
         n_test2 = n_test1 | NodeSet("cluster114")
         self.assertEqual(str(n_test2), "cluster[113-117,130,166-172]")
+        nodeset2 |= NodeSet("cluster114")
+        self.assertEqual(str(nodeset2), "cluster[113-117,130,166-172]")
+        self.assertEqual(nodeset2, NodeSet("cluster[113-117,130,166-172]"))
 
     def testOperatorUnionFromEmptyNodeSet(self):
         """test union | operator from empty nodeset"""
@@ -289,6 +303,42 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(n_test2), "cluster[3,5],tiger[5-7]")
         n_test1 = n_test2 | NodeSet("cluster4")
         self.assertEqual(str(n_test1), "cluster[3-5],tiger[5-7]")
+
+    def testOperatorSub(self):
+        """test difference/sub - operator"""
+        nodeset = NodeSet("cluster[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # __sub__
+        n_test1 = nodeset - NodeSet("cluster[115,130]")
+        self.assertEqual(str(n_test1), "cluster[116-117,166-170]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 -= NodeSet("cluster[115,130]")
+        self.assertEqual(str(nodeset2), "cluster[116-117,166-170]")
+        self.assertEqual(nodeset2, NodeSet("cluster[116-117,166-170]"))
+
+    def testOperatorAnd(self):
+        """test intersection/and & operator"""
+        nodeset = NodeSet("cluster[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # __and__
+        n_test1 = nodeset & NodeSet("cluster[115-167]")
+        self.assertEqual(str(n_test1), "cluster[115-117,130,166-167]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 &= NodeSet("cluster[115-167]")
+        self.assertEqual(str(nodeset2), "cluster[115-117,130,166-167]")
+        self.assertEqual(nodeset2, NodeSet("cluster[115-117,130,166-167]"))
+
+    def testOperatorXor(self):
+        """test symmetric_difference/xor & operator"""
+        nodeset = NodeSet("cluster[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # __xor__
+        n_test1 = nodeset ^ NodeSet("cluster[115-167]")
+        self.assertEqual(str(n_test1), "cluster[118-129,131-165,168-170]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 ^= NodeSet("cluster[115-167]")
+        self.assertEqual(str(nodeset2), "cluster[118-129,131-165,168-170]")
+        self.assertEqual(nodeset2, NodeSet("cluster[118-129,131-165,168-170]"))
 
     def testLen(self):
         """test len() results"""

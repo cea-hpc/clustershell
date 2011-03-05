@@ -675,7 +675,8 @@ class RangeSet:
         elements added from t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.update(other)
+        self.update(other)
+        return self
 
     def intersection(self, rangeset):
         """
@@ -707,7 +708,8 @@ class RangeSet:
         only elements also found in t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.intersection_update(other)
+        self.intersection_update(other)
+        return self
 
     def _intersect_exfold(self, rangeset):
         """
@@ -756,7 +758,8 @@ class RangeSet:
         removing elements found in t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.difference_update(other)
+        self.difference_update(other)
+        return self
 
     def remove(self, elem):
         """
@@ -842,7 +845,8 @@ class RangeSet:
         (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.symmetric_difference_update(other)
+        self.symmetric_difference_update(other)
+        return self
 
     def _xor_exfold(self, rangeset):
         """
@@ -1127,7 +1131,6 @@ class NodeSetBase(object):
         Remove all nodes from this nodeset.
         """
         self._patterns.clear()
-        self._length = 0
 
     def __ior__(self, other):
         """
@@ -1135,7 +1138,8 @@ class NodeSetBase(object):
         elements added from t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.update(other)
+        self.update(other)
+        return self
 
     def intersection(self, other):
         """
@@ -1191,7 +1195,8 @@ class NodeSetBase(object):
         only elements also found in t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.intersection_update(other)
+        self.intersection_update(other)
+        return self
 
     def difference(self, other):
         """
@@ -1248,7 +1253,8 @@ class NodeSetBase(object):
         removing elements found in t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.difference_update(other)
+        self.difference_update(other)
+        return self
 
     def remove(self, elem):
         """
@@ -1316,7 +1322,8 @@ class NodeSetBase(object):
         (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
-        return self.symmetric_difference_update(other)
+        self.symmetric_difference_update(other)
+        return self
 
 
 class NodeGroupBase(NodeSetBase):
@@ -1741,7 +1748,6 @@ class NodeSet(NodeSetBase):
             return base
         # return a real NodeSet
         inst = NodeSet(autostep=self._autostep, resolver=self._resolver)
-        inst._length = base._length
         inst._patterns = base._patterns
         return inst
 
