@@ -1,5 +1,8 @@
 2011-03-06 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Nodeset.py: Remove pending limitation when using -[ixX] operations
+	with nodesets specified by -a (all) or through stdin.
+
 	* NodeSet.py: Add RangeSet.slices() method.
 
 2011-03-05 S. Thiell <stephane.thiell@cea.fr>

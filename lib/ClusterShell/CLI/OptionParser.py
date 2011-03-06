@@ -220,14 +220,15 @@ class OptionParser(optparse.OptionParser):
     def install_nodeset_operations(self):
         """Install nodeset operations"""
         optgrp = optparse.OptionGroup(self, "Operations")
-        optgrp.add_option("-x", "--exclude", action="store", dest="sub_nodes", 
-                          help="exclude specified nodeset", type="string")
-        optgrp.add_option("-i", "--intersection", action="store",
-                          dest="and_nodes", help="calculate nodesets " \
-                               "intersection", type="string")
-        optgrp.add_option("-X", "--xor", action="store",
-                          dest="xor_nodes", help="calculate symmetric " \
-                               "difference between nodesets", type="string")
+        optgrp.add_option("-x", "--exclude", action="append", dest="sub_nodes",
+                          default=[], type="string",
+                          help="exclude specified nodeset")
+        optgrp.add_option("-i", "--intersection", action="append",
+                          dest="and_nodes", default=[], type="string",
+                          help="calculate nodesets intersection")
+        optgrp.add_option("-X", "--xor", action="append", dest="xor_nodes",
+                          default=[], type="string", help="calculate " \
+                          "symmetric difference between nodesets")
         self.add_option_group(optgrp)
 
     def install_nodeset_options(self):

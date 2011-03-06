@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -154,12 +154,19 @@ def nodeset():
     if options.all:
         # Include all nodes from external node groups support.
         xset.update(NodeSet.fromall()) # uses default_sourcename
-        # FIXME: only union operation is supported when using -a due to
-        # current options handling.
     elif not args:
         # No need to specify '-' to read stdin if no argument at all.
         process_stdin(xset, options.autostep)
-    
+
+    # Apply first operations (before first non-option)
+    for nodes in options.and_nodes:
+        xset.intersection_update(class_set(nodes, autostep=options.autostep))
+    for nodes in options.sub_nodes:
+        xset.difference_update(class_set(nodes, autostep=options.autostep))
+    for nodes in options.xor_nodes:
+        xset.symmetric_difference_update(class_set(nodes, \
+                                         autostep=options.autostep))
+
     # Finish xset computing from args
     compute_nodeset(xset, args, options.autostep)
 
@@ -187,8 +194,8 @@ def main():
     """main script function"""
     try:
         nodeset()
-    except AssertionError, e:
-        print >> sys.stderr, "ERROR:", e
+    except AssertionError, ex:
+        print >> sys.stderr, "ERROR:", ex
         sys.exit(1)
     except IndexError:
         print >> sys.stderr, "ERROR: syntax error"
@@ -196,8 +203,8 @@ def main():
     except SyntaxError:
         print >> sys.stderr, "ERROR: invalid separator"
         sys.exit(1)
-    except GENERIC_ERRORS, e:
-        sys.exit(handle_generic_error(e))
+    except GENERIC_ERRORS, ex:
+        sys.exit(handle_generic_error(ex))
 
     sys.exit(0)
 
