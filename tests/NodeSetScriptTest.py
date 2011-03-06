@@ -245,6 +245,50 @@ class NodeSetScriptTest(unittest.TestCase):
         # following test requires a default group source set
         self._launchAndCompare(["--split=2","-r", "foo2", "foo3"], "foo2\nfoo3")
 
+    def testSlice(self):
+        """test nodeset.py -I/--slice"""
+        self._launchAndCompare(["--slice=0","-f", "bar"], "bar")
+        self._launchAndCompare(["--slice=0","-e", "bar"], "bar")
+        self._launchAndCompare(["--slice=1","-f", "bar"], "")
+        self._launchAndCompare(["--slice=0-1","-f", "bar"], "bar")
+        self._launchAndCompare(["-I0","-f", "bar[34-68,89-90]"], "bar34")
+        self._launchAndCompare(["-R", "-I0","-f", "34-68,89-90"], "34")
+        self._launchAndCompare(["-I 0","-f", "bar[34-68,89-90]"], "bar34")
+        self._launchAndCompare(["-I 0","-e", "bar[34-68,89-90]"], "bar34")
+        self._launchAndCompare(["-I 0-3","-f", "bar[34-68,89-90]"], "bar[34-37]")
+        self._launchAndCompare(["-I 0-3","-f", "bar[34-68,89-90]", "-x", "bar34"], "bar[35-38]")
+        self._launchAndCompare(["-I 0-3","-f", "bar[34-68,89-90]", "-x", "bar35"], "bar[34,36-38]")
+        self._launchAndCompare(["-I 0-3","-e", "bar[34-68,89-90]"], "bar34 bar35 bar36 bar37")
+        self._launchAndCompare(["-I 3,1,0,2","-f", "bar[34-68,89-90]"], "bar[34-37]")
+        self._launchAndCompare(["-I 1,3,7,10,16,20,30,34-35,37","-f", "bar[34-68,89-90]"], "bar[35,37,41,44,50,54,64,68,89]")
+        self._launchAndCompare(["-I 8","-f", "bar[34-68,89-90]"], "bar42")
+        self._launchAndCompare(["-I 8-100","-f", "bar[34-68,89-90]"], "bar[42-68,89-90]")
+        self._launchAndCompare(["-I 0-100","-f", "bar[34-68,89-90]"], "bar[34-68,89-90]")
+        self._launchAndCompare(["-I 8-100/2","-f", "bar[34-68,89-90]"], "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]")
+        self._launchAndCompare(["--autostep=2", "-I 8-100/2","-f", "bar[34-68,89-90]"], "bar[42-68/2,90]")
+
+    def testSliceStdin(self):
+        """test nodeset.py -I/--slice (stdin)"""
+        self._launchAndCompare(["--slice=0","-f"], "bar", stdin="bar\n")
+        self._launchAndCompare(["--slice=0","-e"], "bar", stdin="bar\n")
+        self._launchAndCompare(["--slice=1","-f"], "", stdin="bar\n")
+        self._launchAndCompare(["--slice=0-1","-f"], "bar", stdin="bar\n")
+        self._launchAndCompare(["-I0","-f"], "bar34", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-R", "-I0","-f"], "34", stdin="34-68,89-90\n")
+        self._launchAndCompare(["-I 0","-f"], "bar34", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 0","-e"], "bar34", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 0-3","-f"], "bar[34-37]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 0-3","-f", "-x", "bar34"], "bar[35-38]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 0-3","-f", "-x", "bar35"], "bar[34,36-38]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 0-3","-e"], "bar34 bar35 bar36 bar37", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 3,1,0,2","-f"], "bar[34-37]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 1,3,7,10,16,20,30,34-35,37","-f"], "bar[35,37,41,44,50,54,64,68,89]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 8","-f"], "bar42", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 8-100","-f"], "bar[42-68,89-90]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 0-100","-f"], "bar[34-68,89-90]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["-I 8-100/2","-f"], "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]", stdin="bar[34-68,89-90]\n")
+        self._launchAndCompare(["--autostep=2", "-I 8-100/2","-f"], "bar[42-68/2,90]", stdin="bar[34-68,89-90]\n")
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetScriptTest)

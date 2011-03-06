@@ -173,6 +173,12 @@ def nodeset():
     # Interprate special characters (may raise SyntaxError)
     separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
 
+    if options.slice_rangeset:
+        _xset = class_set()
+        for sli in RangeSet(options.slice_rangeset).slices(False):
+            _xset.update(xset[sli])
+        xset = _xset
+
     # Display result according to command choice
     if options.expand:
         xsubres = separator.join
