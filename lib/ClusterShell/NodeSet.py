@@ -61,6 +61,8 @@ Usage example
 """
 
 import copy
+from itertools import imap
+from operator import itemgetter
 import re
 import sys
 
@@ -306,6 +308,25 @@ class RangeSet:
                 (ielem - rgsli.start) % rgsli.step == 0:
                 return True
         return False
+
+    def slices(self, padding=True):
+        """
+        Iterate over RangeSet ranges as Python slice objects.
+
+        If padding is True, make an interator that returns 2-length
+        tuples, the first argument being a Python slice object
+        corresponding to the range and the second being the range's
+        padding length information.
+        If padding is False, make an iterator that returns Python slice
+        objects without padding information, which can be convenient
+        for numerical manipulation.
+        """
+        if padding:
+            func = itemgetter(0, 1)
+        else:
+            func = itemgetter(0)
+        # return an iterator
+        return imap(func, self._ranges)
 
     def _binary_sanity_check(self, other):
         # check that the other argument to a binary operation is also

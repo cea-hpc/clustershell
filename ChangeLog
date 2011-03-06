@@ -1,3 +1,7 @@
+2011-03-06 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Add RangeSet.slices() method.
+
 2011-03-05 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Internal changes to use slice type to represent ranges in

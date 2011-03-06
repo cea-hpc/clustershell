@@ -638,6 +638,34 @@ class RangeSetTest(unittest.TestCase):
         # Zero
         self.assertRaises(AssertionError, r1.add_range, 103, 103)
 
+    def testSlices(self):
+        """test RangeSet slices()"""
+        r1 = RangeSet()
+        self.assertEqual(len(r1), 0)
+        self.assertEqual(len(list(r1.slices())), 0)
+        # With padding, without autostep
+        r1 = RangeSet("1-7/2,8-12,3000-3019")
+        self.assertEqual(len(r1), 29)
+        self.assertEqual(list(r1.slices()), [(slice(1, 2, 1), 0), \
+            (slice(3, 4, 1), 0), (slice(5, 6, 1), 0), (slice(7, 13, 1), 0), \
+            (slice(3000, 3020, 1), 0)])
+        # With padding, with autostep
+        r1 = RangeSet("1-7/2,8-12,3000-3019", autostep=2)
+        self.assertEqual(len(r1), 29)
+        self.assertEqual(list(r1.slices()), [(slice(1, 8, 2), 0), \
+            (slice(8, 13, 1), 0), (slice(3000, 3020, 1), 0)])
+        # Without padding, without autostep
+        r1 = RangeSet("1-7/2,8-12,3000-3019")
+        self.assertEqual(len(r1), 29)
+        self.assertEqual(list(r1.slices(False)), [slice(1, 2, 1), \
+            slice(3, 4, 1), slice(5, 6, 1), slice(7, 13, 1), \
+            slice(3000, 3020, 1)])
+        # Without padding, with autostep
+        r1 = RangeSet("1-7/2,8-12,3000-3019", autostep=2)
+        self.assertEqual(len(r1), 29)
+        self.assertEqual(list(r1.slices(False)), [slice(1, 8, 2), \
+            slice(8, 13, 1), slice(3000, 3020, 1)])
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)
