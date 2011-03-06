@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -491,14 +491,14 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
-    if display.gather and ns is not None:
+    if (display.gather or display.line_mode) and ns is not None:
         runtimer = None
         if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
             # Create a ClusterShell timer used to display in live the
             # number of completed commands
             runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
                                   autoclose=True)
-        if display.line_mode:
+        if display.gather and display.line_mode:
             handler = LiveGatherOutputHandler(display, runtimer, ns)
         else:
             handler = GatherOutputHandler(display, runtimer)
@@ -758,7 +758,7 @@ def main(args=sys.argv):
     task.set_default("stderr", not options.gatherall)
 
     # Disable MsgTree buffering if not gathering outputs
-    task.set_default("stdout_msgtree", display.gather)
+    task.set_default("stdout_msgtree", display.gather or display.line_mode)
     # Always disable stderr MsgTree buffering
     task.set_default("stderr_msgtree", False)
 

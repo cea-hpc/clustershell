@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -152,21 +152,37 @@ class Display(object):
         nodecntstr = ""
         if self.node_count and len(nodeset) > 1:
             nodecntstr = " (%d)" % len(nodeset)
-        header = self.color_stdout_fmt % ("%s\n%s%s\n%s\n" % (self.SEP,
-                                            self._format_header(nodeset),
-                                            nodecntstr, self.SEP))
+        if self.label:
+            header = self.color_stdout_fmt % ("%s\n%s%s\n%s\n" % (self.SEP,
+                                                self._format_header(nodeset),
+                                                nodecntstr, self.SEP))
+        else:
+            header = ""
         self.out.write("%s%s\n" % (header, content))
-        
+
     def _print_lines(self, nodeset, msg):
         """Display a MsgTree buffer by line with prefixed header."""
+        out = self.out
         if self.label:
-            header = self.color_stdout_fmt % \
-                        ("%s: " % self._format_header(nodeset))
-            for line in msg:
-                self.out.write("%s%s\n" % (header, line))
+            if self.gather:
+                header = self.color_stdout_fmt % \
+                            ("%s: " % self._format_header(nodeset))
+                for line in msg:
+                    out.write("%s%s\n" % (header, line))
+            else:
+                for node in nodeset:
+                    header = self.color_stdout_fmt % \
+                                ("%s: " % self._format_header(node))
+                    for line in msg:
+                        out.write("%s%s\n" % (header, line))
         else:
-            for line in msg:
-                self.out.write(line + '\n')
+            if self.gather:
+                for line in msg:
+                    out.write(line + '\n')
+            else:
+                for node in nodeset:
+                    for line in msg:
+                        out.write(line + '\n')
 
     def vprint(self, level, message):
         """Utility method to print a message if verbose level is high

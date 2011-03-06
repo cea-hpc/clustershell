@@ -1,5 +1,8 @@
 2011-03-06 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clush.py: Implement clush -L (not -bL) to order output by nodename,
+	like clubak -L (ticket #141).
+
 	* CLI/Nodeset.py: Added -I/--slice command option to select node(s) by
 	index(es) or RangeSet-style slice (ticket #140).
 
