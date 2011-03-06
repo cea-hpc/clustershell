@@ -585,6 +585,59 @@ class RangeSetTest(unittest.TestCase):
         else:
             self.fail("rg1 != None failed")
 
+    def testAddRange(self):
+        """test RangeSet add_range()"""
+        r1 = RangeSet()
+        r1.add_range(1, 100, 1)
+        self.assertEqual(len(r1), 99)
+        self.assertEqual(str(r1), "1-99")
+        r1.add_range(40, 101, 1)
+        self.assertEqual(len(r1), 100)
+        self.assertEqual(str(r1), "1-100")
+        r1.add_range(399, 423, 2)
+        self.assertEqual(len(r1), 112)
+        self.assertEqual(str(r1), "1-100,399,401,403,405,407,409,411,413,415,417,419,421")
+        # With autostep...
+        r1 = RangeSet(autostep=2)
+        r1.add_range(1, 100, 1)
+        self.assertEqual(len(r1), 99)
+        self.assertEqual(str(r1), "1-99")
+        r1.add_range(40, 101, 1)
+        self.assertEqual(len(r1), 100)
+        self.assertEqual(str(r1), "1-100")
+        r1.add_range(399, 423, 2)
+        self.assertEqual(len(r1), 112)
+        self.assertEqual(str(r1), "1-100,399-421/2")
+        # Bound checks
+        r1 = RangeSet("1-30", autostep=2)
+        self.assertEqual(len(r1), 30)
+        self.assertEqual(str(r1), "1-30")
+        r1.add_range(32, 35, 1)
+        self.assertEqual(len(r1), 33)
+        self.assertEqual(str(r1), "1-30,32-34")
+        r1.add_range(31, 32, 1)
+        self.assertEqual(len(r1), 34)
+        self.assertEqual(str(r1), "1-34")
+        r1 = RangeSet("1-30/4")
+        self.assertEqual(len(r1), 8)
+        self.assertEqual(str(r1), "1,5,9,13,17,21,25,29")
+        r1.add_range(30, 32, 1)
+        self.assertEqual(len(r1), 10)
+        self.assertEqual(str(r1), "1,5,9,13,17,21,25,29-31")
+        r1.add_range(40, 65, 10)
+        self.assertEqual(len(r1), 13)
+        self.assertEqual(str(r1), "1,5,9,13,17,21,25,29-31,40,50,60")
+        r1 = RangeSet("1-30", autostep=2)
+        r1.add_range(40, 65, 10)
+        self.assertEqual(len(r1), 33)
+        self.assertEqual(str(r1), "1-30,40-60/10")
+        # One
+        r1.add_range(103, 104)
+        self.assertEqual(len(r1), 34)
+        self.assertEqual(str(r1), "1-30,40-60/10,103")
+        # Zero
+        self.assertRaises(AssertionError, r1.add_range, 103, 103)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)

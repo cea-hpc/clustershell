@@ -195,9 +195,9 @@ class RangeSet:
                 # check preconditions
                 if start > stop or step < 1:
                     raise RangeSetParseError(subrange,
-                            "invalid values in range")
+                                             "invalid values in range")
 
-                self.add_range(start, stop, step, pad)
+                self.add_range(start, stop + 1, step, pad)
         
     @classmethod
     def fromlist(cls, rnglist, autostep=None):
@@ -226,8 +226,8 @@ class RangeSet:
         """
         Iterate over each item in RangeSet.
         """
-        for start, stop, step, pad in self._ranges:
-            for i in range(start, stop + 1, step):
+        for sli, pad in self._ranges: 
+            for i in xrange(sli.start, sli.stop, sli.step):
                 yield "%*d" % (pad, i)
 
     def __len__(self):
@@ -242,19 +242,19 @@ class RangeSet:
         """
         cnt = 0
         res = ""
-        for start, stop, step, pad in self._ranges:
-            assert pad != None
+        for sli, pad in self._ranges: 
             if cnt > 0:
                 res += ","
-            if start == stop:
-                res += "%0*d" % (pad, start)
+            if sli.start + 1 == sli.stop:
+                res += "%0*d" % (pad, sli.start)
             else:
-                assert step >= 0, "Internal error: step < 0"
-                if step == 1:
-                    res += "%0*d-%0*d" % (pad, start, pad, stop)
+                assert sli.step >= 0, "Internal error: sli.step < 0"
+                if sli.step == 1:
+                    res += "%0*d-%0*d" % (pad, sli.start, pad, sli.stop - 1)
                 else:
-                    res += "%0*d-%0*d/%d" % (pad, start, pad, stop, step)
-            cnt += stop - start + 1
+                    res += "%0*d-%0*d/%d" % (pad, sli.start, pad,
+                                             sli.stop - 1, sli.step)
+            cnt += sli.stop - sli.start
         return res
 
     # __repr__ is the same as __str__ as it is a valid expression that
@@ -288,9 +288,9 @@ class RangeSet:
         """
         Contains subroutine that takes an integer.
         """
-        for rgstart, rgstop, rgstep, rgpad in self._ranges:
-            if ielem >= rgstart and ielem <= rgstop and \
-                (ielem - rgstart) % rgstep == 0:
+        for rgsli, rgpad in self._ranges:
+            if ielem >= rgsli.start and ielem < rgsli.stop and \
+                (ielem - rgsli.start) % rgsli.step == 0:
                 return True
         return False
 
@@ -298,12 +298,12 @@ class RangeSet:
         """
         Contains subroutine that takes an integer and a padding value.
         """
-        for rgstart, rgstop, rgstep, rgpad in self._ranges:
+        for rgsli, rgpad in self._ranges:
             # for each ranges, check for inclusion + padding matching
             # + step matching
-            if ielem >= rgstart and ielem <= rgstop and \
+            if ielem >= rgsli.start and ielem < rgsli.stop and \
                 (pad == rgpad or (pad == 0 and len(str(ielem)) >= rgpad)) and \
-                (ielem - rgstart) % rgstep == 0:
+                (ielem - rgsli.start) % rgsli.step == 0:
                 return True
         return False
 
@@ -318,8 +318,8 @@ class RangeSet:
         Report whether another rangeset contains this rangeset.
         """
         self._binary_sanity_check(rangeset)
-        for start, stop, step, pad in self._ranges:
-            for i in range(start, stop + 1, step):
+        for sli, pad in self._ranges:
+            for i in xrange(sli.start, sli.stop, sli.step):
                 if not rangeset._contains_with_padding(i, pad):
                     return False
         return True
@@ -408,13 +408,14 @@ class RangeSet:
                 return inst
             # get items from slice, O(n) algorithm for n = number of ranges
             length = 0
-            for start, stop, step, pad in self._ranges:
-                cnt =  (stop - start) / step + 1
+            for sli, pad in self._ranges:
+                start, stop, step = sli.start, sli.stop, sli.step
+                cnt =  (stop - start - 1) / step + 1
                 offset = sl_next - length
                 if offset < cnt:
                     num = min(sl_stop - sl_next, cnt - offset)
                     inst.add_range(start + offset * step,
-                                   start + (offset + num - 1) * step,
+                                   start + (offset + num - 1) * step + 1,
                                    sl_step * step,  # slice_step * range_step
                                    pad)
                     # adjust sl_next...
@@ -434,10 +435,10 @@ class RangeSet:
                 else:
                     raise IndexError, "%d out of range" % index
             length = 0
-            for start, stop, step, pad in self._ranges:
-                cnt =  (stop - start) / step + 1
+            for sli, pad in self._ranges:
+                cnt =  (sli.stop - sli.start - 1) / sli.step + 1
                 if index < length + cnt:
-                    return start + (index - length) * step
+                    return sli.start + (index - length) * sli.step
                 length += cnt
             raise IndexError, "%d out of range" % index
         else:
@@ -473,8 +474,8 @@ class RangeSet:
         """
         items = []
         pad = 0
-        for rgstart, rgstop, rgstep, rgpad in self._ranges:
-            items += range(rgstart, rgstop + 1, rgstep)
+        for rgsli, rgpad in self._ranges:
+            items += xrange(rgsli.start, rgsli.stop, rgsli.step)
             pad = pad or rgpad
         return items, pad
 
@@ -495,16 +496,16 @@ class RangeSet:
                     if m != i - k:
                         if m == 1 or k - istart >= self._autostep * m:
                             # add one range with possible autostep
-                            rng.append((istart, k, m, pad))
+                            rng.append((slice(istart, k + 1, m), pad))
                             istart = k = i
                         elif k - istart > m:
                             # stepped without autostep
                             # be careful to let the last one "pending"
-                            for j in range(istart, k, m):
-                                rng.append((j, j, 1, pad))
+                            for j in xrange(istart, k, m):
+                                rng.append((slice(j, j + 1, 1), pad))
                             istart = k
                         else:
-                            rng.append((istart, istart, 1, pad))
+                            rng.append((slice(istart, istart + 1, 1), pad))
                             istart = k
                 m = i - k
                 k = i
@@ -514,37 +515,39 @@ class RangeSet:
             if m > 0:
                 if m == 1 or k - istart >= self._autostep * m:
                     # add one range with possible autostep
-                    rng.append((istart, k, m, pad))
+                    rng.append((slice(istart, k + 1, m), pad))
                 elif k - istart > m:
                     # stepped without autostep
-                    for j in range(istart, k + m, m):
-                        rng.append((j, j, 1, pad))
+                    for j in xrange(istart, k + m, m):
+                        rng.append((slice(j, j + 1, 1), pad))
                 else:
-                    rng.append((istart, istart, 1, pad))
-                    rng.append((k, k, 1, pad))
+                    rng.append((slice(istart, istart + 1, 1), pad))
+                    rng.append((slice(k, k + 1, 1), pad))
             else:
-                rng.append((istart, istart, 1, pad))
+                rng.append((slice(istart, istart + 1, 1), pad))
 
         return rng, cnt
 
     def add_range(self, start, stop, step=1, pad=0):
         """
         Add a range (start, stop, step and padding length) to RangeSet.
+        Like the Python built-in function range(), the last element is
+        the largest start + i * step less than stop.
         """
-        assert start <= stop, "please provide ordered node index ranges"
+        assert start < stop, "please provide ordered node index ranges"
         assert step > 0
         assert pad >= 0
         assert stop - start < 1e9, "range too large"
 
         if self._length == 0: # first-add switch
-            stop_adjust = stop - (stop - start) % step
+            stop_adjust = stop - (stop - 1 - start) % step
             if step == 1 or stop_adjust - start >= self._autostep * step:
-                self._ranges = [ (start, stop_adjust, step, pad) ]
+                self._ranges = [ (slice(start, stop_adjust, step), pad) ]
             else:
                 # case: step > 1 and no proper autostep
-                for j in range(start, stop_adjust + step, step):
-                    self._ranges.append((j, j, step, pad))
-            self._length = (stop_adjust - start) / step + 1
+                for j in xrange(start, stop_adjust, step):
+                    self._ranges.append((slice(j, j + 1, step), pad))
+            self._length = (stop_adjust - start - 1) / step + 1
         elif step > 1:
             # use generic expand/fold method in that case
             self._add_range_exfold(start, stop, step, pad)
@@ -556,7 +559,7 @@ class RangeSet:
         """
         Add range without expanding then folding all items.
         """
-        assert start <= stop, "please provide ordered node index ranges"
+        assert start < stop, "please provide ordered node index ranges"
         assert step > 0
         assert pad >= 0
 
@@ -567,7 +570,8 @@ class RangeSet:
         rgpad = 0
 
         # iterate over existing ranges
-        for rgstart, rgstop, rgstep, rgpad in self._ranges:
+        for rgsli, rgpad in self._ranges:
+            rgstart, rgstop, rgstep = rgsli.start, rgsli.stop, rgsli.step
             if rgstep > 1:
                 # failback to generic method when step > 1 is found
                 self._add_range_exfold(start, stop, step, pad)
@@ -577,27 +581,27 @@ class RangeSet:
                 # just gobble up smaller ranges
                 continue
             if pstart >= 0:
-                if pstop + 1 < rgstart:
+                if pstop < rgstart:
                     # out of range: add pending range
-                    new_ranges.append((pstart, pstop, 1, rgpad or pad))
-                    new_length += pstop - pstart + 1
+                    new_ranges.append((slice(pstart, pstop, 1), rgpad or pad))
+                    new_length += pstop - pstart
                 else:
                     # in range: merge left by modifying rgstart
                     rgstart = pstart
                 # invalidate pending range
                 pstart = -1
             # out of range checks...
-            if included or start > rgstop + 1:
+            if included or start > rgstop:
                 # simple case: just copy this range "as it"
-                new_ranges.append((rgstart, rgstop, 1, rgpad or pad))
-                new_length += rgstop - rgstart + 1
+                new_ranges.append((slice(rgstart, rgstop, 1), rgpad or pad))
+                new_length += rgstop - rgstart
                 continue
-            elif stop + 1 < rgstart:
+            elif stop < rgstart:
                 # this range is greater than us and not mergeable:
                 # add specified range and also this range "as it"
-                new_ranges.append((start, stop, 1, rgpad or pad))
-                new_ranges.append((rgstart, rgstop, 1, rgpad or pad))
-                new_length += stop - start + rgstop - rgstart + 2
+                new_ranges.append((slice(start, stop, 1), rgpad or pad))
+                new_ranges.append((slice(rgstart, rgstop, 1), rgpad or pad))
+                new_length += stop - start + rgstop - rgstart
                 included = True
                 continue
             # we are "in range", set pending range
@@ -608,12 +612,12 @@ class RangeSet:
         if not included:
             # specified range is greater that all ranges
             assert new_length == self._length
-            new_ranges.append((start, stop, 1, rgpad or pad))
-            new_length += stop - start + 1
+            new_ranges.append((slice(start, stop, 1), rgpad or pad))
+            new_length += stop - start
         elif pstart >= 0:
             # do not forget pending range
-            new_ranges.append((pstart, pstop, 1, rgpad or pad))
-            new_length += pstop - pstart + 1
+            new_ranges.append((slice(pstart, pstop, 1), rgpad or pad))
+            new_length += pstop - pstart
 
         # assign new values
         self._ranges = new_ranges
@@ -623,12 +627,12 @@ class RangeSet:
         """
         Add range expanding then folding all items.
         """
-        assert start <= stop, "please provide ordered node index ranges"
+        assert start < stop, "please provide ordered node index ranges"
         assert step > 0
         assert pad >= 0
 
         items, rgpad = self._expand()
-        items += range(start, stop + 1, step)
+        items += xrange(start, stop, step)
         items.sort()
         self._ranges, self._length = self._fold(items, pad or rgpad)
 
@@ -653,14 +657,14 @@ class RangeSet:
         """
         Add element to RangeSet.
         """
-        self.add_range(elem, elem, step=1, pad=pad)
+        self.add_range(elem, elem + 1, step=1, pad=pad)
 
     def update(self, rangeset):
         """
         Update a rangeset with the union of itself and another.
         """
-        for start, stop, step, pad in rangeset._ranges:
-            self.add_range(start, stop, step, pad)
+        for sli, pad in rangeset._ranges:
+            self.add_range(sli.start, sli.stop, sli.step, pad)
 
     def clear(self):
         """
@@ -893,8 +897,8 @@ class NodeSetBase(object):
         """
         for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
-                for start, stop, step, pad in rangeset._ranges:
-                    for idx in xrange(start, stop + 1, step):
+                for sli, pad in rangeset._ranges:
+                    for idx in xrange(sli.start, sli.stop, sli.step):
                         yield pat, idx, pad
             else:
                 yield pat, None, None
