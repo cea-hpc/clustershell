@@ -1,3 +1,8 @@
+2011-03-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* MsgTree.py: Class initialization variant (trace mode) to keep track of
+	old keys/nodes for each message (part of #144).
+
 2011-03-06 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Implement clush -L (not -bL) to order output by nodename,
