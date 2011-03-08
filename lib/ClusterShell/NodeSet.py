@@ -126,6 +126,8 @@ class RangeSet:
     Also, RangeSet provides methods like update(), intersection_update()
     or difference_update(), which conform to the Python Set API.
     """
+    _VERSION = 2    # serial version number
+
     def __init__(self, pattern=None, autostep=None):
         """
         Initialize RangeSet with optional pdsh-like string pattern and
@@ -231,6 +233,21 @@ class RangeSet:
         for sli, pad in self._ranges: 
             for i in xrange(sli.start, sli.stop, sli.step):
                 yield "%*d" % (pad, i)
+
+    def __getstate__(self):
+        """called upon pickling"""
+        odict = self.__dict__.copy()
+        # pickle includes current serial version
+        odict['_version'] = RangeSet._VERSION
+        return odict
+
+    def __setstate__(self, dic):
+        """called upon unpickling"""
+        self.__dict__.update(dic)
+        # unpickle from old version?
+        if getattr(self, '_version', 0) < RangeSet._VERSION:
+            self._ranges = [(slice(start, stop + 1, step), pad) \
+                                for start, stop, step, pad in self._ranges]
 
     def __len__(self):
         """
