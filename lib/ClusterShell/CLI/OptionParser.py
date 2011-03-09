@@ -108,7 +108,8 @@ class OptionParser(optparse.OptionParser):
             debug_option=True,
             verbose_options=False,
             separator_option=False,
-            dshbak_compat=False):
+            dshbak_compat=False,
+            msgtree_trace=False):
         """Install options needed by Display class"""
         optgrp = optparse.OptionGroup(self, "Output behaviour")
         if verbose_options:
@@ -147,6 +148,11 @@ class OptionParser(optparse.OptionParser):
         else:
             optgrp.add_option("-S", action="store_true", dest="maxrc",
                               help="return the largest of command return codes")
+
+        if msgtree_trace:
+            optgrp.add_option("-T", "--tree", action="store_true",
+                              dest="tree_mode",
+                              help="message tree trace mode")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
                           choices=WHENCOLOR_CHOICES,
@@ -254,7 +260,8 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-S", "--separator", action="store", dest="separator",
                           default=' ', help="separator string to use when " \
                           "expanding nodesets (default: ' ')")
-        optgrp.add_option("-I", "--slice", action="store", dest="slice_rangeset", 
+        optgrp.add_option("-I", "--slice", action="store",
+                          dest="slice_rangeset",
                           help="return sliced off result", type="string")
         optgrp.add_option("--split", action="store", dest="maxsplit", 
                           help="split result into a number of subsets",

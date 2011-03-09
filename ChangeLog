@@ -1,5 +1,7 @@
 2011-03-08 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clubak.py: Add -T,--tree message tree mode option (ticket #144).
+
 	* MsgTree.py: Class initialization variant (trace mode) to keep track of
 	old keys/nodes for each message (part of #144).
 

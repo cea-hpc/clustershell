@@ -52,6 +52,7 @@ class Display(object):
     """
     Output display class for command line scripts.
     """
+    COLOR_RESULT_FMT = "\033[32m%s\033[0m"
     COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
     COLOR_STDERR_FMT = "\033[31m%s\033[0m"
     SEP = "-" * 15
@@ -118,11 +119,24 @@ class Display(object):
             self._display = self._print_buffer
     line_mode = property(_getlmode, _setlmode)
 
-    def _format_header(self, nodeset):
-        """Format nodeset-based header."""
+    def _format_nodeset(self, nodeset):
+        """Sub-routine to format nodeset string."""
         if self.regroup:
             return nodeset.regroup(self.groupsource, noprefix=self.noprefix)
         return str(nodeset)
+
+    def format_header(self, nodeset, indent=0):
+        """Format nodeset-based header."""
+        indstr = " " * indent
+        nodecntstr = ""
+        if self.node_count and len(nodeset) > 1:
+            nodecntstr = " (%d)" % len(nodeset)
+        if not self.label:
+            return ""
+        return self.color_stdout_fmt % ("%s%s\n%s%s%s\n%s%s" % \
+            (indstr, self.SEP,
+             indstr, self._format_nodeset(nodeset), nodecntstr,
+             indstr, self.SEP))
 
     def print_line(self, nodeset, line):
         """Display a line with optional label."""
@@ -149,16 +163,7 @@ class Display(object):
 
     def _print_buffer(self, nodeset, content):
         """Display a dshbak-like header block and content."""
-        nodecntstr = ""
-        if self.node_count and len(nodeset) > 1:
-            nodecntstr = " (%d)" % len(nodeset)
-        if self.label:
-            header = self.color_stdout_fmt % ("%s\n%s%s\n%s\n" % (self.SEP,
-                                                self._format_header(nodeset),
-                                                nodecntstr, self.SEP))
-        else:
-            header = ""
-        self.out.write("%s%s\n" % (header, content))
+        self.out.write("%s\n%s\n" % (self.format_header(nodeset), content))
 
     def _print_lines(self, nodeset, msg):
         """Display a MsgTree buffer by line with prefixed header."""
@@ -166,13 +171,13 @@ class Display(object):
         if self.label:
             if self.gather:
                 header = self.color_stdout_fmt % \
-                            ("%s: " % self._format_header(nodeset))
+                            ("%s: " % self._format_nodeset(nodeset))
                 for line in msg:
                     out.write("%s%s\n" % (header, line))
             else:
                 for node in nodeset:
                     header = self.color_stdout_fmt % \
-                                ("%s: " % self._format_header(node))
+                                ("%s: " % self._format_nodeset(node))
                     for line in msg:
                         out.write("%s%s\n" % (header, line))
         else:
