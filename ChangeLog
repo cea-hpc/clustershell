@@ -1,5 +1,8 @@
 2011-03-08 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clush.py: Improved -v switch (closes ticket #100: print live node
+	output plus noderange-grouped output at the end).
+
 	* CLI/Clubak.py: Add -T,--tree message tree mode option (ticket #144).
 
 	* MsgTree.py: Class initialization variant (trace mode) to keep track of

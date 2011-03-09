@@ -95,7 +95,7 @@ class OutputHandler(EventHandler):
         worker.task.set_default("USER_running", False)
         if worker.task.default("USER_handle_SIGUSR1"):
             os.kill(os.getpid(), signal.SIGUSR1)
-        
+
 class DirectOutputHandler(OutputHandler):
     """Direct output event handler class."""
 
@@ -128,6 +128,26 @@ class DirectOutputHandler(OutputHandler):
     def ev_close(self, worker):
         self.update_prompt(worker)
 
+class CopyOutputHandler(DirectOutputHandler):
+    """Copy output event handler."""
+    def __init__(self, display, reverse=False):
+        DirectOutputHandler.__init__(self, display)
+        self.reverse = reverse
+
+    def ev_close(self, worker):
+        """A copy worker has finished."""
+        if self.reverse:
+            self._display.vprint(VERB_VERB, "%s:`%s' -> `%s'" % \
+                (worker.nodes, worker.source, worker.dest))
+        else:
+            self._display.vprint(VERB_VERB, "`%s' -> %s:`%s'" % \
+                (worker.source, worker.nodes, worker.dest))
+        # multiple copy workers may be running (handled by this task's thread)
+        copies = worker.task.default("USER_copies") - 1
+        worker.task.set_default("USER_copies", copies)
+        if copies == 0:
+            self.update_prompt(worker)
+
 class GatherOutputHandler(OutputHandler):
     """Gathered output event handler class."""
 
@@ -135,6 +155,11 @@ class GatherOutputHandler(OutputHandler):
         OutputHandler.__init__(self)
         self._display = display
         self._runtimer = runtimer
+
+    def ev_read(self, worker):
+        if self._display.verbosity == VERB_VERB:
+            node = worker.current_node or worker.key
+            self._display.print_line(node, worker.current_msg)
 
     def ev_error(self, worker):
         self._runtimer_clean()
@@ -520,6 +545,7 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     run copy command
     """
     task.set_default("USER_running", True)
+    task.set_default("USER_copies", len(sources))
 
     # Sources check
     for source in sources:
@@ -527,7 +553,7 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
             display.vprint_err(VERB_QUIET, "ERROR: file \"%s\" not found" % \
                                            source)
             clush_exit(1)
-        task.copy(source, dest, ns, handler=DirectOutputHandler(display),
+        task.copy(source, dest, ns, handler=CopyOutputHandler(display),
                   timeout=timeout, preserve=preserve_flag)
 
     task.resume()
@@ -537,6 +563,7 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
     run reverse copy command
     """
     task.set_default("USER_running", True)
+    task.set_default("USER_copies", len(sources))
 
     # Sources check
     if not os.path.exists(dest):
@@ -548,7 +575,7 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
             "ERROR: destination \"%s\" is not a directory" % dest)
         clush_exit(1)
     for source in sources:
-        task.rcopy(source, dest, ns, handler=DirectOutputHandler(display),
+        task.rcopy(source, dest, ns, handler=CopyOutputHandler(display, True),
                    timeout=timeout, preserve=preserve_flag)
 
     task.resume()
@@ -658,7 +685,7 @@ def main(args=sys.argv):
     # Do we have nodes group?
     task = task_self()
     task.set_info("debug", config.verbosity > 1)
-    if config.verbosity > 1:
+    if config.verbosity == VERB_DEBUG:
         STD_GROUP_RESOLVER.set_verbosity(1)
     if options.nodes_all:
         all_nodeset = NodeSet.fromall()
@@ -688,8 +715,6 @@ def main(args=sys.argv):
     nodeset_base.difference_update(nodeset_exclude)
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
-
-    display.vprint(VERB_DEBUG, "Final NodeSet: %s" % nodeset_base)
 
     # Set open files limit.
     set_fdlimit(config.fd_max, display)
@@ -787,7 +812,7 @@ def main(args=sys.argv):
 
     # print debug values (fanout value is get from the config object
     # and not task itself as set_info() is an asynchronous call.
-    display.vprint(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout " \
+    display.vprint(VERB_DEBUG, "clush: nodeset=%s fanout=%d [timeout " \
                    "conn=%.1f cmd=%.1f] %s" %  (nodeset_base, config.fanout,
                                                 task.info("connect_timeout"),
                                                 task.info("command_timeout"),
