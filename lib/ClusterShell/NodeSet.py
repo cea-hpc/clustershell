@@ -60,7 +60,6 @@ Usage example
   [...]
 """
 
-import copy
 from itertools import imap
 from operator import itemgetter
 import re
@@ -280,6 +279,17 @@ class RangeSet:
     # could be used to recreate a RangeSet with the same value
     __repr__ = __str__
 
+    def copy(self):
+        """Return a copy of a RangeSet."""
+        result = self.__class__()
+        result._autostep = self._autostep
+        result._length = self._length
+        # Use a shallow copy of ranges list (of immutable content).
+        result._ranges = self._ranges[:]
+        return result
+
+    __copy__ = copy # For the copy module
+
     def __contains__(self, elem):
         """
         Is element contained in RangeSet? Element can be either a
@@ -338,12 +348,11 @@ class RangeSet:
         objects without padding information, which can be convenient
         for numerical manipulation.
         """
-        if padding:
-            func = itemgetter(0, 1)
-        else:
-            func = itemgetter(0)
         # return an iterator
-        return imap(func, self._ranges)
+        if padding:
+            return iter(self._ranges)
+        else:
+            return imap(itemgetter(0), self._ranges)
 
     def _binary_sanity_check(self, other):
         # check that the other argument to a binary operation is also
@@ -678,7 +687,7 @@ class RangeSet:
         """
         s.union(t) returns a new rangeset with elements from both s and t.
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.update(other)
         return self_copy
 
@@ -725,7 +734,7 @@ class RangeSet:
         s.intersection(t) returns a new rangeset with elements common
         to s and t.
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.intersection_update(rangeset)
         return self_copy
 
@@ -773,7 +782,7 @@ class RangeSet:
         not in t.
         in t.
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.difference_update(rangeset)
         return self_copy
 
@@ -811,7 +820,7 @@ class RangeSet:
         items1, pad1 = self._expand()
 
         try:
-            items1.remove(elem)
+            items1.remove(int(elem))
         except ValueError:
             raise KeyError, elem
 
@@ -860,7 +869,7 @@ class RangeSet:
         
         (ie. all elements that are in exactly one of the rangesets.)
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.symmetric_difference_update(other)
         return self_copy
 
@@ -990,6 +999,24 @@ class NodeSetBase(object):
                 result += pat
             result += ","
         return result[:-1]
+
+    def copy(self):
+        """Return a copy of a NodeSet."""
+        result = self.__class__()
+        result._length = self._length
+        result._autostep = self._autostep
+        dic = {}
+        for pat, rangeset in self._patterns.iteritems():
+            if rangeset is None:
+                dic[pat] = None
+            else:
+                dic[pat] = rangeset.copy()
+        result._patterns = dic
+        result._resolver = self._resolver
+        result._parser = self._parser
+        return result
+
+    __copy__ = copy # For the copy module
 
     def __contains__(self, other):
         """
@@ -1132,15 +1159,18 @@ class NodeSetBase(object):
 
             # add rangeset in corresponding pattern rangeset
             pat_e.update(rangeset)
+        elif rangeset:
+            # create new pattern
+            self._patterns[pat] = rangeset.copy()
         else:
-            # create new pattern (with possibly rangeset=None)
-            self._patterns[pat] = copy.copy(rangeset)
+            # create new pattern with no rangeset (single node)
+            self._patterns[pat] = None
 
     def union(self, other):
         """
         s.union(t) returns a new set with elements from both s and t.
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.update(other)
         return self_copy
 
@@ -1188,7 +1218,7 @@ class NodeSetBase(object):
         s.intersection(t) returns a new set with elements common to s
         and t.
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.intersection_update(other)
         return self_copy
 
@@ -1216,7 +1246,7 @@ class NodeSetBase(object):
         for pat, irangeset in other._patterns.iteritems():
             rangeset = self._patterns.get(pat)
             if rangeset:
-                rs = copy.copy(rangeset)
+                rs = rangeset.copy()
                 rs.intersection_update(irangeset)
                 # ignore pattern if empty rangeset
                 if len(rs) > 0:
@@ -1245,7 +1275,7 @@ class NodeSetBase(object):
         s.difference(t) returns a new NodeSet with elements in s but not
         in t.
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.difference_update(other)
         return self_copy
 
@@ -1312,7 +1342,7 @@ class NodeSetBase(object):
         
         (ie. all nodes that are in exactly one of the nodesets.)
         """
-        self_copy = copy.deepcopy(self)
+        self_copy = self.copy()
         self_copy.symmetric_difference_update(other)
         return self_copy
 

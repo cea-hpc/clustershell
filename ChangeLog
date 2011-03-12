@@ -1,3 +1,9 @@
+2011-03-12 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fixed issues with objects copying, so got rid of copy module
+	and added optimized RangeSet.copy() and NodeSet.copy() methods (ticket
+	#146).
+
 2011-03-09 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Added running progress indicator for --[r]copy commands.
