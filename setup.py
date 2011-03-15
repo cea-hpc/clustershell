@@ -64,16 +64,16 @@ setup(name='ClusterShell',
       description='ClusterShell library and tools',
       long_description=open('doc/txt/clustershell.rst').read(),
       classifiers=[
-          "Classifier: Development Status :: 5 - Production/Stable",
-          "Classifier: Environment :: Console",
-          "Classifier: Intended Audience :: System Administrators",
-          "Classifier: Operating System :: MacOS :: MacOS X",
-          "Classifier: Operating System :: POSIX :: BSD",
-          "Classifier: Operating System :: POSIX :: Linux",
-          "Classifier: Programming Language :: Python",
-          "Classifier: Topic :: Software Development :: Libraries :: Python Modules",
-          "Classifier: Topic :: System :: Clustering",
-          "Classifier: Topic :: System :: Distributed Computing"
+          "Development Status :: 5 - Production/Stable",
+          "Environment :: Console",
+          "Intended Audience :: System Administrators",
+          "Operating System :: MacOS :: MacOS X",
+          "Operating System :: POSIX :: BSD",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python",
+          "Topic :: Software Development :: Libraries :: Python Modules",
+          "Topic :: System :: Clustering",
+          "Topic :: System :: Distributed Computing"
       ]
      )
 
