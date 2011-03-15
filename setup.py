@@ -33,8 +33,9 @@
 #
 # $Id$
 
-from setuptools import setup, find_packages
 import os
+from setuptools import setup, find_packages
+
 
 if not os.access('scripts/clubak', os.F_OK):
     os.symlink('clubak.py', 'scripts/clubak')
@@ -43,17 +44,36 @@ if not os.access('scripts/clush', os.F_OK):
 if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
+VERSION='1.4.2'
+
 setup(name='ClusterShell',
-      version='1.4.1',
-      license='CeCILL-C (French equivalent to LGPLv2+)',
-      description='ClusterShell library',
-      author='Stephane Thiell',
-      author_email='stephane.thiell@cea.fr',
-      url='http://clustershell.sourceforge.net/',
+      version=VERSION,
       package_dir={'': 'lib'},
       packages=find_packages('lib'),
       scripts=['scripts/clubak',
                'scripts/clush',
-               'scripts/nodeset']
+               'scripts/nodeset'],
+      author='Stephane Thiell',
+      author_email='stephane.thiell@cea.fr',
+      license='CeCILL-C (French equivalent to LGPLv2+)',
+      url='http://clustershell.sourceforge.net/',
+      download_url='http://sourceforge.net/projects/clustershell/files/'
+        'clustershell/%s/' % VERSION,
+      platforms=['GNU/Linux', 'BSD', 'MacOSX'],
+      keywords=['clustershell', 'clush', 'clubak', 'nodeset'],
+      description='ClusterShell library and tools',
+      long_description=open('doc/txt/clustershell.rst').read(),
+      classifiers=[
+          "Classifier: Development Status :: 5 - Production/Stable",
+          "Classifier: Environment :: Console",
+          "Classifier: Intended Audience :: System Administrators",
+          "Classifier: Operating System :: MacOS :: MacOS X",
+          "Classifier: Operating System :: POSIX :: BSD",
+          "Classifier: Operating System :: POSIX :: Linux",
+          "Classifier: Programming Language :: Python",
+          "Classifier: Topic :: Software Development :: Libraries :: Python Modules",
+          "Classifier: Topic :: System :: Clustering",
+          "Classifier: Topic :: System :: Distributed Computing"
+      ]
      )
 

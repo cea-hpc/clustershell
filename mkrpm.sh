@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library. 
@@ -56,9 +56,10 @@ install -d $TMPDIR/lib/ClusterShell/Engine
 install -d $TMPDIR/lib/ClusterShell/Worker
 install -d $TMPDIR/scripts
 install -d $TMPDIR/conf
-install -d $TMPDIR/doc/man/{man1,man5}
-install -d $TMPDIR/doc/extras/vim/{ftdetect,syntax}
 install -d $TMPDIR/doc/epydoc
+install -d $TMPDIR/doc/extras/vim/{ftdetect,syntax}
+install -d $TMPDIR/doc/man/{man1,man5}
+install -d $TMPDIR/doc/txt
 install -d $TMPDIR/tests
 
 install -p -m 0644 setup.cfg setup.py $TMPDIR/
@@ -72,15 +73,17 @@ install -p -m 0755 scripts/clush.py $TMPDIR/scripts/
 install -p -m 0755 scripts/nodeset.py $TMPDIR/scripts/
 install -p -m 0644 conf/clush.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf $TMPDIR/conf/
+install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
+install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim $TMPDIR/doc/extras/vim/ftdetect/
+install -p -m 0644 doc/extras/vim/syntax/clushconf.vim $TMPDIR/doc/extras/vim/syntax/
+install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim $TMPDIR/doc/extras/vim/syntax/
 install -p -m 0644 doc/man/man1/clubak.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man1/clush.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man1/nodeset.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man5/clush.conf.5 $TMPDIR/doc/man/man5/
 install -p -m 0644 doc/man/man5/groups.conf.5 $TMPDIR/doc/man/man5/
-install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim $TMPDIR/doc/extras/vim/ftdetect/
-install -p -m 0644 doc/extras/vim/syntax/clushconf.vim $TMPDIR/doc/extras/vim/syntax/
-install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim $TMPDIR/doc/extras/vim/syntax/
-install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
+install -p -m 0644 doc/txt/*.{rst,txt} $TMPDIR/doc/txt/
+install -p -m 0644 doc/txt/README $TMPDIR/doc/txt/
 install -p -m 0644 tests/*.py $TMPDIR/tests/
 chmod 0755 $TMPDIR/tests/run_testsuite.py
 

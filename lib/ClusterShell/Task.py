@@ -126,7 +126,7 @@ class Task(object):
                       "stdout_msgtree"      : True,
                       "stderr_msgtree"      : True,
                       "engine"              : 'auto',
-                      "port_qlimit"         : 32 }
+                      "port_qlimit"         : 100 }
 
     _std_info =     { "debug"               : False,
                       "print_debug"         : _task_print_debug,
