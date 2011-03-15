@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH NODESET 1 "2011-02-24" "1.4.2" "ClusterShell User Manual"
+.TH NODESET 1 "2011-03-15" "1.4.2" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -138,6 +138,10 @@ hide group source prefix (always \fI@groupname\fP)
 .
 separator string to use when expanding nodesets
 (default: \(aq \(aq)
+.TP
+.BI \-I \ SLICE_RANGESET, \ \-\-slice\fB= SLICE_RANGESET
+.
+return sliced off result; examples of SLICE_RANGESET are "0" for simple index selection, or "1\-9/2,16" for complex rangeset selection
 .TP
 .BI \-\-split\fB= MAXSPLIT
 .

@@ -7,7 +7,7 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2011-02-24
+:Date:   2011-03-15
 :Copyright: CeCILL-C V1
 :Version: 1.4.2
 :Manual section: 1
@@ -63,6 +63,8 @@ Options:
     -S SEPARATOR, --separator=SEPARATOR
                         separator string to use when expanding nodesets
                         (default: ' ')
+    -I SLICE_RANGESET, --slice=SLICE_RANGESET
+                        return sliced off result; examples of SLICE_RANGESET are "0" for simple index selection, or "1-9/2,16" for complex rangeset selection
     --split=MAXSPLIT    split result into a number of subsets
 
 

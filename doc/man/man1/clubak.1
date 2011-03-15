@@ -1,8 +1,8 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUBAK 1 "2010-12-14" "1.4" "ClusterShell User Manual"
+.TH CLUBAK 1 "2011-03-15" "1.4.2" "ClusterShell User Manual"
 .SH NAME
-clubak \- format output from clush/pdsh-like output
+clubak \- format output from clush/pdsh-like output and more
 .
 .nr rst2man-indent-level 0
 .
@@ -32,33 +32,33 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH SYNOPSIS
 .sp
-\fCclubak\fP [ OPTIONS ]
+\fBclubak\fP [ OPTIONS ]
 .SH DESCRIPTION
 .sp
-\fCclubak\fP formats text from standard input containing lines of the form
-"\fInode:output\fP".  It is fully backward compatible with \fCdshbak\fP(1) but
-provides additonal features. For instance, \fCclubak\fP always displays
+\fBclubak\fP formats text from standard input containing lines of the form
+"\fInode:output\fP".  It is fully backward compatible with \fBdshbak\fP(1) but
+provides additonal features. For instance, \fBclubak\fP always displays
 its results sorted by node/nodeset.
 .sp
-You do not need to use \fCclubak\fP when using \fCclush\fP(1) as all output
+You do not need to use \fBclubak\fP when using \fBclush\fP(1) as all output
 formatting features are already included in. It is provided for other usages,
 like post\-processing results of the form "\fInode:output\fP".
 .sp
-Like \fCclush\fP(1), \fCclubak\fP uses the \fIClusterShell.MsgTree\fP module of the
-ClusterShell library (see \fCpydoc ClusterShell.MsgTree\fP).
+Like \fBclush\fP(1), \fBclubak\fP uses the \fIClusterShell.MsgTree\fP module of the
+ClusterShell library (see \fBpydoc ClusterShell.MsgTree\fP).
 .SH INVOCATION
 .sp
-\fCclubak\fP should be started with connected standard input.
+\fBclubak\fP should be started with connected standard input.
 .SH OPTIONS
 .INDENT 0.0
 .TP
 .B \-\-version
 .
-show \fCclubak\fP version number and exit
+show \fBclubak\fP version number and exit
 .TP
 .B \-b,  \-c
 .
-gather nodes with same output (\-c is provided for \fCdshbak\fP(1)
+gather nodes with same output (\-c is provided for \fBdshbak\fP(1)
 compatibility)
 .TP
 .B \-d,  \-\-debug
@@ -75,7 +75,7 @@ fold nodeset using node groups
 .TP
 .BI \-s \ GROUPSOURCE, \ \-\-groupsource\fB= GROUPSOURCE
 .
-optional \fCgroups.conf\fP(5) group source to use
+optional \fBgroups.conf\fP(5) group source to use
 .TP
 .B \-G,  \-\-groupbase
 .
@@ -85,22 +85,26 @@ do not display group source prefix (always \fI@groupname\fP)
 .
 node / line content separator string (default: \fI:\fP)
 .TP
+.B \-T,  \-\-tree
+.
+message tree trace mode; switch to enable \fBClusterShell.MsgTree\fP trace mode, all keys/nodes being kept for each message element of the tree, thus allowing special output gathering
+.TP
 .BI \-\-color\fB= WHENCOLOR
 .
-whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. \fIWHENCOLOR\fP is \fCnever\fP, \fCalways\fP or \fCauto\fP (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
+whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. \fIWHENCOLOR\fP is \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
 .UNINDENT
 .SH EXIT STATUS
 .sp
-An exit status of zero indicates success of the \fCclubak\fP command.
+An exit status of zero indicates success of the \fBclubak\fP command.
 .SH EXAMPLES
 .INDENT 0.0
 .IP 1. 3
 .
-\fCclubak\fP can be used to gather some recorded \fCclush\fP(1) results:
+\fBclubak\fP can be used to gather some recorded \fBclush\fP(1) results:
 .UNINDENT
 .INDENT 0.0
 .TP
-.B Record \fCclush\fP(1) results in a file:
+.B Record \fBclush\fP(1) results in a file:
 .nf
 # clush \-w node[1\-7] uname \-r >/tmp/clush_output
 # clush \-w node[32\-159] uname \-r >>/tmp/clush_output
@@ -130,7 +134,7 @@ node2: 9
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fCclush\fP(1), \fCnodeset\fP(1), \fCgroups.conf\fP(5).
+\fBclush\fP(1), \fBnodeset\fP(1), \fBgroups.conf\fP(5).
 .SH BUG REPORTS
 .INDENT 0.0
 .TP
