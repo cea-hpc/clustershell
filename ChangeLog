@@ -1,5 +1,8 @@
 2011-03-19 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Nodeset.py: Make stdin '-' keyword work when used for -i/x/X
+	operations (ticket #148).
+
 	* CLI/Clush.py: Fixed issue when using clush -bL (missing argument) due to
 	latest 1.4.2 changes. Added tests/ClushScriptTest.py to detect that in
 	the future (ticket #147).

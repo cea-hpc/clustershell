@@ -50,13 +50,18 @@ from ClusterShell.CLI.Utils import NodeSet  # safe import
 from ClusterShell.NodeSet import RangeSet, grouplist, STD_GROUP_RESOLVER
 
 
-def process_stdin(xset, autostep):
-    """Process standard input and populate xset."""
+def process_stdin(xsetop, xsetcls, autostep):
+    """Process standard input and operate on xset."""
+    # Build temporary set (stdin accumulator)
+    tmpset = xsetcls(autostep=autostep)
     for line in sys.stdin.readlines():
         # Support multi-lines and multi-nodesets per line
         line = line[0:line.find('#')].strip()
         for node in line.split():
-            xset.update(xset.__class__(node, autostep=autostep))
+            tmpset.update(node)
+    # Perform operation on xset
+    if tmpset:
+        xsetop(tmpset)
 
 def compute_nodeset(xset, args, autostep):
     """Apply operations and operands from args on xset, an initial
@@ -66,16 +71,27 @@ def compute_nodeset(xset, args, autostep):
     while args:
         arg = args.pop(0)
         if arg in ("-i", "--intersection"):
-            xset.intersection_update(class_set(args.pop(0),
-                                               autostep=autostep))
+            val = args.pop(0)
+            if val == '-':
+                process_stdin(xset.intersection_update, class_set, autostep)
+            else:
+                xset.intersection_update(class_set(val, autostep=autostep))
         elif arg in ("-x", "--exclude"):
-            xset.difference_update(class_set(args.pop(0),
-                                             autostep=autostep))
+            val = args.pop(0)
+            if val == '-':
+                process_stdin(xset.difference_update, class_set, autostep)
+            else:
+                xset.difference_update(class_set(val, autostep=autostep))
         elif arg in ("-X", "--xor"):
-            xset.symmetric_difference_update(class_set(args.pop(0),
-                                                       autostep=autostep))
+            val = args.pop(0)
+            if val == '-':
+                process_stdin(xset.symmetric_difference_update, class_set,
+                              autostep)
+            else:
+                xset.symmetric_difference_update(class_set(val,
+                                                           autostep=autostep))
         elif arg == '-':
-            process_stdin(xset, autostep)
+            process_stdin(xset.update, xset.__class__, autostep)
         else:
             xset.update(class_set(arg, autostep=autostep))
 
@@ -156,16 +172,29 @@ def nodeset():
         xset.update(NodeSet.fromall()) # uses default_sourcename
     elif not args:
         # No need to specify '-' to read stdin if no argument at all.
-        process_stdin(xset, options.autostep)
+        process_stdin(xset.update, xset.__class__, options.autostep)
 
     # Apply first operations (before first non-option)
     for nodes in options.and_nodes:
-        xset.intersection_update(class_set(nodes, autostep=options.autostep))
+        if nodes == '-':
+            process_stdin(xset.intersection_update, xset.__class__,
+                          options.autostep)
+        else:
+            xset.intersection_update(class_set(nodes,
+                                               autostep=options.autostep))
     for nodes in options.sub_nodes:
-        xset.difference_update(class_set(nodes, autostep=options.autostep))
+        if nodes == '-':
+            process_stdin(xset.difference_update, xset.__class__,
+                          options.autostep)
+        else:
+            xset.difference_update(class_set(nodes, autostep=options.autostep))
     for nodes in options.xor_nodes:
-        xset.symmetric_difference_update(class_set(nodes, \
-                                         autostep=options.autostep))
+        if nodes == '-':
+            process_stdin(xset.symmetric_difference_update, xset.__class__,
+                          options.autostep)
+        else:
+            xset.symmetric_difference_update(class_set(nodes, \
+                                             autostep=options.autostep))
 
     # Finish xset computing from args
     compute_nodeset(xset, args, options.autostep)

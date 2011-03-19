@@ -186,6 +186,9 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["--fold", "-X", "foo", "-X", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"], stdin="foo[395-442]\n")
         self._launchAndCompare(["--fold", "-X", "foo", "-X", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"], stdin="foo[395-442]\n")
         self._launchAndCompare(["--fold", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], "bar[3,24],foo[1-200,245-442]", stdin="foo[395-442]\n")
+        # using stdin for -X
+        self._launchAndCompare(["-f","foo[2-4]","-X","-"], "foo[2-3,5-6]", stdin="foo4 foo5 foo6\n")
+        self._launchAndCompare(["-f","-X","-","foo[1-6]"], "foo[1-6]", stdin="foo4 foo5 foo6\n")
 
     def testExclude(self):
         """test nodeset.py --fold --exclude"""
@@ -213,6 +216,38 @@ class NodeSetScriptTest(unittest.TestCase):
         # Do no change
         self._launchAndCompare(["--fold", "-x", "bar[0-5]"], "foo[6-10]", stdin="foo[6-10]\n")
         self._launchAndCompare(["--fold", "--exclude", "foo[5-10,15]"], "foo[0-4,13-14,16-18]", stdin="foo[0-10]\nfoo[13-18]\n")
+        # using stdin for -x
+        self._launchAndCompare(["-f","foo[1-6]","-x","-"], "foo[1-3]", stdin="foo4 foo5 foo6\n")
+        self._launchAndCompare(["-f","-x","-","foo[1-6]"], "foo[1-6]", stdin="foo4 foo5 foo6\n")
+
+    def testIntersection(self):
+        """test nodeset.py --fold --intersection"""
+        # Empty result
+        self._launchAndCompare(["--fold", "foo", "-i", "foo"], "foo")
+        # With no range
+        self._launchAndCompare(["--fold", "foo,bar", "--intersection", "foo"], "foo")
+        # Normal with range
+        self._launchAndCompare(["--fold", "foo[0-5]", "-i", "foo[0-10]"], "foo[0-5]")
+        self._launchAndCompare(["--fold", "foo[0-10]", "-i", "foo[0-5]"], "foo[0-5]")
+        self._launchAndCompare(["--fold", "foo[6-10]", "-i", "bar[0-5]"], "")
+        self._launchAndCompare(["--fold", "foo[0-10]", "foo[13-18]", "-i", "foo[5-10,15]"], "foo[5-10,15]")
+
+    def testIntersectionStdin(self):
+        """test nodeset.py --fold --intersection (stdin)"""
+        # Empty result
+        self._launchAndCompare(["--fold", "--intersection", "foo"], "")
+        self._launchAndCompare(["--fold", "-i", "foo"], "foo", stdin="foo\n")
+        # With no range
+        self._launchAndCompare(["--fold", "-i", "foo"], "foo", stdin="foo,bar\n")
+        # Normal with range
+        self._launchAndCompare(["--fold", "-i", "foo[0-10]"], "foo[0-5]", stdin="foo[0-5]\n")
+        self._launchAndCompare(["--fold", "-i", "foo[0-5]"], "foo[0-5]", stdin="foo[0-10]\n")
+        # Do no change
+        self._launchAndCompare(["--fold", "-i", "bar[0-5]"], "", stdin="foo[6-10]\n")
+        self._launchAndCompare(["--fold", "-i", "foo[5-10,15]"], "foo[5-10,15]", stdin="foo[0-10]\nfoo[13-18]\n")
+        # using stdin for -i
+        self._launchAndCompare(["-f","foo[1-6]","-i","-"], "foo[4-6]", stdin="foo4 foo5 foo6\n")
+        self._launchAndCompare(["-f","-i","-","foo[1-6]"], "foo[1-6]", stdin="foo4 foo5 foo6\n")
 
     def testRangeSet(self):
         """test nodeset.py --rangeset"""
