@@ -7,9 +7,9 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2011-03-15
+:Date:   2011-03-19
 :Copyright: CeCILL-C V1
-:Version: 1.4.2
+:Version: 1.4.3
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -29,7 +29,6 @@ It provides easy manipulation of indexed cluster nodes and node groups.
 OPTIONS
 =======
 
-Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -s GROUPSOURCE, --groupsource=GROUPSOURCE
@@ -69,6 +68,9 @@ Options:
 
 
 For a short explanation of these options, see ``-h, --help``.
+
+If a single hyphen-minus (-) is given as a nodeset, it will be read from
+standard input.
 
 EXTENDED PATTERNS
 =================

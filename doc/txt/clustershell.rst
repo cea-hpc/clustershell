@@ -57,6 +57,9 @@ Examples of use:
   @io
   @compute
 
+  $ nodeset -e @mds
+  node6 node7
+
 See *man nodeset* for more details.
 
 Please visit the ClusterShell website_.

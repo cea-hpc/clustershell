@@ -1,5 +1,7 @@
 2011-03-19 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.4.3 released.
+
 	* CLI/Nodeset.py: Make stdin '-' keyword work when used for -i/x/X
 	operations (ticket #148).
 

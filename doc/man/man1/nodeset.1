@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH NODESET 1 "2011-03-15" "1.4.2" "ClusterShell User Manual"
+.TH NODESET 1 "2011-03-19" "1.4.3" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -44,9 +44,8 @@ library which implements some features of the NodeSet and RangeSet classes.
 It provides easy manipulation of indexed cluster nodes and node groups.
 .SH OPTIONS
 .INDENT 0.0
-.TP
-.B Options:
-.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
 .TP
 .B \-\-version
 .
@@ -60,7 +59,7 @@ show this help message and exit
 .
 optional \fBgroups.conf\fP(5) group source to use
 .UNINDENT
-.INDENT 7.0
+.INDENT 0.0
 .TP
 .B Commands:
 .INDENT 7.0
@@ -149,8 +148,12 @@ split result into a number of subsets
 .UNINDENT
 .UNINDENT
 .UNINDENT
+.UNINDENT
 .sp
 For a short explanation of these options, see \fB\-h, \-\-help\fP.
+.sp
+If a single hyphen\-minus (\-) is given as a nodeset, it will be read from
+standard input.
 .SH EXTENDED PATTERNS
 .sp
 The \fBnodeset\fP command benefits from ClusterShell 1.3 NodeSet basic
