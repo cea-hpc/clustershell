@@ -60,6 +60,7 @@ if __name__ == '__main__':
                                         "CLIConfig",
                                         "CLIDisplay",
                                         "CLIOptionParser",
+                                        "ClushScriptTest"
                                         ])
 
     unittest.TextTestRunner(verbosity=verb).run(suite)

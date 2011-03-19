@@ -532,7 +532,7 @@ def run_command(task, cmd, ns, timeout, display):
 
     if (display.gather or display.line_mode) and ns is not None:
         if display.gather and display.line_mode:
-            handler = LiveGatherOutputHandler(display)
+            handler = LiveGatherOutputHandler(display, ns)
         else:
             handler = GatherOutputHandler(display)
 
