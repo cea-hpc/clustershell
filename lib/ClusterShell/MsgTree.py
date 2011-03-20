@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -53,13 +53,15 @@ class MsgTreeElem(object):
     methods like messages() or walk(). The object can then be used as
     an iterator over the message lines or casted into a string.
     """
-    def __init__(self, msgline=None, parent=None):
+    def __init__(self, msgline=None, parent=None, trace=False):
         """
         Initialize message tree element.
         """
         # structure
         self.parent = parent
         self.children = {}
+        if trace:  # special behavior for trace mode
+            self._shift = self._shift_trace
         # content
         self.msgline = msgline
         self.keys = None
@@ -87,6 +89,15 @@ class MsgTreeElem(object):
         else:
             target_elem.keys.update(shifting)
 
+        return target_elem
+
+    def _shift_trace(self, key, target_elem):
+        """Shift one of our key to specified target element (trace
+        mode: keep backtrace of keys)."""
+        if not target_elem.keys:
+            target_elem.keys = set([ key ])
+        else:
+            target_elem.keys.add(key)
         return target_elem
 
     def __getitem__(self, i):
@@ -132,7 +143,8 @@ class MsgTreeElem(object):
         """
         # create new child element and shift down the key
         return self._shift(key, self.children.setdefault(msgline, \
-                                        self.__class__(msgline, self)))
+                                        self.__class__(msgline, self,
+                                        self._shift == self._shift_trace)))
 
 
 class MsgTree(object):
@@ -143,17 +155,24 @@ class MsgTree(object):
     internally. MsgTree provides low memory consumption especially
     on a cluster when all nodes return similar messages. Also,
     the gathering of messages is done automatically.
+
+    If the boolean `trace' parameter is True at initialization, all
+    keys are kept for each message element of the tree. The special
+    method walk_trace() is then available to walk all elements of the
+    tree.
     """
 
-    def __init__(self):
+    def __init__(self, trace=False):
+        """MsgTree initializer"""
+        self.trace = trace
         # root element of MsgTree
-        self._root = MsgTreeElem()
+        self._root = MsgTreeElem(trace=trace)
         # dict of keys to MsgTreeElem
         self._keys = {}
 
     def clear(self):
         """Remove all items from the MsgTree."""
-        self._root = MsgTreeElem()
+        self._root = MsgTreeElem(trace=self.trace)
         self._keys.clear()
 
     def __len__(self):
@@ -225,20 +244,42 @@ class MsgTree(object):
         """
         Walk the tree. Optionally filter keys on match parameter,
         and optionally map resulting keys with mapper function.
-        Return an iterator of (message, keys) tuples for each
+        Return an iterator over (message, keys) tuples for each
         different message in the tree.
         """
         # stack of elements used to walk the tree (depth-first)
         estack = [ self._root ]
-
         while estack:
             elem = estack.pop()
-            if len(elem.children) > 0:
-                estack += elem.children.values()
+            children = elem.children
+            if len(children) > 0:
+                estack += children.values()
             if elem.keys: # has some keys
                 mkeys = filter(match, elem.keys)
                 if len(mkeys):
                     yield elem, map(mapper, mkeys)
+
+    def walk_trace(self, match=None, mapper=None):
+        """
+        Walk the tree in trace mode. Optionally filter keys on match
+        parameter, and optionally map resulting keys with mapper
+        function.
+        Return an iterator over 4-length tuples (msgline, keys, depth,
+        num_children).
+        """
+        assert self.trace, "walk_trace() is only callable in trace mode"
+        # stack of (element, depth) tuples used to walk the tree
+        estack = [ (self._root, 0) ]
+        while estack:
+            elem, edepth = estack.pop()
+            children = elem.children
+            nchildren = len(children)
+            if nchildren > 0:
+                estack += [(v, edepth + 1) for v in children.values()]
+            if elem.keys:
+                mkeys = filter(match, elem.keys)
+                if len(mkeys):
+                    yield elem.msgline, map(mapper, mkeys), edepth, nchildren
 
     def remove(self, match=None):
         """

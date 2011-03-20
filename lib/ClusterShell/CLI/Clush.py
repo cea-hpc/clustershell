@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -86,6 +86,31 @@ class StdInputHandler(EventHandler):
 
 class OutputHandler(EventHandler):
     """Base class for clush output handlers."""
+
+    def __init__(self):
+        EventHandler.__init__(self)
+        self._runtimer = None
+
+    def runtimer_init(self, task, ntotal):
+        """Init timer for live command-completed progressmeter."""
+        self._runtimer = task.timer(2.0, RunTimer(task, ntotal),
+                                    interval=1./3., autoclose=True)
+
+    def _runtimer_clean(self):
+        """Hide runtimer counter"""
+        if self._runtimer:
+            self._runtimer.eh.erase_line()
+
+    def _runtimer_set_dirty(self):
+        """Force redisplay of counter"""
+        if self._runtimer:
+            self._runtimer.eh.set_dirty()
+
+    def _runtimer_finalize(self, worker):
+        """Finalize display of runtimer counter"""
+        if self._runtimer:
+            self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
+
     def update_prompt(self, worker):
         """
         If needed, notify main thread to update its prompt by sending
@@ -95,7 +120,7 @@ class OutputHandler(EventHandler):
         worker.task.set_default("USER_running", False)
         if worker.task.default("USER_handle_SIGUSR1"):
             os.kill(os.getpid(), signal.SIGUSR1)
-        
+
 class DirectOutputHandler(OutputHandler):
     """Direct output event handler class."""
 
@@ -128,34 +153,47 @@ class DirectOutputHandler(OutputHandler):
     def ev_close(self, worker):
         self.update_prompt(worker)
 
+class CopyOutputHandler(DirectOutputHandler):
+    """Copy output event handler."""
+    def __init__(self, display, reverse=False):
+        DirectOutputHandler.__init__(self, display)
+        self.reverse = reverse
+
+    def ev_close(self, worker):
+        """A copy worker has finished."""
+        for rc, nodes in worker.iter_retcodes():
+            if rc == 0:
+                if self.reverse:
+                    self._display.vprint(VERB_VERB, "%s:`%s' -> `%s'" % \
+                        (nodes, worker.source, worker.dest))
+                else:
+                    self._display.vprint(VERB_VERB, "`%s' -> %s:`%s'" % \
+                        (worker.source, nodes, worker.dest))
+                break
+        # multiple copy workers may be running (handled by this task's thread)
+        copies = worker.task.default("USER_copies") - 1
+        worker.task.set_default("USER_copies", copies)
+        if copies == 0:
+            self._runtimer_finalize(worker)
+            self.update_prompt(worker)
+
 class GatherOutputHandler(OutputHandler):
     """Gathered output event handler class."""
 
-    def __init__(self, display, runtimer):
+    def __init__(self, display):
         OutputHandler.__init__(self)
         self._display = display
-        self._runtimer = runtimer
+
+    def ev_read(self, worker):
+        if self._display.verbosity == VERB_VERB:
+            node = worker.current_node or worker.key
+            self._display.print_line(node, worker.current_msg)
 
     def ev_error(self, worker):
         self._runtimer_clean()
         self._display.print_line_error(worker.current_node,
                                        worker.current_errmsg)
         self._runtimer_set_dirty()
-
-    def _runtimer_clean(self):
-        """Hide runtimer counter"""
-        if self._runtimer:
-            self._runtimer.eh.erase_line()
-
-    def _runtimer_set_dirty(self):
-        """Force redisplay of counter"""
-        if self._runtimer:
-            self._runtimer.eh.set_dirty()
-
-    def _runtimer_finalize(self, worker):
-        """Finalize display of runtimer counter"""
-        if self._runtimer:
-            self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
 
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
@@ -199,9 +237,9 @@ class GatherOutputHandler(OutputHandler):
 class LiveGatherOutputHandler(GatherOutputHandler):
     """Live line-gathered output event handler class."""
 
-    def __init__(self, display, runtimer, nodes):
+    def __init__(self, display, nodes):
         assert nodes is not None, "cannot gather local command"
-        GatherOutputHandler.__init__(self, display, runtimer)
+        GatherOutputHandler.__init__(self, display)
         self._nodes = NodeSet(nodes)
         self._nodecnt = dict.fromkeys(self._nodes, 0)
         self._mtreeq = []
@@ -252,6 +290,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
         self.update_prompt(worker)
 
 class RunTimer(EventHandler):
+    """Running progress timer event handler"""
     def __init__(self, task, total):
         EventHandler.__init__(self)
         self.task = task
@@ -491,22 +530,18 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
-    if display.gather and ns is not None:
-        runtimer = None
-        if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
-            # Create a ClusterShell timer used to display in live the
-            # number of completed commands
-            runtimer = task.timer(2.0, RunTimer(task, len(ns)), interval=1./3.,
-                                  autoclose=True)
-        if display.line_mode:
-            handler = LiveGatherOutputHandler(display, runtimer, ns)
+    if (display.gather or display.line_mode) and ns is not None:
+        if display.gather and display.line_mode:
+            handler = LiveGatherOutputHandler(display, ns)
         else:
-            handler = GatherOutputHandler(display, runtimer)
+            handler = GatherOutputHandler(display)
+
+        if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
+            handler.runtimer_init(task, len(ns))
 
         worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout)
     else:
-        worker = task.shell(cmd, nodes=ns,
-                            handler=DirectOutputHandler(display),
+        worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(display),
                             timeout=timeout)
     if ns is None:
         worker.set_key('LOCAL')
@@ -520,6 +555,11 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     run copy command
     """
     task.set_default("USER_running", True)
+    task.set_default("USER_copies", len(sources))
+
+    copyhandler = CopyOutputHandler(display)
+    if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
+        copyhandler.runtimer_init(task, len(ns) * len(sources))
 
     # Sources check
     for source in sources:
@@ -527,9 +567,8 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
             display.vprint_err(VERB_QUIET, "ERROR: file \"%s\" not found" % \
                                            source)
             clush_exit(1)
-        task.copy(source, dest, ns, handler=DirectOutputHandler(display),
-                  timeout=timeout, preserve=preserve_flag)
-
+        task.copy(source, dest, ns, handler=copyhandler, timeout=timeout,
+                  preserve=preserve_flag)
     task.resume()
 
 def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
@@ -537,8 +576,9 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
     run reverse copy command
     """
     task.set_default("USER_running", True)
+    task.set_default("USER_copies", len(sources))
 
-    # Sources check
+    # Sanity checks
     if not os.path.exists(dest):
         display.vprint_err(VERB_QUIET, "ERROR: directory \"%s\" not found" % \
                                        dest)
@@ -547,10 +587,13 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
         display.vprint_err(VERB_QUIET, \
             "ERROR: destination \"%s\" is not a directory" % dest)
         clush_exit(1)
-    for source in sources:
-        task.rcopy(source, dest, ns, handler=DirectOutputHandler(display),
-                   timeout=timeout, preserve=preserve_flag)
 
+    copyhandler = CopyOutputHandler(display, True)
+    if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
+        copyhandler.runtimer_init(task, len(ns) * len(sources))
+    for source in sources:
+        task.rcopy(source, dest, ns, handler=copyhandler, timeout=timeout,
+                   preserve=preserve_flag)
     task.resume()
 
 def set_fdlimit(fd_max, display):
@@ -658,7 +701,7 @@ def main(args=sys.argv):
     # Do we have nodes group?
     task = task_self()
     task.set_info("debug", config.verbosity > 1)
-    if config.verbosity > 1:
+    if config.verbosity == VERB_DEBUG:
         STD_GROUP_RESOLVER.set_verbosity(1)
     if options.nodes_all:
         all_nodeset = NodeSet.fromall()
@@ -688,8 +731,6 @@ def main(args=sys.argv):
     nodeset_base.difference_update(nodeset_exclude)
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
-
-    display.vprint(VERB_DEBUG, "Final NodeSet: %s" % nodeset_base)
 
     # Set open files limit.
     set_fdlimit(config.fd_max, display)
@@ -758,7 +799,7 @@ def main(args=sys.argv):
     task.set_default("stderr", not options.gatherall)
 
     # Disable MsgTree buffering if not gathering outputs
-    task.set_default("stdout_msgtree", display.gather)
+    task.set_default("stdout_msgtree", display.gather or display.line_mode)
     # Always disable stderr MsgTree buffering
     task.set_default("stderr_msgtree", False)
 
@@ -787,7 +828,7 @@ def main(args=sys.argv):
 
     # print debug values (fanout value is get from the config object
     # and not task itself as set_info() is an asynchronous call.
-    display.vprint(VERB_VERB, "clush: nodeset=%s fanout=%d [timeout " \
+    display.vprint(VERB_DEBUG, "clush: nodeset=%s fanout=%d [timeout " \
                    "conn=%.1f cmd=%.1f] %s" %  (nodeset_base, config.fanout,
                                                 task.info("connect_timeout"),
                                                 task.info("command_timeout"),

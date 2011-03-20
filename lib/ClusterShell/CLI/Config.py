@@ -62,7 +62,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
                       "connect_timeout" : "30",
                       "command_timeout" : "0",
                       "history_size" : "100",
-                      "color" : WHENCOLOR_CHOICES[0],
+                      "color" : WHENCOLOR_CHOICES[-1], # auto
                       "verbosity" : "%d" % VERB_STD,
                       "node_count" : "yes",
                       "fd_max" : "16384" }

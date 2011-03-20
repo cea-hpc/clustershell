@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH.CONF 5 "2011-02-08" "1.4.1" "ClusterShell User Manual"
+.TH CLUSH.CONF 5 "2011-03-19" "1.4.3" "ClusterShell User Manual"
 .SH NAME
 clush.conf \- Configuration file for clush
 .
@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH DESCRIPTION
 .sp
-\fCclush\fP(1) obtains configuration options from the following sources in the
+\fBclush\fP(1) obtains configuration options from the following sources in the
 following order:
 .INDENT 0.0
 .INDENT 3.5
@@ -62,7 +62,7 @@ Program options definition
 .UNINDENT
 .SS [Main]
 .sp
-Configuration parameters of the \fCMain\fP section are described below.
+Configuration parameters of the \fBMain\fP section are described below.
 .INDENT 0.0
 .TP
 .B fanout
@@ -85,7 +85,7 @@ ClusterShell library ensures that any commands complete in less than
 .
 Whether to use ANSI colors to surround node or nodeset prefix/header with
 escape sequences to display them in color on the terminal. Valid arguments
-are \fCnever\fP, \fCalways\fP or \fCauto\fP (which use color if standard
+are \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard
 output/error refer to a terminal). Colors are set to [34m (blue foreground
 text) for stdout and [31m (red foreground text) for stderr, and cannot be
 modified.
@@ -95,7 +95,7 @@ modified.
 Maximum number of open file descriptors permitted per clush process (soft
 resource limit for open files). This limit can never exceed the system
 (hard) limit. The \fIfd_max\fP (soft) and system (hard) limits should be high
-enough to run \fCclush\fP, although their values depend on your \fIfanout\fP value.
+enough to run \fBclush\fP, although their values depend on your \fIfanout\fP value.
 .TP
 .B history_size
 .
@@ -104,7 +104,7 @@ list. Negative values imply unlimited history file size.
 .TP
 .B node_count
 .
-Should \fCclush\fP display additional (node count) information in buffer
+Should \fBclush\fP display additional (node count) information in buffer
 header? (\fIyes\fP/\fIno\fP)
 .TP
 .B verbosity
@@ -154,13 +154,13 @@ System\-wide configuration file.
 .UNINDENT
 .SH HISTORY
 .sp
-As of ClusterShell version 1.3, the \fCExternal\fP section has been removed
-from \fIclush.conf\fP.  External commands whose outputs were used by \fCclush\fP
+As of ClusterShell version 1.3, the \fBExternal\fP section has been removed
+from \fIclush.conf\fP.  External commands whose outputs were used by \fBclush\fP
 (\-a, \-g, \-X) are now handled by the library itself and defined in
-\fCgroups.conf\fP(5).
+\fBgroups.conf\fP(5).
 .SH SEE ALSO
 .sp
-\fCclush\fP(1), \fCnodeset\fP(1), \fCgroups.conf\fP(5)
+\fBclush\fP(1), \fBnodeset\fP(1), \fBgroups.conf\fP(5)
 .sp
 \fI\%http://clustershell.sourceforge.net/\fP
 .SH AUTHOR

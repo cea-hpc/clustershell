@@ -7,9 +7,9 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2011-02-08
+:Date:   2011-03-19
 :Copyright: CeCILL-C V1
-:Version: 1.4.1
+:Version: 1.4.3
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -129,7 +129,7 @@ Output behaviour:
   -v, --verbose       be verbose, print informative messages
   -d, --debug         output more messages for debugging purpose
   -G, --groupbase     do not display group source prefix
-  -L                  disable header block and order output by nodes (with -b or -B)
+  -L                  disable header block and order output by nodes; additionally, when used in conjunction with -b/-B, it will enable "life gathering" of results by line mode, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
   -N                  disable labeling of command line
   -b, --dshbak        display gathered results in a dshbak-like way
   -B                  like -b but including standard error

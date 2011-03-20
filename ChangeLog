@@ -1,3 +1,74 @@
+2011-03-19 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.4.3 released.
+
+	* CLI/Nodeset.py: Make stdin '-' keyword work when used for -i/x/X
+	operations (ticket #148).
+
+	* CLI/Clush.py: Fixed issue when using clush -bL (missing argument) due to
+	latest 1.4.2 changes. Added tests/ClushScriptTest.py to detect that in
+	the future (ticket #147).
+
+2011-02-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.4.2 released.
+
+2011-03-12 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fixed issues with objects copying, so got rid of copy module
+	and added optimized RangeSet.copy() and NodeSet.copy() methods (ticket
+	#146).
+
+2011-03-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Clush.py: Added running progress indicator for --[r]copy commands.
+
+2011-03-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Clush.py: Improved -v switch (closes ticket #100: print live node
+	output plus noderange-grouped output at the end).
+
+	* CLI/Clubak.py: Add -T,--tree message tree mode option (ticket #144).
+
+	* MsgTree.py: Class initialization variant (trace mode) to keep track of
+	old keys/nodes for each message (part of #144).
+
+2011-03-06 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Clush.py: Implement clush -L (not -bL) to order output by nodename,
+	like clubak -L (ticket #141).
+
+	* CLI/Nodeset.py: Added -I/--slice command option to select node(s) by
+	index(es) or RangeSet-style slice (ticket #140).
+
+	* CLI/Nodeset.py: Remove pending limitation when using -[ixX] operations
+	with nodesets specified by -a (all) or through stdin.
+
+	* NodeSet.py: Add RangeSet.slices() method.
+
+2011-03-05 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Internal changes to use slice type to represent ranges in
+	RangeSet. Changed RangeSet.add_range() 'stop' argument semantic, it is now
+	conforming to range()'s one.
+
+	* NodeSet.py: Fix issue with in-place operators returning None. Added
+	tests.
+
+2011-02-27 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fix issue when using negative index or negative slice
+	indices for RangeSet and NodeSet.
+
+2011-02-24 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Nodeset.py: Add -ll and -lll extended options to list corresponding
+	group nodes, and also group node count (ticket #143).
+
+2011-02-13 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.4.1 released.
+
 2011-02-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Config.py: Add fd_max integer parameter to set the max number of

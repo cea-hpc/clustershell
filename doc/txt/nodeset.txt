@@ -7,9 +7,9 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2010-12-14
+:Date:   2011-03-19
 :Copyright: CeCILL-C V1
-:Version: 1.4
+:Version: 1.4.3
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -29,7 +29,6 @@ It provides easy manipulation of indexed cluster nodes and node groups.
 OPTIONS
 =======
 
-Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -s GROUPSOURCE, --groupsource=GROUPSOURCE
@@ -39,7 +38,7 @@ Options:
     -c, --count         show number of nodes in nodeset(s)
     -e, --expand        expand nodeset(s) to separate nodes
     -f, --fold          fold nodeset(s) (or separate nodes) into one nodeset
-    -l, --list          list node groups (see -s GROUPSOURCE)
+    -l, --list          list node groups, followed by corresponding nodes when specified two times (``-ll``), and also nodes count when specified three times (``-lll``). See also -s GROUPSOURCE.
     -r, --regroup       fold nodes using node groups (see -s GROUPSOURCE)
     --groupsources      list all configured group sources (see ``groups.conf``\(5))
 
@@ -63,10 +62,15 @@ Options:
     -S SEPARATOR, --separator=SEPARATOR
                         separator string to use when expanding nodesets
                         (default: ' ')
+    -I SLICE_RANGESET, --slice=SLICE_RANGESET
+                        return sliced off result; examples of SLICE_RANGESET are "0" for simple index selection, or "1-9/2,16" for complex rangeset selection
     --split=MAXSPLIT    split result into a number of subsets
 
 
 For a short explanation of these options, see ``-h, --help``.
+
+If a single hyphen-minus (-) is given as a nodeset, it will be read from
+standard input.
 
 EXTENDED PATTERNS
 =================
@@ -131,6 +135,10 @@ Getting the node count
   :$ nodeset -c node[0-7,32-159] node[160-163]:
   
   | 140
+  
+  :$ nodeset -c @login:
+  
+  | 4
 
 Folding nodesets
   :$ nodeset -f node[0-7,32-159] node[160-163]:

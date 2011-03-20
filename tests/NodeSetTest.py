@@ -23,31 +23,31 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 1)
 
     def testUnnumberedNode(self):
-        """test unnumbered node"""
+        """test NodeSet with unnumbered node"""
         nodeset = NodeSet("cws-machin")
         self._assertNode(nodeset, "cws-machin")
 
     def testNodeZero(self):
-        """test node0"""
+        """test NodeSet with node0"""
         nodeset = NodeSet("supercluster0")
         self._assertNode(nodeset, "supercluster0")
 
     def testNoPrefix(self):
-        """test node without prefix"""
+        """test NodeSet with node without prefix"""
         nodeset = NodeSet("0cluster")
         self._assertNode(nodeset, "0cluster")
         nodeset = NodeSet("[0]cluster")
         self._assertNode(nodeset, "0cluster")
 
     def testWhitespacePrefix(self):
-        """test parsing ignoring whitespace"""
+        """test NodeSet parsing ignoring whitespace"""
         nodeset = NodeSet(" tigrou2 , tigrou7 , tigrou[5,9-11] ")
         self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
         nodeset = NodeSet("   tigrou2 ,    tigrou5,tigrou7 , tigrou[ 9   - 11 ]    ")
         self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
 
     def testFromListConstructor(self):
-        """test NodeSet.fromlist constructor"""
+        """test NodeSet.fromlist() constructor"""
         nodeset = NodeSet.fromlist([ "cluster33" ])
         self._assertNode(nodeset, "cluster33")
         nodeset = NodeSet.fromlist([ "cluster0", "cluster1", "cluster2", "cluster5", "cluster8", "cluster4", "cluster3" ])
@@ -55,43 +55,43 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 7)
 
     def testDigitInPrefix(self):
-        """test digit in prefix"""
+        """test NodeSet digit in prefix"""
         nodeset = NodeSet("clu-0-3")
         self._assertNode(nodeset, "clu-0-3")
         nodeset = NodeSet("clu-0-[3-23]")
         self.assertEqual(str(nodeset), "clu-0-[3-23]")
 
     def testNodeWithPercent(self):
-        """test nodename with % character"""
+        """test NodeSet on nodename with % character"""
         nodeset = NodeSet("cluster%s3")
         self._assertNode(nodeset, "cluster%s3")
         nodeset = NodeSet("clust%ser[3-30]")
         self.assertEqual(str(nodeset), "clust%ser[3-30]")
 
     def testNodeEightPad(self):
-        """test padding feature"""
+        """test NodeSet padding feature"""
         nodeset = NodeSet("cluster008")
         self._assertNode(nodeset, "cluster008")
 
     def testNodeRangeIncludingZero(self):
-        """test node range including zero"""
+        """test NodeSet with node range including zero"""
         nodeset = NodeSet("cluster[0-10]")
         self.assertEqual(str(nodeset), "cluster[0-10]")
         self.assertEqual(list(nodeset), [ "cluster0", "cluster1", "cluster2", "cluster3", "cluster4", "cluster5", "cluster6", "cluster7", "cluster8", "cluster9", "cluster10" ])
         self.assertEqual(len(nodeset), 11)
 
     def testSingle(self):
-        """test single cluster node"""
+        """test NodeSet single cluster node"""
         nodeset = NodeSet("cluster115")
         self._assertNode(nodeset, "cluster115")
 
     def testSingleNodeInRange(self):
-        """test single cluster node in range"""
+        """test NodeSet single cluster node in range"""
         nodeset = NodeSet("cluster[115]")
         self._assertNode(nodeset, "cluster115")
 
     def testRange(self):
-        """test simple range"""
+        """test NodeSet with simple range"""
         nodeset = NodeSet("cluster[1-100]")
         self.assertEqual(str(nodeset), "cluster[1-100]")
         self.assertEqual(len(nodeset), 100)
@@ -110,7 +110,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(i, 101)
 
     def testRangeWithPadding1(self):
-        """test range with padding (1)"""
+        """test NodeSet with range with padding (1)"""
         nodeset = NodeSet("cluster[0001-0100]")
         self.assertEqual(str(nodeset), "cluster[0001-0100]")
         self.assertEqual(len(nodeset), 100)
@@ -121,7 +121,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(i, 101)
 
     def testRangeWithPadding2(self):
-        """test range with padding (2)"""
+        """test NodeSet with range with padding (2)"""
         nodeset = NodeSet("cluster[0034-8127]")
         self.assertEqual(str(nodeset), "cluster[0034-8127]")
         self.assertEqual(len(nodeset), 8094)
@@ -133,7 +133,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(i, 8128)
 
     def testRangeWithSuffix(self):
-        """test simple range with suffix"""
+        """test NodeSet with simple range with suffix"""
         nodeset = NodeSet("cluster[50-99]-ipmi")
         self.assertEqual(str(nodeset), "cluster[50-99]-ipmi")
         i = 50
@@ -143,13 +143,13 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(i, 100)
 
     def testCommaSeparatedAndRangeWithPadding(self):
-        """test comma separated, range and padding"""
+        """test NodeSet comma separated, range and padding"""
         nodeset = NodeSet("cluster[0001,0002,1555-1559]")
         self.assertEqual(str(nodeset), "cluster[0001-0002,1555-1559]")
         self.assertEqual(list(nodeset), [ "cluster0001", "cluster0002", "cluster1555", "cluster1556", "cluster1557", "cluster1558", "cluster1559" ])
 
     def testCommaSeparatedAndRangeWithPaddingWithSuffix(self):
-        """test comma separated, range and padding with suffix"""
+        """test NodeSet comma separated, range and padding with suffix"""
         nodeset = NodeSet("cluster[0001,0002,1555-1559]-ipmi")
         self.assertEqual(str(nodeset), "cluster[0001-0002,1555-1559]-ipmi")
         self.assertEqual(list(nodeset), [ "cluster0001-ipmi", "cluster0002-ipmi", "cluster1555-ipmi", "cluster1556-ipmi", "cluster1557-ipmi", "cluster1558-ipmi", "cluster1559-ipmi" ])
@@ -165,23 +165,23 @@ class NodeSetTest(unittest.TestCase):
             i += 1
 
     def testCommaSeparated(self):
-        """test comma separated to ranges (folding)"""
+        """test NodeSet comma separated to ranges (folding)"""
         nodeset = NodeSet("cluster115,cluster116,cluster117,cluster130,cluster166")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166]")
         self.assertEqual(len(nodeset), 5)
 
     def testCommaSeparatedAndRange(self):
-        """test comma separated and range to ranges (folding)"""
+        """test NodeSet comma separated and range to ranges (folding)"""
         nodeset = NodeSet("cluster115,cluster116,cluster117,cluster130,cluster[166-169],cluster170")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
 
     def testCommaSeparatedAndRanges(self):
-        """test comma separated and ranges to ranges (folding)"""
+        """test NodeSet comma separated and ranges to ranges (folding)"""
         nodeset = NodeSet("cluster[115-117],cluster130,cluster[166-169],cluster170")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
 
     def testSimpleStringUpdates(self):
-        """test simple string-based update() method"""
+        """test NodeSet simple string-based update()"""
         nodeset = NodeSet("cluster[115-117,130,166-170]")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
         nodeset.update("cluster171")
@@ -198,7 +198,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster[113-117,130,166-174]")
 
     def testSimpleNodeSetUpdates(self):
-        """test simple nodeset-based update() method"""
+        """test NodeSet simple nodeset-based update()"""
         nodeset = NodeSet("cluster[115-117,130,166-170]")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
         nodeset.update(NodeSet("cluster171"))
@@ -215,7 +215,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster[113-117,130,166-174]")
 
     def testStringUpdatesFromEmptyNodeSet(self):
-        """test string-based update() method from empty nodeset"""
+        """test NodeSet string-based NodeSet.update() from empty nodeset"""
         nodeset = NodeSet()
         self.assertEqual(str(nodeset), "")
         nodeset.update("cluster115")
@@ -226,7 +226,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster[115-118]")
 
     def testNodeSetUpdatesFromEmptyNodeSet(self):
-        """test nodeset-based update() method from empty nodeset"""
+        """test NodeSet-based update() method from empty nodeset"""
         nodeset = NodeSet()
         self.assertEqual(str(nodeset), "")
         nodeset.update(NodeSet("cluster115"))
@@ -237,7 +237,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster[115-118]")
 
     def testUpdatesWithSeveralPrefixes(self):
-        """test update() method using several prefixes"""
+        """test NodeSet.update() using several prefixes"""
         nodeset = NodeSet("cluster3")
         self.assertEqual(str(nodeset), "cluster3")
         nodeset.update("cluster5")
@@ -252,20 +252,61 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster[3-5],tiger[5-7]")
 
     def testOperatorUnion(self):
-        """test union | operator"""
+        """test NodeSet union | operator"""
         nodeset = NodeSet("cluster[115-117,130,166-170]")
         self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # 1
         n_test1 = nodeset | NodeSet("cluster171")
         self.assertEqual(str(n_test1), "cluster[115-117,130,166-171]")
+        nodeset2 = nodeset.copy()
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        nodeset2 |= NodeSet("cluster171")
+        self.assertEqual(str(nodeset2), "cluster[115-117,130,166-171]")
+        # btw validate modifying a copy did not change original
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # 2
         n_test2 = n_test1 | NodeSet("cluster172")
         self.assertEqual(str(n_test2), "cluster[115-117,130,166-172]")
+        nodeset2 |= NodeSet("cluster172")
+        self.assertEqual(str(nodeset2), "cluster[115-117,130,166-172]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # 3
         n_test1 = n_test2 | NodeSet("cluster113")
         self.assertEqual(str(n_test1), "cluster[113,115-117,130,166-172]")
+        nodeset2 |= NodeSet("cluster113")
+        self.assertEqual(str(nodeset2), "cluster[113,115-117,130,166-172]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # 4
         n_test2 = n_test1 | NodeSet("cluster114")
         self.assertEqual(str(n_test2), "cluster[113-117,130,166-172]")
+        nodeset2 |= NodeSet("cluster114")
+        self.assertEqual(str(nodeset2), "cluster[113-117,130,166-172]")
+        self.assertEqual(nodeset2, NodeSet("cluster[113-117,130,166-172]"))
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # more
+        original = NodeSet("cluster0")
+        nodeset = original.copy()
+        for i in xrange(1, 6000):
+            nodeset = nodeset | NodeSet("cluster%d" % i)
+        self.assertEqual(len(nodeset), 6000)
+        self.assertEqual(str(nodeset), "cluster[0-5999]")
+        self.assertEqual(len(original), 1)
+        self.assertEqual(str(original), "cluster0")
+        nodeset2 = original.copy()
+        for i in xrange(1, 6000):
+            nodeset2 |= NodeSet("cluster%d" % i)
+        self.assertEqual(nodeset, nodeset2)
+        for i in xrange(6000, 7000):
+            nodeset2 |= NodeSet("cluster%d" % i)
+        self.assertEqual(len(nodeset2), 7000)
+        self.assertEqual(str(nodeset2), "cluster[0-6999]")
+        self.assertEqual(len(nodeset), 6000)
+        self.assertEqual(str(nodeset), "cluster[0-5999]")
+        self.assertEqual(len(original), 1)
+        self.assertEqual(str(original), "cluster0")
 
     def testOperatorUnionFromEmptyNodeSet(self):
-        """test union | operator from empty nodeset"""
+        """test NodeSet union | operator from empty nodeset"""
         nodeset = NodeSet()
         self.assertEqual(str(nodeset), "")
         n_test1 = nodeset | NodeSet("cluster115")
@@ -276,7 +317,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(n_test1), "cluster[115-118]")
 
     def testOperatorUnionWithSeveralPrefixes(self):
-        """test union | operator using several prefixes"""
+        """test NodeSet union | operator using several prefixes"""
         nodeset = NodeSet("cluster3")
         self.assertEqual(str(nodeset), "cluster3")
         n_test1 = nodeset |  NodeSet("cluster5") 
@@ -290,8 +331,44 @@ class NodeSetTest(unittest.TestCase):
         n_test1 = n_test2 | NodeSet("cluster4")
         self.assertEqual(str(n_test1), "cluster[3-5],tiger[5-7]")
 
+    def testOperatorSub(self):
+        """test NodeSet difference/sub - operator"""
+        nodeset = NodeSet("cluster[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # __sub__
+        n_test1 = nodeset - NodeSet("cluster[115,130]")
+        self.assertEqual(str(n_test1), "cluster[116-117,166-170]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 -= NodeSet("cluster[115,130]")
+        self.assertEqual(str(nodeset2), "cluster[116-117,166-170]")
+        self.assertEqual(nodeset2, NodeSet("cluster[116-117,166-170]"))
+
+    def testOperatorAnd(self):
+        """test NodeSet intersection/and & operator"""
+        nodeset = NodeSet("cluster[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # __and__
+        n_test1 = nodeset & NodeSet("cluster[115-167]")
+        self.assertEqual(str(n_test1), "cluster[115-117,130,166-167]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 &= NodeSet("cluster[115-167]")
+        self.assertEqual(str(nodeset2), "cluster[115-117,130,166-167]")
+        self.assertEqual(nodeset2, NodeSet("cluster[115-117,130,166-167]"))
+
+    def testOperatorXor(self):
+        """test NodeSet symmetric_difference/xor & operator"""
+        nodeset = NodeSet("cluster[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), "cluster[115-117,130,166-170]")
+        # __xor__
+        n_test1 = nodeset ^ NodeSet("cluster[115-167]")
+        self.assertEqual(str(n_test1), "cluster[118-129,131-165,168-170]")
+        nodeset2 = copy.copy(nodeset)
+        nodeset2 ^= NodeSet("cluster[115-167]")
+        self.assertEqual(str(nodeset2), "cluster[118-129,131-165,168-170]")
+        self.assertEqual(nodeset2, NodeSet("cluster[118-129,131-165,168-170]"))
+
     def testLen(self):
-        """test len() results"""
+        """test NodeSet len() results"""
         nodeset = NodeSet()
         self.assertEqual(len(nodeset), 0)
         nodeset.update("cluster[116-120]")
@@ -301,8 +378,28 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("roma[50-99]-ipmi,cors[113,115-117,130,166-172],cws-tigrou,tigrou3,tigrou3,tigrou3,cors116")
         self.assertEqual(len(nodeset), 50+12+1+1) 
 
-    def testIntersectSimple(self):
-        """test nodes intersection (simple)"""
+    def testIntersection(self):
+        """test NodeSet.intersection()"""
+        nsstr = "red[34-55,76-249,300-403],blue,green"
+        nodeset = NodeSet(nsstr)
+        self.assertEqual(len(nodeset), 302)
+
+        nsstr2 = "red[32-57,72-249,300-341],blue,yellow"
+        nodeset2 = NodeSet(nsstr2)
+        self.assertEqual(len(nodeset2), 248)
+
+        inodeset = nodeset.intersection(nodeset2)
+        # originals should not change
+        self.assertEqual(len(nodeset), 302)
+        self.assertEqual(len(nodeset2), 248)
+        self.assertEqual(str(nodeset), "blue,green,red[34-55,76-249,300-403]")
+        self.assertEqual(str(nodeset2), "blue,red[32-57,72-249,300-341],yellow")
+        # result
+        self.assertEqual(len(inodeset), 239)
+        self.assertEqual(str(inodeset), "blue,red[34-55,76-249,300-341]")
+
+    def testIntersectUpdate(self):
+        """test NodeSet.intersection_update()"""
         nsstr = "red[34-55,76-249,300-403]"
         nodeset = NodeSet(nsstr)
         self.assertEqual(len(nodeset), 300)
@@ -365,7 +462,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "red[55,76]")
 
     def testIntersectSelf(self):
-        """test nodes intersect (self)"""
+        """test Nodeset.intersection_update(self)"""
         nodeset = NodeSet("red4955")
         self.assertEqual(len(nodeset), 1)
         nodeset.intersection_update(nodeset)
@@ -396,14 +493,34 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "red[78-149]")
 
     def testIntersectReturnNothing(self):
-        """test nodes intersect that returns empty NodeSet"""
+        """test NodeSet intersect that returns empty NodeSet"""
         nodeset = NodeSet("blue43")
         self.assertEqual(len(nodeset), 1)
         nodeset.intersection_update("blue42")
         self.assertEqual(len(nodeset), 0)
 
-    def testSimpleDifferences(self):
-        """test difference_update() method (simple)"""
+    def testDifference(self):
+        """test NodeSet.difference()"""
+        nsstr = "red[34-55,76-249,300-403],blue,green"
+        nodeset = NodeSet(nsstr)
+        self.assertEqual(len(nodeset), 302)
+
+        nsstr2 = "red[32-57,72-249,300-341],blue,yellow"
+        nodeset2 = NodeSet(nsstr2)
+        self.assertEqual(len(nodeset2), 248)
+
+        inodeset = nodeset.difference(nodeset2)
+        # originals should not change
+        self.assertEqual(len(nodeset), 302)
+        self.assertEqual(len(nodeset2), 248)
+        self.assertEqual(str(nodeset), "blue,green,red[34-55,76-249,300-403]")
+        self.assertEqual(str(nodeset2), "blue,red[32-57,72-249,300-341],yellow")
+        # result
+        self.assertEqual(len(inodeset), 63)
+        self.assertEqual(str(inodeset), "green,red[342-403]")
+
+    def testDifferenceUpdate(self):
+        """test NodeSet.difference_update()"""
         # nodeset-based subs
         nodeset = NodeSet("yellow120")
         self.assertEqual(len(nodeset), 1)
@@ -449,13 +566,13 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 0)
 
     def testSubSelf(self):
-        """test difference_update() method (self)"""
+        """test NodeSet.difference_update() method (self)"""
         nodeset = NodeSet("yellow[120-148,167]")
         nodeset.difference_update(nodeset)
         self.assertEqual(len(nodeset), 0)
 
     def testSubMore(self):
-        """test difference_update() method (more)"""
+        """test NodeSet.difference_update() method (more)"""
         nodeset = NodeSet("yellow[120-160]")
         self.assertEqual(len(nodeset), 41)
         for i in range(120, 161):
@@ -463,7 +580,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 0)
 
     def testSubsAndAdds(self):
-        """test update() and difference_update() methods together"""
+        """test NodeSet.update() and difference_update() together"""
         nodeset = NodeSet("yellow[120-160]")
         self.assertEqual(len(nodeset), 41)
         for i in range(120, 131):
@@ -474,7 +591,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 130)
 
     def testSubsAndAddsMore(self):
-        """test update() and difference_update() methods together (more)"""
+        """test NodeSet.update() and difference_update() together (more)"""
         nodeset = NodeSet("yellow[120-160]")
         self.assertEqual(len(nodeset), 41)
         for i in range(120, 131):
@@ -486,8 +603,8 @@ class NodeSetTest(unittest.TestCase):
         nodeset.difference_update(NodeSet("yellow[131-160]"))
         self.assertEqual(len(nodeset), 0)
 
-    def testSubsAndAddsMore(self):
-        """test update() and difference_update() methods together (with other digit in prefix)"""
+    def testSubsAndAddsMoreDigit(self):
+        """test NodeSet.update() and difference_update() together (with other digit in prefix)"""
         nodeset = NodeSet("clu-3-[120-160]")
         self.assertEqual(len(nodeset), 41)
         for i in range(120, 131):
@@ -500,7 +617,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 0)
 
     def testSubUnknownNodes(self):
-        """test difference_update() method (with unknown nodes)"""
+        """test NodeSet.difference_update() with unknown nodes"""
         nodeset = NodeSet("yellow[120-160]")
         self.assertEqual(len(nodeset), 41)
         nodeset.difference_update("red[35-49]")
@@ -508,7 +625,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "yellow[120-160]")
 
     def testSubMultiplePrefix(self):
-        """test difference_update() method with multiple prefixes"""
+        """test NodeSet.difference_update() with multiple prefixes"""
         nodeset = NodeSet("yellow[120-160],red[32-147],blue3,green,white[2-3940],blue4,blue303")
         self.assertEqual(len(nodeset), 4100)
         for i in range(120, 131):
@@ -536,6 +653,11 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodeset[19], "yeti59")
         self.assertEqual(nodeset[20], "yeti60")
         self.assertRaises(IndexError, nodeset.__getitem__, 21)
+        # negative indices
+        self.assertEqual(nodeset[-1], "yeti60")
+        for n in range(1, len(nodeset)):
+            self.assertEqual(nodeset[-n], nodeset[len(nodeset)-n])
+
         # test getitem with some nodes without range
         nodeset = NodeSet("abc,cde[3-9,11],fgh")
         self.assertEqual(len(nodeset), 10)
@@ -559,7 +681,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertRaises(IndexError, nodeset.__getitem__, 35)
 
     def testGetSlice(self):
-        """test NodeSet getslice()"""
+        """test NodeSet getitem() with slice"""
         nodeset = NodeSet("yeti[30,34-51,59-60]")
         self.assertEqual(len(nodeset), 21)
         self.assertEqual(len(nodeset[0:2]), 2)
@@ -572,6 +694,18 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset[20:22]), "yeti60")
         self.assertEqual(len(nodeset[21:24]), 0)
         self.assertEqual(str(nodeset[21:24]), "")
+        # negative indices
+        self.assertEqual(str(nodeset[:-1]), "yeti[30,34-51,59]")
+        self.assertEqual(str(nodeset[:-2]), "yeti[30,34-51]")
+        self.assertEqual(str(nodeset[1:-2]), "yeti[34-51]")
+        self.assertEqual(str(nodeset[2:-2]), "yeti[35-51]")
+        self.assertEqual(str(nodeset[9:-3]), "yeti[42-50]")
+        self.assertEqual(str(nodeset[10:-9]), "yeti[43-44]")
+        self.assertEqual(str(nodeset[10:-10]), "yeti43")
+        self.assertEqual(str(nodeset[11:-10]), "")
+        self.assertEqual(str(nodeset[11:-11]), "")
+        self.assertEqual(str(nodeset[::-2]), "yeti[30,35,37,39,41,43,45,47,49,51,60]")
+        self.assertEqual(str(nodeset[::-3]), "yeti[35,38,41,44,47,50,60]")
         # advanced
         self.assertEqual(str(nodeset[0:10:2]), "yeti[30,35,37,39,41]")
         self.assertEqual(str(nodeset[1:11:2]), "yeti[34,36,38,40,42]")
@@ -852,6 +986,27 @@ class NodeSetTest(unittest.TestCase):
         self.assert_(nodeset.issubset("tronic[0032-1880],lounge[2-700/2],artcore[039-040]"))
         self.assert_(nodeset.issubset(NodeSet("tronic[0032-1880],lounge[2-700/2],artcore[039-040]")))
 
+    def testSymmetricDifference(self):
+        """test NodeSet symmetric_difference()"""
+        nsstr = "red[34-55,76-249,300-403],blue,green"
+        nodeset = NodeSet(nsstr)
+        self.assertEqual(len(nodeset), 302)
+
+        nsstr2 = "red[32-57,72-249,300-341],blue,yellow"
+        nodeset2 = NodeSet(nsstr2)
+        self.assertEqual(len(nodeset2), 248)
+
+        inodeset = nodeset.symmetric_difference(nodeset2)
+        # originals should not change
+        self.assertEqual(len(nodeset), 302)
+        self.assertEqual(len(nodeset2), 248)
+        self.assertEqual(str(nodeset), "blue,green,red[34-55,76-249,300-403]")
+        self.assertEqual(str(nodeset2), "blue,red[32-57,72-249,300-341],yellow")
+        # result
+        self.assertEqual(len(inodeset), 72)
+        self.assertEqual(str(inodeset), \
+            "green,red[32-33,56-57,72-75,342-403],yellow")
+
     def testSymmetricDifferenceUpdate(self):
         """test NodeSet symmetric_difference_update()"""
         nodeset = NodeSet("artcore[3-999]")
@@ -880,7 +1035,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(nodeset), 998)
         self.assertEqual(str(nodeset), "artcore[3-999],lounge")
 
-    def testSymmetricDifference(self):
+    def testOperatorSymmetricDifference(self):
         """test NodeSet symmetric_difference() and ^ operator"""
         nodeset = NodeSet("artcore[3-999]")
         self.assertEqual(len(nodeset), 997)
@@ -956,11 +1111,11 @@ class NodeSetTest(unittest.TestCase):
         self.assertRaises(TypeError, ns1.issubset, ns2)
 
     def testExpandFunction(self):
-        """test expand() utility function"""
+        """test NodeSet expand() utility function"""
         self.assertEqual(expand("purple[1-3]"), [ "purple1", "purple2", "purple3" ])
 
     def testFoldFunction(self):
-        """test fold() utility function"""
+        """test NodeSet fold() utility function"""
         self.assertEqual(fold("purple1,purple2,purple3"), "purple[1-3]")
 
     def testEquality(self):
@@ -989,8 +1144,8 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodelist, ['acluster4', 'acluster39', 'acluster41', \
             'bcluster25', 'ccluster12'])
 
-    def testEquality(self):
-        """test NodeSet equality"""
+    def testEqualityMore(self):
+        """test NodeSet equality (more)"""
         self.assertEqual(NodeSet(), NodeSet())
         ns1 = NodeSet("nodealone")
         ns2 = NodeSet("nodealone")
@@ -1054,6 +1209,33 @@ class NodeSetTest(unittest.TestCase):
         n = NodeSet(None)
         n.clear()
         self.assertEqual(len(n), 0)
+
+    def testCopy(self):
+        """test NodeSet.copy()"""
+        nodeset = NodeSet("zclu[115-117,130,166-170],glycine[68,4780-4999]")
+        self.assertEqual(str(nodeset), \
+            "glycine[68,4780-4999],zclu[115-117,130,166-170]")
+        nodeset2 = nodeset.copy()
+        nodeset3 = nodeset.copy()
+        self.assertEqual(nodeset, nodeset2) # content equality
+        nodeset2.remove("glycine68")
+        self.assertEqual(len(nodeset), len(nodeset2) + 1)
+        self.assertNotEqual(nodeset, nodeset2)
+        self.assertEqual(str(nodeset2), \
+            "glycine[4780-4999],zclu[115-117,130,166-170]")
+        self.assertEqual(str(nodeset), \
+            "glycine[68,4780-4999],zclu[115-117,130,166-170]")
+        nodeset2.add("glycine68")
+        self.assertEqual(str(nodeset2), \
+            "glycine[68,4780-4999],zclu[115-117,130,166-170]")
+        self.assertEqual(nodeset, nodeset3)
+        nodeset3.update(NodeSet("zclu118"))
+        self.assertNotEqual(nodeset, nodeset3)
+        self.assertEqual(len(nodeset) + 1, len(nodeset3))
+        self.assertEqual(str(nodeset), \
+            "glycine[68,4780-4999],zclu[115-117,130,166-170]")
+        self.assertEqual(str(nodeset3), \
+            "glycine[68,4780-4999],zclu[115-118,130,166-170]")
 
 
 if __name__ == '__main__':

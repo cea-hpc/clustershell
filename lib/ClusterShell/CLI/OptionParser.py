@@ -108,7 +108,8 @@ class OptionParser(optparse.OptionParser):
             debug_option=True,
             verbose_options=False,
             separator_option=False,
-            dshbak_compat=False):
+            dshbak_compat=False,
+            msgtree_trace=False):
         """Install options needed by Display class"""
         optgrp = optparse.OptionGroup(self, "Output behaviour")
         if verbose_options:
@@ -147,6 +148,11 @@ class OptionParser(optparse.OptionParser):
         else:
             optgrp.add_option("-S", action="store_true", dest="maxrc",
                               help="return the largest of command return codes")
+
+        if msgtree_trace:
+            optgrp.add_option("-T", "--tree", action="store_true",
+                              dest="tree_mode",
+                              help="message tree trace mode")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
                           choices=WHENCOLOR_CHOICES,
@@ -206,7 +212,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-f", "--fold", action="store_true", dest="fold", 
                           default=False, help="fold nodeset(s) (or " \
                           "separate nodes) into one nodeset")
-        optgrp.add_option("-l", "--list", action="store_true", dest="list", 
+        optgrp.add_option("-l", "--list", action="count", dest="list", 
                           default=False, help="list node groups (see -s " \
                           "GROUPSOURCE)")
         optgrp.add_option("-r", "--regroup", action="store_true",
@@ -220,14 +226,15 @@ class OptionParser(optparse.OptionParser):
     def install_nodeset_operations(self):
         """Install nodeset operations"""
         optgrp = optparse.OptionGroup(self, "Operations")
-        optgrp.add_option("-x", "--exclude", action="store", dest="sub_nodes", 
-                          help="exclude specified nodeset", type="string")
-        optgrp.add_option("-i", "--intersection", action="store",
-                          dest="and_nodes", help="calculate nodesets " \
-                               "intersection", type="string")
-        optgrp.add_option("-X", "--xor", action="store",
-                          dest="xor_nodes", help="calculate symmetric " \
-                               "difference between nodesets", type="string")
+        optgrp.add_option("-x", "--exclude", action="append", dest="sub_nodes",
+                          default=[], type="string",
+                          help="exclude specified nodeset")
+        optgrp.add_option("-i", "--intersection", action="append",
+                          dest="and_nodes", default=[], type="string",
+                          help="calculate nodesets intersection")
+        optgrp.add_option("-X", "--xor", action="append", dest="xor_nodes",
+                          default=[], type="string", help="calculate " \
+                          "symmetric difference between nodesets")
         self.add_option_group(optgrp)
 
     def install_nodeset_options(self):
@@ -253,6 +260,9 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-S", "--separator", action="store", dest="separator",
                           default=' ', help="separator string to use when " \
                           "expanding nodesets (default: ' ')")
+        optgrp.add_option("-I", "--slice", action="store",
+                          dest="slice_rangeset",
+                          help="return sliced off result", type="string")
         optgrp.add_option("--split", action="store", dest="maxsplit", 
                           help="split result into a number of subsets",
                           type="int", default=1)

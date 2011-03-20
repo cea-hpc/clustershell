@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -50,13 +50,19 @@ from ClusterShell.CLI.Utils import NodeSet  # safe import
 from ClusterShell.NodeSet import RangeSet, grouplist, STD_GROUP_RESOLVER
 
 
-def process_stdin(xset, autostep):
-    """Process standard input and populate xset."""
+def process_stdin(xsetop, xsetcls, autostep):
+    """Process standard input and operate on xset."""
+    # Build temporary set (stdin accumulator)
+    tmpset = xsetcls(autostep=autostep)
     for line in sys.stdin.readlines():
         # Support multi-lines and multi-nodesets per line
         line = line[0:line.find('#')].strip()
-        for node in line.split():
-            xset.update(xset.__class__(node, autostep=autostep))
+        for elem in line.split():
+            # Do explicit object creation for RangeSet
+            tmpset.update(xsetcls(elem, autostep=autostep))
+    # Perform operation on xset
+    if tmpset:
+        xsetop(tmpset)
 
 def compute_nodeset(xset, args, autostep):
     """Apply operations and operands from args on xset, an initial
@@ -66,16 +72,27 @@ def compute_nodeset(xset, args, autostep):
     while args:
         arg = args.pop(0)
         if arg in ("-i", "--intersection"):
-            xset.intersection_update(class_set(args.pop(0),
-                                               autostep=autostep))
+            val = args.pop(0)
+            if val == '-':
+                process_stdin(xset.intersection_update, class_set, autostep)
+            else:
+                xset.intersection_update(class_set(val, autostep=autostep))
         elif arg in ("-x", "--exclude"):
-            xset.difference_update(class_set(args.pop(0),
-                                             autostep=autostep))
+            val = args.pop(0)
+            if val == '-':
+                process_stdin(xset.difference_update, class_set, autostep)
+            else:
+                xset.difference_update(class_set(val, autostep=autostep))
         elif arg in ("-X", "--xor"):
-            xset.symmetric_difference_update(class_set(args.pop(0),
-                                                       autostep=autostep))
+            val = args.pop(0)
+            if val == '-':
+                process_stdin(xset.symmetric_difference_update, class_set,
+                              autostep)
+            else:
+                xset.symmetric_difference_update(class_set(val,
+                                                           autostep=autostep))
         elif arg == '-':
-            process_stdin(xset, autostep)
+            process_stdin(xset.update, xset.__class__, autostep)
         else:
             xset.update(class_set(arg, autostep=autostep))
 
@@ -97,7 +114,7 @@ def nodeset():
 
     # Check for command presence
     cmdcount = int(options.count) + int(options.expand) + \
-               int(options.fold) + int(options.list) + \
+               int(options.fold) + int(bool(options.list)) + \
                int(options.regroup) + int(options.groupsources)
     if not cmdcount:
         parser.error("No command specified.")
@@ -116,12 +133,21 @@ def nodeset():
                                 % options.groupsource
 
     # The list command doesn't need any NodeSet, check for it first.
-    if options.list:
+    if options.list > 0:
+        list_level = options.list
         for group in grouplist(options.groupsource):
             if options.groupsource and not options.groupbase:
-                print "@%s:%s" % (options.groupsource, group)
+                nsgroup = "@%s:%s" % (options.groupsource, group)
             else:
-                print "@%s" % group
+                nsgroup = "@%s" % group
+            if list_level == 1:
+                print nsgroup
+            else:
+                nodes = NodeSet(nsgroup)
+                if list_level == 2:     # -ll ?
+                    print "%s %s" % (nsgroup, nodes)
+                else:                   # -lll ?
+                    print "%s %s %d" % (nsgroup, nodes, len(nodes))
         return
     # Also, the groupsources command simply lists group sources.
     elif options.groupsources:
@@ -145,17 +171,43 @@ def nodeset():
     if options.all:
         # Include all nodes from external node groups support.
         xset.update(NodeSet.fromall()) # uses default_sourcename
-        # FIXME: only union operation is supported when using -a due to
-        # current options handling.
     elif not args:
         # No need to specify '-' to read stdin if no argument at all.
-        process_stdin(xset, options.autostep)
-    
+        process_stdin(xset.update, xset.__class__, options.autostep)
+
+    # Apply first operations (before first non-option)
+    for nodes in options.and_nodes:
+        if nodes == '-':
+            process_stdin(xset.intersection_update, xset.__class__,
+                          options.autostep)
+        else:
+            xset.intersection_update(class_set(nodes,
+                                               autostep=options.autostep))
+    for nodes in options.sub_nodes:
+        if nodes == '-':
+            process_stdin(xset.difference_update, xset.__class__,
+                          options.autostep)
+        else:
+            xset.difference_update(class_set(nodes, autostep=options.autostep))
+    for nodes in options.xor_nodes:
+        if nodes == '-':
+            process_stdin(xset.symmetric_difference_update, xset.__class__,
+                          options.autostep)
+        else:
+            xset.symmetric_difference_update(class_set(nodes, \
+                                             autostep=options.autostep))
+
     # Finish xset computing from args
     compute_nodeset(xset, args, options.autostep)
 
     # Interprate special characters (may raise SyntaxError)
     separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
+
+    if options.slice_rangeset:
+        _xset = class_set()
+        for sli in RangeSet(options.slice_rangeset).slices(False):
+            _xset.update(xset[sli])
+        xset = _xset
 
     # Display result according to command choice
     if options.expand:
@@ -178,8 +230,8 @@ def main():
     """main script function"""
     try:
         nodeset()
-    except AssertionError, e:
-        print >> sys.stderr, "ERROR:", e
+    except AssertionError, ex:
+        print >> sys.stderr, "ERROR:", ex
         sys.exit(1)
     except IndexError:
         print >> sys.stderr, "ERROR: syntax error"
@@ -187,8 +239,8 @@ def main():
     except SyntaxError:
         print >> sys.stderr, "ERROR: invalid separator"
         sys.exit(1)
-    except GENERIC_ERRORS, e:
-        sys.exit(handle_generic_error(e))
+    except GENERIC_ERRORS, ex:
+        sys.exit(handle_generic_error(ex))
 
     sys.exit(0)
 
