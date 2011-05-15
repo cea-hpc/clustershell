@@ -39,6 +39,7 @@ An Engine implements a loop your thread enters and uses to call event handlers
 in response to incoming events (from workers, timers, etc.).
 """
 
+import copy
 import errno
 import heapq
 import time
@@ -361,6 +362,10 @@ class Engine:
         self._clients = set()
         self._ports = set()
 
+        # put pending clients in separate fifo list for faster start_all()
+        # and much more ordered start
+        self._pending_clients = []
+
         # keep track of the number of registered clients (delayable only)
         self.reg_clients = 0
 
@@ -395,6 +400,12 @@ class Engine:
         Get a copy of clients set.
         """
         return self._clients.copy()
+
+    def pending_clients(self):
+        """
+        Get a copy of pending clients list.
+        """
+        return copy.copy(self._pending_clients)
 
     def ports(self):
         """
@@ -436,8 +447,14 @@ class Engine:
             # in-fly add if running
             if not client.delayable:
                 self.register(client)
+                return
             elif self.info["fanout"] > self.reg_clients:
                 self.register(client._start())
+                return
+
+        if client.delayable:
+            # add to pending set
+            self._pending_clients.append(client)
 
     def _remove(self, client, abort, did_timeout=False, force=False):
         """
@@ -480,7 +497,6 @@ class Engine:
         Register an engine client. Subclasses that override this method
         should call base class method.
         """
-        assert client in self._clients or client in self._ports
         assert not client.registered
 
         efd = client.error_fileno()
@@ -726,16 +742,14 @@ class Engine:
         # Get current fanout value
         fanout = self.info["fanout"]
         assert fanout > 0
-        if fanout <= self.reg_clients:
-            return
 
         # Register regular engine clients within the fanout limit
-        for client in self._clients:
-            if not client.registered:
-                self._debug("START CLIENT %s" % client.__class__.__name__)
+        while self._pending_clients and fanout > self.reg_clients:
+            client = self._pending_clients.pop(0)
+            self._debug("START CLIENT %s" % client.__class__.__name__)
+            # Check if pending client has not been removed since add()
+            if client in self._clients or client in self._ports:
                 self.register(client._start())
-                if fanout <= self.reg_clients:
-                    break
     
     def run(self, timeout):
         """

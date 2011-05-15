@@ -1,3 +1,10 @@
+2011-05-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine/Engine.py: Improved start_all() fanout algorithm by adding a
+	separate pending clients list.
+
+	* Created 1.5 branch.
+
 2011-03-19 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.4.3 released.
