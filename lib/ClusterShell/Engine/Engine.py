@@ -551,7 +551,7 @@ class Engine:
         else:
             refcnt_inc = 1
 
-        wfd = client.writer_fileno()
+        wfd = client.fd_writer
         if wfd != None:
             self._unregister_specific(wfd, client._events & Engine.E_WRITE)
             client._events &= ~Engine.E_WRITE
@@ -579,7 +579,7 @@ class Engine:
             refcnt_inc = 1
             
         # clear interest events
-        efd = client.error_fileno()
+        efd = client.fd_error
         if efd != None:
             self._unregister_specific(efd, client._events & Engine.E_ERROR)
             client._events &= ~Engine.E_ERROR
@@ -587,7 +587,7 @@ class Engine:
             self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
-        rfd = client.reader_fileno()
+        rfd = client.fd_reader
         if rfd != None:
             self._unregister_specific(rfd, client._events & Engine.E_READ)
             client._events &= ~Engine.E_READ
@@ -595,7 +595,7 @@ class Engine:
             self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
-        wfd = client.writer_fileno()
+        wfd = client.fd_writer
         if wfd != None:
             self._unregister_specific(wfd, client._events & Engine.E_WRITE)
             client._events &= ~Engine.E_WRITE

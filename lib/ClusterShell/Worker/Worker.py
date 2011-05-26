@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -344,9 +344,12 @@ class WorkerSimple(EngineClient, Worker):
             self.key = self
         else:
             self.key = key
-        self.file_reader = file_reader
-        self.file_writer = file_writer
-        self.file_error = file_error
+        if file_reader:
+            self.fd_reader = file_reader.fileno()
+        if file_error:
+            self.fd_error = file_error.fileno()
+        if file_writer:
+            self.fd_writer = file_writer.fileno()
 
     def _engine_clients(self):
         """
@@ -369,33 +372,6 @@ class WorkerSimple(EngineClient, Worker):
         self._on_start()
         return self
 
-    def error_fileno(self):
-        """
-        Returns the standard error reader file descriptor as an integer.
-        """
-        if self.file_error and not self.file_error.closed:
-            return self.file_error.fileno()
-
-        return None
-
-    def reader_fileno(self):
-        """
-        Returns the reader file descriptor as an integer.
-        """
-        if self.file_reader and not self.file_reader.closed:
-            return self.file_reader.fileno()
-
-        return None
-    
-    def writer_fileno(self):
-        """
-        Returns the writer file descriptor as an integer.
-        """
-        if self.file_writer and not self.file_writer.closed:
-            return self.file_writer.fileno()
-        
-        return None
-    
     def _read(self, size=65536):
         """
         Read data from process.
@@ -417,12 +393,12 @@ class WorkerSimple(EngineClient, Worker):
             # EOL. Generate a final message before closing.
             self.worker._on_msgline(self._rbuf)
 
-        if self.file_reader != None:
-            self.file_reader.close()
-        if self.file_writer != None:
-            self.file_writer.close()
-        if self.file_error != None:
-            self.file_error.close()
+        if self.fd_reader:
+            os.close(self.fd_reader)
+        if self.fd_error:
+            os.close(self.fd_error)
+        if self.fd_writer:
+            os.close(self.fd_writer)
 
         if timeout:
             assert abort, "abort flag not set on timeout"

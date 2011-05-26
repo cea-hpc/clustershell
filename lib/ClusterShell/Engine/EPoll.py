@@ -40,6 +40,7 @@ has been included in Python 2.6.
 """
 
 import errno
+import os
 import select
 import time
 
@@ -158,8 +159,8 @@ class EngineEPoll(Engine):
                 if event & select.EPOLLERR:
                     self._debug("EPOLLERR %s" % client)
                     self.unregister_writer(client)
-                    client.file_writer.close()
-                    client.file_writer = None
+                    os.close(client.fd_writer)
+                    client.fd_writer = None
                     continue
 
                 # check for data to read

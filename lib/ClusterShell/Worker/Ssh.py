@@ -40,7 +40,6 @@ This module implements OpenSSH engine client and task's worker.
 
 import copy
 import os
-import signal
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClient
@@ -95,10 +94,6 @@ class Ssh(EngineClient):
             task.info("print_debug")(task, "SSH: %s" % ' '.join(cmd_l))
 
         self.popen = self._exec_nonblock(cmd_l)
-        self.file_error = self.popen.stderr
-        self.file_reader = self.popen.stdout
-        self.file_writer = self.popen.stdin
-
         self.worker._on_start()
         return self
 
@@ -116,16 +111,19 @@ class Ssh(EngineClient):
             prc = self.popen.poll()
             if prc is None:
                 # process is still running, kill it
-                # NOTE: later, use Popen.send_signal(SIGKILL) [python2.6+]
-                os.kill(self.popen.pid, signal.SIGKILL)
+                self.popen.kill()
         prc = self.popen.wait()
         if prc >= 0:
             rc = prc
 
-        self.popen.stdin.close()
-        self.popen.stdout.close()
-        if self.popen.stderr:
-            self.popen.stderr.close()
+        os.close(self.fd_reader)
+        self.fd_reader = None
+        if self.fd_error:
+            os.close(self.fd_error)
+            self.fd_error = None
+        if self.fd_writer:
+            os.close(self.fd_writer)
+            self.fd_writer = None
 
         if rc >= 0:
             self.worker._on_node_rc(self.key, rc)
@@ -258,10 +256,6 @@ class Scp(Ssh):
             task.info("print_debug")(task, "SCP: %s" % ' '.join(cmd_l))
 
         self.popen = self._exec_nonblock(cmd_l)
-        self.file_reader = self.popen.stdout
-        self.file_error = self.popen.stderr
-        self.file_writer = self.popen.stdin
-
         self.worker._on_start()
         return self
 

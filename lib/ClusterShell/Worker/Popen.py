@@ -49,7 +49,6 @@ Usage example:
 """
 
 import os
-import signal
 
 from ClusterShell.Worker.Worker import WorkerSimple
 
@@ -82,9 +81,9 @@ class WorkerPopen(WorkerSimple):
         assert self.popen is None
 
         self.popen = self._exec_nonblock(self.command, shell=True)
-        self.file_reader = self.popen.stdout
-        self.file_error = self.popen.stderr
-        self.file_writer = self.popen.stdin
+        #self.file_reader = self.popen.stdout
+        #self.file_error = self.popen.stderr
+        #self.file_writer = self.popen.stdin
 
         if self.task.info("debug", False):
             self.task.info("print_debug")(self.task, "POPEN: %s" % self.command)
@@ -109,7 +108,7 @@ class WorkerPopen(WorkerSimple):
             prc = self.popen.poll()
             if prc is None:
                 # process is still running, kill it
-                os.kill(self.popen.pid, signal.SIGKILL)
+                self.popen.kill()
         # release process
         prc = self.popen.wait()
         # get exit status
@@ -120,10 +119,14 @@ class WorkerPopen(WorkerSimple):
             # if process was signaled, return 128 + signum (bash-like)
             rc = 128 + -prc
 
-        self.popen.stdin.close()
-        self.popen.stdout.close()
-        if self.popen.stderr:
-            self.popen.stderr.close()
+        os.close(self.fd_reader)
+        self.fd_reader = None
+        if self.fd_error:
+            os.close(self.fd_error)
+            self.fd_error = None
+        if self.fd_writer:
+            os.close(self.fd_writer)
+            self.fd_writer = None
 
         if rc >= 0: # filter valid rc
             self._on_rc(rc)

@@ -1,5 +1,8 @@
 2011-05-26 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/EngineClient.py: Enable fastsubprocess module, and use file
+	descriptors instead of file objects everywhere (ticket #153).
+
 	* Worker/fastsubprocess.py: Faster, relaxed version of Python 2.6
 	subprocess.py with non blocking fd support.
 

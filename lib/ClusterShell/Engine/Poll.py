@@ -39,6 +39,7 @@ The poll() system call is available on Linux and BSD.
 """
 
 import errno
+import os
 import select
 import sys
 import time
@@ -159,8 +160,8 @@ class EnginePoll(Engine):
                 if event & select.POLLERR:
                     self._debug("POLLERR %s" % client)
                     self.unregister_writer(client)
-                    client.file_writer.close()
-                    client.file_writer = None
+                    os.close(client.fd_writer)
+                    client.fd_writer = None
                     continue
 
                 # check for data to read
