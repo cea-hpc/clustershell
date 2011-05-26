@@ -1,3 +1,8 @@
+2011-05-26 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/fastsubprocess.py: Faster, relaxed version of Python 2.6
+	subprocess.py with non blocking fd support.
+
 2011-05-15 S. Thiell <stephane.thiell@cea.fr>
 
 	* Engine/Engine.py: Improved start_all() fanout algorithm by adding a
