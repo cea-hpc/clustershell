@@ -447,7 +447,7 @@ class RangeSet:
         Return the element at index or a subrange when a slice is specified.
         """
         if isinstance(index, slice):
-            inst = RangeSet(autostep=self._autostep)
+            inst = RangeSet(autostep=self._autostep + 1)
             sl_start, sl_stop, sl_step = \
                 RangeSet._extractslice(index, lambda o: o._length, self)
             sl_next = sl_start
@@ -595,7 +595,7 @@ class RangeSet:
                 for j in xrange(start, stop_adjust, step):
                     self._ranges.append((slice(j, j + 1, step), pad))
             self._length = (stop_adjust - start - 1) / step + 1
-        elif step > 1:
+        elif step > 1 or self._autostep < 1E100:
             # use generic expand/fold method in that case
             self._add_range_exfold(start, stop, step, pad)
         else:

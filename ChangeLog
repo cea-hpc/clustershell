@@ -1,5 +1,8 @@
 2011-05-29 S. Thiell <stephane.thiell@cea.fr>
 
+	* NodeSet.py: Fixed missing autostep check in _fold() which could lead to
+	autostep not being taken into account (ticket #150).
+
 	* Worker/Ssh.py: Fix scp user option in Scp class (ticket #152).
 
 	* Engine/*.py: Internal engine design change: do not retry engine

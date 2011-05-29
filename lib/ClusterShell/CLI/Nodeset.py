@@ -166,7 +166,7 @@ def nodeset():
         STD_GROUP_RESOLVER.default_sourcename = options.groupsource
 
     # Instantiate RangeSet or NodeSet object
-    xset = class_set()
+    xset = class_set(autostep=options.autostep)
 
     if options.all:
         # Include all nodes from external node groups support.
@@ -220,7 +220,7 @@ def nodeset():
     else:
         xsubres = len
 
-    if not xset:
+    if not xset or options.maxsplit <= 1:
         print xsubres(xset)
     else:
         for xsubset in xset.split(options.maxsplit):
