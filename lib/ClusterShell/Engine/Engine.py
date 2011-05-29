@@ -373,15 +373,13 @@ class Engine:
         # are fileno and values are clients
         self.reg_clifds = {}
 
-        # A boolean that indicates when reg_clifds has changed, or when
-        # some client interest event mask has changed. It is set by the
-        # base class, and reset by each engine implementation.
-        # Engines often deal with I/O events in chunk, and some event
-        # may lead to change to some other "client interest event mask"
-        # or could even register or close other clients. When such
-        # changes are made, this boolean is set to True, allowing the
-        # engine implementation to reconsider their events got by chunk.
-        self.reg_clifds_changed = False
+        # Current loop iteration counter. It is the number of performed engine
+        # loops in order to keep track of client registration epoch, so we can
+        # safely process FDs by chunk and re-use FDs (see Engine._fd2client).
+        self._current_loopcnt = 0
+
+        # Current client being processed
+        self._current_client = None
 
         # timer queue to handle both timers and clients timeout
         self.timerq = _EngineTimerQ(self)
@@ -414,19 +412,14 @@ class Engine:
         return self._ports.copy()
 
     def _fd2client(self, fd):
-        fdev = None
-        client = self.reg_clifds.get(fd)
+        client, fdev = self.reg_clifds.get(fd, (None, None))
         if client:
-            try:
-                if fd == client.reader_fileno():
-                    fdev = Engine.E_READ
-                elif fd == client.error_fileno():
-                    fdev = Engine.E_ERROR
-                elif fd == client.writer_fileno():
-                    fdev = Engine.E_WRITE
-            except:
-                return (client, Engine.E_ERROR)
-        return (client, fdev)
+            if client._reg_epoch < self._current_loopcnt:
+                return client, fdev
+            else:
+                self._debug("ENGINE _fd2client: ignoring just re-used FD %d" \
+                            % fd)
+        return (None, None)
 
     def add(self, client):
         """
@@ -499,10 +492,10 @@ class Engine:
         """
         assert not client.registered
 
-        efd = client.error_fileno()
-        rfd = client.reader_fileno()
-        wfd = client.writer_fileno()
-        assert rfd != None or wfd != None
+        efd = client.fd_error
+        rfd = client.fd_reader
+        wfd = client.fd_writer
+        assert rfd is not None or wfd is not None
 
         self._debug("REG %s(e%s,r%s,w%s)(autoclose=%s)" % \
                 (client.__class__.__name__, efd, rfd, wfd,
@@ -510,6 +503,7 @@ class Engine:
 
         client._events = 0
         client.registered = True
+        client._reg_epoch = self._current_loopcnt
 
         if client.delayable:
             self.reg_clients += 1
@@ -520,20 +514,17 @@ class Engine:
             refcnt_inc = 1
 
         if efd != None:
-            self.reg_clifds[efd] = client
-            self.reg_clifds_changed = True
+            self.reg_clifds[efd] = client, Engine.E_ERROR
             client._events |= Engine.E_ERROR
             self.evlooprefcnt += refcnt_inc
             self._register_specific(efd, Engine.E_ERROR)
         if rfd != None:
-            self.reg_clifds[rfd] = client
-            self.reg_clifds_changed = True
+            self.reg_clifds[rfd] = client, Engine.E_READ
             client._events |= Engine.E_READ
             self.evlooprefcnt += refcnt_inc
             self._register_specific(rfd, Engine.E_READ)
         if wfd != None:
-            self.reg_clifds[wfd] = client
-            self.reg_clifds_changed = True
+            self.reg_clifds[wfd] = client, Engine.E_WRITE
             client._events |= Engine.E_WRITE
             self.evlooprefcnt += refcnt_inc
             self._register_specific(wfd, Engine.E_WRITE)
@@ -556,7 +547,6 @@ class Engine:
             self._unregister_specific(wfd, client._events & Engine.E_WRITE)
             client._events &= ~Engine.E_WRITE
             del self.reg_clifds[wfd]
-            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
     def unregister(self, client):
@@ -580,27 +570,24 @@ class Engine:
             
         # clear interest events
         efd = client.fd_error
-        if efd != None:
+        if efd is not None:
             self._unregister_specific(efd, client._events & Engine.E_ERROR)
             client._events &= ~Engine.E_ERROR
             del self.reg_clifds[efd]
-            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         rfd = client.fd_reader
-        if rfd != None:
+        if rfd is not None:
             self._unregister_specific(rfd, client._events & Engine.E_READ)
             client._events &= ~Engine.E_READ
             del self.reg_clifds[rfd]
-            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         wfd = client.fd_writer
-        if wfd != None:
+        if wfd is not None:
             self._unregister_specific(wfd, client._events & Engine.E_WRITE)
             client._events &= ~Engine.E_WRITE
             del self.reg_clifds[wfd]
-            self.reg_clifds_changed = True
             self.evlooprefcnt -= refcnt_inc
 
         client._new_events = 0
@@ -617,13 +604,8 @@ class Engine:
         client._new_events &= ~clearmask
         client._new_events |= setmask
 
-        if not client._processing:
-            # modifying a non processing client?
-            if clearmask:
-                # set changed boolean only if we clear some flags to
-                # avoid a pseudo race condition on write() flooding
-                self.reg_clifds_changed = True
-            # apply new_events now
+        if self._current_client is not client:
+            # modifying a non processing client, apply new_events now
             self.set_events(client, client._new_events)
 
     def _register_specific(self, fd, event):
@@ -642,8 +624,6 @@ class Engine:
         """
         Set the active interest events bitset for a client.
         """
-        assert not client._processing
-
         self._debug("SETEV new_events:0x%x events:0x%x %s" % (new_events,
             client._events, client))
 
@@ -652,8 +632,8 @@ class Engine:
             return
 
         # configure interest events as appropriate
-        efd = client.error_fileno()
-        if efd != None:
+        efd = client.fd_error
+        if efd is not None:
             if chgbits & Engine.E_ERROR:
                 status = new_events & Engine.E_ERROR
                 self._modify_specific(efd, Engine.E_ERROR, status)
@@ -662,8 +642,8 @@ class Engine:
                 else:
                     client._events &= ~Engine.E_ERROR
 
-        rfd = client.reader_fileno()
-        if rfd != None:
+        rfd = client.fd_reader
+        if rfd is not None:
             if chgbits & Engine.E_READ:
                 status = new_events & Engine.E_READ
                 self._modify_specific(rfd, Engine.E_READ, status)
@@ -672,8 +652,8 @@ class Engine:
                 else:
                     client._events &= ~Engine.E_READ
 
-        wfd = client.writer_fileno()
-        if wfd != None:
+        wfd = client.fd_writer
+        if wfd is not None:
             if chgbits & Engine.E_WRITE:
                 status = new_events & Engine.E_WRITE
                 self._modify_specific(wfd, Engine.E_WRITE, status)
@@ -824,6 +804,7 @@ class Engine:
 
     def _debug(self, s):
         # library engine debugging hook
+        #import sys
         #print >>sys.stderr, s
         pass
 

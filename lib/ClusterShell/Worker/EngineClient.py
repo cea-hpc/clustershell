@@ -80,7 +80,7 @@ class EngineClient(EngineBaseTimer):
                                             # interesting events (read,
                                             # write) for client
         self._new_events = 0                # new set of interesting events
-        self._processing = False            # engine is working on us
+        self._reg_epoch = 0                 # registration generation number
 
         # read-only public
         self.registered = False             # registered on engine or not
@@ -308,7 +308,6 @@ class EngineClient(EngineBaseTimer):
             self._close_writer()
 
     def _close_writer(self):
-        #self.file_writer and not self.file_writer.closed:
         if self.fd_writer is not None:
             self._engine.unregister_writer(self)
             os.close(self.fd_writer)

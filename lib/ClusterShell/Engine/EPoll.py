@@ -132,7 +132,7 @@ class EngineEPoll(Engine):
                 elif timeo == -1:
                     timeo = timeout
 
-                self.reg_clifds_changed = False
+                self._current_loopcnt += 1
                 evlist = self.epolling.poll(timeo + 0.001)
 
             except IOError, e:
@@ -142,18 +142,13 @@ class EngineEPoll(Engine):
 
             for fd, event in evlist:
 
-                if self.reg_clifds_changed:
-                    self._debug("REG CLIENTS CHANGED - Aborting current evlist")
-                    # Oops, reconsider evlist by calling poll() again.
-                    break
-
                 # get client instance
                 client, fdev = self._fd2client(fd)
-                if not client or fdev is None:
+                if client is None:
                     continue
 
-                # process this client
-                client._processing = True
+                # set as current processed client
+                self._current_client = client
 
                 # check for poll error condition of some sort
                 if event & select.EPOLLERR:
@@ -161,10 +156,12 @@ class EngineEPoll(Engine):
                     self.unregister_writer(client)
                     os.close(client.fd_writer)
                     client.fd_writer = None
+                    self._current_client = None
                     continue
 
                 # check for data to read
                 if event & select.EPOLLIN:
+                    #self._debug("EPOLLIN fd=%d %s" % (fd, client))
                     assert fdev & (Engine.E_READ | Engine.E_ERROR)
                     assert client._events & fdev
                     self.modify(client, 0, fdev)
@@ -177,16 +174,15 @@ class EngineEPoll(Engine):
                         self._debug("EngineClientEOF %s" % client)
                         if fdev & Engine.E_READ:
                             self.remove(client)
+                        self._current_client = None
                         continue
 
                 # or check for end of stream (do not handle both at the same
                 # time because handle_read() may perform a partial read)
                 elif event & select.EPOLLHUP:
                     self._debug("EPOLLHUP fd=%d %s (r%s,e%s,w%s)" % (fd,
-                        client.__class__.__name__, client.reader_fileno(),
-                        client.error_fileno(), client.writer_fileno()))		
-                    client._processing = False
-
+                        client.__class__.__name__, client.fd_reader,
+                        client.fd_error, client.fd_writer))
                     if fdev & Engine.E_READ:
                         if client._events & Engine.E_ERROR:
                             self.modify(client, 0, fdev)
@@ -197,20 +193,18 @@ class EngineEPoll(Engine):
                             self.modify(client, 0, fdev)
                         else:
                             self.remove(client)
-                    continue
 
                 # check for writing
                 if event & select.EPOLLOUT:
                     self._debug("EPOLLOUT fd=%d %s (r%s,e%s,w%s)" % (fd,
-                        client.__class__.__name__, client.reader_fileno(),
-                        client.error_fileno(), client.writer_fileno()))
+                        client.__class__.__name__, client.fd_reader,
+                        client.fd_error, client.fd_writer))
                     assert fdev == Engine.E_WRITE
                     assert client._events & fdev
                     self.modify(client, 0, fdev)
                     client._handle_write()
 
-                # post processing
-                client._processing = False
+                self._current_client = None
 
                 # apply any changes occured during processing
                 if client.registered:

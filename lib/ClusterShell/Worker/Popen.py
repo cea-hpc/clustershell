@@ -81,9 +81,6 @@ class WorkerPopen(WorkerSimple):
         assert self.popen is None
 
         self.popen = self._exec_nonblock(self.command, shell=True)
-        #self.file_reader = self.popen.stdout
-        #self.file_error = self.popen.stderr
-        #self.file_writer = self.popen.stdin
 
         if self.task.info("debug", False):
             self.task.info("print_debug")(self.task, "POPEN: %s" % self.command)

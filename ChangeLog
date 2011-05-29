@@ -1,3 +1,10 @@
+2011-05-29 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine/*.py: Internal engine design change: do not retry engine
+	eventloop on any EngineClient registration changes, so process more events
+	by chunk (should be faster) and add a loop iteration counter to work
+	around internally re-used FDs (finalize ticket #153).
+
 2011-05-26 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/EngineClient.py: Enable fastsubprocess module, and use file
