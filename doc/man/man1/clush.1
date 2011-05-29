@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH 1 "2011-03-19" "1.4.3" "ClusterShell User Manual"
+.TH CLUSH 1 "2011-05-29" "1.5" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -63,6 +63,12 @@ the specified remote hosts in parallel. If option \fB\-b\fP or \fB\-\-dshbak\fP
 is specified, \fBclush\fP waits for command completion and then displays
 gathered output results.
 .sp
+The \fB\-w\fP option allows you to specify remote hosts by using ClusterShell
+NodeSet syntax, including the node groups \fB@group\fP special syntax and the
+\fBExtended Patterns\fP syntax to benefits from NodeSet basic arithmetics
+(like \fB@Agroup\e&@Bgroup\fP). See EXTENDED PATTERNS in \fBnodeset\fP(1) and
+also \fBgroups.conf\fP(5) for more information.
+.sp
 Unless option \fB\-\-nostdin\fP is specified, \fBclush\fP detects when its
 standard input is connected to a terminal (as determined by \fBisatty\fP(3)).
 If actually connected to a terminal, \fBclush\fP listens to standard input
@@ -119,7 +125,7 @@ execute COMMAND on the local system
 .TP
 .B clush> =
 .
-toggle the ouput format (gathered or standard mode)
+toggle the output format (gathered or standard mode)
 .UNINDENT
 .UNINDENT
 .sp

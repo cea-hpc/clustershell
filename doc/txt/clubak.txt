@@ -7,9 +7,9 @@ format output from clush/pdsh-like output and more
 --------------------------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2011-03-19
+:Date:   2011-05-29
 :Copyright: CeCILL-C V1
-:Version: 1.4.3
+:Version: 1.5
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
