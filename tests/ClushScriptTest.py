@@ -7,7 +7,18 @@
 """Unit test for scripts/clush.py"""
 
 from subprocess import Popen, PIPE
+import os
+import pwd
+import tempfile
+import time
 import unittest
+
+def makeTestFile(text):
+    """Create a temporary file with the provided text."""
+    f = tempfile.NamedTemporaryFile()
+    f.write(text)
+    f.flush()
+    return f
 
 
 class ClushScriptTest(unittest.TestCase):
@@ -94,6 +105,32 @@ class ClushScriptTest(unittest.TestCase):
         self._launchAndCompare(["-w", "localhost", "-qBLS", "echo", "ok"],
                                "localhost: ok")
         
+    def test5(self):
+        """test clush.py command (file copy)"""
+        content = "%f" % time.time()
+        f = makeTestFile(content)
+        self._launchAndCompare(["-w", "localhost", "-c", f.name], "")
+        f.seek(0)
+        self.assertEqual(f.read(), content)
+        # test --dest option
+        f2 = tempfile.NamedTemporaryFile()
+        self._launchAndCompare(["-w", "localhost", "-c", f.name, "--dest",
+                                f2.name], "")
+        f2.seek(0)
+        self.assertEqual(f2.read(), content)
+        # test --user option
+        f2 = tempfile.NamedTemporaryFile()
+        self._launchAndCompare(["--user", pwd.getpwuid(os.getuid())[0], "-w",
+                                "localhost", "--copy", f.name, "--dest", f2.name],
+                               "")
+        f2.seek(0)
+        self.assertEqual(f2.read(), content)
+        # test --rcopy
+        self._launchAndCompare(["--user", pwd.getpwuid(os.getuid())[0], "-w",
+                                "localhost", "--rcopy", f.name, "--dest",
+                                os.path.dirname(f.name)], "")
+        f2.seek(0)
+        self.assertEqual(open("%s.localhost" % f.name).read(), content)
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(ClushScriptTest)

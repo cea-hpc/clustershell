@@ -1,5 +1,7 @@
 2011-05-29 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/Ssh.py: Fix scp user option in Scp class (ticket #152).
+
 	* Engine/*.py: Internal engine design change: do not retry engine
 	eventloop on any EngineClient registration changes, so process more events
 	by chunk (should be faster) and add a loop iteration counter to work

@@ -216,11 +216,6 @@ class Scp(Ssh):
         if self.preserve:
             cmd_l.append("-p")
 
-        user = task.info("scp_user") or task.info("ssh_user")
-        if user:
-            cmd_l.append("-l")
-            cmd_l.append(user)
-
         connect_timeout = task.info("connect_timeout", 0)
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
@@ -234,8 +229,8 @@ class Scp(Ssh):
             if ssh_options:
                 cmd_l += ssh_options.split()
 
+        user = task.info("scp_user") or task.info("ssh_user")
         if self.reverse:
-            user = task.info("ssh_user")
             if user:
                 cmd_l.append("%s@%s:%s" % (user, self.key, self.source))
             else:
@@ -245,8 +240,6 @@ class Scp(Ssh):
                          (os.path.basename(self.source), self.key)))
         else:
             cmd_l.append(self.source)
-
-            user = task.info("ssh_user")
             if user:
                 cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
             else:
