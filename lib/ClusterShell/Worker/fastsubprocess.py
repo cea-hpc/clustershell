@@ -292,44 +292,45 @@ class Popen(object):
         self._child_created = True
         if self.pid == 0:
             # Child
-            # Close parent's pipe ends
-            if p2cwrite is not None:
-                os.close(p2cwrite)
-            if c2pread is not None:
-                os.close(c2pread)
-            if errread is not None:
-                os.close(errread)
+            try:
+                # Close parent's pipe ends
+                if p2cwrite is not None:
+                    os.close(p2cwrite)
+                if c2pread is not None:
+                    os.close(c2pread)
+                if errread is not None:
+                    os.close(errread)
 
-            # Dup fds for child
-            if p2cread is not None:
-                os.dup2(p2cread, 0)
-            if c2pwrite is not None:
-                os.dup2(c2pwrite, 1)
-            if errwrite is not None:
-                os.dup2(errwrite, 2)
+                # Dup fds for child
+                if p2cread is not None:
+                    os.dup2(p2cread, 0)
+                if c2pwrite is not None:
+                    os.dup2(c2pwrite, 1)
+                if errwrite is not None:
+                    os.dup2(errwrite, 2)
 
-            # Close pipe fds.  Make sure we don't close the same
-            # fd more than once, or standard fds.
-            if p2cread is not None and p2cread not in (0,):
-                os.close(p2cread)
-            if c2pwrite is not None and c2pwrite not in (p2cread, 1):
-                os.close(c2pwrite)
-            if errwrite is not None and errwrite not in (p2cread, c2pwrite, 2):
-                os.close(errwrite)
+                # Close pipe fds.  Make sure we don't close the same
+                # fd more than once, or standard fds.
+                if p2cread is not None and p2cread not in (0,):
+                    os.close(p2cread)
+                if c2pwrite is not None and c2pwrite not in (p2cread, 1):
+                    os.close(c2pwrite)
+                if errwrite is not None and errwrite not in (p2cread, c2pwrite, 2):
+                    os.close(errwrite)
 
-            if cwd is not None:
-                os.chdir(cwd)
+                if cwd is not None:
+                    os.chdir(cwd)
 
-            if preexec_fn:
-                preexec_fn()
+                if preexec_fn:
+                    preexec_fn()
 
-            if env is None:
-                os.execvp(executable, args)
-            else:
-                os.execvpe(executable, args, env)
-
-            # Child execv failure
-            os._exit(255)
+                if env is None:
+                    os.execvp(executable, args)
+                else:
+                    os.execvpe(executable, args, env)
+            except:
+                # Child execution failure
+                os._exit(255)
 
         # Parent
         if gc_was_enabled:
