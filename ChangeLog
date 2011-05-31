@@ -1,3 +1,8 @@
+2011-05-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Optimized NodeSet.fromlist() method by adding updaten()
+	method which is quite O(num_patterns).
+
 2011-05-29 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fixed missing autostep check in _fold() which could lead to

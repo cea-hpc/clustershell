@@ -209,11 +209,7 @@ class RangeSet:
         provided list.
         """
         inst = RangeSet(autostep=autostep)
-        for rng in rnglist:
-            if isinstance(rng, RangeSet):
-                inst.update(rng)
-            else:
-                inst.update(RangeSet(rng))
+        inst.updaten(rnglist)
         return inst
 
     @classmethod
@@ -713,6 +709,21 @@ class RangeSet:
         for sli, pad in rangeset._ranges:
             self.add_range(sli.start, sli.stop, sli.step, pad)
 
+    def updaten(self, rangesets):
+        """
+        Update a rangeset with the union of itself and several others.
+        """
+        # Use expand/compute/fold for performance in that specific case.
+        pad = 0
+        items, rgpad = self._expand()
+        for rng in rangesets:
+            if not isinstance(rng, RangeSet):
+                rng = RangeSet(rng)
+            for sli, pad in rng._ranges:
+                items += xrange(sli.start, sli.stop, sli.step)
+        items.sort()
+        self._ranges, self._length = self._fold(items, pad or rgpad)
+
     def clear(self):
         """
         Remove all ranges from this rangeset.
@@ -1166,6 +1177,31 @@ class NodeSetBase(object):
             # create new pattern with no rangeset (single node)
             self._patterns[pat] = None
 
+    def _addn(self, pat, rangesets):
+        """
+        Add nodes from a (pat, list of rangesets).
+        """
+        assert len(rangesets) > 0
+        # get patterns dict entry
+        pat_e = self._patterns.get(pat)
+        
+        # check for single node presence
+        single = True
+        for rg in rangesets:
+            if rg is not None:
+                single = False
+                break
+
+        if pat_e is None:
+            if single:
+                self._patterns[pat] = None
+            else:
+                pat_e = self._patterns[pat] = rangesets[0].copy()
+                pat_e.updaten(rangesets[1:])
+        else:
+            assert not single
+            pat_e.updaten(rangesets)
+
     def union(self, other):
         """
         s.union(t) returns a new set with elements from both s and t.
@@ -1198,6 +1234,21 @@ class NodeSetBase(object):
         for pat, rangeset in other._patterns.iteritems():
             self._add(pat, rangeset)
 
+    def updaten(self, others):
+        """
+        s.updaten(t) returns nodeset s with elements added from given list.
+        """
+        # optimized for pattern homogeneous clusters (a common case)
+        patd = {}
+        # gather rangesets from each common nodeset pattern
+        for other in others:
+            self._binary_sanity_check(other)
+            for pat, rangeset in other._patterns.iteritems():
+                patd.setdefault(pat, []).append(rangeset)
+        # for each pattern, add all needed rangesets in once
+        for pat, rgsets in patd.iteritems():
+            self._addn(pat, rgsets)
+        
     def clear(self):
         """
         Remove all nodes from this nodeset.
@@ -1655,8 +1706,7 @@ class NodeSet(NodeSetBase):
         provided list.
         """
         inst = NodeSet(autostep=autostep, resolver=resolver)
-        for node in nodelist:
-            inst.update(node)
+        inst.updaten(nodelist)
         return inst
 
     @classmethod
@@ -1852,6 +1902,13 @@ class NodeSet(NodeSetBase):
         """
         nodeset = self._parser.parse(other, self._autostep)
         NodeSetBase.update(self, nodeset)
+
+    def updaten(self, others):
+        """
+        s.updaten(list) returns nodeset s with elements added from given list.
+        """
+        NodeSetBase.updaten(self, \
+            [self._parser.parse(other, self._autostep) for other in others])
 
     def intersection_update(self, other):
         """
