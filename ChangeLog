@@ -1,3 +1,12 @@
+2011-06-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* MsgTree.py: Improved MsgTree API to lighten updates of keys associated
+	to tree elements (ticket #131).
+
+	* CLI/Clubak.py: Updated for new MsgTree API and added a -F/--fast switch
+	to enable preloading of whole messages to speed up processing, but with
+	an increase of memory consumption (ticket #131).
+
 2011-05-31 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Optimized NodeSet.fromlist() method by adding updaten()

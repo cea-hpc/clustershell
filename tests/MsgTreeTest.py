@@ -12,7 +12,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.MsgTree import MsgTree, MsgTreeElem
+from ClusterShell.MsgTree import *
 
 
 class MsgTreeTest(unittest.TestCase):
@@ -192,7 +192,7 @@ class MsgTreeTest(unittest.TestCase):
 
     def testMsgTreeTraceMode(self):
         """test MsgTree in trace mode"""
-        tree = MsgTree(trace=True)
+        tree = MsgTree(mode=MODE_TRACE)
         tree.add("item1", "message0")
         self.assertEqual(len(tree), 1)
         tree.add("item2", "message2")
