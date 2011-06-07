@@ -47,14 +47,16 @@ class CalledProcessError(Exception):
         self.returncode = returncode
         self.cmd = cmd
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
+        return "Command '%s' returned non-zero exit status %d" % (self.cmd,
+            self.returncode)
 
 import select
 import errno
 import fcntl
 import pickle
 
-__all__ = ["Popen", "PIPE", "STDOUT", "call", "check_call", "CalledProcessError"]
+__all__ = ["Popen", "PIPE", "STDOUT", "call", "check_call", \
+           "CalledProcessError"]
 
 try:
     MAXFD = os.sysconf("SC_OPEN_MAX")
@@ -315,7 +317,8 @@ class Popen(object):
                     os.close(p2cread)
                 if c2pwrite is not None and c2pwrite not in (p2cread, 1):
                     os.close(c2pwrite)
-                if errwrite is not None and errwrite not in (p2cread, c2pwrite, 2):
+                if errwrite is not None and errwrite not in \
+                        (p2cread, c2pwrite, 2):
                     os.close(errwrite)
 
                 if cwd is not None:

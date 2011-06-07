@@ -67,6 +67,8 @@ class MsgTreeElem(object):
         self.children = {}
         if trace:  # special behavior for trace mode
             self._shift = self._shift_trace
+        else:
+            self._shift = self._shift_notrace
         # content
         self.msgline = msgline
         self.keys = None
@@ -80,12 +82,13 @@ class MsgTreeElem(object):
         return str(self) == str(other)
 
     def _add_key(self, key):
+        """Add a key to this tree element."""
         if self.keys is None:
             self.keys = set([key])
         else:
             self.keys.add(key)
 
-    def _shift(self, key, target_elem):
+    def _shift_notrace(self, key, target_elem):
         """Shift one of our key to specified target element."""
         if self.keys and len(self.keys) == 1:
             shifting = self.keys
@@ -232,6 +235,7 @@ class MsgTree(object):
         self._keys[key] = e_msg.append(msgline, key_shift)
 
     def _update_keys(self):
+        """Update keys associated to tree elements."""
         for key, e_msg in self._keys.iteritems():
             assert key is not None and e_msg is not None
             e_msg._add_key(key)

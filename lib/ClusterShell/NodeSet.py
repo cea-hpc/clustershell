@@ -1187,8 +1187,8 @@ class NodeSetBase(object):
         
         # check for single node presence
         single = True
-        for rg in rangesets:
-            if rg is not None:
+        for rng in rangesets:
+            if rng is not None:
                 single = False
                 break
 
