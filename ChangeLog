@@ -1,3 +1,7 @@
+2011-06-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.5 released (Sedona release).
+
 2011-06-07 S. Thiell <stephane.thiell@cea.fr>
 
 	* MsgTree.py: Improved MsgTree API to lighten updates of keys associated
