@@ -234,6 +234,11 @@ class RangeSet:
         odict = self.__dict__.copy()
         # pickle includes current serial version
         odict['_version'] = RangeSet._VERSION
+        # workaround for pickling object from Python < 2.5
+        if sys.version_info < (2, 5, 0):
+            # Python 2.4 can't pickle slice objects
+            odict['_ranges'] = [((sli.start, sli.stop, sli.step), pad) \
+                                    for sli, pad in self._ranges]
         return odict
 
     def __setstate__(self, dic):
@@ -243,6 +248,10 @@ class RangeSet:
         if getattr(self, '_version', 0) < RangeSet._VERSION:
             self._ranges = [(slice(start, stop + 1, step), pad) \
                                 for start, stop, step, pad in self._ranges]
+        elif self._ranges and type(self._ranges[0][0]) is not slice:
+            # workaround for object pickled from Python < 2.5
+            self._ranges = [(slice(start, stop, step), pad) \
+                                for (start, stop, step), pad in self._ranges]
 
     def __len__(self):
         """

@@ -44,7 +44,7 @@ if not os.access('scripts/clush', os.F_OK):
 if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
-VERSION='1.5'
+VERSION='1.5.1'
 
 setup(name='ClusterShell',
       version=VERSION,

@@ -7,6 +7,7 @@
 """Unit test for RangeSet"""
 
 import copy
+import pickle
 import sys
 import unittest
 
@@ -689,6 +690,17 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(rangeset), "115-117,130,166-170,4780-4999")
         self.assertEqual(str(r1), "115-117,130,167-170,4780-4999")
         self.assertEqual(str(r2), "115-118,130,166-170,4780-4999")
+
+    def testPickle(self):
+        """test pickling of RangeSet"""
+        dump = pickle.dumps(RangeSet("1-100"))
+        self.assertNotEqual(dump, None)
+        rngset = pickle.loads(dump)
+        self.assertEqual(rngset, RangeSet("1-100"))
+        self.assertEqual(str(rngset), "1-100")
+        self.assertEqual(rngset[0], 1)
+        self.assertEqual(rngset[1], 2)
+        self.assertEqual(rngset[-1], 100)
 
 
 if __name__ == '__main__':
