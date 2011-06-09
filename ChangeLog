@@ -1,5 +1,7 @@
 2011-06-09 S. Thiell <stephane.thiell@cea.fr>
 
+	* Version 1.5.1 released.
+
 	* NodeSet.py: Added workaround to allow pickling/unpickling of RangeSet
 	objects for Python 2.4 (ticket #156).
 
