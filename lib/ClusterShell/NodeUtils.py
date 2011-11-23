@@ -291,8 +291,9 @@ class GroupResolverConfig(GroupResolver):
             self.default_sourcename = self.config.get('Main', 'default')
             if self.default_sourcename and self.default_sourcename \
                                             not in group_sections:
-                raise GroupResolverConfigError("Default group source not found: "
-                        "\"%s\"" % self.default_sourcename)
+                raise GroupResolverConfigError( \
+                    "Default group source not found: \"%s\"" % \
+                        self.default_sourcename)
         except (NoSectionError, NoOptionError):
             pass
 

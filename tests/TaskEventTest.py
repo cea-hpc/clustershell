@@ -70,6 +70,9 @@ class TestHandler(EventHandler):
     def ev_timeout(self, worker):
         self.did_timeout = True
 
+class AbortOnReadHandler(EventHandler):
+    def ev_read(self, worker):
+        worker.abort()
 
 class TaskEventTest(unittest.TestCase):
 
@@ -130,6 +133,21 @@ class TaskEventTest(unittest.TestCase):
         worker = task.shell("/bin/uname", handler=eh)
         self.assert_(worker != None)
         task.resume()
+
+    def testEngineMayReuseFD(self):
+        """test write + worker.abort() on read to reuse FDs"""
+        task = task_self()
+        fanout = task.info("fanout")
+        try:
+            task.set_info("fanout", 1)
+            eh = AbortOnReadHandler()
+            for i in range(10):
+                worker = task.shell("echo ok; sleep 1", handler=eh)
+                worker.write("OK\n")
+                self.assert_(worker is not None)
+            task.resume()
+        finally:
+            task.set_info("fanout", fanout)
 
 
 if __name__ == '__main__':

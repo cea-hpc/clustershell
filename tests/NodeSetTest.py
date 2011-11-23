@@ -7,6 +7,7 @@
 """Unit test for NodeSet"""
 
 import copy
+import pickle
 import sys
 import unittest
 
@@ -1236,6 +1237,17 @@ class NodeSetTest(unittest.TestCase):
             "glycine[68,4780-4999],zclu[115-117,130,166-170]")
         self.assertEqual(str(nodeset3), \
             "glycine[68,4780-4999],zclu[115-118,130,166-170]")
+
+    def testPickle(self):
+        """test pickling of NodeSet"""
+        dump = pickle.dumps(NodeSet("foo[1-100]"))
+        self.assertNotEqual(dump, None)
+        nodeset = pickle.loads(dump)
+        self.assertEqual(nodeset, NodeSet("foo[1-100]"))
+        self.assertEqual(str(nodeset), "foo[1-100]")
+        self.assertEqual(nodeset[0], "foo1")
+        self.assertEqual(nodeset[1], "foo2")
+        self.assertEqual(nodeset[-1], "foo100")
 
 
 if __name__ == '__main__':

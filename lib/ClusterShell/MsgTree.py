@@ -45,6 +45,11 @@ consumption, especially when remote messages are the same.
 from itertools import ifilterfalse, imap
 from operator import itemgetter
 
+# MsgTree behavior modes
+MODE_DEFER = 0
+MODE_SHIFT = 1
+MODE_TRACE = 2
+
 
 class MsgTreeElem(object):
     """
@@ -62,6 +67,8 @@ class MsgTreeElem(object):
         self.children = {}
         if trace:  # special behavior for trace mode
             self._shift = self._shift_trace
+        else:
+            self._shift = self._shift_notrace
         # content
         self.msgline = msgline
         self.keys = None
@@ -74,7 +81,14 @@ class MsgTreeElem(object):
         """Comparison method compares whole message strings."""
         return str(self) == str(other)
 
-    def _shift(self, key, target_elem):
+    def _add_key(self, key):
+        """Add a key to this tree element."""
+        if self.keys is None:
+            self.keys = set([key])
+        else:
+            self.keys.add(key)
+
+    def _shift_notrace(self, key, target_elem):
         """Shift one of our key to specified target element."""
         if self.keys and len(self.keys) == 1:
             shifting = self.keys
@@ -135,16 +149,21 @@ class MsgTreeElem(object):
 
     __str__ = message
 
-    def append(self, key, msgline):
+    def append(self, msgline, key=None):
         """
-        A new message line is coming, append it to the tree element
-        with associated source key. Called by MsgTree.add().
-        Return corresponding newly created MsgTreeElem.
+        A new message is coming, append it to the tree element with
+        optional associated source key. Called by MsgTree.add().
+        Return corresponding MsgTreeElem (possibly newly created).
         """
-        # create new child element and shift down the key
-        return self._shift(key, self.children.setdefault(msgline, \
-                                        self.__class__(msgline, self,
-                                        self._shift == self._shift_trace)))
+        if key is None:
+            # No key association, MsgTree is in MODE_DEFER
+            return self.children.setdefault(msgline, \
+                self.__class__(msgline, self, self._shift == self._shift_trace))
+        else:
+            # key given: get/create new child element and shift down the key
+            return self._shift(key, self.children.setdefault(msgline, \
+                self.__class__(msgline, self,
+                               self._shift == self._shift_trace)))
 
 
 class MsgTree(object):
@@ -155,24 +174,33 @@ class MsgTree(object):
     internally. MsgTree provides low memory consumption especially
     on a cluster when all nodes return similar messages. Also,
     the gathering of messages is done automatically.
-
-    If the boolean `trace' parameter is True at initialization, all
-    keys are kept for each message element of the tree. The special
-    method walk_trace() is then available to walk all elements of the
-    tree.
     """
 
-    def __init__(self, trace=False):
-        """MsgTree initializer"""
-        self.trace = trace
+    def __init__(self, mode=MODE_DEFER):
+        """MsgTree initializer
+        
+        The `mode' parameter should be set to one of the following constant:
+
+        MODE_DEFER: all messages are processed immediately, saving memory from
+        duplicate message lines, but keys are associated to tree elements only
+        when needed.
+
+        MODE_SHIFT: all keys and messages are processed immediately, it is more
+        CPU time consuming as MsgTree full state is updated at each add() call.
+
+        MODE_TRACE: all keys and messages and processed immediately, and keys
+        are kept for each message element of the tree. The special method
+        walk_trace() is then available to walk all elements of the tree.
+        """
+        self.mode = mode
         # root element of MsgTree
-        self._root = MsgTreeElem(trace=trace)
+        self._root = MsgTreeElem(trace=(mode == MODE_TRACE))
         # dict of keys to MsgTreeElem
         self._keys = {}
 
     def clear(self):
         """Remove all items from the MsgTree."""
-        self._root = MsgTreeElem(trace=self.trace)
+        self._root = MsgTreeElem(trace=(self.mode == MODE_TRACE))
         self._keys.clear()
 
     def __len__(self):
@@ -199,9 +227,18 @@ class MsgTree(object):
         # try to get current element in MsgTree for the given key,
         # defaulting to the root element
         e_msg = self._keys.get(key, self._root)
-
+        if self.mode >= MODE_SHIFT:
+            key_shift = key
+        else:
+            key_shift = None
         # add child msg and update keys dict
-        self._keys[key] = e_msg.append(key, msgline)
+        self._keys[key] = e_msg.append(msgline, key_shift)
+
+    def _update_keys(self):
+        """Update keys associated to tree elements."""
+        for key, e_msg in self._keys.iteritems():
+            assert key is not None and e_msg is not None
+            e_msg._add_key(key)
 
     def keys(self):
         """Return an iterator over MsgTree's keys."""
@@ -247,6 +284,8 @@ class MsgTree(object):
         Return an iterator over (message, keys) tuples for each
         different message in the tree.
         """
+        if self.mode == MODE_DEFER:
+            self._update_keys()
         # stack of elements used to walk the tree (depth-first)
         estack = [ self._root ]
         while estack:
@@ -267,7 +306,8 @@ class MsgTree(object):
         Return an iterator over 4-length tuples (msgline, keys, depth,
         num_children).
         """
-        assert self.trace, "walk_trace() is only callable in trace mode"
+        assert self.mode == MODE_TRACE, \
+            "walk_trace() is only callable in trace mode"
         # stack of (element, depth) tuples used to walk the tree
         estack = [ (self._root, 0) ]
         while estack:

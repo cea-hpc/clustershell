@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUBAK 1 "2011-03-19" "1.4.3" "ClusterShell User Manual"
+.TH CLUBAK 1 "2011-06-09" "1.5.1" "ClusterShell User Manual"
 .SH NAME
 clubak \- format output from clush/pdsh-like output and more
 .
@@ -84,6 +84,10 @@ do not display group source prefix (always \fI@groupname\fP)
 .BI \-S \ SEPARATOR, \ \-\-separator\fB= SEPARATOR
 .
 node / line content separator string (default: \fI:\fP)
+.TP
+.B \-F,  \-\-fast
+.
+faster but memory hungry mode (preload all messages per node)
 .TP
 .B \-T,  \-\-tree
 .

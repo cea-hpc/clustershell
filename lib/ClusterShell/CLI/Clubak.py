@@ -43,7 +43,7 @@ For help, type::
 from itertools import imap
 import sys
 
-from ClusterShell.MsgTree import MsgTree
+from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
 from ClusterShell.NodeSet import STD_GROUP_RESOLVER
 
 from ClusterShell.CLI.Display import Display
@@ -73,12 +73,12 @@ def display_tree(tree, disp, out):
         out.write("%s%s\n" % (" " * reldepth, msgline))
         togh = nchildren != 1
 
-def display(tree, disp, gather, tree_mode):
+def display(tree, disp, gather, trace_mode):
     """nicely display MsgTree instance `tree' content according to
     `disp' Display object and `gather' boolean flag"""
     out = sys.stdout
     try:
-        if tree_mode:
+        if trace_mode:
             display_tree(tree, disp, out)
         else:
             if gather:
@@ -101,11 +101,20 @@ def clubak():
     parser = OptionParser("%prog [options]")
     parser.install_display_options(separator_option=True,
                                    dshbak_compat=True,
-                                   msgtree_trace=True)
+                                   msgtree_mode=True)
     options = parser.parse_args()[0]
 
     # Create new message tree
-    tree = MsgTree(trace=options.tree_mode)
+    if options.trace_mode:
+        tree_mode = MODE_TRACE
+    else:
+        tree_mode = MODE_DEFER
+    tree = MsgTree(mode=tree_mode)
+    fast_mode = options.fast_mode
+    if fast_mode:
+        if tree_mode != MODE_DEFER:
+            parser.error("incompatible tree options")
+        preload_msgs = {}
 
     # Feed the tree from standard input lines
     for line in sys.stdin:
@@ -115,9 +124,18 @@ def clubak():
             node = node.strip()
             if not node:
                 raise ValueError("no node found")
-            tree.add(node, content)
+            if fast_mode:
+                preload_msgs.setdefault(node, []).append(content)
+            else:
+                tree.add(node, content)
         except ValueError, ex:
             raise ValueError("%s (\"%s\")" % (ex, linestripped))
+
+    if fast_mode:
+        # Messages per node have been aggregated, now add to tree one
+        # full msg per node
+        for key, wholemsg in preload_msgs.iteritems():
+            tree.add(key, '\n'.join(wholemsg))
 
     if options.debug:
         STD_GROUP_RESOLVER.set_verbosity(1)
@@ -126,7 +144,7 @@ def clubak():
 
     # Display results
     disp = Display(options)
-    display(tree, disp, options.gather or disp.regroup, options.tree_mode)
+    display(tree, disp, options.gather or disp.regroup, options.trace_mode)
 
 def main():
     """main script function"""

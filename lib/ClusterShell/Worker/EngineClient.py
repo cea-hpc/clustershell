@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010)
+# Copyright CEA/DAM/DIF (2009, 2010, 2011)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -44,8 +44,9 @@ it and write data to it.
 import fcntl
 import os
 import Queue
-from subprocess import Popen, PIPE, STDOUT
 import thread
+
+from fastsubprocess import Popen, PIPE, STDOUT, set_nonblock_flag
 
 from ClusterShell.Engine.Engine import EngineBaseTimer
 
@@ -79,7 +80,7 @@ class EngineClient(EngineBaseTimer):
                                             # interesting events (read,
                                             # write) for client
         self._new_events = 0                # new set of interesting events
-        self._processing = False            # engine is working on us
+        self._reg_epoch = 0                 # registration generation number
 
         # read-only public
         self.registered = False             # registered on engine or not
@@ -90,10 +91,10 @@ class EngineClient(EngineBaseTimer):
         # boolean indicating whether stderr is on a separate fd
         self._stderr = stderr
 
-        # associated files
-        self.file_error = None
-        self.file_reader = None
-        self.file_writer = None
+        # associated file descriptors
+        self.fd_error = None
+        self.fd_reader = None
+        self.fd_writer = None
 
         # initialize error, read and write buffers
         self._ebuf = ""
@@ -119,25 +120,19 @@ class EngineClient(EngineBaseTimer):
         """
         Return the standard error reader file descriptor as an integer.
         """
-        if self.file_error:
-            return self.file_error.fileno()
-        return None
+        return self.fd_error
 
     def reader_fileno(self):
         """
         Return the reader file descriptor as an integer.
         """
-        if self.file_reader:
-            return self.file_reader.fileno()
-        return None
+        return self.fd_reader
     
     def writer_fileno(self):
         """
         Return the writer file descriptor as an integer.
         """
-        if self.file_writer:
-            return self.file_writer.fileno()
-        return None
+        return self.fd_writer
 
     def _close(self, abort, flush, timeout):
         """
@@ -168,21 +163,21 @@ class EngineClient(EngineBaseTimer):
         """
         self._engine.set_writing(self)
 
-    def _read(self, size=-1):
+    def _read(self, size=65536):
         """
         Read data from process.
         """
-        result = self.file_reader.read(size)
+        result = os.read(self.fd_reader, size)
         if not len(result):
             raise EngineClientEOF()
         self._set_reading()
         return result
 
-    def _readerr(self, size=-1):
+    def _readerr(self, size=65536):
         """
         Read error data from process.
         """
-        result = self.file_error.read(size)
+        result = os.read(self.fd_error, size)
         if not len(result):
             raise EngineClientEOF()
         self._set_reading_error()
@@ -209,7 +204,7 @@ class EngineClient(EngineBaseTimer):
         """
         if len(self._wbuf) > 0:
             # write syscall
-            c = os.write(self.file_writer.fileno(), self._wbuf)
+            c = os.write(self.fd_writer, self._wbuf)
             # dequeue written buffer
             self._wbuf = self._wbuf[c:]
             # check for possible ending
@@ -235,15 +230,12 @@ class EngineClient(EngineBaseTimer):
 
         # Launch process in non-blocking mode
         proc = Popen(commandlist, bufsize=0, stdin=PIPE, stdout=PIPE,
-            stderr=stderr_setup, close_fds=False, shell=shell, env=full_env)
+            stderr=stderr_setup, shell=shell, env=full_env)
 
         if self._stderr:
-            fcntl.fcntl(proc.stderr, fcntl.F_SETFL,
-                    fcntl.fcntl(proc.stderr, fcntl.F_GETFL) | os.O_NDELAY)
-        fcntl.fcntl(proc.stdout, fcntl.F_SETFL,
-                fcntl.fcntl(proc.stdout, fcntl.F_GETFL) | os.O_NDELAY)
-        fcntl.fcntl(proc.stdin, fcntl.F_SETFL,
-                fcntl.fcntl(proc.stdin, fcntl.F_GETFL) | os.O_NDELAY)
+            self.fd_error = proc.stderr
+        self.fd_reader = proc.stdout
+        self.fd_writer = proc.stdin
 
         return proc
 
@@ -300,9 +292,8 @@ class EngineClient(EngineBaseTimer):
         """
         Add some data to be written to the client.
         """
-        fd = self.writer_fileno()
+        fd = self.fd_writer
         if fd:
-            assert not self.file_writer.closed
             # TODO: write now if ready
             self._wbuf += buf
             self._set_writing()
@@ -317,10 +308,10 @@ class EngineClient(EngineBaseTimer):
             self._close_writer()
 
     def _close_writer(self):
-        if self.file_writer and not self.file_writer.closed:
+        if self.fd_writer is not None:
             self._engine.unregister_writer(self)
-            self.file_writer.close()
-            self.file_writer = None
+            os.close(self.fd_writer)
+            self.fd_writer = None
 
     def abort(self):
         """
@@ -376,14 +367,11 @@ class EnginePort(EngineClient):
 
         # Request pipe
         (readfd, writefd) = os.pipe()
-        # Use file objects instead of FD for convenience
-        self.file_reader = os.fdopen(readfd, 'r')
-        self.file_writer = os.fdopen(writefd, 'w')
         # Set nonblocking flag
-        fcntl.fcntl(readfd, fcntl.F_SETFL,
-            fcntl.fcntl(readfd, fcntl.F_GETFL) | os.O_NDELAY)
-        fcntl.fcntl(writefd, fcntl.F_SETFL,
-            fcntl.fcntl(writefd, fcntl.F_GETFL) | os.O_NDELAY)
+        set_nonblock_flag(readfd)
+        set_nonblock_flag(writefd)
+        self.fd_reader = readfd
+        self.fd_writer = writefd
 
     def _start(self):
         return self
@@ -402,21 +390,17 @@ class EnginePort(EngineClient):
             except Queue.Empty:
                 pass
         self._msgq = None
-        self.file_reader.close()
-        self.file_writer.close()
-
-    def _read(self, size=4096):
-        """
-        Read data from pipe.
-        """
-        return EngineClient._read(self, size)
+        os.close(self.fd_reader)
+        self.fd_reader = None
+        os.close(self.fd_writer)
+        self.fd_writer = None
 
     def _handle_read(self):
         """
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
         """
-        readbuf = self._read()
+        readbuf = self._read(4096)
         for c in readbuf:
             # raise Empty if empty (should never happen)
             pmsg = self._msgq.get(block=False)

@@ -19,9 +19,9 @@ from ClusterShell.Worker.Pdsh import WorkerPdsh
 class TaskRLimitsTest(unittest.TestCase):
 
     def setUp(self):
-        """set soft nofile resource limit to 50"""
+        """set soft nofile resource limit to 100"""
         self.soft, self.hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-        resource.setrlimit(resource.RLIMIT_NOFILE, (80, self.hard))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (100, self.hard))
 
     def tearDown(self):
         """restore original resource limits"""
@@ -31,7 +31,7 @@ class TaskRLimitsTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(200):
+        for i in xrange(2000):
             worker = task.shell("/bin/hostname", stderr=stderr)
             self.assert_(worker != None)
         # run task
@@ -49,7 +49,7 @@ class TaskRLimitsTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(200):
+        for i in xrange(400):
             worker = task.shell("/bin/hostname", nodes="localhost",
                                 stderr=False)
             self.assert_(worker != None)

@@ -127,6 +127,14 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchBatteryOfFoldTests([])
         self._launchBatteryOfFoldTests(["--autostep=3"])
 
+    def testFoldAutostep(self):
+        """test nodeset.py --fold --autostep=X"""
+        self._launchAndCompare(["--autostep=2", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0-6/2]")
+        self._launchAndCompare(["--autostep=2", "-f", "foo4", "foo2", "foo0", "foo6"], "foo[0-6/2]")
+        self._launchAndCompare(["--autostep=3", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0-6/2]")
+        self._launchAndCompare(["--autostep=4", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0-6/2]")
+        self._launchAndCompare(["--autostep=5", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0,2,4,6]")
+
     def testExpand(self):
         """test nodeset.py --expand"""
         self._launchAndCompare(["--expand", "foo"], "foo")
@@ -259,6 +267,7 @@ class NodeSetScriptTest(unittest.TestCase):
         """test nodeset.py - (stdin)"""
         self._launchAndCompare(["-f","-"], "foo", stdin="foo\n")
         self._launchAndCompare(["-f","-"], "foo[1-3]", stdin="foo1 foo2 foo3\n")
+        self._launchAndCompare(["--autostep=2", "-f"], "foo[0-6/2]", stdin="foo0 foo2 foo4 foo6\n")
         
     def testSplit(self):
         """test nodeset.py --split"""

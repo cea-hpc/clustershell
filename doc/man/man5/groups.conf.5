@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH GROUPS.CONF 5 "2010-12-14" "1.4" "ClusterShell User Manual"
+.TH GROUPS.CONF 5 "2011-06-09" "1.5.1" "ClusterShell User Manual"
 .SH NAME
 groups.conf \- Configuration file for ClusterShell external node groups
 .
@@ -49,7 +49,7 @@ External commands definition for group source \fIGroup_source\fP (map, all, list
 .UNINDENT
 .SS [Main]
 .sp
-Configuration parameters of the \fCMain\fP section are described below.
+Configuration parameters of the \fBMain\fP section are described below.
 .INDENT 0.0
 .TP
 .B default
@@ -73,8 +73,8 @@ command.
 .
 Optional external shell command that should return a nodeset, list of
 nodes or list of nodeset of all nodes for this group source. If not
-specified, the library will try to resolve all nodes by using the \fClist\fP
-external command in the same group source followed by \fCmap\fP for each group.
+specified, the library will try to resolve all nodes by using the \fBlist\fP
+external command in the same group source followed by \fBmap\fP for each group.
 .TP
 .B list
 .
@@ -127,7 +127,7 @@ System\-wide external node groups configuration file.
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fCclush\fP(1), \fCclubak\fP(1), \fCnodeset\fP(1)
+\fBclush\fP(1), \fBclubak\fP(1), \fBnodeset\fP(1)
 .sp
 \fI\%http://clustershell.sourceforge.net/\fP
 .SH AUTHOR

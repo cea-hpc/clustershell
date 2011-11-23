@@ -1,3 +1,55 @@
+2011-06-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.5.1 released.
+
+	* NodeSet.py: Added workaround to allow pickling/unpickling of RangeSet
+	objects for Python 2.4 (ticket #156).
+
+2011-06-08 S. Thiell <stephane.thiell@cea.fr>
+
+	* Version 1.5 released (Sedona release).
+
+2011-06-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* MsgTree.py: Improved MsgTree API to lighten updates of keys associated
+	to tree elements (ticket #131).
+
+	* CLI/Clubak.py: Updated for new MsgTree API and added a -F/--fast switch
+	to enable preloading of whole messages to speed up processing, but with
+	an increase of memory consumption (ticket #131).
+
+2011-05-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Optimized NodeSet.fromlist() method by adding updaten()
+	method which is quite O(num_patterns).
+
+2011-05-29 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fixed missing autostep check in _fold() which could lead to
+	autostep not being taken into account (ticket #150).
+
+	* Worker/Ssh.py: Fix scp user option in Scp class (ticket #152).
+
+	* Engine/*.py: Internal engine design change: do not retry engine
+	eventloop on any EngineClient registration changes, so process more events
+	by chunk (should be faster) and add a loop iteration counter to work
+	around internally re-used FDs (finalize ticket #153).
+
+2011-05-26 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker/EngineClient.py: Enable fastsubprocess module, and use file
+	descriptors instead of file objects everywhere (ticket #153).
+
+	* Worker/fastsubprocess.py: Faster, relaxed version of Python 2.6
+	subprocess.py with non blocking fd support.
+
+2011-05-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine/Engine.py: Improved start_all() fanout algorithm by adding a
+	separate pending clients list.
+
+	* Created 1.5 branch.
+
 2011-03-19 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.4.3 released.
@@ -267,7 +319,7 @@
 
 	* setup.py: Switch to setuptools.
 
-    * clustershell.spec.in: Fix issue on el5 with if condition when defining
+	* clustershell.spec.in: Fix issue on el5 with if condition when defining
 	python_sitelib.
 
 2010-08-26 S. Thiell <stephane.thiell@cea.fr>

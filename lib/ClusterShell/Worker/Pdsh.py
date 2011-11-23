@@ -40,7 +40,6 @@ ClusterShell worker for executing commands with LLNL pdsh.
 
 import errno
 import os
-import signal
 import sys
 
 from ClusterShell.NodeSet import NodeSet
@@ -189,10 +188,6 @@ class WorkerPdsh(EngineClient, DistantWorker):
                                                             ' '.join(cmd_l))
 
         self.popen = self._exec_nonblock(cmd_l, env=pdsh_env)
-        self.file_error = self.popen.stderr
-        self.file_reader = self.popen.stdout
-        self.file_writer = self.popen.stdin
-
         self._on_start()
 
         return self
@@ -212,7 +207,7 @@ class WorkerPdsh(EngineClient, DistantWorker):
             prc = self.popen.poll()
             if prc is None:
                 # process is still running, kill it
-                os.kill(self.popen.pid, signal.SIGKILL)
+                self.popen.kill()
         prc = self.popen.wait()
         if prc >= 0:
             rc = prc
@@ -222,11 +217,14 @@ class WorkerPdsh(EngineClient, DistantWorker):
             if self.eh:
                 self.eh.ev_timeout(self)
 
-        # close
-        self.popen.stdin.close()
-        self.popen.stdout.close()
-        if self.popen.stderr:
-            self.popen.stderr.close()
+        os.close(self.fd_reader)
+        self.fd_reader = None
+        if self.fd_error:
+            os.close(self.fd_error)
+            self.fd_error = None
+        if self.fd_writer:
+            os.close(self.fd_writer)
+            self.fd_writer = None
 
         if timeout:
             assert abort, "abort flag not set on timeout"

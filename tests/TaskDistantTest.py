@@ -655,6 +655,20 @@ class TaskDistantTest(unittest.TestCase):
             shutil.rmtree(dtmp_dst, ignore_errors=True)
             shutil.rmtree(dtmp_src, ignore_errors=True)
 
+    def testErroneousSshPath(self):
+        """test erroneous ssh_path behavior"""
+        try:
+            self._task.set_info("ssh_path", "/wrong/path/to/ssh")
+            # init worker
+            worker = self._task.shell("/bin/echo ok", nodes='localhost')
+            self.assert_(worker != None)
+            # run task
+            self._task.resume()
+            self.assertEqual(self._task.max_retcode(), 255)
+        finally:
+            # restore fanout value
+            self._task.set_info("ssh_path", None)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)
