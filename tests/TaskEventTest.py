@@ -134,6 +134,21 @@ class TaskEventTest(unittest.TestCase):
         self.assert_(worker != None)
         task.resume()
 
+    class TWriteOnStart(EventHandler):
+        def ev_start(self, worker):
+            assert worker.task.running()
+            worker.write("foo bar\n")
+        def ev_read(self, worker):
+            assert worker.current_msg == "foo bar"
+            worker.abort()
+
+    def testWriteOnStartEvent(self):
+        """test write on ev_start"""
+        task = task_self()
+        self.assert_(task != None)
+        task.shell("cat", handler=self.__class__.TWriteOnStart())
+        task.resume()
+        
     def testEngineMayReuseFD(self):
         """test write + worker.abort() on read to reuse FDs"""
         task = task_self()
