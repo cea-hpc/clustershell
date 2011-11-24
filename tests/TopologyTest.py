@@ -174,7 +174,7 @@ class TopologyTest(unittest.TestCase):
         # is a valid topology!!
         # ----------
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('admin0: nodes[0-1]\n')
         #tmpfile.write('admin1: nodes[0-1]\n')
         tmpfile.write('admin2: nodes[2-3]\n')
@@ -207,7 +207,7 @@ class TopologyTest(unittest.TestCase):
     def testNodeString(self):
         """test loading a linear string topology"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
 
         # TODO : increase the size
         ns = NodeSet('node[0-10]')
@@ -232,7 +232,7 @@ class TopologyTest(unittest.TestCase):
         """test configuration parsing"""
         tmpfile = tempfile.NamedTemporaryFile()
         tmpfile.write('# this is a comment\n')
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('admin: nodes[0-1]\n')
         tmpfile.write('nodes[0-1]: nodes[2-5]\n')
         tmpfile.write('nodes[4-5]: nodes[6-9]\n')
@@ -251,7 +251,7 @@ class TopologyTest(unittest.TestCase):
         """test short topology specification syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
         tmpfile.write('# this is a comment\n')
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('admin: nodes[0-9]\n')
         tmpfile.write('nodes[0-3,5]: nodes[10-19]\n')
         tmpfile.write('nodes[4,6-9]: nodes[30-39]\n')
@@ -269,7 +269,7 @@ class TopologyTest(unittest.TestCase):
         """test detailed topology description syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
         tmpfile.write('# this is a comment\n')
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('admin: proxy\n')
         tmpfile.write('proxy: STA[0-1]\n')
         tmpfile.write('STA0: STB[0-1]\n')
@@ -293,7 +293,7 @@ class TopologyTest(unittest.TestCase):
         """test a configuration that generates a deep tree"""
         tmpfile = tempfile.NamedTemporaryFile()
         tmpfile.write('# this is a comment\n')
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('admin: nodes[0-9]\n')
 
         levels = 15 # how deep do you want the tree to be?
@@ -314,7 +314,7 @@ class TopologyTest(unittest.TestCase):
         """test configuration parser against big propagation tree"""
         tmpfile = tempfile.NamedTemporaryFile()
         tmpfile.write('# this is a comment\n')
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('admin: ST[0-4]\n')
         tmpfile.write('ST[0-4]: STA[0-49]\n')
         tmpfile.write('STA[0-49]: nodes[0-10000]\n')
@@ -332,7 +332,7 @@ class TopologyTest(unittest.TestCase):
         """convergent paths detection"""
         tmpfile = tempfile.NamedTemporaryFile()
         tmpfile.write('# this is a comment\n')
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('fortoy32: fortoy[33-34]\n')
         tmpfile.write('fortoy33: fortoy35\n')
         tmpfile.write('fortoy34: fortoy36\n')
@@ -345,7 +345,7 @@ class TopologyTest(unittest.TestCase):
     def testPrintingTree(self):
         """test printing tree"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('[DEFAULT]\n')
+        tmpfile.write('[Main]\n')
         tmpfile.write('n0: n[1-2]\n')
         tmpfile.write('n1: n[10-49]\n')
         tmpfile.write('n2: n[50-89]\n')
@@ -364,7 +364,7 @@ class TopologyTest(unittest.TestCase):
         # |_ n2
         #    |_ n[50-89]
         # ---------------------------
-        display_ref = 'n0\n|_ n1\n|  |_ n[10-49]\n|_ n2\n   |_ n[50-89]\n'
+        display_ref = 'n0\n|- n1\n|  `- n[10-49]\n`- n2\n   `- n[50-89]\n'
         display = str(tree)
         print "\n%s" % display
         self.assertEquals(display, display_ref)

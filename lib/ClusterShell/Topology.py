@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2011)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
 #
@@ -42,8 +43,8 @@ according to the configuration file.
 
 This file must be written using the following syntax:
 
-# for now only DEFAULT tree is taken in account
-[DEFAULT]
+# for now only [Main] tree is taken in account:
+[Main]
 admin: first_level_gateways[0-10]
 first_level_gateways[0-10]: second_level_gateways[0-100]
 second_level_gateways[0-100]: nodes[0-2000]
@@ -85,14 +86,17 @@ class TopologyNodeGroup(object):
         the current node with a nice presentation
         """
         res = ''
-
-        # TODO : get rid of recursivity
+        # For now, it is ok to use a recursive method here as we consider that
+        # tree depth is relatively small.
         if self.parent is None:
             # root
             res = '%s\n' % str(self.nodeset)
         elif self.parent.parent is None:
             # first level
-            res = '|_ %s\n' % str(self.nodeset)
+            if not self._is_last():
+                res = '|- %s\n' % str(self.nodeset)
+            else:
+                res = '`- %s\n' % str(self.nodeset)
         else:
             # deepest levels...
             if not self.parent._is_last():
@@ -100,7 +104,10 @@ class TopologyNodeGroup(object):
             else:
                 # fix last line
                 prefix += '   '
-            res = '%s|_ %s\n' % (prefix, str(self.nodeset))
+            if not self._is_last():
+                res = '%s|- %s\n' % (prefix, str(self.nodeset))
+            else:
+                res = '%s`- %s\n' % (prefix, str(self.nodeset))
         # perform recursive calls to print out every node
         for child in self._children:
             res += child.printable_subtree(prefix)
@@ -186,14 +193,11 @@ class TopologyTree(object):
                 raise StopIteration()
 
     def __init__(self):
-        """
-        """
         self.root = None
         self.groups = []
 
     def load(self, rootnode):
-        """
-        """
+        """load topology tree"""
         self.root = rootnode
 
         stack = [rootnode]
@@ -244,8 +248,6 @@ class TopologyRoutingTable(object):
     routes
     """
     def __init__(self):
-        """
-        """
         self._routes = []
         self.aggregated_src = NodeSet()
         self.aggregated_dst = NodeSet()
@@ -319,8 +321,6 @@ class TopologyGraph(object):
     relations between nodes.
     """
     def __init__(self):
-        """
-        """
         self._routing = TopologyRoutingTable()
         self._nodegroups = {}
         self._root = ''
@@ -422,7 +422,7 @@ class TopologyParser(ConfigParser.ConfigParser):
         if self.read(filename) == []:
             raise TopologyError(
                 'Invalid configuration file: %s' % filename)
-        self._topology = self.defaults()
+        self._topology = self.items("Main")
         self._build_graph()
 
     def _build_graph(self):
@@ -430,10 +430,8 @@ class TopologyParser(ConfigParser.ConfigParser):
         from the configuration file.
         """
         self.graph = TopologyGraph()
-        for k, v in self._topology.iteritems():
-            src = NodeSet(k)
-            dst = NodeSet(v)
-            self.graph.add_route(src, dst)
+        for src, dst in self._topology:
+            self.graph.add_route(NodeSet(src), NodeSet(dst))
 
     def tree(self, root, force_rebuild=False):
         """Return a previously generated propagation tree or build it if
