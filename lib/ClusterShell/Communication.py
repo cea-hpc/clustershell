@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
-# Contributor: Henri DOREAU <henri.doreau@gmail.com>
+# Copyright CEA/DAM/DIF (2010, 2011)
+#  Contributor: Henri DOREAU <henri.doreau@gmail.com>
+#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
 #
@@ -216,12 +217,7 @@ class Channel(EventHandler):
 
     def ev_read(self, worker):
         """channel has data to read"""
-        # XXX this check is a hack to circumvent an interface inconsistency
-        # between Worker subclasses
-        if isinstance(worker, WorkerSimple):
-            raw = worker.last_read()
-        else:
-            _, raw = worker.last_read()
+        raw = worker.current_msg
         try:
             self._parser.feed(raw)
         except SAXParseException, e:
@@ -311,14 +307,21 @@ class ConfigurationMessage(Message):
     """configuration propagation container"""
     ident = 'CFG'
 
-class ControlMessage(Message):
+class RoutedMessageBase(Message):
+    """abstract class for routed message (with worker source id)"""
+    def __init__(self, srcid):
+        Message.__init__(self)
+        self.attr.update({'srcid': int})
+        self.srcid = srcid
+
+class ControlMessage(RoutedMessageBase):
     """action request"""
     ident = 'CTL'
 
-    def __init__(self):
+    def __init__(self, srcid=0):
         """
         """
-        Message.__init__(self)
+        RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'action': str, 'target': str})
         self.action = ''
         self.target = ''
@@ -357,14 +360,14 @@ class ErrorMessage(Message):
         """
         raise MessageProcessingError('Error message have no payload')
 
-class StdOutMessage(Message):
+class StdOutMessage(RoutedMessageBase):
     """container message for standard output"""
     ident = 'OUT'
 
-    def __init__(self, nodes='', output=''):
+    def __init__(self, nodes='', output='', srcid=0):
         """
         """
-        Message.__init__(self)
+        RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'output': str, 'nodes': str})
         self.output = output
         self.nodes = nodes
@@ -378,16 +381,27 @@ class StdOutMessage(Message):
 class StdErrMessage(StdOutMessage):
     ident = 'SER'
 
-class RetcodeMessage(Message):
+class RetcodeMessage(RoutedMessageBase):
     """container message for return code"""
     ident = 'RET'
 
-    def __init__(self, nodes='', retcode=0):
+    def __init__(self, nodes='', retcode=0, srcid=0):
         """
         """
-        Message.__init__(self)
+        RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'retcode': int, 'nodes': str})
         self.retcode = retcode
+        self.nodes = nodes
+
+class TimeoutMessage(RoutedMessageBase):
+    """container message for timeout notification"""
+    ident = 'TIM'
+
+    def __init__(self, nodes='', srcid=0):
+        """
+        """
+        RoutedMessageBase.__init__(self, srcid)
+        self.attr.update({'nodes': str})
         self.nodes = nodes
 
 class EndMessage(Message):

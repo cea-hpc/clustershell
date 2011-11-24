@@ -40,15 +40,15 @@ through gateways and gather results.
 """
 
 import logging
+import os
 import socket
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import task_self
 from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ControlMessage, StdOutMessage
 from ClusterShell.Communication import StdErrMessage, RetcodeMessage
-from ClusterShell.Communication import EndMessage
+from ClusterShell.Communication import RoutedMessageBase, EndMessage
 from ClusterShell.Communication import ConfigurationMessage
 
 from ClusterShell.Topology import TopologyParser
@@ -66,14 +66,12 @@ class PropagationTreeRouter(object):
     Upon instanciation, the router will parse the topology tree to
     generate its routing table.
     """
-    def __init__(self, root, topology):
-        """
-        """
+    def __init__(self, root, topology, fanout=0):
+        self.root = root
         self.topology = topology
-        self.fanout = task_self().info('fanout')
+        self.fanout = fanout
         self.nodes_fanin = {}
         self.table = None
-        self.root = root
 
         self.table_generate(root, topology)
         self._unreachable_hosts = NodeSet()
@@ -197,155 +195,6 @@ class PropagationTreeRouter(object):
         return backup
 
 
-class EdgeHandler(EventHandler):
-    """
-    """
-    def __init__(self, ptree):
-        self.ptree = ptree
-
-    def ev_read(self, worker):
-        node, buf = worker.last_read()
-        logging.debug('EdgeHandler ev_read %s: %s' % (node, buf))
-        if self.ptree.upchannel:
-            self.ptree.upchannel.send(StdOutMessage(node, buf))
-
-    def ev_error(self, worker):
-        node, buf = worker.last_error()
-        logging.debug('EdgeHandler ev_error %s: %s' % (node, buf))
-        if self.ptree.upchannel:
-            self.ptree.upchannel.send(StdErrMessage(node, buf))
-
-    def ev_hup(self, worker):
-        node, rc = worker.last_retcode()
-        logging.debug('EdgeHandler ev_hup %s: %d' % (node, rc))
-        if self.ptree.upchannel:
-            self.ptree.upchannel.send(RetcodeMessage(node, rc))
-
-    def ev_close(self, worker):
-        self.ptree.notify_close()
-
-
-class PropagationEventHandler(object):
-    def on_message(self, node, message):
-        pass
-    def on_errmessage(self, node, message):
-        pass
-    def on_retcode(self, node, retcode):
-        pass
-
-
-class PropagationTree(object):
-    """This class represents the complete propagation tree and provides
-    the ability to propagate tasks through it.
-    """
-    def __init__(self, topology, admin='', handler=None):
-        """
-        """
-        # set topology tree
-        if topology:
-            self.topology = topology
-        else:
-            # when not specified, let the library instantiate a
-            # topology by itself
-            parser = TopologyParser()
-            parser.load("/etc/clustershell/topology.conf")
-            self.topology = parser.tree(socket.gethostname().split('.')[0]) # XXX need helper func
-
-        # name of the administration node, at the root of the tree
-        self.admin = admin or str(self.topology.root.nodeset)
-        self.handler = handler
-
-        # builtin router
-        self.router = PropagationTreeRouter(self.admin, topology)
-        # command to invoke remote communication endpoint
-        import os
-        #self.invoke_gateway = 'python -m CluserShell/Gateway'
-        self.invoke_gateway = 'cd %s/../lib; python -m ClusterShell/Gateway -Bu' % os.getcwd()
-
-        # worker reference counter (for remote execution or not)
-        self.wrefcnt = 0
-        self.upchannel = None
-        self.edgehandler = EdgeHandler(self)
-
-    def execute(self, cmd, nodes, fanout=None, timeout=10):
-        """execute `cmd' on the nodeset specified at loading"""
-        task = task_self()
-        if fanout is None:
-            fanout = self.router.fanout
-        task.set_info('fanout', fanout)
-
-        next_hops = self._distribute(fanout, NodeSet(nodes))
-        for gw, target in next_hops.iteritems():
-            if gw == target:
-                task = task_self()
-                logging.debug('task.shell cmd=%s nodes=%s timeout=%d' % (cmd, nodes, timeout))
-                task.shell(cmd, nodes=target, timeout=timeout, handler=self.edgehandler)
-                # increment worker ref counter
-                self.wrefcnt += 1
-            else:
-                self._execute_remote(cmd, target, gw, timeout)
-
-        if not task.running():
-            logging.debug('task.resume() in execute')
-            task.resume()
-
-        return task
-
-    def launch(self, cmd, nodes, task, timeout): 
-        """launch `cmd' on the nodeset specified at loading"""
-        next_hops = self._distribute(task.info('fanout'), NodeSet(nodes))
-        for gw, target in next_hops.iteritems():
-            if gw == target:
-                logging.debug('launch task.shell cmd=%s nodes=%s timeout=%d' % (cmd, nodes, timeout))
-                task.shell(cmd, nodes=target, timeout=timeout, handler=self.edgehandler)
-                # increment worker ref counter
-                self.wrefcnt += 1
-            else:
-                self._execute_remote(cmd, target, gw, timeout)
-
-
-    def _distribute(self, fanout, dst_nodeset):
-        """distribute target nodes between next hop gateways"""
-        distribution = {}
-        self.router.fanout = fanout
-
-        for gw, dstset in self.router.dispatch(dst_nodeset):
-            if distribution.has_key(gw):
-                distribution[gw].add(dstset)
-            else:
-                distribution[gw] = dstset
-        return distribution
-
-    def _execute_remote(self, cmd, target, gateway, timeout):
-        """run command against a remote node via a gateway"""
-        task = task_self()
-
-        # tunnelled message passing
-        chan = PropagationChannel(cmd, target, self)
-        logging.debug("_execute_remote gateway=%s" % gateway)
-
-        # invoke remote gateway engine
-        task.shell(self.invoke_gateway, nodes=gateway, handler=chan, \
-            timeout=timeout)
-        # increment worker ref counter
-        self.wrefcnt += 1
-
-    def next_hop(self, dst):
-        """routing operation: resolve next hop gateway"""
-        return self.router.next_hop(dst)
-
-    def mark_unreachable(self, dst):
-        """routing operation: mark an host as unreachable"""
-        return self.router.mark_unreachable(dst)
-
-    def notify_close(self):
-        self.wrefcnt -= 1
-        assert self.wrefcnt >= 0
-        if self.wrefcnt == 0:
-            if self.upchannel:
-                self.upchannel.close()
-
-
 class PropagationChannel(Channel):
     """Admin node propagation logic. Instances are able to handle
     incoming messages from a directly connected gateway, process them
@@ -377,88 +226,115 @@ class PropagationChannel(Channel):
       - gtr
         Final state: wait for results from the subtree and store them.
     """
-    def __init__(self, cmd, target, ptree):
+    def __init__(self, task):
         """
         """
         Channel.__init__(self)
-        self.cmd = cmd
-        self.target = target
-        self.ptree = ptree
+        self.task = task
+        self.workers = {}
 
         self.current_state = None
         self.states = {
             'STATE_CFG': self._state_config,
             'STATE_CTL': self._state_control,
-            'STATE_GTR': self._state_gather,
+            #'STATE_GTR': self._state_gather,
         }
 
         self._history = {} # track informations about previous states
+        self._sendq = []
 
     def start(self):
         """initial actions"""
         #print '[DBG] start'
         self._open()
         cfg = ConfigurationMessage()
-        cfg.data_encode(self.ptree.topology)
+        cfg.data_encode(self.task._default_topology())
         self._history['cfg_id'] = cfg.msgid
         self.send(cfg)
         self.current_state = self.states['STATE_CFG']
 
     def recv(self, msg):
         """process incoming messages"""
-        logging.debug("[DBG] rcvd %s" % str(msg))
+        logging.debug("[DBG] rcvd from: %s" % str(msg))
         if msg.ident == EndMessage.ident:
-            self.ptree.notify_close()
+            #??#self.ptree.notify_close()
             logging.debug("closing")
             # abort worker (now working)
             self.worker.abort()
         else:
             self.current_state(msg)
 
+    def shell(self, nodes, command, worker, timeout, gw_invoke_cmd):
+        """command execution through channel"""
+        logging.debug("PropagationChannel.shell nodes=%s timeout=%f worker=%s" % \
+            (nodes, timeout, id(worker)))
+
+        self.workers[id(worker)] = worker
+        
+        ctl = ControlMessage(id(worker))
+        ctl.action = 'shell'
+        ctl.target = nodes
+
+        info = self.task._info.copy()
+        info['debug'] = False
+        
+        ctl_data = {
+            'cmd': command,
+            'invoke_gateway': gw_invoke_cmd, # XXX
+            'taskinfo': info, #self.task._info,
+        }
+        ctl.data_encode(ctl_data)
+
+        self._history['ctl_id'] = ctl.msgid
+        if self.current_state == self.states['STATE_CTL']:
+            # send now if channel state is CTL
+            self.send(ctl)
+        else:
+            self._sendq.append(ctl)
+    
     def _state_config(self, msg):
         """handle incoming messages for state 'propagate configuration'"""
-        if msg.type == 'ACK' and msg.ack == self._history['cfg_id']:
+        if msg.type == 'ACK': # and msg.ack == self._history['cfg_id']:
             self.current_state = self.states['STATE_CTL']
-
-            ctl = ControlMessage()
-            ctl.action = 'shell'
-            ctl.target = self.target
-
-            ctl_data = {
-                'cmd': self.cmd,
-                'invoke_gateway': self.ptree.invoke_gateway,
-                'taskinfo': task_self()._info,
-            }
-            ctl.data_encode(ctl_data)
-
-            self._history['ctl_id'] = ctl.msgid
-            self.send(ctl)
+            for ctl in self._sendq:
+                self.send(ctl)
         else:
             print str(msg)
 
     def _state_control(self, msg):
         """handle incoming messages for state 'control'"""
-        if msg.type == 'ACK' and msg.ack == self._history['ctl_id']:
-            self.current_state = self.states['STATE_GTR']
-        else:
-            print str(msg)
-
-    def _state_gather(self, msg):
-        """handle incoming messages for state 'gather results'"""
-        # FIXME
-        if self.ptree.upchannel:
-            logging.debug("_state_gather ->upchan %s" % msg)
-            self.ptree.upchannel.send(msg)
-        else:
+        if msg.type == 'ACK': # and msg.ack == self._history['ctl_id']:
+            #self.current_state = self.states['STATE_GTR']
+            logging.debug("PropChannel: _state_control -> STATE_GTR")
+        elif isinstance(msg, RoutedMessageBase):
+            metaworker = self.workers[msg.srcid]
             if msg.type == StdOutMessage.ident:
-                if self.ptree.handler:
-                    self.ptree.handler.on_message(msg.nodes, msg.output)
+                if metaworker.eh:
+                    nodeset = NodeSet(msg.nodes)
+                    for line in msg.output.splitlines():
+                        for node in nodeset:
+                            metaworker._on_node_msgline(node, line)
             elif msg.type == StdErrMessage.ident:
-                if self.ptree.handler:
-                    self.ptree.handler.on_errmessage(msg.nodes, msg.output)
+                if metaworker.eh:
+                    nodeset = NodeSet(msg.nodes)
+                    for line in msg.output.splitlines():
+                        for node in nodeset:
+                            metaworker._on_node_errline(node, line)
             elif msg.type == RetcodeMessage.ident:
-                if self.ptree.handler:
-                    self.ptree.handler.on_retcode(msg.nodes, msg.retcode)
+                rc = msg.retcode
+                for node in NodeSet(msg.nodes):
+                    metaworker._on_node_rc(node, rc)
+            elif msg.type == TimeoutMessage.ident:
+                for node in NodeSet(msg.nodes):
+                    metaworker._on_node_timeout(node)
+        else:
+            logging.debug("PropChannel: _state_gather unhandled msg %s" % msg)
+        return
+        if self.ptree.upchannel is not None:
+            logging.debug("_state_gather ->upchan %s" % msg)
+            self.ptree.upchannel.send(msg) # send to according event handler passed by shell()
+        else:
+            assert False
  
     def ev_close(self, worker):
         worker.flush_buffers()

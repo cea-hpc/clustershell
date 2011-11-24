@@ -200,7 +200,7 @@ def nodeset():
     # Finish xset computing from args
     compute_nodeset(xset, args, options.autostep)
 
-    # Interprate special characters (may raise SyntaxError)
+    # Interprete special characters (may raise SyntaxError)
     separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
 
     if options.slice_rangeset:

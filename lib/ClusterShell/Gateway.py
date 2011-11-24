@@ -44,25 +44,71 @@ import os
 import sys
 import fcntl
 import socket
+import time
 
 import logging
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import task_self
+from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Worker.Worker import WorkerSimple
-from ClusterShell.Propagation import PropagationTree
-from ClusterShell.Communication import Channel, ConfigurationMessage
-from ClusterShell.Communication import ControlMessage, ACKMessage
-from ClusterShell.Communication import ErrorMessage, EndMessage
-from ClusterShell.Communication import StdOutMessage, StdErrMessage
+from ClusterShell.Worker.Tree import WorkerTree
+from ClusterShell.Communication import Channel, ConfigurationMessage, \
+    ControlMessage, ACKMessage, ErrorMessage, EndMessage, StdOutMessage, \
+    StdErrMessage, RetcodeMessage
+
+
+class WorkerTreeResponder(EventHandler):
+    """Gateway WorkerTree handler"""
+    def __init__(self, task, gwchan, srcwkr):
+        EventHandler.__init__(self)
+        self.gwchan = gwchan    # gateway channel
+        self.srcwkr = srcwkr    # id of distant parent WorkerTree
+        self.worker = None      # local WorkerTree instance
+        # For messages grooming
+        qdelay = task.info("grooming_delay")
+        self.timer = task.timer(qdelay, self, qdelay, autoclose=True)
+
+    def ev_start(self, worker):
+        logging.debug("WorkerTreeResponder: ev_start")
+        self.worker = worker
+
+    def ev_timer(self, timer):
+        """perform gateway traffic grooming"""
+        if not self.worker:
+            return
+        # check grooming opportunities
+        for buf, nodes in self.worker.iter_errors():
+            logging.debug("iter(stderr): %s: %d bytes" % (nodes, len(buf)))
+            self.gwchan.send(StdErrMessage(nodes, buf, self.srcwkr))
+        for buf, nodes in self.worker.iter_buffers():
+            logging.debug("iter(stdout): %s: %d bytes" % (nodes, len(buf)))
+            self.gwchan.send(StdOutMessage(nodes, buf, self.srcwkr))
+        self.worker.flush_buffers()
+
+    def ev_error(self, worker):
+        logging.debug("WorkerTreeResponder: ev_error %s" % worker.current_error)
+
+    def ev_close(self, worker):
+        logging.debug("WorkerTreeResponder: ev_close")
+        # finalize grooming
+        self.ev_timer(None)
+        # send retcodes
+        for rc, nodes in self.worker.iter_retcodes():
+            logging.debug("iter(rc): %s: rc=%d" % (nodes, rc))
+            self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
+        self.timer.invalidate()
+        # clean channel closing
+        ####self.gwchan.close()
 
 
 class GatewayChannel(Channel):
     """high level logic for gateways"""
-    def __init__(self, hostname):
+    def __init__(self, task, hostname):
         """
         """
         Channel.__init__(self)
+        self.task = task
         self.hostname = hostname
         self.topology = None
         self.propagation = None
@@ -93,7 +139,7 @@ class GatewayChannel(Channel):
             logging.debug('handling incoming message: %s' % str(msg))
             if msg.ident == EndMessage.ident:
                 logging.debug('recv: got EndMessage')
-                task_self().abort()
+                self.worker.abort()
             else:
                 self.current_state(msg)
         except Exception, ex:
@@ -104,8 +150,6 @@ class GatewayChannel(Channel):
         """receive topology configuration"""
         if msg.type == ConfigurationMessage.ident:
             self.topology = msg.data_decode()
-            self.propagation = PropagationTree(self.topology, self.hostname)
-            self.propagation.upchannel = self
             logging.debug('decoded propagation tree')
             logging.debug('%s' % str(self.topology))
             self._ack(msg)
@@ -117,27 +161,41 @@ class GatewayChannel(Channel):
     def _state_ctl(self, msg):
         """receive control message with actions to perform"""
         if msg.type == ControlMessage.ident:
+            logging.debug('GatewayChannel._state_ctl')
             self._ack(msg)
             if msg.action == 'shell':
                 data = msg.data_decode()
                 cmd = data['cmd']
 
-                self.propagation.invoke_gateway = data['invoke_gateway']
+                #self.propagation.invoke_gateway = data['invoke_gateway']
                 logging.debug('decoded gw invoke (%s)' % data['invoke_gateway'])
 
-                task_self()._info = data['taskinfo']
-                logging.debug('assigning task infos (%s)' % str(data['taskinfo']))
+                task_self()._info = data['taskinfo'] # XXX
 
-                self.current_state = self.states['GTR']
+                logging.debug('assigning task infos (%s)' % \
+                    str(data['taskinfo']))
+
+                logging.debug('inherited fanout value=%d' % task_self().info("fanout"))
+
+                #self.current_state = self.states['GTR']
                 logging.debug('launching execution/entering gathering state')
 
-                self.propagation.execute(cmd, msg.target)
+                responder = WorkerTreeResponder(task_self(), self, msg.srcid)
+
+                self.propagation = WorkerTree(msg.target, responder, 0,
+                                              command=cmd,
+                                              topology=self.topology,
+                                              newroot=self.hostname)
+                self.propagation.upchannel = self
+                task.schedule(self.propagation)
+                logging.debug("WorkerTree scheduled")
         else:
             logging.error('unexpected message: %s' % str(msg))
 
     def _state_gtr(self, msg):
         """gather outputs"""
         # TODO!!
+        logging.debug('GatewayChannel._state_gtr')
         logging.debug('incoming output msg: %s' % str(msg))
         pass
 
@@ -148,13 +206,15 @@ class GatewayChannel(Channel):
 
 if __name__ == '__main__':
     host = socket.gethostname().split('.')[0]
+    ######################## DEBUG ############################
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s %(levelname)s %(message)s',
-        filename=os.path.expanduser("~/dbg/%s.gw" % host), # FIXME
+        filename=os.path.expanduser("~/dbg/%s.gw" % host), # FIXME DEBUG
         filemode='a+'
     )
     logging.debug('Starting gateway')
+    ###########################################################
     flags = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
     fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
     flags = fcntl.fcntl(sys.stdout.fileno(), fcntl.F_GETFL)
@@ -163,20 +223,26 @@ if __name__ == '__main__':
     fcntl.fcntl(sys.stderr.fileno(), fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     task = task_self()
-    chan = GatewayChannel(host)
+    # Enable MsgTree buffering on gateways FIXME: unless no grooming set?
+    task.set_default("stdout_msgtree", True)
+    task.set_default("stderr_msgtree", True)
 
+    chan = GatewayChannel(task, host)
     if sys.stdin.isatty():
-        #print "isatty"
+        logging.debug('sys.stdin.isatty OK')
         worker = WorkerSimple(sys.stdout, sys.stdin, None, None, handler=chan)
     else:
+        logging.debug('!sys.stdin.isatty')
         worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)
     task.schedule(worker)
     logging.debug('Starting task')
     try:
         task.resume()
+        logging.debug('Task performed')
+    except EngineAbortException, e:
+        pass
     except IOError, e:
-        logging.debug('Broken pipe')
+        logging.debug('Broken pipe (%s)' % e)
+        raise
     except Exception, e:
         logging.exception('Gateway failure: %s' % e)
-    logging.debug('Task performed')
-

@@ -1,5 +1,8 @@
 2011-11-24 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/Tree.py: Integrate WorkerTree within ClusterShell Engine
+	framework, it will be used instead of PropagationTree.
+
 	* Engine/Engine.py: Inhibit any engine client changes when client is not
 	registered.
 

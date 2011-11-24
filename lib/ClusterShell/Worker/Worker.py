@@ -41,6 +41,8 @@ A worker is a generic object which provides "grouped" work in a specific task.
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 
+import os
+
 
 class WorkerException(Exception):
     """Generic worker exception."""
@@ -65,6 +67,8 @@ class Worker(object):
         # Parent task (once bound)
         self.task = None
         self.started = False
+        self.metaworker = None
+        self.metarefcnt = 0
         # current_x public variables (updated at each event accordingly)
         self.current_node = None
         self.current_msg = None

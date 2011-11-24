@@ -70,10 +70,14 @@ from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.Worker.EngineClient import EnginePort
 from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.Popen import WorkerPopen
+from ClusterShell.Worker.Tree import WorkerTree
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeSet import NodeSet
+
+from ClusterShell.Topology import TopologyParser
+from ClusterShell.Propagation import PropagationTreeRouter, PropagationChannel
 
 
 class TaskException(Exception):
@@ -131,6 +135,7 @@ class Task(object):
     _std_info =     { "debug"               : False,
                       "print_debug"         : _task_print_debug,
                       "fanout"              : 64,
+                      "grooming_delay"      : 0.5,
                       "connect_timeout"     : 10,
                       "command_timeout"     : 0 }
     _tasks = {}
@@ -252,6 +257,12 @@ class Task(object):
             self._suspended = False
             self._quit = False
 
+            # Default router
+            self.topology = None
+            self.router = None
+            self.pwrks = {}
+            self.pmwkrs = {}
+
             # STDIN tree
             self._msgtree = None
 
@@ -348,7 +359,21 @@ class Task(object):
             self._engine.run(timeout)
         finally:
             self._run_lock.release()
-        
+
+    def _default_topology(self):
+        if self.topology is None:
+            parser = TopologyParser()
+            parser.load("/tmp/clustershell/topology.conf")
+            import socket
+            self.topology = parser.tree(socket.gethostname().split('.')[0]) # XXX need helper func
+        return self.topology
+
+    def _default_router(self):
+        if self.router is None:
+            topology = self._default_topology()
+            self.router = PropagationTreeRouter(str(topology.root.nodeset), topology)
+        return self.router
+
     def default(self, default_key, def_val=None):
         """
         Return per-task value for key from the "default" dictionary.
@@ -421,6 +446,8 @@ class Task(object):
             print).
           - "fanout": Max number of registered clients in Engine at a
             time (default: 64).
+          - "grooming_delay": Message maximum end-to-end delay requirement
+            used for traffic grooming, in seconds as float (default: 0.5).
           - "connect_timeout": Time in seconds to wait for connecting to
             remote host before aborting (default: 10).
           - "command_timeout": Time in seconds to wait for a command to
@@ -489,10 +516,17 @@ class Task(object):
             assert kwargs.get("key", None) is None, \
                     "'key' argument not supported for distant command"
 
-            # create ssh-based worker
-            worker = WorkerSsh(NodeSet(kwargs["nodes"]), command=command,
-                               handler=handler, stderr=stderr, timeout=timeo,
-                               autoclose=ac)
+            tree = kwargs.get("tree", False)
+            if tree:
+                # create tree of ssh worker
+                worker = WorkerTree(NodeSet(kwargs["nodes"]), command=command,
+                                    handler=handler, stderr=stderr, timeout=timeo,
+                                    autoclose=ac)
+            else:
+                # create ssh-based worker
+                worker = WorkerSsh(NodeSet(kwargs["nodes"]), command=command,
+                                   handler=handler, stderr=stderr, timeout=timeo,
+                                   autoclose=ac)
         else:
             # create (local) worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
@@ -1150,6 +1184,40 @@ class Task(object):
             if thread != from_thread:
                 task.join()
 
+    def pchannel(self, gateway, metaworker): #gw_invoke_cmd):
+        """Get propagation channel for gateway (create one if needed)"""
+        # create channel if needed
+        if gateway not in self.pwrks:
+            chan = PropagationChannel(self)
+            # invoke gateway
+            timeout = 0
+            worker = self.shell(metaworker.invoke_gateway, nodes=gateway,
+                                handler=chan, timeout=timeout)
+            self.pwrks[gateway] = worker
+        else:
+            worker = self.pwrks[gateway]
+            chan = worker.eh
+        
+        if metaworker not in self.pmwkrs:
+            mw = self.pmwkrs[metaworker] = set()
+        else:
+            mw = self.pmwkrs[metaworker]
+        if worker not in mw:
+            #print >>sys.stderr, "pchannel++"
+            worker.metarefcnt += 1
+            mw.add(worker)
+        return chan
+
+    def _pchannel_release(self, metaworker):
+        if metaworker in self.pmwkrs:
+            for worker in self.pmwkrs[metaworker]:
+                #print >>sys.stderr, "pchannel_release2 %s" % worker
+                worker.metarefcnt -= 1
+                if worker.metarefcnt == 0:
+                    #print >>sys.stderr, "worker abort"
+                    worker.eh._close()
+                    #worker.abort()
+            
 
 def task_self():
     """

@@ -188,9 +188,12 @@ class OptionParser(optparse.OptionParser):
     
     def install_ssh_options(self):
         """Install engine/connector (ssh) options"""
-        optgrp = optparse.OptionGroup(self, "Ssh options")
+        optgrp = optparse.OptionGroup(self, "Ssh/Tree options")
         optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
                           help="use a specified fanout", type="int")
+        optgrp.add_option("-Q", action="store", dest="grooming_delay", 
+                          help="queueing delay for traffic grooming",
+                          type="float")
         optgrp.add_option("-l", "--user", action="store", type="safestring",
                           dest="user", help="execute remote command as user")
         optgrp.add_option("-o", "--options", action="store", dest="options",
