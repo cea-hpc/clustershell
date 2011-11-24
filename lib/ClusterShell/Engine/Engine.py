@@ -41,6 +41,7 @@ in response to incoming events (from workers, timers, etc.).
 
 import errno
 import heapq
+import logging
 import time
 
 
@@ -610,6 +611,10 @@ class Engine:
         """
         self._debug("SETEV new_events:0x%x events:0x%x %s" % (new_events,
             client._events, client))
+
+        if not client.registered:
+            logging.debug("set_events: client %s not registered" % self)
+            return
 
         chgbits = new_events ^ client._events
         if chgbits == 0:

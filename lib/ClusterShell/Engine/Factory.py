@@ -61,9 +61,7 @@ class PreferredEngine(object):
         """
         if not hint or hint == 'auto':
             # in order or preference
-            # XXX temporary workaround for 2.0 tests
-            # for engine_class in [ EngineEPoll, EnginePoll, EngineSelect ]:
-            for engine_class in [ EnginePoll, EngineSelect ]:
+            for engine_class in [ EngineEPoll, EnginePoll, EngineSelect ]:
                 try:
                     return engine_class(info)
                 except EngineNotSupportedError:

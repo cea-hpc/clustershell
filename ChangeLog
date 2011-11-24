@@ -1,3 +1,11 @@
+2011-11-24 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine/Engine.py: Inhibit any engine client changes when client is not
+	registered.
+
+	* Topology.py: Change DEFAULT section to Main section in topology.conf.
+	Cosmetic changes.
+
 2011-06-09 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.5.1 released.
