@@ -1,5 +1,7 @@
 2011-11-24 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clush.py: Enable tree mode by default with grooming option.
+
 	* Worker/Tree.py: Integrate WorkerTree within ClusterShell Engine
 	framework, it will be used instead of PropagationTree.
 

@@ -47,6 +47,7 @@ When no command are specified, clush runs interactively.
 """
 
 import errno
+import logging
 import os
 import resource
 import sys
@@ -530,6 +531,11 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
+    if display.verbosity == VERB_VERB:
+        print Display.COLOR_RESULT_FMT % '-' * 15
+        print Display.COLOR_RESULT_FMT % task._default_topology(),
+        print Display.COLOR_RESULT_FMT % '-' * 15
+
     if (display.gather or display.line_mode) and ns is not None:
         if display.gather and display.line_mode:
             handler = LiveGatherOutputHandler(display, ns)
@@ -539,10 +545,11 @@ def run_command(task, cmd, ns, timeout, display):
         if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
             handler.runtimer_init(task, len(ns))
 
-        worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout)
+        worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
+                            tree=True)
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(display),
-                            timeout=timeout)
+                            timeout=timeout, tree=True)
     if ns is None:
         worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
@@ -781,7 +788,18 @@ def main(args=sys.argv):
                                task.default("USER_stdin_worker"))
 
     task.set_info("debug", config.verbosity >= VERB_DEBUG)
+
+    if task.info("debug"):
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug("clush2: STARTING DEBUG")
+
     task.set_info("fanout", config.fanout)
+
+    if options.grooming_delay:
+        if config.verbosity >= VERB_VERB:
+            print Display.COLOR_RESULT_FMT % ("Grooming delay: %f" % \
+                                              options.grooming_delay)
+        task.set_info("grooming_delay", options.grooming_delay)
 
     if config.ssh_user:
         task.set_info("ssh_user", config.ssh_user)
