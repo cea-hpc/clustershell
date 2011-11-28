@@ -531,9 +531,9 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
-    if display.verbosity == VERB_VERB:
+    if display.verbosity == VERB_VERB and task.topology:
         print Display.COLOR_RESULT_FMT % '-' * 15
-        print Display.COLOR_RESULT_FMT % task._default_topology(),
+        print Display.COLOR_RESULT_FMT % task.topology,
         print Display.COLOR_RESULT_FMT % '-' * 15
 
     if (display.gather or display.line_mode) and ns is not None:
@@ -545,11 +545,10 @@ def run_command(task, cmd, ns, timeout, display):
         if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
             handler.runtimer_init(task, len(ns))
 
-        worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                            tree=True)
+        worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout)
     else:
         worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(display),
-                            timeout=timeout, tree=True)
+                            timeout=timeout)
     if ns is None:
         worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):

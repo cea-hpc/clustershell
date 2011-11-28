@@ -198,7 +198,7 @@ class WorkerTree(DistantWorker):
 
         DistantWorker._set_task(self, task)
         # Now bound to task - initalize router
-        self.topology = self.topology or task._default_topology()
+        self.topology = self.topology or task.topology
         self.router = self.router or task._default_router()
         # workaround timeout value
         timeout = 30

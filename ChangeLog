@@ -1,3 +1,8 @@
+2011-11-28 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Fix 'tree' option of shell(), which can be either True (force
+	enable tree mode), False (disable tree mode) and None (automatic).
+
 2011-11-24 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Enable tree mode by default with grooming option.

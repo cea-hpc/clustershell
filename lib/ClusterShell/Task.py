@@ -76,7 +76,7 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeSet import NodeSet
 
-from ClusterShell.Topology import TopologyParser
+from ClusterShell.Topology import TopologyParser, TopologyError
 from ClusterShell.Propagation import PropagationTreeRouter, PropagationChannel
 
 
@@ -258,7 +258,7 @@ class Task(object):
             self._quit = False
 
             # Default router
-            self.topology = None
+            self.topology = self._default_topology()
             self.router = None
             self.pwrks = {}
             self.pmwkrs = {}
@@ -361,16 +361,19 @@ class Task(object):
             self._run_lock.release()
 
     def _default_topology(self):
-        if self.topology is None:
+        try:
             parser = TopologyParser()
             parser.load("/tmp/clustershell/topology.conf")
             import socket
-            self.topology = parser.tree(socket.gethostname().split('.')[0]) # XXX need helper func
-        return self.topology
+            return parser.tree(socket.gethostname().split('.')[0]) # XXX need helper func
+        except TopologyError:
+            # FIXME logging debug
+            pass
+        return None
 
     def _default_router(self):
         if self.router is None:
-            topology = self._default_topology()
+            topology = self.topology
             self.router = PropagationTreeRouter(str(topology.root.nodeset), topology)
         return self.router
 
@@ -498,7 +501,7 @@ class Task(object):
         Distant usage::
             task.shell(command, nodes=nodeset [, handler=handler]
                   [, timeout=secs], [, autoclose=enable_autoclose]
-                  [, strderr=enable_stderr])
+                  [, strderr=enable_stderr], [tree=None|False|True])
 
         Example:
 
@@ -516,7 +519,12 @@ class Task(object):
             assert kwargs.get("key", None) is None, \
                     "'key' argument not supported for distant command"
 
-            tree = kwargs.get("tree", False)
+            tree = kwargs.get("tree")
+            if tree and self.topology is None:
+                raise TaskError("tree mode required for distant shell command" \
+                                " with unknown topology!")
+            if tree is None: # means auto
+                tree = (self.topology is not None)
             if tree:
                 # create tree of ssh worker
                 worker = WorkerTree(NodeSet(kwargs["nodes"]), command=command,
@@ -1192,7 +1200,7 @@ class Task(object):
             # invoke gateway
             timeout = 0
             worker = self.shell(metaworker.invoke_gateway, nodes=gateway,
-                                handler=chan, timeout=timeout)
+                                handler=chan, timeout=timeout, tree=False)
             self.pwrks[gateway] = worker
         else:
             worker = self.pwrks[gateway]
