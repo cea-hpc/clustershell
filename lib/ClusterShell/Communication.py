@@ -142,6 +142,7 @@ class XMLReader(ContentHandler):
             ACKMessage.ident: ACKMessage,
             ErrorMessage.ident: ErrorMessage,
             StdOutMessage.ident: StdOutMessage,
+            StdErrMessage.ident: StdErrMessage,
             RetcodeMessage.ident: RetcodeMessage,
         }
         try:

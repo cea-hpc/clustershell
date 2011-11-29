@@ -264,7 +264,7 @@ class PropagationChannel(Channel):
         else:
             self.current_state(msg)
 
-    def shell(self, nodes, command, worker, timeout, gw_invoke_cmd):
+    def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd):
         """command execution through channel"""
         logging.debug("PropagationChannel.shell nodes=%s timeout=%f worker=%s" % \
             (nodes, timeout, id(worker)))
@@ -282,6 +282,7 @@ class PropagationChannel(Channel):
             'cmd': command,
             'invoke_gateway': gw_invoke_cmd, # XXX
             'taskinfo': info, #self.task._info,
+            'stderr': stderr,
         }
         ctl.data_encode(ctl_data)
 

@@ -45,7 +45,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.Worker import DistantWorker
 
-from ClusterShell.Propagation import PropagationChannel, PropagationTreeRouter
+from ClusterShell.Propagation import PropagationTreeRouter
 
 
 class MetaWorkerEventHandler(EventHandler):
@@ -74,7 +74,7 @@ class MetaWorkerEventHandler(EventHandler):
         Called to indicate that a worker has error to read (on stderr).
         """
         self.metaworker._on_node_errline(worker.current_node,
-                                         worker.current_error)
+                                         worker.current_errmsg)
 
     def ev_written(self, worker):
         """
@@ -154,7 +154,7 @@ class WorkerTree(DistantWorker):
         self.source = kwargs.get('source')
         self.dest = kwargs.get('dest')
         autoclose = kwargs.get('autoclose', False)
-        stderr = kwargs.get('stderr', False)
+        self.stderr = kwargs.get('stderr', False)
         self._close_count = 0
         self._start_count = 0
         self._child_count = 0
@@ -212,7 +212,7 @@ class WorkerTree(DistantWorker):
                 self._target_count += len(target)
                 self.workers.append(self.task.shell(self.command,
                     nodes=target, timeout=timeout,
-                    handler=self.metahandler))
+                    handler=self.metahandler, stderr=self.stderr))
             else:
                 self._execute_remote(self.command, target, gw, timeout)
 
@@ -236,7 +236,8 @@ class WorkerTree(DistantWorker):
         self._child_count += 1
         self._target_count += len(targets)
         self.task.pchannel(gateway, self).shell(nodes=targets,
-            command=cmd, worker=self, timeout=timeout, gw_invoke_cmd=self.invoke_gateway)
+            command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
+            gw_invoke_cmd=self.invoke_gateway)
 
     def _engine_clients(self):
         """

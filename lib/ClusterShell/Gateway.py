@@ -87,7 +87,7 @@ class WorkerTreeResponder(EventHandler):
         self.worker.flush_buffers()
 
     def ev_error(self, worker):
-        logging.debug("WorkerTreeResponder: ev_error %s" % worker.current_error)
+        logging.debug("WorkerTreeResponder: ev_error %s" % worker.current_errmsg)
 
     def ev_close(self, worker):
         logging.debug("WorkerTreeResponder: ev_close")
@@ -166,6 +166,7 @@ class GatewayChannel(Channel):
             if msg.action == 'shell':
                 data = msg.data_decode()
                 cmd = data['cmd']
+                stderr = data['stderr']
 
                 #self.propagation.invoke_gateway = data['invoke_gateway']
                 logging.debug('decoded gw invoke (%s)' % data['invoke_gateway'])
@@ -185,7 +186,8 @@ class GatewayChannel(Channel):
                 self.propagation = WorkerTree(msg.target, responder, 0,
                                               command=cmd,
                                               topology=self.topology,
-                                              newroot=self.hostname)
+                                              newroot=self.hostname,
+                                              stderr=stderr)
                 self.propagation.upchannel = self
                 task.schedule(self.propagation)
                 logging.debug("WorkerTree scheduled")
