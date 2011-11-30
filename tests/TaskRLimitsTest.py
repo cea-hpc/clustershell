@@ -51,7 +51,7 @@ class TaskRLimitsTest(unittest.TestCase):
         task.set_info("fanout", 10)
         for i in xrange(400):
             worker = task.shell("/bin/hostname", nodes="localhost",
-                                stderr=False)
+                                stderr=stderr)
             self.assert_(worker != None)
         # run task
         task.resume()

@@ -129,7 +129,7 @@ class CommunicationTest(unittest.TestCase):
     def testXMLControlMessage(self):
         """test control message XML serialization"""
         res = gen_ctl().xml()
-        ref = '<message action="shell" msgid="0" type="CTL" target="node[0-10]">' \
+        ref = '<message action="shell" msgid="0" srcid="0" target="node[0-10]" type="CTL">' \
             'KGRwMQpTJ2NtZCcKcDIKUyd1bmFtZSAtYScKcDMKcy4=</message>'
         self.assertEquals(res, ref)
 
@@ -148,8 +148,9 @@ class CommunicationTest(unittest.TestCase):
     def testXMLOutputMessage(self):
         """test output message XML serialization"""
         res = gen_out().xml()
-        ref = '<message msgid="0" nodes="" type="OUT" output=' \
-        '"Linux galion25 2.6.18-92.el5 #1 SMP Tue Apr 29 03:13:37 EDT 2008 x86_64 x86_64 x86_64 GNU/Linux"></message>'
+        ref = '<message msgid="0" nodes="" output=' \
+        '"Linux galion25 2.6.18-92.el5 #1 SMP Tue Apr 29 03:13:37 EDT 2008 x86_64 x86_64 x86_64 GNU/Linux"' \
+        ' srcid="0" type="OUT"></message>'
         self.assertEquals(res, ref)
 
     def testInvalidMsgStreams(self):

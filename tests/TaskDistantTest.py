@@ -122,12 +122,14 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshCopy(self):
         """test simple localhost copy with explicit ssh worker"""
-        # init worker
-        worker = WorkerSsh("localhost", source="/etc/hosts",
-                dest="/tmp/cs-test_testLocalhostExplicitSshCopy",
-                handler=None, timeout=10)
-        self._task.schedule(worker) 
-        self._task.resume()
+        dest = "/tmp/cs-test_testLocalhostExplicitSshCopy"
+        try:
+            worker = WorkerSsh("localhost", source="/etc/hosts", dest=dest,
+                    handler=None, timeout=10)
+            self._task.schedule(worker) 
+            self._task.resume()
+        finally:
+            os.remove(dest)
 
     def testLocalhostExplicitSshCopyDir(self):
         """test simple localhost copy dir with explicit ssh worker"""
@@ -608,14 +610,17 @@ class TaskDistantTest(unittest.TestCase):
         """test simple localhost rcopy with explicit ssh worker"""
         dest = "/tmp/cs-test_testLocalhostExplicitSshRCopy"
         shutil.rmtree(dest, ignore_errors=True)
-        os.mkdir(dest)
-        worker = WorkerSsh("localhost", source="/etc/hosts",
-                dest=dest, handler=None, timeout=10, reverse=True)
-        self._task.schedule(worker) 
-        self._task.resume()
-        self.assertEqual(worker.source, "/etc/hosts")
-        self.assertEqual(worker.dest, dest)
-        self.assert_(os.path.exists(os.path.join(dest, "hosts.localhost")))
+        try:
+            os.mkdir(dest)
+            worker = WorkerSsh("localhost", source="/etc/hosts",
+                    dest=dest, handler=None, timeout=10, reverse=True)
+            self._task.schedule(worker) 
+            self._task.resume()
+            self.assertEqual(worker.source, "/etc/hosts")
+            self.assertEqual(worker.dest, dest)
+            self.assert_(os.path.exists(os.path.join(dest, "hosts.localhost")))
+        finally:
+            shutil.rmtree(dest, ignore_errors=True)
 
     def testLocalhostExplicitSshReverseCopyDir(self):
         """test simple localhost rcopy dir with explicit ssh worker"""
