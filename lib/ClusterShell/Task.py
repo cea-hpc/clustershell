@@ -130,7 +130,8 @@ class Task(object):
                       "stdout_msgtree"      : True,
                       "stderr_msgtree"      : True,
                       "engine"              : 'auto',
-                      "port_qlimit"         : 100 }
+                      "port_qlimit"         : 100,
+                      "auto_tree"           : False }
 
     _std_info =     { "debug"               : False,
                       "print_debug"         : _task_print_debug,
@@ -524,7 +525,7 @@ class Task(object):
                 raise TaskError("tree mode required for distant shell command" \
                                 " with unknown topology!")
             if tree is None: # means auto
-                tree = (self.topology is not None)
+                tree = self.default("auto_tree") and (self.topology is not None)
             if tree:
                 # create tree of ssh worker
                 worker = WorkerTree(NodeSet(kwargs["nodes"]), command=command,

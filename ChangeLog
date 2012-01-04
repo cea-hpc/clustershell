@@ -1,3 +1,11 @@
+2012-01-04 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Change behavior of shell()'s tree=None (auto) parameter: added
+	Task default parameter "auto_tree" defaulting to False and checked by
+	shell() when tree=None. This means that even with a valid topology
+	configuration file, the user has to explicitly enable tree mode for now.
+	This is for next 1.6 release and should be changed to True in version 2.0.
+
 2011-11-28 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Fix 'tree' option of shell(), which can be either True (force
