@@ -1,0 +1,2 @@
+This directory contains tests related to the v2 tree propagation feature,
+ie. remote commands execution through gateways organized as a tree.
