@@ -1,3 +1,12 @@
+2012-01-10 S. Thiell <stephane.thiell@cea.fr>
+
+	* RangeSet.py: Move RangeSet class from NodeSet.py to this new module
+	dedicated to scalable management of cluster range sets (tens of thousands
+	of disjoint ranges). Change internal algorithm used to manage ranges from
+	a list to an AVL-tree based on bintrees project's avltree implementation.
+	Got rid of expand/fold() methods that don't scale, all sets-like methods
+	have been rewritten using AVL-tree.
+
 2012-01-04 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Change behavior of shell()'s tree=None (auto) parameter: added
