@@ -287,22 +287,22 @@ class NodeSetTest(unittest.TestCase):
         # more
         original = NodeSet("cluster0")
         nodeset = original.copy()
-        for i in xrange(1, 6000):
+        for i in xrange(1, 3000):
             nodeset = nodeset | NodeSet("cluster%d" % i)
-        self.assertEqual(len(nodeset), 6000)
-        self.assertEqual(str(nodeset), "cluster[0-5999]")
+        self.assertEqual(len(nodeset), 3000)
+        self.assertEqual(str(nodeset), "cluster[0-2999]")
         self.assertEqual(len(original), 1)
         self.assertEqual(str(original), "cluster0")
         nodeset2 = original.copy()
-        for i in xrange(1, 6000):
+        for i in xrange(1, 3000):
             nodeset2 |= NodeSet("cluster%d" % i)
         self.assertEqual(nodeset, nodeset2)
-        for i in xrange(6000, 7000):
+        for i in xrange(3000, 5000):
             nodeset2 |= NodeSet("cluster%d" % i)
-        self.assertEqual(len(nodeset2), 7000)
-        self.assertEqual(str(nodeset2), "cluster[0-6999]")
-        self.assertEqual(len(nodeset), 6000)
-        self.assertEqual(str(nodeset), "cluster[0-5999]")
+        self.assertEqual(len(nodeset2), 5000)
+        self.assertEqual(str(nodeset2), "cluster[0-4999]")
+        self.assertEqual(len(nodeset), 3000)
+        self.assertEqual(str(nodeset), "cluster[0-2999]")
         self.assertEqual(len(original), 1)
         self.assertEqual(str(original), "cluster0")
 
@@ -739,10 +739,10 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset[::17]), "yeti[10,44,78]")
         nodeset = NodeSet("yeti[10-98/2]", autostep=2)
         self.assertEqual(str(nodeset[22:29]), "yeti[54-66/2]")
-        nodeset = NodeSet("yeti[10-98000000/2]", autostep=2)
-        # have to scale
-        self.assertEqual(str(nodeset[22:2900000]), "yeti[54-5800008/2]")
-        self.assertEqual(str(nodeset[22:2900000:3]), "yeti[54-5800008/6]")
+        # stepping scalability
+        nodeset = NodeSet("yeti[10-9800/2]", autostep=2)
+        self.assertEqual(str(nodeset[22:2900]), "yeti[54-5808/2]")
+        self.assertEqual(str(nodeset[22:2900:3]), "yeti[54-5808/6]")
         nodeset = NodeSet("yeti[10-14,20-26,30-33]")
         self.assertEqual(str(nodeset[2:6]), "yeti[12-14,20]")
         # multiple patterns
@@ -820,7 +820,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "green[1-7/2]")
         self.assertEqual(len(nodeset), 4)
         nodeset.add("green[6-17/2]")
-        self.assertEqual(str(nodeset), "green[1-5/2,6-8,10-16/2]")
+        self.assertEqual(str(nodeset), "green[1-5/2,6-7,8-16/2]")
         self.assertEqual(len(nodeset), 10)
 
     def testRemove(self):
@@ -901,12 +901,12 @@ class NodeSetTest(unittest.TestCase):
         self.assert_("dark3002" not in nodeset)
         for node in nodeset:
             self.assert_(node in nodeset)
-        nodeset = NodeSet("scale[0-1000000]")
+        nodeset = NodeSet("scale[0-10000]")
         self.assert_("black64" not in nodeset)
-        self.assert_("scale93406" in nodeset)
-        nodeset = NodeSet("scale[0-1000000]", autostep=2)
-        self.assert_("scale93406" in nodeset[::2])
-        self.assert_("scale93407" not in nodeset[::2])
+        self.assert_("scale9346" in nodeset)
+        nodeset = NodeSet("scale[0-10000]", autostep=2)
+        self.assert_("scale9346" in nodeset[::2])
+        self.assert_("scale9347" not in nodeset[::2])
 
     def testContainsUsingPadding(self):
         """test NodeSet contains() when using padding"""
