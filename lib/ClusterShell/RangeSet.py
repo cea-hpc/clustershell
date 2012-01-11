@@ -58,7 +58,6 @@ def extractslice(index, length):
     if index.start is None:
         sl_start = 0
     elif index.start < 0:
-        orig = index.start 
         sl_start = max(0, length + index.start)
     else:
         sl_start = index.start
@@ -533,7 +532,7 @@ class AVLRangeTree(object):
             raise KeyError(node)
         else:
             node_stack = [None] * AVLRangeTree.MAXSTACK # node stack
-            dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # direction stack
+            dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # dir stack
             top = 0
             node = self._root
 
@@ -640,7 +639,7 @@ class AVLRangeTree(object):
                 raise KeyError((start, stop))
         else:
             node_stack = [None] * AVLRangeTree.MAXSTACK # node stack
-            dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # direction stack
+            dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # dir stack
             top = 0
             node = self._root
             restore_ranges = [] # if strict is True, this method restores
@@ -825,7 +824,7 @@ class AVLRangeTree(object):
                     node = None
                     node = mine.next() 
                     start, stop, pad = node.start, node.stop, node.pad
-        except StopIteration, e:
+        except StopIteration:
             pass
 
         # if ranges are remaining in ...
@@ -1203,7 +1202,7 @@ class RangeSet(object):
             if self._ranges and type(self._ranges[0][0]) is not slice:
                 # workaround for object pickled from Python < 2.5
                 self._ranges = [(slice(start, stop, step), pad) \
-                                    for (start, stop, step), pad in self._ranges]
+                                for (start, stop, step), pad in self._ranges]
             # convert to v3
             self._rngtree = AVLRangeTree()
             for sli, pad in self._ranges:

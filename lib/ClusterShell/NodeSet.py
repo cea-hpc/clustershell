@@ -66,8 +66,8 @@ import re
 import sys
 
 import ClusterShell.NodeUtils as NodeUtils
-from ClusterShell.RangeSet import *
-from ClusterShell.RangeSet import extractslice
+from ClusterShell.RangeSet import RangeSetException, RangeSetParseError, \
+    RangeSetPaddingError, RangeSet, extractslice
 
 
 # Define default GroupResolver object used by NodeSet
