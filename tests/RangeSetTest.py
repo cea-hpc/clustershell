@@ -136,6 +136,19 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r3), "4,7")
         self.assertEqual(len(r3), 2)
 
+        # bounds checking
+        r1 = RangeSet("1-10,39-41,50-60")
+        r2 = RangeSet("1-10,38-39,50-60")
+        r1.difference_update(r2)
+        self.assertEqual(len(r1), 2)
+        self.assertEqual(str(r1), "40-41")
+
+        r1 = RangeSet("1-20,39-41")
+        r2 = RangeSet("1-20,41-42")
+        r1.difference_update(r2)
+        self.assertEqual(len(r1), 2)
+        self.assertEqual(str(r1), "39-40")
+
     def testSymmetricDifference(self):
         """test RangeSet.symmetric_difference_update()"""
         r1 = RangeSet("4,7-33")
@@ -841,7 +854,6 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "1,3,4-8/2")
         r1 = RangeSet("1,3-4,6,8", autostep=3)
         self.assertEqual(str(r1), "1,3,4-8/2")
-
 
 
 

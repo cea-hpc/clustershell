@@ -667,7 +667,7 @@ class AVLRangeTree(object):
                     if stop > node.start:
                         if strict:
                             restore_ranges.append((stop, node.stop, node.pad))
-                        self._length -= node.stop - stop
+                        self._length -= node.stop - stop - 1
                         node.start = stop
                 else:
                     assert stop > node.stop
@@ -676,7 +676,7 @@ class AVLRangeTree(object):
                         if strict:
                             restore_ranges.append((start, node.stop, node.pad))
                         self._length -= node.stop - start
-                        node.stop = start - 1
+                        node.stop = start
 
                 # Push direction and node onto stack
                 dir_stack[top] = direction
