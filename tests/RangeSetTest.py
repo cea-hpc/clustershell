@@ -95,9 +95,11 @@ class RangeSetTest(unittest.TestCase):
 
 
     def testDot(self):
+        """test RangeSet.dot()"""
         r1 = RangeSet("2-3,5-6,8-9,11-12,14-15,17-18,20-21,23-24,26-27,29-30,32-33,35-36,38-39,41-42,44-45,47-48,50-51,53-54,56-57,59-60,62-63,65-66,68-69,71-72,74-75,77-78,80-81,83-84,86-87,89-90,92-93,95-96,98-99,102,105,107-108,110-111,113-114,116-117,119-120,122-123,125-126,128-129,131-132,134-135,137-138,140-141,143-144,146-147,149-150,152-153,155-156,158-159,161-162,164-165,167-168,170-171,173-174,176-177,179-180,182-183,185-186,188-189,191-192,194-195,197-198,200-201,203-204,206-207,209-210,212-213,215-216,218-219,221-222,224-225,227-228,230-231,233-234,236-237,239-240,242,800")
         self.assertEqual(len(r1), 160)
-        r1._rngtree.dot()
+        s = r1._rngtree.dot()
+        self.assertEqual(len(s.splitlines()), 81)
 
     def testIntersectStep(self):
         """test RangeSet with more intersections of ranges"""
@@ -148,6 +150,22 @@ class RangeSetTest(unittest.TestCase):
         r1.difference_update(r2)
         self.assertEqual(len(r1), 2)
         self.assertEqual(str(r1), "39-40")
+
+        # difference(self) issue
+        r1 = RangeSet("1-20,39-41")
+        r1.difference_update(r1)
+        self.assertEqual(len(r1), 0)
+        self.assertEqual(str(r1), "")
+
+        # strict mode
+        r1 = RangeSet("4,7-33")
+        r2 = RangeSet("8-33")
+        r1.difference_update(r2, strict=True)
+        self.assertEqual(str(r1), "4,7")
+        self.assertEqual(len(r1), 2)
+
+        r3 = RangeSet("4-5")
+        self.assertRaises(KeyError, r1.difference_update, r3, True)
 
     def testSymmetricDifference(self):
         """test RangeSet.symmetric_difference_update()"""
@@ -226,15 +244,13 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "986-987,990-991,993,995,998-1000,1002-1008,1010-1011,1015-1018,1021")
         self.assertEqual(len(r1), 23)
 
-
-
-
-
     def testSubStep(self):
         """test RangeSet with more sub of ranges (with step)"""
         # case 1 no sub
         r1 = RangeSet("4-34/2", autostep=3)
         r2 = RangeSet("3-33/2", autostep=3)
+        self.assertEqual(r1.autostep, 3)
+        self.assertEqual(r2.autostep, 3)
         r1.difference_update(r2)
         self.assertEqual(str(r1), "4-34/2")
         self.assertEqual(len(r1), 16)
@@ -334,6 +350,17 @@ class RangeSetTest(unittest.TestCase):
         self.assert_(not "1" in r4)
         self.assert_("02" in r4)
         self.assert_(not "03" in r4)
+        #
+        r1 = RangeSet("115-117,130,132,166-170,4780-4999")
+        self.assertEqual(len(r1), 230)
+        r2 = RangeSet("116-117,130,4781-4999")
+        self.assertEqual(len(r2), 222)
+        self.assertTrue(r2 in r1)
+        self.assertFalse(r1 in r2)
+        r2 = RangeSet("5000")
+        self.assertFalse(r2 in r1)
+        r2 = RangeSet("4999")
+        self.assertTrue(r2 in r1)
 
     def testIsSuperSet(self):
         """test RangeSet.issuperset()"""
@@ -341,26 +368,30 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 240)
         r2 = RangeSet("3-98,140-199,800")
         self.assertEqual(len(r2), 157)
-        self.assert_(r1.issuperset(r1))
-        self.assert_(r1.issuperset(r2))
-        self.assert_(r1 >= r1)
-        self.assert_(r1 > r2)
-        self.assert_(not r2 > r1)
+        self.assertTrue(r1.issuperset(r1))
+        self.assertTrue(r1.issuperset(r2))
+        self.assertTrue(r1 >= r1)
+        self.assertTrue(r1 > r2)
+        self.assertFalse(r2 > r1)
         r2 = RangeSet("3-98,140-199,243,800")
         self.assertEqual(len(r2), 158)
-        self.assert_(not r1.issuperset(r2))
-        self.assert_(not r1 > r2)
+        self.assertFalse(r1.issuperset(r2))
+        self.assertFalse(r1 > r2)
 
     def testIsSubSet(self):
         """test RangeSet.issubset()"""
         r1 = RangeSet("1-100,102,105-242,800-900/2")
         r2 = RangeSet("3,800,802,804,888")
-        self.assert_(r2.issubset(r2))
-        self.assert_(r2.issubset(r1))
-        self.assert_(r2 <= r1)
-        self.assert_(r2 < r1)
-        self.assert_(not r1 < r2)
-        self.assert_(not r1 <= r2)
+        self.assertTrue(r2.issubset(r2))
+        self.assertTrue(r2.issubset(r1))
+        self.assertTrue(r2 <= r1)
+        self.assertTrue(r2 < r1)
+        self.assertFalse(r1 < r2)
+        self.assertFalse(r1 <= r2)
+        #
+        r1 = RangeSet("1-100")
+        r2 = RangeSet("001-100")
+        self.assertFalse(r1.issubset(r2))
 
     def testGetItem(self):
         """test RangeSet.__getitem__()"""
@@ -377,6 +408,8 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r1[237], 241)
         self.assertEqual(r1[238], 242)
         self.assertEqual(r1[239], 800)
+        self.assertRaises(IndexError, r1.__getitem__, 240)
+        self.assertRaises(IndexError, r1.__getitem__, 241)
         # negative indices
         self.assertEqual(r1[-1], 800)
         self.assertEqual(r1[-240], 1)
@@ -400,7 +433,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r2[31], 102)
         self.assertEqual(r2[32], 104)
         self.assertEqual(r2[33], 106)
-        #self.assertRaises(TypeError, r2['foo'])
+        self.assertRaises(TypeError, r2.__getitem__, "foo")
 
     def testGetSlice(self):
         """test RangeSet.__getitem__() with slice"""
@@ -581,6 +614,18 @@ class RangeSetTest(unittest.TestCase):
         r1.remove("106")
         self.assertRaises(KeyError, r1.remove, "foo")
 
+    def testDiscard(self):
+        """test RangeSet.discard()"""
+        r1 = RangeSet("1-100,102,105-242,800")
+        self.assertEqual(len(r1), 240)
+        r1.discard(100)
+        self.assertEqual(len(r1), 239)
+        self.assertEqual(str(r1), "1-99,102,105-242,800")
+        r1.discard(101)     # should not raise KeyError
+        # test remove integer-castable type (convenience)
+        r1.remove("106")
+        r1.discard("foo")
+
     def testClear(self):
         """test RangeSet.clear()"""
         r1 = RangeSet("1-100,102,105-242,800")
@@ -598,6 +643,12 @@ class RangeSetTest(unittest.TestCase):
         rgs = RangeSet.fromlist([ RangeSet("3"), RangeSet("5-8"), RangeSet("1") ])
         self.assertEqual(str(rgs), "1,3,5-8")
         self.assertEqual(len(rgs), 6)
+
+    def testFromOneConstructor(self):
+        """test RangeSet.fromone() constructor"""
+        rgs = RangeSet.fromone(42)
+        self.assertEqual(str(rgs), "42")
+        self.assertEqual(len(rgs), 1)
 
     def testIterate(self):
         """test RangeSet iterator"""
@@ -702,6 +753,7 @@ class RangeSetTest(unittest.TestCase):
         # With autostep...
         r1 = RangeSet(autostep=3)
         r1.add_range(1, 100, 1)
+        self.assertEqual(r1.autostep, 3)
         self.assertEqual(len(r1), 99)
         self.assertEqual(str(r1), "1-99")
         r1.add_range(40, 101, 1)
@@ -714,6 +766,7 @@ class RangeSetTest(unittest.TestCase):
         r1 = RangeSet("1-30", autostep=2)
         self.assertEqual(len(r1), 30)
         self.assertEqual(str(r1), "1-30")
+        self.assertEqual(r1.autostep, 2)
         r1.add_range(32, 35, 1)
         self.assertEqual(len(r1), 33)
         self.assertEqual(str(r1), "1-30,32-34")
@@ -731,6 +784,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "1,5,9,13,17,21,25,29-31,40,50,60")
         r1 = RangeSet("1-30", autostep=3)
         r1.add_range(40, 65, 10)
+        self.assertEqual(r1.autostep, 3)
         self.assertEqual(len(r1), 33)
         self.assertEqual(str(r1), "1-29,30-60/10")
         # One
@@ -747,6 +801,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(list(r1.slices())), 0)
         # With padding, without autostep
         r1 = RangeSet("1-7/2,8-12,3000-3019")
+        self.assertEqual(r1.autostep, None)
         self.assertEqual(len(r1), 29)
         self.assertEqual(list(r1.slices()), [(slice(1, 2, 1), 0), \
             (slice(3, 4, 1), 0), (slice(5, 6, 1), 0), (slice(7, 13, 1), 0), \
@@ -754,6 +809,7 @@ class RangeSetTest(unittest.TestCase):
         # With padding, with autostep
         r1 = RangeSet("1-7/2,8-12,3000-3019", autostep=2)
         self.assertEqual(len(r1), 29)
+        self.assertEqual(r1.autostep, 2)
         self.assertEqual(list(r1.slices()), [(slice(1, 8, 2), 0), \
             (slice(8, 13, 1), 0), (slice(3000, 3020, 1), 0)])
         # Without padding, without autostep
@@ -790,7 +846,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r2), "115-118,130,166-170,4780-4999")
 
     def testPickle(self):
-        """test pickling of RangeSet"""
+        """test RangeSet pickling"""
         dump = pickle.dumps(RangeSet("1-100"))
         self.assertNotEqual(dump, None)
         rngset = pickle.loads(dump)
@@ -801,6 +857,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset[-1], 100)
 
     def testIntersectionLength(self):
+        """test RangeSet intersection/length"""
         r1 = RangeSet("115-117,130,166-170,4780-4999")
         self.assertEqual(len(r1), 229)
         r2 = RangeSet("116-117,130,4781-4999")
@@ -828,19 +885,8 @@ class RangeSetTest(unittest.TestCase):
         res = r1.intersection(r2)
         self.assertEqual(len(res), 0)
 
-    def test_00x_contains(self):
-        r1 = RangeSet("115-117,130,132,166-170,4780-4999")
-        self.assertEqual(len(r1), 230)
-        r2 = RangeSet("116-117,130,4781-4999")
-        self.assertEqual(len(r2), 222)
-        self.assertTrue(r2 in r1)
-        self.assertFalse(r1 in r2)
-        r2 = RangeSet("5000")
-        self.assertFalse(r2 in r1)
-        r2 = RangeSet("4999")
-        self.assertTrue(r2 in r1)
-
-    def test_00x_fold(self):
+    def testFolding(self):
+        """test RangeSet folding conditions"""
         r1 = RangeSet("112,114-117,119,121,130,132,134,136,138,139-141,144,147-148", autostep=6)
         self.assertEqual(str(r1), "112,114-117,119,121,130,132,134,136,138-141,144,147-148")
         r1.autostep = 5
@@ -855,7 +901,28 @@ class RangeSetTest(unittest.TestCase):
         r1 = RangeSet("1,3-4,6,8", autostep=3)
         self.assertEqual(str(r1), "1,3,4-8/2")
 
+        # empty set
+        r1 = RangeSet(autostep=3)
+        self.assertEqual(str(r1), "")
 
+    def testRangeCount(self):
+        """test RangeSet.rangecount property"""
+        r1 = RangeSet("1,3-4,6,8")
+        self.assertEqual(str(r1), "1,3-4,6,8")
+        self.assertEqual(r1.rangecount, 4)
+        r1.add(2)
+        self.assertEqual(r1.rangecount, 3)
+        r1.remove(3)
+        self.assertEqual(r1.rangecount, 4)
+        r1.remove(4)
+        self.assertEqual(r1.rangecount, 3)
+
+    def testRangeTreePrivateRepr(self):
+        """test RangeSet AVL-tree repr() [private]"""
+        r1 = RangeSet("1,3-4,6,8")
+        self.assertEqual(str(r1), "1,3-4,6,8")
+        self.assertEqual(repr(r1._rngtree), 'AVLRangeTree({1-1, 3-4, 6-6, 8-8})')
+        
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)

@@ -377,6 +377,8 @@ class AVLRangeTree(object):
                     index = length - -index
                 else:
                     raise IndexError, "%d out of range" % index
+            elif index >= length:
+                raise IndexError, "%d out of range" % index
             offset = 0
             if index <= length/2:
                 for start, stop, pad in self.ranges(reverse=False):
@@ -389,7 +391,6 @@ class AVLRangeTree(object):
                     offset += stop - start
                     if length - index <= offset:
                         return start + offset - length + index
-            raise IndexError, "%d out of range" % index
 
     def clear(self):
         """ T.clear() -> None.  Remove all items from T. """
@@ -539,7 +540,7 @@ class AVLRangeTree(object):
             while True:
                 # Terminate if not found
                 if node is None:
-                    raise KeyError(i)
+                    raise KeyError(n)
                 elif node is n:
                     break
 
@@ -636,7 +637,7 @@ class AVLRangeTree(object):
         """ T.remove(key) <==> del T[key], remove item <key> from tree """
         if self._root is None:
             if strict:
-                raise KeyError((start, stop))
+                raise KeyError(start)
         else:
             node_stack = [None] * AVLRangeTree.MAXSTACK # node stack
             dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # dir stack
@@ -650,7 +651,7 @@ class AVLRangeTree(object):
                         # restore previously removed ranges
                         for start, stop, pad in restore_ranges:
                             self.insert_range(start, stop, pad)
-                        raise KeyError((start, stop))
+                        raise KeyError
                     else:
                         return
                 if start >= node.start and stop <= node.stop:
@@ -1186,9 +1187,9 @@ class RangeSet(object):
         # workaround for pickling object from Python < 2.5
         if sys.version_info < (2, 5, 0):
             # Python 2.4 can't pickle slice objects
-            odict['_ranges'] = list(self.slices())
-            #[((sli.start, sli.stop, sli.step), pad) \
-                                    #for sli, pad in self._ranges]
+            odict['_length'] = len(self)
+            odict['_ranges'] = [((sli.start, sli.stop, sli.step), pad) \
+                                    for sli, pad in self.slices()]
         return odict
 
     def __setstate__(self, dic):
@@ -1432,7 +1433,7 @@ class RangeSet(object):
         Report whether this rangeset contains another rangeset.
         """
         self._binary_sanity_check(rangeset)
-        return rangeset.issubset(self)
+        return self._rngtree.issuperset(rangeset._rngtree)
 
     def __eq__(self, other):
         """
@@ -1654,7 +1655,7 @@ class RangeSet(object):
         """
         try:
             i = int(elem)
-            self._rngtree.remove_range(i, i+1)
+            self._rngtree.remove_range(i, i + 1)
         except ValueError:
             raise KeyError, elem
 
@@ -1664,8 +1665,9 @@ class RangeSet(object):
         is not contained in the RangeSet.
         """
         try:
-            self._rngtree.remove_range(elem, elem+1)
-        except KeyError:
+            i = int(elem)
+            self._rngtree.remove_range(i, i + 1)
+        except (KeyError, ValueError):
             pass
 
     def symmetric_difference(self, other):
