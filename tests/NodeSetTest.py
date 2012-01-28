@@ -912,15 +912,15 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet contains() when using padding"""
         nodeset = NodeSet("white[001,030]")
         nodeset.add("white113")
-        self.assert_(NodeSet("white30") not in nodeset)
-        self.assert_(NodeSet("white030") in nodeset)
+        self.assertTrue(NodeSet("white30") in nodeset)
+        self.assertTrue(NodeSet("white030") in nodeset)
         # case: nodeset without padding info is compared to a
         # padding-initialized range
         self.assert_(NodeSet("white113") in nodeset)
         self.assert_(NodeSet("white[001,113]") in nodeset)
-        self.assert_(NodeSet("gene0113") not in NodeSet("gene[001,030,113]"))
+        self.assert_(NodeSet("gene0113") in NodeSet("gene[001,030,113]"))
         self.assert_(NodeSet("gene0113") in NodeSet("gene[0001,0030,0113]"))
-        self.assert_(NodeSet("gene0113") not in NodeSet("gene[098-113]"))
+        self.assert_(NodeSet("gene0113") in NodeSet("gene[098-113]"))
         self.assert_(NodeSet("gene0113") in NodeSet("gene[0098-0113]"))
         # case: len(str(ielem)) >= rgpad
         nodeset = NodeSet("white[001,099]")
@@ -937,10 +937,10 @@ class NodeSetTest(unittest.TestCase):
         self.assert_(nodeset.issuperset(NodeSet("tronic[0140-0200]")))
         self.assert_(nodeset.issuperset("tronic0070"))
         self.assert_(not nodeset.issuperset("tronic0034"))
-        # check padding issue
-        self.assert_(not nodeset.issuperset("tronic36"))
-        self.assert_(not nodeset.issuperset("tronic[36-40]"))
-        self.assert_(not nodeset.issuperset(NodeSet("tronic[36-40]")))
+        # check padding issue - since 1.6 padding is ignored in this case
+        self.assert_(nodeset.issuperset("tronic36"))
+        self.assert_(nodeset.issuperset("tronic[36-40]"))
+        self.assert_(nodeset.issuperset(NodeSet("tronic[36-40]")))
         # check gt
         self.assert_(nodeset > NodeSet("tronic[0100-0200]"))
         self.assert_(not nodeset > NodeSet("tronic[0036-1630]"))
@@ -974,8 +974,8 @@ class NodeSetTest(unittest.TestCase):
         self.assert_(not nodeset <= NodeSet("artcore[3-980]"))
         self.assert_(not nodeset <= NodeSet("artcore[2-998]"))
         self.assertEqual(len(nodeset), 997)
-        # check padding issue
-        self.assert_(not nodeset.issubset("artcore[0001-1000]"))
+        # check padding issue - since 1.6 padding is ignored in this case
+        self.assert_(nodeset.issubset("artcore[0001-1000]"))
         self.assert_(not nodeset.issubset("artcore030"))
         # multiple patterns case
         nodeset = NodeSet("tronic[0036-1630],lounge[20-660/2]")

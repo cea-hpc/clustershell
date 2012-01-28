@@ -35,9 +35,8 @@
 """
 Cluster range set module.
 
-Instances of RangeSet provide similar operations than the builtin set()
-type and Set object.
-See http://www.python.org/doc/lib/set-objects.html
+Instances of RangeSet provide similar operations than the builtin set type,
+extended to support cluster ranges-like format and stepping support ("0-8/2").
 """
 
 
@@ -88,949 +87,6 @@ def extractslice(index, length):
     return sl_start, sl_stop, sl_step
 
 
-class AVLRangeTreeNode(object):
-    """Internal object, represents a tree node.
-    ------------------------------------------------------------------------
-    Derivated AVLTree's Node class
-    Author:  mozman (python version)
-    Purpose: avl tree module (Julienne Walker's unbounded none recursive
-             algorithm)
-    Source: http://eternallyconfuzzled.com/tuts/datastructures/jsw_tut_avl.aspx
-    Copyright (C) 2010, 2011 by Manfred Moitzi
-    License: LGPLv3
-    ------------------------------------------------------------------------
-    Adapted version to support range of integers with optional padding value,
-    instead of key/value pair in the original version.
-    """
-    __slots__ = ['left', 'right', 'balance', 'start', 'stop', 'pad']
-
-    def __init__(self, start, stop, pad=0):
-        self.left = None
-        self.right = None
-        self.balance = 0
-        self.start = start
-        self.stop = stop
-        self.pad = pad
-
-    def __eq__(self, other):
-        return self.start == other.start and self.stop == other.stop
-
-    def __getitem__(self, key):
-        """ x.__getitem__(key) <==> x[key],
-            where key is 0 (left) or 1 (right) """
-        if key == 0:
-            return self.left
-        else:
-            return self.right
-        # NOTE: can be shorten in py2.5+ by:
-        #return self.left if key == 0 else self.right
-
-    def __setitem__(self, key, value):
-        """ x.__setitem__(key, value) <==> x[key]=value,
-            where key is 0 (left) or 1 (right) """
-        if key == 0:
-            self.left = value
-        else:
-            self.right = value
-
-    def free(self):
-        """Remove all references."""
-        self.left = None
-        self.right = None
-
-
-class AVLRangeTreeWalker(object):
-    """Tree walker (helper class)"""
-    def __init__(self, tree):
-        self._tree = tree
-        self._node = tree.root
-        self._stack = []
-
-    def reset(self):
-        self._stack = []
-        self._node = self._tree.root
-
-    @property
-    def start(self):
-        return self._node.start
-
-    @property
-    def stop(self):
-        return self._node.stop
-
-    @property
-    def pad(self):
-        return self._node.pad
-
-    @property
-    def node(self):
-        return self._node
-
-    @property
-    def is_valid(self):
-        return self._node is not None
-
-    def push(self):
-        self._stack.append(self._node)
-
-    def pop(self):
-        self._node = self._stack.pop()
-
-    def stack_is_empty(self):
-        return (self._stack is None) or (len(self._stack) == 0)
-
-    def has_child(self, direction):
-        if direction == 0:
-            return self._node.left is not None
-        else:
-            return self._node.right is not None
-
-    def down(self, direction):
-        if direction == 0:
-            self._node = self._node.left
-        else:
-            self._node = self._node.right
-
-    def has_left(self):
-        return self._node.left is not None
-
-    def has_right(self):
-        return self._node.right is not None
-
-
-# AVL-tree useful functions
-#
-def height(node):
-    if node is not None:
-        return node.balance
-    else:
-        return -1
-
-def jsw_single(root, direction):
-    other_side = 1 - direction
-    save = root[other_side]
-    root[other_side] = save[direction]
-    save[direction] = root
-    rlh = height(root.left)
-    rrh = height(root.right)
-    slh = height(save[other_side])
-    root.balance = max(rlh, rrh) + 1
-    save.balance = max(slh, root.balance) + 1
-    return save
-
-def jsw_double(root, direction):
-    other_side = 1 - direction
-    root[other_side] = jsw_single(root[other_side], other_side)
-    return jsw_single(root, direction)
-
-
-class AVLRangeTree(object):
-    """
-    AVLRangeTree implements a special balanced binary tree of contiguous
-    ranges (data structure to manage cluster node ranges).
-
-    In computer science, an AVL tree is a self-balancing binary search tree, and
-    it is the first such data structure to be invented. In an AVL tree, the
-    heights of the two child subtrees of any node differ by at most one;
-    therefore, it is also said to be height-balanced. Lookup, insertion, and
-    deletion all take O(log n) time in both the average and worst cases, where n
-    is the number of nodes in the tree prior to the operation. Insertions and
-    deletions may require the tree to be rebalanced by one or more tree rotations.
-
-    The AVL tree is named after its two inventors, G.M. Adelson-Velskii and E.M.
-    Landis, who published it in their 1962 paper "An algorithm for the
-    organization of information."
-
-    AVLRangeTree() -> new empty tree.
-    """
-    # maxheight of 32 represents more than 10^6 tree nodes
-    MAXSTACK = 32
-
-    def __init__(self):
-        """ x.__init__(...) initializes x; see x.__class__.__doc__ """
-        self._root = None       # root AVLRangeTreeNode instance of the tree
-        self._count = 0         # size of tree
-        self._length = 0        # sum of all ranges
-
-    def __repr__(self):
-        """ x.__repr__(...) <==> repr(x) """
-        # FIXME
-        tpl = "%s({%s})" % (self.__class__.__name__ , '%s')
-        return tpl % ", ".join( ("%d-%d" % (start, stop-1) \
-            for start, stop, pad in self.ranges()) )
-
-    def __len__(self):
-        """ x.__len__() <==> len(x) """
-        return self._length
-
-    def copy(self):
-        """Return a copy of an AVLRangeTree"""
-        cpy = self.__class__()
-        # NOTE: cpy.update() is faster than deepcopy (Python2.6)
-        cpy.update(self)
-        return cpy
-
-    __copy__ = copy # For the copy module
-
-    def nodes(self, reverse=False):
-        """ T.nodes([reverse]) -> an iterator over AVLRangeTreeNode instances
-        of T, in ascending order if reverse is True, iterate in descending
-        order, reverse defaults to False
-        """
-        if self._count > 0:
-            walk = AVLRangeTreeWalker(self)
-            if reverse:
-                direction = 1
-            else:
-                direction = 0
-            other = 1 - direction
-            go_down = True
-            while True:
-                if walk.has_child(direction) and go_down:
-                    walk.push()
-                    walk.down(direction)
-                else:
-                    yield walk.node
-                    if walk.has_child(other):
-                        walk.down(other)
-                        go_down = True
-                    else:
-                        if walk.stack_is_empty():
-                            return # all done
-                        walk.pop()
-                        go_down = False
-
-    def ranges(self, reverse=False):
-        """ T.ranges([reverse]) -> an iterator over the range tuples (start,
-        stop, pad) of T, in ascending order if reverse is True, iterate in
-        descending order, reverse defaults to False
-        """
-        for node in self.nodes(reverse):
-            yield node.start, node.stop, node.pad
-
-    def __getstate__(self):
-        """ T.__getstate__() -> used for pickling """
-        # Pickle ranges as a list
-        state = { '_count': self._count,
-                  '_length': self._length,
-                  '_ranges': list(self.ranges()) }
-        return state
-
-    def __setstate__(self, state):
-        """ T.__setstate__() -> used for pickling """
-        self._root = None
-        self._count = 0
-        self._length = 0
-        for start, stop, pad in state['_ranges']:
-            self.insert_range(start, stop, pad)
-        # sanity check
-        assert self._count == state['_count'], "__setstate__ failed"
-        assert self._length == state['_length'], "__setstate__ failed"
-
-    def __getitem__(self, index):
-        """
-        Return the element at index or a subtree when a slice is specified.
-        For example, the element of index 2 of range tree "1-2,5-7" is 5.
-        """
-        if isinstance(index, slice):
-            inst = self.__class__()
-            sl_start, sl_stop, sl_step = extractslice(index, self._length)
-            if sl_stop <= sl_start:
-                return inst
-            if sl_step == 1:
-                # Use case: range[x:y]
-                offset, slice_offset = 0, 0
-                for start, stop, pad in self.ranges():
-                    cnt = stop - start
-                    if sl_start < offset + cnt:
-                        # once sl_start reached, adjust new range boundaries
-                        maxstart = max(0, sl_start - offset)
-                        minstop = min(maxstart + sl_stop - sl_start - \
-                                      slice_offset, cnt)
-                        inst.insert_range(start + maxstart, start + minstop,
-                                          pad)
-                        # adjust cursor on slice and give up when slice when
-                        # its size is reached
-                        slice_offset += minstop - maxstart
-                        if slice_offset >= sl_stop - sl_start:
-                            break
-                    offset += cnt
-            else:
-                # Python slicing with step > 0. We use a generator over ranges
-                # that should never raise StopIteration here, as we perform
-                # bound checking.
-                rgen = self.ranges()
-                offset = 0
-                for i in range(sl_start, min(sl_stop, self._length), sl_step):
-                    while i >= offset:
-                        start, stop, pad = rgen.next()
-                        offset += stop - start
-                    # i < offset ==> item found
-                    inst.insert_range(stop - offset + i, \
-                                      stop - offset + i + 1, pad)
-            return inst
-        else:
-            # index is an integer (or TypeError will be raised)
-            length = self._length
-            if index < 0:
-                if index >= -length:
-                    index = length - -index
-                else:
-                    raise IndexError, "%d out of range" % index
-            elif index >= length:
-                raise IndexError, "%d out of range" % index
-            offset = 0
-            if index <= length/2:
-                for start, stop, pad in self.ranges(reverse=False):
-                    offset += stop - start
-                    if index < offset:
-                        return stop - offset + index
-            else:
-                # use reverse tree traversal for last items
-                for start, stop, pad in self.ranges(reverse=True):
-                    offset += stop - start
-                    if length - index <= offset:
-                        return start + offset - length + index
-
-    def clear(self):
-        """ T.clear() -> None.  Remove all items from T. """
-        def _clear(node):
-            if node is not None:
-                _clear(node.left)
-                _clear(node.right)
-                self._free_node(node)
-        _clear(self._root)
-        assert self._count == 0
-        assert self._length == 0
-        self._root = None
-
-    @property
-    def count(self):
-        """ count of node items """
-        return self._count
-
-    @property
-    def root(self):
-        """ root node of T """
-        return self._root
-
-    def _new_node(self, start, stop, pad):
-        """ Create a new treenode """
-        node = AVLRangeTreeNode(start, stop, pad)
-        self._count += 1
-        self._length += node.stop - node.start
-        assert self._length > 0
-        return node
-
-    def _free_node(self, node):
-        """ Free a new treenode """
-        # update live counters
-        self._count -= 1
-        self._length -= node.stop - node.start
-        node.free()
-
-    def insert_range(self, start, stop, pad=0):
-        """ T.insert(start, stop) insert range (start, stop) into RangeTree """
-        #print "INSERT_RANGE start=%d stop=%d pad=%d" % (start, stop, pad)
-        node_stack = [] # node stack
-        dir_stack = array('I') # direction stack
-        done = False
-        top = 0
-        merge_direction = None
-        merge_node = None
-        node = self._root
-        while True:
-            if node is None:
-                assert self._root is None
-                self._root = self._new_node(start, stop, pad)
-                return
-            if start >= node.start and stop <= node.stop:
-                return # already in
-            if start <= node.start and stop >= node.stop:
-                self.remove(node)
-                node = self._root
-                continue
-            if start < node.start:
-                direction = 0
-            else:
-                assert stop > node.stop
-                direction = 1
-            if start <= node.stop and stop >= node.start:
-                if merge_node is not None:
-                    if merge_direction:
-                        assert stop >= node.start
-                        orig_stop = node.stop
-                        self.remove(node)
-                        self._length += orig_stop - merge_node.stop
-                        merge_node.stop = orig_stop
-                    else:
-                        assert start <= node.stop
-                        orig_start = node.start
-                        self.remove(node)
-                        self._length += merge_node.start - orig_start
-                        merge_node.start = orig_start
-                    return
-                # merge
-                merge_direction = direction
-                merge_node = node
-            dir_stack.append(direction)
-            node_stack.append(node)
-            if node[direction] is None:
-                break
-            node = node[direction]
-
-        if merge_node is not None:
-            if merge_direction:
-                self._length += stop - merge_node.stop
-                merge_node.stop = stop
-            else:
-                self._length += merge_node.start - start
-                merge_node.start = start
-            return
-
-        # Insert a new node at the bottom of the tree
-        node[direction] = self._new_node(start, stop, pad)
-
-        # Walk back up the search path
-        top = len(node_stack) - 1
-        while (top >= 0) and not done:
-            direction = dir_stack[top]
-            other_side = 1 - direction
-            topnode = node_stack[top]
-            left_height = height(topnode[direction])
-            right_height = height(topnode[other_side])
-
-            # Terminate or rebalance as necessary */
-            if (left_height-right_height == 0):
-                done = True
-            if (left_height-right_height >= 2):
-                a = topnode[direction][direction]
-                b = topnode[direction][other_side]
-
-                if height(a) >= height(b):
-                    node_stack[top] = jsw_single(topnode, other_side)
-                else:
-                    node_stack[top] = jsw_double(topnode, other_side)
-
-                # Fix parent
-                if top != 0:
-                    node_stack[top-1][dir_stack[top-1]] = node_stack[top]
-                else:
-                    self._root = node_stack[0]
-                done = True
-
-            # Update balance factors
-            topnode = node_stack[top]
-            left_height = height(topnode[direction])
-            right_height = height(topnode[other_side])
-
-            topnode.balance = max(left_height, right_height) + 1
-            top -= 1
-            
-    def remove(self, n):
-        """ T.remove(key) <==> del T[key], remove item <key> from tree """
-        if self._root is None:
-            raise KeyError(node)
-        else:
-            node_stack = [None] * AVLRangeTree.MAXSTACK # node stack
-            dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # dir stack
-            top = 0
-            node = self._root
-
-            while True:
-                # Terminate if not found
-                if node is None:
-                    raise KeyError(n)
-                elif node is n:
-                    break
-
-                # Push direction and node onto stack
-                #direction = 0 if n.start < node.start else 1   # py2.5+
-                if n.start < node.start:
-                    direction = 0
-                else:
-                    direction = 1
-                #direction = 1 if n.start >= node.stop else 0
-                dir_stack[top] = direction
-
-                node_stack[top] = node
-                node = node[direction]
-                top += 1
-
-            # Remove tree node
-            if (node.left is None) or (node.right is None):
-                # Which child is not null?
-                #direction = 1 if node.left is None else 0  # py2.5+
-                if node.left is None:
-                    direction = 1
-                else:
-                    direction = 0
-
-                # Fix parent
-                if top != 0:
-                    node_stack[top-1][dir_stack[top-1]] = node[direction]
-                else:
-                    self._root = node[direction]
-                self._free_node(node)
-            else:
-                # Find the inorder successor
-                heir = node.right
-
-                # Save the path
-                dir_stack[top] = 1
-                node_stack[top] = node
-                top += 1
-
-                while (heir.left is not None):
-                    dir_stack[top] = 0
-                    node_stack[top] = heir
-                    top += 1
-                    heir = heir.left
-
-                # Swap data
-                rmlen = node.stop - node.start
-                node.start = heir.start
-                node.stop = heir.stop
-
-                # Unlink successor and fix parent
-                #xdir = 1 if (node_stack[top-1] == node) else 0     #py2.5+
-                if node_stack[top-1] == node:
-                    xdir = 1
-                else:
-                    xdir = 0
-                node_stack[top-1][xdir] = heir.right
-                heir.free()
-                self._length -= rmlen
-                self._count -= 1
-
-            # Walk back up the search path
-            top -= 1
-            while top >= 0:
-                direction = dir_stack[top]
-                other_side = 1 - direction
-                topnode = node_stack[top]
-                left_height = height(topnode[direction])
-                right_height = height(topnode[other_side])
-                b_max = max(left_height, right_height)
-
-                # Update balance factors
-                topnode.balance = b_max + 1
-
-                # Terminate or rebalance as necessary
-                if (left_height - right_height) == -1:
-                    break
-                if (left_height - right_height) <= -2:
-                    a = topnode[other_side][direction]
-                    b = topnode[other_side][other_side]
-                    if height(a) <= height(b):
-                        node_stack[top] = jsw_single(topnode, direction)
-                    else:
-                        node_stack[top] = jsw_double(topnode, direction)
-                    # Fix parent
-                    if top != 0:
-                        node_stack[top-1][dir_stack[top-1]] = node_stack[top]
-                    else:
-                        self._root = node_stack[0]
-                top -= 1
-    
-    def remove_range(self, start, stop, strict=True):
-        """ T.remove(key) <==> del T[key], remove item <key> from tree """
-        if self._root is None:
-            if strict:
-                raise KeyError(start)
-        else:
-            node_stack = [None] * AVLRangeTree.MAXSTACK # node stack
-            dir_stack = array('I', [0] * AVLRangeTree.MAXSTACK) # dir stack
-            top = 0
-            node = self._root
-            restore_ranges = [] # if strict is True, this method restores
-                                # removed ranges in case of KeyError
-            while True:
-                if node is None:    # terminate if not found
-                    if strict:
-                        # restore previously removed ranges
-                        for start, stop, pad in restore_ranges:
-                            self.insert_range(start, stop, pad)
-                        raise KeyError
-                    else:
-                        return
-                if start >= node.start and stop <= node.stop:
-                    break
-                if start <= node.start and stop >= node.stop:
-                    if strict:
-                        restore_ranges.append((node.start, node.stop, node.pad))
-                    self.remove(node)
-                    node = self._root
-                    continue
-                # Get direction and truncate current node if needed
-                elif start < node.start:
-                    direction = 0
-                    if stop > node.start:
-                        if strict:
-                            restore_ranges.append((stop, node.stop, node.pad))
-                        self._length -= node.stop - stop - 1
-                        node.start = stop
-                else:
-                    assert stop > node.stop
-                    direction = 1
-                    if start < node.stop:
-                        if strict:
-                            restore_ranges.append((start, node.stop, node.pad))
-                        self._length -= node.stop - start
-                        node.stop = start
-
-                # Push direction and node onto stack
-                dir_stack[top] = direction
-                node_stack[top] = node
-                node = node[direction]
-                top += 1
-
-            # bounds checking
-            if node.start == start:
-                self._length -= stop - node.start
-                node.start = stop
-                if node.start < node.stop:
-                    return
-            elif node.stop == stop:
-                assert node.stop >= start
-                self._length -= node.stop - start
-                node.stop = start
-                if node.start < node.stop:
-                    return
-            else:
-                # split by reducing first node range and inserting a second one
-                orig_stop = node.stop
-                self._length -= node.stop - start
-                node.stop = start
-                self.insert_range(stop, orig_stop, node.pad)
-                return
-
-            # Emptied tree node range: remove it
-            if (node.left is None) or (node.right is None):
-                # Which child is not null?
-                #direction = 1 if node.left is None else 0  #py2.5+
-                if node.left is None:
-                    direction = 1
-                else:
-                    direction = 0
-
-                # Fix parent
-                if top != 0:
-                    node_stack[top-1][dir_stack[top-1]] = node[direction]
-                else:
-                    self._root = node[direction]
-                self._free_node(node)
-            else:
-                # Find the inorder successor
-                heir = node.right
-
-                # Save the path
-                dir_stack[top] = 1
-                node_stack[top] = node
-                top += 1
-
-                while (heir.left is not None):
-                    dir_stack[top] = 0
-                    node_stack[top] = heir
-                    top += 1
-                    heir = heir.left
-
-                # Swap data
-                rmlen = node.stop - node.start
-                node.start = heir.start
-                node.stop = heir.stop
-
-                # Unlink successor and fix parent
-                #xdir = 1 if (node_stack[top-1] == node) else 0     #py2.5+
-                if node_stack[top-1] == node:
-                    xdir = 1
-                else:
-                    xdir = 0
-                node_stack[top-1][xdir] = heir.right
-                heir.free()
-                self._length -= rmlen
-                self._count -= 1
-
-            # Walk back up the search path
-            top -= 1
-            while top >= 0:
-                direction = dir_stack[top]
-                other_side = 1 - direction
-                topnode = node_stack[top]
-                left_height = height(topnode[direction])
-                right_height = height(topnode[other_side])
-                b_max = max(left_height, right_height)
-
-                # Update balance factors
-                topnode.balance = b_max + 1
-
-                # Terminate or rebalance as necessary
-                if (left_height - right_height) == -1:
-                    break
-                if (left_height - right_height) <= -2:
-                    a = topnode[other_side][direction]
-                    b = topnode[other_side][other_side]
-                    if height(a) <= height(b):
-                        node_stack[top] = jsw_single(topnode, direction)
-                    else:
-                        node_stack[top] = jsw_double(topnode, direction)
-                    # Fix parent
-                    if top != 0:
-                        node_stack[top-1][dir_stack[top-1]] = node_stack[top]
-                    else:
-                        self._root = node_stack[0]
-                top -= 1
-
-    def intersection_update(self, other):
-        """ AVLRangeTree intersection (in-place)"""
-        if self._root is None:
-            return self
-
-        rm_ranges = []
-        new_ranges = []
-        mine = self.nodes()
-        their = other.ranges()
-        node = None
-        try:
-            # walk around both tree nodes
-            node = mine.next()
-            start, stop, pad = node.start, node.stop, node.pad
-            istart, istop, ipad = their.next()
-            while True:
-                if istop <= start:
-                    istart, istop, ipad = their.next()
-                    continue
-                elif istart >= stop:
-                    if node:
-                        rm_ranges.append((node.start, node.stop))
-                    node = None
-                    node = mine.next()
-                    start, stop, pad = node.start, node.stop, node.pad
-                    continue
-                if node:
-                    if istart > start:
-                        self._length -= istart - start
-                    if stop > istop:
-                        self._length -= stop - istop
-                    node.start = max(start, istart)
-                    node.stop = min(stop, istop)
-                    node = None
-                else:
-                    new_ranges.append((max(start, istart), min(stop, istop), \
-                                      pad or ipad))
-                if stop > istop:
-                    start = istop
-                    istart, istop, ipad = their.next()
-                else:
-                    node = None
-                    node = mine.next() 
-                    start, stop, pad = node.start, node.stop, node.pad
-        except StopIteration:
-            pass
-
-        # if ranges are remaining in ...
-        try:
-            if node is None:
-                node = mine.next()
-                start, stop = node.start, node.stop
-            while True:
-                rm_ranges.append((node.start, node.stop))
-                node = mine.next()
-                start, stop = node.start, node.stop
-        except StopIteration:
-            pass
-
-        for start, stop in rm_ranges:
-            self.remove_range(start, stop)
-
-        for start, stop, pad in new_ranges:
-            self.insert_range(start, stop, pad)
-
-        return self
-
-    def dot(self):
-        def rfmt(x, y):
-            if y - x == 1:
-                return "%s" % x
-            else:
-                return "%s-%s" % (x, y - 1)
-        rstr = ""
-        if self._count == 0:
-            return
-        walk = AVLRangeTreeWalker(self)
-        direction = 0
-        other = 1 - direction
-        go_down = True
-        while True:
-            if walk.has_child(direction) and go_down:
-                walk.push()
-                walk.down(direction)
-            else:
-                if walk.has_left():
-                    rstr += "\"%s\" -> \"%s\";\n" % \
-                        (rfmt(walk.node.start, walk.stop), \
-                         rfmt(walk._node[0].start, walk._node[0].stop))
-                if walk.has_right():
-                    rstr += "\"%s\" -> \"%s\";\n" % \
-                        (rfmt(walk.start, walk.stop), \
-                         rfmt(walk._node[1].start, walk._node[1].stop))
-
-                if walk.has_child(other):
-                    walk.down(other)
-                    go_down = True
-                else:
-                    if walk.stack_is_empty():
-                        return rstr # all done
-                    walk.pop()
-                    go_down = False
-
-    def __contains__(self, elem):
-        """ Is element contained in any ranges? Allowed types for elem are
-        integer (no padding check) or string (padding check), otherwise
-        TypeError is raised.
-        Complexity: O(log n)"""
-        if type(elem) is str:
-            pad = 0
-            # support str type with padding support, eg. `"003" in rangeset'
-            if int(elem) != 0:
-                selem = elem.lstrip("0")
-                if len(elem) - len(selem) > 0:
-                    pad = len(elem)
-                ielem = int(selem)
-            else:
-                if len(elem) > 1:
-                    pad = len(elem)
-                ielem = 0
-        else:
-            pad = -1
-            ielem = int(elem)
-        # perform AVL-tree item lookup in O(log n)
-        node = self._root
-        while node:
-            if node.start <= ielem < node.stop:
-                # element found: perform padding check if needed
-                return (pad == -1 or pad == node.pad or \
-                    (pad == 0 and len(str(elem)) >= node.pad))
-            node = node[1 - int(ielem < node.start)]
-            # py2.5+ -> node = node[0 if ielem < node.start else 1]
-        return False
-
-    def issubset(self, other):
-        """Report whether another AVLRangeTree contains this tree."""
-        try:
-            mine = self.ranges()
-            their = other.ranges()
-            # walk around both tree nodes
-            start, stop, pad = mine.next()
-            istart, istop, ipad = their.next()
-            while True:
-                try:
-                    # when disjoint, skip needed loop
-                    if istop <= start:
-                        istart, istop, ipad = their.next()
-                        continue
-                    elif istart >= stop:
-                        return False
-                    elif start < istart or stop > istop:
-                        return False
-                    elif pad != ipad:
-                        return False    # padding do not match
-                except StopIteration:
-                    return False # we have more range => not a subset
-                start, stop, pad = mine.next()
-        except StopIteration:
-            return True
-        
-    def issuperset(self, other):
-        """Report whether this AVLRangeTree contains another tree."""
-        return other.issubset(self)
-
-    def update(self, other):
-        """Update an AVLRangeTree (in-place union)"""
-        if self is not other:
-            for start, stop, pad in other.ranges():
-                self.insert_range(start, stop, pad)
-        
-    def difference_update(self, other, strict=False):
-        """Remove ranges found in other AVLRangeTree. If strict is True, raise
-        KeyError if an element cannot be removed."""
-        if self is other:
-            self.clear()
-        elif strict:
-            # self copy needed for strict difference_update() because we don't
-            # want self to be modified at all if KeyError is raised
-            cpy = self.copy()
-            for start, stop, pad in other.ranges():
-                cpy.remove_range(start, stop, strict)
-            self._root = cpy._root
-            self._length = cpy._length
-            self._count = cpy._count
-        else:
-            for start, stop, pad in other.ranges():
-                self.remove_range(start, stop, strict)
-        
-    def symmetric_difference(self, other):
-        """Return the symmetric difference of two AVLRangeTree as a new
-        AVLRangeTree (not in-place)."""
-        xtree = self.__class__()
-        try:
-            mine = self.ranges()
-            their = other.ranges()
-            # walk around both tree nodes
-            start, stop, pad = mine.next()
-            istart, istop, ipad = their.next()
-            cursor = min(start, istart)
-            while True:
-                try:
-                    if istop <= start:
-                        if cursor < istop:
-                            xtree.insert_range(cursor, istop, ipad)
-                        cursor = max(start, istop)
-                        istart, istop, ipad = their.next()
-                        cursor = min(istart, max(cursor, start))
-                        continue
-                    elif istart >= stop:
-                        if cursor < stop:
-                            xtree.insert_range(cursor, stop, pad)
-                    else:
-                        maxstart = max(istart, start)
-                        if cursor < maxstart:
-                            xtree.insert_range(cursor, maxstart, pad)
-                        if stop < istop:
-                            cursor = stop
-                        else:
-                            cursor = istop
-                            istart, istop, ipad = their.next()
-                            if stop == cursor:
-                                cursor = istart
-                            continue
-                except StopIteration:
-                    # their stops
-                    try:
-                        while True:
-                            if stop > cursor:
-                                xtree.insert_range(cursor, stop, pad)
-                            cursor, stop, pad = mine.next()
-                    except StopIteration:
-                        return xtree
-                start, stop, pad = mine.next()
-                cursor = min(start, max(cursor, istart))
-                if cursor < min(start, istop):
-                    xtree.insert_range(cursor, min(start, istop), pad)
-                    cursor = min(start, istop)
-        except StopIteration:
-            # mine stops
-            try:
-                while True:
-                    if istop > cursor:
-                        xtree.insert_range(cursor, istop, ipad)
-                    cursor, istop, ipad = their.next()
-            except StopIteration:
-                pass
-            return xtree
-        
-        
-
 class RangeSetException(Exception):
     """Base RangeSet exception class."""
 
@@ -1049,106 +105,131 @@ class RangeSetPaddingError(RangeSetParseError):
         RangeSetParseError.__init__(self, part, "padding mismatch (%s)" % msg)
 
 
-class RangeSet(object):
+class RangeSet(set):
     """
-    Advanced range sets.
+    Mutable set of cluster node indexes featuring a fast range-based API.
+    
+    This class aims to ease the management of potentially large cluster range
+    sets and is used by the NodeSet class.
 
-    RangeSet creation examples:
+    RangeSet basic constructors:
        >>> rset = RangeSet()            # empty RangeSet
        >>> rset = RangeSet("5,10-42")   # contains 5, 10 to 42
        >>> rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
-     
-    Also, RangeSet provides methods like update(), intersection_update()
-    or difference_update(), which conform to the Python Set API.
 
-    Latest version of this class uses an AVL self-balancing binary search tree
-    to manage internal ranges (instead of a sorted list in ClusterShell 1.5 or
-    less).  Thus, basic lookup, add and remove operations have a worst case
-    time complexity of O(log k) with k = number of internal ranges.
+    Since v1.6, any iterable of integers can be specified as first argument:
+       >>> RangeSet([3, 6, 8, 7, 1])
+       1,3,6-8
+       >>> rset2 = RangeSet(rset)
+
+    Padding of ranges (eg. "003-009") can be managed through a public RangeSet
+    instance variable named padding. It may be changed at any time. Since v1.6,
+    padding is a simple display feature per RangeSet object, thus current
+    padding value is not taken into account when computing set operations.
+    Since v1.6, RangeSet is itself an iterator over its items as integers
+    (instead of strings). To iterate over string items as before (with
+    optional padding), you can now use the RangeSet.striter() method.
+
+    RangeSet provides methods like union(), intersection(), difference(),
+    symmetric_difference() and their in-place versions update(),
+    intersection_update(), difference_update(),
+    symmetric_difference_update() which conform to the Python Set API.
     """
     _VERSION = 3    # serial version number
 
+    # define __new__() to workaround built-in set subclassing with Python 2.4
+    def __new__(cls, pattern=None, autostep=None):
+        """Object constructor"""
+        return set.__new__(cls)
+        
     def __init__(self, pattern=None, autostep=None):
-        """
-        Initialize RangeSet with optional string pattern and autostep
+        """Initialize RangeSet with optional string pattern and autostep
         threshold.
         """
-        self._autostep = None
+        if pattern is None or isinstance(pattern, str):
+            set.__init__(self)
+        else:
+            set.__init__(self, pattern)
+
+        if isinstance(pattern, RangeSet):
+            self._autostep = pattern._autostep
+            self.padding = pattern.padding
+        else:
+            self._autostep = None
+            self.padding = None
         self.autostep = autostep
-        self._rngtree = AVLRangeTree()
 
-        if pattern is not None:
+        if isinstance(pattern, str):
+            self._parse(pattern)
 
-            # Comma separated ranges
-            if pattern.find(',') < 0:
-                subranges = [pattern]
+    def _parse(self, pattern):
+        """Parse string of comma-separated x-y/step -like ranges"""
+        # Comma separated ranges
+        if pattern.find(',') < 0:
+            subranges = [pattern]
+        else:
+            subranges = pattern.split(',')
+
+        for subrange in subranges:
+            if subrange.find('/') < 0:
+                step = 1
+                baserange = subrange
             else:
-                subranges = pattern.split(',')
+                baserange, step = subrange.split('/', 1)
 
-            for subrange in subranges:
-                if subrange.find('/') < 0:
-                    step = 1
-                    baserange = subrange
+            try:
+                step = int(step)
+            except ValueError:
+                raise RangeSetParseError(subrange,
+                        "cannot convert string to integer")
+
+            if baserange.find('-') < 0:
+                if step != 1:
+                    raise RangeSetParseError(subrange,
+                            "invalid step usage")
+                begin = end = baserange
+            else:
+                begin, end = baserange.split('-', 1)
+
+            # compute padding and return node range info tuple
+            try:
+                pad = 0
+                if int(begin) != 0:
+                    begins = begin.lstrip("0")
+                    if len(begin) - len(begins) > 0:
+                        pad = len(begin)
+                    start = int(begins)
                 else:
-                    baserange, step = subrange.split('/', 1)
-
-                try:
-                    step = int(step)
-                except ValueError:
-                    raise RangeSetParseError(subrange,
-                            "cannot convert string to integer")
-
-                if baserange.find('-') < 0:
-                    if step != 1:
-                        raise RangeSetParseError(subrange,
-                                "invalid step usage")
-                    begin = end = baserange
+                    if len(begin) > 1:
+                        pad = len(begin)
+                    start = 0
+                if int(end) != 0:
+                    ends = end.lstrip("0")
                 else:
-                    begin, end = baserange.split('-', 1)
+                    ends = end
+                stop = int(ends)
+            except ValueError:
+                raise RangeSetParseError(subrange,
+                        "cannot convert string to integer")
 
-                # compute padding and return node range info tuple
-                try:
-                    pad = 0
-                    if int(begin) != 0:
-                        begins = begin.lstrip("0")
-                        if len(begin) - len(begins) > 0:
-                            pad = len(begin)
-                        start = int(begins)
-                    else:
-                        if len(begin) > 1:
-                            pad = len(begin)
-                        start = 0
-                    if int(end) != 0:
-                        ends = end.lstrip("0")
-                    else:
-                        ends = end
-                    stop = int(ends)
-                except ValueError:
-                    raise RangeSetParseError(subrange,
-                            "cannot convert string to integer")
+            # check preconditions
+            if start > stop or step < 1:
+                raise RangeSetParseError(subrange,
+                                         "invalid values in range")
 
-                # check preconditions
-                if start > stop or step < 1:
-                    raise RangeSetParseError(subrange,
-                                             "invalid values in range")
-
-                self.add_range(start, stop + 1, step, pad)
+            self.add_range(start, stop + 1, step, pad)
         
     @classmethod
     def fromlist(cls, rnglist, autostep=None):
-        """
-        Class method that returns a new RangeSet with ranges from
-        provided list.
-        """
+        """Class method that returns a new RangeSet with ranges from provided
+        list."""
         inst = RangeSet(autostep=autostep)
         inst.updaten(rnglist)
         return inst
 
     @classmethod
     def fromone(cls, index, pad=0, autostep=None):
-        """
-        Class method that returns a new RangeSet of one single item.
-        """
+        """Class method that returns a new RangeSet of one single item."""
         inst = RangeSet(autostep=autostep)
         inst.add(index, pad)
         return inst
@@ -1170,14 +251,27 @@ class RangeSet(object):
             self._autostep = int(val) - 1
 
     autostep = property(get_autostep, set_autostep)
+    
+    def _sorted(self):
+        """Get sorted list from inner set."""
+        return sorted(set.__iter__(self))
 
     def __iter__(self):
-        """
-        Iterate over each item in RangeSet.
-        """
-        for start, stop, pad in self._rngtree.ranges():
-            for i in range(start, stop):
-                yield "%0*d" % (pad, i)
+        """Iterate over each element in RangeSet."""
+        return iter(self._sorted())
+
+    def striter(self):
+        """Iterate over each (optionally padded) string element in RangeSet."""
+        pad = self.padding or 0
+        for i in self._sorted():
+            yield "%0*d" % (pad, i)
+
+    def __reduce__(self):
+        """Return state information for pickling."""
+        return self.__class__, (str(self),), \
+            { 'padding': self.padding, \
+              '_autostep': self._autostep, \
+              '_version' : RangeSet._VERSION }
 
     def __getstate__(self):
         """called upon pickling"""
@@ -1205,7 +299,6 @@ class RangeSet(object):
                 self._ranges = [(slice(start, stop, step), pad) \
                                 for (start, stop, step), pad in self._ranges]
             # convert to v3
-            self._rngtree = AVLRangeTree()
             for sli, pad in self._ranges:
                 self.add_range(sli.start, sli.stop, sli.step, pad)
             delattr(self, '_ranges')
@@ -1213,90 +306,55 @@ class RangeSet(object):
         else:
             # version 3+
             assert getattr(self, '_version', 0) >= RangeSet._VERSION
-            assert hasattr(self, '_rngtree')
 
-    def __len__(self):
-        """
-        Get the number of items in RangeSet.
-        """
-        return len(self._rngtree)
-
-    @property
-    def rangecount(self):
-        """Get the number of integer ranges in RangeSet (O(1))"""
-        return self._rngtree.count
-
-    def _str_step(self, ranges):
-        """Stringify list `ranges' with x-y/step format support"""
-        cnt = 0
-        res = ""
-        for sli, pad in ranges: 
-            if cnt > 0:
-                res += ","
+    def _strslices(self):
+        """Stringify slices list (x-y/step format)"""
+        pad = self.padding or 0
+        for sli in self.slices():
             if sli.start + 1 == sli.stop:
-                res += "%0*d" % (pad, sli.start)
+                yield "%0*d" % (pad, sli.start)
             else:
                 assert sli.step >= 0, "Internal error: sli.step < 0"
                 if sli.step == 1:
-                    res += "%0*d-%0*d" % (pad, sli.start, pad, sli.stop - 1)
+                    yield "%0*d-%0*d" % (pad, sli.start, pad, sli.stop - 1)
                 else:
-                    res += "%0*d-%0*d/%d" % (pad, sli.start, pad,
-                                             sli.stop - 1, sli.step)
-            cnt += sli.stop - sli.start
-        return res
+                    yield "%0*d-%0*d/%d" % (pad, sli.start, pad, sli.stop - 1, \
+                                            sli.step)
         
     def __str__(self):
-        """
-        Get range-based string.
-        """
-        # TODO: combine with slices()
-        if self._autostep < 1E100:
-            return self._str_step(self._folded_slices())
-        else:
-            res = []
-            for start, stop, pad in self._rngtree.ranges():
-                if start + 1 == stop:
-                    res.append("%0*d" % (pad, start))
-                else:
-                    res.append("%0*d-%0*d" % (pad, start, pad, stop - 1))
-            return ",".join(res)
+        """Get comma-separated range-based string (x-y/step format)."""
+        return ','.join(self._strslices())
 
     # __repr__ is the same as __str__ as it is a valid expression that
     # could be used to recreate a RangeSet with the same value
     __repr__ = __str__
 
-    def copy(self):
-        """Return a copy of a RangeSet."""
-        cpy = self.__class__()
-        cpy._autostep = self._autostep
-        cpy._rngtree = self._rngtree.copy()
-        return cpy
-
-    __copy__ = copy # For the copy module
-
-    def __contains__(self, obj):
-        """
-        Is object contained in RangeSet? Object can be either another
-        RangeSet object, a string with optional padding (eg. "002") or an
-        integer (obviously, no padding check is performed for integer).
-        """
-        if isinstance(obj, self.__class__):
-            return obj._rngtree.issubset(self._rngtree)
-
-        return obj in self._rngtree
+    def _contiguous_slices(self):
+        k = j = None
+        for i in self._sorted():
+            if k is None:
+                k = j = i
+            if i - j > 1:
+                yield slice(k, j + 1, 1)
+                k = i
+            j = i
+        if k is not None:
+            yield slice(k, j + 1, 1)
 
     def _folded_slices(self):
         """
         Internal generator that is able to retrieve ranges organized by step.
         Complexity: O(n) with n = number of ranges in tree.
         """
-        if self._rngtree.count == 0:
+        if len(self) == 0:
             return
 
         prng = None         # pending range
         istart = None       # processing starting indice
         m = 0               # processing step
-        for start, stop, pad in self._rngtree.ranges():
+        for sli in self._contiguous_slices():
+            start = sli.start
+            stop = sli.stop
             unitary = (start + 1 == stop)   # one indice?
             if istart is None:  # first loop
                 if unitary:
@@ -1309,9 +367,9 @@ class RangeSet(object):
                 if not unitary:
                     if prng is not None:
                         # yield and replace pending range
-                        yield slice(*prng), pad
+                        yield slice(*prng)
                     else:
-                        yield slice(istart, istart + 1, 1), pad
+                        yield slice(istart, istart + 1, 1)
                     prng = [start, stop, 1]
                     istart = k = stop - 1
                     continue
@@ -1331,17 +389,17 @@ class RangeSet(object):
                             prng[1] -= 1
                         else:
                             istart += m
-                        yield slice(*prng), pad
+                        yield slice(*prng)
                         prng = None
                 if m != i - k:
                     # case: step value has changed
                     if stepped:
-                        yield slice(istart, k + 1, m), pad
+                        yield slice(istart, k + 1, m)
                     else:
                         for j in range(istart, k - m + 1, m):
-                            yield slice(j, j + 1, 1), pad
+                            yield slice(j, j + 1, 1)
                         if not unitary:
-                            yield slice(k, k + 1, 1), pad
+                            yield slice(k, k + 1, 1)
                     if unitary:
                         if stepped:
                             istart = i = k = start
@@ -1354,12 +412,12 @@ class RangeSet(object):
                     # case: broken step by contiguous range
                     if stepped:
                         # yield 'range/m' by taking first indice of new range
-                        yield slice(istart, i + 1, m), pad
+                        yield slice(istart, i + 1, m)
                         i += 1
                     else:
                         # autostep setting does not apply in that case
                         for j in range(istart, i - m + 1, m):
-                            yield slice(j, j + 1, 1), pad
+                            yield slice(j, j + 1, 1)
                     if stop > i + 1:    # current->pending only if not unitary
                         prng = [i, stop, 1]
                     istart = i = k = stop - 1
@@ -1368,9 +426,9 @@ class RangeSet(object):
         # exited loop, process pending range or indice...
         if m == 0:
             if prng:
-                yield slice(*prng), pad
+                yield slice(*prng)
             else:
-                yield slice(istart, istart + 1, 1), pad
+                yield slice(istart, istart + 1, 1)
         else:
             assert m > 0
             stepped = (k - istart >= self._autostep * m)
@@ -1379,103 +437,36 @@ class RangeSet(object):
                     prng[1] -= 1
                 else:
                     istart += m
-                yield slice(*prng), pad
+                yield slice(*prng)
                 prng = None
             if stepped:
-                yield slice(istart, i + 1, m), pad
+                yield slice(istart, i + 1, m)
             else:
                 for j in range(istart, i + 1, m):
-                    yield slice(j, j + 1, 1), pad
+                    yield slice(j, j + 1, 1)
 
-    def _native_slices(self):
-        """Get slices without step conversion feature."""
-        for start, stop, pad in self._rngtree.ranges():
-            yield slice(start, stop, 1), pad
-
-    def slices(self, padding=True):
+    def slices(self):
         """
         Iterate over RangeSet ranges as Python slice objects.
-
-        If padding is True, make an interator that returns 2-length
-        tuples, the first argument being a Python slice object
-        corresponding to the range and the second being the range's
-        padding length information.
-        If padding is False, make an iterator that returns Python slice
-        objects without padding information, which can be convenient
-        for numerical manipulation.
         """
         # return an iterator
         if self._autostep >= 1E100:
-            slices_func = self._native_slices
+            return self._contiguous_slices()
         else:
-            slices_func = self._folded_slices
-
-        if padding:
-            return slices_func()
-        else:
-            return imap(itemgetter(0), slices_func())
-
-    def _binary_sanity_check(self, other):
-        # check that the other argument to a binary operation is also
-        # a RangeSet, raising a TypeError otherwise.
-        if not isinstance(other, RangeSet):
-            raise TypeError, "Binary operation only permitted between RangeSets"
-
-    def issubset(self, rangeset):
-        """
-        Report whether another rangeset contains this rangeset.
-        """
-        self._binary_sanity_check(rangeset)
-        return self._rngtree.issubset(rangeset._rngtree)
-
-    def issuperset(self, rangeset):
-        """
-        Report whether this rangeset contains another rangeset.
-        """
-        self._binary_sanity_check(rangeset)
-        return self._rngtree.issuperset(rangeset._rngtree)
-
-    def __eq__(self, other):
-        """
-        RangeSet equality comparison.
-        """
-        # Return NotImplemented instead of raising TypeError, to
-        # indicate that the comparison is not implemented with respect
-        # to the other type (the other comparand then gets a change to
-        # determine the result, then it falls back to object address
-        # comparison).
-        if not isinstance(other, RangeSet):
-            return NotImplemented
-        return len(self) == len(other) and self.issubset(other)
-
-    # inequality comparisons using the is-subset relation
-    __le__ = issubset
-    __ge__ = issuperset
-
-    def __lt__(self, other):
-        """
-        x.__lt__(y) <==> x<y
-        """
-        self._binary_sanity_check(other)
-        return len(self) < len(other) and self.issubset(other)
-
-    def __gt__(self, other):
-        """
-        x.__gt__(y) <==> x>y
-        """
-        self._binary_sanity_check(other)
-        return len(self) > len(other) and self.issuperset(other)
+            return self._folded_slices()
 
     def __getitem__(self, index):
         """
         Return the element at index or a subrange when a slice is specified.
         """
         if isinstance(index, slice):
-            inst = RangeSet(autostep=self._autostep + 1)
-            inst._rngtree = self._rngtree[index]
+            inst = RangeSet()
+            inst._autostep = self._autostep
+            inst.padding = self.padding
+            inst.update(self._sorted()[index])
             return inst
         elif isinstance(index, int):
-            return self._rngtree.__getitem__(index)
+            return self._sorted()[index]
         else:
             raise TypeError, \
                 "%s indices must be integers" % self.__class__.__name__
@@ -1515,195 +506,266 @@ class RangeSet(object):
         assert pad >= 0
         assert stop - start < 1e9, "range too large"
 
-        if step > 1:
-            for i in range(start, stop, step):
-                self._rngtree.insert_range(i, i+1, pad)
-        else:
-            self._rngtree.insert_range(start, stop, pad)
+        if pad > 0 and self.padding is None:
+            self.padding = pad
+        set.update(self, range(start, stop, step))
 
-    def union(self, other):
+    def copy(self):
+        """Return a shallow copy of a RangeSet."""
+        cpy = self.__class__()
+        cpy._autostep = self._autostep
+        cpy.padding = self.padding
+        cpy.update(self)
+        return cpy
+
+    __copy__ = copy # For the copy module
+
+    def __eq__(self, other):
         """
-        s.union(t) returns a new rangeset with elements from both s and t.
+        RangeSet equality comparison.
         """
-        self_copy = self.copy()
-        self_copy.update(other)
-        return self_copy
+        # Return NotImplemented instead of raising TypeError, to
+        # indicate that the comparison is not implemented with respect
+        # to the other type (the other comparand then gets a change to
+        # determine the result, then it falls back to object address
+        # comparison).
+        if not isinstance(other, RangeSet):
+            return NotImplemented
+        return len(self) == len(other) and self.issubset(other)
+
+    # Standard set operations: union, intersection, both differences.
+    # Each has an operator version (e.g. __or__, invoked with |) and a
+    # method version (e.g. union).
+    # Subtle:  Each pair requires distinct code so that the outcome is
+    # correct when the type of other isn't suitable.  For example, if
+    # we did "union = __or__" instead, then Set().union(3) would return
+    # NotImplemented instead of raising TypeError (albeit that *why* it
+    # raises TypeError as-is is also a bit subtle).
+
+    def _wrap_set_op(self, fun, arg):
+        """Wrap built-in set operations for RangeSet to workaround built-in set
+        base class issues (RangeSet.__new/init__ not called)"""
+        result = fun(self, arg)
+        result._autostep = self._autostep
+        result.padding = self.padding
+        return result
 
     def __or__(self, other):
+        """Return the union of two RangeSets as a new RangeSet.
+
+        (I.e. all elements that are in either set.)
         """
-        Implements the | operator. So s | t returns a new rangeset with
-        elements from both s and t.
-        """
-        if not isinstance(other, RangeSet):
+        if not isinstance(other, set):
             return NotImplemented
         return self.union(other)
 
-    def add(self, elem, pad=0):
-        """
-        Add element to RangeSet.
-        """
-        self.add_range(elem, elem + 1, 1, pad)
+    def union(self, other):
+        """Return the union of two RangeSets as a new RangeSet.
 
-    def update(self, rangeset):
+        (I.e. all elements that are in either set.)
         """
-        Update a rangeset with the union of itself and another.
+        return self._wrap_set_op(set.union, other)
+
+    def __and__(self, other):
+        """Return the intersection of two RangeSets as a new RangeSet.
+
+        (I.e. all elements that are in both sets.)
         """
-        # XXX test if rangeset is a list?
-        self._rngtree.update(rangeset._rngtree)
+        if not isinstance(other, set):
+            return NotImplemented
+        return self.intersection(other)
+
+    def intersection(self, other):
+        """Return the intersection of two RangeSets as a new RangeSet.
+
+        (I.e. all elements that are in both sets.)
+        """
+        return self._wrap_set_op(set.intersection, other)
+
+    def __xor__(self, other):
+        """Return the symmetric difference of two RangeSets as a new RangeSet.
+
+        (I.e. all elements that are in exactly one of the sets.)
+        """
+        if not isinstance(other, set):
+            return NotImplemented
+        return self.symmetric_difference(other)
+
+    def symmetric_difference(self, other):
+        """Return the symmetric difference of two RangeSets as a new RangeSet.
+        
+        (ie. all elements that are in exactly one of the sets.)
+        """
+        return self._wrap_set_op(set.symmetric_difference, other)
+
+    def  __sub__(self, other):
+        """Return the difference of two RangeSets as a new RangeSet.
+
+        (I.e. all elements that are in this set and not in the other.)
+        """
+        if not isinstance(other, set):
+            return NotImplemented
+        return self.difference(other)
+
+    def difference(self, other):
+        """Return the difference of two RangeSets as a new RangeSet.
+
+        (I.e. all elements that are in this set and not in the other.)
+        """
+        return self._wrap_set_op(set.difference, other)
+
+    # Membership test
+
+    def __contains__(self, element):
+        """Report whether an element is a member of a RangeSet.
+        Element can be either another RangeSet object, a string or an
+        integer.
+
+        (Called in response to the expression `element in self'.)
+        """
+        if isinstance(element, set):
+            return element.issubset(self)
+
+        return set.__contains__(self, int(element))
+
+    # Subset and superset test
+
+    def issubset(self, other):
+        """Report whether another set contains this RangeSet."""
+        self._binary_sanity_check(other)
+        return set.issubset(self, other)
+
+    def issuperset(self, other):
+        """Report whether this RangeSet contains another set."""
+        self._binary_sanity_check(other)
+        return set.issuperset(self, other)
+
+    # Inequality comparisons using the is-subset relation.
+    __le__ = issubset
+    __ge__ = issuperset
+
+    def __lt__(self, other):
+        self._binary_sanity_check(other)
+        return len(self) < len(other) and self.issubset(other)
+
+    def __gt__(self, other):
+        self._binary_sanity_check(other)
+        return len(self) > len(other) and self.issuperset(other)
+
+    # Assorted helpers
+
+    def _binary_sanity_check(self, other):
+        # Check that the other argument to a binary operation is also
+        # a set, raising a TypeError otherwise.
+        if not isinstance(other, set):
+            raise TypeError, "Binary operation only permitted between sets"
+
+    # In-place union, intersection, differences.
+    # Subtle:  The xyz_update() functions deliberately return None,
+    # as do all mutating operations on built-in container types.
+    # The __xyz__ spellings have to return self, though.
+    
+    def __ior__(self, other):
+        """Update a RangeSet with the union of itself and another."""
+        self._binary_sanity_check(other)
+        set.__ior__(self, other)
+        return self
+
+    def union_update(self, other):
+        """Update a RangeSet with the union of itself and another."""
+        self.update(other)
+
+    def __iand__(self, other):
+        """Update a RangeSet with the intersection of itself and another."""
+        self._binary_sanity_check(other)
+        set.__iand__(self, other)
+        return self
+
+    def intersection_update(self, other):
+        """Update a RangeSet with the intersection of itself and another."""
+        set.intersection_update(self, other)
+
+    def __ixor__(self, other):
+        """Update a RangeSet with the symmetric difference of itself and
+        another."""
+        self._binary_sanity_check(other)
+        set.symmetric_difference_update(self, other)
+        return self
+
+    def symmetric_difference_update(self, other):
+        """Update a RangeSet with the symmetric difference of itself and
+        another."""
+        set.symmetric_difference_update(self, other)
+        
+    def __isub__(self, other):
+        """Remove all elements of another set from this RangeSet."""
+        self._binary_sanity_check(other)
+        set.difference_update(self, other)
+        return self
+
+    def difference_update(self, other, strict=False):
+        """Remove all elements of another set from this RangeSet.
+        
+        If strict is True, raise KeyError if an element cannot be removed.
+        (strict is a RangeSet addition)"""
+        if strict and other not in self:
+            raise KeyError(other.difference(self)[0])
+        set.difference_update(self, other)
+
+    # Python dict-like mass mutations: update, clear
+
+    def update(self, iterable):
+        """Add all integers from an iterable (such as a list)."""
+        if isinstance(iterable, RangeSet):
+            # keep padding unless is has not been defined yet
+            if self.padding is None and iterable.padding is not None:
+                self.padding = iterable.padding
+        assert type(iterable) is not str
+        set.update(self, iterable)
 
     def updaten(self, rangesets):
         """
         Update a rangeset with the union of itself and several others.
         """
-        # XXX deprecated?
         for rng in rangesets:
-            if isinstance(rng, RangeSet):
+            if isinstance(rng, set):
                 self.update(rng)
             else:
                 self.update(RangeSet(rng))
             # py2.5+
-            #self.update(rng if isinstance(rng, RangeSet) else RangeSet(rng))
+            #self.update(rng if isinstance(rng, set) else RangeSet(rng))
 
     def clear(self):
-        """
-        Remove all ranges from this rangeset.
-        """
-        self._rngtree.clear()
+        """Remove all elements from this RangeSet."""
+        set.clear(self)
+        self.padding = None
 
-    def __ior__(self, other):
-        """
-        Implements the |= operator. So s |= t returns rangeset s with
-        elements added from t. (Python version 2.5+ required)
-        """
-        self._binary_sanity_check(other)
-        self.update(other)
-        return self
+    # Single-element mutations: add, remove, discard
 
-    def intersection(self, rangeset):
+    def add(self, element, pad=0):
+        """Add an element to a RangeSet.
+        This has no effect if the element is already present.
         """
-        s.intersection(t) returns a new rangeset with elements common
-        to s and t.
-        """
-        self_copy = self.copy()
-        self_copy.intersection_update(rangeset)
-        return self_copy
+        set.add(self, int(element))
+        if pad > 0 and self.padding is None:
+            self.padding = pad
 
-    def __and__(self, other):
-        """
-        Implements the & operator. So s & t returns a new rangeset with
-        elements common to s and t.
-        """
-        if not isinstance(other, RangeSet):
-            return NotImplemented
-        return self.intersection(other)
-
-    def intersection_update(self, rangeset):
-        """
-        Intersection with provided RangeSet.
-        """
-        self._rngtree.intersection_update(rangeset._rngtree)
-
-    def __iand__(self, other):
-        """
-        Implements the &= operator. So s &= t returns rangeset s keeping
-        only elements also found in t. (Python version 2.5+ required)
-        """
-        self._binary_sanity_check(other)
-        self.intersection_update(other)
-        return self
-
-    def difference(self, rangeset):
-        """
-        s.difference(t) returns a new rangeset with elements in s but
-        not in t.
-        in t.
-        """
-        self_copy = self.copy()
-        self_copy.difference_update(rangeset)
-        return self_copy
-
-    def __sub__(self, other):
-        """
-        Implement the - operator. So s - t returns a new rangeset with
-        elements in s but not in t.
-        """
-        if not isinstance(other, RangeSet):
-            return NotImplemented
-        return self.difference(other)
-
-    def difference_update(self, rangeset, strict=False):
-        """
-        s.difference_update(t) returns rangeset s after removing
-        elements found in t. If strict is True, raise KeyError
-        if an element cannot be removed.
-        """
-        self._rngtree.difference_update(rangeset._rngtree, strict)
-
-    def __isub__(self, other):
-        """
-        Implement the -= operator. So s -= t returns rangeset s after
-        removing elements found in t. (Python version 2.5+ required)
-        """
-        self._binary_sanity_check(other)
-        self.difference_update(other)
-        return self
-
-    def remove(self, elem):
-        """
-        Remove element elem from the RangeSet. Raise KeyError if elem
-        is not contained in the RangeSet.
-        """
-        try:
-            i = int(elem)
-            self._rngtree.remove_range(i, i + 1)
-        except ValueError:
-            raise KeyError, elem
-
-    def discard(self, elem):
-        """
-        Remove element elem from the RangeSet. Raise KeyError if elem
-        is not contained in the RangeSet.
-        """
-        try:
-            i = int(elem)
-            self._rngtree.remove_range(i, i + 1)
-        except (KeyError, ValueError):
-            pass
-
-    def symmetric_difference(self, other):
-        """
-        s.symmetric_difference(t) returns the symmetric difference of
-        two rangesets as a new RangeSet.
+    def remove(self, element):
+        """Remove an element from a RangeSet; it must be a member.
         
-        (ie. all elements that are in exactly one of the rangesets.)
+        Raise KeyError if element is not contained in RangeSet.
+        Raise ValueError if element is not castable to integer.
         """
-        inst = RangeSet(autostep=self._autostep + 1)
-        inst._rngtree = self._rngtree.symmetric_difference(other._rngtree)
-        return inst
+        set.remove(self, int(element))
 
-    def __xor__(self, other):
-        """
-        Implement the ^ operator. So s ^ t returns a new rangeset with
-        elements that are in exactly one of the rangesets.
-        """
-        if not isinstance(other, RangeSet):
-            return NotImplemented
-        return self.symmetric_difference(other)
+    def discard(self, element):
+        """Remove element from the RangeSet if it is a member.
 
-    def symmetric_difference_update(self, rangeset):
+        If the element is not a member, do nothing.
         """
-        s.symmetric_difference_update(t) returns rangeset s keeping all
-        elements that are in exactly one of the rangesets.
-        """
-        self._rngtree = self._rngtree.symmetric_difference(rangeset._rngtree)
-
-    def __ixor__(self, other):
-        """
-        Implement the ^= operator. So s ^= t returns rangeset s after
-        keeping all elements that are in exactly one of the rangesets.
-        (Python version 2.5+ required)
-        """
-        self._binary_sanity_check(other)
-        self.symmetric_difference_update(other)
-        return self
+        try:
+            i = int(element)
+            set.discard(self, i)
+        except ValueError:
+            pass # ignore other object types
 

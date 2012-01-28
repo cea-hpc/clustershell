@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -205,13 +205,13 @@ def nodeset():
 
     if options.slice_rangeset:
         _xset = class_set()
-        for sli in RangeSet(options.slice_rangeset).slices(False):
+        for sli in RangeSet(options.slice_rangeset).slices():
             _xset.update(xset[sli])
         xset = _xset
 
     # Display result according to command choice
     if options.expand:
-        xsubres = separator.join
+        xsubres = lambda x: separator.join(x.striter())
     elif options.fold:
         xsubres = lambda x: x
     elif options.regroup:

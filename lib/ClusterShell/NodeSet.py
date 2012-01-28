@@ -118,9 +118,9 @@ class NodeSetBase(object):
         """
         for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
-                for sli, pad in rangeset.slices():
-                    for idx in xrange(sli.start, sli.stop, sli.step):
-                        yield pat, idx, pad
+                pad = rangeset.padding or 0
+                for idx in rangeset._sorted():
+                    yield pat, idx, pad
             else:
                 yield pat, None, None
 
@@ -144,6 +144,9 @@ class NodeSetBase(object):
                 yield pat % ("%0*d" % (pad, start))
             else:
                 yield pat
+
+    # define striter() alias for convenience (to match RangeSet.striter())
+    striter = __iter__
 
     def __len__(self):
         """
