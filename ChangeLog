@@ -1,3 +1,21 @@
+2012-01-28 S. Thiell <stephane.thiell@cea.fr>
+
+	* RangeSet.py: Discard AVL-tree based implementation, as we noticed that
+	built-in set is much faster. New implementation is based on built-in set,
+	and slightly changes padding and __iter__() behaviors. Padding value is
+	now accessible and settable at any time via a public variable "padding".
+	Auto-detection of padding is still available, but it is used as a
+	convenience for printing range sets. Moreover, all set-like operations are
+	now only based on integers, ignoring RangeSet's padding value. __iter__()
+	has been changed in order to iterate over sorted inner set integers,
+	instead of string items. A new method striter() is available to iterate
+	over string padding-enabled items. These changes allow us to offer a full
+	set-like API for RangeSet (new methods like isdisjoint(), pop(), etc. are
+	available according to your Python version). Also, a new constructor that
+	take any iterable of integers is available. Finally, this implementation
+	should much more faster than all previous ones, especially for large range
+	sets (ten thousand and more) with lots of holes.
+
 2012-01-10 S. Thiell <stephane.thiell@cea.fr>
 
 	* RangeSet.py: Move RangeSet class from NodeSet.py to this new module

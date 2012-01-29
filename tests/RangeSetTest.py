@@ -378,8 +378,10 @@ class RangeSetTest(unittest.TestCase):
         self.assertTrue(r2.issubset(r1))
         self.assertTrue(r2 <= r1)
         self.assertTrue(r2 < r1)
+        self.assertFalse(r1 > r2)
         self.assertFalse(r1 < r2)
         self.assertFalse(r1 <= r2)
+        self.assertFalse(r2 >= r1)
         # since v1.6, padding is ignored when computing set operations
         r1 = RangeSet("1-100")
         r2 = RangeSet("001-100")
@@ -571,6 +573,30 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r1[240], 800)
         r1.add(812)
         self.assertEqual(len(r1), 243)
+        # test forced padding
+        r1 = RangeSet("1-100,102,105-242,800")
+        r1.add(801, pad=3)
+        self.assertEqual(len(r1), 241)
+        self.assertEqual(str(r1), "001-100,102,105-242,800-801")
+        r1.padding = 4
+        self.assertEqual(len(r1), 241)
+        self.assertEqual(str(r1), "0001-0100,0102,0105-0242,0800-0801")
+
+    def testUpdate(self):
+        """test RangeSet.update()"""
+        r1 = RangeSet("1-100,102,105-242,800")
+        self.assertEqual(len(r1), 240)
+        r2 = RangeSet("243-799,1924-1984")
+        self.assertEqual(len(r2), 618)
+        r1.update(r2)
+        self.assertEqual(type(r1), RangeSet)
+        self.assertEqual(r1.padding, None)
+        self.assertEqual(len(r1), 240+618) 
+        self.assertEqual(str(r1), "1-100,102,105-800,1924-1984")
+        r1 = RangeSet("1-100,102,105-242,800")
+        r1.union_update(r2)
+        self.assertEqual(len(r1), 240+618) 
+        self.assertEqual(str(r1), "1-100,102,105-800,1924-1984")
 
     def testUnion(self):
         """test RangeSet.union()"""
@@ -629,6 +655,25 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 0)
         self.assertEqual(str(r1), "")
     
+    def testConstructorIterate(self):
+        """test RangeSet(iterable) constructor"""
+        # from list
+        rgs = RangeSet([3,5,6,7,8,1])
+        self.assertEqual(str(rgs), "1,3,5-8")
+        self.assertEqual(len(rgs), 6)
+        rgs.add(10)
+        self.assertEqual(str(rgs), "1,3,5-8,10")
+        self.assertEqual(len(rgs), 7)
+        # from set
+        rgs = RangeSet(set([3,5,6,7,8,1]))
+        self.assertEqual(str(rgs), "1,3,5-8")
+        self.assertEqual(len(rgs), 6)
+        # from RangeSet
+        r1 = RangeSet("1,3,5-8")
+        rgs = RangeSet(r1)
+        self.assertEqual(str(rgs), "1,3,5-8")
+        self.assertEqual(len(rgs), 6)
+
     def testFromListConstructor(self):
         """test RangeSet.fromlist() constructor"""
         rgs = RangeSet.fromlist([ "3", "5-8", "1" ])
@@ -910,6 +955,41 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "")
 
 
+class RangeSetTest25(unittest.TestCase):
+
+    def test_ior(self):
+        r1 = RangeSet("1,3-9,14-21,30-39,42")
+        r2 = RangeSet("2-5,10-32,35,40-41")
+        r1 |= r2
+        self.assertEqual(len(r1), 42)
+        self.assertEqual(str(r1), "1-42")
+
+    def test_iand(self):
+        r1 = RangeSet("1,3-9,14-21,30-39,42")
+        r2 = RangeSet("2-5,10-32,35,40-41")
+        r1 &= r2
+        self.assertEqual(len(r1), 15)
+        self.assertEqual(str(r1), "3-5,14-21,30-32,35")
+
+    def test_ixor(self):
+        r1 = RangeSet("1,3-9,14-21,30-39,42")
+        r2 = RangeSet("2-5,10-32,35,40-41")
+        r1 ^= r2
+        self.assertEqual(len(r1), 27)
+        self.assertEqual(str(r1), "1-2,6-13,22-29,33-34,36-42")
+
+    def test_isub(self):
+        r1 = RangeSet("1,3-9,14-21,30-39,42")
+        r2 = RangeSet("2-5,10-32,35,40-41")
+        r1 -= r2
+        self.assertEqual(len(r1), 12)
+        self.assertEqual(str(r1), "1,6-9,33-34,36-39,42")
+
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
+    if sys.version_info >= (2, 5, 0):
+        suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest25)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+        

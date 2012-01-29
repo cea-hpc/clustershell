@@ -51,42 +51,6 @@ __all__ = ['RangeSetException',
            'RangeSet']
 
 
-def extractslice(index, length):
-    """RangeSet/NodeSet private utility function: extract slice parameters
-    from slice object `index` for an list-like object of size `length`."""
-    if index.start is None:
-        sl_start = 0
-    elif index.start < 0:
-        sl_start = max(0, length + index.start)
-    else:
-        sl_start = index.start
-    if index.stop is None:
-        sl_stop = sys.maxint
-    elif index.stop < 0:
-        sl_stop = max(0, length + index.stop)
-    else:
-        sl_stop = index.stop
-    if index.step is None:
-        sl_step = 1
-    elif index.step < 0:
-        # We support negative step slicing with no start/stop, ie. r[::-n].
-        if index.start is not None or index.stop is not None:
-            raise IndexError, \
-                "illegal start and stop when negative step is used"
-        # As RangeSet elements are ordered internally, adjust sl_start
-        # to fake backward stepping in case of negative slice step.
-        stepmod = (length + -index.step - 1) % -index.step
-        if stepmod > 0:
-            sl_start += stepmod
-        sl_step = -index.step
-    else:
-        sl_step = index.step
-    if not isinstance(sl_start, int) or not isinstance(sl_stop, int) \
-        or not isinstance(sl_step, int):
-        raise TypeError, "slice indices must be integers"
-    return sl_start, sl_stop, sl_step
-
-
 class RangeSetException(Exception):
     """Base RangeSet exception class."""
 
@@ -272,19 +236,6 @@ class RangeSet(set):
             { 'padding': self.padding, \
               '_autostep': self._autostep, \
               '_version' : RangeSet._VERSION }
-
-    def __getstate__(self):
-        """called upon pickling"""
-        odict = self.__dict__.copy()
-        # pickle includes current serial version
-        odict['_version'] = RangeSet._VERSION
-        # workaround for pickling object from Python < 2.5
-        if sys.version_info < (2, 5, 0):
-            # Python 2.4 can't pickle slice objects
-            odict['_length'] = len(self)
-            odict['_ranges'] = [((sli.start, sli.stop, sli.step), pad) \
-                                    for sli, pad in self.slices()]
-        return odict
 
     def __setstate__(self, dic):
         """called upon unpickling"""

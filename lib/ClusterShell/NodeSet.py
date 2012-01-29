@@ -66,8 +66,7 @@ import re
 import sys
 
 import ClusterShell.NodeUtils as NodeUtils
-from ClusterShell.RangeSet import RangeSetException, RangeSetParseError, \
-    RangeSetPaddingError, RangeSet, extractslice
+from ClusterShell.RangeSet import *
 
 
 # Define default GroupResolver object used by NodeSet
@@ -259,6 +258,42 @@ class NodeSetBase(object):
         self._binary_sanity_check(other)
         return len(self) > len(other) and self.issuperset(other)
 
+    def _extractslice(self, index):
+        """RangeSet/NodeSet private utility function: extract slice parameters
+        from slice object `index` for an list-like object of size `length`."""
+        length = len(self)
+        if index.start is None:
+            sl_start = 0
+        elif index.start < 0:
+            sl_start = max(0, length + index.start)
+        else:
+            sl_start = index.start
+        if index.stop is None:
+            sl_stop = sys.maxint
+        elif index.stop < 0:
+            sl_stop = max(0, length + index.stop)
+        else:
+            sl_stop = index.stop
+        if index.step is None:
+            sl_step = 1
+        elif index.step < 0:
+            # We support negative step slicing with no start/stop, ie. r[::-n].
+            if index.start is not None or index.stop is not None:
+                raise IndexError, \
+                    "illegal start and stop when negative step is used"
+            # As RangeSet elements are ordered internally, adjust sl_start
+            # to fake backward stepping in case of negative slice step.
+            stepmod = (length + -index.step - 1) % -index.step
+            if stepmod > 0:
+                sl_start += stepmod
+            sl_step = -index.step
+        else:
+            sl_step = index.step
+        if not isinstance(sl_start, int) or not isinstance(sl_stop, int) \
+            or not isinstance(sl_step, int):
+            raise TypeError, "slice indices must be integers"
+        return sl_start, sl_stop, sl_step
+
     def __getitem__(self, index):
         """
         Return the node at specified index or a subnodeset when a slice is
@@ -266,7 +301,7 @@ class NodeSetBase(object):
         """
         if isinstance(index, slice):
             inst = NodeSetBase()
-            sl_start, sl_stop, sl_step = extractslice(index, len(self))
+            sl_start, sl_stop, sl_step = self._extractslice(self, index)
             sl_next = sl_start
             if sl_stop <= sl_next:
                 return inst
