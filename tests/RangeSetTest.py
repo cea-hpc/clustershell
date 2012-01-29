@@ -954,10 +954,8 @@ class RangeSetTest(unittest.TestCase):
         r1 = RangeSet(autostep=3)
         self.assertEqual(str(r1), "")
 
-
-class RangeSetTest25(unittest.TestCase):
-
     def test_ior(self):
+        """test RangeSet.__ior__()"""
         r1 = RangeSet("1,3-9,14-21,30-39,42")
         r2 = RangeSet("2-5,10-32,35,40-41")
         r1 |= r2
@@ -965,6 +963,7 @@ class RangeSetTest25(unittest.TestCase):
         self.assertEqual(str(r1), "1-42")
 
     def test_iand(self):
+        """test RangeSet.__iand__()"""
         r1 = RangeSet("1,3-9,14-21,30-39,42")
         r2 = RangeSet("2-5,10-32,35,40-41")
         r1 &= r2
@@ -972,6 +971,7 @@ class RangeSetTest25(unittest.TestCase):
         self.assertEqual(str(r1), "3-5,14-21,30-32,35")
 
     def test_ixor(self):
+        """test RangeSet.__ixor__()"""
         r1 = RangeSet("1,3-9,14-21,30-39,42")
         r2 = RangeSet("2-5,10-32,35,40-41")
         r1 ^= r2
@@ -979,6 +979,7 @@ class RangeSetTest25(unittest.TestCase):
         self.assertEqual(str(r1), "1-2,6-13,22-29,33-34,36-42")
 
     def test_isub(self):
+        """test RangeSet.__isub__()"""
         r1 = RangeSet("1,3-9,14-21,30-39,42")
         r2 = RangeSet("2-5,10-32,35,40-41")
         r1 -= r2
@@ -989,7 +990,4 @@ class RangeSetTest25(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    if sys.version_info >= (2, 5, 0):
-        suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest25)
-        unittest.TextTestRunner(verbosity=2).run(suite)
         

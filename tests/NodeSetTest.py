@@ -13,7 +13,8 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.NodeSet import RangeSet, NodeSet, NodeSetBase, fold, expand
+from ClusterShell.NodeSet import RangeSet, NodeSet, fold, expand
+from ClusterShell.NodeSet import NodeGroupBase, NodeSetBase
 
 
 class NodeSetTest(unittest.TestCase):
@@ -54,6 +55,14 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet.fromlist([ "cluster0", "cluster1", "cluster2", "cluster5", "cluster8", "cluster4", "cluster3" ])
         self.assertEqual(str(nodeset), "cluster[0-5,8]")
         self.assertEqual(len(nodeset), 7)
+        # updaten() test
+        nodeset.updaten(["cluster10", "cluster9"])
+        self.assertEqual(str(nodeset), "cluster[0-5,8-10]")
+        self.assertEqual(len(nodeset), 9)
+        # single nodes test
+        nodeset = NodeSet.fromlist([ "cluster0", "cluster1", "cluster", "wool", "cluster3" ])
+        self.assertEqual(str(nodeset), "cluster,cluster[0-1,3],wool")
+        self.assertEqual(len(nodeset), 5)
 
     def testDigitInPrefix(self):
         """test NodeSet digit in prefix"""
@@ -461,6 +470,12 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet(nsstr)
         nodeset.intersection_update(NodeSet("red55,red76"))
         self.assertEqual(str(nodeset), "red[55,76]")
+
+        # single nodes test
+        nodeset = NodeSet("red,blue,yellow")
+        nodeset.intersection_update("blue,green,yellow")
+        self.assertEqual(len(nodeset), 2)
+        self.assertEqual(str(nodeset), "blue,yellow")
 
     def testIntersectSelf(self):
         """test Nodeset.intersection_update(self)"""
@@ -1268,6 +1283,13 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nsb), "foo[1-100,200]bar")
         self.assertEqual(len(nsbcpy), 102)
         self.assertEqual(str(nsbcpy), "foo[1-100,200-201]bar")
+
+    def testNodeGroupBase(self):
+        """test underlying NodeGroupBase class"""
+        ngb = NodeGroupBase("@group")
+        self.assertEqual(len(ngb), 1)
+        self.assertEqual(str(ngb), "@group")
+        self.assertRaises(ValueError, NodeGroupBase, "badgroup")
 
 
 if __name__ == '__main__':

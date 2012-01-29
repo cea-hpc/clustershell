@@ -171,7 +171,7 @@ class RangeSet(set):
                         "cannot convert string to integer")
 
             # check preconditions
-            if start > stop or step < 1:
+            if stop > 1e100 or start > stop or step < 1:
                 raise RangeSetParseError(subrange,
                                          "invalid values in range")
 

@@ -49,6 +49,7 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova[004-002]", NodeSetParseRangeError)
         self._testNS("nova[3-59/2,102a]", NodeSetParseRangeError)
         self._testNS("nova[3-59/2,,102]", NodeSetParseRangeError)
+        self._testNS("nova%s" % ("3" * 101), NodeSetParseRangeError)
 
     def testBadUsages(self):
         """test NodeSet other parse errors"""
