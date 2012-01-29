@@ -477,7 +477,7 @@ map: echo @local:foo
 class NodeSetGroup2GSTest(unittest.TestCase):
 
     def setUp(self):
-        """configure simple STD_GROUP_RESOLVER"""
+        """configure simple RESOLVER_STD_GROUP"""
 
         # create temporary groups file and keep a reference to avoid file closing
         self.test_groups1 = makeTestG1()
@@ -496,12 +496,12 @@ class NodeSetGroup2GSTest(unittest.TestCase):
                               "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % self.test_groups2.name,
                               None)
 
-        ClusterShell.NodeSet.STD_GROUP_RESOLVER = GroupResolver(default)
-        ClusterShell.NodeSet.STD_GROUP_RESOLVER.add_source(source2)
+        ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolver(default)
+        ClusterShell.NodeSet.RESOLVER_STD_GROUP.add_source(source2)
 
     def tearDown(self):
-        """restore default STD_GROUP_RESOLVER"""
-        ClusterShell.NodeSet.STD_GROUP_RESOLVER = ClusterShell.NodeSet.DEF_STD_GROUP_RESOLVER
+        """restore default RESOLVER_STD_GROUP"""
+        ClusterShell.NodeSet.RESOLVER_STD_GROUP = ClusterShell.NodeSet.DEF_RESOLVER_STD_GROUP
         del self.test_groups1
         del self.test_groups2
 
@@ -520,7 +520,7 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
     def testGroupListDefault(self):
         """test NodeSet group listing GroupResolver.grouplist()"""
-        groups = ClusterShell.NodeSet.STD_GROUP_RESOLVER.grouplist()
+        groups = ClusterShell.NodeSet.RESOLVER_STD_GROUP.grouplist()
         self.assertEqual(len(groups), 20)
         helper_groups = grouplist()
         self.assertEqual(len(helper_groups), 20)
@@ -538,7 +538,7 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
     def testGroupListSource2(self):
         """test NodeSet group listing GroupResolver.grouplist(source)"""
-        groups = ClusterShell.NodeSet.STD_GROUP_RESOLVER.grouplist("source2")
+        groups = ClusterShell.NodeSet.RESOLVER_STD_GROUP.grouplist("source2")
         self.assertEqual(len(groups), 2)
         total = 0
         for group in groups:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -44,7 +44,7 @@ from itertools import imap
 import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
-from ClusterShell.NodeSet import STD_GROUP_RESOLVER
+from ClusterShell.NodeSet import RESOLVER_STD_GROUP
 
 from ClusterShell.CLI.Display import Display
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
@@ -138,7 +138,7 @@ def clubak():
             tree.add(key, '\n'.join(wholemsg))
 
     if options.debug:
-        STD_GROUP_RESOLVER.set_verbosity(1)
+        RESOLVER_STD_GROUP.set_verbosity(1)
         print >> sys.stderr, "clubak: line_mode=%s gather=%s tree_depth=%d" % \
             (bool(options.line_mode), bool(options.gather), tree._depth())
 

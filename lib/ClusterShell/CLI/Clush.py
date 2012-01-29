@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -63,7 +63,7 @@ from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
-from ClusterShell.NodeSet import NOGROUP_RESOLVER, STD_GROUP_RESOLVER
+from ClusterShell.NodeSet import RESOLVER_NOGROUP, RESOLVER_STD_GROUP
 from ClusterShell.NodeSet import NodeSetParseError
 from ClusterShell.Task import Task, task_self
 
@@ -699,7 +699,7 @@ def main(args=sys.argv):
 
     if options.groupsource:
         # Be sure -a/g -s source work as espected.
-        STD_GROUP_RESOLVER.default_sourcename = options.groupsource
+        RESOLVER_STD_GROUP.default_sourcename = options.groupsource
 
     # FIXME: add public API to enforce engine
     Task._std_default['engine'] = options.engine
@@ -708,7 +708,7 @@ def main(args=sys.argv):
     task = task_self()
     task.set_info("debug", config.verbosity > 1)
     if config.verbosity == VERB_DEBUG:
-        STD_GROUP_RESOLVER.set_verbosity(1)
+        RESOLVER_STD_GROUP.set_verbosity(1)
     if options.nodes_all:
         all_nodeset = NodeSet.fromall()
         display.vprint(VERB_DEBUG, "Adding nodes from option -a: %s" % \
@@ -717,7 +717,7 @@ def main(args=sys.argv):
 
     if options.group:
         grp_nodeset = NodeSet.fromlist(options.group,
-                                       resolver=NOGROUP_RESOLVER)
+                                       resolver=RESOLVER_NOGROUP)
         for grp in grp_nodeset:
             addingrp = NodeSet("@" + grp)
             display.vprint(VERB_DEBUG, \
@@ -726,7 +726,7 @@ def main(args=sys.argv):
 
     if options.exgroup:
         grp_nodeset = NodeSet.fromlist(options.exgroup,
-                                       resolver=NOGROUP_RESOLVER)
+                                       resolver=RESOLVER_NOGROUP)
         for grp in grp_nodeset:
             removingrp = NodeSet("@" + grp)
             display.vprint(VERB_DEBUG, \

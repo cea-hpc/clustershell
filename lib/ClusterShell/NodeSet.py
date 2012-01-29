@@ -72,8 +72,18 @@ from ClusterShell.RangeSet import RangeSet, RangeSetParseError
 
 # Define default GroupResolver object used by NodeSet
 DEF_GROUPS_CONFIG = "/etc/clustershell/groups.conf"
-DEF_STD_GROUP_RESOLVER = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG)
-STD_GROUP_RESOLVER = DEF_STD_GROUP_RESOLVER
+DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG)
+# Standard group resolver
+RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
+# Special constants for NodeSet's resolver parameter
+#   RESOLVER_NOGROUP => avoid any group resolution at all
+#   RESOLVER_NOINIT  => reserved use for optimized copy()
+RESOLVER_NOGROUP = -1
+RESOLVER_NOINIT  = -2
+
+# 1.5 compat (deprecated)
+#RESOLVER_STD_GROUP = STD_GROUP_RESOLVER
+#NOGROUP_RESOLVER = RESOLVER_NOGROUP
 
 
 class NodeSetException(Exception):
@@ -837,13 +847,6 @@ class ParsingEngine(object):
                     yield op_code, pfx, None
 
 
-# Special constants for NodeSet's resolver parameter
-#   RESOLVER_NOGROUP => avoid any group resolution at all
-#   RESOLVER_NOINIT  => reserved use for optimized copy()
-RESOLVER_NOGROUP = -1
-RESOLVER_NOINIT  = -2
-
-
 class NodeSet(NodeSetBase):
     """
     Iterable class of nodes with node ranges support.
@@ -892,7 +895,7 @@ class NodeSet(NodeSetBase):
         if resolver in (RESOLVER_NOGROUP, RESOLVER_NOINIT):
             self._resolver = None
         else:
-            self._resolver = resolver or STD_GROUP_RESOLVER
+            self._resolver = resolver or RESOLVER_STD_GROUP
 
         # Initialize default parser.
         if resolver == RESOLVER_NOINIT:
@@ -1176,7 +1179,7 @@ def grouplist(namespace=None):
     Commodity function that retrieves the list of groups for a specified
     group namespace (or use default namespace).
     """
-    return STD_GROUP_RESOLVER.grouplist(namespace)
+    return RESOLVER_STD_GROUP.grouplist(namespace)
 
 
 # doctest
