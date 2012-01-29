@@ -13,7 +13,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.NodeSet import NodeSet, fold, expand
+from ClusterShell.NodeSet import RangeSet, NodeSet, NodeSetBase, fold, expand
 
 
 class NodeSetTest(unittest.TestCase):
@@ -1251,6 +1251,23 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodeset[0], "foo1")
         self.assertEqual(nodeset[1], "foo2")
         self.assertEqual(nodeset[-1], "foo100")
+
+    def testNodeSetBase(self):
+        """test underlying NodeSetBase class"""
+        rset = RangeSet("1-100,200")
+        self.assertEqual(len(rset), 101)
+        nsb = NodeSetBase("foo%sbar", rset) 
+        self.assertEqual(len(nsb), len(rset))
+        self.assertEqual(str(nsb), "foo[1-100,200]bar")
+        nsbcpy = nsb.copy()
+        self.assertEqual(len(nsbcpy), 101)
+        self.assertEqual(str(nsbcpy), "foo[1-100,200]bar")
+        other = NodeSetBase("foo%sbar", RangeSet("201"))
+        nsbcpy.add(other)
+        self.assertEqual(len(nsb), 101)
+        self.assertEqual(str(nsb), "foo[1-100,200]bar")
+        self.assertEqual(len(nsbcpy), 102)
+        self.assertEqual(str(nsbcpy), "foo[1-100,200-201]bar")
 
 
 if __name__ == '__main__':
