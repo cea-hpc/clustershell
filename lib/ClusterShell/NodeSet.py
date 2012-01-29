@@ -60,13 +60,11 @@ Usage example
   [...]
 """
 
-from itertools import imap
-from operator import itemgetter
 import re
 import sys
 
 import ClusterShell.NodeUtils as NodeUtils
-from ClusterShell.RangeSet import *
+from ClusterShell.RangeSet import RangeSet, RangeSetParseError
 
 
 # Define default GroupResolver object used by NodeSet
@@ -259,8 +257,8 @@ class NodeSetBase(object):
         return len(self) > len(other) and self.issuperset(other)
 
     def _extractslice(self, index):
-        """RangeSet/NodeSet private utility function: extract slice parameters
-        from slice object `index` for an list-like object of size `length`."""
+        """Private utility function: extract slice parameters from slice object
+        `index` for an list-like object of size `length`."""
         length = len(self)
         if index.start is None:
             sl_start = 0

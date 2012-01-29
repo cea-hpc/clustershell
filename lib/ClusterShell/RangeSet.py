@@ -39,12 +39,6 @@ Instances of RangeSet provide similar operations than the builtin set type,
 extended to support cluster ranges-like format and stepping support ("0-8/2").
 """
 
-
-from array import array
-from itertools import imap
-from operator import itemgetter
-import sys
-
 __all__ = ['RangeSetException',
            'RangeSetParseError',
            'RangeSetPaddingError',
@@ -199,12 +193,14 @@ class RangeSet(set):
         return inst
 
     def get_autostep(self):
+        """Get autostep value (property)"""
         if self._autostep >= 1E100:
             return None
         else:
             return self._autostep + 1
 
     def set_autostep(self, val):
+        """Set autostep value (property)"""
         if val is None:
             # disabled by default for pdsh compat (+inf is 1E400, but a bug in
             # python 2.4 makes it impossible to be pickled, so we use less)
@@ -242,15 +238,16 @@ class RangeSet(set):
         self.__dict__.update(dic)
         # unpickle from old version?
         if getattr(self, '_version', 0) < RangeSet._VERSION:
-            self._ranges = [(slice(start, stop + 1, step), pad) \
-                                for start, stop, step, pad in self._ranges]
+            setattr(self, '_ranges', [(slice(start, stop + 1, step), pad) \
+                for start, stop, step, pad in getattr(self, '_ranges')])
         elif hasattr(self, '_ranges'):
-            if self._ranges and type(self._ranges[0][0]) is not slice:
+            self_ranges = getattr(self, '_ranges')
+            if self_ranges and type(self_ranges[0][0]) is not slice:
                 # workaround for object pickled from Python < 2.5
-                self._ranges = [(slice(start, stop, step), pad) \
-                                for (start, stop, step), pad in self._ranges]
+                setattr(self, '_ranges', [(slice(start, stop, step), pad) \
+                    for (start, stop, step), pad in self_ranges])
             # convert to v3
-            for sli, pad in self._ranges:
+            for sli, pad in self_ranges:
                 self.add_range(sli.start, sli.stop, sli.step, pad)
             delattr(self, '_ranges')
             delattr(self, '_length')
@@ -281,6 +278,7 @@ class RangeSet(set):
     __repr__ = __str__
 
     def _contiguous_slices(self):
+        """Internal iterator over contiguous slices in RangeSet."""
         k = j = None
         for i in self._sorted():
             if k is None:
@@ -293,10 +291,8 @@ class RangeSet(set):
             yield slice(k, j + 1, 1)
 
     def _folded_slices(self):
-        """
-        Internal generator that is able to retrieve ranges organized by step.
-        Complexity: O(n) with n = number of ranges in tree.
-        """
+        """Internal generator that is able to retrieve ranges organized by step.
+        Complexity: O(n) with n = number of ranges in tree."""
         if len(self) == 0:
             return
 
@@ -606,8 +602,8 @@ class RangeSet(set):
     # Assorted helpers
 
     def _binary_sanity_check(self, other):
-        # Check that the other argument to a binary operation is also
-        # a set, raising a TypeError otherwise.
+        """Check that the other argument to a binary operation is also  a set,
+        raising a TypeError otherwise."""
         if not isinstance(other, set):
             raise TypeError, "Binary operation only permitted between sets"
 
