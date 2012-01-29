@@ -1219,6 +1219,9 @@ class NodeSetTest(unittest.TestCase):
         nodeset2 = nodeset.copy()
         nodeset3 = nodeset.copy()
         self.assertEqual(nodeset, nodeset2) # content equality
+        self.assertTrue(isinstance(nodeset, NodeSet))
+        self.assertTrue(isinstance(nodeset2, NodeSet))
+        self.assertTrue(isinstance(nodeset3, NodeSet))
         nodeset2.remove("glycine68")
         self.assertEqual(len(nodeset), len(nodeset2) + 1)
         self.assertNotEqual(nodeset, nodeset2)

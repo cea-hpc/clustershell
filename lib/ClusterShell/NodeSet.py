@@ -50,14 +50,17 @@ Usage example
   >>> # Add cluster32 to nodeset
   ... nodeset.update("cluster32")
   >>> # Remove from nodeset
-  ... nodeset.difference_update("cluster[2-5]")
+  ... nodeset.difference_update("cluster[2-5,8-31]")
   >>> # Print nodeset as a pdsh-like pattern
   ... print nodeset
-  cluster[1,6-30,32]
+  cluster[1,6-7,32]
   >>> # Iterate over node names in nodeset
   ... for node in nodeset:
   ...     print node
-  [...]
+  cluster1
+  cluster6
+  cluster7
+  cluster32
 """
 
 import re
@@ -164,33 +167,28 @@ class NodeSetBase(object):
         result = ""
         for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
-                s = str(rangeset)
+                rgs = str(rangeset)
                 cnt = len(rangeset)
                 if cnt > 1:
-                    s = "[" + s + "]"
-                result += pat % s
+                    rgs = "[" + rgs + "]"
+                result += pat % rgs
             else:
                 result += pat
             result += ","
         return result[:-1]
 
     def copy(self):
-        """Return a copy of a NodeSet."""
-        result = self.__class__()
-        result._length = self._length
-        result._autostep = self._autostep
+        """Return a shallow copy."""
+        cpy = self.__class__()
+        cpy._length = self._length
         dic = {}
         for pat, rangeset in self._patterns.iteritems():
             if rangeset is None:
                 dic[pat] = None
             else:
                 dic[pat] = rangeset.copy()
-        result._patterns = dic
-        result._resolver = self._resolver
-        result._parser = self._parser
-        return result
-
-    __copy__ = copy # For the copy module
+        cpy._patterns = dic
+        return cpy
 
     def __contains__(self, other):
         """
@@ -299,7 +297,7 @@ class NodeSetBase(object):
         """
         if isinstance(index, slice):
             inst = NodeSetBase()
-            sl_start, sl_stop, sl_step = self._extractslice(self, index)
+            sl_start, sl_stop, sl_step = self._extractslice(index)
             sl_next = sl_start
             if sl_stop <= sl_next:
                 return inst
@@ -495,11 +493,10 @@ class NodeSetBase(object):
         for pat, irangeset in other._patterns.iteritems():
             rangeset = self._patterns.get(pat)
             if rangeset:
-                rs = rangeset.copy()
-                rs.intersection_update(irangeset)
+                irset = rangeset.intersection(irangeset)
                 # ignore pattern if empty rangeset
-                if len(rs) > 0:
-                    tmp_ns._add(pat, rs)
+                if len(irset) > 0:
+                    tmp_ns._add(pat, irset)
             elif not irangeset and pat in self._patterns:
                 # intersect two nodes with no rangeset
                 tmp_ns._add(pat, None)
@@ -648,8 +645,7 @@ class NodeSetBase(object):
 
 
 class NodeGroupBase(NodeSetBase):
-    """
-    """
+    """NodeGroupBase aims to ease node group names management."""
     def _add(self, pat, rangeset):
         """
         Add groups from a (pat, rangeset) tuple. `pat' may be an existing
@@ -799,8 +795,8 @@ class ParsingEngine(object):
                 # Process comma-separated ranges
                 try:
                     rset = RangeSet(rng, autostep)
-                except RangeSetParseError, e:
-                    raise NodeSetParseRangeError(e)
+                except RangeSetParseError, ex:
+                    raise NodeSetParseRangeError(ex)
 
                 yield op_code, "%s%%s%s" % (pfx, sfx), rset
             else:
@@ -819,10 +815,10 @@ class ParsingEngine(object):
                     raise NodeSetParseError(pat, "empty node name")
 
                 # single node parsing
-                mo = self.single_node_re.match(node)
-                if not mo:
+                mobj = self.single_node_re.match(node)
+                if not mobj:
                     raise NodeSetParseError(pat, "parse error")
-                pfx, idx, sfx = mo.groups()
+                pfx, idx, sfx = mobj.groups()
                 pfx, sfx = pfx or "", sfx or ""
 
                 # pfx+sfx cannot be empty
@@ -832,18 +828,20 @@ class ParsingEngine(object):
                 if idx:
                     try:
                         rset = RangeSet(idx, autostep)
-                    except RangeSetParseError, e:
-                        raise NodeSetParseRangeError(e)
-                    p = "%s%%s%s" % (pfx, sfx)
-                    yield op_code, p, rset
+                    except RangeSetParseError, ex:
+                        raise NodeSetParseRangeError(ex)
+                    newpat = "%s%%s%s" % (pfx, sfx)
+                    yield op_code, newpat, rset
                 else:
                     # undefined pad means no node index
                     yield op_code, pfx, None
 
 
-# Special constant for NodeSet's resolver parameter to avoid any group
-# resolution at all.
-NOGROUP_RESOLVER = -1
+# Special constants for NodeSet's resolver parameter
+#   RESOLVER_NOGROUP => avoid any group resolution at all
+#   RESOLVER_NOINIT  => reserved use for optimized copy()
+RESOLVER_NOGROUP = -1
+RESOLVER_NOINIT  = -2
 
 
 class NodeSet(NodeSetBase):
@@ -863,7 +861,10 @@ class NodeSet(NodeSetBase):
     so strict for convenience, and understands NodeSet instance or
     NodeSet string as argument. Also, there is no strict definition of
     one element, for example, it IS allowed to do:
+        >>> nodeset = NodeSet("blue[1-50]")
         >>> nodeset.remove("blue[36-40]")
+        >>> print nodeset
+        blue[1-35,41-50]
 
     Additionally, the NodeSet class recognizes the "extended string
     pattern" which adds support for union (special character ","),
@@ -888,14 +889,17 @@ class NodeSet(NodeSetBase):
         self._autostep = autostep
 
         # Set group resolver.
-        self._resolver = None
-        if resolver != NOGROUP_RESOLVER:
+        if resolver in (RESOLVER_NOGROUP, RESOLVER_NOINIT):
+            self._resolver = None
+        else:
             self._resolver = resolver or STD_GROUP_RESOLVER
 
         # Initialize default parser.
-        self._parser = ParsingEngine(self._resolver)
-
-        self.update(nodes)
+        if resolver == RESOLVER_NOINIT:
+            self._parser = None
+        else:
+            self._parser = ParsingEngine(self._resolver)
+            self.update(nodes)
 
     @classmethod
     def fromlist(cls, nodelist, autostep=None, resolver=None):
@@ -928,7 +932,7 @@ class NodeSet(NodeSetBase):
                 # specified group source.
                 allgrpns = NodeSet.fromlist( \
                                 inst._resolver.grouplist(groupsource),
-                                resolver=NOGROUP_RESOLVER)
+                                resolver=RESOLVER_NOGROUP)
                 # For each individual group, resolve it to node and accumulate.
                 for grp in allgrpns:
                     inst.update(NodeSet.fromlist( \
@@ -956,6 +960,24 @@ class NodeSet(NodeSetBase):
         self._resolver = None
         self._parser = ParsingEngine(None)
 
+    def copy(self):
+        """Return a shallow copy of a NodeSet."""
+        cpy = self.__class__(resolver=RESOLVER_NOINIT)
+        cpy._length = self._length
+        dic = {}
+        for pat, rangeset in self._patterns.iteritems():
+            if rangeset is None:
+                dic[pat] = None
+            else:
+                dic[pat] = rangeset.copy()
+        cpy._patterns = dic
+        cpy._autostep = self._autostep
+        cpy._resolver = self._resolver
+        cpy._parser = self._parser
+        return cpy
+
+    __copy__ = copy # For the copy module
+
     def _find_groups(self, node, namespace, allgroups):
         """Find groups of node by namespace."""
         if allgroups:
@@ -974,12 +996,12 @@ class NodeSet(NodeSetBase):
         Regroup nodeset using groups.
         """
         groups = {}
-        rest = NodeSet(self, resolver=NOGROUP_RESOLVER)
+        rest = NodeSet(self, resolver=RESOLVER_NOGROUP)
 
         try:
             # Get a NodeSet of all groups in specified group source.
             allgrpns = NodeSet.fromlist(self._resolver.grouplist(groupsource),
-                                        resolver=NOGROUP_RESOLVER)
+                                        resolver=RESOLVER_NOGROUP)
         except NodeUtils.GroupSourceException:
             # If list query failed, we still might be able to regroup
             # using reverse.
@@ -1023,7 +1045,7 @@ class NodeSet(NodeSetBase):
             if i == len(nodes):
                 fulls.append((i, k))
 
-        regrouped = NodeSet(resolver=NOGROUP_RESOLVER)
+        regrouped = NodeSet(resolver=RESOLVER_NOGROUP)
 
         bigalpha = lambda x, y: cmp(y[0], x[0]) or cmp(x[1], y[1])
 
@@ -1077,10 +1099,11 @@ class NodeSet(NodeSetBase):
         sub-nodeset will have the same number of elements more or
         less 1. Current nodeset remains unmodified.
 
-        >>> NodeSet("foo[1-5]").split(3) 
-        NodeSet("foo[1-2]")
-        NodeSet("foo[3-4]")
-        NodeSet("foo5")
+        >>> for nodeset in NodeSet("foo[1-5]").split(3):
+        ...     print nodeset
+        foo[1-2]
+        foo[3-4]
+        foo5
         """
         assert(nbr > 0)
 
@@ -1159,6 +1182,7 @@ def grouplist(namespace=None):
 # doctest
 
 def _test():
+    """run inline doctest"""
     import doctest
     doctest.testmod()
 

@@ -378,7 +378,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertTrue(r2.issubset(r1))
         self.assertTrue(r2 <= r1)
         self.assertTrue(r2 < r1)
-        self.assertFalse(r1 > r2)
+        self.assertTrue(r1 > r2)
         self.assertFalse(r1 < r2)
         self.assertFalse(r1 <= r2)
         self.assertFalse(r2 >= r1)
