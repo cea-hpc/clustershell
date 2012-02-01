@@ -236,24 +236,24 @@ class RangeSet(set):
     def __setstate__(self, dic):
         """called upon unpickling"""
         self.__dict__.update(dic)
-        # unpickle from old version?
         if getattr(self, '_version', 0) < RangeSet._VERSION:
-            setattr(self, '_ranges', [(slice(start, stop + 1, step), pad) \
-                for start, stop, step, pad in getattr(self, '_ranges')])
-        elif hasattr(self, '_ranges'):
-            self_ranges = getattr(self, '_ranges')
-            if self_ranges and type(self_ranges[0][0]) is not slice:
-                # workaround for object pickled from Python < 2.5
-                setattr(self, '_ranges', [(slice(start, stop, step), pad) \
-                    for (start, stop, step), pad in self_ranges])
+            # unpickle from old version?
+            if getattr(self, '_version', 0) <= 1:
+                # v1 (no object versioning) - CSv1.3
+                setattr(self, '_ranges', [(slice(start, stop + 1, step), pad) \
+                    for start, stop, step, pad in getattr(self, '_ranges')])
+            elif hasattr(self, '_ranges'):
+                # v2 - CSv1.4-1.5
+                self_ranges = getattr(self, '_ranges')
+                if self_ranges and type(self_ranges[0][0]) is not slice:
+                    # workaround for object pickled from Python < 2.5
+                    setattr(self, '_ranges', [(slice(start, stop, step), pad) \
+                        for (start, stop, step), pad in self_ranges])
             # convert to v3
-            for sli, pad in self_ranges:
+            for sli, pad in self._ranges:
                 self.add_range(sli.start, sli.stop, sli.step, pad)
             delattr(self, '_ranges')
             delattr(self, '_length')
-        else:
-            # version 3+
-            assert getattr(self, '_version', 0) >= RangeSet._VERSION
 
     def _strslices(self):
         """Stringify slices list (x-y/step format)"""

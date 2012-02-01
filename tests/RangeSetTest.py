@@ -6,6 +6,7 @@
 
 """Unit test for RangeSet"""
 
+import binascii
 import copy
 import pickle
 import sys
@@ -894,8 +895,92 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "115-117,130,167-170,4780-4999")
         self.assertEqual(str(r2), "115-118,130,166-170,4780-4999")
 
-    def testPickle(self):
-        """test RangeSet pickling"""
+    def test_unpickle_v1_3_py24(self):
+        """test RangeSet unpickling (against v1.3/py24)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXECKFUHX2xlbmd0aHEDS2RVCV9hdXRvc3RlcHEER1SySa0llMN9VQdfcmFuZ2VzcQVdcQYoKEsFSwVLAUsAdHEHKEsHS2ZLAUsAdHEIKEtoS2hLAUsAdHEJKEtqS2tLAUsAdHEKZXViLg=="))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_unpickle_v1_3_py26(self):
+        """test RangeSet unpickling (against v1.3/py26)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXECKFUHX2xlbmd0aHEDS2RVCV9hdXRvc3RlcHEER1SySa0llMN9VQdfcmFuZ2VzcQVdcQYoKEsFSwVLAUsAdHEHKEsHS2ZLAUsAdHEIKEtoS2hLAUsAdHEJKEtqS2tLAUsAdHEKZXViLg=="))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    # unpickle_v1_4_py24 : unpickling fails as v1.4 does not have slice pickling workaround
+
+    def test_unpickle_v1_4_py26(self):
+        """test RangeSet unpickling (against v1.4/py26)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXEDKFUHX2xlbmd0aHEES2RVCV9hdXRvc3RlcHEFR1SySa0llMN9VQdfcmFuZ2VzcQZdcQcoY19fYnVpbHRpbl9fCnNsaWNlCnEISwVLBksBh3EJUnEKSwCGcQtoCEsHS2dLAYdxDFJxDUsAhnEOaAhLaEtpSwGHcQ9ScRBLAIZxEWgIS2pLbEsBh3ESUnETSwCGcRRlVQhfdmVyc2lvbnEVSwJ1Yi4="))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_unpickle_v1_5_py24(self):
+        """test RangeSet unpickling (against v1.5/py24)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXEDKFUHX2xlbmd0aHEES2RVCV9hdXRvc3RlcHEFR1SySa0llMN9VQdfcmFuZ2VzcQZdcQcoSwVLBksBh3EISwCGcQlLB0tnSwGHcQpLAIZxC0toS2lLAYdxDEsAhnENS2pLbEsBh3EOSwCGcQ9lVQhfdmVyc2lvbnEQSwJ1Yi4="))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_unpickle_v1_5_py26(self):
+        """test RangeSet unpickling (against v1.5/py26)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXEDKFUHX2xlbmd0aHEES2RVCV9hdXRvc3RlcHEFR1SySa0llMN9VQdfcmFuZ2VzcQZdcQcoY19fYnVpbHRpbl9fCnNsaWNlCnEISwVLBksBh3EJUnEKSwCGcQtoCEsHS2dLAYdxDFJxDUsAhnEOaAhLaEtpSwGHcQ9ScRBLAIZxEWgIS2pLbEsBh3ESUnETSwCGcRRlVQhfdmVyc2lvbnEVSwJ1Yi4="))
+
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_unpickle_v1_5_py26(self):
+        """test RangeSet unpickling (against v1.5/py26)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXEDKFUHX2xlbmd0aHEES2RVCV9hdXRvc3RlcHEFR1SySa0llMN9VQdfcmFuZ2VzcQZdcQcoY19fYnVpbHRpbl9fCnNsaWNlCnEISwVLBksBh3EJUnEKSwCGcQtoCEsHS2dLAYdxDFJxDUsAhnEOaAhLaEtpSwGHcQ9ScRBLAIZxEWgIS2pLbEsBh3ESUnETSwCGcRRlVQhfdmVyc2lvbnEVSwJ1Yi4="))
+
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_unpickle_v1_6_py24(self):
+        """test RangeSet unpickling (against v1.6/py24)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLlJhbmdlU2V0ClJhbmdlU2V0CnEAVRM1LDctMTAyLDEwNCwxMDYtMTA3cQGFcQJScQN9cQQoVQdwYWRkaW5ncQVOVQlfYXV0b3N0ZXBxBkdUskmtJZTDfVUIX3ZlcnNpb25xB0sDdWIu"))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_unpickle_v1_6_py26(self):
+        """test RangeSet unpickling (against v1.6/py26)"""
+        rngset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLlJhbmdlU2V0ClJhbmdlU2V0CnEAVRM1LDctMTAyLDEwNCwxMDYtMTA3cQGFcQJScQN9cQQoVQdwYWRkaW5ncQVOVQlfYXV0b3N0ZXBxBkdUskmtJZTDfVUIX3ZlcnNpb25xB0sDdWIu"))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], 5)
+        self.assertEqual(rngset[1], 7)
+        self.assertEqual(rngset[-1], 107)
+
+    def test_pickle_current(self):
+        """test RangeSet pickling (current version)"""
         dump = pickle.dumps(RangeSet("1-100"))
         self.assertNotEqual(dump, None)
         rngset = pickle.loads(dump)
