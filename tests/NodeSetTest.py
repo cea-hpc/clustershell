@@ -6,6 +6,7 @@
 
 """Unit test for NodeSet"""
 
+import binascii
 import copy
 import pickle
 import sys
@@ -1256,8 +1257,81 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset3), \
             "glycine[68,4780-4999],zclu[115-118,130,166-170]")
 
-    def testPickle(self):
-        """test pickling of NodeSet"""
+    def test_unpickle_v1_3_py24(self):
+        """test NodeSet unpickling (against v1.3/py24)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGKGNDbHVzdGVyU2hlbGwuTm9kZVNldApSYW5nZVNldApxB29xCH1xCShoA0sBVQlfYXV0b3N0ZXBxCkdUskmtJZTDfVUHX3Jhbmdlc3ELXXEMKEsESwRLAUsAdHENYXViVQZibHVlJXNxDihoB29xD31xEChoA0sIaApHVLJJrSWUw31oC11xESgoSwZLCksBSwB0cRIoSw1LDUsBSwB0cRMoSw9LD0sBSwB0cRQoSxFLEUsBSwB0cRVldWJVB2dyZWVuJXNxFihoB29xF31xGChoA0tlaApHVLJJrSWUw31oC11xGShLAEtkSwFLAHRxGmF1YlUDcmVkcRtOdWgKTnViLg=="))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    # unpickle_v1_4_py24 : unpickling fails as v1.4 does not have slice pickling workaround
+    def test_unpickle_v1_3_py26(self):
+        """test NodeSet unpickling (against v1.3/py26)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGKGNDbHVzdGVyU2hlbGwuTm9kZVNldApSYW5nZVNldApxB29xCH1xCShoA0sBVQlfYXV0b3N0ZXBxCkdUskmtJZTDfVUHX3Jhbmdlc3ELXXEMKEsESwRLAUsAdHENYXViVQZibHVlJXNxDihoB29xD31xEChoA0sIaApHVLJJrSWUw31oC11xESgoSwZLCksBSwB0cRIoSw1LDUsBSwB0cRMoSw9LD0sBSwB0cRQoSxFLEUsBSwB0cRVldWJVB2dyZWVuJXNxFihoB29xF31xGChoA0tlaApHVLJJrSWUw31oC11xGShLAEtkSwFLAHRxGmF1YlUDcmVkcRtOdWgKTnViLg=="))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    # unpickle_v1_4_py24 : unpickling fails as v1.4 does not have slice pickling workaround
+
+    def test_unpickle_v1_4_py26(self):
+        """test NodeSet unpickling (against v1.4/py26)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGKGNDbHVzdGVyU2hlbGwuTm9kZVNldApSYW5nZVNldApxB29xCH1xCihoA0sBVQlfYXV0b3N0ZXBxC0dUskmtJZTDfVUHX3Jhbmdlc3EMXXENY19fYnVpbHRpbl9fCnNsaWNlCnEOSwRLBUsBh3EPUnEQSwCGcRFhVQhfdmVyc2lvbnESSwJ1YlUGYmx1ZSVzcRMoaAdvcRR9cRUoaANLCGgLR1SySa0llMN9aAxdcRYoaA5LBksLSwGHcRdScRhLAIZxGWgOSw1LDksBh3EaUnEbSwCGcRxoDksPSxBLAYdxHVJxHksAhnEfaA5LEUsSSwGHcSBScSFLAIZxImVoEksCdWJVB2dyZWVuJXNxIyhoB29xJH1xJShoA0tlaAtHVLJJrSWUw31oDF1xJmgOSwBLZUsBh3EnUnEoSwCGcSlhaBJLAnViVQNyZWRxKk51aAtOdWIu"))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    def test_unpickle_v1_5_py24(self):
+        """test NodeSet unpickling (against v1.5/py24)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGKGNDbHVzdGVyU2hlbGwuTm9kZVNldApSYW5nZVNldApxB29xCH1xCihoA0sBVQlfYXV0b3N0ZXBxC0dUskmtJZTDfVUHX3Jhbmdlc3EMXXENSwRLBUsBh3EOSwCGcQ9hVQhfdmVyc2lvbnEQSwJ1YlUGYmx1ZSVzcREoaAdvcRJ9cRMoaANLCGgLR1SySa0llMN9aAxdcRQoSwZLC0sBh3EVSwCGcRZLDUsOSwGHcRdLAIZxGEsPSxBLAYdxGUsAhnEaSxFLEksBh3EbSwCGcRxlaBBLAnViVQdncmVlbiVzcR0oaAdvcR59cR8oaANLZWgLR1SySa0llMN9aAxdcSBLAEtlSwGHcSFLAIZxImFoEEsCdWJVA3JlZHEjTnVoC051Yi4="))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    def test_unpickle_v1_5_py26(self):
+        """test NodeSet unpickling (against v1.5/py26)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGKGNDbHVzdGVyU2hlbGwuTm9kZVNldApSYW5nZVNldApxB29xCH1xCihoA0sBVQlfYXV0b3N0ZXBxC0dUskmtJZTDfVUHX3Jhbmdlc3EMXXENY19fYnVpbHRpbl9fCnNsaWNlCnEOSwRLBUsBh3EPUnEQSwCGcRFhVQhfdmVyc2lvbnESSwJ1YlUGYmx1ZSVzcRMoaAdvcRR9cRUoaANLCGgLR1SySa0llMN9aAxdcRYoaA5LBksLSwGHcRdScRhLAIZxGWgOSw1LDksBh3EaUnEbSwCGcRxoDksPSxBLAYdxHVJxHksAhnEfaA5LEUsSSwGHcSBScSFLAIZxImVoEksCdWJVB2dyZWVuJXNxIyhoB29xJH1xJShoA0tlaAtHVLJJrSWUw31oDF1xJmgOSwBLZUsBh3EnUnEoSwCGcSlhaBJLAnViVQNyZWRxKk51aAtOdWIu"))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    def test_unpickle_v1_6_py24(self):
+        """test NodeSet unpickling (against v1.6/py24)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGY0NsdXN0ZXJTaGVsbC5SYW5nZVNldApSYW5nZVNldApxB1UBNHEIhXEJUnEKfXELKFUHcGFkZGluZ3EMTlUJX2F1dG9zdGVwcQ1HVLJJrSWUw31VCF92ZXJzaW9ucQ5LA3ViVQZibHVlJXNxD2gHVQ02LTEwLDEzLDE1LDE3cRCFcRFScRJ9cRMoaAxOaA1HVLJJrSWUw31oDksDdWJVB2dyZWVuJXNxFGgHVQUwLTEwMHEVhXEWUnEXfXEYKGgMTmgNR1SySa0llMN9aA5LA3ViVQNyZWRxGU51aA1OdWIu"))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    def test_unpickle_v1_6_py26(self):
+        """test NodeSet unpickling (against v1.6/py26)"""
+        nodeset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApxACmBcQF9cQIoVQdfbGVuZ3RocQNLAFUJX3BhdHRlcm5zcQR9cQUoVQh5ZWxsb3clc3EGY0NsdXN0ZXJTaGVsbC5SYW5nZVNldApSYW5nZVNldApxB1UBNHEIhXEJUnEKfXELKFUHcGFkZGluZ3EMTlUJX2F1dG9zdGVwcQ1HVLJJrSWUw31VCF92ZXJzaW9ucQ5LA3ViVQZibHVlJXNxD2gHVQ02LTEwLDEzLDE1LDE3cRCFcRFScRJ9cRMoaAxOaA1HVLJJrSWUw31oDksDdWJVB2dyZWVuJXNxFGgHVQUwLTEwMHEVhXEWUnEXfXEYKGgMTmgNR1SySa0llMN9aA5LA3ViVQNyZWRxGU51aA1OdWIu"))
+        self.assertEqual(nodeset, NodeSet("blue[6-10,13,15,17],green[0-100],red,yellow4"))
+        self.assertEqual(str(nodeset), "blue[6-10,13,15,17],green[0-100],red,yellow4")
+        self.assertEqual(len(nodeset), 111)
+        self.assertEqual(nodeset[0], "blue6")
+        self.assertEqual(nodeset[1], "blue7")
+        self.assertEqual(nodeset[-1], "yellow4")
+
+    def test_pickle_current(self):
+        """test NodeSet pickling (current version)"""
         dump = pickle.dumps(NodeSet("foo[1-100]"))
         self.assertNotEqual(dump, None)
         nodeset = pickle.loads(dump)

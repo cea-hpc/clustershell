@@ -948,17 +948,6 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset[1], 7)
         self.assertEqual(rngset[-1], 107)
 
-    def test_unpickle_v1_5_py26(self):
-        """test RangeSet unpickling (against v1.5/py26)"""
-        rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXEDKFUHX2xlbmd0aHEES2RVCV9hdXRvc3RlcHEFR1SySa0llMN9VQdfcmFuZ2VzcQZdcQcoY19fYnVpbHRpbl9fCnNsaWNlCnEISwVLBksBh3EJUnEKSwCGcQtoCEsHS2dLAYdxDFJxDUsAhnEOaAhLaEtpSwGHcQ9ScRBLAIZxEWgIS2pLbEsBh3ESUnETSwCGcRRlVQhfdmVyc2lvbnEVSwJ1Yi4="))
-
-        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
-        self.assertEqual(str(rngset), "5,7-102,104,106-107")
-        self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
-
     def test_unpickle_v1_6_py24(self):
         """test RangeSet unpickling (against v1.6/py24)"""
         rngset = pickle.loads(binascii.a2b_base64("gAJjQ2x1c3RlclNoZWxsLlJhbmdlU2V0ClJhbmdlU2V0CnEAVRM1LDctMTAyLDEwNCwxMDYtMTA3cQGFcQJScQN9cQQoVQdwYWRkaW5ncQVOVQlfYXV0b3N0ZXBxBkdUskmtJZTDfVUIX3ZlcnNpb25xB0sDdWIu"))
