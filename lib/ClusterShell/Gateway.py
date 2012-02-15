@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -171,7 +171,9 @@ class GatewayChannel(Channel):
                 #self.propagation.invoke_gateway = data['invoke_gateway']
                 logging.debug('decoded gw invoke (%s)' % data['invoke_gateway'])
 
-                task_self()._info = data['taskinfo'] # XXX
+                taskinfo = data['taskinfo']
+                task_self()._info = taskinfo
+                task_self()._engine.info = taskinfo
 
                 logging.debug('assigning task infos (%s)' % \
                     str(data['taskinfo']))
