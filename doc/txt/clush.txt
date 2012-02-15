@@ -7,9 +7,9 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2011-06-09
+:Date:   2012-02-15
 :Copyright: CeCILL-C V1
-:Version: 1.5.1
+:Version: 1.6
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -100,12 +100,13 @@ Interactive session
   To leave an interactive session, type ``quit`` or Control-D.
 
 File copying mode ( ``--copy`` )
-  When ``clush`` is started with the ``-c`` or ``--copy`` option, it attempts
-  to copy specified *file* and/or *dir* to the provided target cluster nodes.
-  If the ``--dest`` option is specified, it will put the copied files there.
+  When ``clush`` is started with the ``-c`` or ``--copy`` option, it will
+  attempt to copy specified *file* and/or *dir* to the provided target
+  cluster nodes.  If the ``--dest`` option is specified, it will put the
+  copied files there.
 
 Reverse file copying mode ( ``--rcopy`` )
-  When ``clush`` is started with the ``--rcopy`` option, it attempts to
+  When ``clush`` is started with the ``--rcopy`` option, it will attempt to
   retrieve specified *file* and/or *dir* from provided cluster nodes. If the
   ``--dest`` option is specified, it must be a directory path where the files
   will be stored with their hostname appended. If the destination path is not

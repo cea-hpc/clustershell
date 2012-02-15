@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH 1 "2011-06-09" "1.5.1" "ClusterShell User Manual"
+.TH CLUSH 1 "2012-02-15" "1.6" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -133,13 +133,14 @@ To leave an interactive session, type \fBquit\fP or Control\-D.
 .TP
 .B File copying mode ( \fB\-\-copy\fP )
 .sp
-When \fBclush\fP is started with the \fB\-c\fP or \fB\-\-copy\fP option, it attempts
-to copy specified \fIfile\fP and/or \fIdir\fP to the provided target cluster nodes.
-If the \fB\-\-dest\fP option is specified, it will put the copied files there.
+When \fBclush\fP is started with the \fB\-c\fP or \fB\-\-copy\fP option, it will
+attempt to copy specified \fIfile\fP and/or \fIdir\fP to the provided target
+cluster nodes.  If the \fB\-\-dest\fP option is specified, it will put the
+copied files there.
 .TP
 .B Reverse file copying mode ( \fB\-\-rcopy\fP )
 .sp
-When \fBclush\fP is started with the \fB\-\-rcopy\fP option, it attempts to
+When \fBclush\fP is started with the \fB\-\-rcopy\fP option, it will attempt to
 retrieve specified \fIfile\fP and/or \fIdir\fP from provided cluster nodes. If the
 \fB\-\-dest\fP option is specified, it must be a directory path where the files
 will be stored with their hostname appended. If the destination path is not

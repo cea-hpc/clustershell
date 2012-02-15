@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2011-06-09
+:Date:   2012-02-15
 :Copyright: CeCILL-C V1
-:Version: 1.5.1
+:Version: 1.6
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
