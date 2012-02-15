@@ -102,6 +102,8 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-E", "--engine", action="store", dest="engine",
                           choices=["auto"] + PreferredEngine.engines.keys(),
                           default="auto", help=optparse.SUPPRESS_HELP)
+        optgrp.add_option("-T", "--topology", action="store", dest="topofile",
+                          default=None, help=optparse.SUPPRESS_HELP)
         self.add_option_group(optgrp)
 
     def install_display_options(self,

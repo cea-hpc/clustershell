@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -48,6 +48,7 @@ from ClusterShell.NodeUtils import GroupSourceException
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
 from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
 from ClusterShell.NodeSet import RangeSetParseError
+from ClusterShell.Topology import TopologyError
 
 
 GENERIC_ERRORS = (EngineNotSupportedError,
@@ -57,6 +58,7 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   GroupResolverSourceError,
                   GroupSourceNoUpcall,
                   GroupSourceException,
+                  TopologyError,
                   IOError,
                   KeyboardInterrupt)
 
@@ -78,6 +80,8 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
             "source \"%s\"" % (prog, exc, exc.group_source.name)
     except GroupSourceException, exc:
         print >> sys.stderr, "%s: Other group error:" % prog, exc
+    except TopologyError, exc:
+        print >> sys.stderr, "%s: TREE MODE:" % prog, exc
     except IOError:
         # ignore broken pipe
         pass

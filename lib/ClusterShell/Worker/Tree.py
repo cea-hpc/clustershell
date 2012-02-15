@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2011)
+# Copyright CEA/DAM/DIF (2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -204,17 +204,17 @@ class WorkerTree(DistantWorker):
         timeout = 30
         # And launch stuffs
         next_hops = self._distribute(self.task.info("fanout"), self.nodes)
-        for gw, target in next_hops.iteritems():
-            if gw == target:
+        for gw, targets in next_hops.iteritems():
+            if gw == targets:
                 logging.debug('task.shell cmd=%s nodes=%s timeout=%d' % \
                     (self.command, self.nodes, timeout))
                 self._child_count += 1
-                self._target_count += len(target)
+                self._target_count += len(targets)
                 self.workers.append(self.task.shell(self.command,
-                    nodes=target, timeout=timeout,
+                    nodes=targets, timeout=timeout,
                     handler=self.metahandler, stderr=self.stderr))
             else:
-                self._execute_remote(self.command, target, gw, timeout)
+                self._execute_remote(self.command, targets, gw, timeout)
 
     def _distribute(self, fanout, dst_nodeset):
         """distribute target nodes between next hop gateways"""
@@ -222,7 +222,7 @@ class WorkerTree(DistantWorker):
         self.router.fanout = fanout
 
         for gw, dstset in self.router.dispatch(dst_nodeset):
-            if distribution.has_key(gw):
+            if gw in distribution:
                 distribution[gw].add(dstset)
             else:
                 distribution[gw] = dstset

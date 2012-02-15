@@ -794,6 +794,13 @@ def main(args=sys.argv):
 
     task.set_info("fanout", config.fanout)
 
+    if options.topofile:
+        if config.verbosity >= VERB_VERB:
+            print Display.COLOR_RESULT_FMT % \
+                "Enabling TREE MODE (technology preview)"
+        task.set_default("auto_tree", True)
+        task.set_topology(options.topofile)
+
     if options.grooming_delay:
         if config.verbosity >= VERB_VERB:
             print Display.COLOR_RESULT_FMT % ("Grooming delay: %f" % \

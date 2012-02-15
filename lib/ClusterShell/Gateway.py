@@ -43,13 +43,12 @@ replies on stdout.
 import os
 import sys
 import fcntl
-import socket
 import time
 
 import logging
 
 from ClusterShell.Event import EventHandler
-from ClusterShell.Task import task_self
+from ClusterShell.Task import task_self, _getshorthostname
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Worker.Tree import WorkerTree
@@ -209,7 +208,7 @@ class GatewayChannel(Channel):
 
 
 if __name__ == '__main__':
-    host = socket.gethostname().split('.')[0]
+    host = _getshorthostname()
     ######################## DEBUG ############################
     logging.basicConfig(
         level=logging.DEBUG,

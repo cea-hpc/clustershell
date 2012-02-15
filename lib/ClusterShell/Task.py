@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -37,7 +37,7 @@ ClusterShell Task module.
 
 Simple example of use:
 
->>> from ClusterShell.Task import *
+>>> from ClusterShell.Task import task_self
 >>>  
 >>> # get task associated with calling thread
 ... task = task_self()
@@ -58,6 +58,7 @@ Simple example of use:
 
 from itertools import imap
 from operator import itemgetter
+import socket
 import sys
 import threading
 import traceback
@@ -96,6 +97,10 @@ class TaskMsgTreeError(TaskError):
     """Raised when trying to access disabled MsgTree."""
 
 
+def _getshorthostname():
+    """Get short hostname (host name cut at the first dot)"""
+    return socket.gethostname().split('.')[0]
+
 def _task_print_debug(task, s):
     """
     Default task debug printing function. Cannot provide 'print'
@@ -126,19 +131,20 @@ class Task(object):
     thread is the task associated thread):
         >>> task.resume()
     """
-    _std_default = {  "stderr"              : False,
-                      "stdout_msgtree"      : True,
-                      "stderr_msgtree"      : True,
-                      "engine"              : 'auto',
-                      "port_qlimit"         : 100,
-                      "auto_tree"           : False }
+    _std_default = {  "stderr"             : False,
+                      "stdout_msgtree"     : True,
+                      "stderr_msgtree"     : True,
+                      "engine"             : 'auto',
+                      "port_qlimit"        : 100,
+                      "auto_tree"          : False,
+                      "topology_file"      : "/etc/clustershell/topology.conf" }
 
-    _std_info =     { "debug"               : False,
-                      "print_debug"         : _task_print_debug,
-                      "fanout"              : 64,
-                      "grooming_delay"      : 0.5,
-                      "connect_timeout"     : 10,
-                      "command_timeout"     : 0 }
+    _std_info =     { "debug"              : False,
+                      "print_debug"        : _task_print_debug,
+                      "fanout"             : 64,
+                      "grooming_delay"     : 0.5,
+                      "connect_timeout"    : 10,
+                      "command_timeout"    : 0 }
     _tasks = {}
     _taskid_max = 0
     _task_lock = threading.Lock()
@@ -259,7 +265,7 @@ class Task(object):
             self._quit = False
 
             # Default router
-            self.topology = self._default_topology()
+            self.topology = None
             self.router = None
             self.pwrks = {}
             self.pmwkrs = {}
@@ -361,15 +367,19 @@ class Task(object):
         finally:
             self._run_lock.release()
 
+    def set_topology(self, topology_file):
+        """Set new propagation topology from provided file."""
+        self.set_default("topology_file", topology_file)
+        self.topology = self._default_topology()
+
     def _default_topology(self):
         try:
             parser = TopologyParser()
-            parser.load("/tmp/clustershell/topology.conf")
-            import socket
-            return parser.tree(socket.gethostname().split('.')[0]) # XXX need helper func
+            parser.load(self.default("topology_file"))
+            return parser.tree(_getshorthostname())
         except TopologyError:
             # FIXME logging debug
-            pass
+            raise
         return None
 
     def _default_router(self):
