@@ -157,6 +157,19 @@ class NodeSetBase(object):
     # define striter() alias for convenience (to match RangeSet.striter())
     striter = __iter__
 
+    # define nsiter() as an object-based iterator that could be used for
+    # __iter__() in the future...
+
+    def nsiter(self):
+        """Object-based NodeSet iterator."""
+        for pat, start, pad in self._iter():
+            ns = self.__class__()
+            if start is not None:
+                ns._add_new(pat, RangeSet.fromone(start, pad))
+            else:
+                ns._add_new(pat, None)
+            yield ns
+
     def __len__(self):
         """
         Get the number of nodes in NodeSet.
@@ -360,10 +373,23 @@ class NodeSetBase(object):
         else:
             raise TypeError, "NodeSet indices must be integers"
 
+    def _add_new(self, pat, rangeset):
+        """
+        Add nodes from a (pat, rangeset) tuple. Predicate: pattern does not
+        exist in current set. RangeSet object is referenced (not copied).
+        """
+        if rangeset:
+            # create new pattern
+            self._patterns[pat] = rangeset
+        else:
+            # create new pattern with no rangeset (single node)
+            self._patterns[pat] = None
+
     def _add(self, pat, rangeset):
         """
         Add nodes from a (pat, rangeset) tuple. `pat' may be an existing
-        pattern and `rangeset' may be None.
+        pattern and `rangeset' may be None. RangeSet object is copied when
+        provided.
         """
         # get patterns dict entry
         pat_e = self._patterns.get(pat)
@@ -375,12 +401,10 @@ class NodeSetBase(object):
 
             # add rangeset in corresponding pattern rangeset
             pat_e.update(rangeset)
-        elif rangeset:
-            # create new pattern
-            self._patterns[pat] = rangeset.copy()
         else:
-            # create new pattern with no rangeset (single node)
-            self._patterns[pat] = None
+            if rangeset:
+                rangeset = rangeset.copy()
+            self._add_new(pat, rangeset)
 
     def _addn(self, pat, rangesets):
         """

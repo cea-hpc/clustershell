@@ -1,3 +1,9 @@
+2012-02-19 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Add NodeSet.nsiter(), a fast iterator on nodes as NodeSet
+	objects to avoid object-to-string-to-object conversion in some cases when
+	using __iter__() -- like in PropagationTreeRouter.dispatch().
+
 2012-02-15 S. Thiell <stephane.thiell@cea.fr>
 
 	* Clush.py: Add --topology <file> hidden option to enable V2 tree
