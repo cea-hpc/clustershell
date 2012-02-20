@@ -1165,7 +1165,7 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet.nsiter() iterator"""
         ns1 = NodeSet("roma[50-61]-ipmi,cors[113,115-117,130,166-169],cws-tigrou,tigrou3")
         self.assertEqual(list(ns1), ['cors113', 'cors115', 'cors116', 'cors117', 'cors130', 'cors166', 'cors167', 'cors168', 'cors169', 'cws-tigrou', 'roma50-ipmi', 'roma51-ipmi', 'roma52-ipmi', 'roma53-ipmi', 'roma54-ipmi', 'roma55-ipmi', 'roma56-ipmi', 'roma57-ipmi', 'roma58-ipmi', 'roma59-ipmi', 'roma60-ipmi', 'roma61-ipmi', 'tigrou3'])
-        self.assertEqual(list(ns1), [str(ns) for ns in ns1])
+        self.assertEqual(list(ns1), [str(ns) for ns in ns1.nsiter()])
 
     def testEqualityMore(self):
         """test NodeSet equality (more)"""
