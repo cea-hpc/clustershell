@@ -1,5 +1,10 @@
 2012-02-24 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/EngineClient.py: Fix gateway write performance issue, as seen on a
+	very large cluster with a no-grooming test case and lots of small messages
+	sent, by calling os.write() as soon as possible (might safely fail if not
+	ready as we are in non-blocking mode).
+
 	* NodeSet.py: Internal parsing optimization by adding a "should copy
 	RangeSet object?" flag to NodeSetBase constructor in order to save useless
 	but slightly costly RangeSet.copy() calls.
