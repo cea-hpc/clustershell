@@ -747,6 +747,11 @@ class ParsingEngine(object):
 
         return nodeset
         
+    def parse_string_single(self, nsstr, autostep):
+        """Parse provided string and return a NodeSetBase object."""
+        pat, rangeset = self._scan_string_single(nsstr, autostep)
+        return NodeSetBase(pat, rangeset, False)
+        
     def parse_group(self, group, namespace=None, autostep=None):
         """Parse provided single group name (without @ prefix)."""
         assert self.group_resolver is not None
@@ -777,10 +782,48 @@ class ParsingEngine(object):
                 op_idx = idx
         return op_idx, next_op_code
 
+    def _scan_string_single(self, nsstr, autostep):
+        """Single node scan, returns (pat, rangeset)"""
+        # ignore whitespace(s)
+        node = nsstr.strip()
+        if len(node) == 0:
+            raise NodeSetParseError(nsstr, "empty node name")
+
+        # single node parsing
+        mobj = self.single_node_re.match(node)
+        if not mobj:
+            raise NodeSetParseError(node, "parse error")
+        pfx, idx, sfx = mobj.groups()
+        pfx, sfx = pfx or "", sfx or ""
+
+        # pfx+sfx cannot be empty
+        if len(pfx) + len(sfx) == 0:
+            raise NodeSetParseError(node, "empty node name")
+
+        if idx:
+            # optimization: process single index padding directly
+            pad = 0
+            if int(idx) != 0:
+                idxs = idx.lstrip("0")
+                if len(idx) - len(idxs) > 0:
+                    pad = len(idx)
+                idxint = int(idxs)
+            else:
+                if len(idx) > 1:
+                    pad = len(idx)
+                idxint = 0
+            if idxint > 1e100:
+                raise NodeSetParseRangeError( \
+                    RangeSetParseError(idx, "invalid rangeset index"))
+            # optimization: use numerical RangeSet constructor
+            rset = RangeSet.fromone(idxint, pad, autostep)
+            return "%s%%s%s" % (pfx, sfx), rset
+        else:
+            # undefined pad means no node index
+            return pfx, None
+    
     def _scan_string(self, nsstr, autostep):
-        """
-        Parsing engine's string scanner method.
-        """
+        """Parsing engine's string scanner method (iterator)."""
         pat = nsstr.strip()
         # avoid misformatting
         if pat.find('%') >= 0:
@@ -838,33 +881,9 @@ class ParsingEngine(object):
                     pat = None # break next time
                 else:
                     node, pat = pat.split(self.OP_CODES[next_op_code], 1)
-                # Ignore whitespace(s)
-                node = node.strip()
-
-                if len(node) == 0:
-                    raise NodeSetParseError(pat, "empty node name")
-
-                # single node parsing
-                mobj = self.single_node_re.match(node)
-                if not mobj:
-                    raise NodeSetParseError(pat, "parse error")
-                pfx, idx, sfx = mobj.groups()
-                pfx, sfx = pfx or "", sfx or ""
-
-                # pfx+sfx cannot be empty
-                if len(pfx) + len(sfx) == 0:
-                    raise NodeSetParseError(pat, "empty node name")
-
-                if idx:
-                    try:
-                        rset = RangeSet(idx, autostep)
-                    except RangeSetParseError, ex:
-                        raise NodeSetParseRangeError(ex)
-                    newpat = "%s%%s%s" % (pfx, sfx)
-                    yield op_code, newpat, rset
-                else:
-                    # undefined pad means no node index
-                    yield op_code, pfx, None
+                
+                newpat, rset = self._scan_string_single(node, autostep)
+                yield op_code, newpat, rset
 
 
 class NodeSet(NodeSetBase):
@@ -925,21 +944,24 @@ class NodeSet(NodeSetBase):
             self.update(nodes)
 
     @classmethod
+    def _fromone(cls, single, autostep=None, resolver=None):
+        """Class method that returns a new NodeSet from a single node string."""
+        inst = NodeSet(autostep=autostep, resolver=resolver)
+        inst.update(inst._parser.parse_string_single(single, autostep))
+        return inst
+
+    @classmethod
     def fromlist(cls, nodelist, autostep=None, resolver=None):
-        """
-        Class method that returns a new NodeSet with nodes from
-        provided list.
-        """
+        """Class method that returns a new NodeSet with nodes from provided
+        list."""
         inst = NodeSet(autostep=autostep, resolver=resolver)
         inst.updaten(nodelist)
         return inst
 
     @classmethod
     def fromall(cls, groupsource=None, autostep=None, resolver=None):
-        """
-        Class method that returns a new NodeSet with all nodes from
-        optional groupsource.
-        """
+        """Class method that returns a new NodeSet with all nodes from optional
+        groupsource."""
         inst = NodeSet(autostep=autostep, resolver=resolver)
         if not inst._resolver:
             raise NodeSetExternalError("No node group resolver")
