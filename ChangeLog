@@ -1,3 +1,12 @@
+2012-02-24 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Internal parsing optimization by adding a "should copy
+	RangeSet object?" flag to NodeSetBase constructor in order to save useless
+	but slightly costly RangeSet.copy() calls.
+
+	* NodeSet.py: Small rangeset parsing optimization on single node string
+	parsing code.
+
 2012-02-19 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Add NodeSet.nsiter(), a fast iterator on nodes as NodeSet

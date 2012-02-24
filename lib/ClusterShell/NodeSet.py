@@ -109,22 +109,31 @@ class NodeSetExternalError(NodeSetException):
 class NodeSetBase(object):
     """
     Base class for NodeSet.
+
+    This class allows node set base object creation from specified string
+    pattern and rangeset object.  If optional copy_rangeset boolean flag is
+    set to True (default), provided rangeset object is copied (if needed),
+    otherwise it may be referenced (should be seen as an ownership transfer
+    upon creation).
+
+    This class implements core node set arithmetics (no string parsing here).
+
+    Example:
+       >>> nsb = NodeSetBase('node%s-ipmi', RangeSet('1-5,7'), False)
+       >>> str(nsb)
+       'node[1-5,7]-ipmi'
     """
-    def __init__(self, pattern=None, rangeset=None):
-        """
-        Initialize an empty NodeSetBase.
-        """
+    def __init__(self, pattern=None, rangeset=None, copy_rangeset=True):
+        """New NodeSetBase object initializer"""
         self._length = 0
         self._patterns = {}
         if pattern:
-            self._add(pattern, rangeset)
+            self._add(pattern, rangeset, copy_rangeset)
         elif rangeset:
             raise ValueError("missing pattern")
 
     def _iter(self):
-        """
-        Iterator on internal item tuples (pattern, index, padding).
-        """
+        """Iterator on internal item tuples (pattern, index, padding)."""
         for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
                 pad = rangeset.padding or 0
@@ -134,9 +143,7 @@ class NodeSetBase(object):
                 yield pat, None, None
 
     def _iterbase(self):
-        """
-        Iterator on single, one-item NodeSetBase objects.
-        """
+        """Iterator on single, one-item NodeSetBase objects."""
         for pat, start, pad in self._iter():
             if start is not None:
                 yield NodeSetBase(pat, RangeSet.fromone(start, pad))
@@ -144,9 +151,7 @@ class NodeSetBase(object):
                 yield NodeSetBase(pat) # no node index
 
     def __iter__(self):
-        """
-        Iterator on single nodes as string.
-        """
+        """Iterator on single nodes as string."""
         # Does not call self._iterbase() + str() for better performance.
         for pat, start, pad in self._iter():
             if start is not None:
@@ -171,9 +176,7 @@ class NodeSetBase(object):
             yield ns
 
     def __len__(self):
-        """
-        Get the number of nodes in NodeSet.
-        """
+        """Get the number of nodes in NodeSet."""
         cnt = 0
         for  rangeset in self._patterns.itervalues():
             if rangeset:
@@ -183,9 +186,7 @@ class NodeSetBase(object):
         return cnt
 
     def __str__(self):
-        """
-        Get ranges-based pattern of node list.
-        """
+        """Get ranges-based pattern of node list."""
         result = ""
         for pat, rangeset in sorted(self._patterns.iteritems()):
             if rangeset:
@@ -213,9 +214,7 @@ class NodeSetBase(object):
         return cpy
 
     def __contains__(self, other):
-        """
-        Is node contained in NodeSet ?
-        """
+        """Is node contained in NodeSet ?"""
         return self.issuperset(other)
 
     def _binary_sanity_check(self, other):
@@ -226,16 +225,12 @@ class NodeSetBase(object):
                 "Binary operation only permitted between NodeSetBase"
 
     def issubset(self, other):
-        """
-        Report whether another nodeset contains this nodeset.
-        """
+        """Report whether another nodeset contains this nodeset."""
         self._binary_sanity_check(other)
         return other.issuperset(self)
 
     def issuperset(self, other):
-        """
-        Report whether this nodeset contains another nodeset.
-        """
+        """Report whether this nodeset contains another nodeset."""
         self._binary_sanity_check(other)
         status = True
         for pat, erangeset in other._patterns.iteritems():
@@ -250,9 +245,7 @@ class NodeSetBase(object):
         return status
 
     def __eq__(self, other):
-        """
-        NodeSet equality comparison.
-        """
+        """NodeSet equality comparison."""
         # See comment for for RangeSet.__eq__()
         if not isinstance(other, NodeSetBase):
             return NotImplemented
@@ -263,16 +256,12 @@ class NodeSetBase(object):
     __ge__ = issuperset
 
     def __lt__(self, other):
-        """
-        x.__lt__(y) <==> x<y
-        """
+        """x.__lt__(y) <==> x<y"""
         self._binary_sanity_check(other)
         return len(self) < len(other) and self.issubset(other)
 
     def __gt__(self, other):
-        """
-        x.__gt__(y) <==> x>y
-        """
+        """x.__gt__(y) <==> x>y"""
         self._binary_sanity_check(other)
         return len(self) > len(other) and self.issuperset(other)
 
@@ -313,10 +302,8 @@ class NodeSetBase(object):
         return sl_start, sl_stop, sl_step
 
     def __getitem__(self, index):
-        """
-        Return the node at specified index or a subnodeset when a slice is
-        specified.
-        """
+        """Return the node at specified index or a subnodeset when a slice is
+        specified."""
         if isinstance(index, slice):
             inst = NodeSetBase()
             sl_start, sl_stop, sl_step = self._extractslice(index)
@@ -330,7 +317,8 @@ class NodeSetBase(object):
                     offset = sl_next - length
                     if offset < cnt:
                         num = min(sl_stop - sl_next, cnt - offset)
-                        inst._add(pat, rangeset[offset:offset + num:sl_step])
+                        inst._add(pat, rangeset[offset:offset + num:sl_step],
+                                  False)
                     else:
                         #skip until sl_next is reached
                         length += cnt
@@ -374,10 +362,9 @@ class NodeSetBase(object):
             raise TypeError, "NodeSet indices must be integers"
 
     def _add_new(self, pat, rangeset):
-        """
-        Add nodes from a (pat, rangeset) tuple. Predicate: pattern does not
-        exist in current set. RangeSet object is referenced (not copied).
-        """
+        """Add nodes from a (pat, rangeset) tuple.
+        Predicate: pattern does not exist in current set. RangeSet object is
+        referenced (not copied)."""
         if rangeset:
             # create new pattern
             self._patterns[pat] = rangeset
@@ -385,12 +372,11 @@ class NodeSetBase(object):
             # create new pattern with no rangeset (single node)
             self._patterns[pat] = None
 
-    def _add(self, pat, rangeset):
-        """
-        Add nodes from a (pat, rangeset) tuple. `pat' may be an existing
-        pattern and `rangeset' may be None. RangeSet object is copied when
-        provided.
-        """
+    def _add(self, pat, rangeset, copy_rangeset=True):
+        """Add nodes from a (pat, rangeset) tuple.
+        `pat' may be an existing pattern and `rangeset' may be None.
+        RangeSet object is copied if re-used internally when provided and if
+        copy_rangeset flag is set."""
         # get patterns dict entry
         pat_e = self._patterns.get(pat)
 
@@ -402,7 +388,7 @@ class NodeSetBase(object):
             # add rangeset in corresponding pattern rangeset
             pat_e.update(rangeset)
         else:
-            if rangeset:
+            if rangeset and copy_rangeset:
                 rangeset = rangeset.copy()
             self._add_new(pat, rangeset)
 
@@ -529,7 +515,7 @@ class NodeSetBase(object):
                 irset = rangeset.intersection(irangeset)
                 # ignore pattern if empty rangeset
                 if len(irset) > 0:
-                    tmp_ns._add(pat, irset)
+                    tmp_ns._add(pat, irset, False)
             elif not irangeset and pat in self._patterns:
                 # intersect two nodes with no rangeset
                 tmp_ns._add(pat, None)
@@ -651,7 +637,7 @@ class NodeSetBase(object):
         # iterate over other's rangesets
         for pat, brangeset in other._patterns.iteritems():
             rangeset = self._patterns.get(pat)
-            if not rangeset and not self._patterns.has_key(pat):
+            if not rangeset and not pat in self._patterns:
                 self._add(pat, brangeset)
 
         # check for patterns cleanup
@@ -676,14 +662,14 @@ class NodeSetBase(object):
 
 class NodeGroupBase(NodeSetBase):
     """NodeGroupBase aims to ease node group names management."""
-    def _add(self, pat, rangeset):
+    def _add(self, pat, rangeset, copy_rangeset=True):
         """
         Add groups from a (pat, rangeset) tuple. `pat' may be an existing
         pattern and `rangeset' may be None.
         """
         if pat and pat[0] != '@':
             raise ValueError("NodeGroup name must begin with character '@'")
-        NodeSetBase._add(self, pat, rangeset)
+        NodeSetBase._add(self, pat, rangeset, copy_rangeset)
 
 
 class ParsingEngine(object):
@@ -743,7 +729,7 @@ class ParsingEngine(object):
                 # perform operation
                 getattr(nodeset, opc)(ns_group)
             else:
-                getattr(nodeset, opc)(NodeSetBase(pat, rangeset))
+                getattr(nodeset, opc)(NodeSetBase(pat, rangeset, False))
 
         return nodeset
         
