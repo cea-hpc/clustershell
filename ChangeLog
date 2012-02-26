@@ -1,3 +1,13 @@
+2012-02-26 S. Thiell <stephane.thiell@cea.fr>
+
+	* Gateway.py: Improved logging facility, configurable through
+	CLUSTERSHELL_GW_LOG_DIR and CLUSTERSHELL_GW_LOG_LEVEL environment
+	variables from the root node.
+
+	* Communication.py: Messages are now transfered in xml payload instead of
+	'output' attribute for improved handling of multi-lines messages in
+	StdOutMessage and StdErrMessage.
+
 2012-02-24 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/EngineClient.py: Fix gateway write performance issue, as seen on a

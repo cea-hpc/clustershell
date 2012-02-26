@@ -229,25 +229,24 @@ def gateway_main():
                         filename=os.path.join(logdir, "%s.gw.log" % host))
     logger = logging.getLogger(__name__)
     logger.debug('Starting gateway on %s', host)
+    logger.debug("environ=%s" % os.environ)
 
     set_nonblock_flag(sys.stdin.fileno())
     set_nonblock_flag(sys.stdout.fileno())
     set_nonblock_flag(sys.stderr.fileno())
 
     task = task_self()
-    logger.debug("environ=%s" % os.environ)
     
-    # Enable MsgTree buffering on gateways FIXME: unless no grooming set?
+    # Pre-enable MsgTree buffering on gateway (not available at runtime - #181)
     task.set_default("stdout_msgtree", True)
     task.set_default("stderr_msgtree", True)
 
-    chan = GatewayChannel(task, host)
     if sys.stdin.isatty():
-        logger.debug('sys.stdin.isatty OK')
-        worker = WorkerSimple(sys.stdout, sys.stdin, None, None, handler=chan)
-    else:
-        logger.debug('!sys.stdin.isatty')
-        worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None, handler=chan)
+        logger.critical('Gateway failure: sys.stdin.isatty() is True')
+        sys.exit(1)
+
+    worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None,
+                          handler=GatewayChannel(task, host))
     task.schedule(worker)
     logger.debug('Starting task')
     try:

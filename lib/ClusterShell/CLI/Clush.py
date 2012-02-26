@@ -531,7 +531,7 @@ def run_command(task, cmd, ns, timeout, display):
     """    
     task.set_default("USER_running", True)
 
-    if display.verbosity == VERB_VERB and task.topology:
+    if display.verbosity >= VERB_VERB and task.topology:
         print Display.COLOR_RESULT_FMT % '-' * 15
         print Display.COLOR_RESULT_FMT % task.topology,
         print Display.COLOR_RESULT_FMT % '-' * 15
