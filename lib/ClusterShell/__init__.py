@@ -46,9 +46,9 @@ Please see first:
   - ClusterShell.Task
 """
 
-__version__ = '1.5.81'
+__version__ = '1.5.83'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2012/02/19'
+__date__    = '2012/02/26'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 

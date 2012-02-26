@@ -790,7 +790,7 @@ def main(args=sys.argv):
 
     if task.info("debug"):
         logging.basicConfig(level=logging.DEBUG)
-        logging.debug("clush2: STARTING DEBUG")
+        logging.debug("clush: STARTING DEBUG")
 
     task.set_info("fanout", config.fanout)
 

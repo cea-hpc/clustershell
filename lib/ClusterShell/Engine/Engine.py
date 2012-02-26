@@ -613,7 +613,8 @@ class Engine:
             client._events, client))
 
         if not client.registered:
-            logging.debug("set_events: client %s not registered" % self)
+            logging.getLogger(__name__).debug( \
+                "set_events: client %s not registered" % self)
             return
 
         chgbits = new_events ^ client._events

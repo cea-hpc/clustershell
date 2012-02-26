@@ -58,7 +58,6 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker has just started.
         """
-        logging.debug(self.__dict__)
         self.metaworker._start_count += 1
         self.metaworker._check_ini()
 
@@ -114,20 +113,6 @@ class MetaWorkerEventHandler(EventHandler):
             metaworker.eh.ev_close(metaworker)
         """
 
-    def ev_msg(self, port, msg):
-        """
-        Handle port message.
-
-        @param port: The port object on which a message is available.
-        """
-
-    def ev_timer(self, timer):
-        """
-        Handle firing timer.
-
-        @param timer: The timer that is firing. 
-        """
-
 
 class WorkerTree(DistantWorker):
     """
@@ -160,6 +145,7 @@ class WorkerTree(DistantWorker):
         self._child_count = 0
         self._target_count = 0
         self._has_timeout = False
+        self.logger = logging.getLogger(__name__)
 
         if self.command is not None:
             pass
@@ -169,14 +155,17 @@ class WorkerTree(DistantWorker):
             raise ValueError("missing command or source parameter in " \
 			     "WorkerTree constructor")
 
-        python_path = os.getenv('PYTHONPATH')
-        if python_path:
-            self.invoke_gateway = \
-                'PYTHONPATH=%s python -m ClusterShell/Gateway -Bu' % python_path
-        else:
-            self.invoke_gateway = 'python -m ClusterShell/Gateway -Bu'
+        # build gateway invocation command
+        invoke_gw_args = []
+        for envname in ('PYTHONPATH', \
+                        'CLUSTERSHELL_GW_LOG_DIR', \
+                        'CLUSTERSHELL_GW_LOG_LEVEL'):
+            envval = os.getenv(envname)
+            if envval:
+                invoke_gw_args.append("%s=%s" % (envname, envval))
+        invoke_gw_args.append("python -m ClusterShell/Gateway -Bu")
+        self.invoke_gateway = ' '.join(invoke_gw_args)
 
-        
         self.topology = kwargs.get('topology')
         if self.topology is not None:
             self.newroot = kwargs.get('newroot') or str(self.topology.root.nodeset)
@@ -206,7 +195,7 @@ class WorkerTree(DistantWorker):
         next_hops = self._distribute(self.task.info("fanout"), self.nodes)
         for gw, targets in next_hops.iteritems():
             if gw == targets:
-                logging.debug('task.shell cmd=%s nodes=%s timeout=%d' % \
+                self.logger.debug('task.shell cmd=%s nodes=%s timeout=%d' % \
                     (self.command, self.nodes, timeout))
                 self._child_count += 1
                 self._target_count += len(targets)
@@ -230,10 +219,10 @@ class WorkerTree(DistantWorker):
 
     def _execute_remote(self, cmd, targets, gateway, timeout):
         """run command against a remote node via a gateway"""
-        logging.debug("_execute_remote gateway=%s cmd=%s targets=%s" % \
+        self.logger.debug("_execute_remote gateway=%s cmd=%s targets=%s" % \
             (gateway, cmd, targets))
-        self._start_count += 1
-        self._child_count += 1
+        #self._start_count += 1
+        #self._child_count += 1
         self._target_count += len(targets)
         self.task.pchannel(gateway, self).shell(nodes=targets,
             command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
@@ -257,6 +246,8 @@ class WorkerTree(DistantWorker):
         self._check_fini()
 
     def _check_ini(self):
+        self.logger.debug("WorkerTree: _check_ini (%d, %d)" % \
+            (self._start_count,self._child_count))
         if self._start_count >= self._child_count:
             self.eh.ev_start(self)
 

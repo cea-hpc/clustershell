@@ -38,7 +38,7 @@ MsgTree
 ClusterShell message tree module. The purpose of MsgTree is to
 provide a shared message tree for storing message lines received
 from ClusterShell Workers (for example, from remote cluster
-commands). It should be efficient, in term of compute power and memory
+commands). It should be efficient, in term of algorithm and memory
 consumption, especially when remote messages are the same.
 """
 

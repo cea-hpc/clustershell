@@ -377,8 +377,9 @@ class Task(object):
             parser = TopologyParser()
             parser.load(self.default("topology_file"))
             return parser.tree(_getshorthostname())
-        except TopologyError:
-            # FIXME logging debug
+        except TopologyError, exc:
+            logging.getLogger(__name__).exception("_default_topology(): %s", \
+                                                  str(exc))
             raise
         return None
 

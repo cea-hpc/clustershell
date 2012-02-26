@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -242,23 +242,25 @@ class PropagationChannel(Channel):
 
         self._history = {} # track informations about previous states
         self._sendq = []
+        self.logger = logging.getLogger(__name__)
 
     def start(self):
         """initial actions"""
         #print '[DBG] start'
         self._open()
         cfg = ConfigurationMessage()
-        cfg.data_encode(self.task._default_topology())
+        #cfg.data_encode(self.task._default_topology())
+        cfg.data_encode(self.task.topology)
         self._history['cfg_id'] = cfg.msgid
         self.send(cfg)
         self.current_state = self.states['STATE_CFG']
 
     def recv(self, msg):
         """process incoming messages"""
-        logging.debug("[DBG] rcvd from: %s" % str(msg))
+        self.logger.debug("[DBG] rcvd from: %s" % str(msg))
         if msg.ident == EndMessage.ident:
             #??#self.ptree.notify_close()
-            logging.debug("closing")
+            self.logger.debug("closing")
             # abort worker (now working)
             self.worker.abort()
         else:
@@ -266,7 +268,7 @@ class PropagationChannel(Channel):
 
     def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd):
         """command execution through channel"""
-        logging.debug("PropagationChannel.shell nodes=%s timeout=%f worker=%s" % \
+        self.logger.debug("shell nodes=%s timeout=%f worker=%s" % \
             (nodes, timeout, id(worker)))
 
         self.workers[id(worker)] = worker
@@ -306,13 +308,14 @@ class PropagationChannel(Channel):
         """handle incoming messages for state 'control'"""
         if msg.type == 'ACK': # and msg.ack == self._history['ctl_id']:
             #self.current_state = self.states['STATE_GTR']
-            logging.debug("PropChannel: _state_control -> STATE_GTR")
+            self.logger.debug("PropChannel: _state_control -> STATE_GTR")
         elif isinstance(msg, RoutedMessageBase):
             metaworker = self.workers[msg.srcid]
             if msg.type == StdOutMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
-                    for line in msg.output.splitlines():
+                    self.logger.debug("StdOutMessage: \"%s\"" % msg.data)
+                    for line in msg.data.splitlines():
                         for node in nodeset:
                             metaworker._on_node_msgline(node, line)
             elif msg.type == StdErrMessage.ident:
@@ -329,10 +332,10 @@ class PropagationChannel(Channel):
                 for node in NodeSet(msg.nodes):
                     metaworker._on_node_timeout(node)
         else:
-            logging.debug("PropChannel: _state_gather unhandled msg %s" % msg)
+            self.logger.debug("PropChannel: _state_gather unhandled msg %s" % msg)
         return
         if self.ptree.upchannel is not None:
-            logging.debug("_state_gather ->upchan %s" % msg)
+            self.logger.debug("_state_gather ->upchan %s" % msg)
             self.ptree.upchannel.send(msg) # send to according event handler passed by shell()
         else:
             assert False

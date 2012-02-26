@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -119,7 +119,7 @@ class XMLReader(ContentHandler):
         """read content characters"""
         if self._draft is not None:
             content = content.decode('utf-8')
-            content = strdel(content, [' ', '\t', '\r', '\n'])
+            #content = strdel(content, [' ', '\t', '\r', '\n'])
             if content != '':
                 self._draft.data_update(content)
 
@@ -192,6 +192,8 @@ class Channel(EventHandler):
         self._parser = xml.sax.make_parser(["IncrementalParser"])
         self._parser.setContentHandler(self._xml_reader)
 
+        self.logger = logging.getLogger(__name__)
+
     def _open(self):
         """open a new communication channel from src to dst"""
         generator = XMLGenerator(self.worker, encoding='UTF-8')
@@ -213,14 +215,15 @@ class Channel(EventHandler):
 
     def ev_written(self, worker):
         if self.exit:
-            logging.debug("aborting worker after last write")
+            self.logger.debug("aborting worker after last write")
             self.worker.abort()
 
     def ev_read(self, worker):
         """channel has data to read"""
         raw = worker.current_msg
+        #self.logger.debug("ev_read raw=\'%s\'" % raw)
         try:
-            self._parser.feed(raw)
+            self._parser.feed(raw + '\n')
         except SAXParseException, e:
             raise MessageProcessingError(
                 'Invalid communication (%s): "%s"' % (e.getMessage(), raw))
@@ -234,6 +237,7 @@ class Channel(EventHandler):
     def send(self, msg):
         """write an outgoing message as its XML representation"""
         #print '[DBG] send: %s' % str(msg)
+        #self.logger.debug("SENDING to %s: \"%s\"" % (self.worker, msg.xml()))
         self.worker.write(msg.xml() + '\n')
 
     def start(self):
@@ -269,6 +273,7 @@ class Message(object):
     def data_update(self, raw):
         """append data to the instance (used for deserialization)"""
         # TODO : bufferize and use ''.join() for performance
+        #self.logger.debug("data_update raw=%s" % raw)
         self.data += raw
 
     def selfbuild(self, attributes):
@@ -297,8 +302,7 @@ class Message(object):
             state[k] = str(getattr(self, k))
 
         generator.startElement('message', state)
-        content = strdel(self.data, [' ', '\t', '\r', '\n'])
-        generator.characters(content)
+        generator.characters(self.data)
         generator.endElement('message')
         xml_msg = out.getvalue()
         out.close()
@@ -369,15 +373,9 @@ class StdOutMessage(RoutedMessageBase):
         """
         """
         RoutedMessageBase.__init__(self, srcid)
-        self.attr.update({'output': str, 'nodes': str})
-        self.output = output
+        self.attr.update({'nodes': str})
         self.nodes = nodes
-
-    def data_update(self, raw):
-        """override method to ensure that incoming ACK messages don't contain
-        unexpected payloads
-        """
-        raise MessageProcessingError('Error message have no payload')
+        self.data = output
 
 class StdErrMessage(StdOutMessage):
     ident = 'SER'
@@ -393,6 +391,12 @@ class RetcodeMessage(RoutedMessageBase):
         self.attr.update({'retcode': int, 'nodes': str})
         self.retcode = retcode
         self.nodes = nodes
+
+    def data_update(self, raw):
+        """override method to ensure that incoming ACK messages don't contain
+        unexpected payloads
+        """
+        raise MessageProcessingError('Retcode message has no payload')
 
 class TimeoutMessage(RoutedMessageBase):
     """container message for timeout notification"""
