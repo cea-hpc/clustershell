@@ -383,7 +383,7 @@ class NodeSetBase(object):
         if pat_e:
             # don't play with prefix: if there is a value, there is a
             # rangeset.
-            assert rangeset != None
+            assert rangeset is not None
 
             # add rangeset in corresponding pattern rangeset
             pat_e.update(rangeset)
@@ -391,31 +391,6 @@ class NodeSetBase(object):
             if rangeset and copy_rangeset:
                 rangeset = rangeset.copy()
             self._add_new(pat, rangeset)
-
-    def _addn(self, pat, rangesets):
-        """
-        Add nodes from a (pat, list of rangesets).
-        """
-        assert len(rangesets) > 0
-        # get patterns dict entry
-        pat_e = self._patterns.get(pat)
-        
-        # check for single node presence
-        single = True
-        for rng in rangesets:
-            if rng is not None:
-                single = False
-                break
-
-        if pat_e is None:
-            if single:
-                self._patterns[pat] = None
-            else:
-                pat_e = self._patterns[pat] = rangesets[0].copy()
-                pat_e.updaten(rangesets[1:])
-        else:
-            assert not single
-            pat_e.updaten(rangesets)
 
     def union(self, other):
         """
@@ -451,19 +426,11 @@ class NodeSetBase(object):
 
     def updaten(self, others):
         """
-        s.updaten(t) returns nodeset s with elements added from given list.
+        s.updaten(list) returns nodeset s with elements added from given list.
         """
-        # optimized for pattern homogeneous clusters (a common case)
-        patd = {}
-        # gather rangesets from each common nodeset pattern
         for other in others:
-            self._binary_sanity_check(other)
-            for pat, rangeset in other._patterns.iteritems():
-                patd.setdefault(pat, []).append(rangeset)
-        # for each pattern, add all needed rangesets in once
-        for pat, rgsets in patd.iteritems():
-            self._addn(pat, rgsets)
-        
+            self.update(other)
+
     def clear(self):
         """
         Remove all nodes from this nodeset.
@@ -931,9 +898,19 @@ class NodeSet(NodeSetBase):
 
     @classmethod
     def _fromone(cls, single, autostep=None, resolver=None):
-        """Class method that returns a new NodeSet from a single node string."""
+        """Class method that returns a new NodeSet from a single node string
+        (optimized constructor)."""
         inst = NodeSet(autostep=autostep, resolver=resolver)
         inst.update(inst._parser.parse_string_single(single, autostep))
+        return inst
+
+    @classmethod
+    def _fromlist1(cls, nodelist, autostep=None, resolver=None):
+        """Class method that returns a new NodeSet with single nodes from
+        provided list (optimized constructor)."""
+        inst = NodeSet(autostep=autostep, resolver=resolver)
+        for single in nodelist:
+            inst.update(inst._parser.parse_string_single(single, autostep))
         return inst
 
     @classmethod
@@ -1154,13 +1131,6 @@ class NodeSet(NodeSetBase):
         """
         nodeset = self._parser.parse(other, self._autostep)
         NodeSetBase.update(self, nodeset)
-
-    def updaten(self, others):
-        """
-        s.updaten(list) returns nodeset s with elements added from given list.
-        """
-        NodeSetBase.updaten(self, \
-            [self._parser.parse(other, self._autostep) for other in others])
 
     def intersection_update(self, other):
         """

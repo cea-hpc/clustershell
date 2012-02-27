@@ -149,7 +149,7 @@ class DirectOutputHandler(OutputHandler):
 
     def ev_timeout(self, worker):
         self._display.vprint_err(VERB_QUIET, "clush: %s: command timeout" % \
-            NodeSet.fromlist(worker.iter_keys_timeout()))
+            NodeSet._fromlist1(worker.iter_keys_timeout()))
 
     def ev_close(self, worker):
         self.update_prompt(worker)
@@ -201,7 +201,7 @@ class GatherOutputHandler(OutputHandler):
         self._runtimer_finalize(worker)
         assert worker.current_node is not None, "cannot gather local command"
         # Display command output, try to order buffers by rc
-        nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+        nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
         cleaned = False
         for rc, nodelist in worker.iter_retcodes():
             # Then order by node/nodeset (see bufnodeset_cmp)
@@ -226,14 +226,14 @@ class GatherOutputHandler(OutputHandler):
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
-                ns = NodeSet.fromlist(nodelist)
+                ns = NodeSet._fromlist1(nodelist)
                 self._display.vprint_err(verbexit, \
                     "clush: %s: exited with exit code %d" % (ns, rc))
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
             self._display.vprint_err(verbexit, "clush: %s: command timeout" % \
-                NodeSet.fromlist(worker.iter_keys_timeout()))
+                NodeSet._fromlist1(worker.iter_keys_timeout()))
 
 class LiveGatherOutputHandler(GatherOutputHandler):
     """Live line-gathered output event handler class."""
@@ -410,7 +410,7 @@ def ttyloop(task, nodeset, timeout, display):
                 print_warn = False
 
                 # Display command output, but cannot order buffers by rc
-                nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
+                nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
                 for buf, nodeset in sorted(map(nodesetify, task.iter_buffers()),
                                             cmp=bufnodeset_cmp):
                     if not print_warn:
@@ -425,10 +425,10 @@ def ttyloop(task, nodeset, timeout, display):
                     verbexit = VERB_STD
                 ns_ok = NodeSet()
                 for rc, nodelist in task.iter_retcodes():
-                    ns_ok.add(NodeSet.fromlist(nodelist))
+                    ns_ok.add(NodeSet._fromlist1(nodelist))
                     if rc != 0:
                         # Display return code if not ok ( != 0)
-                        ns = NodeSet.fromlist(nodelist)
+                        ns = NodeSet._fromlist1(nodelist)
                         display.vprint_err(verbexit, \
                             "clush: %s: exited with exit code %s" % (ns, rc))
                 # Add uncompleted nodeset to exception object
@@ -438,7 +438,7 @@ def ttyloop(task, nodeset, timeout, display):
                 if task.num_timeout() > 0:
                     display.vprint_err(verbexit, \
                         "clush: %s: command timeout" % \
-                            NodeSet.fromlist(task.iter_keys_timeout()))
+                            NodeSet._fromlist1(task.iter_keys_timeout()))
             raise kbe
 
         if task.default("USER_running"):
@@ -786,9 +786,8 @@ def main(args=sys.argv):
     display.vprint(VERB_DEBUG, "Create STDIN worker: %s" % \
                                task.default("USER_stdin_worker"))
 
-    task.set_info("debug", config.verbosity >= VERB_DEBUG)
-
-    if task.info("debug"):
+    if config.verbosity >= VERB_DEBUG:
+        task.set_info("debug", True)
         logging.basicConfig(level=logging.DEBUG)
         logging.debug("clush: STARTING DEBUG")
 
