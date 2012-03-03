@@ -29,8 +29,6 @@
 #
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
-#
-# $Id: Event.py 469 2011-02-15 20:50:08Z st-cea $
 
 """
 Event handler support
