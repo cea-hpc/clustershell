@@ -1,0 +1,215 @@
+body
+    {
+    margin: 0;
+    padding: 0;
+    color: #333;
+    font: 13px Trebuchet MS, Lucida Sans Unicode, Arial, sans-serif;
+    background: #E2EBED;
+    text-align: center;
+    }
+a
+    {
+    color: #307082;
+    }
+a:hover
+    {
+    color: #D60808;
+    }
+acronym
+    {
+    border: none;
+    }
+
+#why h3 span, #scalability h3 span, #requirements h3 span, #ldocumentation h3.documentation span, #lcontribute h3.contribute span, #lselect h3.select
+    {
+    display:none;
+    }
+
+#container
+    {
+    margin: 0 auto;
+    width: 724px;
+    position: relative;
+    background: #fff;
+    padding: 0 10px 0 10px;
+    text-align: left;
+    }
+* html #container
+    {
+    width: 744px;
+    w\idth: 724px;
+    }
+
+#pageHeader
+    {
+    position: absolute;
+    top: 25px;
+    left: 40px;
+    }
+h1
+    {
+    background: url("images/clustershell.png");
+    width: 156px;
+    height: 25px;
+    overflow: hidden;
+    margin: 0;
+    }
+h1 span
+    {
+    display: none;
+    }
+h2
+    {
+    font-size: 12px;
+    margin: 0;
+    }
+
+#quickSummary
+    {
+    padding-top: 85px;
+    }
+#quickSummary .p2
+    {
+    font-size: 12px;
+    position: absolute;
+    top: 65px;
+    right: 20px;
+    margin: 0;
+    }
+#container #intro #quickSummary .p1
+    {
+    font-size: 11px;
+    height: 171px;
+    background: url("images/background.jpg") no-repeat;
+    margin: 0;
+    width: 724px;
+    color: #fff;
+    font: 12px/150% Trebuchet MS;
+    }
+#container #intro #quickSummary .p1  span
+    {
+    padding: 30px 530px 0 30px;
+    display: block;
+    margin: 0;
+    font: 12px/150% Trebuchet MS;
+    }
+
+#why, #supportingText
+    {
+    margin: 0 20px 0 243px;
+    }
+#supportingText p, #why p
+    {
+    line-height: 150%;
+    margin: 10px 0 10px 0;
+    }
+#why h3, #scalability h3, #requirements h3
+    {
+    width: 217px;
+    height: 23px;
+    margin: 40px 0 10px 0;
+    }
+#why h3
+    {
+    background: url("images/h01why.png") no-repeat;
+    }
+#scalability h3
+    {
+    background: url("images/h02scale.png") no-repeat;
+    }
+#requirements h3
+    {
+    background: url("images/h03requirements.png") no-repeat;
+    }
+#requirements
+    {
+    margin-bottom: 40px;
+    }
+
+#linkList
+    {
+    position: absolute;
+    top: 295px;
+    left: 0;
+    width: 210px;
+    }
+#lselect ul, #ldocumentation ul, #lcontribute ul
+    {
+    list-style-type: none;
+    margin: 0;
+    padding: 0 0 0 40px;
+    }
+#lselect ul li a
+    {
+    text-decoration: underline;
+    display: block;
+    font-size: 13px;
+    }
+#lselect ul li.c, #lselect ul li a.c
+    {
+    display: inline;
+    font-size: 12px;
+    color: #333;
+    }
+#lselect ul li a.c
+    {
+    text-decoration: none;
+    }
+#lselect ul li a.c:hover
+    {
+    color: #D60808;
+    }
+#lselect ul li
+    {
+    font-size: 12px;
+    border-bottom: 1px solid #CCCCCC;
+    }
+#linkList #ldocumentation ul li
+    {
+    font-size: 13px;
+    border-bottom: 1px solid #FFFFFF;
+    display: block;
+    padding: 5px 0;
+    }
+#linkList #lcontribute ul li
+    {
+    font-size: 13px;
+    border-bottom: 1px solid #FFFFFF;
+    display: block;
+    padding: 5px 0;
+    }
+#ldocumentation h3.documentation
+    {
+    background: url("images/documentation.png") no-repeat;
+    width: 90px;
+    height: 18px;
+    margin: 30px 0 3px 40px;
+    }
+#lcontribute h3.contribute
+    {
+    background: url("images/contribute.png") no-repeat;
+    width: 62px;
+    height: 18px;
+    margin: 30px 0 3px 40px;
+    }
+
+#footer
+    {
+    background: url("images/footer.gif") no-repeat;
+    color: #fff;
+    height: 48px;
+    text-align: right;
+    padding: 0 10px 0 0;
+    line-height: 26px;
+    font-size: 11px;
+    }
+#footer a
+    {
+    color: #fff;
+    text-decoration: none;
+    }
+#footer a:hover
+    {
+    text-decoration: underline;
+    }
+

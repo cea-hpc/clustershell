@@ -1,85 +1,95 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
 <head>
-  <meta charset='utf-8'>
-
-  <title>cea-hpc/clustershell @ GitHub</title>
-
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #fdebaa;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-    h1 { font-size: 3.8em; color: #021455; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #021455; }
-    h3 { text-align: center; color: #021455; }
-    a { color: #021455; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
+	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+	<meta name="keywords" content="linux, cea, hpc, cluster, clustershell, cecill, nodeset, clush, clubak, git, eda" />
+	<meta name="description" content="Open Source ClusterShell Python Framework for scalable cluster administration" />
+	<meta name="robots" content="all" />
+	<title>ClusterShell - Scalable Python Framework for cluster administration</title>
+	<script type="text/javascript"></script>
+	<style type="text/css" media="all">
+		@import "index.css";
+	</style>
 </head>
 
-<body>
-  <a href="https://github.com/cea-hpc/clustershell"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+<body onload="window.defaultStatus='ClusterShell - Scalable Python Framework for cluster administration';" id="css-clustershell">
 
-  <div id="container">
+<div id="container">
+	<div id="intro">
+		<div id="pageHeader">
+			<h1><span>ClusterShell</span></h1>
+			<h2><span>Scalable Python Framework</span></h2>
+		</div>
 
-    <div class="download">
-      <a href="https://github.com/cea-hpc/clustershell/zipball/master">
-        <img border="0" width="90" src="https://github.com/images/modules/download/zip.png"></a>
-      <a href="https://github.com/cea-hpc/clustershell/tarball/master">
-        <img border="0" width="90" src="https://github.com/images/modules/download/tar.png"></a>
-    </div>
+		<div id="quickSummary">
+			<p class="p1"><span>Improve your cluster daily administration by using a scalable Python API and through provided command- line tools (clush, nodeset, ...)</span></p>
+			<p class="p2"><span>Stable version: <a href="https://github.com/cea-hpc/clustershell/downloads" title="Latest version">1.5.1</a></span></p>
+		</div>
 
-    <h1><a href="https://github.com/cea-hpc/clustershell">clustershell</a>
-      <span class="small">by <a href="https://github.com/cea-hpc">cea-hpc</a></span></h1>
+		<div id="why">
+			<h3><span>Why you need ClusterShell</span></h3>
+			<p class="p1">ClusterShell is an <a href="http://en.wikipedia.org/wiki/Event-driven_programming" title="Event-driven programming">event-driven</a> open source Python library to run local or distant commands in parallel on server farms or on large Linux clusters. Do not reinvent the wheel: use ClusterShell as a base, cluster aware layer to write administrative scripts and system applications in Python. It will take care of common issues encountered on HPC clusters, like operating on node sets and <a href="https://github.com/cea-hpc/clustershell/wiki/NodeGroups" title="ClusterShell node groups support">groups</a>, running distributed command execution algorithms, gathering results (like merging same outputs) and retrieving return codes. ClusterShell makes use of present remote shell facilities on your machines, like SSH.</p>
+			<p class="p2"><span>ClusterShell's primary goal is to improve the administration of high-performance clusters by providing a lightweight but scalable Python API for developers. Furthermore, <a href="https://github.com/cea-hpc/clustershell/wiki/clush" title="clush CLI tool">clush</a>, <a href="https://github.com/cea-hpc/clustershell/wiki/clubak" title="clubak CLI tool">clubak</a> and <a href="https://github.com/cea-hpc/clustershell/wiki/nodeset" title="nodeset CLI tool">nodeset</a>, three convenient command-line tools are included. These tools allow traditional shell scripts to benefit from some library features.</span></p>
+		</div>
+	</div>
 
-    <div class="description">
-      Scalable cluster administration Python framework
-    </div>
+	<div id="supportingText">
+		
+		<div id="scalability">
+			<h3><span>Scalability perspective</span></h3>
+			<p class="p1"><span>The ClusterShell library implements a scalable parallel commands execution model in a small footprint using asynchronous, non-blocking I/O (<a href="http://en.wikipedia.org/wiki/Event-driven_architecture" title="Event-Driven Architecture">EDA</a>). No massive multithreading is needed, making easier for the developer to avoid race conditions, deadlocks or resource starvation. When multitasking cannot be avoided, the library provides task mailbox mechanisms.</span></p>
+			<p class="p1"><span>ClusterShell is daily used on several petaFLOPS-class Linux supercomputers (with more than 5000 compute nodes) but also on server farms and storage clusters at <a href="http://www-hpc.cea.fr/index-en.htm" title="CEA: a major player in research and innovation">CEA</a>.</span></p>
+		</div>
 
-    
+		<div id="requirements">
+			<h3><span>Requirements</span></h3>
+			<p class="p1"><span>As a base package, the only real requirement is Python v2.4 (or later 2.x) on an Unix-like operating system (Linux, *BSD and Mac OS X are supported). Although not restricted to Secure Shell (<a href="http://en.wikipedia.org/wiki/Secure_Shell" title="Secure Shell on Wikipedia">SSH</a>), it is the default and recommended way for ClusterShell to access remote nodes.</span></p>
+			<p class="p2"><span>ClusterShell is distributed under the <a href="http://www.cecill.info/index.en.html" title="CeCILL licenses">CeCILL</a>-C license, which is a French transposition of the <a href="http://www.gnu.org/licenses/lgpl.html" title="GNU LGPL license">GNU LGPL</a> and is fully LGPL-compatible.</span></p>
+		</div>
 
-    
+		<div id="footer">
+			 <a href="http://aur.archlinux.org/packages.php?ID=53476" title="ClusterShell on Arch Linux">Arch</a> &nbsp;
+			 <a href="http://packages.debian.org/clustershell" title="ClusterShell on Debian Linux">Debian</a> &nbsp;
+			 <a href="http://dl.fedoraproject.org/pub/epel/6/x86_64/repoview/clustershell.html" title="ClusterShell on EPEL repository">EPEL</a> &nbsp;
+			 <a href="https://admin.fedoraproject.org/pkgdb/acls/name/clustershell" title="ClusterShell on Fedora PackageDB">Fedora</a> &nbsp;
+			 <a href="http://packages.ubuntu.com/clustershell" title="ClusterShell on Ubuntu Linux">Ubuntu</a> &nbsp;-&nbsp;
+			<a href="https://github.com/cea-hpc/clustershell/tree/master/lib/ClusterShell" title="Browse library source code">code/lib</a> &nbsp;
+			<a href="http://pypi.python.org/pypi/ClusterShell" title="ClusterShell on Python Package Index repository">PyPI</a> &nbsp;
+			<a href="http://www.ohloh.net/p/clustershell" title="ohloh project statistics">ohloh</a>
+		</div>
+	</div>
 
-    
+	<div id="linkList">
+		<div id="linkList2">
+			<div id="lselect">
+				<h3 class="select"><span>Download</span></h3>
+				<ul>
+					<li><a href="https://github.com/cea-hpc/clustershell/wiki/GetClusterShell" title="Get ClusterShell" accesskey="g"><img src="images/get.png" alt="Get ClusterShell" /></a>&nbsp;</li>
+				</ul>
+			</div>
+			
+			<div id="ldocumentation">
+				<h3 class="documentation"><span>Documentation:</span></h3>
+				<ul>
+					<li><a href="https://github.com/cea-hpc/clustershell/wiki/UserAndProgrammingGuide" title="Github Wiki Knowledge Base" >User &amp; Programming Guide</a>&nbsp;</li>
+					<li><a href="https://github.com/cea-hpc/clustershell/wiki" title="Github Wiki Knowledge Base" >Github Wiki</a>&nbsp;</li>
+					<li><a href="http://packages.python.org/ClusterShell" title="Epydoc-generated API documentation" >Python API</a></li>
+				</ul>
+			</div>
 
-    
-
-    
-      <h2>Authors</h2>
-      <p>Aurelien Degremont (aurelien.degremont@cea.fr)<br/>Stephane Thiell (stephane.thiell@cea.fr)<br/>      </p>
-    
-
-    
-
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="https://github.com/cea-hpc/clustershell/zipball/master">zip</a> or
-      <a href="https://github.com/cea-hpc/clustershell/tarball/master">tar formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/cea-hpc/clustershell</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="https://github.com/cea-hpc/clustershell">cea-hpc/clustershell</a>
-    </div>
-
-  </div>
-
+			<div id="lcontribute">
+				<h3 class="contribute"><span>Contribute:</span></h3>
+				<ul>
+				    <li><a href="https://github.com/cea-hpc/clustershell/issues/milestones" title="Project milestones" >Project milestones</a></li>
+				    <li><a href="http://lists.sourceforge.net/lists/listinfo/clustershell-devel" title="Developers mailing list" >Developers mailing list</a></li>
+				    <li><a href="https://github.com/cea-hpc/clustershell" title="Browse source" >Browse source</a> &nbsp;<a href="https://github.com/cea-hpc/clustershell/commits/master.atom" title="Subscribe to the master commits feed"><img src="images/feed.png" alt="master.atom" /></a></li>
+				    <li><a href="https://github.com/cea-hpc/clustershell/wiki/Thanks" title="Contributors" >Contributors</a></li>
+					<li><a href="https://github.com/cea-hpc/clustershell/issues/new" title="Open New Issue on Github" >Open a ticket</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
 </body>
 </html>
