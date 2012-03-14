@@ -164,7 +164,7 @@ class NodeSetBase(object):
     # __iter__() in the future...
 
     def nsiter(self):
-        """Object-based NodeSet iterator."""
+        """Object-based NodeSet iterator on single nodes."""
         for pat, start, pad in self._iter():
             ns = self.__class__()
             if start is not None:
@@ -172,6 +172,21 @@ class NodeSetBase(object):
             else:
                 ns._add_new(pat, None)
             yield ns
+
+    def contiguous(self):
+        """Object-based NodeSet iterator on contiguous node sets.
+
+        Contiguous node set contains nodes with same pattern name and a
+        contiguous range of indexes, like foobar[1-100]."""
+        for pat, rangeset in sorted(self._patterns.iteritems()):
+            ns = self.__class__()
+            if rangeset:
+                for cont_rset in rangeset.contiguous():
+                    ns._add_new(pat, cont_rset)
+                    yield ns
+            else:
+                ns._add_new(pat, None)
+                yield ns
 
     def __len__(self):
         """Get the number of nodes in NodeSet."""

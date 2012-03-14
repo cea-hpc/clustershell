@@ -1075,6 +1075,10 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 12)
         self.assertEqual(str(r1), "1,6-9,33-34,36-39,42")
 
+    def test_contiguous(self):
+        r1 = RangeSet("1,3-9,14-21,30-39,42")
+        self.assertEqual(['1', '3-9', '14-21', '30-39', '42'], [str(ns) for ns in r1.contiguous()])
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)
