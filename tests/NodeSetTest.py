@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.NodeSet test suite
 # Written by S. Thiell 2007-12-05
-# $Id$
 
 
 """Unit test for NodeSet"""

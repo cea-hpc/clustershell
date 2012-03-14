@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (local) test suite
 # Written by S. Thiell 2009-02-09
-# $Id$
 
 
 """Unit test for ClusterShell Task/Worker timeout support"""

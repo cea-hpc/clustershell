@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (multi-tasks) test suite
 # Written by S. Thiell 2009-10-26
-# $Id$
 
 
 """Unit test for ClusterShell Task (multi)"""

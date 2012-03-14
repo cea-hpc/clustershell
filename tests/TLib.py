@@ -1,4 +1,3 @@
-# $Id$
 
 """Unit test small library"""
 

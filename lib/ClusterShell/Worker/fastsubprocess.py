@@ -22,9 +22,6 @@
 #
 # Licensed to PSF under a Contributor Agreement.
 # See http://www.python.org/2.4/license for licensing details.
-##
-# $Id$
-####################################################################### 
 
 """_subprocess - Subprocesses with accessible I/O non-blocking file
 descriptors

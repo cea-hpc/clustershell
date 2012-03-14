@@ -29,8 +29,6 @@
 #
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
-#
-# $Id$
 
 
 """ClusterShell Python Library
@@ -46,9 +44,9 @@ Please see first:
   - ClusterShell.Task
 """
 
-__version__ = '1.5.83'
+__version__ = '1.5.84'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2012/02/26'
+__date__    = '2012/03/14'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://clustershell.sourceforge.net/'
 

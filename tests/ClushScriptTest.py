@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # scripts/clush.py tool test suite 
 # Written by S. Thiell 2011-03-19
-# $Id$
 
 
 """Unit test for scripts/clush.py"""

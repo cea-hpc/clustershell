@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # scripts/nodeset.py tool test suite 
 # Written by S. Thiell 2009-07-29
-# $Id$
 
 
 """Unit test for scripts/nodeset.py"""

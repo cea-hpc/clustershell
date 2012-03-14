@@ -29,8 +29,6 @@
 #
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
-#
-# $Id$
 
 """
 A ClusterShell Engine using epoll, an I/O event notification facility.

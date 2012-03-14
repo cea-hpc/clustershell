@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell task resource consumption/limits test suite
 # Written by S. Thiell 2010-10-19
-# $Id$
 
 
 """Unit test for ClusterShell Task (resource limits)"""

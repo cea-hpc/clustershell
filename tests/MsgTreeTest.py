@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
 # Written by S. Thiell 2010-02-03
-# $Id$
 
 
 """Unit test for ClusterShell MsgTree Class"""

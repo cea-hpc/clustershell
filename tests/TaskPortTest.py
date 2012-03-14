@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
 # Written by S. Thiell 2009-12-19
-# $Id$
 
 
 """Unit test for ClusterShell inter-Task msg"""

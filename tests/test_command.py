@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # ClusterShell test command
-# $Id$
 
 """
 test_command.py [--help] [--test=test] [--rc=retcode] [--timeout=timeout]

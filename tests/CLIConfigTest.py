@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.CLI.Config test suite
 # Written by S. Thiell 2010-09-19
-# $Id$
 
 
 """Unit test for CLI.Config"""

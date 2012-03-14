@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell communication test suite
 # Written by H. Doreau
-# $Id$
 
 
 """Unit test for Communication"""

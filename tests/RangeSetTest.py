@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.NodeSet.RangeSet test suite
 # Written by S. Thiell
-# $Id$
 
 
 """Unit test for RangeSet"""

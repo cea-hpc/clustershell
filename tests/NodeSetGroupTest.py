@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.Node* test suite
 # Written by S. Thiell 2010-03-18
-# $Id$
 
 
 """Unit test for NodeSet with Group support"""

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (distant, pdsh worker) test suite
 # Written by S. Thiell 2009-02-13
-# $Id$
 
 
 """Unit test for ClusterShell Task (distant, pdsh worker)"""

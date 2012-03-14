@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# $Id$
 
 """
 clush command-line tool

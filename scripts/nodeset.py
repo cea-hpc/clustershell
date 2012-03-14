@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# $Id$
 
 """
 nodeset command-line tool

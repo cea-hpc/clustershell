@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell timer test suite
 # Written by S. Thiell 2009-02-15
-# $Id$
 
 
 """Unit test for ClusterShell Task's timer"""

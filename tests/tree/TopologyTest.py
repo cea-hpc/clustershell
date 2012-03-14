@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.Topology test suite
 # Written by H. Doreau
-# $Id$
 
 
 """Unit test for Topology"""
