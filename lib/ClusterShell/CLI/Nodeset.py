@@ -123,7 +123,14 @@ def nodeset():
         class_set = RangeSet
 
     if options.all or options.regroup:
-        assert class_set == NodeSet, "-a/-r only supported in NodeSet mode"
+        if class_set != NodeSet:
+            parser.error("-a/-r only supported in NodeSet mode")
+
+    if options.maxsplit is not None and options.contiguous:
+        parser.error("incompatible splitting options (split, contiguous)")
+
+    if options.maxsplit is None:
+        options.maxsplit = 1
 
     if options.groupsource and not options.quiet and \
        (class_set == RangeSet or options.groupsources):
@@ -218,10 +225,14 @@ def nodeset():
     else:
         xsubres = len
 
-    if not xset or options.maxsplit <= 1:
+    if not xset or options.maxsplit <= 1 and not options.contiguous:
         print xsubres(xset)
     else:
-        for xsubset in xset.split(options.maxsplit):
+        if options.contiguous:
+            xiterator = xset.contiguous()
+        else:
+            xiterator = xset.split(options.maxsplit)
+        for xsubset in xiterator:
             print xsubres(xsubset)
 
 def main():

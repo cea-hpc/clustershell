@@ -288,6 +288,22 @@ class NodeSetScriptTest(unittest.TestCase):
         # following test requires a default group source set
         self._launchAndCompare(["--split=2","-r", "foo2", "foo3"], "foo2\nfoo3")
 
+    def test_contiguous(self):
+        """test nodeset.py --contiguous"""
+        self._launchAndCompare(["--contiguous", "-f", "bar"], "bar")
+        self._launchAndCompare(["--contiguous", "-f", "foo,bar"], "bar\nfoo")
+        self._launchAndCompare(["--contiguous", "-f", "foo", "bar", "bur", "oof", "gcc"], "bar\nbur\nfoo\ngcc\noof")
+        self._launchAndCompare(["--contiguous", "-e", "foo", "bar", "bur", "oof", "gcc"], "bar\nbur\nfoo\ngcc\noof")
+        self._launchAndCompare(["--contiguous", "-f", "foo2"], "foo2")
+        self._launchAndCompare(["--contiguous", "-R", "-f", "2"], "2")
+        self._launchAndCompare(["--contiguous", "-f", "foo[2-9]"], "foo[2-9]")
+        self._launchAndCompare(["--contiguous", "-f", "foo[2-3,7]", "bar9"], "bar9\nfoo[2-3]\nfoo7")
+        self._launchAndCompare(["--contiguous", "-R", "-f", "2-3,7", "9"], "2-3\n7\n9")
+        self._launchAndCompare(["--contiguous", "-f", "foo2", "foo3"], "foo[2-3]")
+        self._launchAndCompare(["--contiguous", "-f", "foo3", "foo2"], "foo[2-3]")
+        self._launchAndCompare(["--contiguous", "-f", "foo3", "foo1"], "foo1\nfoo3")
+        self._launchAndCompare(["--contiguous", "-f", "foo[1-5/2]", "foo7"], "foo1\nfoo3\nfoo5\nfoo7")
+
     def testSlice(self):
         """test nodeset.py -I/--slice"""
         self._launchAndCompare(["--slice=0","-f", "bar"], "bar")

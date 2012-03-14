@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -271,7 +271,10 @@ class OptionParser(optparse.OptionParser):
                           help="return sliced off result", type="string")
         optgrp.add_option("--split", action="store", dest="maxsplit", 
                           help="split result into a number of subsets",
-                          type="int", default=1)
+                          type="int")
+        optgrp.add_option("--contiguous", action="store_true",
+                          dest="contiguous", help="split result into " \
+                          "contiguous subsets")
         self.add_option_group(optgrp)
 
 
