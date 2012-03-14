@@ -691,6 +691,22 @@ class RangeSetTest(unittest.TestCase):
         rgs = RangeSet.fromone(42)
         self.assertEqual(str(rgs), "42")
         self.assertEqual(len(rgs), 1)
+        # also support slice object (v1.6+)
+        rgs = RangeSet.fromone(slice(42))
+        self.assertEqual(str(rgs), "0-41")
+        self.assertEqual(len(rgs), 42)
+        self.assertRaises(ValueError, RangeSet.fromone, slice(12, None))
+        rgs = RangeSet.fromone(slice(42, 43))
+        self.assertEqual(str(rgs), "42")
+        self.assertEqual(len(rgs), 1)
+        rgs = RangeSet.fromone(slice(42, 48))
+        self.assertEqual(str(rgs), "42-47")
+        self.assertEqual(len(rgs), 6)
+        rgs = RangeSet.fromone(slice(42, 57, 2))
+        self.assertEqual(str(rgs), "42,44,46,48,50,52,54,56")
+        rgs.autostep = 3
+        self.assertEqual(str(rgs), "42-56/2")
+        self.assertEqual(len(rgs), 8)
 
     def testIterator(self):
         """test RangeSet iterator"""
