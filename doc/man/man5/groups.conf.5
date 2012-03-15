@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH GROUPS.CONF 5 "2012-02-15" "1.6" "ClusterShell User Manual"
+.TH GROUPS.CONF 5 "2012-03-15" "1.6" "ClusterShell User Manual"
 .SH NAME
 groups.conf \- Configuration file for ClusterShell external node groups
 .
@@ -34,30 +34,49 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .sp
 The ClusterShell library obtains node groups configuration options from the
 system\-wide configuration file \fI/etc/clustershell/groups.conf\fP.
+Additional configuration files are also read from the directories set by the
+groupsdir option, if present.  See the groupsdir option below for further
+details.
 .sp
-The configuration file has a format in the style of RFC 822 composed
-of several sections which may be present in any order. Sections are:
+Configuration files have a format in the style of RFC 822 potentially composed
+of several sections which may be present in any order. There are two types of
+sections: Main and Group source:
 .INDENT 0.0
 .TP
 .B Main
 .
-General options definition
+Global configuration options. There should be only one Main section.
 .TP
 .B \fIGroup_source\fP
 .sp
-External commands definition for group source \fIGroup_source\fP (map, all, list and reverse)
+The \fIGroup_source\fP section(s) define the configuration for each node group
+source (or namespace). This configuration consists in external commands
+definition (map, all, list and reverse).
 .UNINDENT
-.SS [Main]
 .sp
-Configuration parameters of the \fBMain\fP section are described below.
+Only \fIGroup_source\fP section(s) are allowed in additional configuration files.
+.SS [Main] OPTIONS
+.sp
+Configuration parameters of the \fCMain\fP section are described below.
 .INDENT 0.0
 .TP
 .B default
 .
-Specify the default group source used by the NodeSet parser when the
-user does not specify explicitly the group source (eg. "@io").
+Specify the default group source (group namespace) used by the NodeSet parser
+when the user does not explicitly specify the group source (eg. "@io").
+.TP
+.B groupsdir
+.
+Optional list of directories where the ClusterShell library should look
+for .conf files which define group sources to use. Each file in these
+directories with the .conf suffix should contain one or more \fIGroup_source\fP
+sections as documented in [\fIGroup_source\fP] options below. These will be
+merged with the group sources defined in \fI/etc/clustershell/groups.conf\fP to
+form the complete set of group sources that ClusterShell will use. Duplicate
+\fIGroup_source\fP sections are not allowed.  Note: .conf files that are not
+readable by the current user are ignored.
 .UNINDENT
-.SS \fIGroup_source\fP
+.SS [\fIGroup_source\fP] OPTIONS
 .sp
 Configuration parameters of each group source section are described below.
 .INDENT 0.0
@@ -73,8 +92,8 @@ command.
 .
 Optional external shell command that should return a nodeset, list of
 nodes or list of nodeset of all nodes for this group source. If not
-specified, the library will try to resolve all nodes by using the \fBlist\fP
-external command in the same group source followed by \fBmap\fP for each group.
+specified, the library will try to resolve all nodes by using the \fClist\fP
+external command in the same group source followed by \fCmap\fP for each group.
 .TP
 .B list
 .
@@ -92,6 +111,10 @@ reverse is greater than the number of available groups, the \fIreverse\fP
 external command is avoided automatically.
 .UNINDENT
 .sp
+When the library executes a group source external shell command, the current
+working directory is previously set to the corresponding groupsdir. This
+allows the use of relative paths for third party files in the command.
+.sp
 Each external command might return a non\-zero return code when the operation
 is not doable. But if the call return zero, for instance, for a non\-existing
 group, the user will not receive any error when trying to resolve such unknown
@@ -106,6 +129,7 @@ Simple configuration file for local groups and slurm partitions binding.
 .nf
 [Main]
 default: local
+#groupsdir: /etc/clustershell/groups.conf.d/
 
 [local]
 map:  awk \-F: \(aq/^$GROUP:/ {print $2}\(aq /etc/clustershell/groups
@@ -124,10 +148,14 @@ reverse: sinfo \-h \-N \-o "%P" \-n $NODE
 .B \fI/etc/clustershell/groups.conf\fP
 .sp
 System\-wide external node groups configuration file.
+.TP
+.B \fI/etc/clustershell/groups.conf.d/\fP
+.sp
+Recommended directory for additional configuration files.
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fBclush\fP(1), \fBclubak\fP(1), \fBnodeset\fP(1)
+\fCclush\fP(1), \fCclubak\fP(1), \fCnodeset\fP(1)
 .sp
 \fI\%http://clustershell.sourceforge.net/\fP
 .SH AUTHOR

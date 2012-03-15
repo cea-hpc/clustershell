@@ -1,4 +1,4 @@
-# Copyright CEA/DAM/DIF (2010)
+# Copyright CEA/DAM/DIF (2010, 2012)
 #  Contributors:
 #   Stephane THIELL <stephane.thiell@cea.fr>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
@@ -41,6 +41,8 @@ to external node groups sources in separate namespaces (example of
 group sources are: files, jobs scheduler, custom scripts, etc.).
 """
 
+import glob
+import os
 import sys
 
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
@@ -75,21 +77,22 @@ class GroupSource(object):
     GroupSource class managing external calls for nodegroup support.
     """
     def __init__(self, name, map_upcall, all_upcall=None,
-                 list_upcall=None, reverse_upcall=None):
+                 list_upcall=None, reverse_upcall=None, cfgdir=None):
         self.name = name
         self.verbosity = 0
-
-        # Cache upcall data
-        self._cache_map = {}
-        self._cache_list = []
-        self._cache_all = None
-        self._cache_reverse = {}
+        self.cfgdir = cfgdir
 
         # Supported external upcalls
         self.map_upcall = map_upcall
         self.all_upcall = all_upcall
         self.list_upcall = list_upcall
         self.reverse_upcall = reverse_upcall
+
+        # Cache upcall data
+        self._cache_map = {}
+        self._cache_list = []
+        self._cache_all = None
+        self._cache_reverse = {}
 
     def _verbose_print(self, msg):
         if self.verbosity > 0:
@@ -104,7 +107,7 @@ class GroupSource(object):
         cmdline = Template(getattr(self, "%s_upcall" % \
                     cmdtpl)).safe_substitute(vars)
         self._verbose_print("EXEC '%s'" % cmdline)
-        proc = Popen(cmdline, stdout=PIPE, shell=True)
+        proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir)
         output = proc.communicate()[0].strip()
         self._verbose_print("READ '%s'" % output)
         if proc.returncode != 0:
@@ -276,42 +279,63 @@ class GroupResolverConfig(GroupResolver):
 
         self.config = ConfigParser()
         self.config.read(configfile)
-
         # Get config file sections
-        group_sections = self.config.sections()
-        if 'Main' in group_sections:
-            group_sections.remove('Main')
-
-        if not group_sections:
-            return
+        groupscfgs = {}
+        configfile_dirname = os.path.dirname(configfile)
+        for section in self.config.sections():
+            if section != 'Main':
+                groupscfgs[section] = (self.config, configfile_dirname)
+        try:
+            self.groupsdir = self.config.get('Main', 'groupsdir')
+            for groupsdir in self.groupsdir.split():
+                # support relative-to-dirname(groups.conf) groupsdir
+                groupsdir = os.path.normpath(os.path.join(configfile_dirname, \
+                                                          groupsdir))
+                if not os.path.isdir(groupsdir):
+                    if not os.path.exists(groupsdir):
+                        continue
+                    raise GroupResolverConfigError("Defined groupsdir %s " \
+                            "is not a directory" % groupsdir)
+                for groupsfn in sorted(glob.glob('%s/*.conf' % groupsdir)):
+                    grpcfg = ConfigParser()
+                    grpcfg.read(groupsfn) # ignore files that cannot be read
+                    for section in grpcfg.sections():
+                        if section in groupscfgs:
+                            raise GroupResolverConfigError("Group source " \
+                                "\"%s\" re-defined in %s" % (section, groupsfn))
+                        groupscfgs[section] = (grpcfg, groupsdir)
+        except (NoSectionError, NoOptionError):
+            pass
 
         try:
             self.default_sourcename = self.config.get('Main', 'default')
             if self.default_sourcename and self.default_sourcename \
-                                            not in group_sections:
-                raise GroupResolverConfigError( \
-                    "Default group source not found: \"%s\"" % \
-                        self.default_sourcename)
+                                            not in groupscfgs.keys():
+                raise GroupResolverConfigError("Default group source not " \
+                    "found: \"%s\"" % self.default_sourcename)
         except (NoSectionError, NoOptionError):
             pass
 
+        if not groupscfgs:
+            return
+
         # When not specified, select a random section.
         if not self.default_sourcename:
-            self.default_sourcename = group_sections[0]
+            self.default_sourcename = groupscfgs.keys()[0]
 
         try:
-            for section in group_sections:
-                map_upcall = self.config.get(section, 'map', True)
+            for section, (cfg, cfgdir) in groupscfgs.iteritems():
+                map_upcall = cfg.get(section, 'map', True)
                 all_upcall = list_upcall = reverse_upcall = None
-                if self.config.has_option(section, 'all'):
-                    all_upcall = self.config.get(section, 'all', True)
-                if self.config.has_option(section, 'list'):
-                    list_upcall = self.config.get(section, 'list', True)
-                if self.config.has_option(section, 'reverse'):
-                    reverse_upcall = self.config.get(section, 'reverse', True)
+                if cfg.has_option(section, 'all'):
+                    all_upcall = cfg.get(section, 'all', True)
+                if cfg.has_option(section, 'list'):
+                    list_upcall = cfg.get(section, 'list', True)
+                if cfg.has_option(section, 'reverse'):
+                    reverse_upcall = cfg.get(section, 'reverse', True)
 
-                self.add_source(GroupSource(section, map_upcall, all_upcall,
-                                            list_upcall, reverse_upcall))
+                self.add_source(GroupSource(section, map_upcall, all_upcall, \
+                                    list_upcall, reverse_upcall, cfgdir))
         except (NoSectionError, NoOptionError), e:
             raise GroupResolverConfigError(str(e))
 

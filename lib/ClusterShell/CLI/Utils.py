@@ -41,9 +41,9 @@ import sys
 from ClusterShell.NodeUtils import GroupResolverConfigError
 try:
     from ClusterShell.NodeSet import NodeSet
-except GroupResolverConfigError, e:
+except GroupResolverConfigError, exc:
     print >> sys.stderr, \
-        "ERROR: ClusterShell Groups configuration error:\n\t%s" % e
+        "ERROR: ClusterShell node groups configuration error:\n\t%s" % exc
     sys.exit(1)
 
 

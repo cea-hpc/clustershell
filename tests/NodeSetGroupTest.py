@@ -6,6 +6,7 @@
 """Unit test for NodeSet with Group support"""
 
 import copy
+import shutil
 import sys
 import tempfile
 import unittest
@@ -17,12 +18,17 @@ import ClusterShell.NodeSet
 from ClusterShell.NodeSet import *
 from ClusterShell.NodeUtils import *
 
-def makeTestFile(text):
+def makeTestFile(text, suffix='', dir=None):
     """Create a temporary file with the provided text."""
-    f = tempfile.NamedTemporaryFile()
+    f = tempfile.NamedTemporaryFile(suffix=suffix, dir=dir)
     f.write(text)
     f.flush()
     return f
+
+def makeTestDir():
+    """Create a temporary directory."""
+    dname = tempfile.mkdtemp()
+    return dname
 
 def makeTestG1():
     """Create a temporary group file 1"""
@@ -471,6 +477,104 @@ map: echo @local:foo
         nodeset = NodeSet("@other:foo", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
 
+    def testConfigGroupsDirDummy(self):
+        """test groups with groupsdir defined (dummy)"""
+        f = makeTestFile("""
+
+[Main]
+default: local
+groupsdir: /path/to/nowhere
+
+[local]
+map: echo example[1-100]
+#all:
+list: echo foo
+#reverse:
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        self.assertEqual(nodeset.regroup(), "@foo")
+        self.assertEqual(str(NodeSet("@foo", resolver=res)), "example[1-100]")
+
+    def testConfigGroupsDirExists(self):
+        """test groups with groupsdir defined (real, other)"""
+        dname = makeTestDir()
+        f = makeTestFile("""
+
+[Main]
+default: new_local
+groupsdir: %s
+
+[local]
+map: echo example[1-100]
+#all:
+list: echo foo
+#reverse:
+        """ % dname)
+        f2 = makeTestFile("""
+[new_local]
+map: echo example[1-100]
+#all:
+list: echo bar
+#reverse:
+        """, suffix=".conf", dir=dname)
+        try:
+            res = GroupResolverConfig(f.name)
+            nodeset = NodeSet("example[1-100]", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-100]")
+            self.assertEqual(nodeset.regroup(), "@bar")
+            self.assertEqual(str(NodeSet("@bar", resolver=res)), "example[1-100]")
+        finally:
+            f2.close()
+            f.close()
+            shutil.rmtree(dname, ignore_errors=True)
+
+    def testConfigGroupsDirExistsNoOther(self):
+        """test groups with groupsdir defined (real, no other)"""
+        dname1 = makeTestDir()
+        dname2 = makeTestDir()
+        f = makeTestFile("""
+
+[Main]
+default: new_local
+groupsdir: %s %s
+        """ % (dname1, dname2))
+        f2 = makeTestFile("""
+[new_local]
+map: echo example[1-100]
+#all:
+list: echo bar
+#reverse:
+        """, suffix=".conf", dir=dname2)
+        try:
+            res = GroupResolverConfig(f.name)
+            nodeset = NodeSet("example[1-100]", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-100]")
+            self.assertEqual(nodeset.regroup(), "@bar")
+            self.assertEqual(str(NodeSet("@bar", resolver=res)), "example[1-100]")
+        finally:
+            f2.close()
+            f.close()
+            shutil.rmtree(dname1, ignore_errors=True)
+            shutil.rmtree(dname2, ignore_errors=True)
+
+    def testConfigGroupsDirNotADirectory(self):
+        """test groups with groupsdir defined (not a directory)"""
+        dname = makeTestDir()
+        fdummy = makeTestFile("wrong")
+        f = makeTestFile("""
+
+[Main]
+default: new_local
+groupsdir: %s
+        """ % fdummy.name)
+        try:
+            self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        finally:
+            fdummy.close()
+            f.close()
+            shutil.rmtree(dname, ignore_errors=True)
 
 
 class NodeSetGroup2GSTest(unittest.TestCase):

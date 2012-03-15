@@ -1,3 +1,17 @@
+2012-02-15 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeUtils.py: Add groupsdir option (ticket #179).
+
+2012-02-14 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Nodeset.py: Add --contiguous splitting option (ticket #173).
+
+	* NodeSet.py: Add contiguous() iterator.
+
+	* RangeSet.py: Add contiguous() iterator.
+
+	* RangeSet.py: Allow slice object in fromone() constructor.
+
 2012-02-26 S. Thiell <stephane.thiell@cea.fr>
 
 	* Gateway.py: Improved logging facility, configurable through
