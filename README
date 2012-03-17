@@ -111,14 +111,23 @@ Powerful tools are provided: clush, nodeset and clubak.
 Main web site:
 
     http://clustershell.sourceforge.net
+    or http://cea-hpc.github.com/clustershell/
 
 Sourceforge.net project page:
 
     http://sourceforge.net/projects/clustershell
 
-Trac wiki and issue tracking system:
+Github source respository:
 
-    https://sourceforge.net/apps/trac/clustershell
+    https://github.com/cea-hpc/clustershell
+
+Wiki:
+
+    https://github.com/cea-hpc/clustershell/wiki
+
+Issue tracking system:
+
+    https://github.com/cea-hpc/clustershell/issues
 
 Python Package Index (PyPI) link:
 
@@ -135,4 +144,4 @@ ClusterShell was first created for Shine, the Lustre Administration Utility:
 Stephane Thiell           <stephane.thiell@cea.fr>
 Aurelien Degremont     <aurelien.degremont@cea.fr>
 
-CEA/DAM 2010, 2011 - http://www-hpc.cea.fr
+CEA/DAM 2010, 2011, 2012 - http://www-hpc.cea.fr
