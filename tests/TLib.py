@@ -3,6 +3,7 @@
 
 import os
 import socket
+import tempfile
 import time
 
 from ConfigParser import ConfigParser
@@ -28,4 +29,16 @@ def chrono(func):
         print "execution time: %f s" % (time.time() - start)
         return res
     return timing
+
+def make_temp_file(text, suffix='', dir=None):
+    """Create a temporary file with the provided text."""
+    f = tempfile.NamedTemporaryFile(suffix=suffix, dir=dir)
+    f.write(text)
+    f.flush()
+    return f
+
+def make_temp_dir():
+    """Create a temporary directory."""
+    dname = tempfile.mkdtemp()
+    return dname
 

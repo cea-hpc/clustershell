@@ -8,31 +8,21 @@
 import copy
 import shutil
 import sys
-import tempfile
 import unittest
 
 sys.path.insert(0, '../lib')
+
+from TLib import *
 
 # Wildcard import for testing purpose
 import ClusterShell.NodeSet
 from ClusterShell.NodeSet import *
 from ClusterShell.NodeUtils import *
 
-def makeTestFile(text, suffix='', dir=None):
-    """Create a temporary file with the provided text."""
-    f = tempfile.NamedTemporaryFile(suffix=suffix, dir=dir)
-    f.write(text)
-    f.flush()
-    return f
-
-def makeTestDir():
-    """Create a temporary directory."""
-    dname = tempfile.mkdtemp()
-    return dname
 
 def makeTestG1():
     """Create a temporary group file 1"""
-    f1 = makeTestFile("""
+    f1 = make_temp_file("""
 #
 oss: montana5,montana4
 mds: montana6
@@ -64,7 +54,7 @@ all: montana[1-6,32-163]
 
 def makeTestG2():
     """Create a temporary group file 2"""
-    f2 = makeTestFile("""
+    f2 = make_temp_file("""
 #
 #
 para: montana[32-37,42-55]
@@ -74,7 +64,7 @@ gpu: montana[38-41]
 
 def makeTestG3():
     """Create a temporary group file 3"""
-    f3 = makeTestFile("""
+    f3 = make_temp_file("""
 #
 #
 all: montana[32-55]
@@ -91,7 +81,7 @@ single: idaho
 
 def makeTestR3():
     """Create a temporary reverse group file 3"""
-    r3 = makeTestFile("""
+    r3 = make_temp_file("""
 #
 #
 montana32: all,para,login,chassis1
@@ -212,7 +202,7 @@ class NodeSetGroupTest(unittest.TestCase):
     
     def testConfigEmpty(self):
         """test groups with an empty configuration file"""
-        f = makeTestFile("")
+        f = make_temp_file("")
         res = GroupResolverConfig(f.name)
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
@@ -222,7 +212,7 @@ class NodeSetGroupTest(unittest.TestCase):
 
     def testConfigBasicLocal(self):
         """test groups with a basic local config file"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -238,6 +228,7 @@ list: echo foo
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
         self.assertEqual(nodeset.regroup(), "@foo")
+        self.assertEqual(nodeset.groups().keys(), ["@foo"])
         self.assertEqual(str(NodeSet("@foo", resolver=res)), "example[1-100]")
 
         # No 'all' defined: all_nodes() should raise an error
@@ -259,7 +250,7 @@ list: echo foo
 
     def testConfigWrongSyntax(self):
         """test wrong groups config syntax"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -272,7 +263,7 @@ something: echo example[1-100]
 
     def testConfigBasicLocalVerbose(self):
         """test groups with a basic local config file (verbose)"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -293,7 +284,7 @@ list: echo foo
 
     def testConfigBasicLocalAlternative(self):
         """test groups with a basic local config file (= alternative)"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -314,7 +305,7 @@ list=echo foo
 
     def testConfigBasicEmptyDefault(self):
         """test groups with a empty default namespace"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -334,7 +325,7 @@ list: echo foo
 
     def testConfigBasicNoMain(self):
         """test groups with a local config without main section"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [local]
@@ -351,7 +342,7 @@ list: echo foo
 
     def testConfigBasicWrongDefault(self):
         """test groups with a wrong default namespace"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -367,7 +358,7 @@ list: echo foo
 
     def testConfigQueryFailed(self):
         """test groups with config and failed query"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -386,7 +377,7 @@ list: echo foo
 
     def testConfigRegroupWrongNamespace(self):
         """test groups by calling regroup(wrong_namespace)"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -404,7 +395,7 @@ list: echo foo
 
     def testConfigNoListButReverseQuery(self):
         """test groups with no list but reverse upcall"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -423,7 +414,7 @@ reverse: echo foo
 
     def testConfigWithEmptyList(self):
         """test groups with list upcall returning nothing"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -442,7 +433,7 @@ reverse: echo foo
 
     def testConfigResolverSources(self):
         """test sources() with groups config of 2 sources"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -461,7 +452,7 @@ map: echo example[1-10]
 
     def testConfigCrossRefs(self):
         """test groups config with cross references"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 # A comment
 
 [Main]
@@ -479,7 +470,7 @@ map: echo @local:foo
 
     def testConfigGroupsDirDummy(self):
         """test groups with groupsdir defined (dummy)"""
-        f = makeTestFile("""
+        f = make_temp_file("""
 
 [Main]
 default: local
@@ -499,8 +490,8 @@ list: echo foo
 
     def testConfigGroupsDirExists(self):
         """test groups with groupsdir defined (real, other)"""
-        dname = makeTestDir()
-        f = makeTestFile("""
+        dname = make_temp_dir()
+        f = make_temp_file("""
 
 [Main]
 default: new_local
@@ -512,7 +503,7 @@ map: echo example[1-100]
 list: echo foo
 #reverse:
         """ % dname)
-        f2 = makeTestFile("""
+        f2 = make_temp_file("""
 [new_local]
 map: echo example[1-100]
 #all:
@@ -532,15 +523,15 @@ list: echo bar
 
     def testConfigGroupsDirExistsNoOther(self):
         """test groups with groupsdir defined (real, no other)"""
-        dname1 = makeTestDir()
-        dname2 = makeTestDir()
-        f = makeTestFile("""
+        dname1 = make_temp_dir()
+        dname2 = make_temp_dir()
+        f = make_temp_file("""
 
 [Main]
 default: new_local
 groupsdir: %s %s
         """ % (dname1, dname2))
-        f2 = makeTestFile("""
+        f2 = make_temp_file("""
 [new_local]
 map: echo example[1-100]
 #all:
@@ -561,9 +552,9 @@ list: echo bar
 
     def testConfigGroupsDirNotADirectory(self):
         """test groups with groupsdir defined (not a directory)"""
-        dname = makeTestDir()
-        fdummy = makeTestFile("wrong")
-        f = makeTestFile("""
+        dname = make_temp_dir()
+        fdummy = make_temp_file("wrong")
+        f = make_temp_file("""
 
 [Main]
 default: new_local
@@ -653,6 +644,16 @@ class NodeSetGroup2GSTest(unittest.TestCase):
         nodeset = NodeSet("montana[32-37,42-55]")
         self.assertEqual(nodeset.regroup("source2"), "@source2:para")
         self.assertEqual(nodeset.regroup("source2", noprefix=True), "@para")
+
+    def testGroupGroups(self):
+        """test NodeSet.groups()"""
+        nodeset = NodeSet("montana[32-37,42-55]")
+        self.assertEqual(sorted(nodeset.groups().keys()), ['@all', '@chassis1', '@chassis10', '@chassis11', '@chassis12', '@chassis2', '@chassis3', '@chassis6', '@chassis7', '@chassis8', '@chassis9', '@compute'])
+        testns = NodeSet()
+        for gnodes, inodes in nodeset.groups().itervalues():
+            testns.update(inodes)
+        self.assertEqual(testns, nodeset)
+
 
 class NodeSetRegroupTest(unittest.TestCase):
 
