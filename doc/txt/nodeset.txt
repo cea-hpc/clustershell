@@ -7,7 +7,7 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-02-15
+:Date:   2012-03-17
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 1
@@ -22,9 +22,10 @@ SYNOPSIS
 
 DESCRIPTION
 ===========
-The ``nodeset`` command is an utility command provided with the ClusterShell
-library which implements some features of the NodeSet and RangeSet classes.
-It provides easy manipulation of indexed cluster nodes and node groups.
+``nodeset`` is an utility command provided with the ClusterShell library which
+implements some features of the NodeSet and RangeSet classes.
+It provides easy manipulation of indexed cluster nodes and node groups. It is
+especially useful to enhance cluster aware administration shell scripts.
 
 OPTIONS
 =======
@@ -36,10 +37,10 @@ OPTIONS
 
   Commands:
     -c, --count         show number of nodes in nodeset(s)
-    -e, --expand        expand nodeset(s) to separate nodes
+    -e, --expand        expand nodeset(s) to separate nodes (see also -S *SEPARATOR*)
     -f, --fold          fold nodeset(s) (or separate nodes) into one nodeset
-    -l, --list          list node groups, followed by corresponding nodes when specified two times (``-ll``), and also nodes count when specified three times (``-lll``). See also -s GROUPSOURCE.
-    -r, --regroup       fold nodes using node groups (see -s GROUPSOURCE)
+    -l, --list          list node groups, list node groups and nodes (``-ll``) or list node groups, nodes and node count (``-lll``). When no argument is specified at all, this command will list all node group names found in selected group source (see also -s *GROUPSOURCE*). If any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually). Optionally for each group, the fraction of these nodes being member of the group may be displayed (with ``-ll``), and also member count/total group node count (with ``-lll``). If a single hyphen-minus (-) is given as a nodeset, it will be read from standard input.
+    -r, --regroup       fold nodes using node groups (see -s *GROUPSOURCE*)
     --groupsources      list all configured group sources (see ``groups.conf``\(5))
 
   Operations:
@@ -65,6 +66,7 @@ OPTIONS
     -I SLICE_RANGESET, --slice=SLICE_RANGESET
                         return sliced off result; examples of SLICE_RANGESET are "0" for simple index selection, or "1-9/2,16" for complex rangeset selection
     --split=MAXSPLIT    split result into a number of subsets
+    --contiguous        split result into contiguous subsets
 
 
 For a short explanation of these options, see ``-h, --help``.
@@ -75,7 +77,7 @@ standard input.
 EXTENDED PATTERNS
 =================
 
-The ``nodeset`` command benefits from ClusterShell 1.3 NodeSet basic
+The ``nodeset`` command benefits from ClusterShell NodeSet basic
 arithmetic addition. This feature extends recognized string patterns by
 supporting operators matching all Operations seen previously. String
 patterns are read from left to right, by proceeding any character
@@ -191,5 +193,5 @@ BUG REPORTS
 ===========
 
 Use the following URL to submit a bug report or feedback:
-  http://sourceforge.net/apps/trac/clustershell/report
+  https://github.com/cea-hpc/clustershell/issues
 

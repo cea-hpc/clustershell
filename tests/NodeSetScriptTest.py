@@ -10,6 +10,9 @@ import sys
 import unittest
 
 from subprocess import *
+from StringIO import StringIO
+
+from TLib import *
 
 
 class NodeSetScriptTest(unittest.TestCase):
@@ -347,6 +350,70 @@ class NodeSetScriptTest(unittest.TestCase):
         self._launchAndCompare(["-I 0-100","-f"], "bar[34-68,89-90]", stdin="bar[34-68,89-90]\n")
         self._launchAndCompare(["-I 8-100/2","-f"], "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]", stdin="bar[34-68,89-90]\n")
         self._launchAndCompare(["--autostep=2", "-I 8-100/2","-f"], "bar[42-68/2,90]", stdin="bar[34-68,89-90]\n")
+
+    def test_nodeset_list(self):
+        """test nodeset.py --list"""
+        from ClusterShell.NodeUtils import GroupResolverConfig
+        from ClusterShell.CLI.Nodeset import main
+        from ClusterShell.NodeSet import DEF_RESOLVER_STD_GROUP
+        import ClusterShell.NodeSet
+
+        f = make_temp_file("""
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+list: echo foo bar moo
+        """)
+        ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolverConfig(f.name)
+        saved_stdout = sys.stdout
+        try:
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '--list' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "@foo\n@bar\n@moo\n")
+            out.close()
+
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '-ll' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "@foo example[1-100]\n@bar example[1-100]\n@moo example[1-100]\n")
+            out.close()
+
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '-lll' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "@foo example[1-100] 100\n@bar example[1-100] 100\n@moo example[1-100] 100\n")
+            out.close()
+
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '-l', 'example[4,95]', 'example5' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "@moo\n@bar\n@foo\n")
+            out.close()
+
+            # test empty result
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '-l', 'foo[3-70]', 'bar6' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "")
+            out.close()
+
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '-ll', 'example[4,95]', 'example5' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
+            out.close()
+
+            sys.stdout = out = StringIO()
+            sys.argv = [ 'nodeset.py', '-lll', 'example[4,95]', 'example5' ]
+            self.assertRaises(SystemExit, main)
+            self.assertEqual(out.getvalue(), "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
+            out.close()
+        finally:
+            sys.stdout = saved_stdout
+            ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
 
 
 if __name__ == '__main__':

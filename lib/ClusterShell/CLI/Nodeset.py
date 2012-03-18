@@ -137,25 +137,8 @@ def nodeset():
         print >> sys.stderr, "WARNING: option group source \"%s\" ignored" \
                                 % options.groupsource
 
-    # The list command doesn't need any NodeSet, check for it first.
-    if options.list > 0:
-        list_level = options.list
-        for group in grouplist(options.groupsource):
-            if options.groupsource and not options.groupbase:
-                nsgroup = "@%s:%s" % (options.groupsource, group)
-            else:
-                nsgroup = "@%s" % group
-            if list_level == 1:
-                print nsgroup
-            else:
-                nodes = NodeSet(nsgroup)
-                if list_level == 2:     # -ll ?
-                    print "%s %s" % (nsgroup, nodes)
-                else:                   # -lll ?
-                    print "%s %s %d" % (nsgroup, nodes, len(nodes))
-        return
-    # Also, the groupsources command simply lists group sources.
-    elif options.groupsources:
+    # The groupsources command simply lists group sources.
+    if options.groupsources:
         if options.quiet:
             dispdefault = ""    # don't show (default) if quiet is set
         else:
@@ -176,7 +159,43 @@ def nodeset():
     if options.all:
         # Include all nodes from external node groups support.
         xset.update(NodeSet.fromall()) # uses default_sourcename
-    elif not args:
+
+    # The list command has a special handling.
+    if options.list > 0:
+        list_level = options.list
+        if args:
+            # When some node sets are provided as argument, the list command
+            # retrieves node groups these nodes belong to, thanks to the
+            # groups() method (new in 1.6). Note: stdin support is enabled
+            # when the '-' special character is encountered.
+            compute_nodeset(xset, args, options.autostep)
+            groups = xset.groups(options.groupsource, options.groupbase)
+            for group, (gnodes, inodes) in groups.iteritems():
+                if list_level == 1:         # -l
+                    print group
+                elif list_level == 2:       # -ll
+                    print "%s %s" % (group, inodes)
+                else:                       # -lll
+                    print "%s %s %d/%d" % (group, inodes, len(inodes), \
+                                           len(gnodes))
+        else:
+            # "raw" group list when no argument
+            for group in grouplist(options.groupsource):
+                if options.groupsource and not options.groupbase:
+                    nsgroup = "@%s:%s" % (options.groupsource, group)
+                else:
+                    nsgroup = "@%s" % group
+                if list_level == 1:         # -l
+                    print nsgroup
+                else:
+                    nodes = NodeSet(nsgroup)
+                    if list_level == 2:     # -ll
+                        print "%s %s" % (nsgroup, nodes)
+                    else:                   # -lll
+                        print "%s %s %d" % (nsgroup, nodes, len(nodes))
+        return
+
+    if not args:
         # No need to specify '-' to read stdin if no argument at all.
         process_stdin(xset.update, xset.__class__, options.autostep)
 
