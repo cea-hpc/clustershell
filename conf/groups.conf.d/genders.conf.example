@@ -1,0 +1,12 @@
+# Additional ClusterShell group source config file
+#
+# Please see `man 5 groups.conf` for further details.
+#
+
+# LLNL genders bindings
+#
+[genders]
+map: nodeattr -n $GROUP
+all: nodeattr -n ALL
+list: nodeattr -l
+

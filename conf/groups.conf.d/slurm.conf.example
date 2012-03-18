@@ -1,0 +1,14 @@
+# Additional ClusterShell group source config file
+#
+# Please see `man 5 groups.conf` for further details.
+#
+
+# SLURM partition bindings
+#
+[slurm]
+map: sinfo -h -o "%N" -p $GROUP
+all: sinfo -h -o "%N"
+list: sinfo -h -o "%P"
+reverse: sinfo -h -N -o "%P" -n $NODE
+
+# TODO: add slurm jobs bindings here

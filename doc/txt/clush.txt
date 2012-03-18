@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-02-15
+:Date:   2012-03-17
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 1
@@ -242,5 +242,5 @@ BUG REPORTS
 ===========
 
 Use the following URL to submit a bug report or feedback:
-  http://sourceforge.net/apps/trac/clustershell/report
+  https://github.com/cea-hpc/clustershell/issues
 

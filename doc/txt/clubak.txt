@@ -89,5 +89,5 @@ BUG REPORTS
 ===========
 
 Use the following URL to submit a bug report or feedback:
-  http://sourceforge.net/apps/trac/clustershell/report
+  https://github.com/cea-hpc/clustershell/issues
 
