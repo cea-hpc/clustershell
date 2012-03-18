@@ -1053,6 +1053,25 @@ class NodeSet(NodeSetBase):
                     groups_info[grp] = (i + 1, nodes)
         return groups_info
 
+    def groups(self, groupsource=None, noprefix=False):
+        """Find node groups this nodeset belongs to.
+
+        Return a dictionary of the form:
+            group_name => (group_nodeset, contained_nodeset)
+
+        Group names are always prefixed with "@". If groupsource is provided,
+        they are prefixed with "@groupsource:", unless noprefix is True.
+        """
+        groups = self._groups2(groupsource, self._autostep)
+        result = {}
+        for grp, (i, nsb) in groups.iteritems():
+            if groupsource and not noprefix:
+                key = "@%s:%s" % (groupsource, grp)
+            else:
+                key = "@" + grp
+            result[key] = (NodeSet(nsb), self.intersection(nsb))
+        return result
+
     def regroup(self, groupsource=None, autostep=None, overlap=False,
                 noprefix=False):
         """Regroup nodeset using node groups.
