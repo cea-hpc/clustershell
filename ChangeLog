@@ -1,5 +1,7 @@
 2012-02-18 S. Thiell <stephane.thiell@cea.fr>
 
+	* conf/groups.conf: Fix default source regexp for mawk (ticket #178). 
+
 	* Packaging: Add groups.conf.d directory and sample files.
 
 2012-02-17 S. Thiell <stephane.thiell@cea.fr>
