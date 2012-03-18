@@ -33,10 +33,9 @@
 """
 Cluster node set module.
 
-A module to deal efficiently with 1D rangesets and nodesets (pdsh-like).
-Instances of RangeSet and NodeSet both provide similar operations than
-the builtin set() type and Set object.
-See http://www.python.org/doc/lib/set-objects.html
+A module to efficiently deal with node sets and node groups.
+Instances of NodeSet provide similar operations than the builtin set() type,
+see http://www.python.org/doc/lib/set-objects.html
 
 Usage example
 =============
@@ -1011,14 +1010,8 @@ class NodeSet(NodeSetBase):
             for group in self._resolver.node_groups(node, namespace):
                 yield group
 
-    def regroup(self, groupsource=None, autostep=None, overlap=False,
-                noprefix=False):
-        """
-        Regroup nodeset using groups.
-        """
-        groups = {}
-        rest = NodeSet(self, resolver=RESOLVER_NOGROUP)
-
+    def _groups2(self, groupsource=None, autostep=None):
+        """Find node groups this nodeset belongs to. [private]"""
         try:
             # Get a NodeSet of all groups in specified group source.
             allgrpns = NodeSet.fromlist(self._resolver.grouplist(groupsource),
@@ -1027,9 +1020,8 @@ class NodeSet(NodeSetBase):
             # If list query failed, we still might be able to regroup
             # using reverse.
             allgrpns = None
-
+        groups_info = {}
         allgroups = {}
-
         # Check for external reverse presence, and also use the
         # following heuristic: external reverse is used only when number
         # of groups is greater than the NodeSet size.
@@ -1039,7 +1031,7 @@ class NodeSet(NodeSetBase):
             pass
         else:
             if not allgrpns: # list query failed and no way to reverse!
-                return str(rest)
+                return groups_info # empty
             try:
                 # use internal reverse: populate allgroups
                 for grp in allgrpns:
@@ -1050,15 +1042,29 @@ class NodeSet(NodeSetBase):
                 raise NodeSetExternalError("Unable to map a group " \
                         "previously listed\n\tFailed command: %s" % exc)
 
-        # For each NodeSetBase in self, finds its groups.
+        # For each NodeSetBase in self, find its groups.
         for node in self._iterbase():
             for grp in self._find_groups(node, groupsource, allgroups):
-                if grp not in groups:
+                if grp not in groups_info:
                     nodes = self._parser.parse_group(grp, groupsource, autostep)
-                    groups[grp] = (0, nodes)
-                i, nodes = groups[grp]
-                groups[grp] = (i + 1, nodes)
-                
+                    groups_info[grp] = (1, nodes)
+                else:
+                    i, nodes = groups_info[grp]
+                    groups_info[grp] = (i + 1, nodes)
+        return groups_info
+
+    def regroup(self, groupsource=None, autostep=None, overlap=False,
+                noprefix=False):
+        """Regroup nodeset using node groups.
+
+        Try to find fully matching node groups (within specified groupsource)
+        and return a string that represents this node set (containing these
+        potential node groups). When no matching node groups are found, this
+        method returns the same result as str()."""
+        groups = self._groups2(groupsource, autostep)
+        if not groups:
+            return str(self)
+
         # Keep only groups that are full.
         fulls = []
         for k, (i, nodes) in groups.iteritems():
@@ -1066,6 +1072,7 @@ class NodeSet(NodeSetBase):
             if i == len(nodes):
                 fulls.append((i, k))
 
+        rest = NodeSet(self, resolver=RESOLVER_NOGROUP)
         regrouped = NodeSet(resolver=RESOLVER_NOGROUP)
 
         bigalpha = lambda x, y: cmp(y[0], x[0]) or cmp(x[1], y[1])
@@ -1173,22 +1180,22 @@ class NodeSet(NodeSetBase):
 
 def expand(pat):
     """
-    Commodity function that expands a pdsh-like pattern into a list of
-    nodes.
+    Commodity function that expands a nodeset pattern into a list of nodes.
     """
     return list(NodeSet(pat))
 
 def fold(pat):
     """
-    Commodity function that clean dups and fold provided pattern with
-    ranges and "/step" support.
+    Commodity function that clean dups and fold provided pattern with ranges
+    and "/step" support.
     """
     return str(NodeSet(pat))
 
 def grouplist(namespace=None):
     """
-    Commodity function that retrieves the list of groups for a specified
+    Commodity function that retrieves the list of raw groups for a specified
     group namespace (or use default namespace).
+    Group names are not prefixed with "@".
     """
     return RESOLVER_STD_GROUP.grouplist(namespace)
 
