@@ -1,21 +1,26 @@
-2012-02-18 S. Thiell <stephane.thiell@cea.fr>
+2012-03-21 S. Thiell <stephane.thiell@cea.fr>
+
+	* conf/groups.conf: Fix group cross reference issue (ticket #183), we now
+	use sed commands instead of awk ones in this default groups.conf file.
+
+2012-03-18 S. Thiell <stephane.thiell@cea.fr>
 
 	* conf/groups.conf: Fix default source regexp for mawk (ticket #178). 
 
 	* Packaging: Add groups.conf.d directory and sample files.
 
-2012-02-17 S. Thiell <stephane.thiell@cea.fr>
+2012-03-17 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Nodeset.py: Add support for -l[ll] <nodeset(s)> to list belonging
 	groups (CLI interface to NodeSet.groups()) (ticket #162).
 
 	* NodeSet: Add groups() public method to list groups nodeset belongs to.
 
-2012-02-15 S. Thiell <stephane.thiell@cea.fr>
+2012-03-15 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeUtils.py: Add groupsdir option (ticket #179).
 
-2012-02-14 S. Thiell <stephane.thiell@cea.fr>
+2012-03-14 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Nodeset.py: Add --contiguous splitting option (ticket #173).
 

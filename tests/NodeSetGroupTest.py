@@ -120,9 +120,9 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups1 = makeTestG1()
 
         source = GroupSource("simple",
-                             "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups1.name,
-                             "awk -F: '/^all:/ {print $2}' %s" % test_groups1.name,
-                             "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % test_groups1.name,
+                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
+                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
+                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
                              None)
 
         # create custom resolver with default source
@@ -172,9 +172,9 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups1 = makeTestG1()
 
         source = GroupSource("simple",
-                             "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups1.name,
-                             "awk -F: '/^all:/ {print $2}' %s" % test_groups1.name,
-                             "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % test_groups1.name,
+                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
+                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
+                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
                              None)
 
         res = GroupResolver(source)
@@ -187,7 +187,7 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups1 = makeTestG1()
 
         source = GroupSource("minimal",
-                             "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups1.name,
+                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
                              None, None, None)
 
         # create custom resolver with default source
@@ -456,14 +456,14 @@ map: echo example[1-10]
 # A comment
 
 [Main]
-default: local
+default: other
 
 [local]
 map: echo example[1-100]
 
 [other]
-map: echo @local:foo
-        """)
+map: echo "foo: @local:foo" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
+""")
         res = GroupResolverConfig(f.name)
         nodeset = NodeSet("@other:foo", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
@@ -579,15 +579,15 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
         # create 2 GroupSource objects
         default = GroupSource("default",
-                              "awk -F: '/^$GROUP:/ {print $2}' %s" % self.test_groups1.name,
-                              "awk -F: '/^all:/ {print $2}' %s" % self.test_groups1.name,
-                              "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % self.test_groups1.name,
+                              "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups1.name,
+                              "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups1.name,
+                              "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups1.name,
                               None)
 
         source2 = GroupSource("source2",
-                              "awk -F: '/^$GROUP:/ {print $2}' %s" % self.test_groups2.name,
-                              "awk -F: '/^all:/ {print $2}' %s" % self.test_groups2.name,
-                              "awk -F: '/^[[:alnum:]_]/ {print $1}' %s" % self.test_groups2.name,
+                              "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups2.name,
+                              "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups2.name,
+                              "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups2.name,
                               None)
 
         ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolver(default)
@@ -664,9 +664,9 @@ class NodeSetRegroupTest(unittest.TestCase):
         test_reverse3 = makeTestR3()
 
         source = GroupSource("test",
-                             "awk -F: '/^$GROUP:/ {print $2}' %s" % test_groups3.name,
-                             "awk -F: '/^all:/ {print $2}' %s" % test_groups3.name,
-                             "awk -F: '/^[[:alnum:]_]/ { print $1 }' %s" % test_groups3.name,
+                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups3.name,
+                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups3.name,
+                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups3.name,
                              "awk -F: '/^$NODE:/ { gsub(\",\",\"\\n\",$2); print $2 }' %s" % test_reverse3.name)
 
         # create custom resolver with default source

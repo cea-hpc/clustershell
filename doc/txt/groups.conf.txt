@@ -7,7 +7,7 @@ Configuration file for ClusterShell external node groups
 --------------------------------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-03-15
+:Date:   2012-03-21
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 5
@@ -111,8 +111,8 @@ Simple configuration file for local groups and slurm partitions binding.
 | #groupsdir: /etc/clustershell/groups.conf.d/
 | 
 | [local]
-| map:  awk -F: '/^$GROUP:/ {print $2}' /etc/clustershell/groups
-| list: awk -F: '/^\w/ {print $1}' /etc/clustershell/groups
+| map: sed -n 's/^$GROUP:\(.*\)/\1/p' /etc/clustershell/groups
+| list: sed -n \'s/^\\(``[0-9A-Za-z_-]``\*\\):.*/\\1/p' /etc/clustershell/groups
 | 
 | [slurm]
 | map: sinfo -h -o "%N" -p $GROUP

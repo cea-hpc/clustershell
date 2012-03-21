@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH GROUPS.CONF 5 "2012-03-15" "1.6" "ClusterShell User Manual"
+.TH GROUPS.CONF 5 "2012-03-21" "1.6" "ClusterShell User Manual"
 .SH NAME
 groups.conf \- Configuration file for ClusterShell external node groups
 .
@@ -132,8 +132,8 @@ default: local
 #groupsdir: /etc/clustershell/groups.conf.d/
 
 [local]
-map:  awk \-F: \(aq/^$GROUP:/ {print $2}\(aq /etc/clustershell/groups
-list: awk \-F: \(aq/^w/ {print $1}\(aq /etc/clustershell/groups
+map: sed \-n \(aqs/^$GROUP:(.*)/1/p\(aq /etc/clustershell/groups
+list: sed \-n \(aqs/^\e(\fC[0\-9A\-Za\-z_\-]\fP*\e):.*/\e1/p\(aq /etc/clustershell/groups
 
 [slurm]
 map: sinfo \-h \-o "%N" \-p $GROUP
