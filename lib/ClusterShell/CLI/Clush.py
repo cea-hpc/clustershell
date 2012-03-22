@@ -704,7 +704,7 @@ def main(args=sys.argv):
 
     # Do we have nodes group?
     task = task_self()
-    task.set_info("debug", config.verbosity > 1)
+    task.set_info("debug", config.verbosity >= VERB_DEBUG)
     if config.verbosity == VERB_DEBUG:
         RESOLVER_STD_GROUP.set_verbosity(1)
     if options.nodes_all:
