@@ -43,7 +43,7 @@ import optparse
 
 from ClusterShell import __version__
 from ClusterShell.Engine.Factory import PreferredEngine
-from ClusterShell.CLI.Display import WHENCOLOR_CHOICES
+from ClusterShell.CLI.Display import THREE_CHOICES
 
 def check_safestring(option, opt, value):
     """type-checker function for safestring"""
@@ -150,17 +150,21 @@ class OptionParser(optparse.OptionParser):
                               help="return the largest of command return codes")
 
         if msgtree_mode:
+            # clubak specific
             optgrp.add_option("-F", "--fast", action="store_true",
                               dest="fast_mode",
                               help="faster but memory hungry mode")
             optgrp.add_option("-T", "--tree", action="store_true",
                               dest="trace_mode",
                               help="message tree trace mode")
+            optgrp.add_option("--interpret-keys", action="store",
+                              dest="interpret_keys", choices=THREE_CHOICES,
+                              default="auto", help="whether to interpret keys" \
+                              " (never, always or auto)")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
-                          choices=WHENCOLOR_CHOICES,
-                          help="whether to use ANSI colors (never, always " \
-                               "or auto)")
+                          choices=THREE_CHOICES, help="whether to use ANSI " \
+                          "colors (never, always or auto)")
         self.add_option_group(optgrp)
 
     def _copy_callback(self, option, opt_str, value, parser):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -44,7 +44,9 @@ VERB_QUIET = 0
 VERB_STD = 1
 VERB_VERB = 2
 VERB_DEBUG = 3
-WHENCOLOR_CHOICES = ["never", "always", "auto"]
+THREE_CHOICES = ["never", "always", "auto"]
+WHENCOLOR_CHOICES = THREE_CHOICES   # deprecated; use THREE_CHOICES
+
 
 class Display(object):
     """
@@ -54,6 +56,11 @@ class Display(object):
     COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
     COLOR_STDERR_FMT = "\033[31m%s\033[0m"
     SEP = "-" * 15
+
+    class _KeySet(set):
+        """Private NodeSet substition to display raw keys"""
+        def __str__(self):
+            return ",".join(self)
 
     def __init__(self, options, config=None, color=None):
         """Initialize a Display object from CLI.OptionParser options
@@ -155,9 +162,12 @@ class Display(object):
     def print_gather(self, nodeset, obj):
         """Generic method for displaying nodeset/content according to current
         object settings."""
-        if type(nodeset) is str:
-            nodeset = NodeSet(nodeset)
-        return self._display(nodeset, obj)
+        return self._display(NodeSet(nodeset), obj)
+
+    def print_gather_keys(self, keys, obj):
+        """Generic method for displaying raw keys/content according to current
+        object settings (used by clubak)."""
+        return self._display(self.__class__._KeySet(keys), obj)
 
     def _print_buffer(self, nodeset, content):
         """Display a dshbak-like header block and content."""

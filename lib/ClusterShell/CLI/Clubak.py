@@ -42,9 +42,9 @@ from itertools import imap
 import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
-from ClusterShell.NodeSet import RESOLVER_STD_GROUP
+from ClusterShell.NodeSet import RESOLVER_STD_GROUP, NodeSetParseError
 
-from ClusterShell.CLI.Display import Display
+from ClusterShell.CLI.Display import Display, THREE_CHOICES
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Utils import NodeSet, nodeset_cmp
@@ -71,7 +71,7 @@ def display_tree(tree, disp, out):
         out.write("%s%s\n" % (" " * reldepth, msgline))
         togh = nchildren != 1
 
-def display(tree, disp, gather, trace_mode):
+def display(tree, disp, gather, trace_mode, enable_nodeset_key):
     """nicely display MsgTree instance `tree' content according to
     `disp' Display object and `gather' boolean flag"""
     out = sys.stdout
@@ -80,15 +80,23 @@ def display(tree, disp, gather, trace_mode):
             display_tree(tree, disp, out)
         else:
             if gather:
-                # lambda to create a NodeSet from keys list returned by walk()
-                ns_getter = lambda x: NodeSet.fromlist(x[1])
-                for nodeset in sorted(imap(ns_getter, tree.walk()),
-                                      cmp=nodeset_cmp):
-                    disp.print_gather(nodeset, tree[nodeset[0]])
+                if enable_nodeset_key:
+                    # lambda to create a NodeSet from keys returned by walk()
+                    ns_getter = lambda x: NodeSet.fromlist(x[1])
+                    for nodeset in sorted(imap(ns_getter, tree.walk()),
+                                          cmp=nodeset_cmp):
+                        disp.print_gather(nodeset, tree[nodeset[0]])
+                else:
+                    for msg, key in tree.walk():
+                        disp.print_gather_keys(key, msg)
             else:
-                # nodes are automagically sorted by NodeSet
-                for node in NodeSet.fromlist(tree.keys()):
-                    disp.print_gather(node, tree[node])
+                if enable_nodeset_key:
+                    # nodes are automagically sorted by NodeSet
+                    for node in NodeSet.fromlist(tree.keys()).nsiter():
+                        disp.print_gather(node, tree[str(node)])
+                else:
+                    for key in tree.keys():
+                        disp.print_gather_keys([ key ], tree[key])
     finally:
         out.flush()
 
@@ -102,6 +110,11 @@ def clubak():
                                    msgtree_mode=True)
     options = parser.parse_args()[0]
 
+    if options.interpret_keys == THREE_CHOICES[-1]: # auto?
+        enable_nodeset_key = None # AUTO
+    else:
+        enable_nodeset_key = (options.interpret_keys == THREE_CHOICES[1])
+
     # Create new message tree
     if options.trace_mode:
         tree_mode = MODE_TRACE
@@ -110,7 +123,7 @@ def clubak():
     tree = MsgTree(mode=tree_mode)
     fast_mode = options.fast_mode
     if fast_mode:
-        if tree_mode != MODE_DEFER:
+        if tree_mode != MODE_DEFER or options.line_mode:
             parser.error("incompatible tree options")
         preload_msgs = {}
 
@@ -118,14 +131,26 @@ def clubak():
     for line in sys.stdin:
         try:
             linestripped = line.rstrip('\r\n')
-            node, content = linestripped.split(options.separator, 1)
-            node = node.strip()
-            if not node:
+            key, content = linestripped.split(options.separator, 1)
+            key = key.strip()
+            if not key:
                 raise ValueError("no node found")
-            if fast_mode:
-                preload_msgs.setdefault(node, []).append(content)
+            if enable_nodeset_key is False: # interpret-keys=never?
+                ns = [ key ]
             else:
-                tree.add(node, content)
+                try:
+                    ns = NodeSet(key)
+                except NodeSetParseError:
+                    if enable_nodeset_key: # interpret-keys=always?
+                        raise
+                    enable_nodeset_key = False # auto => switch off
+                    ns = [ key ]
+            if fast_mode:
+                for node in ns:
+                    preload_msgs.setdefault(node, []).append(content)
+            else:
+                for node in ns:
+                    tree.add(node, content)
         except ValueError, ex:
             raise ValueError("%s (\"%s\")" % (ex, linestripped))
 
@@ -142,7 +167,8 @@ def clubak():
 
     # Display results
     disp = Display(options)
-    display(tree, disp, options.gather or disp.regroup, options.trace_mode)
+    display(tree, disp, options.gather or disp.regroup, options.trace_mode, \
+        enable_nodeset_key is not False)
 
 def main():
     """main script function"""

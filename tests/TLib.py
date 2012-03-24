@@ -3,10 +3,12 @@
 
 import os
 import socket
+import sys
 import tempfile
 import time
 
 from ConfigParser import ConfigParser
+from StringIO import StringIO
 
 
 def my_node():
@@ -41,4 +43,35 @@ def make_temp_dir():
     """Create a temporary directory."""
     dname = tempfile.mkdtemp()
     return dname
+
+def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
+             expected_stderr=None):
+    """Generic CLI main() direct calling function that allows code coverage
+    checks."""
+    rc = -1
+    saved_stdin = sys.stdin
+    saved_stdout = sys.stdout
+    saved_stderr = sys.stderr
+    try:
+        if stdin is not None:
+            sys.stdin = StringIO(stdin)
+        sys.stdout = out = StringIO()
+        sys.stderr = err = StringIO()
+        sys.argv = args
+        try:
+            main()
+        except SystemExit, exc:
+            rc = int(str(exc))
+        if expected_stdout is not None:
+            test.assertEqual(out.getvalue(), expected_stdout)
+        if expected_stderr is not None:
+            # check the end as stderr messages are often prefixed with argv[0]
+            test.assertTrue(err.getvalue().endswith(expected_stderr), err.getvalue())
+        out.close()
+    finally:
+        sys.stdout = saved_stdout
+        sys.stderr = saved_stderr
+        sys.stdin = saved_stdin
+    if expected_rc is not None:
+        test.assertEqual(rc, expected_rc)
 
