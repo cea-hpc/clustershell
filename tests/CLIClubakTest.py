@@ -3,7 +3,7 @@
 # Written by S. Thiell 2012-03-22
 
 
-"""Unit test for scripts/clubak.py"""
+"""Unit test for CLI/Clubak.py"""
 
 import sys
 import unittest
@@ -13,7 +13,7 @@ from ClusterShell.CLI.Clubak import main
 
 
 class CLIClubakTest(unittest.TestCase):
-    """Unit test class for testing nodeset.py"""
+    """Unit test class for testing CLI/Clubak.py"""
 
     def _clubak_t(self, args, input, expected_stdout, expected_rc=0,
                   expected_stderr=None):
