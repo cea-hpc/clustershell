@@ -1,362 +1,361 @@
 #!/usr/bin/env python
-# scripts/nodeset.py tool test suite 
-# Written by S. Thiell 2009-07-29
+# scripts/nodeset.py tool test suite
+# Written by S. Thiell 2012-03-25
 
 
-"""Unit test for scripts/nodeset.py"""
+"""Unit test for CLI/Nodeset.py"""
 
-import copy
 import sys
 import unittest
 
-from subprocess import *
-from StringIO import StringIO
-
 from TLib import *
+from ClusterShell.CLI.Nodeset import main
+
+from ClusterShell.NodeUtils import GroupResolverConfig
+from ClusterShell.NodeSet import DEF_RESOLVER_STD_GROUP
+import ClusterShell.NodeSet
 
 
-class NodeSetScriptTest(unittest.TestCase):
-    """Unit test class for testing nodeset.py"""
+class CLINodesetTest(unittest.TestCase):
+    """Unit test class for testing CLI/Nodeset.py"""
 
-    def _launchAndCompare(self, args, expected_output, stdin=None):
-        output = Popen(["../scripts/nodeset.py"] + args, stdout=PIPE, stdin=PIPE).communicate(input=stdin)[0].strip()
-        if type(expected_output) is list:
-            ok = False
-            for o in expected_output:
-                if output == o:
-                    ok = True
-            self.assert_(ok, "Output %s != one of %s" % (output, expected_output))
-        else:
-            self.assertEqual(expected_output, output)
+    def _nodeset_t(self, args, input, expected_stdout, expected_rc=0,
+                   expected_stderr=None):
+        CLI_main(self, main, [ 'nodeset' ] + args, input, expected_stdout,
+                 expected_rc, expected_stderr)
 
-    def _launchBatteryOfCountTests(self, args):
-        self._launchAndCompare(args + ["--count", "foo"], "1")
-        self._launchAndCompare(args + ["--count", "foo", "bar"], "2")
-        self._launchAndCompare(args + ["--count", "foo", "foo"], "1")
-        self._launchAndCompare(args + ["--count", "foo", "foo", "bar"], "2")
-        self._launchAndCompare(args + ["--count", "foo[0]"], "1")
-        self._launchAndCompare(args + ["--count", "foo[2]"], "1")
-        self._launchAndCompare(args + ["--count", "foo[1,2]"], "2")
-        self._launchAndCompare(args + ["--count", "foo[1-2]"], "2")
-        self._launchAndCompare(args + ["--count", "foo[1,2]", "foo[1-2]"], "2")
-        self._launchAndCompare(args + ["--count", "foo[1-200,245-394]"], "350")
-        self._launchAndCompare(args + ["--count", "foo[395-442]", "foo[1-200,245-394]"], "398")
-        self._launchAndCompare(args + ["--count", "foo[395-442]", "foo", "foo[1-200,245-394]"], "399")
-        self._launchAndCompare(args + ["--count", "foo[395-442]", "foo", "foo[0-200,245-394]"], "400")
-        self._launchAndCompare(args + ["--count", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], "400")
+    def _battery_count(self, args):
+        self._nodeset_t(args + ["--count", "foo"], None, "1\n")
+        self._nodeset_t(args + ["--count", "foo", "bar"], None, "2\n")
+        self._nodeset_t(args + ["--count", "foo", "foo"], None, "1\n")
+        self._nodeset_t(args + ["--count", "foo", "foo", "bar"], None, "2\n")
+        self._nodeset_t(args + ["--count", "foo[0]"], None, "1\n")
+        self._nodeset_t(args + ["--count", "foo[2]"], None, "1\n")
+        self._nodeset_t(args + ["--count", "foo[1,2]"], None, "2\n")
+        self._nodeset_t(args + ["--count", "foo[1-2]"], None, "2\n")
+        self._nodeset_t(args + ["--count", "foo[1,2]", "foo[1-2]"], None, "2\n")
+        self._nodeset_t(args + ["--count", "foo[1-200,245-394]"], None, "350\n")
+        self._nodeset_t(args + ["--count", "foo[395-442]", "foo[1-200,245-394]"], None, "398\n")
+        self._nodeset_t(args + ["--count", "foo[395-442]", "foo", "foo[1-200,245-394]"], None, "399\n")
+        self._nodeset_t(args + ["--count", "foo[395-442]", "foo", "foo[0-200,245-394]"], None, "400\n")
+        self._nodeset_t(args + ["--count", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], None, "400\n")
         # from stdin
-        self._launchAndCompare(args + ["--count"], "1", stdin="foo\n")
-        self._launchAndCompare(args + ["--count"], "2", stdin="foo\nbar\n")
-        self._launchAndCompare(args + ["--count"], "1", stdin="foo\nfoo\n")
-        self._launchAndCompare(args + ["--count"], "2", stdin="foo\nfoo\nbar\n")
-        self._launchAndCompare(args + ["--count"], "1", stdin="foo[0]\n")
-        self._launchAndCompare(args + ["--count"], "1", stdin="foo[2]\n")
-        self._launchAndCompare(args + ["--count"], "2", stdin="foo[1,2]\n")
-        self._launchAndCompare(args + ["--count"], "2", stdin="foo[1-2]\n")
-        self._launchAndCompare(args + ["--count"], "2", stdin="foo[1,2]\nfoo[1-2]\n")
-        self._launchAndCompare(args + ["--count"], "350", stdin="foo[1-200,245-394]\n")
-        self._launchAndCompare(args + ["--count"], "398", stdin="foo[395-442]\nfoo[1-200,245-394]\n")
-        self._launchAndCompare(args + ["--count"], "399", stdin="foo[395-442]\nfoo\nfoo[1-200,245-394]\n")
-        self._launchAndCompare(args + ["--count"], "400", stdin="foo[395-442]\nfoo\nfoo[0-200,245-394]\n")
-        self._launchAndCompare(args + ["--count"], "400", stdin="foo[395-442]\nbar3,bar24\nfoo[1-200,245-394]\n")
+        self._nodeset_t(args + ["--count"], "foo\n", "1\n")
+        self._nodeset_t(args + ["--count"], "foo\nbar\n", "2\n")
+        self._nodeset_t(args + ["--count"], "foo\nfoo\n", "1\n")
+        self._nodeset_t(args + ["--count"], "foo\nfoo\nbar\n", "2\n")
+        self._nodeset_t(args + ["--count"], "foo[0]\n", "1\n")
+        self._nodeset_t(args + ["--count"], "foo[2]\n", "1\n")
+        self._nodeset_t(args + ["--count"], "foo[1,2]\n", "2\n")
+        self._nodeset_t(args + ["--count"], "foo[1-2]\n", "2\n")
+        self._nodeset_t(args + ["--count"], "foo[1,2]\nfoo[1-2]\n", "2\n")
+        self._nodeset_t(args + ["--count"], "foo[1-200,245-394]\n", "350\n")
+        self._nodeset_t(args + ["--count"], "foo[395-442]\nfoo[1-200,245-394]\n", "398\n")
+        self._nodeset_t(args + ["--count"], "foo[395-442]\nfoo\nfoo[1-200,245-394]\n", "399\n")
+        self._nodeset_t(args + ["--count"], "foo[395-442]\nfoo\nfoo[0-200,245-394]\n", "400\n")
+        self._nodeset_t(args + ["--count"], "foo[395-442]\nbar3,bar24\nfoo[1-200,245-394]\n", "400\n")
 
-    def testCount(self):
-        """test nodeset.py --count"""
-        self._launchBatteryOfCountTests([])
-        self._launchBatteryOfCountTests(["--autostep=1"])
-        self._launchBatteryOfCountTests(["--autostep=2"])
-        self._launchBatteryOfCountTests(["--autostep=5"])
+    def test_001_count(self):
+        """test nodeset --count"""
+        self._battery_count([])
+        self._battery_count(["--autostep=1"])
+        self._battery_count(["--autostep=2"])
+        self._battery_count(["--autostep=5"])
 
-    def testCountIntersection(self):
-        """test nodeset.py --count --intersection"""
-        self._launchAndCompare(["--count", "foo", "--intersection", "bar"], "0")
-        self._launchAndCompare(["--count", "foo", "--intersection", "foo"], "1")
-        self._launchAndCompare(["--count", "foo", "--intersection", "foo", "-i", "bar"], "0")
-        self._launchAndCompare(["--count", "foo[0]", "--intersection", "foo0"], "1")
-        self._launchAndCompare(["--count", "foo[2]", "--intersection", "foo"], "0")
-        self._launchAndCompare(["--count", "foo[1,2]", "--intersection", "foo[1-2]"], "2")
-        self._launchAndCompare(["--count", "foo[395-442]", "--intersection", "foo[1-200,245-394]"], "0")
-        self._launchAndCompare(["--count", "foo[395-442]", "--intersection", "foo", "-i", "foo[1-200,245-394]"], "0")
-        self._launchAndCompare(["--count", "foo[395-442]", "-i", "foo", "-i", "foo[0-200,245-394]"], "0")
-        self._launchAndCompare(["--count", "foo[395-442]", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], "0")
+    def test_002_count_intersection(self):
+        """test nodeset --count --intersection"""
+        self._nodeset_t(["--count", "foo", "--intersection", "bar"], None, "0\n")
+        self._nodeset_t(["--count", "foo", "--intersection", "foo"], None, "1\n")
+        self._nodeset_t(["--count", "foo", "--intersection", "foo", "-i", "bar"], None, "0\n")
+        self._nodeset_t(["--count", "foo[0]", "--intersection", "foo0"], None, "1\n")
+        self._nodeset_t(["--count", "foo[2]", "--intersection", "foo"], None, "0\n")
+        self._nodeset_t(["--count", "foo[1,2]", "--intersection", "foo[1-2]"], None, "2\n")
+        self._nodeset_t(["--count", "foo[395-442]", "--intersection", "foo[1-200,245-394]"], None, "0\n")
+        self._nodeset_t(["--count", "foo[395-442]", "--intersection", "foo", "-i", "foo[1-200,245-394]"], None, "0\n")
+        self._nodeset_t(["--count", "foo[395-442]", "-i", "foo", "-i", "foo[0-200,245-394]"], None, "0\n")
+        self._nodeset_t(["--count", "foo[395-442]", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], None, "0\n")
 
-    def testCountIntersectionStdin(self):
-        """test nodeset.py --count --intersection (stdin)"""
-        self._launchAndCompare(["--count", "--intersection", "bar"], "0", stdin="foo\n")
-        self._launchAndCompare(["--count", "--intersection", "foo"], "1", stdin="foo\n")
-        self._launchAndCompare(["--count", "--intersection", "foo", "-i", "bar"], "0", stdin="foo\n")
-        self._launchAndCompare(["--count", "--intersection", "foo0"], "1", stdin="foo[0]\n")
-        self._launchAndCompare(["--count", "--intersection", "foo"], "0", stdin="foo[2]\n")
-        self._launchAndCompare(["--count", "--intersection", "foo[1-2]"], "2", stdin="foo[1,2]\n")
-        self._launchAndCompare(["--count", "--intersection", "foo[1-200,245-394]"], "0", stdin="foo[395-442]\n")
-        self._launchAndCompare(["--count", "--intersection", "foo", "-i", "foo[1-200,245-394]"], "0", stdin="foo[395-442]\n")
-        self._launchAndCompare(["--count", "-i", "foo", "-i", "foo[0-200,245-394]"], "0", stdin="foo[395-442]\n")
-        self._launchAndCompare(["--count", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], "0", stdin="foo[395-442]\n")
+    def test_003_count_intersection_stdin(self):
+        """test nodeset --count --intersection (stdin)"""
+        self._nodeset_t(["--count", "--intersection", "bar"], "foo\n", "0\n")
+        self._nodeset_t(["--count", "--intersection", "foo"], "foo\n", "1\n")
+        self._nodeset_t(["--count", "--intersection", "foo", "-i", "bar"], "foo\n", "0\n")
+        self._nodeset_t(["--count", "--intersection", "foo0"], "foo[0]\n", "1\n")
+        self._nodeset_t(["--count", "--intersection", "foo"], "foo[2]\n", "0\n")
+        self._nodeset_t(["--count", "--intersection", "foo[1-2]"], "foo[1,2]\n", "2\n")
+        self._nodeset_t(["--count", "--intersection", "foo[1-200,245-394]"], "foo[395-442]\n", "0\n")
+        self._nodeset_t(["--count", "--intersection", "foo", "-i", "foo[1-200,245-394]"], "foo[395-442]\n", "0\n")
+        self._nodeset_t(["--count", "-i", "foo", "-i", "foo[0-200,245-394]"], "foo[395-442]\n", "0\n")
+        self._nodeset_t(["--count", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], "foo[395-442]\n", "0\n")
 
-    def _launchBatteryOfFoldTests(self, args):
-        self._launchAndCompare(args + ["--fold", "foo"], "foo")
-        self._launchAndCompare(args + ["--fold", "foo", "bar"], ["bar,foo", "foo,bar"])
-        self._launchAndCompare(args + ["--fold", "foo", "foo"], "foo")
-        self._launchAndCompare(args + ["--fold", "foo", "foo", "bar"], ["bar,foo", "foo,bar"])
-        self._launchAndCompare(args + ["--fold", "foo[0]"], "foo0")
-        self._launchAndCompare(args + ["--fold", "foo[2]"], "foo2")
-        self._launchAndCompare(args + ["--fold", "foo[1,2]"], "foo[1-2]")
-        self._launchAndCompare(args + ["--fold", "foo[1-2]"], "foo[1-2]")
-        self._launchAndCompare(args + ["--fold", "foo[1,2]", "foo[1-2]"], "foo[1-2]")
-        self._launchAndCompare(args + ["--fold", "foo[1-200,245-394]"], "foo[1-200,245-394]")
-        self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo[1-200,245-394]"], "foo[1-200,245-442]")
-        self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"])
-        self._launchAndCompare(args + ["--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"])
-        self._launchAndCompare(args + ["--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], ["foo[1-200,245-442],bar[3,24]", "bar[3,24],foo[1-200,245-442]"])
+    def _battery_fold(self, args):
+        self._nodeset_t(args + ["--fold", "foo"], None, "foo\n")
+        self._nodeset_t(args + ["--fold", "foo", "bar"], None, "bar,foo\n")
+        self._nodeset_t(args + ["--fold", "foo", "foo"], None, "foo\n")
+        self._nodeset_t(args + ["--fold", "foo", "foo", "bar"], None, "bar,foo\n")
+        self._nodeset_t(args + ["--fold", "foo[0]"], None, "foo0\n")
+        self._nodeset_t(args + ["--fold", "foo[2]"], None, "foo2\n")
+        self._nodeset_t(args + ["--fold", "foo[1,2]"], None, "foo[1-2]\n")
+        self._nodeset_t(args + ["--fold", "foo[1-2]"], None, "foo[1-2]\n")
+        self._nodeset_t(args + ["--fold", "foo[1,2]", "foo[1-2]"], None, "foo[1-2]\n")
+        self._nodeset_t(args + ["--fold", "foo[1-200,245-394]"], None, "foo[1-200,245-394]\n")
+        self._nodeset_t(args + ["--fold", "foo[395-442]", "foo[1-200,245-394]"], None, "foo[1-200,245-442]\n")
+        self._nodeset_t(args + ["--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], None, "foo,foo[1-200,245-442]\n")
+        self._nodeset_t(args + ["--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], None, "foo,foo[0-200,245-442]\n")
+        self._nodeset_t(args + ["--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], None, "bar[3,24],foo[1-200,245-442]\n")
         # stdin
-        self._launchAndCompare(args + ["--fold"], "foo", stdin="foo\n")
-        self._launchAndCompare(args + ["--fold"], ["bar,foo", "foo,bar"], stdin="foo\nbar\n")
-        self._launchAndCompare(args + ["--fold"], "foo", stdin="foo\nfoo\n")
-        self._launchAndCompare(args + ["--fold"], ["bar,foo", "foo,bar"], stdin="foo\nfoo\nbar\n")
-        self._launchAndCompare(args + ["--fold"], "foo0", stdin="foo[0]\n")
-        self._launchAndCompare(args + ["--fold"], "foo2", stdin="foo[2]\n")
-        self._launchAndCompare(args + ["--fold"], "foo[1-2]", stdin="foo[1,2]\n")
-        self._launchAndCompare(args + ["--fold"], "foo[1-2]", stdin="foo[1-2]\n")
-        self._launchAndCompare(args + ["--fold"], "foo[1-2]", stdin="foo[1,2]\nfoo[1-2]\n")
-        self._launchAndCompare(args + ["--fold"], "foo[1-200,245-394]", stdin="foo[1-200,245-394]\n")
-        self._launchAndCompare(args + ["--fold"], "foo[1-200,245-442]", stdin="foo[395-442]\nfoo[1-200,245-394]\n")
-        self._launchAndCompare(args + ["--fold"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"], stdin="foo[395-442]\nfoo\nfoo[1-200,245-394]\n")
-        self._launchAndCompare(args + ["--fold"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"], stdin="foo[395-442]\nfoo\nfoo[0-200,245-394]\n")
-        self._launchAndCompare(args + ["--fold"], ["foo[1-200,245-442],bar[3,24]", "bar[3,24],foo[1-200,245-442]"], stdin="foo[395-442]\nbar3,bar24\nfoo[1-200,245-394]\n")
+        self._nodeset_t(args + ["--fold"], "foo\n", "foo\n")
+        self._nodeset_t(args + ["--fold"], "foo\nbar\n", "bar,foo\n")
+        self._nodeset_t(args + ["--fold"], "foo\nfoo\n", "foo\n")
+        self._nodeset_t(args + ["--fold"], "foo\nfoo\nbar\n", "bar,foo\n")
+        self._nodeset_t(args + ["--fold"], "foo[0]\n", "foo0\n")
+        self._nodeset_t(args + ["--fold"], "foo[2]\n", "foo2\n")
+        self._nodeset_t(args + ["--fold"], "foo[1,2]\n", "foo[1-2]\n")
+        self._nodeset_t(args + ["--fold"], "foo[1-2]\n", "foo[1-2]\n")
+        self._nodeset_t(args + ["--fold"], "foo[1,2]\nfoo[1-2]\n", "foo[1-2]\n")
+        self._nodeset_t(args + ["--fold"], "foo[1-200,245-394]\n", "foo[1-200,245-394]\n")
+        self._nodeset_t(args + ["--fold"], "foo[395-442]\nfoo[1-200,245-394]\n", "foo[1-200,245-442]\n")
+        self._nodeset_t(args + ["--fold"], "foo[395-442]\nfoo\nfoo[1-200,245-394]\n", "foo,foo[1-200,245-442]\n")
+        self._nodeset_t(args + ["--fold"], "foo[395-442]\nfoo\nfoo[0-200,245-394]\n", "foo,foo[0-200,245-442]\n")
+        self._nodeset_t(args + ["--fold"], "foo[395-442]\nbar3,bar24\nfoo[1-200,245-394]\n", "bar[3,24],foo[1-200,245-442]\n")
 
-    def testFold(self):
-        """test nodeset.py --fold"""
-        self._launchBatteryOfFoldTests([])
-        self._launchBatteryOfFoldTests(["--autostep=3"])
+    def test_004_fold(self):
+        """test nodeset --fold"""
+        self._battery_fold([])
+        self._battery_fold(["--autostep=3"])
 
-    def testFoldAutostep(self):
-        """test nodeset.py --fold --autostep=X"""
-        self._launchAndCompare(["--autostep=2", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0-6/2]")
-        self._launchAndCompare(["--autostep=2", "-f", "foo4", "foo2", "foo0", "foo6"], "foo[0-6/2]")
-        self._launchAndCompare(["--autostep=3", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0-6/2]")
-        self._launchAndCompare(["--autostep=4", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0-6/2]")
-        self._launchAndCompare(["--autostep=5", "-f", "foo0", "foo2", "foo4", "foo6"], "foo[0,2,4,6]")
+    def test_005_fold_autostep(self):
+        """test nodeset --fold --autostep=X"""
+        self._nodeset_t(["--autostep=2", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=2", "-f", "foo4", "foo2", "foo0", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=3", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=4", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=5", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0,2,4,6]\n")
 
-    def testExpand(self):
-        """test nodeset.py --expand"""
-        self._launchAndCompare(["--expand", "foo"], "foo")
-        self._launchAndCompare(["--expand", "foo", "bar"], ["bar foo", "foo bar"])
-        self._launchAndCompare(["--expand", "foo", "foo"], "foo")
-        self._launchAndCompare(["--expand", "foo[0]"], "foo0")
-        self._launchAndCompare(["--expand", "foo[2]"], "foo2")
-        self._launchAndCompare(["--expand", "foo[1,2]"], "foo1 foo2")
-        self._launchAndCompare(["--expand", "foo[1-2]"], "foo1 foo2")
-        self._launchAndCompare(["--expand", "foo[1-2],bar"], ["bar foo1 foo2", "foo1 foo2 bar"])
+    def test_006_expand(self):
+        """test nodeset --expand"""
+        self._nodeset_t(["--expand", "foo"], None, "foo\n")
+        self._nodeset_t(["--expand", "foo", "bar"], None, "bar foo\n")
+        self._nodeset_t(["--expand", "foo", "foo"], None, "foo\n")
+        self._nodeset_t(["--expand", "foo[0]"], None, "foo0\n")
+        self._nodeset_t(["--expand", "foo[2]"], None, "foo2\n")
+        self._nodeset_t(["--expand", "foo[1,2]"], None, "foo1 foo2\n")
+        self._nodeset_t(["--expand", "foo[1-2]"], None, "foo1 foo2\n")
+        self._nodeset_t(["--expand", "foo[1-2],bar"], None, "bar foo1 foo2\n")
 
-    def testExpandStdin(self):
-        """test nodeset.py --expand (stdin)"""
-        self._launchAndCompare(["--expand"], "foo", stdin="foo\n")
-        self._launchAndCompare(["--expand"], ["bar foo", "foo bar"], stdin="foo\nbar\n")
-        self._launchAndCompare(["--expand"], "foo", stdin="foo\nfoo\n")
-        self._launchAndCompare(["--expand"], "foo0", stdin="foo[0]\n")
-        self._launchAndCompare(["--expand"], "foo2", stdin="foo[2]\n")
-        self._launchAndCompare(["--expand"], "foo1 foo2", stdin="foo[1,2]\n")
-        self._launchAndCompare(["--expand"], "foo1 foo2", stdin="foo[1-2]\n")
-        self._launchAndCompare(["--expand"], ["bar foo1 foo2", "foo1 foo2 bar"], stdin="foo[1-2],bar\n")
+    def test_007_expand_stdin(self):
+        """test nodeset --expand (stdin)"""
+        self._nodeset_t(["--expand"], "foo\n", "foo\n")
+        self._nodeset_t(["--expand"], "foo\nbar\n", "bar foo\n")
+        self._nodeset_t(["--expand"], "foo\nfoo\n", "foo\n")
+        self._nodeset_t(["--expand"], "foo[0]\n", "foo0\n")
+        self._nodeset_t(["--expand"], "foo[2]\n", "foo2\n")
+        self._nodeset_t(["--expand"], "foo[1,2]\n", "foo1 foo2\n")
+        self._nodeset_t(["--expand"], "foo[1-2]\n", "foo1 foo2\n")
+        self._nodeset_t(["--expand"], "foo[1-2],bar\n", "bar foo1 foo2\n")
 
-    def testExpandWithSeparator(self):
-        """test nodeset.py --expand -S"""
-        self._launchAndCompare(["--expand", "-S", ":", "foo"], "foo")
-        self._launchAndCompare(["--expand", "-S", ":", "foo", "bar"], ["bar:foo", "foo:bar"])
-        self._launchAndCompare(["--expand", "--separator", ":", "foo", "bar"], ["bar:foo", "foo:bar"])
-        self._launchAndCompare(["--expand", "--separator=:", "foo", "bar"], ["bar:foo", "foo:bar"])
-        self._launchAndCompare(["--expand", "-S", ":", "foo", "foo"], "foo")
-        self._launchAndCompare(["--expand", "-S", ":", "foo[0]"], "foo0")
-        self._launchAndCompare(["--expand", "-S", ":", "foo[2]"], "foo2")
-        self._launchAndCompare(["--expand", "-S", ":", "foo[1,2]"], "foo1:foo2")
-        self._launchAndCompare(["--expand", "-S", ":", "foo[1-2]"], "foo1:foo2")
-        self._launchAndCompare(["--expand", "-S", " ", "foo[1-2]"], "foo1 foo2")
-        self._launchAndCompare(["--expand", "-S", ",", "foo[1-2],bar"], ["bar,foo1,foo2", "foo1,foo2,bar"])
-        self._launchAndCompare(["--expand", "-S", "uuu", "foo[1-2],bar"], ["baruuufoo1uuufoo2", "foo1uuufoo2uuubar"])
-        self._launchAndCompare(["--expand", "-S", "\\n", "foo[1-2]"], "foo1\nfoo2")
+    def test_008_expand_separator(self):
+        """test nodeset --expand -S"""
+        self._nodeset_t(["--expand", "-S", ":", "foo"], None, "foo\n")
+        self._nodeset_t(["--expand", "-S", ":", "foo", "bar"], None, "bar:foo\n")
+        self._nodeset_t(["--expand", "--separator", ":", "foo", "bar"], None, "bar:foo\n")
+        self._nodeset_t(["--expand", "--separator=:", "foo", "bar"], None, "bar:foo\n")
+        self._nodeset_t(["--expand", "-S", ":", "foo", "foo"], None, "foo\n")
+        self._nodeset_t(["--expand", "-S", ":", "foo[0]"], None, "foo0\n")
+        self._nodeset_t(["--expand", "-S", ":", "foo[2]"], None, "foo2\n")
+        self._nodeset_t(["--expand", "-S", ":", "foo[1,2]"], None, "foo1:foo2\n")
+        self._nodeset_t(["--expand", "-S", ":", "foo[1-2]"], None, "foo1:foo2\n")
+        self._nodeset_t(["--expand", "-S", " ", "foo[1-2]"], None, "foo1 foo2\n")
+        self._nodeset_t(["--expand", "-S", ",", "foo[1-2],bar"], None, "bar,foo1,foo2\n")
+        self._nodeset_t(["--expand", "-S", "uuu", "foo[1-2],bar"], None, "baruuufoo1uuufoo2\n")
+        self._nodeset_t(["--expand", "-S", "\\n", "foo[1-2]"], None, "foo1\nfoo2\n")
 
-    def testFoldXOR(self):
-        """test nodeset.py --fold --xor"""
-        self._launchAndCompare(["--fold", "foo", "-X", "bar"], ["bar,foo", "foo,bar"])
-        self._launchAndCompare(["--fold", "foo", "-X", "foo"], "")
-        self._launchAndCompare(["--fold", "foo[1,2]", "-X", "foo[1-2]"], "")
-        self._launchAndCompare(["--fold", "foo[1-10]", "-X", "foo[5-15]"], "foo[1-4,11-15]")
-        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "foo[1-200,245-394]"], "foo[1-200,245-442]")
-        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"])
-        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"])
-        self._launchAndCompare(["--fold", "foo[395-442]", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], "bar[3,24],foo[1-200,245-442]")
+    def test_009_fold_xor(self):
+        """test nodeset --fold --xor"""
+        self._nodeset_t(["--fold", "foo", "-X", "bar"], None, "bar,foo\n")
+        self._nodeset_t(["--fold", "foo", "-X", "foo"], None, "\n")
+        self._nodeset_t(["--fold", "foo[1,2]", "-X", "foo[1-2]"], None, "\n")
+        self._nodeset_t(["--fold", "foo[1-10]", "-X", "foo[5-15]"], None, "foo[1-4,11-15]\n")
+        self._nodeset_t(["--fold", "foo[395-442]", "-X", "foo[1-200,245-394]"], None, "foo[1-200,245-442]\n")
+        self._nodeset_t(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[1-200,245-394]"], None, "foo,foo[1-200,245-442]\n")
+        self._nodeset_t(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[0-200,245-394]"], None, "foo,foo[0-200,245-442]\n")
+        self._nodeset_t(["--fold", "foo[395-442]", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], None, "bar[3,24],foo[1-200,245-442]\n")
 
-    def testFoldXORStdin(self):
-        """test nodeset.py --fold --xor (stdin)"""
-        self._launchAndCompare(["--fold", "-X", "bar"], ["bar,foo", "foo,bar"], stdin="foo\n")
-        self._launchAndCompare(["--fold", "-X", "foo"], "", stdin="foo\n")
-        self._launchAndCompare(["--fold", "-X", "foo[1-2]"], "", stdin="foo[1,2]\n")
-        self._launchAndCompare(["--fold", "-X", "foo[5-15]"], "foo[1-4,11-15]", stdin="foo[1-10]\n")
-        self._launchAndCompare(["--fold", "-X", "foo[1-200,245-394]"], "foo[1-200,245-442]", stdin="foo[395-442]\n")
-        self._launchAndCompare(["--fold", "-X", "foo", "-X", "foo[1-200,245-394]"], ["foo[1-200,245-442],foo", "foo,foo[1-200,245-442]"], stdin="foo[395-442]\n")
-        self._launchAndCompare(["--fold", "-X", "foo", "-X", "foo[0-200,245-394]"], ["foo[0-200,245-442],foo", "foo,foo[0-200,245-442]"], stdin="foo[395-442]\n")
-        self._launchAndCompare(["--fold", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], "bar[3,24],foo[1-200,245-442]", stdin="foo[395-442]\n")
+    def test_010_fold_xor_stdin(self):
+        """test nodeset --fold --xor (stdin)"""
+        self._nodeset_t(["--fold", "-X", "bar"], "foo\n", "bar,foo\n")
+        self._nodeset_t(["--fold", "-X", "foo"], "foo\n", "\n")
+        self._nodeset_t(["--fold", "-X", "foo[1-2]"], "foo[1,2]\n", "\n")
+        self._nodeset_t(["--fold", "-X", "foo[5-15]"], "foo[1-10]\n", "foo[1-4,11-15]\n")
+        self._nodeset_t(["--fold", "-X", "foo[1-200,245-394]"], "foo[395-442]\n", "foo[1-200,245-442]\n")
+        self._nodeset_t(["--fold", "-X", "foo", "-X", "foo[1-200,245-394]"], "foo[395-442]\n", "foo,foo[1-200,245-442]\n")
+        self._nodeset_t(["--fold", "-X", "foo", "-X", "foo[0-200,245-394]"], "foo[395-442]\n", "foo,foo[0-200,245-442]\n")
+        self._nodeset_t(["--fold", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], "foo[395-442]\n", "bar[3,24],foo[1-200,245-442]\n")
         # using stdin for -X
-        self._launchAndCompare(["-f","foo[2-4]","-X","-"], "foo[2-3,5-6]", stdin="foo4 foo5 foo6\n")
-        self._launchAndCompare(["-f","-X","-","foo[1-6]"], "foo[1-6]", stdin="foo4 foo5 foo6\n")
+        self._nodeset_t(["-f","foo[2-4]","-X","-"], "foo4 foo5 foo6\n", "foo[2-3,5-6]\n")
+        self._nodeset_t(["-f","-X","-","foo[1-6]"], "foo4 foo5 foo6\n", "foo[1-6]\n")
 
-    def testExclude(self):
-        """test nodeset.py --fold --exclude"""
+    def test_011_fold_exclude(self):
+        """test nodeset --fold --exclude"""
         # Empty result
-        self._launchAndCompare(["--fold", "foo", "-x", "foo"], "")
+        self._nodeset_t(["--fold", "foo", "-x", "foo"], None, "\n")
         # With no range
-        self._launchAndCompare(["--fold", "foo,bar", "-x", "foo"], "bar")
+        self._nodeset_t(["--fold", "foo,bar", "-x", "foo"], None, "bar\n")
         # Normal with range
-        self._launchAndCompare(["--fold", "foo[0-5]", "-x", "foo[0-10]"], "")
-        self._launchAndCompare(["--fold", "foo[0-10]", "-x", "foo[0-5]"], "foo[6-10]")
+        self._nodeset_t(["--fold", "foo[0-5]", "-x", "foo[0-10]"], None, "\n")
+        self._nodeset_t(["--fold", "foo[0-10]", "-x", "foo[0-5]"], None, "foo[6-10]\n")
         # Do no change
-        self._launchAndCompare(["--fold", "foo[6-10]", "-x", "bar[0-5]"], "foo[6-10]")
-        self._launchAndCompare(["--fold", "foo[0-10]", "foo[13-18]", "--exclude", "foo[5-10,15]"], "foo[0-4,13-14,16-18]")
+        self._nodeset_t(["--fold", "foo[6-10]", "-x", "bar[0-5]"], None, "foo[6-10]\n")
+        self._nodeset_t(["--fold", "foo[0-10]", "foo[13-18]", "--exclude", "foo[5-10,15]"], None, "foo[0-4,13-14,16-18]\n")
 
-    def testExcludeStdin(self):
-        """test nodeset.py --fold --exclude (stdin)"""
+    def test_012_fold_exclude_stdin(self):
+        """test nodeset --fold --exclude (stdin)"""
         # Empty result
-        self._launchAndCompare(["--fold", "-x", "foo"], "")
-        self._launchAndCompare(["--fold", "-x", "foo"], "", stdin="foo\n")
+        self._nodeset_t(["--fold", "-x", "foo"], "", "\n")
+        self._nodeset_t(["--fold", "-x", "foo"], "\n", "\n")
+        self._nodeset_t(["--fold", "-x", "foo"], "foo\n", "\n")
         # With no range
-        self._launchAndCompare(["--fold", "-x", "foo"], "bar", stdin="foo,bar\n")
+        self._nodeset_t(["--fold", "-x", "foo"], "foo,bar\n", "bar\n")
         # Normal with range
-        self._launchAndCompare(["--fold", "-x", "foo[0-10]"], "", stdin="foo[0-5]\n")
-        self._launchAndCompare(["--fold", "-x", "foo[0-5]"], "foo[6-10]", stdin="foo[0-10]\n")
+        self._nodeset_t(["--fold", "-x", "foo[0-10]"], "foo[0-5]\n", "\n")
+        self._nodeset_t(["--fold", "-x", "foo[0-5]"], "foo[0-10]\n", "foo[6-10]\n")
         # Do no change
-        self._launchAndCompare(["--fold", "-x", "bar[0-5]"], "foo[6-10]", stdin="foo[6-10]\n")
-        self._launchAndCompare(["--fold", "--exclude", "foo[5-10,15]"], "foo[0-4,13-14,16-18]", stdin="foo[0-10]\nfoo[13-18]\n")
+        self._nodeset_t(["--fold", "-x", "bar[0-5]"], "foo[6-10]\n", "foo[6-10]\n")
+        self._nodeset_t(["--fold", "--exclude", "foo[5-10,15]"], "foo[0-10]\nfoo[13-18]\n", "foo[0-4,13-14,16-18]\n")
         # using stdin for -x
-        self._launchAndCompare(["-f","foo[1-6]","-x","-"], "foo[1-3]", stdin="foo4 foo5 foo6\n")
-        self._launchAndCompare(["-f","-x","-","foo[1-6]"], "foo[1-6]", stdin="foo4 foo5 foo6\n")
+        self._nodeset_t(["-f","foo[1-6]","-x","-"], "foo4 foo5 foo6\n", "foo[1-3]\n")
+        self._nodeset_t(["-f","-x","-","foo[1-6]"], "foo4 foo5 foo6\n", "foo[1-6]\n")
 
-    def testIntersection(self):
-        """test nodeset.py --fold --intersection"""
+    def test_013_fold_intersection(self):
+        """test nodeset --fold --intersection"""
         # Empty result
-        self._launchAndCompare(["--fold", "foo", "-i", "foo"], "foo")
+        self._nodeset_t(["--fold", "foo", "-i", "foo"], None, "foo\n")
         # With no range
-        self._launchAndCompare(["--fold", "foo,bar", "--intersection", "foo"], "foo")
+        self._nodeset_t(["--fold", "foo,bar", "--intersection", "foo"], None, "foo\n")
         # Normal with range
-        self._launchAndCompare(["--fold", "foo[0-5]", "-i", "foo[0-10]"], "foo[0-5]")
-        self._launchAndCompare(["--fold", "foo[0-10]", "-i", "foo[0-5]"], "foo[0-5]")
-        self._launchAndCompare(["--fold", "foo[6-10]", "-i", "bar[0-5]"], "")
-        self._launchAndCompare(["--fold", "foo[0-10]", "foo[13-18]", "-i", "foo[5-10,15]"], "foo[5-10,15]")
+        self._nodeset_t(["--fold", "foo[0-5]", "-i", "foo[0-10]"], None, "foo[0-5]\n")
+        self._nodeset_t(["--fold", "foo[0-10]", "-i", "foo[0-5]"], None, "foo[0-5]\n")
+        self._nodeset_t(["--fold", "foo[6-10]", "-i", "bar[0-5]"], None, "\n")
+        self._nodeset_t(["--fold", "foo[0-10]", "foo[13-18]", "-i", "foo[5-10,15]"], None, "foo[5-10,15]\n")
 
-    def testIntersectionStdin(self):
-        """test nodeset.py --fold --intersection (stdin)"""
+    def test_014_fold_intersection_stdin(self):
+        """test nodeset --fold --intersection (stdin)"""
         # Empty result
-        self._launchAndCompare(["--fold", "--intersection", "foo"], "")
-        self._launchAndCompare(["--fold", "-i", "foo"], "foo", stdin="foo\n")
+        self._nodeset_t(["--fold", "--intersection", "foo"], "", "\n")
+        self._nodeset_t(["--fold", "--intersection", "foo"], "\n", "\n")
+        self._nodeset_t(["--fold", "-i", "foo"], "foo\n", "foo\n")
         # With no range
-        self._launchAndCompare(["--fold", "-i", "foo"], "foo", stdin="foo,bar\n")
+        self._nodeset_t(["--fold", "-i", "foo"], "foo,bar\n", "foo\n")
         # Normal with range
-        self._launchAndCompare(["--fold", "-i", "foo[0-10]"], "foo[0-5]", stdin="foo[0-5]\n")
-        self._launchAndCompare(["--fold", "-i", "foo[0-5]"], "foo[0-5]", stdin="foo[0-10]\n")
+        self._nodeset_t(["--fold", "-i", "foo[0-10]"], "foo[0-5]\n", "foo[0-5]\n")
+        self._nodeset_t(["--fold", "-i", "foo[0-5]"], "foo[0-10]\n", "foo[0-5]\n")
         # Do no change
-        self._launchAndCompare(["--fold", "-i", "bar[0-5]"], "", stdin="foo[6-10]\n")
-        self._launchAndCompare(["--fold", "-i", "foo[5-10,15]"], "foo[5-10,15]", stdin="foo[0-10]\nfoo[13-18]\n")
+        self._nodeset_t(["--fold", "-i", "bar[0-5]"], "foo[6-10]\n", "\n")
+        self._nodeset_t(["--fold", "-i", "foo[5-10,15]"], "foo[0-10]\nfoo[13-18]\n", "foo[5-10,15]\n")
         # using stdin for -i
-        self._launchAndCompare(["-f","foo[1-6]","-i","-"], "foo[4-6]", stdin="foo4 foo5 foo6\n")
-        self._launchAndCompare(["-f","-i","-","foo[1-6]"], "foo[1-6]", stdin="foo4 foo5 foo6\n")
+        self._nodeset_t(["-f","foo[1-6]","-i","-"], "foo4 foo5 foo6\n", "foo[4-6]\n")
+        self._nodeset_t(["-f","-i","-","foo[1-6]"], "foo4 foo5 foo6\n", "foo[1-6]\n")
 
-    def testRangeSet(self):
-        """test nodeset.py --rangeset"""
-        self._launchAndCompare(["--fold","--rangeset","1,2"], "1-2")
-        self._launchAndCompare(["--expand","-R","1-2"], "1 2")
-        self._launchAndCompare(["--fold","-R","1-2","-X","2-3"], "1,3")
+    def test_015_rangeset(self):
+        """test nodeset --rangeset"""
+        self._nodeset_t(["--fold","--rangeset","1,2"], None, "1-2\n")
+        self._nodeset_t(["--expand","-R","1-2"], None, "1 2\n")
+        self._nodeset_t(["--fold","-R","1-2","-X","2-3"], None, "1,3\n")
 
-    def testStdin(self):
-        """test nodeset.py - (stdin)"""
-        self._launchAndCompare(["-f","-"], "foo", stdin="foo\n")
-        self._launchAndCompare(["-f","-"], "foo[1-3]", stdin="foo1 foo2 foo3\n")
-        self._launchAndCompare(["--autostep=2", "-f"], "foo[0-6/2]", stdin="foo0 foo2 foo4 foo6\n")
-        
-    def testSplit(self):
-        """test nodeset.py --split"""
-        self._launchAndCompare(["--split=2","-f", "bar"], "bar")
-        self._launchAndCompare(["--split", "2","-f", "foo,bar"], "bar\nfoo")
-        self._launchAndCompare(["--split", "2","-e", "foo", "bar", "bur", "oof", "gcc"], "bar bur foo\ngcc oof")
-        self._launchAndCompare(["--split=2","-f", "foo[2-9]"], "foo[2-5]\nfoo[6-9]")
-        self._launchAndCompare(["--split=2","-f", "foo[2-3,7]", "bar9"], "bar9,foo2\nfoo[3,7]")
-        self._launchAndCompare(["--split=3","-f", "foo[2-9]"], "foo[2-4]\nfoo[5-7]\nfoo[8-9]")
-        self._launchAndCompare(["--split=1","-f", "foo2", "foo3"], "foo[2-3]")
-        self._launchAndCompare(["--split=4","-f", "foo[2-3]"], "foo2\nfoo3")
-        self._launchAndCompare(["--split=4","-f", "foo3", "foo2"], "foo2\nfoo3")
-        self._launchAndCompare(["--split=2","-e", "foo[2-9]"], "foo2 foo3 foo4 foo5\nfoo6 foo7 foo8 foo9")
-        self._launchAndCompare(["--split=3","-e", "foo[2-9]"], "foo2 foo3 foo4\nfoo5 foo6 foo7\nfoo8 foo9")
-        self._launchAndCompare(["--split=1","-e", "foo3", "foo2"], "foo2 foo3")
-        self._launchAndCompare(["--split=4","-e", "foo[2-3]"], "foo2\nfoo3")
-        self._launchAndCompare(["--split=4","-e", "foo2", "foo3"], "foo2\nfoo3")
-        self._launchAndCompare(["--split=2","-c", "foo2", "foo3"], "1\n1")
+    def test_016_rangeset_stdin(self):
+        """test nodeset --rangeset (stdin)"""
+        self._nodeset_t(["--fold","--rangeset"], "1,2\n", "1-2\n")
+        self._nodeset_t(["--expand","-R"], "1-2\n", "1 2\n")
+        self._nodeset_t(["--fold","-R","-X","2-3"], "1-2\n", "1,3\n")
+
+    def test_017_stdin(self):
+        """test nodeset - (stdin)"""
+        self._nodeset_t(["-f","-"], "foo\n", "foo\n")
+        self._nodeset_t(["-f","-"], "foo1 foo2 foo3\n", "foo[1-3]\n")
+        self._nodeset_t(["--autostep=2", "-f"], "foo0 foo2 foo4 foo6\n", "foo[0-6/2]\n")
+
+    def test_018_split(self):
+        """test nodeset --split"""
+        self._nodeset_t(["--split=2","-f", "bar"], None, "bar\n")
+        self._nodeset_t(["--split", "2","-f", "foo,bar"], None, "bar\nfoo\n")
+        self._nodeset_t(["--split", "2","-e", "foo", "bar", "bur", "oof", "gcc"], None, "bar bur foo\ngcc oof\n")
+        self._nodeset_t(["--split=2","-f", "foo[2-9]"], None, "foo[2-5]\nfoo[6-9]\n")
+        self._nodeset_t(["--split=2","-f", "foo[2-3,7]", "bar9"], None, "bar9,foo2\nfoo[3,7]\n")
+        self._nodeset_t(["--split=3","-f", "foo[2-9]"], None, "foo[2-4]\nfoo[5-7]\nfoo[8-9]\n")
+        self._nodeset_t(["--split=1","-f", "foo2", "foo3"], None, "foo[2-3]\n")
+        self._nodeset_t(["--split=4","-f", "foo[2-3]"], None, "foo2\nfoo3\n")
+        self._nodeset_t(["--split=4","-f", "foo3", "foo2"], None, "foo2\nfoo3\n")
+        self._nodeset_t(["--split=2","-e", "foo[2-9]"], None, "foo2 foo3 foo4 foo5\nfoo6 foo7 foo8 foo9\n")
+        self._nodeset_t(["--split=3","-e", "foo[2-9]"], None, "foo2 foo3 foo4\nfoo5 foo6 foo7\nfoo8 foo9\n")
+        self._nodeset_t(["--split=1","-e", "foo3", "foo2"], None, "foo2 foo3\n")
+        self._nodeset_t(["--split=4","-e", "foo[2-3]"], None, "foo2\nfoo3\n")
+        self._nodeset_t(["--split=4","-e", "foo2", "foo3"], None, "foo2\nfoo3\n")
+        self._nodeset_t(["--split=2","-c", "foo2", "foo3"], None, "1\n1\n")
         # following test requires a default group source set
-        self._launchAndCompare(["--split=2","-r", "foo2", "foo3"], "foo2\nfoo3")
+        self._nodeset_t(["--split=2","-r", "foo2", "foo3"], None, "foo2\nfoo3\n")
 
-    def test_contiguous(self):
-        """test nodeset.py --contiguous"""
-        self._launchAndCompare(["--contiguous", "-f", "bar"], "bar")
-        self._launchAndCompare(["--contiguous", "-f", "foo,bar"], "bar\nfoo")
-        self._launchAndCompare(["--contiguous", "-f", "foo", "bar", "bur", "oof", "gcc"], "bar\nbur\nfoo\ngcc\noof")
-        self._launchAndCompare(["--contiguous", "-e", "foo", "bar", "bur", "oof", "gcc"], "bar\nbur\nfoo\ngcc\noof")
-        self._launchAndCompare(["--contiguous", "-f", "foo2"], "foo2")
-        self._launchAndCompare(["--contiguous", "-R", "-f", "2"], "2")
-        self._launchAndCompare(["--contiguous", "-f", "foo[2-9]"], "foo[2-9]")
-        self._launchAndCompare(["--contiguous", "-f", "foo[2-3,7]", "bar9"], "bar9\nfoo[2-3]\nfoo7")
-        self._launchAndCompare(["--contiguous", "-R", "-f", "2-3,7", "9"], "2-3\n7\n9")
-        self._launchAndCompare(["--contiguous", "-f", "foo2", "foo3"], "foo[2-3]")
-        self._launchAndCompare(["--contiguous", "-f", "foo3", "foo2"], "foo[2-3]")
-        self._launchAndCompare(["--contiguous", "-f", "foo3", "foo1"], "foo1\nfoo3")
-        self._launchAndCompare(["--contiguous", "-f", "foo[1-5/2]", "foo7"], "foo1\nfoo3\nfoo5\nfoo7")
+    def test_019_contiguous(self):
+        """test nodeset --contiguous"""
+        self._nodeset_t(["--contiguous", "-f", "bar"], None, "bar\n")
+        self._nodeset_t(["--contiguous", "-f", "foo,bar"], None, "bar\nfoo\n")
+        self._nodeset_t(["--contiguous", "-f", "foo", "bar", "bur", "oof", "gcc"], None, "bar\nbur\nfoo\ngcc\noof\n")
+        self._nodeset_t(["--contiguous", "-e", "foo", "bar", "bur", "oof", "gcc"], None, "bar\nbur\nfoo\ngcc\noof\n")
+        self._nodeset_t(["--contiguous", "-f", "foo2"], None, "foo2\n")
+        self._nodeset_t(["--contiguous", "-R", "-f", "2"], None, "2\n")
+        self._nodeset_t(["--contiguous", "-f", "foo[2-9]"], None, "foo[2-9]\n")
+        self._nodeset_t(["--contiguous", "-f", "foo[2-3,7]", "bar9"], None, "bar9\nfoo[2-3]\nfoo7\n")
+        self._nodeset_t(["--contiguous", "-R", "-f", "2-3,7", "9"], None, "2-3\n7\n9\n")
+        self._nodeset_t(["--contiguous", "-f", "foo2", "foo3"], None, "foo[2-3]\n")
+        self._nodeset_t(["--contiguous", "-f", "foo3", "foo2"], None, "foo[2-3]\n")
+        self._nodeset_t(["--contiguous", "-f", "foo3", "foo1"], None, "foo1\nfoo3\n")
+        self._nodeset_t(["--contiguous", "-f", "foo[1-5/2]", "foo7"], None, "foo1\nfoo3\nfoo5\nfoo7\n")
 
-    def testSlice(self):
-        """test nodeset.py -I/--slice"""
-        self._launchAndCompare(["--slice=0","-f", "bar"], "bar")
-        self._launchAndCompare(["--slice=0","-e", "bar"], "bar")
-        self._launchAndCompare(["--slice=1","-f", "bar"], "")
-        self._launchAndCompare(["--slice=0-1","-f", "bar"], "bar")
-        self._launchAndCompare(["-I0","-f", "bar[34-68,89-90]"], "bar34")
-        self._launchAndCompare(["-R", "-I0","-f", "34-68,89-90"], "34")
-        self._launchAndCompare(["-I 0","-f", "bar[34-68,89-90]"], "bar34")
-        self._launchAndCompare(["-I 0","-e", "bar[34-68,89-90]"], "bar34")
-        self._launchAndCompare(["-I 0-3","-f", "bar[34-68,89-90]"], "bar[34-37]")
-        self._launchAndCompare(["-I 0-3","-f", "bar[34-68,89-90]", "-x", "bar34"], "bar[35-38]")
-        self._launchAndCompare(["-I 0-3","-f", "bar[34-68,89-90]", "-x", "bar35"], "bar[34,36-38]")
-        self._launchAndCompare(["-I 0-3","-e", "bar[34-68,89-90]"], "bar34 bar35 bar36 bar37")
-        self._launchAndCompare(["-I 3,1,0,2","-f", "bar[34-68,89-90]"], "bar[34-37]")
-        self._launchAndCompare(["-I 1,3,7,10,16,20,30,34-35,37","-f", "bar[34-68,89-90]"], "bar[35,37,41,44,50,54,64,68,89]")
-        self._launchAndCompare(["-I 8","-f", "bar[34-68,89-90]"], "bar42")
-        self._launchAndCompare(["-I 8-100","-f", "bar[34-68,89-90]"], "bar[42-68,89-90]")
-        self._launchAndCompare(["-I 0-100","-f", "bar[34-68,89-90]"], "bar[34-68,89-90]")
-        self._launchAndCompare(["-I 8-100/2","-f", "bar[34-68,89-90]"], "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]")
-        self._launchAndCompare(["--autostep=2", "-I 8-100/2","-f", "bar[34-68,89-90]"], "bar[42-68/2,90]")
+    def test_020_slice(self):
+        """test nodeset -I/--slice"""
+        self._nodeset_t(["--slice=0","-f", "bar"], None, "bar\n")
+        self._nodeset_t(["--slice=0","-e", "bar"], None, "bar\n")
+        self._nodeset_t(["--slice=1","-f", "bar"], None, "\n")
+        self._nodeset_t(["--slice=0-1","-f", "bar"], None, "bar\n")
+        self._nodeset_t(["-I0","-f", "bar[34-68,89-90]"], None, "bar34\n")
+        self._nodeset_t(["-R", "-I0","-f", "34-68,89-90"], None, "34\n")
+        self._nodeset_t(["-I 0","-f", "bar[34-68,89-90]"], None, "bar34\n")
+        self._nodeset_t(["-I 0","-e", "bar[34-68,89-90]"], None, "bar34\n")
+        self._nodeset_t(["-I 0-3","-f", "bar[34-68,89-90]"], None, "bar[34-37]\n")
+        self._nodeset_t(["-I 0-3","-f", "bar[34-68,89-90]", "-x", "bar34"], None, "bar[35-38]\n")
+        self._nodeset_t(["-I 0-3","-f", "bar[34-68,89-90]", "-x", "bar35"], None, "bar[34,36-38]\n")
+        self._nodeset_t(["-I 0-3","-e", "bar[34-68,89-90]"], None, "bar34 bar35 bar36 bar37\n")
+        self._nodeset_t(["-I 3,1,0,2","-f", "bar[34-68,89-90]"], None, "bar[34-37]\n")
+        self._nodeset_t(["-I 1,3,7,10,16,20,30,34-35,37","-f", "bar[34-68,89-90]"], None, "bar[35,37,41,44,50,54,64,68,89]\n")
+        self._nodeset_t(["-I 8","-f", "bar[34-68,89-90]"], None, "bar42\n")
+        self._nodeset_t(["-I 8-100","-f", "bar[34-68,89-90]"], None, "bar[42-68,89-90]\n")
+        self._nodeset_t(["-I 0-100","-f", "bar[34-68,89-90]"], None, "bar[34-68,89-90]\n")
+        self._nodeset_t(["-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
+        self._nodeset_t(["--autostep=2", "-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42-68/2,90]\n")
 
-    def testSliceStdin(self):
-        """test nodeset.py -I/--slice (stdin)"""
-        self._launchAndCompare(["--slice=0","-f"], "bar", stdin="bar\n")
-        self._launchAndCompare(["--slice=0","-e"], "bar", stdin="bar\n")
-        self._launchAndCompare(["--slice=1","-f"], "", stdin="bar\n")
-        self._launchAndCompare(["--slice=0-1","-f"], "bar", stdin="bar\n")
-        self._launchAndCompare(["-I0","-f"], "bar34", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-R", "-I0","-f"], "34", stdin="34-68,89-90\n")
-        self._launchAndCompare(["-I 0","-f"], "bar34", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 0","-e"], "bar34", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 0-3","-f"], "bar[34-37]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 0-3","-f", "-x", "bar34"], "bar[35-38]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 0-3","-f", "-x", "bar35"], "bar[34,36-38]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 0-3","-e"], "bar34 bar35 bar36 bar37", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 3,1,0,2","-f"], "bar[34-37]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 1,3,7,10,16,20,30,34-35,37","-f"], "bar[35,37,41,44,50,54,64,68,89]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 8","-f"], "bar42", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 8-100","-f"], "bar[42-68,89-90]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 0-100","-f"], "bar[34-68,89-90]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["-I 8-100/2","-f"], "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]", stdin="bar[34-68,89-90]\n")
-        self._launchAndCompare(["--autostep=2", "-I 8-100/2","-f"], "bar[42-68/2,90]", stdin="bar[34-68,89-90]\n")
+    def test_021_slice_stdin(self):
+        """test nodeset -I/--slice (stdin)"""
+        self._nodeset_t(["--slice=0","-f"], "bar\n", "bar\n")
+        self._nodeset_t(["--slice=0","-e"], "bar\n", "bar\n")
+        self._nodeset_t(["--slice=1","-f"], "bar\n", "\n")
+        self._nodeset_t(["--slice=0-1","-f"], "bar\n", "bar\n")
+        self._nodeset_t(["-I0","-f"], "bar[34-68,89-90]\n", "bar34\n")
+        self._nodeset_t(["-R", "-I0","-f"], "34-68,89-90\n", "34\n")
+        self._nodeset_t(["-I 0","-f"], "bar[34-68,89-90]\n", "bar34\n")
+        self._nodeset_t(["-I 0","-e"], "bar[34-68,89-90]\n", "bar34\n")
+        self._nodeset_t(["-I 0-3","-f"], "bar[34-68,89-90]\n", "bar[34-37]\n")
+        self._nodeset_t(["-I 0-3","-f", "-x", "bar34"], "bar[34-68,89-90]\n", "bar[35-38]\n")
+        self._nodeset_t(["-I 0-3","-f", "-x", "bar35"], "bar[34-68,89-90]\n", "bar[34,36-38]\n")
+        self._nodeset_t(["-I 0-3","-e"], "bar[34-68,89-90]\n", "bar34 bar35 bar36 bar37\n")
+        self._nodeset_t(["-I 3,1,0,2","-f"], "bar[34-68,89-90]\n", "bar[34-37]\n")
+        self._nodeset_t(["-I 1,3,7,10,16,20,30,34-35,37","-f"], "bar[34-68,89-90]\n", "bar[35,37,41,44,50,54,64,68,89]\n")
+        self._nodeset_t(["-I 8","-f"], "bar[34-68,89-90]\n", "bar42\n")
+        self._nodeset_t(["-I 8-100","-f"], "bar[34-68,89-90]\n", "bar[42-68,89-90]\n")
+        self._nodeset_t(["-I 0-100","-f"], "bar[34-68,89-90]\n", "bar[34-68,89-90]\n")
+        self._nodeset_t(["-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
+        self._nodeset_t(["--autostep=2", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42-68/2,90]\n")
 
-    def test_nodeset_list(self):
-        """test nodeset.py --list"""
-        from ClusterShell.NodeUtils import GroupResolverConfig
-        from ClusterShell.CLI.Nodeset import main
-        from ClusterShell.NodeSet import DEF_RESOLVER_STD_GROUP
-        import ClusterShell.NodeSet
+    def test_022_list(self):
+        """test nodeset --list"""
 
         f = make_temp_file("""
 [Main]
@@ -367,52 +366,16 @@ map: echo example[1-100]
 list: echo foo bar moo
         """)
         ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolverConfig(f.name)
-        saved_stdout = sys.stdout
         try:
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '--list' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "@foo\n@bar\n@moo\n")
-            out.close()
-
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '-ll' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "@foo example[1-100]\n@bar example[1-100]\n@moo example[1-100]\n")
-            out.close()
-
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '-lll' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "@foo example[1-100] 100\n@bar example[1-100] 100\n@moo example[1-100] 100\n")
-            out.close()
-
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '-l', 'example[4,95]', 'example5' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "@moo\n@bar\n@foo\n")
-            out.close()
-
+            self._nodeset_t(["--list"], None, "@foo\n@bar\n@moo\n")
+            self._nodeset_t(["-ll"], None, "@foo example[1-100]\n@bar example[1-100]\n@moo example[1-100]\n")
+            self._nodeset_t(["-lll"], None, "@foo example[1-100] 100\n@bar example[1-100] 100\n@moo example[1-100] 100\n")
+            self._nodeset_t(["-l", "example[4,95]", "example5"], None, "@moo\n@bar\n@foo\n")
+            self._nodeset_t(["-ll", "example[4,95]", "example5"], None, "@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
+            self._nodeset_t(["-lll", "example[4,95]", "example5"], None, "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
             # test empty result
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '-l', 'foo[3-70]', 'bar6' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "")
-            out.close()
-
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '-ll', 'example[4,95]', 'example5' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
-            out.close()
-
-            sys.stdout = out = StringIO()
-            sys.argv = [ 'nodeset.py', '-lll', 'example[4,95]', 'example5' ]
-            self.assertRaises(SystemExit, main)
-            self.assertEqual(out.getvalue(), "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
-            out.close()
+            self._nodeset_t(["-l", "foo[3-70]", "bar6"], None, "")
         finally:
-            sys.stdout = saved_stdout
             ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
 
 
