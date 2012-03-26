@@ -471,6 +471,8 @@ def ttyloop(task, nodeset, timeout, display):
                     else:
                         display.vprint(VERB_STD, \
                             "Switching to standard output format")
+                    task.set_default("stdout_msgtree", \
+                                     display.gather or display.line_mode)
                     ns_info = False
                     continue
                 elif not cmdl.startswith('?'): # if ?, just print ns_info
