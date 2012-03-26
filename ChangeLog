@@ -1,5 +1,8 @@
 2012-03-26 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clush.py: Fix clush --[r]copy behavior when no source directory is
+	specified (ticket #172).
+
 	* CLI/Clush.py: Fix interactive mode gather/standard toggle error, when
 	using special character '=' (ticket #171).
 

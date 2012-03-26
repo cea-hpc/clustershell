@@ -840,11 +840,11 @@ def main(args=sys.argv):
         parser.error("--[r]copy option requires at least one argument")
     if options.copy:
         if not options.dest_path:
-            options.dest_path = os.path.dirname(args[0])
+            options.dest_path = os.path.dirname(os.path.abspath(args[0]))
         op = "copy sources=%s dest=%s" % (args, options.dest_path)
     elif options.rcopy:
         if not options.dest_path:
-            options.dest_path = os.path.dirname(args[0])
+            options.dest_path = os.path.dirname(os.path.abspath(args[0]))
         op = "rcopy sources=%s dest=%s" % (args, options.dest_path)
     else:
         op = "command=\"%s\"" % ' '.join(args)
