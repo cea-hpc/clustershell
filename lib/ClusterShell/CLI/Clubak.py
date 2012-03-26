@@ -105,7 +105,8 @@ def clubak():
 
     # Argument management
     parser = OptionParser("%prog [options]")
-    parser.install_display_options(separator_option=True,
+    parser.install_display_options(verbose_options=True,
+                                   separator_option=True,
                                    dshbak_compat=True,
                                    msgtree_mode=True)
     options = parser.parse_args()[0]
@@ -131,6 +132,8 @@ def clubak():
     for line in sys.stdin:
         try:
             linestripped = line.rstrip('\r\n')
+            if options.verbose or options.debug:
+                print "INPUT %s" % linestripped
             key, content = linestripped.split(options.separator, 1)
             key = key.strip()
             if not key:

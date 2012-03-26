@@ -3,6 +3,8 @@
 	* CLI/Clush.py: Fix interactive mode gather/standard toggle error, when
 	using special character '=' (ticket #171).
 
+	* CLI/Clubak.py: Add -v/-q verbosity options (ticket #174).
+
 2012-03-24 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clubak.py: Add --interpret-keys=never,always,auto option to clubak

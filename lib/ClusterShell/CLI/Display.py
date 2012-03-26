@@ -134,7 +134,7 @@ class Display(object):
         """Format nodeset-based header."""
         indstr = " " * indent
         nodecntstr = ""
-        if self.node_count and len(nodeset) > 1:
+        if self.verbosity >= VERB_STD and self.node_count and len(nodeset) > 1:
             nodecntstr = " (%d)" % len(nodeset)
         if not self.label:
             return ""

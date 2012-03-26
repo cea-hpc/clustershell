@@ -34,11 +34,16 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t([], "foo: \n", "---------------\nfoo\n---------------\n \n")
 
     def test_001_verbosity(self):
-        """test clubak (-v/-d)"""
-        outfmt = "---------------\n%s\n---------------\n bar\n"
+        """test clubak (-q/-v/-d)"""
+        outfmt = "INPUT foo: bar\n---------------\n%s\n---------------\n bar\n"
         self._clubak_t(["-d"], "foo: bar\n", outfmt % "foo", 0, "line_mode=False gather=False tree_depth=1\n")
         self._clubak_t(["-d", "-b"], "foo: bar\n", outfmt % "foo", 0, "line_mode=False gather=True tree_depth=1\n")
-        self._clubak_t(["-d", "-L"], "foo: bar\n", "foo:  bar\n", 0, "line_mode=True gather=False tree_depth=1\n")
+        self._clubak_t(["-d", "-L"], "foo: bar\n", "INPUT foo: bar\nfoo:  bar\n", 0, "line_mode=True gather=False tree_depth=1\n")
+        self._clubak_t(["-v"], "foo: bar\n", outfmt % "foo", 0)
+        self._clubak_t(["-v", "-b"], "foo: bar\n", outfmt % "foo", 0)
+        outfmt = "---------------\n%s\n---------------\n bar\n"
+        # no node count with -q
+        self._clubak_t(["-q", "-b"], "foo[1-5]: bar\n", outfmt % "foo[1-5]", 0)
 
     def test_002_b(self):
         """test clubak (gather -b)"""
