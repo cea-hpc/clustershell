@@ -55,6 +55,7 @@ Simple example of use:
 """
 
 from itertools import imap
+import logging
 from operator import itemgetter
 import socket
 import sys
@@ -313,13 +314,13 @@ class Task(object):
         task_self(), but do not create any task_self() instance."""
         return self.thread == threading.currentThread()
 
-    def default_excepthook(self, type, value, tb):
+    def default_excepthook(self, exc_type, exc_value, tb):
         """Default excepthook for a newly Task. When an exception is
         raised and uncaught on Task thread, excepthook is called, which
         is default_excepthook by default. Once excepthook overriden,
         you can still call default_excepthook if needed."""
         print >> sys.stderr, 'Exception in thread %s:' % self.thread
-        traceback.print_exception(type, value, tb, file=sys.stderr)
+        traceback.print_exception(exc_type, exc_value, tb, file=sys.stderr)
 
     _excepthook = default_excepthook
 
@@ -384,7 +385,8 @@ class Task(object):
     def _default_router(self):
         if self.router is None:
             topology = self.topology
-            self.router = PropagationTreeRouter(str(topology.root.nodeset), topology)
+            self.router = PropagationTreeRouter(str(topology.root.nodeset), \
+                                                topology)
         return self.router
 
     def default(self, default_key, def_val=None):
@@ -538,13 +540,13 @@ class Task(object):
             if tree:
                 # create tree of ssh worker
                 worker = WorkerTree(NodeSet(kwargs["nodes"]), command=command,
-                                    handler=handler, stderr=stderr, timeout=timeo,
-                                    autoclose=ac)
+                                    handler=handler, stderr=stderr,
+                                    timeout=timeo, autoclose=ac)
             else:
                 # create ssh-based worker
                 worker = WorkerSsh(NodeSet(kwargs["nodes"]), command=command,
-                                   handler=handler, stderr=stderr, timeout=timeo,
-                                   autoclose=ac)
+                                   handler=handler, stderr=stderr,
+                                   timeout=timeo, autoclose=ac)
         else:
             # create (local) worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
@@ -694,8 +696,8 @@ class Task(object):
                 self._run(self.timeout)
             except EngineTimeoutException:
                 raise TimeoutError()
-            except EngineAbortException, e:
-                self._terminate(e.kill)
+            except EngineAbortException, exc:
+                self._terminate(exc.kill)
             except EngineAlreadyRunningError:
                 raise AlreadyRunningError("task engine is already running")
         finally:
@@ -924,11 +926,7 @@ class Task(object):
         self._d_source_rc[source] = rc
 
         # store source by rc
-        e = self._d_rc_sources.get(rc)
-        if e is None:
-            self._d_rc_sources[rc] = set([source])
-        else:
-            self._d_rc_sources[rc].add(source)
+        self._d_rc_sources.setdefault(rc, set()).add(source)
         
         # update max rc
         if rc > self._max_rc:
