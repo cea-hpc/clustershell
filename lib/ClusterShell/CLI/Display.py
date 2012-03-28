@@ -94,7 +94,7 @@ class Display(object):
         if color is None:
             # Should we use ANSI colors?
             color = False
-            if options.whencolor == "auto":
+            if not options.whencolor or options.whencolor == "auto":
                 color = sys.stdout.isatty()
             elif options.whencolor == "always":
                 color = True

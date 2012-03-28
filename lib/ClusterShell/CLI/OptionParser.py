@@ -163,9 +163,8 @@ class OptionParser(optparse.OptionParser):
                               "interpret keys (never, always or auto)")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
-                          choices=THREE_CHOICES, default=THREE_CHOICES[-1],
-                          help="whether to use ANSI colors (never, always " \
-                               "or auto)")
+                          choices=THREE_CHOICES, help="whether to use ANSI " \
+                          "colors (never, always or auto)")
         optgrp.add_option("--diff", action="store_true", dest="diff",
                           help="show diff between gathered outputs")
         self.add_option_group(optgrp)
