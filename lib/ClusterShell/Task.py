@@ -270,10 +270,8 @@ class Task(object):
 
             # STDIN tree
             self._msgtree = None
-
             # STDERR tree
             self._errtree = None
-
             # dict of sources to return codes
             self._d_source_rc = {}
             # dict of return codes to sources
@@ -282,6 +280,8 @@ class Task(object):
             self._max_rc = 0
             # keep timeout'd sources
             self._timeout_sources = set()
+            # allow no-op call to getters before resume()
+            self._reset()
 
             # special engine port for task method dispatching
             self._dispatch_port = EnginePort(self,

@@ -1,3 +1,9 @@
+2012-03-28 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Initialize MsgTree instances in constructor according to
+	default values in order to allow no-op calls to buffer getters before
+	resume() (ticket #186).
+
 2012-03-26 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Fix clush --[r]copy behavior when no source directory is
