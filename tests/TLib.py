@@ -52,26 +52,27 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     saved_stdin = sys.stdin
     saved_stdout = sys.stdout
     saved_stderr = sys.stderr
+    if stdin is not None:
+        sys.stdin = StringIO(stdin)
+    sys.stdout = out = StringIO()
+    sys.stderr = err = StringIO()
+    sys.argv = args
     try:
-        if stdin is not None:
-            sys.stdin = StringIO(stdin)
-        sys.stdout = out = StringIO()
-        sys.stderr = err = StringIO()
-        sys.argv = args
         try:
             main()
         except SystemExit, exc:
             rc = int(str(exc))
-        if expected_stdout is not None:
-            test.assertEqual(out.getvalue(), expected_stdout)
-        if expected_stderr is not None:
-            # check the end as stderr messages are often prefixed with argv[0]
-            test.assertTrue(err.getvalue().endswith(expected_stderr), err.getvalue())
-        out.close()
     finally:
         sys.stdout = saved_stdout
         sys.stderr = saved_stderr
         sys.stdin = saved_stdin
+    if expected_stdout is not None:
+        test.assertEqual(out.getvalue(), expected_stdout)
+    out.close()
+    if expected_stderr is not None:
+        # check the end as stderr messages are often prefixed with argv[0]
+        test.assertTrue(err.getvalue().endswith(expected_stderr), err.getvalue())
     if expected_rc is not None:
-        test.assertEqual(rc, expected_rc)
+        test.assertEqual(rc, expected_rc, "rc=%d err=%s" % (rc, err.getvalue()))
+    err.close()
 
