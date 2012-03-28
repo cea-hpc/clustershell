@@ -92,7 +92,7 @@ class CLIClushTest(unittest.TestCase):
             "localhost: ok\n")
         self._clush_t(["-w", "localhost", "-qBLS", "echo", "ok"], None, \
             "localhost: ok\n")
-        
+
     def test_004_file_copy(self):
         """test clush (file copy)"""
         content = "%f" % time.time()
@@ -118,6 +118,11 @@ class CLIClushTest(unittest.TestCase):
                 os.path.dirname(f.name)], None, "")
         f2.seek(0)
         self.assertEqual(open("%s.localhost" % f.name).read(), content)
+
+    def test_005_diff(self):
+        """test clush (diff)"""
+        self._clush_t(["-w", "localhost", "--diff", "echo", "ok"], None, "")
+        self._clush_t(["-w", "localhost,127.0.0.1", "--diff", "echo", "ok"], None, "")
 
 
 if __name__ == '__main__':

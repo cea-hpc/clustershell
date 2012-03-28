@@ -201,7 +201,7 @@ class GatherOutputHandler(OutputHandler):
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
         cleaned = False
-        for rc, nodelist in worker.iter_retcodes():
+        for rc, nodelist in sorted(worker.iter_retcodes()):
             # Then order by node/nodeset (see bufnodeset_cmp)
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
@@ -211,6 +211,7 @@ class GatherOutputHandler(OutputHandler):
                     self._runtimer_clean()
                     cleaned = True
                 self._display.print_gather(nodeset, buf)
+        self._display.flush()
 
         self._close_common(worker)
 
@@ -650,7 +651,7 @@ def clush_excepthook(extype, value, traceback):
     # Error not handled
     task_self().default_excepthook(extype, value, traceback)
 
-def main(args=sys.argv):
+def main():
     """clush script entry point"""
     sys.excepthook = clush_excepthook
 
@@ -672,7 +673,7 @@ def main(args=sys.argv):
     parser.install_filecopy_options()
     parser.install_ssh_options()
 
-    (options, args) = parser.parse_args(args[1:])
+    (options, args) = parser.parse_args()
 
     #
     # Load config file and apply overrides
@@ -686,8 +687,11 @@ def main(args=sys.argv):
     else:
         color = config.color == "always"
 
-    # Create and configure display object.
-    display = Display(options, config, color)
+    try:
+        # Create and configure display object.
+        display = Display(options, config, color)
+    except ValueError, exc:
+        parser.error("option mismatch (%s)" % exc)
 
     #
     # Compute the nodeset
@@ -823,6 +827,7 @@ def main(args=sys.argv):
 
     # Disable MsgTree buffering if not gathering outputs
     task.set_default("stdout_msgtree", display.gather or display.line_mode)
+
     # Always disable stderr MsgTree buffering
     task.set_default("stderr_msgtree", False)
 

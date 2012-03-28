@@ -35,6 +35,7 @@
 CLI results display class
 """
 
+import difflib
 import sys
 
 from ClusterShell.NodeSet import NodeSet
@@ -55,6 +56,10 @@ class Display(object):
     COLOR_RESULT_FMT = "\033[32m%s\033[0m"
     COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
     COLOR_STDERR_FMT = "\033[31m%s\033[0m"
+    COLOR_DIFFHDR_FMT = "\033[1m%s\033[0m"
+    COLOR_DIFFHNK_FMT = "\033[36m%s\033[0m"
+    COLOR_DIFFADD_FMT = "\033[32m%s\033[0m"
+    COLOR_DIFFDEL_FMT = "\033[31m%s\033[0m"
     SEP = "-" * 15
 
     class _KeySet(set):
@@ -69,8 +74,15 @@ class Display(object):
         If `color' boolean flag is not specified, it is auto detected
         according to options.whencolor.
         """
+        if options.diff:
+            self._print_buffer = self._print_diff
         self._display = self._print_buffer
-        self.gather = options.gatherall or options.gather
+        self._diffref = None
+        # diff implies at least -b
+        self.gather = options.gatherall or options.gather or options.diff
+        # check parameter combinaison
+        if options.diff and options.line_mode:
+            raise ValueError("diff not supported in line_mode")
         self.line_mode = options.line_mode
         self.label = options.label
         self.regroup = options.regroup
@@ -94,8 +106,14 @@ class Display(object):
         if self._color:
             self.color_stdout_fmt = self.COLOR_STDOUT_FMT
             self.color_stderr_fmt = self.COLOR_STDERR_FMT
+            self.color_diffhdr_fmt = self.COLOR_DIFFHDR_FMT
+            self.color_diffctx_fmt = self.COLOR_DIFFHNK_FMT
+            self.color_diffadd_fmt = self.COLOR_DIFFADD_FMT
+            self.color_diffdel_fmt = self.COLOR_DIFFDEL_FMT
         else:
-            self.color_stdout_fmt = self.color_stderr_fmt = "%s"
+            self.color_stdout_fmt = self.color_stderr_fmt = \
+                self.color_diffhdr_fmt = self.color_diffctx_fmt = \
+                self.color_diffadd_fmt = self.color_diffdel_fmt = "%s"
 
         # Set display verbosity
         if config:
@@ -111,6 +129,11 @@ class Display(object):
                 self.verbosity = VERB_VERB
             if hasattr(options, 'debug') and options.debug:
                 self.verbosity = VERB_DEBUG
+
+    def flush(self):
+        """flush display object buffers"""
+        # only used to reset diff display for now
+        self._diffref = None
 
     def _getlmode(self):
         """line_mode getter"""
@@ -172,6 +195,38 @@ class Display(object):
     def _print_buffer(self, nodeset, content):
         """Display a dshbak-like header block and content."""
         self.out.write("%s\n%s\n" % (self.format_header(nodeset), content))
+
+    def _print_diff(self, nodeset, content):
+        """Display unified diff between remote gathered outputs."""
+        if self._diffref is None:
+            self._diffref = (nodeset, content)
+        else:
+            nodeset_ref, content_ref = self._diffref
+            fromnsstr = self._format_nodeset(nodeset_ref)
+            tonsstr = self._format_nodeset(nodeset)
+            if self.verbosity >= VERB_STD and self.node_count:
+                if len(nodeset_ref) > 1:
+                    fromnsstr += " (%d)" % len(nodeset_ref)
+                if len(nodeset) > 1:
+                    tonsstr += " (%d)" % len(nodeset)
+
+            udiff = difflib.unified_diff(list(content), list(content_ref), \
+                                         fromfile=fromnsstr, tofile=tonsstr, \
+                                         lineterm='')
+            output = ""
+            for line in udiff:
+                if line.startswith('---') or line.startswith('+++'):
+                    output += self.color_diffhdr_fmt % line
+                elif line.startswith('@@'):
+                    output += self.color_diffctx_fmt % line
+                elif line.startswith('+'):
+                    output += self.color_diffadd_fmt % line
+                elif line.startswith('-'):
+                    output += self.color_diffdel_fmt % line
+                else:
+                    output += line
+                output += '\n'
+            self.out.write(output)
 
     def _print_lines(self, nodeset, msg):
         """Display a MsgTree buffer by line with prefixed header."""

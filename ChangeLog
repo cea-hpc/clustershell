@@ -1,5 +1,10 @@
 2012-03-28 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/OptionParser.py: Add --diff option to enable diff display between
+	gathered outputs. Enabled in clush and clubak (ticket #176).
+
+	* CLI/Display.py: Add _print_diff() and flush() methods.
+
 	* Task.py: Initialize MsgTree instances in constructor according to
 	default values in order to allow no-op calls to buffer getters before
 	resume() (ticket #186).

@@ -88,15 +88,15 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-w", action="append", type="safestring",
                           dest="nodes", help="nodes where to run the command")
         optgrp.add_option("-x", action="append", type="safestring",
-                          dest="exclude", help="exclude nodes from the node " \
-                          "list")
+                          dest="exclude", metavar="NODES",
+                          help="exclude nodes from the node list")
         optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
                           help="run command on all nodes")
         optgrp.add_option("-g", "--group", action="append", type="safestring",
                           dest="group", help="run command on a group of nodes")
         optgrp.add_option("-X", action="append", dest="exgroup",
-                          type="safestring", help="exclude nodes from this " \
-                          "group")
+                          metavar="GROUP", type="safestring",
+                          help="exclude nodes from this group")
         optgrp.add_option("-E", "--engine", action="store", dest="engine",
                           choices=["auto"] + PreferredEngine.engines.keys(),
                           default="auto", help=optparse.SUPPRESS_HELP)
@@ -159,12 +159,15 @@ class OptionParser(optparse.OptionParser):
                               help="message tree trace mode")
             optgrp.add_option("--interpret-keys", action="store",
                               dest="interpret_keys", choices=THREE_CHOICES,
-                              default="auto", help="whether to interpret keys" \
-                              " (never, always or auto)")
+                              default=THREE_CHOICES[-1], help="whether to " \
+                              "interpret keys (never, always or auto)")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
-                          choices=THREE_CHOICES, help="whether to use ANSI " \
-                          "colors (never, always or auto)")
+                          choices=THREE_CHOICES, default=THREE_CHOICES[-1],
+                          help="whether to use ANSI colors (never, always " \
+                               "or auto)")
+        optgrp.add_option("--diff", action="store_true", dest="diff",
+                          help="show diff between gathered outputs")
         self.add_option_group(optgrp)
 
     def _copy_callback(self, option, opt_str, value, parser):
@@ -195,9 +198,9 @@ class OptionParser(optparse.OptionParser):
         optgrp = optparse.OptionGroup(self, "Ssh/Tree options")
         optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
                           help="use a specified fanout", type="int")
+        #help="queueing delay for traffic grooming"
         optgrp.add_option("-Q", action="store", dest="grooming_delay", 
-                          help="queueing delay for traffic grooming",
-                          type="float")
+                          help=optparse.SUPPRESS_HELP, type="float")
         optgrp.add_option("-l", "--user", action="store", type="safestring",
                           dest="user", help="execute remote command as user")
         optgrp.add_option("-o", "--options", action="store", dest="options",

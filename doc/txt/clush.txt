@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-03-17
+:Date:   2012-03-28
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 1
@@ -125,11 +125,11 @@ OPTIONS
 
 Selecting target nodes:
   -w NODES            nodes where to run the command
-  -x EXCLUDE          exclude nodes from the node list
+  -x NODES            exclude nodes from the node list
   -a, --all           run command on all nodes
   -g GROUP, --group=GROUP
                       run command on a group of nodes
-  -X EXGROUP          exclude nodes from this group
+  -X GROUP            exclude nodes from this group
 
 Output behaviour:
   -q, --quiet         be quiet, print essential output only
@@ -143,6 +143,7 @@ Output behaviour:
   -r, --regroup       fold nodeset using node groups
   -S                  return the largest of command return codes
   --color=WHENCOLOR   whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
+  --diff              show diff between common outputs (find the best reference output by focusing on largest nodeset and also smaller command return code)
 
 File copying:
   -c, --copy          copy local file or directory to remote nodes
@@ -199,6 +200,9 @@ All/NodeGroups examples
 
 :# clush -a uname -r:
     Run command `uname -r` on all cluster nodes, see ``clush.conf``\(5) to setup all cluster nodes (`nodes_all:` field).
+
+:# clush -a --diff uname -r:
+    Run command `uname -r` on all cluster nodes and show difference (if any), line by line, between common outputs.
 
 :# clush -a -x node[5,7] uname -r:
     Run command `uname -r` on all cluster nodes except on nodes node5 and node7.

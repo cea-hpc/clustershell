@@ -139,20 +139,20 @@ def clubak():
             if not key:
                 raise ValueError("no node found")
             if enable_nodeset_key is False: # interpret-keys=never?
-                ns = [ key ]
+                keyset = [ key ]
             else:
                 try:
-                    ns = NodeSet(key)
+                    keyset = NodeSet(key)
                 except NodeSetParseError:
                     if enable_nodeset_key: # interpret-keys=always?
                         raise
                     enable_nodeset_key = False # auto => switch off
-                    ns = [ key ]
+                    keyset = [ key ]
             if fast_mode:
-                for node in ns:
+                for node in keyset:
                     preload_msgs.setdefault(node, []).append(content)
             else:
-                for node in ns:
+                for node in keyset:
                     tree.add(node, content)
         except ValueError, ex:
             raise ValueError("%s (\"%s\")" % (ex, linestripped))
@@ -163,15 +163,18 @@ def clubak():
         for key, wholemsg in preload_msgs.iteritems():
             tree.add(key, '\n'.join(wholemsg))
 
-    if options.debug:
-        RESOLVER_STD_GROUP.set_verbosity(1)
-        print >> sys.stderr, "clubak: line_mode=%s gather=%s tree_depth=%d" % \
-            (bool(options.line_mode), bool(options.gather), tree._depth())
-
     # Display results
-    disp = Display(options)
-    display(tree, disp, options.gather or disp.regroup, options.trace_mode, \
-        enable_nodeset_key is not False)
+    try:
+        disp = Display(options)
+        if options.debug:
+            RESOLVER_STD_GROUP.set_verbosity(1)
+            print >> sys.stderr, \
+                "clubak: line_mode=%s gather=%s tree_depth=%d" % \
+                    (bool(options.line_mode), bool(disp.gather), tree._depth())
+        display(tree, disp, disp.gather or disp.regroup, \
+                options.trace_mode, enable_nodeset_key is not False)
+    except ValueError, exc:
+        parser.error("option mismatch (%s)" % exc)
 
 def main():
     """main script function"""
