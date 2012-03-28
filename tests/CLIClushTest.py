@@ -12,10 +12,15 @@ import unittest
 from TLib import *
 import ClusterShell.CLI.Clush
 from ClusterShell.CLI.Clush import main
+from ClusterShell.Task import task_cleanup
 
 
 class CLIClushTest(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py"""
+
+    def tearDown(self):
+        """cleanup all tasks"""
+        task_cleanup()
 
     def _clush_t(self, args, input, expected_stdout, expected_rc=0,
                   expected_stderr=None):
