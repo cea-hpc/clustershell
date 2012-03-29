@@ -110,25 +110,70 @@ def _task_print_debug(task, s):
 
 class Task(object):
     """
-    Always bound to a thread, the Task class allows you to execute
-    commands in parallel and get their results.
+    The Task class defines an essential ClusterShell object which aims to
+    execute commands in parallel and easily get their results.
 
-    To create a task in a new thread:
+    More precisely, a Task object manages a coordinated (ie. with respect of
+    its current parameters) collection of independent parallel Worker objects.
+    See ClusterShell.Worker.Worker for further details on ClusterShell Workers.
+
+    Always bound to a specific thread, a Task object acts like a "thread
+    singleton". So most of the time, and even more for single-threaded
+    applications, you can get the current task object with the following
+    top-level Task module function:
+        >>> task = task_self()
+
+    However, if you want to create a task in a new thread, use:
         >>> task = Task()
 
-    To create or get the instance of the task associated with the
-    thread object thr (threading.Thread):
+    To create or get the instance of the task associated with the thread
+    object thr (threading.Thread):
         >>> task = Task(thread=thr)
 
-    Add a command to execute locally within task with:
+    To submit a command to execute locally within task, use:
         >>> task.shell("/bin/hostname")
 
-    Add a command to execute to a distant node within task with:
+    To submit a command to execute to some distant nodes in parallel, use:
         >>> task.shell("/bin/hostname", nodes="tiger[1-20]")
 
-    Run task in its associated thread (will block only if the calling
-    thread is the task associated thread):
+    The previous examples submit commands to execute but do not allow result
+    interaction during their execution. For your program to interact during
+    command execution, it has to define event handlers that will listen for
+    local or remote events. These handlers are based on the EventHandler
+    class, defined in ClusterShell.Event. The following example shows how to
+    submit a command on a cluster with a registered event handler:
+        >>> task.shell("uname -r", nodes="node[1-9]", handler=MyEventHandler())
+
+    Run task in its associated thread (will block only if the calling thread is
+    the task associated thread):
         >>> task.resume()
+    or
+        >>> task.run()
+
+    You can also pass arguments to task.run() to schedule a command exactly
+    like in task.shell(), and run it:
+        >>> task.run("hostname", nodes="tiger[1-20]", handler=MyEventHandler())
+
+    A common need is to set a maximum delay for command execution, especially
+    when the command time is not known. Doing this with ClusterShell Task is
+    very straighforward. To limit the execution time on each node, use the
+    timeout parameter of shell() or run() methods to set a delay in seconds,
+    like:
+        >>> task.run("check_network.sh", nodes="tiger[1-20]", timeout=30)
+
+    You can then either use Task's iter_keys_timeout() method after execution
+    to see on what nodes the command has timed out, or listen for ev_timeout()
+    events in your event handler.
+
+    To get command result, you can either use Task's iter_buffers() method for
+    standard output, iter_errors() for standard error after command execution
+    (common output contents are automatically gathered), or you can listen for
+    ev_read() and ev_error() events in your event handler and get live command
+    output.
+
+    To get command return codes, you can either use Task's iter_retcodes(),
+    node_retcode() and max_retcode() methods after command execution, or
+    listen for ev_hup() events in your event handler.
     """
     _std_default = {  "stderr"             : False,
                       "stdout_msgtree"     : True,
@@ -482,28 +527,25 @@ class Task(object):
 
     def shell(self, command, **kwargs):
         """
-        Schedule a shell command for local or distant parallel
-        execution. This key method in the ClusterShell library creates
-        a local or remote Worker (depending on the presence of the
-        nodes parameter) and immediately schedule it for execution in
-        task runloop. So, if the task is already running (ie. called
-        from an event handler), the command is started immediately,
-        assuming the fanout constraint is met. If the task is not
-        running, the command is not started but scheduled for late
-        execution. See resume() to start task runloop.
+        Schedule a shell command for local or distant parallel execution. This
+        essential method creates a local or remote Worker (depending on the
+        presence of the nodes parameter) and immediately schedules it for
+        execution in task's runloop. So, if the task is already running
+        (ie. called from an event handler), the command is started immediately,
+        assuming current execution contraintes are met (eg. fanout value). If
+        the task is not running, the command is not started but scheduled for
+        late execution. See resume() to start task runloop.
 
-        The following optional parameters are passed to the underlying
-        local or remote Worker constructor:
-          - handler: EventHandler instance to notify (on event) --
-            default is no handler (None)
-          - timeout: command timeout delay expressed in second using
-            a floating point value -- default is unlimited (None)
-          - autoclose: if set to True, the underlying Worker is
-            automatically aborted as soon as all other non-autoclosing
-            task objects (workers, ports, timers) have finished --
-            default is False
-          - stderr: separate stdout/stderr if set to True -- default
-            is False.
+        The following optional parameters are passed to the underlying local
+        or remote Worker constructor:
+          - handler: EventHandler instance to notify (on event) -- default is
+            no handler (None)
+          - timeout: command timeout delay expressed in second using a floating
+            point value -- default is unlimited (None)
+          - autoclose: if set to True, the underlying Worker is automatically
+            aborted as soon as all other non-autoclosing task objects (workers,
+            ports, timers) have finished -- default is False
+          - stderr: separate stdout/stderr if set to True -- default is False.
 
         Local usage::
             task.shell(command [, key=key] [, handler=handler]
@@ -524,7 +566,7 @@ class Task(object):
 
         handler = kwargs.get("handler", None)
         timeo = kwargs.get("timeout", None)
-        ac = kwargs.get("autoclose", False)
+        autoclose = kwargs.get("autoclose", False)
         stderr = kwargs.get("stderr", self.default("stderr"))
 
         if kwargs.get("nodes", None):
@@ -541,17 +583,17 @@ class Task(object):
                 # create tree of ssh worker
                 worker = WorkerTree(NodeSet(kwargs["nodes"]), command=command,
                                     handler=handler, stderr=stderr,
-                                    timeout=timeo, autoclose=ac)
+                                    timeout=timeo, autoclose=autoclose)
             else:
                 # create ssh-based worker
                 worker = WorkerSsh(NodeSet(kwargs["nodes"]), command=command,
                                    handler=handler, stderr=stderr,
-                                   timeout=timeo, autoclose=ac)
+                                   timeout=timeo, autoclose=autoclose)
         else:
             # create (local) worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
                                  handler=handler, stderr=stderr,
-                                 timeout=timeo, autoclose=ac)
+                                 timeout=timeo, autoclose=autoclose)
 
         # schedule worker for execution in this task
         self.schedule(worker)
@@ -685,10 +727,11 @@ class Task(object):
             self._engine.add(client)
 
     def _resume_thread(self):
-        """Resume called from another thread."""
+        """Resume task - called from another thread."""
         self._suspend_cond.notify_all()
 
     def _resume(self):
+        """Resume task - called from self thread."""
         assert self.thread == threading.currentThread()
         try:
             try:
@@ -709,13 +752,19 @@ class Task(object):
 
     def resume(self, timeout=0):
         """
-        Resume task. If task is task_self(), workers are executed in
-        the calling thread so this method will block until workers have
-        finished. This is always the case for a single-threaded
-        application (eg. which doesn't create other Task() instance
-        than task_self()). Otherwise, the current thread doesn't block.
-        In that case, you may then want to call task_wait() to wait for
-        completion.
+        Resume task. If task is task_self(), workers are executed in the
+        calling thread so this method will block until all (non-autoclosing)
+        workers have finished. This is always the case for a single-threaded
+        application (eg. which doesn't create other Task() instance than
+        task_self()). Otherwise, the current thread doesn't block. In that
+        case, you may then want to call task_wait() to wait for completion.
+
+        Warning: the timeout parameter can be used to set an hard limit of
+        task execution time (in seconds). In that case, a TimeoutError
+        exception is raised if this delay is reached. Its value is 0 by
+        default, which means no task time limit (TimeoutError is never
+        raised). In order to set a maximum delay for individual command
+        execution, you should use Task.shell()'s timeout parameter instead.
         """
         # If you change options here, check Task.run() compatibility.
 
@@ -742,6 +791,15 @@ class Task(object):
         >>> task.shell("hostname", nodes="foo")
         >>> task.shell("hostname", nodes="bar")
         >>> task.run()
+
+        When used with a command, you can set a maximum delay of individual
+        command execution with the help of the timeout parameter (see
+        Task.shell's parameters). You can then listen for ev_timeout() events
+        in your Worker event handlers, or use num_timeout() or
+        iter_keys_timeout() afterwards.
+        But, when used as an alias to Task.resume(), the timeout parameter
+        sets an hard limit of task execution time. In that case, a TimeoutError
+        exception is raised if this delay is reached.
         """
         worker = None
         timeout = 0
@@ -767,6 +825,7 @@ class Task(object):
 
     @tasksyncmethod()
     def _suspend_wait(self):
+        """Suspend request received."""
         assert task_self() == self
         # atomically set suspend state
         self._suspend_lock.acquire()
@@ -810,6 +869,7 @@ class Task(object):
 
     @tasksyncmethod()
     def _abort(self, kill=False):
+        """Abort request received."""
         assert task_self() == self
         # raise an EngineAbortException when task is running
         self._engine.abort(kill)
@@ -1225,6 +1285,7 @@ class Task(object):
         return chan
 
     def _pchannel_release(self, metaworker):
+        """Release propagation channel"""
         if metaworker in self.pmwkrs:
             for worker in self.pmwkrs[metaworker]:
                 #print >>sys.stderr, "pchannel_release2 %s" % worker
@@ -1237,35 +1298,36 @@ class Task(object):
 
 def task_self():
     """
-    Get the Task instance bound to the current thread. This function
-    provided as a convenience is available in the top-level
-    ClusterShell.Task package namespace.
+    Return the current Task object, corresponding to the caller's thread of
+    control (a Task object is always bound to a specific thread). This function
+    provided as a convenience is available in the top-level ClusterShell.Task
+    package namespace.
     """
     return Task(thread=threading.currentThread())
 
 def task_wait():
     """
-    Suspend execution of the calling thread until all tasks terminate,
-    unless all tasks have already terminated. This function is provided
-    as a convenience and is available in the top-level
-    ClusterShell.Task package namespace.
+    Suspend execution of the calling thread until all tasks terminate, unless
+    all tasks have already terminated. This function is provided as a
+    convenience and is available in the top-level ClusterShell.Task package
+    namespace.
     """
     Task.wait(threading.currentThread())
 
 def task_terminate():
     """
-    Destroy the Task instance bound to the current thread. A next call
-    to task_self() will create a new Task object. This function provided
-    as a convenience is available in the top-level ClusterShell.Task
-    package namespace.
+    Destroy the Task instance bound to the current thread. A next call to
+    task_self() will create a new Task object. This function provided as a
+    convenience is available in the top-level ClusterShell.Task package
+    namespace.
     """
     task_self().abort(kill=True)
 
 def task_cleanup():
     """
-    Cleanup routine to destroy all created tasks. This function
-    provided as a convenience is available in the top-level
-    ClusterShell.Task package namespace.
+    Cleanup routine to destroy all created tasks. This function provided as a
+    convenience is available in the top-level ClusterShell.Task package
+    namespace.
     """
     Task._task_lock.acquire()
     try:
