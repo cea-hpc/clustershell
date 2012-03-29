@@ -261,7 +261,7 @@ class RangeSet(set):
                     setattr(self, '_ranges', [(slice(start, stop, step), pad) \
                         for (start, stop, step), pad in self_ranges])
             # convert to v3
-            for sli, pad in self._ranges:
+            for sli, pad in getattr(self, '_ranges'):
                 self.add_range(sli.start, sli.stop, sli.step, pad)
             delattr(self, '_ranges')
             delattr(self, '_length')

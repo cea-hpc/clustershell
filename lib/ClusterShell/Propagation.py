@@ -47,7 +47,7 @@ from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ControlMessage, StdOutMessage
 from ClusterShell.Communication import StdErrMessage, RetcodeMessage
 from ClusterShell.Communication import RoutedMessageBase, EndMessage
-from ClusterShell.Communication import ConfigurationMessage
+from ClusterShell.Communication import ConfigurationMessage, TimeoutMessage
 
 from ClusterShell.Topology import TopologyParser
 
@@ -331,12 +331,14 @@ class PropagationChannel(Channel):
                     metaworker._on_node_timeout(node)
         else:
             self.logger.debug("PropChannel: _state_gather unhandled msg %s" % msg)
+        """
         return
         if self.ptree.upchannel is not None:
             self.logger.debug("_state_gather ->upchan %s" % msg)
             self.ptree.upchannel.send(msg) # send to according event handler passed by shell()
         else:
             assert False
+        """
  
     def ev_close(self, worker):
         worker.flush_buffers()

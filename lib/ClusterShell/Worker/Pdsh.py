@@ -268,8 +268,8 @@ class WorkerPdsh(EngineClient, DistantWorker):
                 elif self.mode == 'pdcp':
                     self._on_node_rc(words[1][:-1], errno.ENOENT)
 
-            except Exception, e:
-                print >> sys.stderr, e
+            except Exception, exc:
+                print >> sys.stderr, exc
                 raise EngineClientError()
         else:
             # split pdsh reply "nodename: msg"

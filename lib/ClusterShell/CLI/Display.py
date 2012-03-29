@@ -76,6 +76,8 @@ class Display(object):
         """
         if options.diff:
             self._print_buffer = self._print_diff
+        else:
+            self._print_buffer = self._print_content
         self._display = self._print_buffer
         self._diffref = None
         # diff implies at least -b
@@ -192,7 +194,7 @@ class Display(object):
         object settings (used by clubak)."""
         return self._display(self.__class__._KeySet(keys), obj)
 
-    def _print_buffer(self, nodeset, content):
+    def _print_content(self, nodeset, content):
         """Display a dshbak-like header block and content."""
         self.out.write("%s\n%s\n" % (self.format_header(nodeset), content))
 

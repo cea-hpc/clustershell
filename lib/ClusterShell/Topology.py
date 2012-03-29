@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
+# Copyright CEA/DAM/DIF (2010, 2011, 2012)
 #  Contributor: Henri DOREAU <henri.doreau@gmail.com>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -49,8 +49,6 @@ second_level_gateways[0-100]: nodes[0-2000]
 ...
 """
 
-import sys
-import signal
 import ConfigParser
 
 from ClusterShell.NodeSet import NodeSet
