@@ -216,7 +216,7 @@ class Display(object):
             output = ""
             for line in udiff:
                 if line.startswith('---') or line.startswith('+++'):
-                    output += self.color_diffhdr_fmt % line
+                    output += self.color_diffhdr_fmt % line.rstrip()
                 elif line.startswith('@@'):
                     output += self.color_diffctx_fmt % line
                 elif line.startswith('+'):
