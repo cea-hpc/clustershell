@@ -97,6 +97,8 @@ class CLIClushTest(unittest.TestCase):
             "localhost: ok\n")
         self._clush_t(["-w", "localhost", "-qBLS", "echo", "ok"], None, \
             "localhost: ok\n")
+        self._clush_t(["-w", "localhost", "-vb", "echo", "ok"], None, \
+            "localhost: ok\n---------------\nlocalhost\n---------------\nok\n")
 
     def test_004_file_copy(self):
         """test clush (file copy)"""
@@ -128,6 +130,35 @@ class CLIClushTest(unittest.TestCase):
         """test clush (diff)"""
         self._clush_t(["-w", "localhost", "--diff", "echo", "ok"], None, "")
         self._clush_t(["-w", "localhost,127.0.0.1", "--diff", "echo", "ok"], None, "")
+
+    def test_006_stdin(self):
+        """test clush (stdin)"""
+        self._clush_t(["-w", "localhost", "cat"], "ok", "localhost: ok\n")
+        self._clush_t(["-w", "localhost", "cat"], "ok\nok", "localhost: ok\nlocalhost: ok\n")
+        # write binary to stdin
+        self._clush_t(["-w", "localhost", "gzip -d"], \
+            "1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000".decode("hex"), "localhost: foo bar\n")
+
+    def test_007_stderr(self):
+        """test clush (stderr)"""
+        self._clush_t(["-w", "localhost", "echo err 1>&2"], None, "", 0, "localhost: err\n")
+        self._clush_t(["-b", "-w", "localhost", "echo err 1>&2"], None, "", 0, "localhost: err\n")
+        self._clush_t(["-B", "-w", "localhost", "echo err 1>&2"], None, "---------------\nlocalhost\n---------------\nerr\n")
+
+    def test_008_retcodes(self):
+        """test clush (retcodes)"""
+        self._clush_t(["-w", "localhost", "/bin/false"], None, "", 0, "clush: localhost: exited with exit code 1\n")
+        self._clush_t(["-w", "localhost", "-b", "/bin/false"], None, "", 0, "clush: localhost: exited with exit code 1\n")
+        self._clush_t(["-S", "-w", "localhost", "/bin/false"], None, "", 1, "clush: localhost: exited with exit code 1\n")
+        for i in (1, 2, 127, 128, 255):
+            self._clush_t(["-S", "-w", "localhost", "exit %d" % i], None, "", i, \
+                "clush: localhost: exited with exit code %d\n" % i)
+        self._clush_t(["-v", "-w", "localhost", "/bin/false"], None, "", 0, "clush: localhost: exited with exit code 1\n")
+
+    def test_009_timeout(self):
+        """test clush (timeout)"""
+        self._clush_t(["-w", "localhost", "-u", "5", "sleep 7"], None, "", 0, "clush: localhost: command timeout\n")
+        self._clush_t(["-w", "localhost", "-u", "5", "-b", "sleep 7"], None, "", 0, "clush: localhost: command timeout\n")
 
 
 if __name__ == '__main__':
