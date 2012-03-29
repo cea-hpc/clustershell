@@ -1,5 +1,8 @@
 2012-03-29 S. Thiell <stephane.thiell@cea.fr>
 
+	* Worker/Worker.py: added documentation for
+	worker.current_[node,msg,errmsg,rc] variables (ticket #160).
+
 	* Task.py: timeout parameters better explained (ticket #157).
 
 2012-03-28 S. Thiell <stephane.thiell@cea.fr>

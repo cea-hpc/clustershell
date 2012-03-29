@@ -54,7 +54,40 @@ WorkerBadArgumentError = ValueError
 
 class Worker(object):
     """
-    Base class Worker.
+    Worker is an essential base class for the ClusterShell library. The goal
+    of a worker object is to execute a common work on a single or several
+    targets (abstract notion) in parallel. Concret targets and also the notion
+    of local or distant targets are managed by Worker's subclasses (for
+    example, see the DistantWorker base class).
+
+    A configured Worker object is associated to a specific ClusterShell Task,
+    which can be seen as a single-threaded Worker supervisor. Indeed, the work
+    to be done is executed in parallel depending on other Workers and Task's
+    current paramaters, like current fanout value.
+
+    ClusterShell is designed to write event-driven applications, and the Worker
+    class is key here as Worker objects are passed as parameter of most event
+    handlers (see the ClusterShell.Event.EventHandler class).
+
+    The following public object variables are defined on some events, so you
+    may find them useful in event handlers:
+        - worker.current_node [ev_read,ev_error,ev_hup]
+            node/key concerned by event
+        - worker.current_msg [ev_read]
+            message just read (from stdout)
+        - worker.current_errmsg [ev_error]
+            error message just read (from stderr)
+        - worker.current_rc [ev_hup]
+            return code just received
+
+    Example of use:
+        >>> from ClusterShell.Event import EventHandler
+        >>> class MyOutputHandler(EventHandler):
+        ...     def ev_read(self, worker):
+        ...             node = worker.current_node       
+        ...             line = worker.current_msg
+        ...             print "%s: %s" % (node, line)
+        ... 
     """
     def __init__(self, handler):
         """
@@ -106,12 +139,14 @@ class Worker(object):
     def last_read(self):
         """
         Get last read message from event handler.
+        [DEPRECATED] use current_msg
         """
         raise NotImplementedError("Derived classes must implement.")
 
     def last_error(self):
         """
         Get last error message from event handler.
+        [DEPRECATED] use current_errmsg
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -207,25 +242,29 @@ class DistantWorker(Worker):
     def last_node(self):
         """
         Get last node, useful to get the node in an EventHandler
-        callback like ev_timeout().
+        callback like ev_read().
+        [DEPRECATED] use current_node
         """
         return self.current_node
 
     def last_read(self):
         """
         Get last (node, buffer), useful in an EventHandler.ev_read()
+        [DEPRECATED] use (current_node, current_msg)
         """
         return self.current_node, self.current_msg
 
     def last_error(self):
         """
         Get last (node, error_buffer), useful in an EventHandler.ev_error()
+        [DEPRECATED] use (current_node, current_errmsg)
         """
         return self.current_node, self.current_errmsg
 
     def last_retcode(self):
         """
         Get last (node, rc), useful in an EventHandler.ev_hup()
+        [DEPRECATED] use (current_node, current_rc)
         """
         return self.current_node, self.current_rc
 
