@@ -5,7 +5,6 @@
 
 """Unit test for ClusterShell Task (resource limits)"""
 
-import os
 import resource
 import subprocess
 import sys
@@ -21,7 +20,7 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def setUp(self):
         """set soft nofile resource limit to 100"""
-        subprocess.call(["ls", "/proc/%d/fd" % os.getpid()], stdout=sys.stdout)
+        subprocess.call(["ls", "/proc/self/fd"], stdout=sys.stdout)
         self.soft, self.hard = resource.getrlimit(resource.RLIMIT_NOFILE)
         resource.setrlimit(resource.RLIMIT_NOFILE, (100, self.hard))
 

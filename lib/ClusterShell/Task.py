@@ -841,7 +841,7 @@ class Task(object):
             # invalidate dispatch port
             self._dispatch_port = None
         # clear engine
-        self._engine.clear()
+        self._engine.clear(clear_ports=kill)
 
         # clear result objects
         self._reset()
