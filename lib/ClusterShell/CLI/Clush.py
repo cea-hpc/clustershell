@@ -616,7 +616,7 @@ def set_fdlimit(fd_max, display):
         resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
 
 def clush_exit(status):
-    # Flush stdio buffers
+    """Flush stdio buffers and exit script."""
     for stream in [sys.stdout, sys.stderr]:
         stream.flush()
     # Use os._exit to avoid threads cleanup

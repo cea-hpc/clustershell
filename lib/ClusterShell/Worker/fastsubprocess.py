@@ -50,7 +50,6 @@ class CalledProcessError(Exception):
 import select
 import errno
 import fcntl
-import pickle
 
 __all__ = ["Popen", "PIPE", "STDOUT", "call", "check_call", \
            "CalledProcessError"]
@@ -113,6 +112,7 @@ def set_nonblock_flag(fd):
 
 
 class Popen(object):
+    """A faster Popen"""
     def __init__(self, args, bufsize=0, executable=None,
                  stdin=None, stdout=None, stderr=None,
                  preexec_fn=None, shell=False,
@@ -402,8 +402,8 @@ class Popen(object):
         while read_set or write_set:
             try:
                 rlist, wlist, xlist = select.select(read_set, write_set, [])
-            except select.error, e:
-                if e.args[0] == errno.EINTR:
+            except select.error, ex:
+                if ex.args[0] == errno.EINTR:
                     continue
                 raise
 

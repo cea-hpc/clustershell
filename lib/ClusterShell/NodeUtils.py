@@ -95,6 +95,7 @@ class GroupSource(object):
         self._cache_reverse = {}
 
     def _verbose_print(self, msg):
+        """Print msg depending on the verbosity level."""
         if self.verbosity > 0:
             print >> sys.stderr, "%s<%s> %s" % \
                 (self.__class__.__name__, self.name, msg)
@@ -336,8 +337,8 @@ class GroupResolverConfig(GroupResolver):
 
                 self.add_source(GroupSource(section, map_upcall, all_upcall, \
                                     list_upcall, reverse_upcall, cfgdir))
-        except (NoSectionError, NoOptionError), e:
-            raise GroupResolverConfigError(str(e))
+        except (NoSectionError, NoOptionError), exc:
+            raise GroupResolverConfigError(str(exc))
 
     def _source(self, namespace):
         return GroupResolver._source(self, namespace or self.default_sourcename)

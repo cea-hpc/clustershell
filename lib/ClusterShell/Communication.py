@@ -66,8 +66,6 @@ from collections import deque
 from cStringIO import StringIO
 
 from ClusterShell.Event import EventHandler
-from ClusterShell.Worker.Worker import WorkerSimple
-
 
 
 def strdel(s, badchars):
@@ -222,9 +220,9 @@ class Channel(EventHandler):
         #self.logger.debug("ev_read raw=\'%s\'" % raw)
         try:
             self._parser.feed(raw + '\n')
-        except SAXParseException, e:
-            raise MessageProcessingError(
-                'Invalid communication (%s): "%s"' % (e.getMessage(), raw))
+        except SAXParseException, ex:
+            raise MessageProcessingError( \
+                'Invalid communication (%s): "%s"' % (ex.getMessage(), raw))
 
         # pass next message to the driver if ready
         if self._xml_reader.msg_available():

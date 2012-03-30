@@ -36,11 +36,9 @@ ClusterShell v2 tree propagation worker
 
 import logging
 import os
-import sys
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.Worker import DistantWorker
 
 from ClusterShell.Propagation import PropagationTreeRouter
@@ -102,14 +100,12 @@ class MetaWorkerEventHandler(EventHandler):
         """
         #self.metaworker._check_fini()
         pass
-        """
-        #print >>sys.stderr, "ev_close?"
-        self._completed += 1
-        if self._completed >= self.grpcount:
-            #print >>sys.stderr, "ev_close!"
-            metaworker = self.metaworker
-            metaworker.eh.ev_close(metaworker)
-        """
+        ##print >>sys.stderr, "ev_close?"
+        #self._completed += 1
+        #if self._completed >= self.grpcount:
+        #    #print >>sys.stderr, "ev_close!"
+        #    metaworker = self.metaworker
+        #    metaworker.eh.ev_close(metaworker)
 
 
 class WorkerTree(DistantWorker):
@@ -262,7 +258,7 @@ class WorkerTree(DistantWorker):
         """
         Write to worker clients.
         """
-        for c in self.clients:
+        for c in self._engine_clients():
             c._write(buf)
 
     def set_write_eof(self):
@@ -270,13 +266,13 @@ class WorkerTree(DistantWorker):
         Tell worker to close its writer file descriptor once flushed. Do not
         perform writes after this call.
         """
-        for c in self.clients:
+        for c in self._engine_clients():
             c._set_write_eof()
 
     def abort(self):
         """
         Abort processing any action by this worker.
         """
-        for c in self.clients:
+        for c in self._engine_clients():
             c.abort()
 

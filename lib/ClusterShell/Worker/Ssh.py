@@ -328,21 +328,21 @@ class WorkerSsh(DistantWorker):
         """
         Write to worker clients.
         """
-        for c in self.clients:
-            c._write(buf)
+        for client in self.clients:
+            client._write(buf)
 
     def set_write_eof(self):
         """
         Tell worker to close its writer file descriptor once flushed. Do not
         perform writes after this call.
         """
-        for c in self.clients:
-            c._set_write_eof()
+        for client in self.clients:
+            client._set_write_eof()
 
     def abort(self):
         """
         Abort processing any action by this worker.
         """
-        for c in self.clients:
-            c.abort()
+        for client in self.clients:
+            client.abort()
 

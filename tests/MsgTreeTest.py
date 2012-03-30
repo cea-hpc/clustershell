@@ -16,7 +16,7 @@ from ClusterShell.MsgTree import *
 
 class MsgTreeTest(unittest.TestCase):
 
-    def testMsgTree(self):
+    def test_001_basics(self):
         """test MsgTree basics"""
         tree = MsgTree()
         self.assertEqual(len(tree), 0)
@@ -30,14 +30,14 @@ class MsgTreeTest(unittest.TestCase):
         tree.add("key2", "message3")
         self.assertEqual(len(tree), 2)
 
-    def testMsgTreeElem(self):
+    def test_002_elem(self):
         """test MsgTreeElem"""
         elem = MsgTreeElem()
         self.assertEqual(len(elem), 0)
         for s in elem:
             self.fail("found line in empty MsgTreeElem!")
 
-    def testMsgTreeIterators(self):
+    def test_003_iterators(self):
         """test MsgTree iterators"""
         # build tree...
         tree = MsgTree()
@@ -133,7 +133,7 @@ class MsgTreeTest(unittest.TestCase):
             self.assertEqual(keys[0][:-1], "item")
         self.assertEqual(cnt, 3) # 3 and not 4 because item3 and item4 are merged
 
-    def testMsgTreeGetItem(self):
+    def test_004_getitem(self):
         """test MsgTree get and __getitem__"""
         # build tree...
         tree = MsgTree()
@@ -152,7 +152,7 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
         self.assertEqual(tree._depth(), 2)
 
-    def testMsgTreeRemove(self):
+    def test_005_remove(self):
         """test MsgTree.remove()"""
         # build tree
         tree = MsgTree()
@@ -178,7 +178,7 @@ class MsgTreeTest(unittest.TestCase):
         tree.clear()
         self.assertEqual(len(tree), 0)
 
-    def testMsgTreeScalability(self):
+    def test_006_scalability(self):
         """test MsgTree scalability"""
         # build tree...
         tree = MsgTree()
@@ -189,7 +189,26 @@ class MsgTreeTest(unittest.TestCase):
         for msg, keys in tree.walk():
             cnt += 1
 
-    def testMsgTreeTraceMode(self):
+    def test_007_shift_mode(self):
+        """test MsgTree in shift mode"""
+        tree = MsgTree(mode=MODE_SHIFT)
+        tree.add("item1", "message0")
+        self.assertEqual(len(tree), 1)
+        tree.add("item2", "message2")
+        tree.add("item3", "message2")
+        tree.add("item4", "message3")
+        tree.add("item2", "message4")
+        tree.add("item3", "message4")
+        self.assertEqual(len(tree), 4)
+        self.assertEqual(tree["item1"], "message0")
+        self.assertEqual(tree.get("item1"), "message0")
+        self.assertEqual(tree["item2"], "message2\nmessage4")
+        self.assertEqual(tree.get("item2"), "message2\nmessage4")
+        self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
+        self.assertEqual(tree._depth(), 2)
+        self.assertEqual(len(list(tree.walk())), 3)
+
+    def test_008_trace_mode(self):
         """test MsgTree in trace mode"""
         tree = MsgTree(mode=MODE_TRACE)
         tree.add("item1", "message0")

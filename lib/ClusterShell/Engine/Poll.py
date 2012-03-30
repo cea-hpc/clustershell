@@ -168,7 +168,7 @@ class EnginePoll(Engine):
                             client._handle_read()
                         else:
                             client._handle_error()
-                    except EngineClientEOF, e:
+                    except EngineClientEOF:
                         self._debug("EngineClientEOF %s" % client)
                         if fdev & Engine.E_READ:
                             self.remove(client)

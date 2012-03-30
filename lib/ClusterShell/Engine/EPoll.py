@@ -132,9 +132,9 @@ class EngineEPoll(Engine):
                 self._current_loopcnt += 1
                 evlist = self.epolling.poll(timeo + 0.001)
 
-            except IOError, e:
+            except IOError, ex:
                 # might get interrupted by a signal
-                if e.errno == errno.EINTR:
+                if ex.errno == errno.EINTR:
                     continue
 
             for fd, event in evlist:
@@ -165,7 +165,7 @@ class EngineEPoll(Engine):
                             client._handle_read()
                         else:
                             client._handle_error()
-                    except EngineClientEOF, e:
+                    except EngineClientEOF:
                         self._debug("EngineClientEOF %s" % client)
                         if fdev & Engine.E_READ:
                             self.remove(client)

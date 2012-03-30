@@ -38,18 +38,13 @@ through gateways and gather results.
 """
 
 import logging
-import os
-import socket
 
-from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ControlMessage, StdOutMessage
 from ClusterShell.Communication import StdErrMessage, RetcodeMessage
 from ClusterShell.Communication import RoutedMessageBase, EndMessage
 from ClusterShell.Communication import ConfigurationMessage, TimeoutMessage
-
-from ClusterShell.Topology import TopologyParser
 
 
 class RouteResolvingError(Exception):
@@ -330,7 +325,8 @@ class PropagationChannel(Channel):
                 for node in NodeSet(msg.nodes):
                     metaworker._on_node_timeout(node)
         else:
-            self.logger.debug("PropChannel: _state_gather unhandled msg %s" % msg)
+            self.logger.debug("PropChannel: _state_gather unhandled msg %s" % \
+                              msg)
         """
         return
         if self.ptree.upchannel is not None:

@@ -44,7 +44,8 @@ import os
 import Queue
 import thread
 
-from fastsubprocess import Popen, PIPE, STDOUT, set_nonblock_flag
+from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
+    set_nonblock_flag
 
 from ClusterShell.Engine.Engine import EngineBaseTimer
 
@@ -304,7 +305,7 @@ class EngineClient(EngineBaseTimer):
         else:
             # bufferize until pipe is ready
             self._wbuf += buf
-    
+
     def _set_write_eof(self):
         self._weof = True
         if not self._wbuf:
