@@ -1,14 +1,17 @@
-ClusterShell is an event-based Python library to execute commands on local or
-distant cluster nodes in parallel depending on the selected engine and worker
-mechanisms. The library provides also advanced nodeset and node groups
-handling methods. Its goal is to improve the administration of cluster by
-providing a lightweight but scalable API for developers.
+ClusterShell is an event-driven open source Python library, designed to run
+local or distant commands in parallel on server farms or on large Linux
+clusters. It will take care of common issues encountered on HPC clusters, such
+as operating on groups of nodes, running distributed commands using optimized
+execution algorithms, as well as gathering results and merging identical
+outputs, or retrieving return codes. ClusterShell takes advantage of existing
+remote shell facilities already installed on your systems, like SSH.
 
 User tools
 ----------
 
-ClusterShell also provides with the library three convenient Python command-line
-programs:
+ClusterShell also provides clush, clubak and nodeset, three convenient
+command-line tools that allow traditional shell scripts to benefit from some
+of the library features:
 
 - **clush**: issue commands to cluster nodes and format output
 
@@ -27,7 +30,7 @@ See *man clush* for more details.
 
 See *man clubak* for more details.
 
-- **nodeset**: compute advanced nodeset operations
+- **nodeset**: compute advanced nodeset/nodegroup operations
 
 Examples of use:
 
