@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011, 2012)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library. 
@@ -42,7 +42,7 @@ if not os.access('scripts/clush', os.F_OK):
 if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
-VERSION='1.9.72'
+VERSION='1.5.90'
 
 setup(name='ClusterShell',
       version=VERSION,
