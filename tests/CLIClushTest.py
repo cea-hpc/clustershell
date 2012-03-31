@@ -28,6 +28,9 @@ class CLIClushTest(unittest.TestCase):
                   expected_stderr=None):
         """This new version allows code coverage checking by calling clush's
         main entry point."""
+        def raw_input_mock(prompt):
+            time.sleep(3600)
+        ClusterShell.CLI.Clush.raw_input = raw_input_mock
         clush_exit = ClusterShell.CLI.Clush.clush_exit
         try:
             ClusterShell.CLI.Clush.clush_exit = sys.exit # workaround (see #185)
@@ -35,6 +38,7 @@ class CLIClushTest(unittest.TestCase):
                      expected_rc, expected_stderr)
         finally:
             ClusterShell.CLI.Clush.clush_exit = clush_exit
+            ClusterShell.CLI.Clush.raw_input = raw_input
 
     def test_000_display(self):
         """test clush (display options)"""
@@ -188,16 +192,6 @@ class CLIClushTest(unittest.TestCase):
         # write binary to stdin
         self._clush_t(["-w", "localhost", "gzip -d"], \
             "1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000".decode("hex"), "localhost: foo bar\n")
-
-    def test_013_stdin_tty(self):
-        """test clush (stdin) [tty]"""
-
-        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
-        try:
-            # Forcing user interaction in this test has no sense, but well.
-            self.assertRaises(Exception, self.test_012_stdin)
-        finally:
-            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
     def test_014_stderr(self):
         """test clush (stderr)"""

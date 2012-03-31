@@ -361,7 +361,6 @@ def ttyloop(task, nodeset, timeout, display):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     if task.default("USER_interactive"):
-        assert sys.stdin.isatty()
         try:
             import readline
             readline_setup()
@@ -787,7 +786,8 @@ def main():
 
     task.excepthook = sys.excepthook
     task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or \
-                                               options.nostdin))
+                                               options.nostdin or \
+                                               user_interaction))
     display.vprint(VERB_DEBUG, "Create STDIN worker: %s" % \
                                task.default("USER_stdin_worker"))
 
