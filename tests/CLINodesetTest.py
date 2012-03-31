@@ -361,6 +361,7 @@ default: local
 
 [local]
 map: echo example[1-100]
+all: echo example[1-1000]
 list: echo foo bar moo
         """)
         ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolverConfig(f.name)
@@ -373,6 +374,14 @@ list: echo foo bar moo
             self._nodeset_t(["-lll", "example[4,95]", "example5"], None, "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
             # test empty result
             self._nodeset_t(["-l", "foo[3-70]", "bar6"], None, "")
+            # more arg-mixed tests
+            self._nodeset_t(["-a", "-l"], None, "@moo\n@bar\n@foo\n")
+            self._nodeset_t(["-a", "-l", "-x example[1-100]"], None, "")
+            self._nodeset_t(["-a", "-l", "-x example[1-40]"], None, "@moo\n@bar\n@foo\n")
+            self._nodeset_t(["-l", "-x example3"], None, "") # no -a, remove from nothing
+            self._nodeset_t(["-l", "-i example3"], None, "") # no -a, intersect from nothing
+            self._nodeset_t(["-l", "-X example3"], None, "@moo\n@bar\n@foo\n") # no -a, xor from nothing
+            self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", "@moo\n@bar\n@foo\n")
         finally:
             ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
 

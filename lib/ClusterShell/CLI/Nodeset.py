@@ -96,6 +96,41 @@ def compute_nodeset(xset, args, autostep):
 
     return xset
 
+def command_list(options, xset):
+    """List (-l/-ll/-lll) command handler."""
+    list_level = options.list
+    # list groups of some specified nodes?
+    if options.all or xset or \
+        options.and_nodes or options.sub_nodes or options.xor_nodes:
+        # When some node sets are provided as argument, the list command
+        # retrieves node groups these nodes belong to, thanks to the
+        # groups() method (new in 1.6). Note: stdin support is enabled
+        # when the '-' special character is encountered.
+        groups = xset.groups(options.groupsource, options.groupbase)
+        for group, (gnodes, inodes) in groups.iteritems():
+            if list_level == 1:         # -l
+                print group
+            elif list_level == 2:       # -ll
+                print "%s %s" % (group, inodes)
+            else:                       # -lll
+                print "%s %s %d/%d" % (group, inodes, len(inodes), \
+                                       len(gnodes))
+        return
+    # "raw" group list when no argument at all
+    for group in grouplist(options.groupsource):
+        if options.groupsource and not options.groupbase:
+            nsgroup = "@%s:%s" % (options.groupsource, group)
+        else:
+            nsgroup = "@%s" % group
+        if list_level == 1:         # -l
+            print nsgroup
+        else:
+            nodes = NodeSet(nsgroup)
+            if list_level == 2:     # -ll
+                print "%s %s" % (nsgroup, nodes)
+            else:                   # -lll
+                print "%s %s %d" % (nsgroup, nodes, len(nodes))
+
 def nodeset():
     """script subroutine"""
     class_set = NodeSet
@@ -160,43 +195,8 @@ def nodeset():
         # Include all nodes from external node groups support.
         xset.update(NodeSet.fromall()) # uses default_sourcename
 
-    # The list command has a special handling.
-    if options.list > 0:
-        list_level = options.list
-        if args:
-            # When some node sets are provided as argument, the list command
-            # retrieves node groups these nodes belong to, thanks to the
-            # groups() method (new in 1.6). Note: stdin support is enabled
-            # when the '-' special character is encountered.
-            compute_nodeset(xset, args, options.autostep)
-            groups = xset.groups(options.groupsource, options.groupbase)
-            for group, (gnodes, inodes) in groups.iteritems():
-                if list_level == 1:         # -l
-                    print group
-                elif list_level == 2:       # -ll
-                    print "%s %s" % (group, inodes)
-                else:                       # -lll
-                    print "%s %s %d/%d" % (group, inodes, len(inodes), \
-                                           len(gnodes))
-        else:
-            # "raw" group list when no argument
-            for group in grouplist(options.groupsource):
-                if options.groupsource and not options.groupbase:
-                    nsgroup = "@%s:%s" % (options.groupsource, group)
-                else:
-                    nsgroup = "@%s" % group
-                if list_level == 1:         # -l
-                    print nsgroup
-                else:
-                    nodes = NodeSet(nsgroup)
-                    if list_level == 2:     # -ll
-                        print "%s %s" % (nsgroup, nodes)
-                    else:                   # -lll
-                        print "%s %s %d" % (nsgroup, nodes, len(nodes))
-        return
-
-    if not options.all and not args:
-        # No need to specify '-' to read stdin if no argument at all.
+    if not args and not options.all and not options.list:
+        # No need to specify '-' to read stdin in these cases
         process_stdin(xset.update, xset.__class__, options.autostep)
 
     # Apply first operations (before first non-option)
@@ -223,6 +223,10 @@ def nodeset():
 
     # Finish xset computing from args
     compute_nodeset(xset, args, options.autostep)
+
+    # The list command has a special handling
+    if options.list > 0:
+        return command_list(options, xset)
 
     # Interprete special characters (may raise SyntaxError)
     separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})

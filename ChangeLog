@@ -1,3 +1,8 @@
+2012-03-31 S. Thiell <stephane.thiell@cea.fr>
+
+	* CLI/Nodeset.py: Allow -a and common nodeset operations when using -l to
+	list belonging groups (a new 1.6 feature, see ticket #162).
+
 2012-03-29 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker/Worker.py: added documentation for
