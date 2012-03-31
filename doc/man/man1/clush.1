@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH 1 "2012-03-28" "1.6" "ClusterShell User Manual"
+.TH CLUSH 1 "2012-03-31" "1.6" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -37,18 +37,20 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 \fCclush\fP \fC\-a\fP | \fC\-g\fP \fIgroup\fP | \fC\-w\fP \fInodes\fP  [OPTIONS] \fIcommand\fP
 .sp
 \fCclush\fP \fC\-a\fP | \fC\-g\fP \fIgroup\fP | \fC\-w\fP \fInodes\fP  [OPTIONS] \-\-copy
-\fIfile\fP | \fIdir\fP [ \fIfile\fP | \fIdir\fP ...] [ \-\-dest \fIdest_path\fP ]
+\fIfile\fP | \fIdir\fP [ \fIfile\fP | \fIdir\fP ...] [ \-\-dest \fIpath\fP ]
 .sp
 \fCclush\fP \fC\-a\fP | \fC\-g\fP \fIgroup\fP | \fC\-w\fP \fInodes\fP  [OPTIONS] \-\-rcopy
-\fIfile\fP | \fIdir\fP [ \fIfile\fP | \fIdir\fP ...] [ \-\-dest \fIdest_path\fP ]
+\fIfile\fP | \fIdir\fP [ \fIfile\fP | \fIdir\fP ...] [ \-\-dest \fIpath\fP ]
 .SH DESCRIPTION
 .sp
 \fCclush\fP is a program for executing commands in parallel on a cluster and for
 gathering their results. \fCclush\fP executes commands interactively or can be
 used within shell scripts and other applications.  It is a partial front\-end
-to the ClusterShell library that ensures a light, unified and robust command
-execution framework.  \fCclush\fP currently makes use of the Ssh worker of
-ClusterShell that only requires \fCssh\fP(1) (OpenSSH SSH client).
+to the ClusterShell library that ensures a light, unified and robust parallel
+command execution framework. Thus, it allows traditional shell scripts to
+benefit from some of the library features. \fCclush\fP currently makes use of
+the Ssh worker of ClusterShell that only requires \fCssh\fP(1) (OpenSSH SSH
+client).
 .SH INVOCATION
 .sp
 \fCclush\fP can be started non\-interactively to run a shell \fIcommand\fP, or can
@@ -77,6 +79,8 @@ display the status of current nodes.  If standard input is not connected
 to a terminal, and unless option \fC\-\-nostdin\fP is specified, \fCclush\fP
 binds the standard input of the remote commands to its own standard input,
 allowing scripting methods like:
+.INDENT 7.0
+.INDENT 3.5
 .nf
 # echo foo | clush \-w node[40\-42] \-b cat
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
@@ -85,6 +89,8 @@ node[40\-42]
 foo
 .fi
 .sp
+.UNINDENT
+.UNINDENT
 .sp
 Please see some other great examples in the EXAMPLES section below.
 .TP
@@ -326,7 +332,7 @@ Run command \fIuname \-r\fP on all cluster nodes, see \fCclush.conf\fP(5) to set
 .TP
 .B # clush \-a \-\-diff uname \-r
 .
-Run command \fIuname \-r\fP on all cluster nodes and show difference (if any), line by line, between common outputs.
+Run command \fIuname \-r\fP on all cluster nodes and show differences (if any), line by line, between common outputs.
 .TP
 .B # clush \-a \-x node[5,7] uname \-r
 .

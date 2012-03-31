@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-03-28
+:Date:   2012-03-31
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 1
@@ -22,19 +22,21 @@ SYNOPSIS
 ``clush`` ``-a`` | ``-g`` *group* | ``-w`` *nodes*  [OPTIONS] *command*
 
 ``clush`` ``-a`` | ``-g`` *group* | ``-w`` *nodes*  [OPTIONS] --copy
-*file* | *dir* [ *file* | *dir* ...] [ --dest *dest_path* ]
+*file* | *dir* [ *file* | *dir* ...] [ --dest *path* ]
 
 ``clush`` ``-a`` | ``-g`` *group* | ``-w`` *nodes*  [OPTIONS] --rcopy
-*file* | *dir* [ *file* | *dir* ...] [ --dest *dest_path* ]
+*file* | *dir* [ *file* | *dir* ...] [ --dest *path* ]
 
 DESCRIPTION
 ===========
 ``clush`` is a program for executing commands in parallel on a cluster and for
 gathering their results. ``clush`` executes commands interactively or can be
 used within shell scripts and other applications.  It is a partial front-end
-to the ClusterShell library that ensures a light, unified and robust command
-execution framework.  ``clush`` currently makes use of the Ssh worker of
-ClusterShell that only requires ``ssh``\(1) (OpenSSH SSH client).
+to the ClusterShell library that ensures a light, unified and robust parallel
+command execution framework. Thus, it allows traditional shell scripts to
+benefit from some of the library features. ``clush`` currently makes use of
+the Ssh worker of ClusterShell that only requires ``ssh``\(1) (OpenSSH SSH
+client).
 
 
 INVOCATION
@@ -65,11 +67,11 @@ Non-interactive mode
   binds the standard input of the remote commands to its own standard input,
   allowing scripting methods like:
 
-  | # echo foo | clush -w node[40-42] -b cat
-  | ---------------
-  | node[40-42]
-  | ---------------
-  | foo
+    | # echo foo | clush -w node[40-42] -b cat
+    | ---------------
+    | node[40-42]
+    | ---------------
+    | foo
 
   Please see some other great examples in the EXAMPLES section below.
 
@@ -202,7 +204,7 @@ All/NodeGroups examples
     Run command `uname -r` on all cluster nodes, see ``clush.conf``\(5) to setup all cluster nodes (`nodes_all:` field).
 
 :# clush -a --diff uname -r:
-    Run command `uname -r` on all cluster nodes and show difference (if any), line by line, between common outputs.
+    Run command `uname -r` on all cluster nodes and show differences (if any), line by line, between common outputs.
 
 :# clush -a -x node[5,7] uname -r:
     Run command `uname -r` on all cluster nodes except on nodes node5 and node7.

@@ -7,7 +7,7 @@ Configuration file for ClusterShell external node groups
 --------------------------------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-03-21
+:Date:   2012-03-31
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 5
@@ -20,7 +20,7 @@ DESCRIPTION
 The ClusterShell library obtains node groups configuration options from the
 system-wide configuration file */etc/clustershell/groups.conf*.
 Additional configuration files are also read from the directories set by the
-groupsdir option, if present.  See the groupsdir option below for further
+groupsdir option, if present.  See the ``groupsdir`` option below for further
 details.
 
 Configuration files have a format in the style of RFC 822 potentially composed
