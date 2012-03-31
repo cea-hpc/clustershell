@@ -766,12 +766,13 @@ def main():
     if options.nostdin and interactive:
         parser.error("illegal option `--nostdin' in that case")
 
-    user_interaction = False
+    # Force user_interaction if Clush._f_user_interaction for test purposes
+    user_interaction = hasattr(sys.modules[__name__], '_f_user_interaction')
     if not options.nostdin:
         # Try user interaction: check for foreground ttys presence (ouput)
         stdout_isafgtty = sys.stdout.isatty() and \
             os.tcgetpgrp(sys.stdout.fileno()) == os.getpgrp()
-        user_interaction = stdin_isafgtty and stdout_isafgtty
+        user_interaction |= stdin_isafgtty and stdout_isafgtty
     display.vprint(VERB_DEBUG, "User interaction: %s" % user_interaction)
     if user_interaction:
         # Standard input is a terminal and we want to perform some user

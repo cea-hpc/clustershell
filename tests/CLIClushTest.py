@@ -58,14 +58,30 @@ class CLIClushTest(unittest.TestCase):
         self._clush_t(["--nostdin", "-w", "localhost", "echo", "ok"], None, \
             "localhost: ok\n")
 
-    def test_001_fanout(self):
+    def test_001_display_tty(self):
+        """test clush (display options) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_000_display()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_002_fanout(self):
         """test clush (fanout)"""
         self._clush_t(["-f", "10", "-w", "localhost", "true"], None, "")
         self._clush_t(["-f", "1", "-w", "localhost", "true"], None, "")
         self._clush_t(["-f", "1", "-w", "localhost", "echo", "ok"], None, \
             "localhost: ok\n")
 
-    def test_002_ssh_options(self):
+    def test_003_fanout_tty(self):
+        """test clush (fanout) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_002_fanout()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_004_ssh_options(self):
         """test clush (ssh options)"""
         self._clush_t(["-o", "-oStrictHostKeyChecking=no", "-w", "localhost", \
             "echo", "ok"], None, "localhost: ok\n")
@@ -81,7 +97,15 @@ class CLIClushTest(unittest.TestCase):
         self._clush_t(["-t", "4", "-u", "4", "-w", "localhost", "echo", \
             "ok"], None, "localhost: ok\n")
 
-    def test_003_output_gathering(self):
+    def test_005_ssh_options_tty(self):
+        """test clush (ssh options) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_004_ssh_options()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_006_output_gathering(self):
         """test clush (output gathering)"""
         self._clush_t(["-w", "localhost", "-L", "echo", "ok"], None, \
             "localhost: ok\n")
@@ -100,7 +124,15 @@ class CLIClushTest(unittest.TestCase):
         self._clush_t(["-w", "localhost", "-vb", "echo", "ok"], None, \
             "localhost: ok\n---------------\nlocalhost\n---------------\nok\n")
 
-    def test_004_file_copy(self):
+    def test_007_output_gathering_tty(self):
+        """test clush (output gathering) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_006_output_gathering()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_008_file_copy(self):
         """test clush (file copy)"""
         content = "%f" % time.time()
         f = make_temp_file(content)
@@ -126,26 +158,60 @@ class CLIClushTest(unittest.TestCase):
         f2.seek(0)
         self.assertEqual(open("%s.localhost" % f.name).read(), content)
 
-    def test_005_diff(self):
+    def test_009_file_copy_tty(self):
+        """test clush (file copy) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_008_file_copy()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_010_diff(self):
         """test clush (diff)"""
         self._clush_t(["-w", "localhost", "--diff", "echo", "ok"], None, "")
         self._clush_t(["-w", "localhost,127.0.0.1", "--diff", "echo", "ok"], None, "")
 
-    def test_006_stdin(self):
+    def test_011_diff_tty(self):
+        """test clush (diff) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_010_diff()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_012_stdin(self):
         """test clush (stdin)"""
-        self._clush_t(["-w", "localhost", "cat"], "ok", "localhost: ok\n")
+        self._clush_t(["-w", "localhost", "sleep 1 && cat"], "ok", "localhost: ok\n")
         self._clush_t(["-w", "localhost", "cat"], "ok\nok", "localhost: ok\nlocalhost: ok\n")
         # write binary to stdin
         self._clush_t(["-w", "localhost", "gzip -d"], \
             "1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000".decode("hex"), "localhost: foo bar\n")
 
-    def test_007_stderr(self):
+    def test_013_stdin_tty(self):
+        """test clush (stdin) [tty]"""
+
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            # Forcing user interaction in this test has no sense, but well.
+            self.assertRaises(Exception, self.test_012_stdin)
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_014_stderr(self):
         """test clush (stderr)"""
         self._clush_t(["-w", "localhost", "echo err 1>&2"], None, "", 0, "localhost: err\n")
         self._clush_t(["-b", "-w", "localhost", "echo err 1>&2"], None, "", 0, "localhost: err\n")
         self._clush_t(["-B", "-w", "localhost", "echo err 1>&2"], None, "---------------\nlocalhost\n---------------\nerr\n")
 
-    def test_008_retcodes(self):
+    def test_015_stderr_tty(self):
+        """test clush (stderr) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_014_stderr()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_016_retcodes(self):
         """test clush (retcodes)"""
         self._clush_t(["-w", "localhost", "/bin/false"], None, "", 0, "clush: localhost: exited with exit code 1\n")
         self._clush_t(["-w", "localhost", "-b", "/bin/false"], None, "", 0, "clush: localhost: exited with exit code 1\n")
@@ -155,10 +221,26 @@ class CLIClushTest(unittest.TestCase):
                 "clush: localhost: exited with exit code %d\n" % i)
         self._clush_t(["-v", "-w", "localhost", "/bin/false"], None, "", 0, "clush: localhost: exited with exit code 1\n")
 
-    def test_009_timeout(self):
+    def test_017_retcodes_tty(self):
+        """test clush (retcodes) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_016_retcodes()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_018_timeout(self):
         """test clush (timeout)"""
         self._clush_t(["-w", "localhost", "-u", "5", "sleep 7"], None, "", 0, "clush: localhost: command timeout\n")
         self._clush_t(["-w", "localhost", "-u", "5", "-b", "sleep 7"], None, "", 0, "clush: localhost: command timeout\n")
+
+    def test_019_timeout_tty(self):
+        """test clush (timeout) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_018_timeout()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
 
 if __name__ == '__main__':
