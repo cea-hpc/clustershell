@@ -195,7 +195,7 @@ def nodeset():
                         print "%s %s %d" % (nsgroup, nodes, len(nodes))
         return
 
-    if not args:
+    if not options.all and not args:
         # No need to specify '-' to read stdin if no argument at all.
         process_stdin(xset.update, xset.__class__, options.autostep)
 

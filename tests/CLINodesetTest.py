@@ -291,8 +291,6 @@ class CLINodesetTest(unittest.TestCase):
         self._nodeset_t(["--split=4","-e", "foo[2-3]"], None, "foo2\nfoo3\n")
         self._nodeset_t(["--split=4","-e", "foo2", "foo3"], None, "foo2\nfoo3\n")
         self._nodeset_t(["--split=2","-c", "foo2", "foo3"], None, "1\n1\n")
-        # following test requires a default group source set
-        self._nodeset_t(["--split=2","-r", "foo2", "foo3"], None, "foo2\nfoo3\n")
 
     def test_019_contiguous(self):
         """test nodeset --contiguous"""
@@ -375,6 +373,35 @@ list: echo foo bar moo
             self._nodeset_t(["-lll", "example[4,95]", "example5"], None, "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
             # test empty result
             self._nodeset_t(["-l", "foo[3-70]", "bar6"], None, "")
+        finally:
+            ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
+
+    def test_023_groups(self):
+        """test nodeset with groups"""
+        # Special tests that require a default group source set
+        f = make_temp_file("""
+[Main]
+default: test
+
+[test]
+map: echo example[1-100]
+all: echo @foo,@bar,@moo
+list: echo foo bar moo
+        """)
+        ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolverConfig(f.name)
+        try:
+            self._nodeset_t(["--split=2","-r", "unknown2", "unknown3"], None, \
+                            "unknown2\nunknown3\n")
+            self._nodeset_t(["-f", "-a"], None, "example[1-100]\n")
+            self._nodeset_t(["-f", "@moo"], None, "example[1-100]\n")
+            self._nodeset_t(["-f", "@moo", "@bar"], None, "example[1-100]\n")
+            self._nodeset_t(["-e", "-a"], None, ' '.join(["example%d" % i for i in range(1, 101)]) + '\n')
+            self._nodeset_t(["-c", "-a"], None, "100\n")
+            self._nodeset_t(["-r", "-a"], None, "@bar\n")
+            self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
+            self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
+            self._nodeset_t(["-f", "-a", "-"], "example101\n", "example[1-101]\n")
+            self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", "example[1-102]\n")
         finally:
             ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
 
