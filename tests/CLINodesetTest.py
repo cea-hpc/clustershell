@@ -416,5 +416,5 @@ list: echo foo bar moo
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetScriptTest)
+    suite = unittest.TestLoader().loadTestsFromTestCase(CLINodesetTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -60,6 +60,7 @@ from operator import itemgetter
 import socket
 import sys
 import threading
+from time import sleep
 import traceback
 
 from ClusterShell.Engine.Engine import EngineAbortException
@@ -222,7 +223,7 @@ class Task(object):
                     task._dispatch_port.msg_send((f, fargs, kwargs))
                 else:
                     task.info("print_debug")(task, "%s: dropped call: %s" % \
-                                                   (task, fargs))
+                                                   (task, str(fargs)))
             # modify the decorator meta-data for pydoc
             # Note: should be later replaced  by @wraps (functools)
             # as of Python 2.5
@@ -1327,13 +1328,25 @@ def task_cleanup():
     """
     Cleanup routine to destroy all created tasks. This function provided as a
     convenience is available in the top-level ClusterShell.Task package
-    namespace.
+    namespace. This is mainly used for testing purposes and should be avoided
+    otherwise. task_cleanup() may be called from any threads.
     """
-    Task._task_lock.acquire()
-    try:
-        tasks = Task._tasks.copy()
-    finally:
-        Task._task_lock.release()
-    for task in tasks.itervalues():
-        task.abort(kill=True)
-
+    # be sure to return to a clean state (no task at all)
+    while True:
+        Task._task_lock.acquire()
+        try:
+            tasks = Task._tasks.copy()
+            if len(tasks) == 0:
+                break
+        finally:
+            Task._task_lock.release()
+        # send abort to all known tasks (it's needed to retry as we may have
+        # missed the engine notification window (it was just exiting, which is
+        # quite a common case if we didn't task_join() previously), or we may
+        # have lost some task's dispatcher port messages.
+        for task in tasks.itervalues():
+            task.abort(kill=True)
+        # also, for other task than self, task.abort() is async and performed
+        # through an EngineAbortException, so tell the Python scheduler to give
+        # up control to raise this exception (handled by task._terminate())...
+        sleep(0.001)

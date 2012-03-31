@@ -6,6 +6,7 @@
 """Unit test for CLI/Clush.py"""
 
 import pwd
+import subprocess
 import sys
 import unittest
 
@@ -21,6 +22,7 @@ class CLIClushTest(unittest.TestCase):
     def tearDown(self):
         """cleanup all tasks"""
         task_cleanup()
+        #subprocess.call(["ls", "-x", "/proc/self/fd"], stdout=sys.stdout)
 
     def _clush_t(self, args, input, expected_stdout, expected_rc=0,
                   expected_stderr=None):
