@@ -435,8 +435,10 @@ class Engine:
         """
         Remove a client from engine (subroutine).
         """
-        if client.registered:
-            self.unregister(client)
+        # be careful to also remove ports when engine has not started yet
+        if client.registered or not client.delayable:
+            if client.registered:
+                self.unregister(client)
             # care should be taken to ensure correct closing flags
             client._close(abort=abort, flush=not force, timeout=did_timeout)
 
