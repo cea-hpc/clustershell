@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH 1 "2012-03-31" "1.6" "ClusterShell User Manual"
+.TH CLUSH 1 "2012-04-01" "1.6" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -273,7 +273,7 @@ preserve modification times and modes
 .TP
 .BI \-f \ FANOUT, \ \-\-fanout\fB= FANOUT
 .
-use a specified fanout
+use a specified maximum fanout size (ie. do not execute more than FANOUT commands at the same time, useful to limit resource usage)
 .TP
 .BI \-l \ USER, \ \-\-user\fB= USER
 .
@@ -309,38 +309,61 @@ similar to:
 .B clush: node[40\-42]: exited with exit code 1
 .UNINDENT
 .SH EXAMPLES
+.SS Basic
 .INDENT 0.0
 .TP
 .B # clush \-w node[3\-5,62] uname \-r
 .
-Run command \fIuname \-r\fP on nodes: node3, node4, node5 and node62
+Run command \fIuname \-r\fP in parallel on nodes: node3, node4, node5 and node62
+.UNINDENT
+.SS Display features
+.INDENT 0.0
 .TP
 .B # clush \-w node[3\-5,62] \-b uname \-r
 .
-Run command \fIuname \-r\fP on nodes[3\-5,62] and display gathered output results (\fCdshbak\fP\-like).
+Run command \fIuname \-r\fP on nodes[3\-5,62] and display gathered output results (integrated \fCdshbak\fP\-like).
+.TP
+.B # clush \-w node[3\-5,62] \-bL uname \-r
+.
+Line mode: run command \fIuname \-r\fP on nodes[3\-5,62] and display gathered output results without default header block.
 .TP
 .B # ssh node32 find /etc/yum.repos.d \-type f | clush \-w node[40\-42] \-b xargs ls \-l
 .
 Search some files on node32 in /etc/yum.repos.d and use clush to list the matching ones on node[40\-42], and use \fC\-b\fP to display gathered results.
+.TP
+.B # clush \-w node[3\-5,62] \-\-diff dmidecode \-s bios\-version
+.
+Run this Linux command to get BIOS version on nodes[3\-5,62] and show version differences (if any).
 .UNINDENT
-.SS All/NodeGroups examples
+.SS All nodes
 .INDENT 0.0
 .TP
 .B # clush \-a uname \-r
 .
-Run command \fIuname \-r\fP on all cluster nodes, see \fCclush.conf\fP(5) to setup all cluster nodes (\fInodes_all:\fP field).
-.TP
-.B # clush \-a \-\-diff uname \-r
-.
-Run command \fIuname \-r\fP on all cluster nodes and show differences (if any), line by line, between common outputs.
+Run command \fIuname \-r\fP on all cluster nodes, see \fCgroups.conf\fP(5) to setup all cluster nodes (\fIall:\fP field).
 .TP
 .B # clush \-a \-x node[5,7] uname \-r
 .
 Run command \fIuname \-r\fP on all cluster nodes except on nodes node5 and node7.
 .TP
+.B # clush \-a \-\-diff cat /some/file
+.
+Run command \fIcat /some/file\fP on all cluster nodes and show differences (if any), line by line, between common outputs.
+.UNINDENT
+.SS Node groups
+.INDENT 0.0
+.TP
+.B # clush \-w @oss modprobe lustre
+.
+Run command \fImodprobe lustre\fP on nodes from node group named \fIoss\fP, see \fCgroups.conf\fP(5) to setup node groups (\fImap:\fP field).
+.TP
 .B # clush \-g oss modprobe lustre
 .
-Run command \fImodprobe lustre\fP on nodes from node group named \fIoss\fP, see \fCclush.conf\fP(5) to setup node groups (\fInodes_group:\fP field).
+Same as previous example but using \fC\-g\fP to avoid \fI@\fP group prefix.
+.TP
+.B # clush \-w @mds,@oss modprobe lustre
+.
+You may specify several node groups by separating them with commas (please see EXTENDED PATTERNS in \fCnodeset\fP(1) and also \fCgroups.conf\fP(5) for more information).
 .UNINDENT
 .SS Copy files
 .INDENT 0.0

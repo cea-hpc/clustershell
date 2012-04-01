@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-03-31
+:Date:   2012-04-01
 :Copyright: CeCILL-C V1
 :Version: 1.6
 :Manual section: 1
@@ -157,7 +157,7 @@ File copying:
 
 Ssh options:
   -f FANOUT, --fanout=FANOUT
-                      use a specified fanout
+                      use a specified maximum fanout size (ie. do not execute more than FANOUT commands at the same time, useful to limit resource usage)
   -l USER, --user=USER
                       execute remote command as user
   -o OPTIONS, --options=OPTIONS
@@ -188,29 +188,51 @@ similar to:
 EXAMPLES
 ===========
 
+Basic
+-----
+
 :# clush -w node[3-5,62] uname -r:
-    Run command `uname -r` on nodes: node3, node4, node5 and node62
+    Run command `uname -r` in parallel on nodes: node3, node4, node5 and node62
+
+Display features
+----------------
 
 :# clush -w node[3-5,62] -b uname -r:
-    Run command `uname -r` on nodes[3-5,62] and display gathered output results (``dshbak``-like).
+    Run command `uname -r` on nodes[3-5,62] and display gathered output results (integrated ``dshbak``-like).
+
+:# clush -w node[3-5,62] -bL uname -r:
+    Line mode: run command `uname -r` on nodes[3-5,62] and display gathered output results without default header block.
 
 :# ssh node32 find /etc/yum.repos.d -type f | clush -w node[40-42] -b xargs ls -l:
     Search some files on node32 in /etc/yum.repos.d and use clush to list the matching ones on node[40-42], and use ``-b`` to display gathered results.
 
-All/NodeGroups examples
------------------------
+:# clush -w node[3-5,62] --diff dmidecode -s bios-version:
+    Run this Linux command to get BIOS version on nodes[3-5,62] and show version differences (if any).
+
+All nodes
+---------
 
 :# clush -a uname -r:
-    Run command `uname -r` on all cluster nodes, see ``clush.conf``\(5) to setup all cluster nodes (`nodes_all:` field).
-
-:# clush -a --diff uname -r:
-    Run command `uname -r` on all cluster nodes and show differences (if any), line by line, between common outputs.
+    Run command `uname -r` on all cluster nodes, see ``groups.conf``\(5) to setup all cluster nodes (`all:` field).
 
 :# clush -a -x node[5,7] uname -r:
     Run command `uname -r` on all cluster nodes except on nodes node5 and node7.
 
+:# clush -a --diff cat /some/file:
+    Run command `cat /some/file` on all cluster nodes and show differences (if any), line by line, between common outputs.
+
+Node groups
+-----------
+
+:# clush -w @oss modprobe lustre:
+    Run command `modprobe lustre` on nodes from node group named `oss`, see ``groups.conf``\(5) to setup node groups (`map:` field).
+
 :# clush -g oss modprobe lustre:
-    Run command `modprobe lustre` on nodes from node group named `oss`, see ``clush.conf``\(5) to setup node groups (`nodes_group:` field).
+    Same as previous example but using ``-g`` to avoid `@` group prefix.
+
+:# clush -w @mds,@oss modprobe lustre:
+    You may specify several node groups by separating them with commas (please see EXTENDED PATTERNS in ``nodeset``\(1) and also ``groups.conf``\(5) for more information).
+
 
 Copy files
 ----------
