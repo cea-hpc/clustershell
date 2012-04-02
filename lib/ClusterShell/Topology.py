@@ -379,7 +379,8 @@ class TopologyGraph(object):
 
     def _validate(self, root):
         """ensure that the graph is valid for conversion to tree"""
-        assert len(self._nodegroups) != 0
+        if len(self._nodegroups) == 0:
+            raise TopologyError("No route found in topology definition!")
 
         # ensure that every node is reachable
         src_all = self._routing.aggregated_src
@@ -415,10 +416,12 @@ class TopologyParser(ConfigParser.ConfigParser):
         """read a given topology configuration file and store the results in
         self._routes. Then build a propagation tree.
         """
-        if self.read(filename) == []:
+        try:
+            self.read(filename)
+            self._topology = self.items("Main")
+        except ConfigParser.Error:
             raise TopologyError(
                 'Invalid configuration file: %s' % filename)
-        self._topology = self.items("Main")
         self._build_graph()
 
     def _build_graph(self):
