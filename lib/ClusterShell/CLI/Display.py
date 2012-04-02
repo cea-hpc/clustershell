@@ -204,16 +204,16 @@ class Display(object):
             self._diffref = (nodeset, content)
         else:
             nodeset_ref, content_ref = self._diffref
-            fromnsstr = self._format_nodeset(nodeset_ref)
-            tonsstr = self._format_nodeset(nodeset)
+            nsstr_ref = self._format_nodeset(nodeset_ref)
+            nsstr = self._format_nodeset(nodeset)
             if self.verbosity >= VERB_STD and self.node_count:
                 if len(nodeset_ref) > 1:
-                    fromnsstr += " (%d)" % len(nodeset_ref)
+                    nsstr_ref += " (%d)" % len(nodeset_ref)
                 if len(nodeset) > 1:
-                    tonsstr += " (%d)" % len(nodeset)
+                    nsstr += " (%d)" % len(nodeset)
 
-            udiff = difflib.unified_diff(list(content), list(content_ref), \
-                                         fromfile=fromnsstr, tofile=tonsstr, \
+            udiff = difflib.unified_diff(list(content_ref), list(content), \
+                                         fromfile=nsstr_ref, tofile=nsstr, \
                                          lineterm='')
             output = ""
             for line in udiff:
