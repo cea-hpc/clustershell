@@ -187,7 +187,7 @@ class Task(object):
     _std_info =     { "debug"              : False,
                       "print_debug"        : _task_print_debug,
                       "fanout"             : 64,
-                      "grooming_delay"     : 0.5,
+                      "grooming_delay"     : 0.25,
                       "connect_timeout"    : 10,
                       "command_timeout"    : 0 }
     _tasks = {}
