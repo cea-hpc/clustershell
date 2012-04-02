@@ -140,6 +140,7 @@ class XMLReader(ContentHandler):
             StdOutMessage.ident: StdOutMessage,
             StdErrMessage.ident: StdErrMessage,
             RetcodeMessage.ident: RetcodeMessage,
+            TimeoutMessage.ident: TimeoutMessage,
         }
         try:
             msg_type = attributes['type']

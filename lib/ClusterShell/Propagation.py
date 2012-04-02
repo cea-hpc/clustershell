@@ -278,6 +278,7 @@ class PropagationChannel(Channel):
             'invoke_gateway': gw_invoke_cmd, # XXX
             'taskinfo': info, #self.task._info,
             'stderr': stderr,
+            'timeout': timeout,
         }
         ctl.data_encode(ctl_data)
 
@@ -307,14 +308,15 @@ class PropagationChannel(Channel):
             if msg.type == StdOutMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
-                    self.logger.debug("StdOutMessage: \"%s\"" % msg.data)
+                    self.logger.debug("StdOutMessage: \"%s\"", msg.data)
                     for line in msg.data.splitlines():
                         for node in nodeset:
                             metaworker._on_node_msgline(node, line)
             elif msg.type == StdErrMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
-                    for line in msg.output.splitlines():
+                    self.logger.debug("StdErrMessage: \"%s\"", msg.data)
+                    for line in msg.data.splitlines():
                         for node in nodeset:
                             metaworker._on_node_errline(node, line)
             elif msg.type == RetcodeMessage.ident:
@@ -322,6 +324,7 @@ class PropagationChannel(Channel):
                 for node in NodeSet(msg.nodes):
                     metaworker._on_node_rc(node, rc)
             elif msg.type == TimeoutMessage.ident:
+                self.logger.debug("TimeoutMessage for %s", msg.nodes)
                 for node in NodeSet(msg.nodes):
                     metaworker._on_node_timeout(node)
         else:

@@ -90,8 +90,13 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker has timed out (worker timeout only).
         """
-        metaworker = self.metaworker
-        metaworker.eh.ev_timeout(metaworker)
+        # WARNING!!! this is not possible as metaworking is changing task's
+        # shared timeout set!
+        #for node in worker.iter_keys_timeout():
+        #    self.metaworker._on_node_timeout(node)
+        # we use NodeSet to copy set
+        for node in NodeSet._fromlist1(worker.iter_keys_timeout()):
+            self.metaworker._on_node_timeout(node)
 
     def ev_close(self, worker):
         """
@@ -129,6 +134,7 @@ class WorkerTree(DistantWorker):
 
         self.workers = []
         self.nodes = NodeSet(nodes)
+        self.timeout = timeout
         self.command = kwargs.get('command')
         self.source = kwargs.get('source')
         self.dest = kwargs.get('dest')
@@ -183,21 +189,19 @@ class WorkerTree(DistantWorker):
         # Now bound to task - initalize router
         self.topology = self.topology or task.topology
         self.router = self.router or task._default_router()
-        # workaround timeout value
-        timeout = 30
         # And launch stuffs
         next_hops = self._distribute(self.task.info("fanout"), self.nodes)
         for gw, targets in next_hops.iteritems():
             if gw == targets:
                 self.logger.debug('task.shell cmd=%s nodes=%s timeout=%d' % \
-                    (self.command, self.nodes, timeout))
+                    (self.command, self.nodes, self.timeout))
                 self._child_count += 1
                 self._target_count += len(targets)
                 self.workers.append(self.task.shell(self.command,
-                    nodes=targets, timeout=timeout,
-                    handler=self.metahandler, stderr=self.stderr))
+                    nodes=targets, timeout=self.timeout,
+                    handler=self.metahandler, stderr=self.stderr, tree=False))
             else:
-                self._execute_remote(self.command, targets, gw, timeout)
+                self._execute_remote(self.command, targets, gw, self.timeout)
 
     def _distribute(self, fanout, dst_nodeset):
         """distribute target nodes between next hop gateways"""

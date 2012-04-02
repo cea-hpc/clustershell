@@ -43,6 +43,7 @@ import os
 import sys
 
 from ClusterShell.Event import EventHandler
+from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, _getshorthostname
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Worker.fastsubprocess import set_nonblock_flag
@@ -50,7 +51,7 @@ from ClusterShell.Worker.Worker import WorkerSimple
 from ClusterShell.Worker.Tree import WorkerTree
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
     ControlMessage, ACKMessage, ErrorMessage, EndMessage, StdOutMessage, \
-    StdErrMessage, RetcodeMessage
+    StdErrMessage, RetcodeMessage, TimeoutMessage
 
 
 class WorkerTreeResponder(EventHandler):
@@ -92,7 +93,13 @@ class WorkerTreeResponder(EventHandler):
         self.logger.debug("WorkerTreeResponder: ev_error %s" % \
             worker.current_errmsg)
 
+    def ev_timeout(self, worker):
+        """Received timeout event: some nodes did timeout"""
+        self.gwchan.send(TimeoutMessage( \
+            NodeSet._fromlist1(worker.iter_keys_timeout()), self.srcwkr))
+
     def ev_close(self, worker):
+        """End of responder"""
         self.logger.debug("WorkerTreeResponder: ev_close")
         # finalize grooming
         self.ev_timer(None)
@@ -172,6 +179,7 @@ class GatewayChannel(Channel):
                 data = msg.data_decode()
                 cmd = data['cmd']
                 stderr = data['stderr']
+                timeout = data['timeout']
 
                 #self.propagation.invoke_gateway = data['invoke_gateway']
                 self.logger.debug('decoded gw invoke (%s)', \
@@ -195,7 +203,7 @@ class GatewayChannel(Channel):
 
                 responder = WorkerTreeResponder(task, self, msg.srcid)
 
-                self.propagation = WorkerTree(msg.target, responder, 0,
+                self.propagation = WorkerTree(msg.target, responder, timeout,
                                               command=cmd,
                                               topology=self.topology,
                                               newroot=self.hostname,
