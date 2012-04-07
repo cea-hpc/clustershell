@@ -1,3 +1,7 @@
+2012-04-07 S. Thiell <stephane.thiell@cea.fr>
+
+	* doc/examples/check_nodes.py: Add simple example of event-driven script.
+
 2012-03-31 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Nodeset.py: Allow -a and common nodeset operations when using -l to

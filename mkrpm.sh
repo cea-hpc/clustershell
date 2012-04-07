@@ -56,6 +56,7 @@ install -d $TMPDIR/scripts
 install -d $TMPDIR/conf
 install -d $TMPDIR/conf/groups.conf.d
 install -d $TMPDIR/doc/epydoc
+install -d $TMPDIR/doc/examples
 install -d $TMPDIR/doc/extras/vim/{ftdetect,syntax}
 install -d $TMPDIR/doc/man/{man1,man5}
 install -d $TMPDIR/doc/txt
@@ -75,6 +76,7 @@ install -p -m 0644 conf/groups conf/groups.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf.d/README $TMPDIR/conf/groups.conf.d/
 install -p -m 0644 conf/groups.conf.d/*.conf.example $TMPDIR/conf/groups.conf.d/
 install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
+install -p -m 0755 doc/examples/*.py $TMPDIR/doc/examples/
 install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim $TMPDIR/doc/extras/vim/ftdetect/
 install -p -m 0644 doc/extras/vim/syntax/clushconf.vim $TMPDIR/doc/extras/vim/syntax/
 install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim $TMPDIR/doc/extras/vim/syntax/
