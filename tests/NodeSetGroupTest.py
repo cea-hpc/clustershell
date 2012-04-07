@@ -166,6 +166,11 @@ class NodeSetGroupTest(unittest.TestCase):
         self.assertRaises(NodeSetExternalError, NodeSet.fromall,
                           resolver=RESOLVER_NOGROUP)
             
+    def testGroupsNoResolver(self):
+        """test NodeSet.groups() with no resolver"""
+        nodeset = NodeSet("foo", resolver=RESOLVER_NOGROUP)
+        self.assertRaises(NodeSetExternalError, nodeset.groups)
+
     def testGroupResolverAddSourceError(self):
         """test GroupResolver.add_source() error"""
 

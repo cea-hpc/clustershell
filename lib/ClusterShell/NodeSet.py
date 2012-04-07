@@ -1012,6 +1012,8 @@ class NodeSet(NodeSetBase):
 
     def _groups2(self, groupsource=None, autostep=None):
         """Find node groups this nodeset belongs to. [private]"""
+        if not self._resolver:
+            raise NodeSetExternalError("No node group resolver")
         try:
             # Get a NodeSet of all groups in specified group source.
             allgrpns = NodeSet.fromlist(self._resolver.grouplist(groupsource),
