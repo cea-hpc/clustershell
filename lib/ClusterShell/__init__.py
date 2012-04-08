@@ -33,20 +33,24 @@
 
 """ClusterShell Python Library
 
-Event-based Python library to execute commands on local or distant
-cluster nodes in parallel depending on the selected engine and worker
-mechanisms. It also provides advanced NodeSet and NodeGroups handling
-methods to ease and improve administration of large compute clusters
-or server farms.
+ClusterShell is an event-driven open source Python library, designed to run
+local or distant commands in parallel on server farms or on large clusters.
+You can use ClusterShell as a building block to create cluster aware
+administration scripts and system applications in Python. It will take care of
+common issues encountered on HPC clusters, such as operating on groups of
+nodes, running distributed commands using optimized execution algorithms, as
+well as gathering results and merging identical outputs, or retrieving return
+codes. ClusterShell takes advantage of existing remote shell facilities already
+installed on your systems, like SSH.
 
 Please see first:
   - ClusterShell.NodeSet
   - ClusterShell.Task
 """
 
-__version__ = '1.5.92'
+__version__ = '1.6'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2012/04/02'
+__date__    = '2012/04/08'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
-__url__     = 'http://clustershell.sourceforge.net/'
+__url__     = 'http://cea-hpc.github.com/clustershell/'
 
