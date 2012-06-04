@@ -36,21 +36,21 @@ ClusterShell Task module.
 Simple example of use:
 
 >>> from ClusterShell.Task import task_self
->>>  
+>>>
 >>> # get task associated with calling thread
 ... task = task_self()
->>> 
+>>>
 >>> # add a command to execute on distant nodes
 ... task.shell("/bin/uname -r", nodes="tiger[1-30,35]")
 <ClusterShell.Worker.Ssh.WorkerSsh object at 0x7f41da71b890>
->>> 
+>>>
 >>> # run task in calling thread
 ... task.resume()
->>> 
+>>>
 >>> # get results
 ... for buf, nodelist in task.iter_buffers():
 ...     print NodeSet.fromlist(nodelist), buf
-... 
+...
 
 """
 
@@ -59,6 +59,7 @@ import logging
 from operator import itemgetter
 import socket
 import sys
+import os
 import threading
 from time import sleep
 import traceback
@@ -79,6 +80,8 @@ from ClusterShell.NodeSet import NodeSet
 
 from ClusterShell.Topology import TopologyParser, TopologyError
 from ClusterShell.Propagation import PropagationTreeRouter, PropagationChannel
+
+CLUSTERSHELL_CONFIG_DIR = os.environ.get("CLUSTERSHELL_CONFIG", "/etc/clustershell/")
 
 
 class TaskException(Exception):
@@ -176,13 +179,15 @@ class Task(object):
     node_retcode() and max_retcode() methods after command execution, or
     listen for ev_hup() events in your event handler.
     """
+    topology_file = os.path.join(CLUSTERSHELL_CONFIG_DIR, 'topology.conf')
+
     _std_default = {  "stderr"             : False,
                       "stdout_msgtree"     : True,
                       "stderr_msgtree"     : True,
                       "engine"             : 'auto',
                       "port_qlimit"        : 100,
                       "auto_tree"          : False,
-                      "topology_file"      : "/etc/clustershell/topology.conf" }
+                      "topology_file"      : topology_file }
 
     _std_info =     { "debug"              : False,
                       "print_debug"        : _task_print_debug,
@@ -209,7 +214,7 @@ class Task(object):
         """Class encapsulating a function that checks if the calling
         task is running or is the current task, and allowing it to be
         used as a decorator making the wrapped task method thread-safe."""
-        
+
         def __call__(self, f):
             def taskfunc(*args, **kwargs):
                 # pull out the class instance
@@ -218,7 +223,7 @@ class Task(object):
                 if task._is_task_self():
                     return f(task, *fargs, **kwargs)
                 elif task._dispatch_port:
-                    # no, safely call the task method by message 
+                    # no, safely call the task method by message
                     # through the task special dispatch port
                     task._dispatch_port.msg_send((f, fargs, kwargs))
                 else:
@@ -261,7 +266,7 @@ class Task(object):
                     self._cond.wait()
             finally:
                 self._cond.release()
-            
+
         def notify_all(self):
             """Signal all threads waiting for condition."""
             self._cond.acquire()
@@ -385,7 +390,7 @@ class Task(object):
     # arguments method (very similar of what you can do with
     # sys.excepthook)."""
     excepthook = property(_getexcepthook, _setexcepthook)
-        
+
     def _thread_start(self):
         """Task-managed thread entry point"""
         while not self._quit:
@@ -451,7 +456,7 @@ class Task(object):
         Set task value for specified key in the dictionary "default".
         Users may store their own task-specific key, value pairs
         using this method and retrieve them with default().
-        
+
         Task default_keys are:
           - "stderr": Boolean value indicating whether to enable
             stdout/stderr separation when using task.shell(), if not
@@ -491,7 +496,7 @@ class Task(object):
         pairs can be passed to the engine and/or workers.
         Users may store their own task-specific info key, value pairs
         using this method and retrieve them with info().
-        
+
         The following example changes the fanout value to 128:
             >>> task.set_info('fanout', 128)
 
@@ -670,7 +675,7 @@ class Task(object):
         can also have their next firing time manually adjusted.
 
         The mandatory parameter `fire' sets the firing delay in seconds.
-        
+
         The optional parameter `interval' sets the firing interval of
         the timer. If not specified, the timer fires once and then is
         automatically invalidated.
@@ -691,7 +696,7 @@ class Task(object):
         """
         assert fire >= 0.0, \
             "timer's relative fire time must be a positive floating number"
-        
+
         timer = EngineTimer(fire, interval, autoclose, handler)
         # The following method may be sent through msg port (async
         # call) if called from another task.
@@ -786,7 +791,7 @@ class Task(object):
 
         >>> task.run("hostname", nodes="foo")
 
-        Without argument, it starts all outstanding actions. 
+        Without argument, it starts all outstanding actions.
         It behaves like Task.resume().
 
         >>> task.shell("hostname", nodes="foo")
@@ -840,7 +845,7 @@ class Task(object):
         self._suspend_lock.acquire()
         self._suspended = False
         self._suspend_lock.release()
-            
+
     def suspend(self):
         """
         Suspend task execution. This method may be called from another
@@ -857,7 +862,7 @@ class Task(object):
 
         # wait for stopped task
         self._run_lock.acquire()    # run_lock ownership transfer
-        
+
         # get result: are we really suspended or just stopped?
         result = True
         self._suspend_lock.acquire()
@@ -988,7 +993,7 @@ class Task(object):
 
         # store source by rc
         self._d_rc_sources.setdefault(rc, set()).add(source)
-        
+
         # update max rc
         if rc > self._max_rc:
             self._max_rc = rc
@@ -1035,13 +1040,13 @@ class Task(object):
             match = None
         # Call tree matcher function (items or walk)
         return tree_match_func(match, itemgetter(1))
-    
+
     def _rc_by_source(self, source):
         """
         Get a return code by its source (worker, key).
         """
         return self._d_source_rc[source]
-   
+
     def _rc_iter_by_key(self, key):
         """
         Return an iterator over return codes for the given key.
@@ -1121,7 +1126,7 @@ class Task(object):
             raise TaskMsgTreeError("stdout_msgtree not set")
         select_key = lambda k: k[1] == key
         return "".join(imap(str, msgtree.messages(select_key)))
-    
+
     node_buffer = key_buffer
 
     def key_error(self, key):
@@ -1136,7 +1141,7 @@ class Task(object):
             raise TaskMsgTreeError("stderr_msgtree not set")
         select_key = lambda k: k[1] == key
         return "".join(imap(str, errtree.messages(select_key)))
-    
+
     node_error = key_error
 
     def key_retcode(self, key):
@@ -1150,7 +1155,7 @@ class Task(object):
         if not codes:
             raise KeyError(key)
         return max(codes)
-    
+
     node_retcode = key_retcode
 
     def max_retcode(self):
@@ -1195,7 +1200,7 @@ class Task(object):
         if errtree is None:
             raise TaskMsgTreeError("stderr_msgtree not set")
         return self._call_tree_matcher(errtree.walk, match_keys)
-        
+
     def iter_retcodes(self, match_keys=None):
         """
         Iterate over return codes, returns a tuple (rc, keys).
@@ -1274,7 +1279,7 @@ class Task(object):
         else:
             worker = self.pwrks[gateway]
             chan = worker.eh
-        
+
         if metaworker not in self.pmwkrs:
             mw = self.pmwkrs[metaworker] = set()
         else:
@@ -1295,7 +1300,7 @@ class Task(object):
                     #print >>sys.stderr, "worker abort"
                     worker.eh._close()
                     #worker.abort()
-            
+
 
 def task_self():
     """

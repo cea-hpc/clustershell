@@ -62,13 +62,15 @@ Usage example
 
 import re
 import sys
+import os
 
 import ClusterShell.NodeUtils as NodeUtils
 from ClusterShell.RangeSet import RangeSet, RangeSetParseError
 
 
 # Define default GroupResolver object used by NodeSet
-DEF_GROUPS_CONFIG = "/etc/clustershell/groups.conf"
+CLUSTERSHELL_CONFIG_DIR = os.environ.get("CLUSTERSHELL_CONFIG", "/etc/clustershell/")
+DEF_GROUPS_CONFIG = os.path.join(CLUSTERSHELL_CONFIG_DIR, "groups.conf")
 DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG)
 # Standard group resolver
 RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
@@ -499,7 +501,7 @@ class NodeSetBase(object):
                 # intersect two nodes with no rangeset
                 tmp_ns._add(pat, None)
 
-        # Substitute 
+        # Substitute
         self._patterns = tmp_ns._patterns
 
     def __iand__(self, other):
@@ -580,7 +582,7 @@ class NodeSetBase(object):
         """
         s.symmetric_difference(t) returns the symmetric difference of
         two nodesets as a new NodeSet.
-        
+
         (ie. all nodes that are in exactly one of the nodesets.)
         """
         self_copy = self.copy()
@@ -687,7 +689,7 @@ class ParsingEngine(object):
                 raise NodeSetParseError(nsobj, str(exc))
 
         raise TypeError("Unsupported NodeSet input %s" % type(nsobj))
-        
+
     def parse_string(self, nsstr, autostep):
         """
         Parse provided string and return a NodeSetBase object.
@@ -711,18 +713,18 @@ class ParsingEngine(object):
                 getattr(nodeset, opc)(NodeSetBase(pat, rangeset, False))
 
         return nodeset
-        
+
     def parse_string_single(self, nsstr, autostep):
         """Parse provided string and return a NodeSetBase object."""
         pat, rangeset = self._scan_string_single(nsstr, autostep)
         return NodeSetBase(pat, rangeset, False)
-        
+
     def parse_group(self, group, namespace=None, autostep=None):
         """Parse provided single group name (without @ prefix)."""
         assert self.group_resolver is not None
         nodestr = self.group_resolver.group_nodes(group, namespace)
         return self.parse(",".join(nodestr), autostep)
-        
+
     def parse_group_string(self, nodegroup):
         """Parse provided group string and return a string."""
         assert nodegroup[0] == '@'
@@ -786,7 +788,7 @@ class ParsingEngine(object):
         else:
             # undefined pad means no node index
             return pfx, None
-    
+
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
         pat = nsstr.strip()
@@ -846,7 +848,7 @@ class ParsingEngine(object):
                     pat = None # break next time
                 else:
                     node, pat = pat.split(self.OP_CODES[next_op_code], 1)
-                
+
                 newpat, rset = self._scan_string_single(node, autostep)
                 yield op_code, newpat, rset
 

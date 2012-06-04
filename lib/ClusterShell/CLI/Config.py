@@ -41,6 +41,8 @@ import os
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, \
     VERB_VERB, VERB_DEBUG, THREE_CHOICES
 
+CLUSTERSHELL_CONFIG_DIR = os.environ.get("CLUSTERSHELL_CONFIG", "/etc/clustershell/")
+
 
 class ClushConfigError(Exception):
     """Exception used by ClushConfig to report an error."""
@@ -52,6 +54,7 @@ class ClushConfigError(Exception):
 
     def __str__(self):
         return "(Config %s.%s): %s" % (self.section, self.option, self.msg)
+
 
 class ClushConfig(ConfigParser.ConfigParser, object):
     """Config class for clush (specialized ConfigParser)"""
@@ -77,7 +80,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         if filename:
             files = [filename]
         else:
-            files = ['/etc/clustershell/clush.conf',
+            files = [os.path.join(CLUSTERSHELL_CONFIG_DIR, 'clush.conf'),
                      os.path.expanduser('~/.clush.conf')]
         self.read(files)
 
