@@ -1,7 +1,7 @@
 #
 # Copyright CEA/DAM/DIF (2009, 2010, 2011)
 #  Contributors:
-#   Henri DOREAU <henri.doreau@gmail.com>
+#   Henri DOREAU <henri.doreau@cea.fr>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #   Stephane THIELL <stephane.thiell@cea.fr>
 #
