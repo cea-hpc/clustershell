@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH NODESET 1 "2012-03-31" "1.6" "ClusterShell User Manual"
+.TH NODESET 1 "2012-07-09" "1.7" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -235,6 +235,18 @@ node[0\-4,11\-13]
 .UNINDENT
 .sp
 This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
+.TP
+.B "All nodes" extension (v1.7+)
+.
+The \fC@*\fP and \fC@SOURCE:*\fP special notations may be used in extended patterns to represent all nodes (in SOURCE) according to the \fIall\fP external shell command (see \fCgroups.conf\fP(5)) and are equivalent to:
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B $ nodeset \-f \-a [\-s SOURCE]
+.UNINDENT
+.UNINDENT
+.UNINDENT
 .UNINDENT
 .SH EXIT STATUS
 .sp

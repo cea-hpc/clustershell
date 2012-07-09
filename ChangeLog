@@ -1,3 +1,7 @@
+2012-07-09 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: "All nodes" extended pattern support with @* (ticket #193).
+
 2012-04-08 S. Thiell <stephane.thiell@cea.fr>
 
 	* Version 1.6 released.

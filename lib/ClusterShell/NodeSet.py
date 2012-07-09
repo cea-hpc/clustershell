@@ -69,7 +69,9 @@ from ClusterShell.RangeSet import RangeSet, RangeSetParseError
 
 # Define default GroupResolver object used by NodeSet
 DEF_GROUPS_CONFIG = "/etc/clustershell/groups.conf"
-DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG)
+ILLEGAL_GROUP_CHARS=set("@,!&^*")
+DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG, \
+                            ILLEGAL_GROUP_CHARS)
 # Standard group resolver
 RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
 # Special constants for NodeSet's resolver parameter
@@ -730,10 +732,14 @@ class ParsingEngine(object):
         grpstr = nodegroup[1:]
         if grpstr.find(':') < 0:
             # default namespace
+            if grpstr == '*':
+                return ",".join(self.group_resolver.all_nodes())
             return ",".join(self.group_resolver.group_nodes(grpstr))
         else:
             # specified namespace
             namespace, group = grpstr.split(':', 1)
+            if group == '*':
+                return ",".join(self.group_resolver.all_nodes(namespace))
             return ",".join(self.group_resolver.group_nodes(group, namespace))
 
     def _next_op(self, pat):

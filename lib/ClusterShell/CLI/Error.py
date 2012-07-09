@@ -41,6 +41,7 @@ import sys
 
 from ClusterShell.Engine.Engine import EngineNotSupportedError
 from ClusterShell.CLI.Utils import GroupResolverConfigError  # dummy but safe
+from ClusterShell.NodeUtils import GroupResolverIllegalCharError
 from ClusterShell.NodeUtils import GroupResolverSourceError
 from ClusterShell.NodeUtils import GroupSourceException
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
@@ -53,6 +54,7 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   NodeSetExternalError,
                   NodeSetParseError,
                   RangeSetParseError,
+                  GroupResolverIllegalCharError,
                   GroupResolverSourceError,
                   GroupSourceNoUpcall,
                   GroupSourceException,
@@ -71,6 +73,8 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print >> sys.stderr, "%s: External error:" % prog, exc
     except (NodeSetParseError, RangeSetParseError), exc:
         print >> sys.stderr, "%s: Parse error:" % prog, exc
+    except GroupResolverIllegalCharError, exc:
+        print >> sys.stderr, "%s: Illegal group character: \"%s\"" % (prog, exc)
     except GroupResolverSourceError, exc:
         print >> sys.stderr, "%s: Unknown group source: \"%s\"" % (prog, exc)
     except GroupSourceNoUpcall, exc:

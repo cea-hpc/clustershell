@@ -48,9 +48,9 @@ Please see first:
   - ClusterShell.Task
 """
 
-__version__ = '1.6'
+__version__ = '1.6.70'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2012/04/08'
+__date__    = '2012/07/09'
 __author__  = 'Stephane Thiell <stephane.thiell@cea.fr>'
 __url__     = 'http://cea-hpc.github.com/clustershell/'
 

@@ -68,6 +68,9 @@ class GroupResolverError(Exception):
 class GroupResolverSourceError(GroupResolverError):
     """Raised when upcall is not available"""
 
+class GroupResolverIllegalCharError(GroupResolverError):
+    """Raised when an illegal group character is encountered"""
+
 class GroupResolverConfigError(GroupResolverError):
     """Raised when a configuration error is encountered"""
 
@@ -170,48 +173,61 @@ class GroupSource(object):
 class GroupResolver(object):
     """
     Base class GroupResolver that aims to provide node/group resolution
-    from multiple GroupSource's.
+    from multiple GroupSources.
+
+    A GroupResolver object might be initialized with a default
+    GroupSource object, that is later used when group resolution is
+    requested with no source information. As of version 1.7, a set of
+    illegal group characters may also be provided for sanity check
+    (raising GroupResolverIllegalCharError when found).
     """
     
-    def __init__(self, default_source=None):
-        """
-        Initialize GroupResolver object.
-        """
+    def __init__(self, default_source=None, illegal_chars=None):
+        """Initialize GroupResolver object."""
         self._sources = {}
         self._default_source = default_source
+        self.illegal_chars = illegal_chars or set()
         if default_source:
             self._sources[default_source.name] = default_source
             
     def set_verbosity(self, value):
-        """
-        Set debugging verbosity value.
-        """
+        """Set debugging verbosity value. """
         for source in self._sources.itervalues():
             source.verbosity = value
 
     def add_source(self, group_source):
-        """
-        Add a GroupSource to this resolver.
-        """
+        """Add a GroupSource to this resolver."""
         if group_source.name in self._sources:
             raise ValueError("GroupSource '%s': name collision" % \
                              group_source.name)
         self._sources[group_source.name] = group_source
 
     def sources(self):
-        """
-        Get the list of all resolver source names.
-        """
+        """Get the list of all resolver source names. """
         return self._sources.keys()
 
-    def _list(self, source, what, *args):
-        """Helper method that returns a list of result when the source
-        is defined."""
+    def _list_nodes(self, source, what, *args):
+        """Helper method that returns a list of results (nodes) when
+        the source is defined."""
         result = []
         assert source
         raw = getattr(source, 'resolv_%s' % what)(*args)
         for line in raw.splitlines():
-            map(result.append, line.strip().split())
+            [result.append(x) for x in line.strip().split()]
+        return result
+
+    def _list_groups(self, source, what, *args):
+        """Helper method that returns a list of results (groups) when
+        the source is defined."""
+        result = []
+        assert source
+        raw = getattr(source, 'resolv_%s' % what)(*args)
+        for line in raw.splitlines():
+            for x in line.strip().split():
+                if self.illegal_chars.intersection(x):
+                    raise GroupResolverIllegalCharError( \
+                        ' '.join(self.illegal_chars.intersection(x)))
+                result.append(x)
         return result
 
     def _source(self, namespace):
@@ -229,14 +245,14 @@ class GroupResolver(object):
         Find nodes for specified group name and optional namespace.
         """
         source = self._source(namespace)
-        return self._list(source, 'map', group)
+        return self._list_nodes(source, 'map', group)
 
     def all_nodes(self, namespace=None):
         """
         Find all nodes. You may specify an optional namespace.
         """
         source = self._source(namespace)
-        return self._list(source, 'all')
+        return self._list_nodes(source, 'all')
 
     def grouplist(self, namespace=None):
         """
@@ -244,7 +260,7 @@ class GroupResolver(object):
         namespace.
         """
         source = self._source(namespace)
-        return self._list(source, 'list')
+        return self._list_groups(source, 'list')
 
     def has_node_groups(self, namespace=None):
         """
@@ -261,7 +277,7 @@ class GroupResolver(object):
         Find group list for specified node and optional namespace.
         """
         source = self._source(namespace)
-        return self._list(source, 'reverse', node)
+        return self._list_groups(source, 'reverse', node)
 
 
 class GroupResolverConfig(GroupResolver):
@@ -271,10 +287,10 @@ class GroupResolverConfig(GroupResolver):
     resolver for NodeSet.
     """
 
-    def __init__(self, configfile):
+    def __init__(self, configfile, illegal_chars=None):
         """
         """
-        GroupResolver.__init__(self)
+        GroupResolver.__init__(self, illegal_chars=illegal_chars)
 
         self.default_sourcename = None
 

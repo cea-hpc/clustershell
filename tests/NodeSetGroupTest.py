@@ -572,6 +572,25 @@ groupsdir: %s
             f.close()
             shutil.rmtree(dname, ignore_errors=True)
 
+    def testConfigIllegalChars(self):
+        """test groups with illegal characters"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+#all:
+list: echo 'foo *'
+reverse: echo f^oo
+        """)
+        res = GroupResolverConfig(f.name, illegal_chars=set("@,&!&^*"))
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        self.assertRaises(GroupResolverIllegalCharError, nodeset.groups)
+        self.assertRaises(GroupResolverIllegalCharError, nodeset.regroup)
+
 
 class NodeSetGroup2GSTest(unittest.TestCase):
 

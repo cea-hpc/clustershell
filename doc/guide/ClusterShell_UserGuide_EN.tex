@@ -894,6 +894,8 @@ but not in both, minus the nodes found in odd \verb+@chassis+ groups from 1 to 9
 $ nodeset -f @gpu^@slurm:bigmem\!@chassis[1-9/2]
 \end{lstlisting}
 
+Also, version 1.7 introduces a notation extension \verb+@*+ (or \verb+@SOURCE:*+) that has been added to quickly represent "all nodes".
+
 \subsection{Range sets}
 \label{nodeset-rangeset}
 
