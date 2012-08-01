@@ -1,3 +1,8 @@
+2012-08-01 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Avoid termination race condition when using multiple threads
+	and calling abort()+join() from another thread (tickets #197).
+
 2012-07-09 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: "All nodes" extended pattern support with @* (ticket #193).

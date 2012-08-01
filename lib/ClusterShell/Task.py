@@ -308,6 +308,7 @@ class Task(object):
             self._join_cond = threading.Condition(self._suspend_lock)
             self._suspended = False
             self._quit = False
+            self._terminated = False
 
             # Default router
             self.topology = None
@@ -390,7 +391,7 @@ class Task(object):
         """Task-managed thread entry point"""
         while not self._quit:
             self._suspend_cond.wait_check()
-            if self._quit:
+            if self._quit:  # may be set by abort()
                 break
             try:
                 self._resume()
@@ -747,7 +748,7 @@ class Task(object):
         finally:
             # task becomes joinable
             self._join_cond.acquire()
-            self._suspend_cond.suspend_count += 1
+            self._suspend_cond.atomic_inc()
             self._join_cond.notifyAll()
             self._join_cond.release()
 
@@ -873,6 +874,7 @@ class Task(object):
         """Abort request received."""
         assert task_self() == self
         # raise an EngineAbortException when task is running
+        self._quit = True
         self._engine.abort(kill)
 
     def abort(self, kill=False):
@@ -889,7 +891,7 @@ class Task(object):
                 self._terminate(kill)
             else:
                 # abort on stopped/suspended task
-                self.resume()
+                self._suspend_cond.notify_all()
         else:
             # self._run_lock is locked, call synchronized method
             self._abort(kill)
@@ -898,6 +900,9 @@ class Task(object):
         """
         Abort completion subroutine.
         """
+        assert self._quit == True
+        self._terminated = True
+
         if kill:
             # invalidate dispatch port
             self._dispatch_port = None
@@ -906,6 +911,13 @@ class Task(object):
 
         # clear result objects
         self._reset()
+
+        # unlock any remaining threads that are waiting for our
+        # termination (late join()s)
+        # must be called after _terminated is set to True
+        self._join_cond.acquire()
+        self._join_cond.notifyAll()
+        self._join_cond.release()
 
         # destroy task if needed
         if kill:
@@ -922,10 +934,12 @@ class Task(object):
         """
         self._join_cond.acquire()
         try:
-            if self._suspend_cond.suspend_count > 0:
-                if not self._suspended:
-                    # ignore stopped task
-                    return
+            if self._suspend_cond.suspend_count > 0 and not self._suspended:
+                # ignore stopped task
+                return
+            if self._terminated:
+                # ignore join() on dead task
+                return
             self._join_cond.wait()
         finally:
             self._join_cond.release()
