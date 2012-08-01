@@ -572,7 +572,7 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
         if not os.path.exists(source):
             display.vprint_err(VERB_QUIET, "ERROR: file \"%s\" not found" % \
                                            source)
-            clush_exit(1)
+            clush_exit(1, task)
         task.copy(source, dest, ns, handler=copyhandler, timeout=timeout,
                   preserve=preserve_flag)
     task.resume()
@@ -588,11 +588,11 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
     if not os.path.exists(dest):
         display.vprint_err(VERB_QUIET, "ERROR: directory \"%s\" not found" % \
                                        dest)
-        clush_exit(1)
+        clush_exit(1, task)
     if not os.path.isdir(dest):
         display.vprint_err(VERB_QUIET, \
             "ERROR: destination \"%s\" is not a directory" % dest)
-        clush_exit(1)
+        clush_exit(1, task)
 
     copyhandler = CopyOutputHandler(display, True)
     if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
@@ -614,12 +614,18 @@ def set_fdlimit(fd_max, display):
             "%d -> %d" % (soft, rlim_max))
         resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
 
-def clush_exit(status):
-    """Flush stdio buffers and exit script."""
-    for stream in [sys.stdout, sys.stderr]:
-        stream.flush()
-    # Use os._exit to avoid threads cleanup
-    os._exit(status)
+def clush_exit(status, task=None):
+    """Exit script, flushing stdio buffers and stopping ClusterShell task."""
+    if task:
+        # Clean, usual termination
+        task.abort()
+        task.join()
+        sys.exit(status)
+    else:
+        for stream in [sys.stdout, sys.stderr]:
+            stream.flush()
+        # Use os._exit to avoid threads cleanup
+        os._exit(status)
 
 def clush_excepthook(extype, value, traceback):
     """Exceptions hook for clush: this method centralizes exception
@@ -877,7 +883,7 @@ def main():
     elif task.default("USER_interactive"):
         display.vprint_err(VERB_QUIET, \
             "ERROR: interactive mode requires a tty")
-        clush_exit(1)
+        clush_exit(1, task)
 
     rc = 0
     if options.maxrc:
@@ -885,7 +891,7 @@ def main():
         rc = task.max_retcode()
         if task.num_timeout() > 0:
             rc = 255
-    clush_exit(rc)
+    clush_exit(rc, task)
 
 if __name__ == '__main__':
     main()

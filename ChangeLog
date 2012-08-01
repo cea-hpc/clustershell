@@ -1,5 +1,8 @@
 2012-08-01 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Clush.py: Fix clush_exit() side effects thanks to latest task
+	termination improvements (tickets #185).
+
 	* Task.py: Avoid termination race condition when using multiple threads
 	and calling abort()+join() from another thread (tickets #197).
 

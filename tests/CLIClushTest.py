@@ -31,13 +31,10 @@ class CLIClushTest(unittest.TestCase):
         def raw_input_mock(prompt):
             time.sleep(3600)
         ClusterShell.CLI.Clush.raw_input = raw_input_mock
-        clush_exit = ClusterShell.CLI.Clush.clush_exit
         try:
-            ClusterShell.CLI.Clush.clush_exit = sys.exit # workaround (see #185)
             CLI_main(self, main, [ 'clush' ] + args, input, expected_stdout,
                      expected_rc, expected_stderr)
         finally:
-            ClusterShell.CLI.Clush.clush_exit = clush_exit
             ClusterShell.CLI.Clush.raw_input = raw_input
 
     def test_000_display(self):
