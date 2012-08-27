@@ -749,6 +749,9 @@ class Engine:
                 # any exceptions invalidate clients
                 self.clear(isinstance(e, EngineTimeoutException))
                 raise
+            except: # could later use BaseException above (py2.5+)
+                self.clear()
+                raise
         finally:
             # cleanup
             self.timerq.clear()

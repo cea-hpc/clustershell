@@ -782,6 +782,34 @@ class TaskLocalTest(unittest.TestCase):
         worker = WorkerPopen("sleep 1")
         worker.abort()
 
+    def testKBI(self):
+        """test local task keyboard interrupt"""
+        class TestKBI(EventHandler):
+            def ev_read(self, worker):
+                raise KeyboardInterrupt
+        task = task_self()
+        self.assert_(task != None)
+        ok = False
+        try:
+            task.run("echo test; sleep 5", handler=TestKBI())
+        except KeyboardInterrupt:
+            ok = True
+            # We want to test here if engine clients are not properly
+            # cleaned, or results are not cleaned on re-run()
+            #
+            # cannot assert on task.iter_retcodes() as we are not sure in
+            # what order the interpreter will proceed
+            #self.assertEqual(len(list(task.iter_retcodes())), 1)
+            self.assertEqual(len(list(task.iter_buffers())), 1)
+            # hard to test without really checking the number of clients of engine
+            self.assertEqual(len(task._engine._clients), 0)
+            task.run("echo newrun")
+            self.assertEqual(len(task._engine._clients), 0)
+            self.assertEqual(len(list(task.iter_retcodes())), 1)
+            self.assertEqual(len(list(task.iter_buffers())), 1)
+            self.assertEqual(str(list(task.iter_buffers())[0][0]), "newrun")
+        self.assertTrue(ok, "KeyboardInterrupt not raised")
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TaskLocalTest)

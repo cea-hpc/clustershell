@@ -1,3 +1,9 @@
+2012-08-27 S. Thiell <stephane.thiell@cea.fr>
+
+	* Engine.py: Fix catch-all used in case of KeyboardInterrupt exception
+	during runloop, resulting in ghost engine clients in that case and results
+	possibly not cleaned properly (ticket #199).
+
 2012-08-01 S. Thiell <stephane.thiell@cea.fr>
 
 	* CLI/Clush.py: Fix clush_exit() side effects thanks to latest task
