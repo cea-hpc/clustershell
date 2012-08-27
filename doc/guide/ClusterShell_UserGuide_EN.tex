@@ -1318,11 +1318,11 @@ The configuration file \verb+/etc/clustershell/clush.conf+ defines default value
 \hline 
 \textbf{Key} & \textbf{Value} \\
 \hline
-\verb+fanout+& Size of the sliding window of \verb+ssh+ connectors.\\
+\verb+fanout+& Size of the sliding window of \textit{ssh(1)} connectors.\\
 \hline
-\verb+connect_timeout+ & Timeout  in  seconds  to  allow a connection to establish. This parameter is passed to \verb+ssh+. If set to 0, no timeout occurs.\\
+\verb+connect_timeout+ & Timeout  in  seconds  to  allow a connection to establish. This parameter is passed to \textit{ssh(1)}. If set to 0, no timeout occurs.\\
 \hline
-\verb+command_timeout+ & Timeout in seconds to allow a command to complete since the connection has been established. This  parameter is passed to \verb+ssh+.  In addition, the ClusterShell library ensures that any commands complete in less than (\verb+connect_timeout+ + \verb+command_timeout+). If set to 0, no timeout occurs.\\
+\verb+command_timeout+ & Timeout in seconds to allow a command to complete since the connection has been established. This parameter is passed to \textit{ssh(1)}.  In addition, the ClusterShell library ensures that any commands complete in less than (\verb+connect_timeout+ + \verb+command_timeout+). If set to 0, no timeout occurs.\\
 \hline
 \verb+color+ & Whether  to  use  ANSI  colors  to  surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. Valid arguments are \textit{never},  \textit{always} or \textit{auto} (which use color if standard output/error refer to a terminal). Colors are set to \verb+[34m+ (blue foreground text) for stdout and \verb+[31m+ (red foreground text)  for  stderr, and cannot be modified.\\
 \hline
@@ -1334,11 +1334,11 @@ The configuration file \verb+/etc/clustershell/clush.conf+ defines default value
 \hline
 \verb+verbosity+ & Set the verbosity level: 0 (quiet), 1 (default), 2 (verbose) or more (debug).\\
 \hline
-\verb+ssh_user+ & Set the \verb+ssh+ user to use for remote connection (default is to not specify).\\
+\verb+ssh_user+ & Set the \textit{ssh(1)} user to use for remote connection (default is to not specify).\\
 \hline
-\verb+ssh_path+ & Set the \verb+ssh+ binary path to use for remote connection (default is \verb+/usr/bin/ssh+).\\
+\verb+ssh_path+ & Set the \textit{ssh(1)} binary path to use for remote connection (default is \verb+/usr/bin/ssh+).\\
 \hline
-\verb+ssh_options+ & Set additional (raw) options to pass to the underlying \verb+ssh+ command.\\
+\verb+ssh_options+ & Set additional (raw) options to pass to the underlying \textit{ssh(1)} command.\\
 \hline
 \end{tabular}
 \end{center}
@@ -1395,7 +1395,7 @@ $ cd tests
 $ ./run_testsuite.py -vv
 \end{verbatim}
 
-Some tests assume that ssh to \verb+localhost+ is allowed for the current user.
+Some tests assume that \textit{ssh(1)} to \verb+localhost+ is allowed for the current user.
 
 
 \subsection{Bug reports}
@@ -1820,7 +1820,7 @@ Distant usage:
 task.shell(command, nodes=nodeset [, handler=handler] [, timeout=secs])
 \end{lstlisting}
 
-This method makes use of the default local or distant worker. ClusterShell uses a default Worker based on the Python Popen2 standard module to execute local commands, and a Worker based on ssh (Secure SHell) for distant commands.
+This method makes use of the default local or distant worker. ClusterShell uses a default Worker based on the Python Popen2 standard module to execute local commands, and a Worker based on \textit{ssh} (Secure SHell) for distant commands.
 
 If the \Task is not running, the command is scheduled for later execution. If the \Task is currently running, the command is executed as soon as possible (depending on the current \emph{fanout}).
 
@@ -1860,13 +1860,13 @@ To set a \Task execution timeout, use the optional \lstinline+timeout+ parameter
 
 \subsubsection{Exiting the Task}
 
-If a Task does not have anymore scheduled worker or timer (for example, if you run one shell command and then it closes), it exits automatically from \lstinline+task.resume()+. Also, at any time (for example, in an event handler), you may call the following method to abort the Task execution:
+If a Task does not have anymore scheduled worker or timer (for example, if you run one shell command and then it closes), it exits automatically from \lstinline+task.resume()+. Still, except from a signal handler, you can always call the following method to abort the Task execution:
 
 \begin{lstlisting}[breaklines=true, breakatwhitespace=true]
 task.abort()
 \end{lstlisting}
 
-On abort, all scheduled workers (shell command, file copy) and timers are cleaned and \lstinline+task.resume()+ returns, unblocking the Task's thread from a library user point of view.
+For example, it is safe to call this method from an event handler within the task itself. On abort, all scheduled workers (shell command, file copy) and timers are cleaned and \lstinline+task.resume()+ returns, unblocking the Task's thread from a library user point of view. Please note that commands being executed remotely are not necessary stopped (this is due to \textit{ssh(1)} behavior).
 
 \subsubsection{Configuring a timer}
 

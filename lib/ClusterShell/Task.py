@@ -719,7 +719,8 @@ class Task(object):
         >>> task.schedule(worker)
         >>> task.resume()
         """
-        assert self in Task._tasks.values(), "deleted task"
+        assert self in Task._tasks.values(), \
+            "deleted task instance, call task_self() again!"
 
         # bind worker to task self
         worker._set_task(self)
@@ -1332,9 +1333,9 @@ def task_wait():
 def task_terminate():
     """
     Destroy the Task instance bound to the current thread. A next call to
-    task_self() will create a new Task object. This function provided as a
-    convenience is available in the top-level ClusterShell.Task package
-    namespace.
+    task_self() will create a new Task object. Not to be called from a signal
+    handler. This function provided as a convenience is available in the
+    top-level ClusterShell.Task package namespace.
     """
     task_self().abort(kill=True)
 
@@ -1343,7 +1344,8 @@ def task_cleanup():
     Cleanup routine to destroy all created tasks. This function provided as a
     convenience is available in the top-level ClusterShell.Task package
     namespace. This is mainly used for testing purposes and should be avoided
-    otherwise. task_cleanup() may be called from any threads.
+    otherwise. task_cleanup() may be called from any threads but not from a
+    signal handler.
     """
     # be sure to return to a clean state (no task at all)
     while True:
