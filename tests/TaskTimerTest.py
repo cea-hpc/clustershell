@@ -61,6 +61,27 @@ class TaskTimerTest(unittest.TestCase):
         task.resume()
         self.assertEqual(test_handler.count, 2)
 
+    def testSimpleTimerImmediate(self):
+        """test simple immediate timer"""
+        task = task_self()
+        self.assert_(task != None)
+        test_handler = self.__class__.TSimpleTimerChecker()
+        timer1 = task.timer(0.0, handler=test_handler)
+        self.assert_(timer1 != None)
+        task.resume()
+        self.assertEqual(test_handler.count, 1)
+
+    def testSimpleTimerImmediate2(self):
+        """test simple immediate timers"""
+        task = task_self()
+        self.assert_(task != None)
+        test_handler = self.__class__.TSimpleTimerChecker()
+        for i in range(10):
+            timer1 = task.timer(0.0, handler=test_handler)
+            self.assert_(timer1 != None)
+        task.resume()
+        self.assertEqual(test_handler.count, 10)
+
     class TRepeaterTimerChecker(EventHandler):
         def __init__(self):
             self.count = 0

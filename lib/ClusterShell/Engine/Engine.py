@@ -42,6 +42,8 @@ import heapq
 import logging
 import time
 
+# Define epsilon value for time float arithmetic operations
+EPSILON = 1.0e-3
 
 class EngineException(Exception):
     """
@@ -187,7 +189,7 @@ class _EngineTimerQ:
             self.client = client
             self.client._timercase = self
             # arm timer (first time)
-            assert self.client.fire_delay > 0
+            assert self.client.fire_delay > -EPSILON
             self.fire_date = self.client.fire_delay + time.time()
 
         def __cmp__(self, other):
@@ -199,7 +201,7 @@ class _EngineTimerQ:
             self.client._timercase = self
             # setup next firing date
             time_current = time.time()
-            if self.client.fire_delay > 0:
+            if self.client.fire_delay > -EPSILON:
                 self.fire_date = self.client.fire_delay + time_current
             else:
                 interval = float(self.client.interval)
@@ -240,7 +242,7 @@ class _EngineTimerQ:
         Insert and arm a client's timer.
         """
         # arm only if fire is set
-        if client.fire_delay > 0:
+        if client.fire_delay > -EPSILON:
             heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
             self.armed_count += 1
             if not client.autoclose:
@@ -262,8 +264,8 @@ class _EngineTimerQ:
         """
         if not client._timercase:
             # if timer is being fire, invalidate its values
-            client.fire_delay = 0
-            client.interval = 0
+            client.fire_delay = -1.0
+            client.interval = -1.0
             return
 
         if self.armed_count <= 0:
@@ -291,10 +293,11 @@ class _EngineTimerQ:
         timercase = heapq.heappop(self.timers)
         client = timercase.disarm()
         
-        client.fire_delay = 0
+        client.fire_delay = -1.0
         client._fire()
 
-        if client.fire_delay > 0 or client.interval > 0:
+        # Note: fire=0 is valid, interval=0 is not
+        if client.fire_delay >= -EPSILON or client.interval > EPSILON:
             timercase.arm(client)
             heapq.heappush(self.timers, timercase)
         else:
@@ -318,7 +321,7 @@ class _EngineTimerQ:
         """
         self._dequeue_disarmed()
         return len(self.timers) > 0 and \
-            (self.timers[0].fire_date - time.time()) <= 1e-2
+            (self.timers[0].fire_date - time.time()) <= EPSILON
 
     def clear(self):
         """
