@@ -68,13 +68,6 @@ from cStringIO import StringIO
 from ClusterShell.Event import EventHandler
 
 
-def strdel(s, badchars):
-    """return s a copy of s with every badchar occurences removed"""
-    stripped = s
-    for ch in badchars:
-        stripped = stripped.replace(ch, '')
-    return stripped
-
 class MessageProcessingError(Exception):
     """base exception raised when an error occurs while processing incoming or
     outgoing messages.
@@ -115,7 +108,6 @@ class XMLReader(ContentHandler):
         """read content characters"""
         if self._draft is not None:
             content = content.decode('utf-8')
-            #content = strdel(content, [' ', '\t', '\r', '\n'])
             if content != '':
                 self._draft.data_update(content)
 
