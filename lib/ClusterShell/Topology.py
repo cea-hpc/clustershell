@@ -65,8 +65,7 @@ class TopologyNodeGroup(object):
     instances.
     """
     def __init__(self, nodeset=None):
-        """
-        """
+        """initialize a new TopologyNodeGroup instance."""
         # Base nodeset
         self.nodeset = nodeset
         # Parent TopologyNodeGroup (TNG) instance
@@ -189,6 +188,7 @@ class TopologyTree(object):
                 raise StopIteration()
 
     def __init__(self):
+        """initialize a new TopologyTree instance."""
         self.root = None
         self.groups = []
 
@@ -244,6 +244,7 @@ class TopologyRoutingTable(object):
     routes
     """
     def __init__(self):
+        """Initialize a new TopologyRoutingTable instance."""
         self._routes = []
         self.aggregated_src = NodeSet()
         self.aggregated_dst = NodeSet()
@@ -317,6 +318,7 @@ class TopologyGraph(object):
     relations between nodes.
     """
     def __init__(self):
+        """initialize a new TopologyGraph instance."""
         self._routing = TopologyRoutingTable()
         self._nodegroups = {}
         self._root = ''
