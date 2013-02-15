@@ -147,7 +147,7 @@ class EngineSelect(Engine):
                     continue
 
                 # process this client
-                client._current_client = client
+                self._current_client = client
 
                 # check for possible unblocking read on this fd
                 if fd in r_ready:

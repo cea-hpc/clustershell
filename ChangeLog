@@ -1,9 +1,3 @@
-2012-09-13 S. Thiell <stephane.thiell@cea.fr>
-
-	* Engine.py: Allow EngineTimer with immediate fire date, that is, a fire
-	delay of 0s. Obviously not fired in time, such a timer will still be armed
-	and fired as soon as possible (ticket #200).
-
 2012-08-27 S. Thiell <stephane.thiell@cea.fr>
 
 	* Engine.py: Fix catch-all used in case of KeyboardInterrupt exception

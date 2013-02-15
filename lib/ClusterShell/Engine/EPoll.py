@@ -71,6 +71,7 @@ class EngineEPoll(Engine):
         """
         Engine-specific fd registering. Called by Engine register.
         """
+        eventmask = 0
         if event & (Engine.E_READ | Engine.E_ERROR):
             eventmask = select.EPOLLIN
         elif event == Engine.E_WRITE:
@@ -95,8 +96,8 @@ class EngineEPoll(Engine):
         """
         self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event,
                                                             setvalue))
-        eventmask = 0
         if setvalue:
+            eventmask = 0
             if event & (Engine.E_READ | Engine.E_ERROR):
                 eventmask = select.EPOLLIN
             elif event == Engine.E_WRITE:
@@ -150,7 +151,7 @@ class EngineEPoll(Engine):
                 # check for poll error condition of some sort
                 if event & select.EPOLLERR:
                     self._debug("EPOLLERR %s" % client)
-                    client._close_writer()
+                    self.remove(client)
                     self._current_client = None
                     continue
 

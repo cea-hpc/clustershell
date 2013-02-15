@@ -147,15 +147,13 @@ class EnginePoll(Engine):
                     continue
 
                 # process this client
-                client._current_client = client
+                self._current_client = client
 
                 # check for poll error condition of some sort
                 if event & select.POLLERR:
                     self._debug("POLLERR %s" % client)
-                    self.unregister_writer(client)
-                    os.close(client.fd_writer)
-                    client.fd_writer = None
-                    client._current_client = None
+                    self.remove(client)
+                    self._current_client = None
                     continue
 
                 # check for data to read
@@ -172,7 +170,7 @@ class EnginePoll(Engine):
                         self._debug("EngineClientEOF %s" % client)
                         if fdev & Engine.E_READ:
                             self.remove(client)
-                        client._current_client = None
+                        self._current_client = None
                         continue
 
                 # or check for end of stream (do not handle both at the same
@@ -202,7 +200,7 @@ class EnginePoll(Engine):
                     self.modify(client, 0, fdev)
                     client._handle_write()
 
-                client._current_client = None
+                self._current_client = None
 
                 # apply any changes occured during processing
                 if client.registered:
