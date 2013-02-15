@@ -152,9 +152,7 @@ class EnginePoll(Engine):
                 # check for poll error condition of some sort
                 if event & select.POLLERR:
                     self._debug("POLLERR %s" % client)
-                    self.unregister_writer(client)
-                    os.close(client.fd_writer)
-                    client.fd_writer = None
+                    self.remove(client)
                     self._current_client = None
                     continue
 

@@ -151,7 +151,7 @@ class EngineEPoll(Engine):
                 # check for poll error condition of some sort
                 if event & select.EPOLLERR:
                     self._debug("EPOLLERR %s" % client)
-                    client._close_writer()
+                    self.remove(client)
                     self._current_client = None
                     continue
 
