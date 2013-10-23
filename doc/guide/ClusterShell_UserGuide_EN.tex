@@ -1937,7 +1937,7 @@ task.shell("/bin/uname -r", nodes="green[36-39,133]")
 
 task.resume()
 
-print worker.node_buffer("green37")
+print task.node_buffer("green37")
 
 for buf, nodes in task.iter_buffers():
 	print nodes, buf
