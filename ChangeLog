@@ -2,6 +2,8 @@
 
 	* Worker/Rsh.py: Add a Rsh worker. It is compatible with rsh clones
 	like mrsh/krsh. (ticket #216).
+	* Task.py: Add a 'worker' default option for Task object. It is used
+	in Task.shell() and Task.copy().
 
 2012-09-13 S. Thiell <stephane.thiell@cea.fr>
 

@@ -1889,6 +1889,17 @@ To configure a timer, use the following (secs in seconds with floating point pre
 task.timer(self, fire=secs, handler=handler [, interval=secs])
 \end{lstlisting}
 
+\subsubsection{Changing default worker}
+
+When calling \lstinline+task.shell()+ or \lstinline+task.copy()+ the \Task object creates a worker instance for each call. The worker class used for these calls is based on \Task default \verb+worker+. Change this value to use another worker class, by example \lstinline+Rsh+:
+\medskip
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+from ClusterShell.Task import task_self
+from ClusterShell.Worker.Rsh import WorkerRsh
+
+task_self().set_default('worker', WorkerRsh)
+\end{lstlisting}
+
 \subsubsection{Thread safety and Task objects}
 
 ClusterShell is an event-based library and one of its advantage is to avoid the use of threads (and their safety issues), so it's mainly not thread-safe. When possible, avoid the use of threads with ClusterShell. However, it's sometimes not so easy, first because another library you want to use in some event handler is not event-based and may block the current thread (that's enough to break the deal). Also, in some cases, it could be useful for you to run several Tasks at the same time. Since version 1.1, ClusterShell provides support for launching a Task in another thread and some experimental support for multiple Tasks, but:

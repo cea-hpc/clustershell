@@ -182,7 +182,8 @@ class Task(object):
                       "engine"             : 'auto',
                       "port_qlimit"        : 100,
                       "auto_tree"          : False,
-                      "topology_file"      : "/etc/clustershell/topology.conf" }
+                      "topology_file"      : "/etc/clustershell/topology.conf",
+                      "worker"             : WorkerSsh }
 
     _std_info =     { "debug"              : False,
                       "print_debug"        : _task_print_debug,
@@ -464,6 +465,8 @@ class Task(object):
           - "engine": Used to specify an underlying Engine explicitly
             (default: "auto").
           - "port_qlimit": Size of port messages queue (default: 32).
+          - "worker": Worker-based class used when spawning workers through
+            shell()/run().
 
         Threading considerations
         ========================
@@ -588,9 +591,10 @@ class Task(object):
                                     timeout=timeo, autoclose=autoclose)
             else:
                 # create ssh-based worker
-                worker = WorkerSsh(NodeSet(kwargs["nodes"]), command=command,
-                                   handler=handler, stderr=stderr,
-                                   timeout=timeo, autoclose=autoclose)
+                wrkcls = self.default('worker')
+                worker = wrkcls(NodeSet(kwargs["nodes"]), command=command,
+                                handler=handler, stderr=stderr,
+                                timeout=timeo, autoclose=autoclose)
         else:
             # create (local) worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
@@ -615,9 +619,10 @@ class Task(object):
         reverse = kwargs.get("reverse", False)
 
         # create a new copy worker
-        worker = WorkerSsh(nodes, source=source, dest=dest, handler=handler,
-                           stderr=stderr, timeout=timeo, preserve=preserve,
-                           reverse=reverse)
+        wrkcls = self.default('worker')
+        worker = wrkcls(nodes, source=source, dest=dest, handler=handler,
+                        stderr=stderr, timeout=timeo, preserve=preserve,
+                        reverse=reverse)
 
         self.schedule(worker)
         return worker
