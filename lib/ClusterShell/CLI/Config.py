@@ -172,6 +172,21 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         return self._get_optional("Main", "ssh_options")
 
     @property
+    def rsh_path(self):
+        """rsh_path value as a string (optional)"""
+        return self._get_optional("Main", "rsh_path")
+
+    @property
+    def rcp_path(self):
+        """rcp_path value as a string (optional)"""
+        return self._get_optional("Main", "rcp_path")
+
+    @property
+    def rsh_options(self):
+        """rsh_options value as a string (optional)"""
+        return self._get_optional("Main", "rsh_options")
+
+    @property
     def color(self):
         """color value as a string in (never, always, auto)"""
         whencolor = self._get_optional("Main", "color")

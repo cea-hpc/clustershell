@@ -124,6 +124,19 @@ Set the ssh binary path to use for remote connection (default is
 .B ssh_options
 .
 Set additional options to pass to the underlying ssh command.
+.TP
+.B rsh_path
+.
+Set the rsh binary path to use for remote connection (default is
+\fIrsh\fP). You could easily use mrsh or krsh by simply changing this value.
+.TP
+.B rcp_path
+.
+Same a rsh_path for rcp command. (Default is \(aqrcp\(aq)
+.TP
+.B rsh_options
+.
+Set additional options to pass to the underlying rsh/rcp command.
 .UNINDENT
 .SH EXAMPLES
 .sp

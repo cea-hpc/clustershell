@@ -823,6 +823,12 @@ def main():
         task.set_info("ssh_path", config.ssh_path)
     if config.ssh_options:
         task.set_info("ssh_options", config.ssh_options)
+    if config.rsh_path:
+        task.set_info("rsh_path", config.rsh_path)
+    if config.rcp_path:
+        task.set_info("rcp_path", config.rcp_path)
+    if config.rsh_options:
+        task.set_info("rsh_options", config.rsh_options)
 
     # Set detailed timeout values
     task.set_info("connect_timeout", config.connect_timeout)

@@ -1340,6 +1340,13 @@ The configuration file \verb+/etc/clustershell/clush.conf+ defines default value
 \hline
 \verb+ssh_options+ & Set additional (raw) options to pass to the underlying \textit{ssh(1)} command.\\
 \hline
+\verb+rsh_path+ & Set the \verb+rsh+ binary path to use for remote connection (default is
+  \verb+rsh+). You could easily use \verb+mrsh+ or \verb+krsh+ by simply changing this value.\\
+\hline
+\verb+rcp_path+ & Same as \verb+rsh_path+ for rcp command (default is \verb+rcp+).\\
+\hline
+\verb+rsh_options+ & Set additional options to pass to the underlying rsh/rcp command.\\
+\hline
 \end{tabular}
 \end{center}
 %\caption{Description of clush.conf parameters}
