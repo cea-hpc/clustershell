@@ -390,8 +390,9 @@ class EnginePort(EngineClient):
             try:
                 while not self._msgq.empty():
                     pmsg = self._msgq.get(block=False)
-                    self.task.info("print_debug")(self.task,
-                        "EnginePort: dropped msg: %s" % str(pmsg.get()))
+                    if self.task.info("debug", False):
+                        self.task.info("print_debug")(self.task,
+                            "EnginePort: dropped msg: %s" % str(pmsg.get()))
             except Queue.Empty:
                 pass
         self._msgq = None
