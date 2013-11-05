@@ -124,9 +124,12 @@ foo1:abc
     def test_009_diff(self):
         """test clubak (--diff)"""
         self._clubak_t(["--diff"], "foo1: bar\nfoo2: bar", "")
-        self._clubak_t(["--diff"], "foo1: bar\nfoo2: BAR", "--- foo1\n+++ foo2\n@@ -1,1 +1,1 @@\n- bar\n+ BAR\n")
-        self._clubak_t(["--diff"], "foo1: bar\nfoo2: BAR\nfoo3: bar\n", "--- foo[1,3] (2)\n+++ foo2\n@@ -1,1 +1,1 @@\n- bar\n+ BAR\n")
-        self._clubak_t(["--diff", "--color=always"], "foo1: bar\nfoo2: BAR\nfoo3: bar\n", "\x1b[1m--- foo[1,3] (2)\x1b[0m\n\x1b[1m+++ foo2\x1b[0m\n\x1b[36m@@ -1,1 +1,1 @@\x1b[0m\n\x1b[31m- bar\x1b[0m\n\x1b[32m+ BAR\x1b[0m\n")
+        self._clubak_t(["--diff"], "foo1: bar\nfoo2: BAR\nfoo2: end\nfoo1: end",
+                                   "--- foo1\n+++ foo2\n@@ -1,2 +1,2 @@\n- bar\n+ BAR\n  end\n")
+        self._clubak_t(["--diff"], "foo1: bar\nfoo2: BAR\nfoo3: bar\nfoo2: end\nfoo1: end\nfoo3: end",
+                                   "--- foo[1,3] (2)\n+++ foo2\n@@ -1,2 +1,2 @@\n- bar\n+ BAR\n  end\n")
+        self._clubak_t(["--diff", "--color=always"], "foo1: bar\nfoo2: BAR\nfoo3: bar\nfoo2: end\nfoo1: end\nfoo3: end",
+                                   "\x1b[1m--- foo[1,3] (2)\x1b[0m\n\x1b[1m+++ foo2\x1b[0m\n\x1b[36m@@ -1,2 +1,2 @@\x1b[0m\n\x1b[31m- bar\x1b[0m\n\x1b[32m+ BAR\x1b[0m\n  end\n")
         self._clubak_t(["--diff", "-d"], "foo: bar\n", "INPUT foo: bar\n", 0, "line_mode=False gather=True tree_depth=1\n")
         self._clubak_t(["--diff", "-L"], "foo1: bar\nfoo2: bar", "", 2, "clubak: error: option mismatch (diff not supported in line_mode)\n")
 
