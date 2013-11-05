@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012, 2013)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -890,17 +890,21 @@ class Task(object):
         object is unbound from the current thread, so calling
         task_self() creates a new Task object.
         """
-        if self._run_lock.acquire(0):
-            self._quit = True
-            self._run_lock.release()
-            if self._is_task_self():
-                self._terminate(kill)
-            else:
-                # abort on stopped/suspended task
-                self._suspend_cond.notify_all()
-        else:
-            # self._run_lock is locked, call synchronized method
+        if not self._run_lock.acquire(0):
+            # self._run_lock is locked, try to call synchronized method
             self._abort(kill)
+            # but there is no guarantee that it has really been called, as the
+            # task could have aborted during the same time, so we use polling
+            while not self._run_lock.acquire(0):
+                sleep(0.001)
+        # in any case, once _run_lock has been acquired, confirm abort
+        self._quit = True
+        self._run_lock.release()
+        if self._is_task_self():
+            self._terminate(kill)
+        else:
+            # abort on stopped/suspended task
+            self._suspend_cond.notify_all()
 
     def _terminate(self, kill):
         """
