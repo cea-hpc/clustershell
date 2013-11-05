@@ -876,10 +876,10 @@ def main():
                                                 op))
     if not task.default("USER_interactive"):
         if options.copy:
-            run_copy(task, args, options.dest_path, nodeset_base, 0,
+            run_copy(task, args, options.dest_path, nodeset_base, timeout,
                      options.preserve_flag, display)
         elif options.rcopy:
-            run_rcopy(task, args, options.dest_path, nodeset_base, 0,
+            run_rcopy(task, args, options.dest_path, nodeset_base, timeout,
                       options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, timeout, display)

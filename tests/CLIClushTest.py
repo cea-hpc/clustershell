@@ -235,6 +235,20 @@ class CLIClushTest(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    def test_020_file_copy_timeout(self):
+        """test clush file copy (timeout)"""
+        content = "%f" % time.time()
+        f = make_temp_file(content)
+        self._clush_t(["-w", "localhost", "-u", "0.1", "-c", f.name], None, "", 0, "clush: localhost: command timeout\n")
+
+    def test_021_file_copy_timeout_tty(self):
+        """test clush file copy (timeout) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self.test_020_file_copy_timeout()
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(CLIClushTest)
