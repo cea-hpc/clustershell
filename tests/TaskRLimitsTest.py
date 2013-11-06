@@ -20,7 +20,6 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def setUp(self):
         """set soft nofile resource limit to 100"""
-        subprocess.call(["ls", "-x", "/proc/self/fd"], stdout=sys.stdout)
         self.soft, self.hard = resource.getrlimit(resource.RLIMIT_NOFILE)
         resource.setrlimit(resource.RLIMIT_NOFILE, (100, self.hard))
 
