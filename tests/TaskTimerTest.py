@@ -43,7 +43,7 @@ class TaskTimerTest(unittest.TestCase):
 
         # init event handler for timer's callback
         test_handler = self.__class__.TSimpleTimerChecker()
-        timer1 = task.timer(1.0, handler=test_handler)
+        timer1 = task.timer(0.5, handler=test_handler)
         self.assert_(timer1 != None)
         # run task
         task.resume()
@@ -54,9 +54,9 @@ class TaskTimerTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         test_handler = self.__class__.TSimpleTimerChecker()
-        timer1 = task.timer(1.0, handler=test_handler)
+        timer1 = task.timer(0.5, handler=test_handler)
         self.assert_(timer1 != None)
-        timer2 = task.timer(1.0, handler=test_handler)
+        timer2 = task.timer(0.5, handler=test_handler)
         self.assert_(timer2 != None)
         task.resume()
         self.assertEqual(test_handler.count, 2)
@@ -88,7 +88,7 @@ class TaskTimerTest(unittest.TestCase):
             
         def ev_timer(self, timer):
             self.count += 1
-            timer.set_nextfire(0.5)
+            timer.set_nextfire(0.2)
             if self.count > 4:
                 timer.invalidate()
 
@@ -98,7 +98,7 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(task != None)
         # init event handler for timer's callback
         test_handler = self.__class__.TRepeaterTimerChecker()
-        timer1 = task.timer(1.0, interval=0.5, handler=test_handler)
+        timer1 = task.timer(0.5, interval=0.2, handler=test_handler)
         self.assert_(timer1 != None)
         # run task
         task.resume()
@@ -110,7 +110,7 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(task != None)
         # init event handler for timer's callback
         test_handler = self.__class__.TRepeaterTimerChecker()
-        timer1 = task.timer(1.0, interval=0.5, handler=test_handler)
+        timer1 = task.timer(0.5, interval=0.2, handler=test_handler)
         self.assert_(timer1 != None)
         # run task
         task.resume()
@@ -270,10 +270,10 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(task != None)
         test_eh = self.__class__.TEventHandlerTimerSetNextFire(self)
         # init worker
-        worker = task.shell("/bin/sleep 6", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 3", nodes='localhost', handler=test_eh)
         self.assert_(worker != None)
         # init timer
-        timer = task.timer(2.0, interval=0.2, handler=test_eh)
+        timer = task.timer(1.0, interval=0.2, handler=test_eh)
         self.assert_(timer != None)
         test_eh.timer = timer
         # run task
@@ -315,10 +315,10 @@ class TaskTimerTest(unittest.TestCase):
         # init worker
         worker = task.shell("/bin/uname -r", handler=test_eh)
         self.assert_(worker != None)
-        worker = task.shell("/bin/sleep 5", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 2", nodes='localhost', handler=test_eh)
         self.assert_(worker != None)
         # init timer
-        timer = task.timer(4.0, interval=0.5, handler=test_eh)
+        timer = task.timer(1.0, interval=0.5, handler=test_eh)
         self.assert_(timer != None)
         test_eh.timer = timer
         # run task

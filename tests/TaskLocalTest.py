@@ -122,7 +122,7 @@ class TaskLocalTest(unittest.TestCase):
         self.assert_(worker != None)
 
         # run task
-        self.assertRaises(TimeoutError, task.resume, 3)
+        self.assertRaises(TimeoutError, task.resume, 1)
 
     def testSimpleCommandNoTimeout(self):
         """test simple command exiting before timeout"""
@@ -130,12 +130,12 @@ class TaskLocalTest(unittest.TestCase):
         self.assert_(task != None)
 
         # init worker
-        worker = task.shell("/bin/sleep 3")
+        worker = task.shell("/bin/sleep 1")
         self.assert_(worker != None)
 
         try:
             # run task
-            task.resume(5)
+            task.resume(3)
         except TimeoutError:
             self.fail("did detect timeout")
 
@@ -160,10 +160,10 @@ class TaskLocalTest(unittest.TestCase):
         self.assert_(task != None)
 
         # init worker
-        worker = task.shell("/bin/sleep 6", timeout=3)
+        worker = task.shell("/bin/sleep 6", timeout=1)
         self.assert_(worker != None)
 
-        worker = task.shell("/bin/sleep 6", timeout=2)
+        worker = task.shell("/bin/sleep 6", timeout=0.5)
         self.assert_(worker != None)
 
         try:
@@ -179,10 +179,10 @@ class TaskLocalTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
 
-        worker = task.shell("/bin/sleep 10", timeout=5)
+        worker = task.shell("/bin/sleep 10", timeout=1)
         self.assert_(worker != None)
 
-        worker = task.shell("/bin/sleep 10", timeout=3)
+        worker = task.shell("/bin/sleep 10", timeout=0.5)
         self.assert_(worker != None)
 
         try:
@@ -202,7 +202,7 @@ class TaskLocalTest(unittest.TestCase):
         worker = task.shell("/bin/sleep 10", timeout=3)
         self.assert_(worker != None)
 
-        self.assertRaises(TimeoutError, task.resume, 2)
+        self.assertRaises(TimeoutError, task.resume, 1)
 
     def testLocalEmptyBuffer(self):
         """test task local empty buffer"""

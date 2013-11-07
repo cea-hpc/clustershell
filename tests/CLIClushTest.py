@@ -223,8 +223,10 @@ class CLIClushTest(unittest.TestCase):
 
     def test_018_timeout(self):
         """test clush (timeout)"""
-        self._clush_t(["-w", "localhost", "-u", "5", "sleep 7"], None, "", 0, "clush: localhost: command timeout\n")
-        self._clush_t(["-w", "localhost", "-u", "5", "-b", "sleep 7"], None, "", 0, "clush: localhost: command timeout\n")
+        self._clush_t(["-w", "localhost", "-u", "1", "sleep 3"], None,
+                       "", 0, "clush: localhost: command timeout\n")
+        self._clush_t(["-w", "localhost", "-u", "1", "-b", "sleep 3"], None,
+                       "", 0, "clush: localhost: command timeout\n")
 
     def test_019_timeout_tty(self):
         """test clush (timeout) [tty]"""
@@ -238,7 +240,8 @@ class CLIClushTest(unittest.TestCase):
         """test clush file copy (timeout)"""
         content = "%f" % time.time()
         f = make_temp_file(content)
-        self._clush_t(["-w", "localhost", "-u", "0.1", "-c", f.name], None, "", 0, "clush: localhost: command timeout\n")
+        self._clush_t(["-w", "localhost", "-u", "0.01", "-c", f.name], None,
+                       "", 0, "clush: localhost: command timeout\n")
 
     def test_021_file_copy_timeout_tty(self):
         """test clush file copy (timeout) [tty]"""
