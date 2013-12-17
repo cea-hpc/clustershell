@@ -1048,10 +1048,12 @@ class Task(object):
 
     def _call_tree_matcher(self, tree_match_func, match_keys=None, worker=None):
         """Call identified tree matcher (items, walk) method with options."""
+        if isinstance(match_keys, basestring): # change to str for Python 3
+            raise TypeError("Sequence of keys/nodes expected for 'match_keys'.")
         # filter by worker and optionally by matching keys
-        if worker and not match_keys:
+        if worker and match_keys is None:
             match = lambda k: k[0] is worker
-        elif worker and match_keys:
+        elif worker and match_keys is not None:
             match = lambda k: k[0] is worker and k[1] in match_keys
         elif match_keys:
             match = lambda k: k[1] in match_keys

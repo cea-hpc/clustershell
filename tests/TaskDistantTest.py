@@ -342,7 +342,14 @@ class TaskDistantTest(unittest.TestCase):
                 self.assertEqual(len(nodes), 1)
                 self.assertEqual(str(nodes), "localhost")
         self.assertEqual(cnt, 1)
-        for buf, nodes in worker.iter_buffers("localhost"):
+        # new check in 1.7 to ensure match_keys is not a string
+        testgen = worker.iter_buffers("localhost")
+        # cast to list to effectively iterate
+        self.assertRaises(TypeError, list, testgen)
+        # and also fixed an issue when match_keys was an empty list
+        for buf, nodes in worker.iter_buffers([]):
+            self.assertFalse("Found buffer with empty match_keys?!")
+        for buf, nodes in worker.iter_buffers(["localhost"]):
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
                 self.assertEqual(len(nodes), 1)
@@ -526,7 +533,7 @@ class TaskDistantTest(unittest.TestCase):
         self._task.resume()
         for buf, nodes in worker.iter_errors():
             self.assertEqual(buf, "something wrong")
-        for buf, nodes in worker.iter_errors('localhost'):
+        for buf, nodes in worker.iter_errors(['localhost']):
             self.assertEqual(buf, "something wrong")
 
     def testShellWriteSimple(self):
