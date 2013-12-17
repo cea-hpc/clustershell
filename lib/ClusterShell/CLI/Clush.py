@@ -109,6 +109,8 @@ class OutputHandler(EventHandler):
         """Finalize display of runtimer counter"""
         if self._runtimer:
             self._runtimer.eh.finalize(worker.task.default("USER_interactive"))
+            self._runtimer.invalidate()
+            self._runtimer = None
 
     def update_prompt(self, worker):
         """
