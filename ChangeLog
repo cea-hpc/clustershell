@@ -1,3 +1,11 @@
+2014-01-16 S. Thiell <stephane.thiell@cea.fr>
+
+	* RangeSet.py: Multidimensional RangeSet support (new RangeSetND class).
+	Created RangeSetND class to manage a matrix of RangeSet objects. Folding
+	of such objects is quite complex and time consuming. A special
+	optimization is provided when only one dimension is varying. Patch by
+	aurelien.degremont@cea.fr and stephane.thiell@cea.fr.
+
 2014-01-06 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fix internal implementation of NodeSet.contiguous(), that

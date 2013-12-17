@@ -1,6 +1,7 @@
 #
-# Copyright CEA/DAM/DIF (2012)
+# Copyright CEA/DAM/DIF (2012, 2013, 2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
 # This file is part of the ClusterShell library.
 #
@@ -37,10 +38,26 @@ Instances of RangeSet provide similar operations than the builtin set type,
 extended to support cluster ranges-like format and stepping support ("0-8/2").
 """
 
+from operator import mul
+
+try:
+    from itertools import product
+except:
+    # itertools.product : new in Python 2.6
+    def product(*args, **kwds):
+        """Cartesian product of input iterables."""
+        pools = map(tuple, args) * kwds.get('repeat', 1)
+        result = [[]]
+        for pool in pools:
+            result = [x+[y] for x in result for y in pool]
+        for prod in result:
+            yield tuple(prod)
+
 __all__ = ['RangeSetException',
            'RangeSetParseError',
            'RangeSetPaddingError',
-           'RangeSet']
+           'RangeSet',
+           'RangeSetND']
 
 
 class RangeSetException(Exception):
@@ -217,6 +234,12 @@ class RangeSet(set):
 
     autostep = property(get_autostep, set_autostep)
     
+    def dim(self):
+        """Get the number of dimensions of this RangeSet object. Common
+        method with RangeSetND.  Here, it will always return 1 unless
+        the object is empty, in that case it will return 0."""
+        return int(len(self) > 0)
+
     def _sorted(self):
         """Get sorted list from inner set."""
         return sorted(set.__iter__(self))
@@ -302,14 +325,14 @@ class RangeSet(set):
             yield slice(k, j + 1, 1)
 
     def _folded_slices(self):
-        """Internal generator that is able to retrieve ranges organized by step.
-        Complexity: O(n) with n = number of ranges in tree."""
+        """Internal generator that is able to retrieve ranges organized by
+        step."""
         if len(self) == 0:
             return
 
         prng = None         # pending range
         istart = None       # processing starting indice
-        m = 0               # processing step
+        step = 0            # processing step
         for sli in self._contiguous_slices():
             start = sli.start
             stop = sli.stop
@@ -321,7 +344,7 @@ class RangeSet(set):
                     prng = [start, stop, 1]
                     istart = stop - 1
                 i = k = istart
-            elif m == 0:        # istart is set but step is unknown
+            elif step == 0:        # istart is set but step is unknown
                 if not unitary:
                     if prng is not None:
                         # yield and replace pending range
@@ -332,29 +355,31 @@ class RangeSet(set):
                     istart = k = stop - 1
                     continue
                 i = start
-            else:               # step m > 0
-                assert m > 0
+            else:               # step > 0
+                assert step > 0
                 i = start
                 # does current range lead to broken step?
-                if m != i - k or not unitary:
-                    #j = i if m == i - k else k
-                    if m == i - k: j = i
-                    else: j = k
+                if step != i - k or not unitary:
+                    #Python2.6+: j = i if step == i - k else k
+                    if step == i - k:
+                        j = i
+                    else:
+                        j = k
                     # stepped is True when autostep setting does apply
-                    stepped = (j - istart >= self._autostep * m)
+                    stepped = (j - istart >= self._autostep * step)
                     if prng:    # yield pending range?
                         if stepped:
                             prng[1] -= 1
                         else:
-                            istart += m
+                            istart += step
                         yield slice(*prng)
                         prng = None
-                if m != i - k:
+                if step != i - k:
                     # case: step value has changed
                     if stepped:
-                        yield slice(istart, k + 1, m)
+                        yield slice(istart, k + 1, step)
                     else:
-                        for j in range(istart, k - m + 1, m):
+                        for j in range(istart, k - step + 1, step):
                             yield slice(j, j + 1, 1)
                         if not unitary:
                             yield slice(k, k + 1, 1)
@@ -369,38 +394,38 @@ class RangeSet(set):
                 elif not unitary:
                     # case: broken step by contiguous range
                     if stepped:
-                        # yield 'range/m' by taking first indice of new range
-                        yield slice(istart, i + 1, m)
+                        # yield 'range/step' by taking first indice of new range
+                        yield slice(istart, i + 1, step)
                         i += 1
                     else:
                         # autostep setting does not apply in that case
-                        for j in range(istart, i - m + 1, m):
+                        for j in range(istart, i - step + 1, step):
                             yield slice(j, j + 1, 1)
                     if stop > i + 1:    # current->pending only if not unitary
                         prng = [i, stop, 1]
                     istart = i = k = stop - 1
-            m = i - k   # compute step
+            step = i - k
             k = i
         # exited loop, process pending range or indice...
-        if m == 0:
+        if step == 0:
             if prng:
                 yield slice(*prng)
             else:
                 yield slice(istart, istart + 1, 1)
         else:
-            assert m > 0
-            stepped = (k - istart >= self._autostep * m)
+            assert step > 0
+            stepped = (k - istart >= self._autostep * step)
             if prng:
                 if stepped:
                     prng[1] -= 1
                 else:
-                    istart += m
+                    istart += step
                 yield slice(*prng)
                 prng = None
             if stepped:
-                yield slice(istart, i + 1, m)
+                yield slice(istart, i + 1, step)
             else:
-                for j in range(istart, i + 1, m):
+                for j in range(istart, i + 1, step):
                     yield slice(j, j + 1, 1)
 
     def slices(self):
@@ -556,7 +581,7 @@ class RangeSet(set):
         """
         return self._wrap_set_op(set.symmetric_difference, other)
 
-    def  __sub__(self, other):
+    def __sub__(self, other):
         """Return the difference of two RangeSets as a new RangeSet.
 
         (I.e. all elements that are in this set and not in the other.)
@@ -675,7 +700,7 @@ class RangeSet(set):
     def update(self, iterable):
         """Add all integers from an iterable (such as a list)."""
         if isinstance(iterable, RangeSet):
-            # keep padding unless is has not been defined yet
+            # keep padding unless it has not been defined yet
             if self.padding is None and iterable.padding is not None:
                 self.padding = iterable.padding
         assert type(iterable) is not str
@@ -726,4 +751,638 @@ class RangeSet(set):
             set.discard(self, i)
         except ValueError:
             pass # ignore other object types
+
+
+class RangeSetND(object):
+    """Build a N-dimensional RangeSet object.
+
+    Constructors:
+        Empty:
+            RangeSetND()
+        Build from a list of list of RangeSet objects:
+            RangeSetND([[rs1, rs2, rs3, ...], ...])
+        Strings are also supported:
+            RangeSetND([["0-3", "4-10", ...], ...])
+        Integers are also supported:
+            RangeSetND([(0, 4), (0, 5), (1, 4), (1, 5), ...]
+
+    Options:
+        pads: list of 0-padding length (default is to not pad any dimensions)
+        autostep: autostep threshold (use range/step notation if more than
+                  #autostep items meet the condition) - default is off (None)
+        copy_rangeset (advanced): if set to False, do not copy RangeSet objects
+            from args (transfer ownership), which is faster. In that case, you
+            should not modify these objects afterwards. (default is True)
+    """
+    def __init__(self, args=None, pads=None, autostep=None, copy_rangeset=True):
+        """RangeSetND constructor"""
+        # RangeSetND are arranged as a list of N-dimensional RangeSet vectors
+        self._veclist = []
+        # Dirty flag to avoid doing veclist folding too often
+        self._dirty = True
+        # Hint on whether several dimensions are varying or not
+        self._multivar_hint = False
+        if args is None:
+            return
+        for rgvec in args:
+            if rgvec:
+                if type(rgvec[0]) is str:
+                    self._veclist.append([RangeSet(rg, autostep=autostep) \
+                                          for rg in rgvec])
+                elif isinstance(rgvec[0], RangeSet):
+                    if copy_rangeset:
+                        self._veclist.append([rg.copy() for rg in rgvec])
+                    else:
+                        self._veclist.append(rgvec)
+                else:
+                    if pads is None:
+                        self._veclist.append( \
+                            [RangeSet.fromone(rg, autostep=autostep) \
+                                for rg in rgvec])
+                    else:
+                        self._veclist.append( \
+                            [RangeSet.fromone(rg, pad, autostep) \
+                                for rg, pad in zip(rgvec, pads)])
+
+    class precond_fold(object):
+        """Decorator to ease internal folding management"""
+        def __call__(self, func):
+            def inner(*args, **kwargs):
+                rgnd, fargs = args[0], args[1:]
+                if rgnd._dirty:
+                    rgnd._fold()
+                return func(rgnd, *fargs, **kwargs)
+            # modify the decorator meta-data for pydoc
+            # Note: should be later replaced  by @wraps (functools)
+            # as of Python 2.5
+            inner.__name__ = func.__name__
+            inner.__doc__ = func.__doc__
+            inner.__dict__ = func.__dict__
+            inner.__module__ = func.__module__
+            return inner
+
+    @precond_fold()
+    def copy(self):
+        """Return a shallow copy of a RangeSetND."""
+        cpy = self.__class__()
+        cpy._veclist = list(self._veclist)
+        cpy._dirty = self._dirty
+        return cpy
+
+    __copy__ = copy # For the copy module
+
+    def __eq__(self, other):
+        """
+        RangeSetND equality comparison.
+        """
+        # Return NotImplemented instead of raising TypeError, to
+        # indicate that the comparison is not implemented with respect
+        # to the other type (the other comparand then gets a change to
+        # determine the result, then it falls back to object address
+        # comparison).
+        if not isinstance(other, RangeSetND):
+            return NotImplemented
+        return len(self) == len(other) and self.issubset(other)
+
+    def __nonzero__(self):
+        return bool(self._veclist)
+
+    def __len__(self):
+        """Count unique elements in N-dimensional rangeset."""
+        return sum([reduce(mul, [len(rg) for rg in rgvec]) \
+                                 for rgvec in self.veclist])
+
+    @precond_fold()
+    def __str__(self):
+        """String representation of N-dimensional RangeSet."""
+        result = ""
+        for rgvec in self._veclist:
+            result += "; ".join([str(rg) for rg in rgvec])
+            result += "\n"
+        return result
+
+    @precond_fold()
+    def __iter__(self):
+        return self._iter()
+
+    def _iter(self):
+        """Iterate through individual items as tuples."""
+        for vec in self._veclist:
+            for ivec in product(*vec):
+                yield ivec
+
+    @precond_fold()
+    def iter_padding(self):
+        """Iterate through individual items as tuples with padding info."""
+        for vec in self._veclist:
+            for ivec in product(*vec):
+                yield ivec, [rg.padding for rg in vec]
+
+    @precond_fold()
+    def _get_veclist(self):
+        """Get folded veclist"""
+        return self._veclist
+
+    def _set_veclist(self, val):
+        """Set veclist and set dirty flag for deferred folding."""
+        self._veclist = val
+        self._dirty = True
+
+    veclist = property(_get_veclist, _set_veclist)
+
+    def vectors(self):
+        """Get underlying RangeSet vectors"""
+        return iter(self.veclist)
+
+    def dim(self):
+        """Get the current number of dimensions of this RangeSetND
+        object.  Return 0 when object is empty."""
+        try:
+            return len(self._veclist[0])
+        except IndexError:
+            return 0
+
+    def pads(self):
+        """Get a tuple of padding length info for each dimension."""
+        try:
+            return tuple(rg.padding for rg in self._veclist[0])
+        except IndexError:
+            return ()
+
+    @property
+    def autostep(self):
+        return self._veclist[0][0].autostep
+        #return max(rg.autostep for rg in rgvec for rgvec in self.veclist)
+
+    @precond_fold()
+    def __getitem__(self, index):
+        """
+        Return the element at index or a subrange when a slice is specified.
+        """
+        if isinstance(index, slice):
+            iveclist = []
+            for rgvec in self._veclist:
+                iveclist += product(*rgvec)
+            assert(len(iveclist) == len(self))
+            rnd = RangeSetND(iveclist[index],
+                             pads=[rg.padding for rg in self._veclist[0]],
+                             autostep=self.autostep)
+            return rnd
+
+        elif isinstance(index, int):
+            # find a tuple of integer (multi-dimensional) at position index
+            if index < 0:
+                length = len(self)
+                if index >= -length:
+                    index = length + index
+                else:
+                    raise IndexError, "%d out of range" % index
+            length = 0
+            for rgvec in self._veclist:
+                cnt = reduce(mul, [len(rg) for rg in rgvec])
+                if length + cnt < index:
+                    length += cnt
+                else:
+                    for ivec in product(*rgvec):
+                        if index == length:
+                            return ivec
+                        length += 1
+            raise IndexError, "%d out of range" % index
+        else:
+            raise TypeError, \
+                "%s indices must be integers" % self.__class__.__name__
+
+    @precond_fold()
+    def contiguous(self):
+        """Object-based iterator over contiguous range sets."""
+        veclist = self._veclist
+        try:
+            dim = len(veclist[0])
+        except IndexError:
+            return
+        for dimidx in range(dim):
+            new_veclist = []
+            for rgvec in veclist:
+                for rgsli in rgvec[dimidx].contiguous():
+                    rgvec = list(rgvec)
+                    rgvec[dimidx] = rgsli
+                    new_veclist.append(rgvec)
+            veclist = new_veclist
+        for rgvec in veclist:
+            yield RangeSetND([rgvec])
+
+    # Membership test
+
+    @precond_fold()
+    def __contains__(self, element):
+        """Report whether an element is a member of a RangeSetND.
+        Element can be either another RangeSetND object, a string or
+        an integer.
+
+        (Called in response to the expression `element in self'.)
+        """
+        if isinstance(element, RangeSetND):
+            rgnd_element = element
+        else:
+            rgnd_element = RangeSetND([[str(element)]])
+        return rgnd_element.issubset(self)
+
+    # Subset and superset test
+
+    def issubset(self, other):
+        """Report whether another set contains this RangeSetND."""
+        self._binary_sanity_check(other)
+        return other.issuperset(self)
+
+    @precond_fold()
+    def issuperset(self, other):
+        """Report whether this RangeSetND contains another RangeSetND."""
+        self._binary_sanity_check(other)
+        if self.dim() == 1 and other.dim() == 1:
+            return self._veclist[0][0].issuperset(other._veclist[0][0])
+        if not other._veclist:
+            return True
+        test = other.copy()
+        test.difference_update(self)
+        return not bool(test)
+
+    # Inequality comparisons using the is-subset relation.
+    __le__ = issubset
+    __ge__ = issuperset
+
+    def __lt__(self, other):
+        self._binary_sanity_check(other)
+        return len(self) < len(other) and self.issubset(other)
+
+    def __gt__(self, other):
+        self._binary_sanity_check(other)
+        return len(self) > len(other) and self.issuperset(other)
+
+    # Assorted helpers
+
+    def _binary_sanity_check(self, other):
+        """Check that the other argument to a binary operation is also a
+        RangeSetND, raising a TypeError otherwise."""
+        if not isinstance(other, RangeSetND):
+            raise TypeError, \
+                "Binary operation only permitted between RangeSetND"
+
+    def _sort(self):
+        """N-dimensional sorting."""
+        def rgveckeyfunc(rgvec):
+            # key used for sorting purposes, based on the following
+            # conditions:
+            #   (1) larger vector first (#elements)
+            #   (2) larger dim first  (#elements)
+            #   (3) lower first index first
+            #   (4) lower last index first
+            return (-reduce(mul, [len(rg) for rg in rgvec]), \
+                    tuple((-len(rg), rg[0], rg[-1]) for rg in rgvec))
+        self._veclist.sort(key=rgveckeyfunc)
+
+    @precond_fold()
+    def fold(self):
+        """Explicit folding call. Please note that folding of RangeSetND
+        nD vectors are automatically managed, so you should not have to
+        call this method. It may be still useful in some extreme cases
+        where the RangeSetND is heavily modified."""
+        pass
+
+    def _fold(self):
+        """In-place N-dimensional folding."""
+        assert self._dirty
+        if len(self._veclist) > 1:
+            self._fold_univariate() or self._fold_multivariate()
+        else:
+            self._dirty = False
+
+    def _fold_univariate(self):
+        """Univariate nD folding. Return True on success and False when
+        a multivariate folding is required."""
+        dim = self.dim()
+        vardim = dimdiff = 0
+        if dim > 1:
+            # We got more than one dimension, see if only one is changing...
+            for i in range(dim):
+                # Are all rangesets on this dimension the same?
+                slist = [vec[i] for vec in self._veclist]
+                if slist.count(slist[0]) != len(slist):
+                    dimdiff += 1
+                    if dimdiff > 1:
+                        break
+                    vardim = i
+        univar = (dim == 1 or dimdiff == 1)
+        if univar:
+            # Eligible for univariate folding (faster!)
+            for vec in self._veclist[1:]:
+                self._veclist[0][vardim].update(vec[vardim])
+            del self._veclist[1:]
+            self._dirty = False
+        self._multivar_hint = not univar
+        return univar
+
+    def _fold_multivariate(self):
+        """Multivariate nD folding"""
+        # PHASE 1: expand with respect to uniqueness
+        self._fold_multivariate_expand()
+        self._sort()
+        # PHASE 2: merge
+        self._fold_multivariate_merge()
+        self._sort()
+        self._dirty = False
+
+    def _fold_multivariate_expand(self):
+        """Multivariate nD folding: expand [phase 1]"""
+        max_length = sum([reduce(mul, [len(rg) for rg in rgvec]) \
+                                       for rgvec in self._veclist])
+        # Simple heuristic that makes us faster
+        if len(self._veclist) * (len(self._veclist) - 1) / 2 > max_length * 10:
+            # *** nD full expand is preferred ***
+            self._veclist = [[RangeSet.fromone(i) for i in tvec] \
+                             for tvec in set(self._iter())]
+            return
+
+        # *** nD compare algorithm is preferred ***
+        index1, index2 = 0, 1
+        while (index1 + 1) < len(self._veclist):
+            # use 2 references on iterator to compare items by couples
+            item1 = self._veclist[index1]
+            index2 = index1 + 1
+            index1 += 1
+            while index2 < len(self._veclist):
+                item2 = self._veclist[index2]
+                index2 += 1
+                new_item = None
+                disjoint = False
+                suppl = []
+                for pos, (rg1, rg2) in enumerate(zip(item1, item2)):
+                    if not rg1 & rg2:
+                        disjoint = True
+                        break
+
+                    if new_item is None:
+                        new_item = [None] * len(item1)
+
+                    if rg1 == rg2:
+                        new_item[pos] = rg1
+                    else:
+                        assert rg1 & rg2
+                        # intersection
+                        new_item[pos] = rg1 & rg2
+                        # create part 1
+                        if rg1 - rg2:
+                            item1_p = item1[0:pos] + [rg1 - rg2] + item1[pos+1:]
+                            suppl.append(item1_p)
+                        # create part 2
+                        if rg2 - rg1:
+                            item2_p = item2[0:pos] + [rg2 - rg1] + item2[pos+1:]
+                            suppl.append(item2_p)
+                if not disjoint:
+                    assert new_item is not None
+                    assert suppl is not None
+                    item1 = self._veclist[index1 - 1] = new_item
+                    index2 -= 1
+                    self._veclist.pop(index2)
+                    self._veclist += suppl
+
+    def _fold_multivariate_merge(self):
+        """Multivariate nD folding: merge [phase 2]"""
+        chg = True
+        while chg:
+            chg = False
+            index1, index2 = 0, 1
+            while (index1 + 1) < len(self._veclist):
+                # use 2 references on iterator to compare items by couples
+                item1 = self._veclist[index1]
+                index2 = index1 + 1
+                index1 += 1
+                while index2 < len(self._veclist):
+                    item2 = self._veclist[index2]
+                    index2 += 1
+                    new_item = [None] * len(item1)
+                    nb_diff = 0
+                    # compare 2 rangeset vector, item by item, the idea being
+                    # to merge vectors if they differ only by one item
+                    for pos, (rg1, rg2) in enumerate(zip(item1, item2)):
+                        if rg1 == rg2:
+                            new_item[pos] = rg1
+                        elif not rg1 & rg2: # merge on disjoint ranges
+                            nb_diff += 1
+                            if nb_diff > 1:
+                                break
+                            new_item[pos] = rg1 | rg2
+                        # if fully contained, keep the largest one
+                        elif (rg1 > rg2 or rg1 < rg2): # and nb_diff == 0:
+                            nb_diff += 1
+                            if nb_diff > 1:
+                                break
+                            new_item[pos] = max(rg1, rg2)
+                        # otherwise, compute rangeset intersection and
+                        # keep the two disjoint part to be handled
+                        # later...
+                        else:
+                            # intersection but do nothing
+                            nb_diff = 2
+                            break
+                    # one change has been done: use this new item to compare
+                    # with other
+                    if nb_diff <= 1:
+                        chg = True
+                        item1 = self._veclist[index1 - 1] = new_item
+                        index2 -= 1
+                        self._veclist.pop(index2)
+
+    def __or__(self, other):
+        """Return the union of two RangeSetNDs as a new RangeSetND.
+
+        (I.e. all elements that are in either set.)
+        """
+        if not isinstance(other, RangeSetND):
+            return NotImplemented
+        return self.union(other)
+
+    def union(self, other):
+        """Return the union of two RangeSetNDs as a new RangeSetND.
+
+        (I.e. all elements that are in either set.)
+        """
+        rgnd_copy = self.copy()
+        rgnd_copy.update(other)
+        return rgnd_copy
+
+    def update(self, other):
+        """Add all RangeSetND elements to this RangeSetND."""
+        if isinstance(other, RangeSetND):
+            iterable = other._veclist
+        else:
+            iterable = other
+        for vec in iterable:
+            # we could avoid rg.copy() here if 'other' is a RangeSetND
+            # with immutable underlying RangeSets...
+            assert isinstance(vec[0], RangeSet)
+            self._veclist.append([rg.copy() for rg in vec])
+        self._dirty = True
+        if not self._multivar_hint:
+            self._fold_univariate()
+
+    union_update = update
+
+    def __ior__(self, other):
+        """Update a RangeSetND with the union of itself and another."""
+        self._binary_sanity_check(other)
+        self.update(other)
+        return self
+
+    def __isub__(self, other):
+        """Remove all elements of another set from this RangeSetND."""
+        self._binary_sanity_check(other)
+        self.difference_update(other)
+        return self
+
+    def difference_update(self, other, strict=False):
+        """Remove all elements of another set from this RangeSetND.
+
+        If strict is True, raise KeyError if an element cannot be removed.
+        (strict is a RangeSet addition)"""
+        if strict and not other in self:
+            raise KeyError(other.difference(self)[0])
+
+        ergvx = other._veclist # read only
+        rgnd_new = []
+        index1 = 0
+        while index1 < len(self._veclist):
+            rgvec1 = self._veclist[index1]
+            procvx1 = [ rgvec1 ]
+            nextvx1 = []
+            index2 = 0
+            while index2 < len(ergvx):
+                rgvec2 = ergvx[index2]
+                while len(procvx1) > 0: # refine diff for each resulting vector
+                    rgproc1 = procvx1.pop(0)
+                    tmpvx = []
+                    for pos, (rg1, rg2) in enumerate(zip(rgproc1, rgvec2)):
+                        if rg1 == rg2 or rg1 < rg2: # issubset
+                            pass
+                        elif rg1 & rg2:             # intersect
+                            tmpvec = list(rgproc1)
+                            tmpvec[pos] = rg1.difference(rg2)
+                            tmpvx.append(tmpvec)
+                        else:                       # disjoint
+                            tmpvx = [ rgproc1 ]     # reset previous work
+                            break
+                    if tmpvx:
+                        nextvx1 += tmpvx
+                if nextvx1:
+                    procvx1 = nextvx1
+                    nextvx1 = []
+                index2 += 1
+            if procvx1:
+                rgnd_new += procvx1
+            index1 += 1
+        self.veclist = rgnd_new
+
+    def __sub__(self, other):
+        """Return the difference of two RangeSetNDs as a new RangeSetND.
+
+        (I.e. all elements that are in this set and not in the other.)
+        """
+        if not isinstance(other, RangeSetND):
+            return NotImplemented
+        return self.difference(other)
+
+    def difference(self, other):
+        """
+        s.difference(t) returns a new object with elements in s but not
+        in t.
+        """
+        self_copy = self.copy()
+        self_copy.difference_update(other)
+        return self_copy
+
+    def intersection(self, other):
+        """
+        s.intersection(t) returns a new object with elements common to s
+        and t.
+        """
+        self_copy = self.copy()
+        self_copy.intersection_update(other)
+        return self_copy
+
+    def __and__(self, other):
+        """
+        Implements the & operator. So s & t returns a new object with
+        elements common to s and t.
+        """
+        if not isinstance(other, RangeSetND):
+            return NotImplemented
+        return self.intersection(other)
+
+    def intersection_update(self, other):
+        """
+        s.intersection_update(t) returns nodeset s keeping only
+        elements also found in t.
+        """
+        if other is self:
+            return
+
+        tmp_rnd = RangeSetND()
+
+        empty_rset = RangeSet()
+
+        for rgvec in self._veclist:
+            for ergvec in other._veclist:
+                irgvec = [rg.intersection(erg) \
+                            for rg, erg in zip(rgvec, ergvec)]
+                if not empty_rset in irgvec:
+                    tmp_rnd.update([irgvec])
+        # substitute
+        self.veclist = tmp_rnd.veclist
+
+    def __iand__(self, other):
+        """
+        Implements the &= operator. So s &= t returns object s keeping
+        only elements also found in t. (Python version 2.5+ required)
+        """
+        self._binary_sanity_check(other)
+        self.intersection_update(other)
+        return self
+
+    def symmetric_difference(self, other):
+        """
+        s.symmetric_difference(t) returns the symmetric difference of
+        two objects as a new RangeSetND.
+
+        (ie. all items that are in exactly one of the RangeSetND.)
+        """
+        self_copy = self.copy()
+        self_copy.symmetric_difference_update(other)
+        return self_copy
+
+    def __xor__(self, other):
+        """
+        Implement the ^ operator. So s ^ t returns a new RangeSetND with
+        nodes that are in exactly one of the RangeSetND.
+        """
+        if not isinstance(other, RangeSetND):
+            return NotImplemented
+        return self.symmetric_difference(other)
+
+    def symmetric_difference_update(self, other):
+        """
+        s.symmetric_difference_update(t) returns RangeSetND s keeping all
+        nodes that are in exactly one of the objects.
+        """
+        diff2 = other.difference(self)
+        self.difference_update(other)
+        self.update(diff2)
+
+    def __ixor__(self, other):
+        """
+        Implement the ^= operator. So s ^= t returns object s after
+        keeping all items that are in exactly one of the RangeSetND.
+        (Python version 2.5+ required)
+        """
+        self._binary_sanity_check(other)
+        self.symmetric_difference_update(other)
+        return self
 

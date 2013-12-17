@@ -373,6 +373,14 @@ class RangeSetTest(unittest.TestCase):
     def testIsSubSet(self):
         """test RangeSet.issubset()"""
         r1 = RangeSet("1-100,102,105-242,800-900/2")
+        self.assertTrue(r1.issubset(r1))
+        self.assertTrue(r1.issuperset(r1))
+        r2 = RangeSet()
+        self.assertTrue(r2.issubset(r1))
+        self.assertTrue(r1.issuperset(r2))
+        self.assertFalse(r1.issubset(r2))
+        self.assertFalse(r2.issuperset(r1))
+        r1 = RangeSet("1-100,102,105-242,800-900/2")
         r2 = RangeSet("3,800,802,804,888")
         self.assertTrue(r2.issubset(r2))
         self.assertTrue(r2.issubset(r1))
@@ -1076,8 +1084,16 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "1,6-9,33-34,36-39,42")
 
     def test_contiguous(self):
+        r0 = RangeSet()
+        self.assertEqual([], [str(ns) for ns in r0.contiguous()])
         r1 = RangeSet("1,3-9,14-21,30-39,42")
         self.assertEqual(['1', '3-9', '14-21', '30-39', '42'], [str(ns) for ns in r1.contiguous()])
+
+    def test_dim(self):
+        r0 = RangeSet()
+        self.assertEqual(r0.dim(), 0)
+        r1 = RangeSet("1-10,15-20")
+        self.assertEqual(r1.dim(), 1)
 
 
 if __name__ == '__main__':
