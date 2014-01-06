@@ -1170,6 +1170,12 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet.contiguous() iterator"""
         ns1 = NodeSet("cors,roma[50-61]-ipmi,cors[113,115-117,130,166-169],cws-tigrou,tigrou3")
         self.assertEqual(['cors', 'cors113', 'cors[115-117]', 'cors130', 'cors[166-169]', 'cws-tigrou', 'roma[50-61]-ipmi', 'tigrou3'], [str(ns) for ns in ns1.contiguous()])
+        # check if NodeSet instances returned by contiguous() iterator are not the same
+        testlist = list(ns1.contiguous())
+        for i in range(len(testlist)):
+            for j in range(i + 1, len(testlist)):
+                self.assertNotEqual(testlist[i], testlist[j])
+                self.assertNotEqual(id(testlist[i]), id(testlist[j]))
 
     def testEqualityMore(self):
         """test NodeSet equality (more)"""

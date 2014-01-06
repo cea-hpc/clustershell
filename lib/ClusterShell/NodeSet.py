@@ -87,12 +87,15 @@ NOGROUP_RESOLVER = RESOLVER_NOGROUP
 class NodeSetException(Exception):
     """Base NodeSet exception class."""
 
-class NodeSetParseError(NodeSetException):
+class NodeSetError(NodeSetException):
+    """Raised when an error is encountered."""
+
+class NodeSetParseError(NodeSetError):
     """Raised when NodeSet parsing cannot be done properly."""
     def __init__(self, part, msg):
         if part:
             msg = "%s : \"%s\"" % (msg, part)
-        NodeSetException.__init__(self, msg)
+        NodeSetError.__init__(self, msg)
         # faulty part; this allows you to target the error
         self.part = part
 
@@ -101,7 +104,7 @@ class NodeSetParseRangeError(NodeSetParseError):
     def __init__(self, rset_exc):
         NodeSetParseError.__init__(self, str(rset_exc), "bad range")
 
-class NodeSetExternalError(NodeSetException):
+class NodeSetExternalError(NodeSetError):
     """Raised when an external error is encountered."""
 
 
@@ -180,12 +183,13 @@ class NodeSetBase(object):
         Contiguous node set contains nodes with same pattern name and a
         contiguous range of indexes, like foobar[1-100]."""
         for pat, rangeset in sorted(self._patterns.iteritems()):
-            ns = self.__class__()
             if rangeset:
                 for cont_rset in rangeset.contiguous():
+                    ns = self.__class__()
                     ns._add_new(pat, cont_rset)
                     yield ns
             else:
+                ns = self.__class__()
                 ns._add_new(pat, None)
                 yield ns
 
@@ -379,29 +383,25 @@ class NodeSetBase(object):
         """Add nodes from a (pat, rangeset) tuple.
         Predicate: pattern does not exist in current set. RangeSet object is
         referenced (not copied)."""
-        if rangeset:
-            # create new pattern
-            self._patterns[pat] = rangeset
-        else:
-            # create new pattern with no rangeset (single node)
-            self._patterns[pat] = None
+        assert pat not in self._patterns
+        self._patterns[pat] = rangeset
 
     def _add(self, pat, rangeset, copy_rangeset=True):
         """Add nodes from a (pat, rangeset) tuple.
         `pat' may be an existing pattern and `rangeset' may be None.
         RangeSet object is copied if re-used internally when provided and if
         copy_rangeset flag is set."""
-        # get patterns dict entry
-        pat_e = self._patterns.get(pat)
-
-        if pat_e:
-            # don't play with prefix: if there is a value, there is a
-            # rangeset.
-            assert rangeset is not None
-
-            # add rangeset in corresponding pattern rangeset
-            pat_e.update(rangeset)
+        if pat in self._patterns:
+            # existing pattern: get RangeSet entry...
+            pat_e = self._patterns[pat]
+            # sanity checks
+            if (pat_e is None) is not (rangeset is None):
+                raise NodeSetError("Invalid operation")
+            # entry may exist but set to None (single node)
+            if pat_e:
+                pat_e.update(rangeset)
         else:
+            # new pattern...
             if rangeset and copy_rangeset:
                 rangeset = rangeset.copy()
             self._add_new(pat, rangeset)

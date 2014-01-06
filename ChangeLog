@@ -1,3 +1,9 @@
+2014-01-06 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Fix internal implementation of NodeSet.contiguous(), that
+	is, as NodeSet is mutable, we should avoid using the same NodeSet instance
+	in NodeSet.contiguous() for different NodeSet values.
+
 2013-12-17 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: fix task.iter_buffers() and worker.iter_buffers() to allow

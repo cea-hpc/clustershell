@@ -11,7 +11,9 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
+from ClusterShell.RangeSet import RangeSet
 from ClusterShell.NodeSet import NodeSet
+from ClusterShell.NodeSet import NodeSetError
 from ClusterShell.NodeSet import NodeSetParseError
 from ClusterShell.NodeSet import NodeSetParseRangeError
 
@@ -65,6 +67,12 @@ class NodeSetErrorTest(unittest.TestCase):
         """test NodeSet input type sanity check"""
         self.assertRaises(TypeError, NodeSet, dict())
         self.assertRaises(TypeError, NodeSet, list())
+
+    def testRangeSetEntryMismatch(self):
+        """test NodeSet RangeSet entry mismatch"""
+        nodeset = NodeSet("toto%s")
+        rangeset = RangeSet("5")
+        self.assertRaises(NodeSetError, nodeset._add, "toto%%s", rangeset)
 
 
 if __name__ == '__main__':
