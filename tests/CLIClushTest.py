@@ -8,6 +8,7 @@
 import pwd
 import subprocess
 import sys
+import time
 import unittest
 
 from TLib import *
@@ -28,7 +29,12 @@ class CLIClushTest(unittest.TestCase):
         """This new version allows code coverage checking by calling clush's
         main entry point."""
         def raw_input_mock(prompt):
-            time.sleep(3600)
+            # trusty sleep
+            wait_time = 60
+            start = time.time()
+            while (time.time() - start < wait_time):
+                time.sleep(wait_time - (time.time() - start))
+            return ""
         ClusterShell.CLI.Clush.raw_input = raw_input_mock
         try:
             CLI_main(self, main, [ 'clush' ] + args, input, expected_stdout,

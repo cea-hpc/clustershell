@@ -392,6 +392,7 @@ def ttyloop(task, nodeset, timeout, display):
                 signal.signal(signal.SIGUSR1, signal_handler)
             try:
                 cmd = raw_input(prompt)
+                assert cmd is not None, "Result of raw_input() is None!"
             finally:
                 signal.signal(signal.SIGUSR1, signal.SIG_IGN)
         except EOFError:
