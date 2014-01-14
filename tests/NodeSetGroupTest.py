@@ -15,7 +15,6 @@ sys.path.insert(0, '../lib')
 from TLib import *
 
 # Wildcard import for testing purpose
-import ClusterShell.NodeSet
 from ClusterShell.NodeSet import *
 from ClusterShell.NodeUtils import *
 
@@ -665,12 +664,13 @@ class NodeSetGroup2GSTest(unittest.TestCase):
                               "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups2.name,
                               None)
 
-        ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolver(default)
-        ClusterShell.NodeSet.RESOLVER_STD_GROUP.add_source(source2)
+        resolver = GroupResolver(default)
+        resolver.add_source(source2)
+        set_std_group_resolver(resolver)
 
     def tearDown(self):
         """restore default RESOLVER_STD_GROUP"""
-        ClusterShell.NodeSet.RESOLVER_STD_GROUP = ClusterShell.NodeSet.DEF_RESOLVER_STD_GROUP
+        set_std_group_resolver(None)
         del self.test_groups1
         del self.test_groups2
 
@@ -689,7 +689,7 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
     def testGroupListDefault(self):
         """test NodeSet group listing GroupResolver.grouplist()"""
-        groups = ClusterShell.NodeSet.RESOLVER_STD_GROUP.grouplist()
+        groups = std_group_resolver().grouplist()
         self.assertEqual(len(groups), 20)
         helper_groups = grouplist()
         self.assertEqual(len(helper_groups), 20)
@@ -707,7 +707,7 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
     def testGroupListSource2(self):
         """test NodeSet group listing GroupResolver.grouplist(source)"""
-        groups = ClusterShell.NodeSet.RESOLVER_STD_GROUP.grouplist("source2")
+        groups = std_group_resolver().grouplist("source2")
         self.assertEqual(len(groups), 2)
         total = 0
         for group in groups:

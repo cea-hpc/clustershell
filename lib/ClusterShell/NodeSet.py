@@ -71,10 +71,10 @@ from ClusterShell.RangeSet import RangeSet, RangeSetND, RangeSetParseError
 # Define default GroupResolver object used by NodeSet
 DEF_GROUPS_CONFIG = "/etc/clustershell/groups.conf"
 ILLEGAL_GROUP_CHARS = set("@,!&^*")
-DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG, \
-                            ILLEGAL_GROUP_CHARS)
+_DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG, \
+                                                        ILLEGAL_GROUP_CHARS)
 # Standard group resolver
-RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
+RESOLVER_STD_GROUP = _DEF_RESOLVER_STD_GROUP
 # Special constants for NodeSet's resolver parameter
 #   RESOLVER_NOGROUP => avoid any group resolution at all
 #   RESOLVER_NOINIT  => reserved use for optimized copy()
@@ -1191,7 +1191,7 @@ class NodeSet(NodeSetBase):
         """
         groups = self._groups2(groupsource, self._autostep)
         result = {}
-        for grp, (i, nsb) in groups.iteritems():
+        for grp, (_, nsb) in groups.iteritems():
             if groupsource and not noprefix:
                 key = "@%s:%s" % (groupsource, grp)
             else:
@@ -1224,7 +1224,7 @@ class NodeSet(NodeSetBase):
         bigalpha = lambda x, y: cmp(y[0], x[0]) or cmp(x[1], y[1])
 
         # Build regrouped NodeSet by selecting largest groups first.
-        for num, grp in sorted(fulls, cmp=bigalpha):
+        for _, grp in sorted(fulls, cmp=bigalpha):
             if not overlap and groups[grp][1] not in rest:
                 continue
             if groupsource and not noprefix:
@@ -1345,14 +1345,19 @@ def grouplist(namespace=None):
     """
     return RESOLVER_STD_GROUP.grouplist(namespace)
 
+def std_group_resolver():
+    """
+    Get the current resolver used for standard "@" group resolution.
+    """
+    return RESOLVER_STD_GROUP
 
-# doctest
-
-def _test():
-    """run inline doctest"""
-    import doctest
-    doctest.testmod()
-
-if __name__ == '__main__':
-    _test()
+def set_std_group_resolver(new_resolver):
+    """
+    Override the resolver used for standard "@" group resolution. The
+    new resolver should be either an instance of
+    NodeUtils.GroupResolver or None. In the latter case, the group
+    resolver is restored to the default one.
+    """
+    global RESOLVER_STD_GROUP
+    RESOLVER_STD_GROUP = new_resolver or _DEF_RESOLVER_STD_GROUP
 

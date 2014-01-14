@@ -42,7 +42,7 @@ from itertools import imap
 import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
-from ClusterShell.NodeSet import RESOLVER_STD_GROUP, NodeSetParseError
+from ClusterShell.NodeSet import NodeSetParseError, std_group_resolver
 
 from ClusterShell.CLI.Display import Display, THREE_CHOICES
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
@@ -167,7 +167,7 @@ def clubak():
     try:
         disp = Display(options)
         if options.debug:
-            RESOLVER_STD_GROUP.set_verbosity(1)
+            std_group_resolver().set_verbosity(1)
             print >> sys.stderr, \
                 "clubak: line_mode=%s gather=%s tree_depth=%d" % \
                     (bool(options.line_mode), bool(disp.gather), tree._depth())

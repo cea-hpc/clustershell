@@ -61,7 +61,7 @@ from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
-from ClusterShell.NodeSet import RESOLVER_NOGROUP, RESOLVER_STD_GROUP
+from ClusterShell.NodeSet import RESOLVER_NOGROUP, std_group_resolver
 from ClusterShell.NodeSet import NodeSetParseError
 from ClusterShell.Task import Task, task_self
 
@@ -711,7 +711,7 @@ def main():
 
     if options.groupsource:
         # Be sure -a/g -s source work as espected.
-        RESOLVER_STD_GROUP.default_sourcename = options.groupsource
+        std_group_resolver().default_sourcename = options.groupsource
 
     # FIXME: add public API to enforce engine
     Task._std_default['engine'] = options.engine
@@ -720,7 +720,7 @@ def main():
     task = task_self()
     task.set_info("debug", config.verbosity >= VERB_DEBUG)
     if config.verbosity == VERB_DEBUG:
-        RESOLVER_STD_GROUP.set_verbosity(1)
+        std_group_resolver().set_verbosity(1)
     if options.nodes_all:
         all_nodeset = NodeSet.fromall()
         display.vprint(VERB_DEBUG, "Adding nodes from option -a: %s" % \

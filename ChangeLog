@@ -12,6 +12,14 @@
 	optimization when only one dimension is varying. Patch by
 	aurelien.degremont@cea.fr and stephane.thiell@cea.fr.
 
+2014-01-14 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: Define module API to access and set group resolver used for
+	@-prefixed (eg. '@group') resolution. This is used to circumvent accessing
+	and setting NodeSet module's variable 'RESOLVER_STD_GROUP' directly, which
+	is not convenient and error prone. The new functions are
+	std_group_resolver() and set_std_group_resolver(). Updated User Guide.
+
 2014-01-06 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fix internal implementation of NodeSet.contiguous(), that

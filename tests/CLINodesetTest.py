@@ -12,17 +12,19 @@ from TLib import *
 from ClusterShell.CLI.Nodeset import main
 
 from ClusterShell.NodeUtils import GroupResolverConfig
-from ClusterShell.NodeSet import DEF_RESOLVER_STD_GROUP
-import ClusterShell.NodeSet
+from ClusterShell.NodeSet import std_group_resolver, set_std_group_resolver
 
-
-class CLINodesetTest(unittest.TestCase):
-    """Unit test class for testing CLI/Nodeset.py"""
+class CLINodesetTestBase(unittest.TestCase):
+    """Base unit test class for testing CLI/Nodeset.py"""
 
     def _nodeset_t(self, args, input, expected_stdout, expected_rc=0,
                    expected_stderr=None):
         CLI_main(self, main, [ 'nodeset' ] + args, input, expected_stdout,
                  expected_rc, expected_stderr)
+
+
+class CLINodesetTest(CLINodesetTestBase):
+    """Unit test class for testing CLI/Nodeset.py"""
 
     def _battery_count(self, args):
         self._nodeset_t(args + ["--count", "foo"], None, "1\n")
@@ -352,9 +354,11 @@ class CLINodesetTest(unittest.TestCase):
         self._nodeset_t(["-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
         self._nodeset_t(["--autostep=2", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42-68/2,90]\n")
 
-    def test_022_list(self):
-        """test nodeset --list"""
+class CLINodesetGroupResolverTest1(CLINodesetTestBase):
+    """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
 
+    def setUp(self):
+        # Special tests that require a default group source set
         f = make_temp_file("""
 [Main]
 default: local
@@ -364,29 +368,34 @@ map: echo example[1-100]
 all: echo example[1-1000]
 list: echo foo bar moo
         """)
-        ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolverConfig(f.name)
-        try:
-            self._nodeset_t(["--list"], None, "@foo\n@bar\n@moo\n")
-            self._nodeset_t(["-ll"], None, "@foo example[1-100]\n@bar example[1-100]\n@moo example[1-100]\n")
-            self._nodeset_t(["-lll"], None, "@foo example[1-100] 100\n@bar example[1-100] 100\n@moo example[1-100] 100\n")
-            self._nodeset_t(["-l", "example[4,95]", "example5"], None, "@moo\n@bar\n@foo\n")
-            self._nodeset_t(["-ll", "example[4,95]", "example5"], None, "@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
-            self._nodeset_t(["-lll", "example[4,95]", "example5"], None, "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
-            # test empty result
-            self._nodeset_t(["-l", "foo[3-70]", "bar6"], None, "")
-            # more arg-mixed tests
-            self._nodeset_t(["-a", "-l"], None, "@moo\n@bar\n@foo\n")
-            self._nodeset_t(["-a", "-l", "-x example[1-100]"], None, "")
-            self._nodeset_t(["-a", "-l", "-x example[1-40]"], None, "@moo\n@bar\n@foo\n")
-            self._nodeset_t(["-l", "-x example3"], None, "") # no -a, remove from nothing
-            self._nodeset_t(["-l", "-i example3"], None, "") # no -a, intersect from nothing
-            self._nodeset_t(["-l", "-X example3"], None, "@moo\n@bar\n@foo\n") # no -a, xor from nothing
-            self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", "@moo\n@bar\n@foo\n")
-        finally:
-            ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
+        set_std_group_resolver(GroupResolverConfig(f.name))
 
-    def test_023_groups(self):
-        """test nodeset with groups"""
+    def tearDown(self):
+        set_std_group_resolver(None)
+
+    def test_022_list(self):
+        """test nodeset --list"""
+        self._nodeset_t(["--list"], None, "@foo\n@bar\n@moo\n")
+        self._nodeset_t(["-ll"], None, "@foo example[1-100]\n@bar example[1-100]\n@moo example[1-100]\n")
+        self._nodeset_t(["-lll"], None, "@foo example[1-100] 100\n@bar example[1-100] 100\n@moo example[1-100] 100\n")
+        self._nodeset_t(["-l", "example[4,95]", "example5"], None, "@moo\n@bar\n@foo\n")
+        self._nodeset_t(["-ll", "example[4,95]", "example5"], None, "@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
+        self._nodeset_t(["-lll", "example[4,95]", "example5"], None, "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
+        # test empty result
+        self._nodeset_t(["-l", "foo[3-70]", "bar6"], None, "")
+        # more arg-mixed tests
+        self._nodeset_t(["-a", "-l"], None, "@moo\n@bar\n@foo\n")
+        self._nodeset_t(["-a", "-l", "-x example[1-100]"], None, "")
+        self._nodeset_t(["-a", "-l", "-x example[1-40]"], None, "@moo\n@bar\n@foo\n")
+        self._nodeset_t(["-l", "-x example3"], None, "") # no -a, remove from nothing
+        self._nodeset_t(["-l", "-i example3"], None, "") # no -a, intersect from nothing
+        self._nodeset_t(["-l", "-X example3"], None, "@moo\n@bar\n@foo\n") # no -a, xor from nothing
+        self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", "@moo\n@bar\n@foo\n")
+
+class CLINodesetGroupResolverTest2(CLINodesetTestBase):
+    """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
+
+    def setUp(self):
         # Special tests that require a default group source set
         f = make_temp_file("""
 [Main]
@@ -397,24 +406,24 @@ map: echo example[1-100]
 all: echo @foo,@bar,@moo
 list: echo foo bar moo
         """)
-        ClusterShell.NodeSet.RESOLVER_STD_GROUP = GroupResolverConfig(f.name)
-        try:
-            self._nodeset_t(["--split=2","-r", "unknown2", "unknown3"], None, \
-                            "unknown2\nunknown3\n")
-            self._nodeset_t(["-f", "-a"], None, "example[1-100]\n")
-            self._nodeset_t(["-f", "@moo"], None, "example[1-100]\n")
-            self._nodeset_t(["-f", "@moo", "@bar"], None, "example[1-100]\n")
-            self._nodeset_t(["-e", "-a"], None, ' '.join(["example%d" % i for i in range(1, 101)]) + '\n')
-            self._nodeset_t(["-c", "-a"], None, "100\n")
-            self._nodeset_t(["-r", "-a"], None, "@bar\n")
-            self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
-            self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
-            self._nodeset_t(["-f", "-a", "-"], "example101\n", "example[1-101]\n")
-            self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", "example[1-102]\n")
-        finally:
-            ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
+        set_std_group_resolver(GroupResolverConfig(f.name))
 
+    def tearDown(self):
+        set_std_group_resolver(None)
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(CLINodesetTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    def test_023_groups(self):
+        """test nodeset with groups"""
+        self._nodeset_t(["--split=2","-r", "unknown2", "unknown3"], None, "unknown2\nunknown3\n")
+        self._nodeset_t(["-f", "-a"], None, "example[1-100]\n")
+        self._nodeset_t(["-f", "@moo"], None, "example[1-100]\n")
+        self._nodeset_t(["-f", "@moo", "@bar"], None, "example[1-100]\n")
+        self._nodeset_t(["-e", "-a"], None, ' '.join(["example%d" % i for i in range(1, 101)]) + '\n')
+        self._nodeset_t(["-c", "-a"], None, "100\n")
+        self._nodeset_t(["-r", "-a"], None, "@bar\n")
+        self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, "100\n")
+        self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
+        self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
+        self._nodeset_t(["-s", "test", "--groupsources"], None, "test (default)\n")
+        self._nodeset_t(["-f", "-a", "-"], "example101\n", "example[1-101]\n")
+        self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", "example[1-102]\n")
+

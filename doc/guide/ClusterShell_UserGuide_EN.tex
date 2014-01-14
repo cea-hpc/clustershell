@@ -1668,24 +1668,20 @@ print NodeSet("example[4-6]").regroup()     # @mds,@oss
 It is possible to override the libary default groups configuration by changing the default \NodeSet's \textit{resolver} object. Usually, this is done for testing or special purposes. Here is an example of how to override the \textit{resolver} object in order to use another configuration file:
 \medskip
 \begin{lstlisting}[breaklines=true, breakatwhitespace=true]
-import ClusterShell.NodeSet
-from ClusterShell.NodeSet import NodeSet
+from ClusterShell.NodeSet import NodeSet, set_std_group_resolver
 from ClusterShell.NodeUtils import GroupResolverConfig
 
-ClusterShell.NodeSet.RESOLVER_STD_GROUP = \
-	GroupResolverConfig("/other/groups.conf")
+set_std_group_resolver(GroupResolverConfig("/other/groups.conf"))
 
 print NodeSet("@oss")	   # will use new resolver
 \end{lstlisting}
 
-It is possible to restore \NodeSet's default group resolver by using the special module variable \lstinline+DEF_RESOLVER_STD_GROUP+, for example:
+It is possible to restore \NodeSet's default group resolver by passing None to the \lstinline+set_std_group_resolver()+ function, for example:
 \medskip
 \begin{lstlisting}[breaklines=true, breakatwhitespace=true]
-import ClusterShell.NodeSet
-from ClusterShell.NodeSet import NodeSet, DEF_RESOLVER_STD_GROUP
-from ClusterShell.NodeUtils import GroupResolverConfig
+from ClusterShell.NodeSet import set_std_group_resolver
 
-ClusterShell.NodeSet.RESOLVER_STD_GROUP = DEF_RESOLVER_STD_GROUP
+set_std_group_resolver(None)
 \end{lstlisting}
 
 \subsubsection{Disabling node group resolution}

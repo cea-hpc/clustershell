@@ -45,7 +45,7 @@ from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Utils import NodeSet  # safe import
 
-from ClusterShell.NodeSet import RangeSet, grouplist, RESOLVER_STD_GROUP
+from ClusterShell.NodeSet import RangeSet, grouplist, std_group_resolver
 
 
 def process_stdin(xsetop, xsetcls, autostep):
@@ -142,8 +142,10 @@ def nodeset():
     parser.install_nodeset_options()
     (options, args) = parser.parse_args()
 
+    group_resolver = std_group_resolver()
+
     if options.debug:
-        RESOLVER_STD_GROUP.set_verbosity(1)
+        group_resolver.set_verbosity(1)
 
     # Check for command presence
     cmdcount = int(options.count) + int(options.expand) + \
@@ -178,7 +180,7 @@ def nodeset():
             dispdefault = ""    # don't show (default) if quiet is set
         else:
             dispdefault = " (default)"
-        for src in RESOLVER_STD_GROUP.sources():
+        for src in group_resolver.sources():
             print "%s%s" % (src, dispdefault)
             dispdefault = ""
         return
@@ -186,7 +188,7 @@ def nodeset():
     # We want -s <groupsource> to act as a substition of default groupsource
     # (ie. it's not necessary to prefix group names by this group source).
     if options.groupsource:
-        RESOLVER_STD_GROUP.default_sourcename = options.groupsource
+        group_resolver.default_sourcename = options.groupsource
 
     # Instantiate RangeSet or NodeSet object
     xset = class_set(autostep=options.autostep)
