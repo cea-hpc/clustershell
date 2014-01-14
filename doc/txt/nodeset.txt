@@ -7,7 +7,7 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-07-09
+:Date:   2014-01-14
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -17,7 +17,7 @@ compute advanced nodeset operations
 SYNOPSIS
 ========
 
- ``nodeset`` [COMMAND] [OPTIONS] [nodeset1 [-ixX] nodeset2|...]
+ ``nodeset`` [OPTIONS] [COMMAND] [nodeset1 [OPERATION] nodeset2|...]
 
 
 DESCRIPTION
@@ -83,7 +83,7 @@ The ``nodeset`` command benefits from ClusterShell NodeSet basic
 arithmetic addition. This feature extends recognized string patterns by
 supporting operators matching all Operations seen previously. String
 patterns are read from left to right, by proceeding any character
-operators accordinately. 
+operators accordingly.
 
 Supported character operators
     ``,``
