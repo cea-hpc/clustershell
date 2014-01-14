@@ -5,6 +5,7 @@
 
 """Unit test for CLI/Clush.py"""
 
+import errno
 import pwd
 import subprocess
 import sys
@@ -17,7 +18,7 @@ from ClusterShell.CLI.Clush import main
 from ClusterShell.Task import task_cleanup
 
 
-class CLIClushTest(unittest.TestCase):
+class CLIClushTest_A(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py"""
 
     def tearDown(self):
@@ -258,6 +259,30 @@ class CLIClushTest(unittest.TestCase):
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(CLIClushTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+class CLIClushTest_B_StdinFailure(unittest.TestCase):
+    """Unit test class for testing CLI/Clush.py and stdin failure"""
+
+    def setUp(self):
+        class BrokenStdinMock(object):
+            def isatty(self):
+                return False
+            def read(self, bufsize=1024):
+                raise IOError(errno.EINVAL, "Invalid argument")
+
+        sys.stdin = BrokenStdinMock()
+
+    def tearDown(self):
+        """cleanup all tasks"""
+        task_cleanup()
+        sys.stdin = sys.__stdin__
+
+    def _clush_t(self, args, input, expected_stdout, expected_rc=0,
+                  expected_stderr=None):
+        CLI_main(self, main, [ 'clush' ] + args, input, expected_stdout,
+                 expected_rc, expected_stderr)
+
+    def test_022_broken_stdin(self):
+        """test clush with broken stdin"""
+        self._clush_t(["-w", "localhost", "-v", "sleep 1"], None,
+                       "stdin: [Errno 22] Invalid argument\n", 0, "")
+

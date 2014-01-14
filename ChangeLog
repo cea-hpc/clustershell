@@ -20,6 +20,9 @@
 	is not convenient and error prone. The new functions are
 	std_group_resolver() and set_std_group_resolver(). Updated User Guide.
 
+	* CLI/Clush.py: ignore IOError on stdin reader thread, but print a warning
+	in verbose or debug mode (ticket #201).
+
 2014-01-06 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fix internal implementation of NodeSet.contiguous(), that

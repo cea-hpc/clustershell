@@ -497,23 +497,26 @@ def ttyloop(task, nodeset, timeout, display):
                 run_command(task, cmd, ns, timeout, display)
     return rc
 
-def _stdin_thread_start(stdin_port):
+def _stdin_thread_start(stdin_port, display):
     """Standard input reader thread entry point."""
-    # Note: read length should be larger and a multiple of 4096 for best
-    # performance to avoid excessive unreg/register of writer fd in
-    # engine; however, it shouldn't be too large.
-    bufsize = 4096 * 8
-    # thread loop: blocking read stdin + send messages to specified
-    #              port object
-    buf = sys.stdin.read(bufsize)
-    while buf:
-        # send message to specified port object (with ack)
-        stdin_port.msg(buf)
+    try:
+        # Note: read length should be larger and a multiple of 4096 for best
+        # performance to avoid excessive unreg/register of writer fd in
+        # engine; however, it shouldn't be too large.
+        bufsize = 4096 * 8
+        # thread loop: blocking read stdin + send messages to specified
+        #              port object
         buf = sys.stdin.read(bufsize)
+        while buf:
+            # send message to specified port object (with ack)
+            stdin_port.msg(buf)
+            buf = sys.stdin.read(bufsize)
+    except IOError, ex:
+        display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
     stdin_port.msg(None)
 
-def bind_stdin(worker):
+def bind_stdin(worker, display):
     """Create a stdin->port->worker binding: connect specified worker
     to stdin with the help of a reader thread and a ClusterShell Port
     object."""
@@ -525,7 +528,7 @@ def bind_stdin(worker):
     # Launch a dedicated thread to read stdin in blocking mode. Indeed stdin
     # can be a file, so we cannot use a WorkerSimple here as polling on file
     # may result in different behaviors depending on selected engine.
-    threading.Thread(None, _stdin_thread_start, args=(port,)).start()
+    threading.Thread(None, _stdin_thread_start, args=(port, display)).start()
 
 def run_command(task, cmd, ns, timeout, display):
     """
@@ -555,7 +558,7 @@ def run_command(task, cmd, ns, timeout, display):
     if ns is None:
         worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
-        bind_stdin(worker)
+        bind_stdin(worker, display)
  
     task.resume()
 
