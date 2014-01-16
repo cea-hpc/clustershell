@@ -7,7 +7,7 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2014-01-14
+:Date:   2014-01-16
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -24,10 +24,13 @@ DESCRIPTION
 ===========
 ``nodeset`` is an utility command provided with the ClusterShell library which
 implements some features of ClusterShell's NodeSet and RangeSet Python classes.
-It provides easy manipulation of indexed cluster nodes and node groups. It is
-automatically bound to the library node group resolution mechanism. Thus,
-``nodeset`` is especially useful to enhance cluster aware administration shell
-scripts.
+It provides easy manipulation of 1D or nD-indexed cluster nodes and node
+groups.
+
+Also, ``nodeset`` is automatically bound to the library node group resolution
+mechanism. Thus, it is especially useful to enhance cluster aware
+administration shell scripts.
+
 
 OPTIONS
 =======
@@ -124,7 +127,7 @@ Example of advanced usage
 "All nodes" extension (v1.7+)
   The ``@*`` and ``@SOURCE:*`` special notations may be used in extended patterns to represent all nodes (in SOURCE) according to the *all* external shell command (see ``groups.conf``\(5)) and are equivalent to:
 
-    :$ nodeset -f -a [-s SOURCE]:
+    :$ nodeset [-s SOURCE] -a -f:
 
 
 
@@ -146,6 +149,10 @@ Getting the node count
   
   | 140
   
+  :$ nodeset -c dc[1-2]n[100-199]:
+  
+  | 200
+  
   :$ nodeset -c @login:
   
   | 4
@@ -159,11 +166,19 @@ Folding nodesets
 
   | node[1-3,5-7]
 
+  :$ nodeset -f dc1n2 dc2n2 dc1n1 dc2n1:
+  
+  | dc[1-2]n[1-2]
+
 
 Expanding nodesets
   :$ nodeset -e node[160-163]:
 
   | node160 node161 node162 node163
+
+  :$ echo 'dc[1-2]n[2-6/2]' | nodeset -e:
+
+  | dc1n2 dc1n4 dc1n6 dc2n2 dc2n4 dc2n6
 
 Excluding nodes from nodeset
   :$ nodeset -f node[32-159] -x node33:
@@ -181,17 +196,24 @@ Computing nodesets symmetric difference (xor)
   | node[32,34-155]
 
 Splitting nodes into several nodesets (expanding results)
-  :$ nodeset -e --split=3 node[1-9]:
+  :$ nodeset --split=3 -e node[1-9]:
 
   | node1 node2 node3
   | node4 node5 node6
   | node7 node8 node9
 
 Splitting non-contiguous nodesets (folding results)
-  :$ nodeset -f --contiguous node2 node3 node4 node8 node9:
+  :$ nodeset --contiguous -f node2 node3 node4 node8 node9:
 
   | node[2-4]
   | node[8-9]
+
+  :$ nodeset --contiguous -f dc[1,3]n[1-2,4-5]:
+
+  | dc1n[1-2]
+  | dc1n[4-5]
+  | dc3n[1-2]
+  | dc3n[4-5]
 
 
 HISTORY

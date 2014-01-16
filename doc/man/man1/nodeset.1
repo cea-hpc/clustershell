@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH NODESET 1 "2014-01-14" "1.7" "ClusterShell User Manual"
+.TH NODESET 1 "2014-01-16" "1.7" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -41,10 +41,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .sp
 \fCnodeset\fP is an utility command provided with the ClusterShell library which
 implements some features of ClusterShell\(aqs NodeSet and RangeSet Python classes.
-It provides easy manipulation of indexed cluster nodes and node groups. It is
-automatically bound to the library node group resolution mechanism. Thus,
-\fCnodeset\fP is especially useful to enhance cluster aware administration shell
-scripts.
+It provides easy manipulation of 1D or nD\-indexed cluster nodes and node
+groups.
+.sp
+Also, \fCnodeset\fP is automatically bound to the library node group resolution
+mechanism. Thus, it is especially useful to enhance cluster aware
+administration shell scripts.
 .SH OPTIONS
 .INDENT 0.0
 .INDENT 3.5
@@ -243,7 +245,7 @@ The \fC@*\fP and \fC@SOURCE:*\fP special notations may be used in extended patte
 .INDENT 3.5
 .INDENT 0.0
 .TP
-.B $ nodeset \-f \-a [\-s SOURCE]
+.B $ nodeset [\-s SOURCE] \-a \-f
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -274,6 +276,14 @@ exit status indicates failure.
 .sp
 .INDENT 7.0
 .TP
+.B $ nodeset \-c dc[1\-2]n[100\-199]
+.UNINDENT
+.nf
+200
+.fi
+.sp
+.INDENT 7.0
+.TP
 .B $ nodeset \-c @login
 .UNINDENT
 .nf
@@ -298,6 +308,14 @@ node[0\-7,32\-163]
 node[1\-3,5\-7]
 .fi
 .sp
+.INDENT 7.0
+.TP
+.B $ nodeset \-f dc1n2 dc2n2 dc1n1 dc2n1
+.UNINDENT
+.nf
+dc[1\-2]n[1\-2]
+.fi
+.sp
 .TP
 .B Expanding nodesets
 .INDENT 7.0
@@ -306,6 +324,14 @@ node[1\-3,5\-7]
 .UNINDENT
 .nf
 node160 node161 node162 node163
+.fi
+.sp
+.INDENT 7.0
+.TP
+.B $ echo \(aqdc[1\-2]n[2\-6/2]\(aq | nodeset \-e
+.UNINDENT
+.nf
+dc1n2 dc1n4 dc1n6 dc2n2 dc2n4 dc2n6
 .fi
 .sp
 .TP
@@ -342,7 +368,7 @@ node[32,34\-155]
 .B Splitting nodes into several nodesets (expanding results)
 .INDENT 7.0
 .TP
-.B $ nodeset \-e \-\-split=3 node[1\-9]
+.B $ nodeset \-\-split=3 \-e node[1\-9]
 .UNINDENT
 .nf
 node1 node2 node3
@@ -354,11 +380,22 @@ node7 node8 node9
 .B Splitting non\-contiguous nodesets (folding results)
 .INDENT 7.0
 .TP
-.B $ nodeset \-f \-\-contiguous node2 node3 node4 node8 node9
+.B $ nodeset \-\-contiguous \-f node2 node3 node4 node8 node9
 .UNINDENT
 .nf
 node[2\-4]
 node[8\-9]
+.fi
+.sp
+.INDENT 7.0
+.TP
+.B $ nodeset \-\-contiguous \-f dc[1,3]n[1\-2,4\-5]
+.UNINDENT
+.nf
+dc1n[1\-2]
+dc1n[4\-5]
+dc3n[1\-2]
+dc3n[4\-5]
 .fi
 .sp
 .UNINDENT
