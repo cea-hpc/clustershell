@@ -110,7 +110,7 @@ foo1:abc
         self._clubak_t(["-b", "--interpret-keys=always"], "foo[1-3]: bar\n", outfmt % "foo[1-3] (3)")
         self._clubak_t(["-b", "--interpret-keys=auto"], "[]: bar\n", outfmt % "[]")
         self._clubak_t(["-b", "--interpret-keys=never"], "[]: bar\n", outfmt % "[]")
-        self._clubak_t(["-b", "--interpret-keys=always"], "[]: bar\n", '', 1, "Parse error: empty node name\n")
+        self._clubak_t(["-b", "--interpret-keys=always"], "[]: bar\n", '', 1, "Parse error: empty node name : \"[]\"\n")
 
     def test_008_color(self):
         """test clubak (--color)"""

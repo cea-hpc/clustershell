@@ -112,6 +112,22 @@ idaho: single
 """)
     return r3
 
+def makeTestG4():
+    """Create a temporary group file 4 (nD)"""
+    f4 = make_temp_file("""
+#
+rack-x1y1: idaho1z1,idaho2z1
+rack-x1y2: idaho2z1,idaho3z1
+rack-x2y1: idaho4z1,idaho5z1
+rack-x2y2: idaho6z1,idaho7z1
+rack-x1: @rack-x1y[1-2]
+rack-x2: @rack-x2y[1-2]
+rack-y1: @rack-x[1-2]y1
+rack-y2: @rack-x[1-2]y2
+rack-all: @rack-x[1-2]y[1-2]
+""")
+    return f4
+
 class NodeSetGroupTest(unittest.TestCase):
 
     def testGroupResolverSimple(self):
@@ -591,6 +607,41 @@ reverse: echo f^oo
         self.assertRaises(GroupResolverIllegalCharError, nodeset.groups)
         self.assertRaises(GroupResolverIllegalCharError, nodeset.regroup)
 
+    def testGroupResolverND(self):
+        """test NodeSet with simple custom GroupResolver (nD)"""
+
+        test_groups4 = makeTestG4()
+
+        source = GroupSource("simple",
+                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups4.name,
+                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups4.name,
+                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups4.name,
+                             None)
+
+        # create custom resolver with default source
+        res = GroupResolver(source)
+        self.assertFalse(res.has_node_groups())
+        self.assertFalse(res.has_node_groups("dummy_namespace"))
+
+        nodeset = NodeSet("@rack-x1y2", resolver=res)
+        self.assertEqual(nodeset, NodeSet("idaho[2-3]z1"))
+        self.assertEqual(str(nodeset), "idaho[2-3]z1")
+
+        nodeset = NodeSet("@rack-y1", resolver=res)
+        self.assertEqual(str(nodeset), "idaho[1-2,4-5]z1")
+
+        nodeset = NodeSet("@rack-all", resolver=res)
+        self.assertEqual(str(nodeset), "idaho[1-7]z1")
+
+        # test nD groups()
+        self.assertEqual(sorted(nodeset.groups().keys()), ['@rack-x1y1', '@rack-x1y2', '@rack-x2y1', '@rack-x2y2'])
+        self.assertEqual(sorted(nodeset.groups(groupsource="simple").keys()), ['@simple:rack-x1y1', '@simple:rack-x1y2', '@simple:rack-x2y1', '@simple:rack-x2y2'])
+        self.assertEqual(sorted(nodeset.groups(groupsource="simple", noprefix=True).keys()), ['@rack-x1y1', '@rack-x1y2', '@rack-x2y1', '@rack-x2y2'])
+        testns = NodeSet()
+        for gnodes, inodes in nodeset.groups().itervalues():
+            testns.update(inodes)
+        self.assertEqual(testns, nodeset)
+
 
 class NodeSetGroup2GSTest(unittest.TestCase):
 
@@ -709,8 +760,8 @@ class NodeSetRegroupTest(unittest.TestCase):
         self.assertEqual(nodeset.regroup(), "@overclock")
 
         nodeset = NodeSet("@gpu,@overclock", resolver=res)
-        self.assertEqual(nodeset, NodeSet("montana[38-42]"))
         self.assertEqual(str(nodeset), "montana[38-42]")
+        self.assertEqual(nodeset, NodeSet("montana[38-42]"))
         # un-overlap :)
         self.assertEqual(nodeset.regroup(), "@gpu,montana42")
         self.assertEqual(nodeset.regroup(), "@gpu,montana42")

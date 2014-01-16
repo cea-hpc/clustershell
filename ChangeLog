@@ -6,6 +6,12 @@
 	optimization is provided when only one dimension is varying. Patch by
 	aurelien.degremont@cea.fr and stephane.thiell@cea.fr.
 
+	* NodeSet.py: Multidimensional nodeset support.  Added support of
+	RangeSetND to NodeSet. Optimized NodeSet so that 1D NodeSet objects are
+	still using RangeSet (ticket #92). Also benefiting from RangeSetND
+	optimization when only one dimension is varying. Patch by
+	aurelien.degremont@cea.fr and stephane.thiell@cea.fr.
+
 2014-01-06 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: Fix internal implementation of NodeSet.contiguous(), that
