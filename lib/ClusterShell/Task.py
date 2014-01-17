@@ -299,7 +299,7 @@ class Task(object):
             # use factory class PreferredEngine that gives the proper
             # engine instance
             self._engine = PreferredEngine(self.default("engine"), self._info)
-            self.timeout = 0
+            self.timeout = None
 
             # task synchronization objects
             self._run_lock = threading.Lock()       # primitive lock
@@ -758,7 +758,7 @@ class Task(object):
             self._join_cond.notifyAll()
             self._join_cond.release()
 
-    def resume(self, timeout=0):
+    def resume(self, timeout=None):
         """
         Resume task. If task is task_self(), workers are executed in the
         calling thread so this method will block until all (non-autoclosing)
@@ -810,7 +810,7 @@ class Task(object):
         exception is raised if this delay is reached.
         """
         worker = None
-        timeout = 0
+        timeout = None
 
         # Both resume() and shell() support a 'timeout' parameter. We need a
         # trick to behave correctly for both cases.
@@ -1293,7 +1293,7 @@ class Task(object):
         if gateway not in self.pwrks:
             chan = PropagationChannel(self)
             # invoke gateway
-            timeout = 0
+            timeout = None # FIXME: handle timeout for gateway channels
             worker = self.shell(metaworker.invoke_gateway, nodes=gateway,
                                 handler=chan, timeout=timeout, tree=False)
             self.pwrks[gateway] = worker

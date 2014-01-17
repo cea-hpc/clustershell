@@ -103,7 +103,7 @@ class EngineSelect(Engine):
         """
         Select engine run(): start clients and properly get replies
         """
-        if timeout == 0:
+        if not timeout:
             timeout = -1
 
         start_time = time.time()

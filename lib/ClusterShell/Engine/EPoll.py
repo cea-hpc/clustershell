@@ -111,7 +111,7 @@ class EngineEPoll(Engine):
         """
         Run epoll main loop.
         """
-        if timeout == 0:
+        if not timeout:
             timeout = -1
 
         start_time = time.time()
