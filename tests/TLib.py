@@ -32,18 +32,32 @@ def chrono(func):
         return res
     return timing
 
+#
+# Temp files and directories
+#
+def make_temp_filename(suffix=''):
+    """Return a temporary name for a file."""
+    if len(suffix) > 0 and suffix[0] != '-':
+        suffix = '-' + suffix
+    return (tempfile.mkstemp(suffix, prefix='cs-test-'))[1]
+
 def make_temp_file(text, suffix='', dir=None):
     """Create a temporary file with the provided text."""
-    f = tempfile.NamedTemporaryFile(suffix=suffix, dir=dir)
-    f.write(text)
-    f.flush()
-    return f
+    tmp = tempfile.NamedTemporaryFile(prefix='cs-test-',
+                                      suffix=suffix, dir=dir)
+    tmp.write(text)
+    tmp.flush()
+    return tmp
 
-def make_temp_dir():
+def make_temp_dir(suffix=''):
     """Create a temporary directory."""
-    dname = tempfile.mkdtemp()
-    return dname
+    if len(suffix) > 0 and suffix[0] != '-':
+        suffix = '-' + suffix
+    return tempfile.mkdtemp(suffix, prefix='cs-test-')
 
+#
+# CLI tests
+#
 def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
              expected_stderr=None):
     """Generic CLI main() direct calling function that allows code coverage

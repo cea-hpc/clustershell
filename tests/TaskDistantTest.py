@@ -14,6 +14,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
+from TLib import make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
@@ -71,41 +72,44 @@ class TaskDistantTest(unittest.TestCase):
     def testLocalhostCopy(self):
         """test simple localhost copy"""
         # init worker
-        worker = self._task.copy("/etc/hosts",
-                "/tmp/cs-test_testLocalhostCopy", nodes='localhost')
+        dest = make_temp_filename(suffix='LocalhostCopy')
+        worker = self._task.copy("/etc/hosts", dest, nodes='localhost')
         self.assert_(worker != None)
         # run task
         self._task.resume()
+        os.unlink(dest)
 
     def testCopyNodeFailure(self):
         """test node failure error handling on simple copy"""
         # == stderr merged ==
         self._task.set_default("stderr", False)
-        worker = self._task.copy("/etc/hosts",
-                "/tmp/cs-test_testLocalhostCopyF", nodes='unlikely-node,localhost')
+        dest = make_temp_filename(suffix='LocalhostCopyF')
+        worker = self._task.copy("/etc/hosts", dest,
+                                 nodes='unlikely-node,localhost')
         self.assert_(worker != None)
         self._task.resume()
         self.assert_(worker.node_error_buffer("unlikely-node") is None)
         self.assert_(len(worker.node_buffer("unlikely-node")) > 2)
+        os.unlink(dest)
 
         # == stderr separated ==
         self._task.set_default("stderr", True)
         try:
-            worker = self._task.copy("/etc/hosts",
-                    "/tmp/cs-test_testLocalhostCopyF2", nodes='unlikely-node,localhost')
+            dest = make_temp_filename(suffix='LocalhostCopyF2')
+            worker = self._task.copy("/etc/hosts", dest, nodes='unlikely-node,localhost')
             self.assert_(worker != None)
             # run task
             self._task.resume()
             self.assert_(worker.node_buffer("unlikely-node") is None)
             self.assert_(len(worker.node_error_buffer("unlikely-node")) > 2)
+            os.unlink(dest)
         finally:
             self._task.set_default("stderr", False)
 
     def testLocalhostCopyDir(self):
         """test simple localhost directory copy"""
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostCopyDir")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostCopyDir')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -121,7 +125,7 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshCopy(self):
         """test simple localhost copy with explicit ssh worker"""
-        dest = "/tmp/cs-test_testLocalhostExplicitSshCopy"
+        dest = make_temp_filename('testLocalhostExplicitSshCopy')
         try:
             worker = WorkerSsh("localhost", source="/etc/hosts", dest=dest,
                     handler=None, timeout=10)
@@ -132,9 +136,8 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshCopyDir(self):
         """test simple localhost copy dir with explicit ssh worker"""
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitSshCopyDir")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitSshCopyDir')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -151,9 +154,8 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshCopyDirPreserve(self):
         """test simple localhost preserve copy dir with explicit ssh worker"""
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitSshCopyDirPreserve")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitSshCopyDirPreserve')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -475,13 +477,14 @@ class TaskDistantTest(unittest.TestCase):
         """test task.copy() with ssh_user set"""
         ssh_user_orig = self._task.info("ssh_user")
         self._task.set_info("ssh_user", pwd.getpwuid(os.getuid())[0])
-        worker = self._task.copy("/etc/hosts",
-                "/tmp/cs-test_testLocalhostCopyU", nodes='localhost')
+        dest = make_temp_filename('testLocalhostCopyU')
+        worker = self._task.copy("/etc/hosts", dest, nodes='localhost')
         self.assert_(worker != None)
         self._task.resume()
         # restore original ssh_user (None)
         self.assertEqual(ssh_user_orig, None)
         self._task.set_info("ssh_user", ssh_user_orig)
+        os.unlink(dest)
 
     def testSshOptionsOption(self):
         """test task.shell() with ssh_options set"""
@@ -507,8 +510,9 @@ class TaskDistantTest(unittest.TestCase):
     def testSshOptionsOptionForScp(self):
         """test task.copy() with ssh_options set"""
         ssh_options_orig = self._task.info("ssh_options")
+        testfile = None
         try:
-            testfile = "/tmp/cs-test_testLocalhostCopyO"
+            testfile = make_temp_filename('testLocalhostCopyO')
             if os.path.exists(testfile):
                 os.remove(testfile)
             self._task.set_info("ssh_options", \
@@ -518,6 +522,7 @@ class TaskDistantTest(unittest.TestCase):
             self._task.resume()
             self.assert_(os.path.exists(testfile))
         finally:
+            os.unlink(testfile)
             # restore original ssh_user (None)
             self.assertEqual(ssh_options_orig, None)
             self._task.set_info("ssh_options", ssh_options_orig)
@@ -561,22 +566,23 @@ class TaskDistantTest(unittest.TestCase):
 
     def testSshBadArgumentOption(self):
         """test WorkerSsh constructor bad argument"""
-	# Check code < 1.4 compatibility
+        # Check code < 1.4 compatibility
         self.assertRaises(WorkerBadArgumentError, WorkerSsh, "localhost",
 			  None, None)
-	# As of 1.4, ValueError is raised for missing parameter
+        # As of 1.4, ValueError is raised for missing parameter
         self.assertRaises(ValueError, WorkerSsh, "localhost",
 			  None, None) # 1.4+
 
     def testCopyEvents(self):
         """test triggered events on task.copy()"""
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = self._task.copy("/etc/hosts",
-                "/tmp/cs-test_testLocalhostCopyEvents", nodes='localhost',
+        dest = make_temp_filename('testLocalhostCopyEvents')
+        worker = self._task.copy("/etc/hosts", dest, nodes='localhost',
                 handler=test_eh)
         self.assert_(worker != None)
         # run task
         self._task.resume()
+        os.unlink(dest)
         self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
 
     def testWorkerAbort(self):
@@ -614,10 +620,8 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshReverseCopy(self):
         """test simple localhost rcopy with explicit ssh worker"""
-        dest = "/tmp/cs-test_testLocalhostExplicitSshRCopy"
-        shutil.rmtree(dest, ignore_errors=True)
+        dest = make_temp_dir('testLocalhostExplicitSshRCopy')
         try:
-            os.mkdir(dest)
             worker = WorkerSsh("localhost", source="/etc/hosts",
                     dest=dest, handler=None, timeout=10, reverse=True)
             self._task.schedule(worker) 
@@ -630,9 +634,8 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshReverseCopyDir(self):
         """test simple localhost rcopy dir with explicit ssh worker"""
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitSshReverseCopyDir")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitSshReverseCopyDir')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -649,9 +652,8 @@ class TaskDistantTest(unittest.TestCase):
 
     def testLocalhostExplicitSshReverseCopyDirPreserve(self):
         """test simple localhost preserve rcopy dir with explicit ssh worker"""
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitSshReverseCopyDirPreserve")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitSshReverseCopyDirPreserve')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
