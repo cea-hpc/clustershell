@@ -1,3 +1,7 @@
+2014-01-26 A. Degremont <aurelien.degremont@cea.fr>
+
+	* NodeUtils.py: Add group source caching expiration (ticket #98).
+
 2014-01-16 S. Thiell <stephane.thiell@cea.fr>
 
 	* RangeSet.py: Multidimensional RangeSet support (new RangeSetND class).

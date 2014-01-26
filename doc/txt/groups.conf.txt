@@ -81,6 +81,9 @@ reverse
   the *list* and *map* external calls. Also, if the number of nodes to
   reverse is greater than the number of available groups, the *reverse*
   external command is avoided automatically.
+cache_delay
+  Number of seconds each upcall result is kept in cache, in memory only.
+  Default is 3600 seconds. This is useful only for daemons using nodegroups.
 
 When the library executes a group source external shell command, the current
 working directory is previously set to the corresponding groupsdir. This
@@ -95,7 +98,9 @@ group.  The desired behaviour is up to the system administrator.
 RESOURCE USAGE
 ==============
 
-All external command results are cached in memory to avoid multiple calls.
+All external command results are cached in memory to avoid multiple calls. Each
+result is kept for a limited amount of time. See cache_delay option to tune
+this behaviour.
 
 
 EXAMPLES

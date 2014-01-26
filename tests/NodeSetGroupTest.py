@@ -296,7 +296,6 @@ list: echo foo
 #reverse:
         """)
         res = GroupResolverConfig(f.name)
-        res.set_verbosity(1)
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
         self.assertEqual(nodeset.regroup(), "@foo")
@@ -978,3 +977,73 @@ class NodeSetRegroupTest(unittest.TestCase):
         self.assertEqual(nodeset.regroup(), "@chassis[1-3]")
         self.assertEqual(nodeset.regroup(), "@chassis[1-3]")
 
+class StaticGroupSource(GroupSource):
+    """
+    A memory only group source based on a provided dict.
+    """
+
+    def __init__(self, name, data):
+        all_upcall = None
+        if 'all' in data:
+            all_upcall = 'fake_all'
+        list_upcall = None
+        if 'list' in data:
+            list_upcall = 'fake_list'
+        GroupSource.__init__(self, name, "fake_map", all_upcall, list_upcall)
+        self._data = data
+
+    def _upcall_read(self, cmdtpl, args=dict()):
+        if cmdtpl == 'map':
+            return self._data[cmdtpl].get(args['GROUP'])
+        elif cmdtpl == 'reverse':
+            return self._data[cmdtpl].get(args['NODE'])
+        else:
+            return self._data[cmdtpl]
+
+class GroupSourceCacheTest(unittest.TestCase):
+
+
+    def test_clear_cache(self):
+        """test GroupSource.clear_cache()"""
+        source = StaticGroupSource('cache', {'map': {'a': 'foo1', 'b': 'foo2'} })
+
+        # create custom resolver with default source
+        res = GroupResolver(source)
+
+        # Populate map cache
+        self.assertEqual("foo1", str(NodeSet("@a", resolver=res)))
+        self.assertEqual("foo2", str(NodeSet("@b", resolver=res)))
+        self.assertEqual(len(source._cache['map']), 2)
+
+        # Clear cache
+        source.clear_cache()
+        self.assertEqual(len(source._cache['map']), 0)
+
+    def test_expired_cache(self):
+        """test GroupSource cache entries expired according to config"""
+        # create custom resolver with default source
+        source = StaticGroupSource('cache', {'map': {'a': 'foo1', 'b': 'foo2'} })
+        source.cache_delay = 0.2
+        res = GroupResolver(source)
+
+        # Populate map cache
+        self.assertEqual("foo1", str(NodeSet("@a", resolver=res)))
+        self.assertEqual("foo2", str(NodeSet("@b", resolver=res)))
+        self.assertEqual(len(source._cache['map']), 2)
+
+        # Wait for cache expiration
+        time.sleep(0.2)
+
+        source._data['map']['a'] = 'something_else'
+        self.assertEqual('something_else', str(NodeSet("@a", resolver=res)))
+
+    def test_config_cache_delay(self):
+        """test group config cache_delay options"""
+        f = make_temp_file("""
+[local]
+cache_delay: 0.2
+map: echo foo1
+        """)
+        res = GroupResolverConfig(f.name)
+        self.assertEqual(res._sources['local'].cache_delay, 0.2)
+        self.assertEqual("foo1", str(NodeSet("@local:foo", resolver=res)))

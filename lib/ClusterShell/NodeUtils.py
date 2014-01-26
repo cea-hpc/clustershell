@@ -44,6 +44,7 @@ group sources are: files, jobs scheduler, custom scripts, etc.).
 import glob
 import os
 import sys
+import time
 
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from string import Template
@@ -75,27 +76,46 @@ class GroupResolverConfigError(GroupResolverError):
     """Raised when a configuration error is encountered"""
 
 
+_DEFAULT_CACHE_DELAY = 3600
+
 class GroupSource(object):
     """
     GroupSource class managing external calls for nodegroup support.
+
+    Upcall results are cached for a customizable amount of time. This is
+    controled by `cache_delay' attribute. Default is 3600 seconds.
     """
+
     def __init__(self, name, map_upcall, all_upcall=None,
-                 list_upcall=None, reverse_upcall=None, cfgdir=None):
+                 list_upcall=None, reverse_upcall=None, cfgdir=None,
+                 cache_delay=None):
         self.name = name
         self.verbosity = 0
         self.cfgdir = cfgdir
 
         # Supported external upcalls
-        self.map_upcall = map_upcall
-        self.all_upcall = all_upcall
-        self.list_upcall = list_upcall
-        self.reverse_upcall = reverse_upcall
+        self.upcalls = {}
+        self.upcalls['map'] = map_upcall
+        if all_upcall:
+            self.upcalls['all'] = all_upcall
+        if list_upcall:
+            self.upcalls['list'] = list_upcall
+        if reverse_upcall:
+            self.upcalls['reverse'] = reverse_upcall
 
         # Cache upcall data
-        self._cache_map = {}
-        self._cache_list = []
-        self._cache_all = None
-        self._cache_reverse = {}
+        self.cache_delay = cache_delay or _DEFAULT_CACHE_DELAY
+        self._cache = {}
+        self.clear_cache()
+
+    def clear_cache(self):
+        """
+        Remove all previously cached upcall results whatever their lifetime is.
+        """
+        self._cache = {
+                'map':     {},
+                'reverse': {}
+            }
 
     def _verbose_print(self, msg):
         """Print msg depending on the verbosity level."""
@@ -108,8 +128,7 @@ class GroupSource(object):
         Invoke the specified upcall command, raise an Exception if
         something goes wrong and return the command output otherwise.
         """
-        cmdline = Template(getattr(self, "%s_upcall" % \
-                    cmdtpl)).safe_substitute(args)
+        cmdline = Template(self.upcalls[cmdtpl]).safe_substitute(args)
         self._verbose_print("EXEC '%s'" % cmdline)
         proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir)
         output = proc.communicate()[0].strip()
@@ -120,54 +139,59 @@ class GroupSource(object):
             raise GroupSourceQueryFailed(cmdline, self)
         return output
 
+    def _upcall_cache(self, upcall, cache, key, **args):
+        """
+        Look for `key' in provided `cache'. If not found, call the
+        corresponding `upcall'.
+
+        If `key' is missing, it is added to provided `cache'. Each entry in a
+        cache is kept only for a limited time equal to self.cache_delay .
+        """
+        if not self.upcalls.get(upcall):
+            raise GroupSourceNoUpcall(upcall, self)
+
+        # Purge expired data from cache
+        if key in cache and cache[key][1] < time.time():
+            self._verbose_print("PURGE EXPIRED (%d)'%s'" % (cache[key][1], key))
+            del cache[key]
+
+        # Fetch the data if unknown of just purged
+        if key not in cache:
+            timestamp = time.time() + self.cache_delay
+            cache[key] = (self._upcall_read(upcall, args), timestamp)
+
+        return cache[key][0]
+
     def resolv_map(self, group):
         """
         Get nodes from group 'group', using the cached value if
         available.
         """
-        if group not in self._cache_map:
-            self._cache_map[group] = self._upcall_read('map', dict(GROUP=group))
-
-        return self._cache_map[group]
+        return self._upcall_cache('map', self._cache['map'], group,
+                                  GROUP=group)
 
     def resolv_list(self):
         """
         Return a list of all group names for this group source, using
         the cached value if available.
         """
-        if not self.list_upcall:
-            raise GroupSourceNoUpcall("list", self)
-
-        if not self._cache_list:
-            self._cache_list = self._upcall_read('list')
-
-        return self._cache_list
+        return self._upcall_cache('list', self._cache, 'list')
     
     def resolv_all(self):
         """
         Return the content of special group ALL, using the cached value
         if available.
         """
-        if not self.all_upcall:
-            raise GroupSourceNoUpcall("all", self)
-
-        if not self._cache_all:
-            self._cache_all = self._upcall_read('all')
-
-        return self._cache_all
+        return self._upcall_cache('all', self._cache, 'all')
 
     def resolv_reverse(self, node):
         """
         Return the group name matching the provided node, using the
         cached value if available.
         """
-        if not self.reverse_upcall:
-            raise GroupSourceNoUpcall("reverse", self)
+        return self._upcall_cache('reverse', self._cache['reverse'], node,
+                                  NODE=node)
 
-        if node not in self._cache_reverse:
-            self._cache_reverse[node] = self._upcall_read('reverse', \
-                                                          dict(NODE=node))
-        return self._cache_reverse[node]
 
 
 class GroupResolver(object):
@@ -268,7 +292,7 @@ class GroupResolver(object):
         supported by the resolver (in optional namespace).
         """
         try:
-            return bool(self._source(namespace).reverse_upcall)
+            return 'reverse' in self._source(namespace).upcalls
         except GroupResolverSourceError:
             return False
 
@@ -344,16 +368,18 @@ class GroupResolverConfig(GroupResolver):
             for section, (cfg, cfgdir) in groupscfgs.iteritems():
                 # only map is a mandatory upcall
                 map_upcall = cfg.get(section, 'map', True)
-                all_upcall = list_upcall = reverse_upcall = None
+                all_upcall = list_upcall = reverse_upcall = delay = None
                 if cfg.has_option(section, 'all'):
                     all_upcall = cfg.get(section, 'all', True)
                 if cfg.has_option(section, 'list'):
                     list_upcall = cfg.get(section, 'list', True)
                 if cfg.has_option(section, 'reverse'):
                     reverse_upcall = cfg.get(section, 'reverse', True)
+                if cfg.has_option(section, 'cache_delay'):
+                    delay = float(cfg.get(section, 'cache_delay', True))
 
                 self.add_source(GroupSource(section, map_upcall, all_upcall, \
-                                    list_upcall, reverse_upcall, cfgdir))
+                                    list_upcall, reverse_upcall, cfgdir, delay))
         except (NoSectionError, NoOptionError), exc:
             raise GroupResolverConfigError(str(exc))
 
