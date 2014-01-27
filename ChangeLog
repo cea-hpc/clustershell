@@ -1,4 +1,23 @@
-2012-11-04 A. Degremont <aurelien.degremont@cea.fr>
+2013-12-17 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: fix task.iter_buffers() and worker.iter_buffers() to allow
+	optional argument match_keys to be an empty list for convenience. It
+	should be set to None to disable match_keys check. Also check that
+	match_keys is a true key/node sequence and not a string.
+
+2013-11-05 S. Thiell <stephane.thiell@cea.fr>
+
+	* EngineClient.py: Hide unwanted debug messages: when aborting a task,
+	cleanup of associated resources may lead to dropped inter-task messages
+	through the EnginePort mechanism. We now only display associated warning
+	messages when debugging is enabled...
+
+	* Task.py: Fix abort() race condition.
+
+	* CLI/Clush.py: Fix a defect to allow the use of command timeout when
+	copying files (with clush -u delay -c ..., ticket #220).
+
+2013-11-04 A. Degremont <aurelien.degremont@cea.fr>
 
 	* Worker/Rsh.py: Add a Rsh worker. It is compatible with rsh clones
 	like mrsh/krsh. (ticket #216).
