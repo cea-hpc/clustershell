@@ -608,6 +608,22 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
                    preserve=preserve_flag)
     task.resume()
 
+def _load_workerclass(workername):
+    """
+    Return the class pointer matching `workername'.
+
+    The module is loaded if not done yet.
+    """
+
+    modname = "ClusterShell.Worker.%s" % workername.capitalize()
+
+    # Import module if not yet loaded
+    if modname.lower() not in [mod.lower() for mod in sys.modules]:
+        __import__(modname)
+
+    # Get the class pointer
+    return sys.modules[modname].WORKER_CLASS
+
 def set_fdlimit(fd_max, display):
     """Make open file descriptors soft limit the max."""
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -682,7 +698,7 @@ def main():
     parser.install_nodes_options()
     parser.install_display_options(verbose_options=True)
     parser.install_filecopy_options()
-    parser.install_ssh_options()
+    parser.install_connector_options()
 
     (options, args) = parser.parse_args()
 
@@ -809,6 +825,14 @@ def main():
         logging.debug("clush: STARTING DEBUG")
 
     task.set_info("fanout", config.fanout)
+
+    if options.worker:
+        try:
+            task.set_default('worker', _load_workerclass(options.worker))
+        except (ImportError, AttributeError):
+            msg = "ERROR: Could not load worker '%s'" % options.worker
+            display.vprint_err(VERB_QUIET, msg)
+            clush_exit(1, task)
 
     if options.topofile:
         if config.verbosity >= VERB_VERB:

@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -312,3 +312,4 @@ class WorkerPdsh(EngineClient, DistantWorker):
         DistantWorker._on_node_rc(self, node, rc)
         self.closed_nodes.add(node)
 
+WORKER_CLASS=WorkerPdsh

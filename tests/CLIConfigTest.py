@@ -33,7 +33,7 @@ class CLIClushConfigTest(unittest.TestCase):
 
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
@@ -58,7 +58,7 @@ class CLIClushConfigTest(unittest.TestCase):
 
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
@@ -93,7 +93,7 @@ verbosity: 1
         f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
@@ -133,7 +133,7 @@ ssh_options: -oStrictHostKeyChecking=no
         f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
@@ -169,7 +169,7 @@ ssh_options: -oStrictHostKeyChecking=no
         f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
@@ -225,7 +225,7 @@ verbosity: 1
         f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
         self.assert_(config != None)
@@ -261,7 +261,7 @@ verbosity: 1
         f.flush()
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args(["-f", "36", "-u", "3", "-t", "7",
                                         "--user", "foobar", "--color",
                                         "always", "-d", "-v", "-q", "-o",
@@ -288,7 +288,7 @@ verbosity: 1
         # maximum coverage).
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options)
         self.assert_(config != None)

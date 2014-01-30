@@ -192,9 +192,9 @@ class OptionParser(optparse.OptionParser):
         self.add_option_group(optgrp)
 
     
-    def install_ssh_options(self):
-        """Install engine/connector (ssh) options"""
-        optgrp = optparse.OptionGroup(self, "Ssh/Tree options")
+    def install_connector_options(self):
+        """Install engine/connector (ssh, ...) options"""
+        optgrp = optparse.OptionGroup(self, "Connection options")
         optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
                           help="use a specified fanout", type="int")
         #help="queueing delay for traffic grooming"
@@ -210,6 +210,8 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-u", "--command_timeout", action="store",
                           dest="command_timeout", help="limit time for " \
                           "command to run on the node", type="float")
+        optgrp.add_option("--worker", action="store", dest="worker",
+                          help="worker name to use for connection (default is 'ssh')")
         self.add_option_group(optgrp)
 
     def install_nodeset_commands(self):

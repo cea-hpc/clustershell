@@ -26,7 +26,7 @@ class CLIOptionParserTest(unittest.TestCase):
         parser.install_nodes_options()
         parser.install_display_options(verbose_options=True)
         parser.install_filecopy_options()
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
 
     def testOptionParser2(self):
@@ -35,7 +35,7 @@ class CLIOptionParserTest(unittest.TestCase):
         parser.install_nodes_options()
         parser.install_display_options(verbose_options=True, separator_option=True)
         parser.install_filecopy_options()
-        parser.install_ssh_options()
+        parser.install_connector_options()
         options, _ = parser.parse_args([])
 
     def testOptionParserConflicts(self):

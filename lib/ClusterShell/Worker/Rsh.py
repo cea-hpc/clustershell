@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2013)
+# Copyright CEA/DAM/DIF (2013, 2014)
 #
 # This file is part of the ClusterShell library.
 #
@@ -352,3 +352,5 @@ class WorkerRsh(DistantWorker):
         """
         for client in self.clients:
             client.abort()
+
+WORKER_CLASS=WorkerRsh

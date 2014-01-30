@@ -1,6 +1,6 @@
 .\" Man page generated from reStructeredText.
 .
-.TH CLUSH 1 "2014-01-14" "1.7" "ClusterShell User Manual"
+.TH CLUSH 1 "2014-01-30" "1.7" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -268,7 +268,7 @@ path when not specified)
 preserve modification times and modes
 .UNINDENT
 .TP
-.B Ssh options:
+.B Connection options:
 .INDENT 7.0
 .TP
 .BI \-f \ FANOUT, \ \-\-fanout\fB= FANOUT
@@ -290,6 +290,10 @@ limit time to connect to a node
 .BI \-u \ COMMAND_TIMEOUT, \ \-\-command_timeout\fB= COMMAND_TIMEOUT
 .
 limit time for command to run on the node
+.TP
+.BI \-\-worker\fB= WORKER
+.
+worker name to use for connection (\fCssh\fP, \fCrsh\fP, \fCpdsh\fP, ...), default is \fCssh\fP
 .UNINDENT
 .UNINDENT
 .sp

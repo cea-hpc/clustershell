@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2008-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -144,4 +144,5 @@ class WorkerPopen(WorkerSimple):
         Return return code or None if command is still in progress.
         """
         return self.rc
-   
+
+WORKER_CLASS=WorkerPopen

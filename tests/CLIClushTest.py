@@ -258,6 +258,25 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    def test_022_load_workerclass(self):
+        """test _load_workerclass()"""
+        for name in ('rsh', 'ssh', 'pdsh'):
+            cls = ClusterShell.CLI.Clush._load_workerclass(name)
+            self.assertTrue(cls)
+
+    def test_023_load_workerclass_error(self):
+        """test _load_workerclass() bad use cases"""
+        func = ClusterShell.CLI.Clush._load_workerclass
+        # Bad module
+        self.assertRaises(ImportError, func, 'not_a_module')
+        # Worker module but not supported
+        self.assertRaises(AttributeError, func, 'worker')
+
+    def test_024_worker(self):
+        """test clush (worker)"""
+        self._clush_t(["-w", "localhost", "--worker=ssh", "echo ok"], None,
+                       "localhost: ok\n", 0)
+
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""

@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2014-01-14
+:Date:   2014-01-30
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -155,7 +155,7 @@ File copying:
                       path when not specified)
   -p                  preserve modification times and modes
 
-Ssh options:
+Connection options:
   -f FANOUT, --fanout=FANOUT
                       use a specified maximum fanout size (ie. do not execute more than FANOUT commands at the same time, useful to limit resource usage)
   -l USER, --user=USER
@@ -166,6 +166,7 @@ Ssh options:
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
+  --worker=WORKER     worker name to use for connection (``ssh``, ``rsh``, ``pdsh``, ...), default is ``ssh``
 
 For a short explanation of these options, see ``-h, --help``.
 

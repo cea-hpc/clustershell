@@ -1,3 +1,7 @@
+2014-04-30 A. Degremont <aurelien.degremont@cea.fr>
+
+	* Clush.py: Add a 'worker' option to switch default worker (ticket #221).
+
 2014-04-23 S. Thiell <stephane.thiell@cea.fr>
 
 	* EPoll.py: Close epoll control file descriptor when engine is released.

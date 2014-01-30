@@ -1221,7 +1221,15 @@ $ ls /tmp/foo.*
 /tmp/foo.node11  /tmp/foo.node12
 \end{lstlisting}
 
+\subsection{Worker selection}
 
+By default, \clush uses the default library worker configuration when running commands or copying files. In most cases, this is \textit{ssh} (See \ref{task-default-worker} page~\pageref{task-default-worker} for default worker selection). ClusterShell supports other worker types like \textit{rsh} or also \textit{pdsh}. This worker selection could be changed at runtime thanks to \verb+--worker+ command line option.
+
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+$ clush -w node[11-12] --worker=rsh echo ok
+node11: ok
+node12: ok
+\end{lstlisting}
 
 
 \section{clubak}
@@ -1946,6 +1954,7 @@ task.timer(self, fire=secs, handler=handler [, interval=secs])
 \end{lstlisting}
 
 \subsubsection{Changing default worker}
+\label{task-default-worker}
 
 When calling \lstinline+task.shell()+ or \lstinline+task.copy()+ the \Task object creates a worker instance for each call. The worker class used for these calls is based on \Task default \verb+worker+. Change this value to use another worker class, by example \lstinline+Rsh+:
 \medskip
