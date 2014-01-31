@@ -38,10 +38,10 @@ This module implements OpenSSH engine client and task's worker.
 
 import os
 
-from ClusterShell.Worker.Rsh import Rsh, Rcp, WorkerRsh
+from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 
 
-class Ssh(Rsh):
+class SshClient(ExecClient):
     """
     Ssh EngineClient.
     """
@@ -78,9 +78,9 @@ class Ssh(Rsh):
         cmd_l.append("%s" % self.key)
         cmd_l.append("%s" % self.command)
 
-        return cmd_l
+        return (cmd_l, None)
 
-class Scp(Rcp):
+class ScpClient(CopyClient):
     """
     Scp EngineClient.
     """
@@ -132,9 +132,9 @@ class Scp(Rcp):
             else:
                 cmd_l.append("%s:%s" % (self.key, self.dest))
 
-        return cmd_l
+        return (cmd_l, None)
 
-class WorkerSsh(WorkerRsh):
+class WorkerSsh(ExecWorker):
     """
     ClusterShell ssh-based worker Class.
 
@@ -152,7 +152,7 @@ class WorkerSsh(WorkerRsh):
        >>> task.resume()              # run
     """
 
-    SHELL_CLASS = Ssh
-    COPY_CLASS = Scp
+    SHELL_CLASS = SshClient
+    COPY_CLASS = ScpClient
 
 WORKER_CLASS=WorkerSsh

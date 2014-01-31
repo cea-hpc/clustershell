@@ -35,8 +35,8 @@ used within shell scripts and other applications.  It is a partial front-end
 to the ClusterShell library that ensures a light, unified and robust parallel
 command execution framework. Thus, it allows traditional shell scripts to
 benefit from some of the library features. ``clush`` currently makes use of
-the Ssh worker of ClusterShell that only requires ``ssh``\(1) (OpenSSH SSH
-client).
+the Ssh worker of ClusterShell, by default, that only requires ``ssh``\(1)
+(OpenSSH SSH client).
 
 
 INVOCATION
@@ -100,6 +100,13 @@ Interactive session
       toggle the output format (gathered or standard mode)
 
   To leave an interactive session, type ``quit`` or Control-D.
+
+Local execution ( ``--worker=exec`` )
+  Instead of running provided command on remote nodes, ``clush`` can use the
+  dedicated *exec* worker to launch the command *locally*, for each node.
+  Some parameters could be used in the command line to make a different
+  command for each node. ``%h`` or ``%host`` will be replaced by node name and
+  ``%r`` or ``%rank`` by the remote rank [0-N] (to get a literal % use %%)
 
 File copying mode ( ``--copy`` )
   When ``clush`` is started with the ``-c`` or ``--copy`` option, it will
@@ -194,6 +201,12 @@ Basic
 
 :# clush -w node[3-5,62] uname -r:
     Run command `uname -r` in parallel on nodes: node3, node4, node5 and node62
+
+Advanced
+--------
+
+:# clush -w node[1-3] --worker=exec ping -c1 %host:
+    Run locally, in parallel, a ping command for nodes: node1, node2 and node3
 
 Display features
 ----------------

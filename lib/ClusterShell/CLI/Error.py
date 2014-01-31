@@ -48,7 +48,7 @@ from ClusterShell.NodeUtils import GroupSourceNoUpcall
 from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
 from ClusterShell.NodeSet import RangeSetParseError
 from ClusterShell.Topology import TopologyError
-
+from ClusterShell.Worker.Worker import WorkerError
 
 GENERIC_ERRORS = (EngineNotSupportedError,
                   NodeSetExternalError,
@@ -60,7 +60,8 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   GroupSourceException,
                   TopologyError,
                   IOError,
-                  KeyboardInterrupt)
+                  KeyboardInterrupt,
+                  WorkerError)
 
 def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
     """handle error given `excobj' generic script exception"""
@@ -84,6 +85,8 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print >> sys.stderr, "%s: Other group error:" % prog, exc
     except TopologyError, exc:
         print >> sys.stderr, "%s: TREE MODE:" % prog, exc
+    except WorkerError, exc:
+        print >> sys.stderr, "%s: %s" % (prog, exc)
     except IOError:
         # ignore broken pipe
         pass

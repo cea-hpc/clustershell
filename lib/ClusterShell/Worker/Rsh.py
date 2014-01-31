@@ -36,28 +36,15 @@ It could also handles rsh forks, like krsh or mrsh.
 This is also the base class for rsh evolutions, like Ssh worker.
 """
 
-import copy
 import os
 
-from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Worker.EngineClient import EngineClient
-from ClusterShell.Worker.Worker import DistantWorker
+from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 
 
-class Rsh(EngineClient):
+class RshClient(ExecClient):
     """
     Rsh EngineClient.
     """
-
-    def __init__(self, node, command, worker, stderr, timeout, autoclose=False):
-        """
-        Initialize Rsh EngineClient instance.
-        """
-        EngineClient.__init__(self, worker, stderr, timeout, autoclose)
-
-        self.key = copy.copy(node)
-        self.command = command
-        self.popen = None
 
     def _build_cmd(self):
         """
@@ -83,107 +70,13 @@ class Rsh(EngineClient):
         cmd_l.append("%s" % self.key)  # key is the node
         cmd_l.append("%s" % self.command)
 
-        return cmd_l
-
-    def _start(self):
-        """
-        Start worker, initialize buffers, prepare command.
-        """
-
-        # Build command
-        cmd_l = self._build_cmd()
-
-        task = self.worker.task
-        if task.info("debug", False):
-            name = str(self.__class__).upper().split('.')[-1]
-            task.info("print_debug")(task, "%s: %s" % (name, ' '.join(cmd_l)))
-
-        self.popen = self._exec_nonblock(cmd_l)
-        self.worker._on_start()
-        return self
-
-    def _close(self, abort, timeout):
-        """
-        Close client. See EngineClient._close().
-        """
-        rc = -1
-        if abort:
-            prc = self.popen.poll()
-            if prc is None:
-                # process is still running, kill it
-                self.popen.kill()
-        prc = self.popen.wait()
-        if prc >= 0:
-            rc = prc
-
-        self.streams.clear()
-
-        if rc >= 0:
-            self.worker._on_node_rc(self.key, rc)
-        elif timeout:
-            assert abort, "abort flag not set on timeout"
-            self.worker._on_node_timeout(self.key)
-
-        self.worker._check_fini()
-
-    def _flush_read(self, fname):
-        """Called at close time to flush stream read buffer."""
-        stream = self.streams[fname]
-        if stream.readable() and stream.rbuf:
-            # We still have some read data available in buffer, but no
-            # EOL. Generate a final message before closing.
-            self.worker._on_node_msgline(self.key, stream.rbuf, fname)
-
-    def _handle_read(self, fname):
-        """
-        Handle a read notification. Called by the engine as the result of an
-        event indicating that a read is available.
-        """
-        # Local variables optimization
-        worker = self.worker
-        task = worker.task
-        key = self.key
-        node_msgline = worker._on_node_msgline
-        debug = task.info("debug", False)
-        if debug:
-            print_debug = task.info("print_debug")
-        for msg in self._readlines(fname):
-            if debug:
-                print_debug(task, "%s: %s" % (key, msg))
-            node_msgline(key, msg, fname)  # handle full msg line
+        return (cmd_l, None)
 
 
-class Rcp(Rsh):
+class RcpClient(CopyClient):
     """
     Rcp EngineClient.
     """
-
-    def __init__(self, node, source, dest, worker, stderr, timeout, preserve,
-        reverse):
-        """
-        Initialize Rcp instance.
-        """
-        Rsh.__init__(self, node, None, worker, stderr, timeout)
-        self.source = source
-        self.dest = dest
-        self.popen = None
-
-        # Preserve modification times and modes?
-        self.preserve = preserve
-
-        # Reverse copy?
-        self.reverse = reverse
-
-        # Directory?
-        if self.reverse:
-            self.isdir = os.path.isdir(self.dest)
-            if not self.isdir:
-                raise ValueError("reverse copy dest must be a directory")
-        else:
-            self.isdir = os.path.isdir(self.source)
-
-        # FIXME: file sanity checks could be moved to Rcp._start() as we
-        # should now be able to handle error when starting (#215).
 
     def _build_cmd(self):
         """
@@ -205,7 +98,6 @@ class Rcp(Rsh):
         if self.preserve:
             cmd_l.append("-p")
 
-
         # Add custom rcp options
         for opts in options:
             if opts:
@@ -226,10 +118,10 @@ class Rcp(Rsh):
             else:
                 cmd_l.append("%s:%s" % (self.key, self.dest))
 
-        return cmd_l
+        return (cmd_l, None)
 
 
-class WorkerRsh(DistantWorker):
+class WorkerRsh(ExecWorker):
     """
     ClusterShell rsh-based worker Class.
 
@@ -249,86 +141,7 @@ class WorkerRsh(DistantWorker):
     connect_timeout option is ignored by this worker.
     """
 
-    SHELL_CLASS = Rsh
-    COPY_CLASS = Rcp
-
-    def __init__(self, nodes, handler, timeout, **kwargs):
-        """
-        Initialize Rsh worker instance.
-        """
-        DistantWorker.__init__(self, handler)
-
-        self.clients = []
-        self.nodes = NodeSet(nodes)
-        self.command = kwargs.get('command')
-        self.source = kwargs.get('source')
-        self.dest = kwargs.get('dest')
-        autoclose = kwargs.get('autoclose', False)
-        stderr = kwargs.get('stderr', False)
-        self._close_count = 0
-        self._has_timeout = False
-
-        # Prepare underlying engine clients (mrsh/mrcp processes)
-        if self.command is not None:
-            # secure remote shell
-            for node in self.nodes:
-                rsh = self.__class__.SHELL_CLASS
-                self.clients.append(rsh(node, self.command, self, stderr,
-                                       timeout, autoclose))
-        elif self.source:
-            # secure copy
-            for node in self.nodes:
-                rcp = self.__class__.COPY_CLASS
-                self.clients.append(rcp(node, self.source, self.dest,
-                    self, stderr, timeout, kwargs.get('preserve', False),
-                    kwargs.get('reverse', False)))
-        else:
-            raise ValueError("missing command or source parameter in " \
-			     "WorkerRsh constructor")
-
-    def _engine_clients(self):
-        """
-        Access underlying engine clients.
-        """
-        return self.clients
-
-    def _on_node_rc(self, node, rc):
-        DistantWorker._on_node_rc(self, node, rc)
-        self._close_count += 1
-
-    def _on_node_timeout(self, node):
-        DistantWorker._on_node_timeout(self, node)
-        self._close_count += 1
-        self._has_timeout = True
-
-    def _check_fini(self):
-        if self._close_count >= len(self.clients):
-            handler = self.eh
-            if handler:
-                if self._has_timeout:
-                    handler.ev_timeout(self)
-                handler.ev_close(self)
-
-    def write(self, buf):
-        """
-        Write to worker clients.
-        """
-        for client in self.clients:
-            client._write('stdin', buf)
-
-    def set_write_eof(self):
-        """
-        Tell worker to close its writer file descriptors once flushed. Do not
-        perform writes after this call.
-        """
-        for client in self.clients:
-            client._set_write_eof('stdin')
-
-    def abort(self):
-        """
-        Abort processing any action by this worker.
-        """
-        for client in self.clients:
-            client.abort()
+    SHELL_CLASS = RshClient
+    COPY_CLASS = RcpClient
 
 WORKER_CLASS=WorkerRsh
