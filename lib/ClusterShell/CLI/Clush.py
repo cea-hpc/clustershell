@@ -203,7 +203,7 @@ class GatherOutputHandler(OutputHandler):
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
         cleaned = False
-        for rc, nodelist in sorted(worker.iter_retcodes()):
+        for _rc, nodelist in sorted(worker.iter_retcodes()):
             # Then order by node/nodeset (see bufnodeset_cmp)
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
@@ -419,7 +419,7 @@ def ttyloop(task, nodeset, timeout, display):
                         display.vprint_err(VERB_STD, \
                             "Warning: Caught keyboard interrupt!")
                     display.print_gather(nodeset, buf)
-                    
+
                 # Return code handling
                 verbexit = VERB_QUIET
                 if display.maxrc:
@@ -444,11 +444,11 @@ def ttyloop(task, nodeset, timeout, display):
 
         if task.default("USER_running"):
             ns_reg, ns_unreg = NodeSet(), NodeSet()
-            for c in task._engine.clients():
-                if c.registered:
-                    ns_reg.add(c.key)
+            for client in task._engine.clients():
+                if client.registered:
+                    ns_reg.add(client.key)
                 else:
-                    ns_unreg.add(c.key)
+                    ns_unreg.add(client.key)
             if ns_unreg:
                 pending = "\nclush: pending(%d): %s" % (len(ns_unreg), ns_unreg)
             else:
@@ -534,7 +534,7 @@ def run_command(task, cmd, ns, timeout, display):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
-    """    
+    """
     task.set_default("USER_running", True)
 
     if display.verbosity >= VERB_VERB and task.topology:
@@ -559,7 +559,7 @@ def run_command(task, cmd, ns, timeout, display):
         worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
         bind_stdin(worker, display)
- 
+
     task.resume()
 
 def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
@@ -639,7 +639,7 @@ def clush_excepthook(extype, value, traceback):
     This hook has to be previously installed on startup by overriding
     sys.excepthook and task.excepthook."""
     try:
-        raise extype, value
+        raise extype(value)
     except ClushConfigError, econf:
         print >> sys.stderr, "ERROR: %s" % econf
     except KeyboardInterrupt, kbe:
@@ -650,9 +650,9 @@ def clush_excepthook(extype, value, traceback):
         else:
             print >> sys.stderr, "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
-    except OSError, value:
-        print >> sys.stderr, "ERROR: %s" % value
-        if value.errno == errno.EMFILE:
+    except OSError, exp:
+        print >> sys.stderr, "ERROR: %s" % exp
+        if exp.errno == errno.EMFILE:
             print >> sys.stderr, "ERROR: current `nofile' limits: " \
                 "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
         clush_exit(1)
