@@ -37,170 +37,61 @@ ClusterShell worker for executing commands with LLNL pdsh.
 """
 
 import errno
-import os
 import sys
 
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.EngineClient import EngineClientError
 from ClusterShell.Worker.EngineClient import EngineClientNotSupportedError
-from ClusterShell.Worker.Worker import DistantWorker
 from ClusterShell.Worker.Worker import WorkerError
+from ClusterShell.Worker.Exec import ExecWorker, ExecClient, CopyClient
 
 
-class WorkerPdsh(EngineClient, DistantWorker):
-    """
-    ClusterShell pdsh-based worker Class.
+class PdshClient(ExecClient):
+    """EngineClient which run 'pdsh'"""
 
-    Remote Shell (pdsh) usage example:
-       >>> worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
-       ...                     timeout=30, command="/bin/hostname")
-       >>> task.schedule(worker)      # schedule worker for execution
-       >>> task.resume()              # run
+    MODE = 'pdsh'
 
-    Remote Copy (pdcp) usage example: 
-       >>> worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
-       ...                     timeout=30, source="/etc/my.conf",
-       ...                     dest="/etc/my.conf")
-       >>> task.schedule(worker)      # schedule worker for execution
-       >>> task.resume()              # run
+    def __init__(self, node, command, worker, stderr, timeout, autoclose=False,
+                 rank=None):
+        ExecClient.__init__(self, node, command, worker, stderr, timeout,
+                            autoclose, rank)
+        self._closed_nodes = NodeSet()
 
-    Known limitations:
-      - write() is not supported by WorkerPdsh
-      - return codes == 0 are not garanteed when a timeout is used (rc > 0
-        are fine)
-    """
-
-    def __init__(self, nodes, handler, timeout, **kwargs):
+    def _build_cmd(self):
         """
-        Initialize Pdsh worker instance.
+        Build the shell command line to start the commmand.
+        Return an array of command and arguments.
         """
-        DistantWorker.__init__(self, handler)
-
-        self.nodes = NodeSet(nodes)
-        self.closed_nodes = NodeSet()
-
-        self.command = kwargs.get('command')
-        self.source = kwargs.get('source')
-        self.dest = kwargs.get('dest')
-
-        autoclose = kwargs.get('autoclose', False)
-        stderr = kwargs.get('stderr', False)
-
-        EngineClient.__init__(self, self, stderr, timeout, autoclose)
-
-        if self.command is not None:
-            # PDSH
-            self.source = None
-            self.dest = None
-            self.mode = 'pdsh'
-        elif self.source:
-            # PDCP
-            self.command = None
-            self.mode = 'pdcp'
-            # Preserve modification times and modes?
-            self.preserve = kwargs.get('preserve', False)
-            # Reverse copy (rpdcp)?
-            self.reverse = kwargs.get('reverse', False)
-            if self.reverse:
-                self.isdir = os.path.isdir(self.dest)
-                if not self.isdir:
-                    raise ValueError("reverse copy dest must be a directory")
-            else:
-                self.isdir = os.path.isdir(self.source)
-        else:
-            raise ValueError("missing command or source parameter in " \
-			     "WorkerPdsh constructor")
-
-        self.popen = None
-        self._buf = ""
-
-    def _engine_clients(self):
-        return [self]
-
-    def _start(self):
-        """
-        Start worker, initialize buffers, prepare command.
-        """
-        # Initialize worker read buffer
-        self._buf = ""
-
+        task = self.worker.task
         pdsh_env = {}
 
-        if self.command is not None:
-            # Build pdsh command
-            executable = self.task.info("pdsh_path") or "pdsh"
-            cmd_l = [ executable, "-b" ]
+        # Build pdsh command
+        executable = task.info("pdsh_path") or "pdsh"
+        cmd_l = [ executable, "-b" ]
 
-            fanout = self.task.info("fanout", 0)
-            if fanout > 0:
-                cmd_l.append("-f %d" % fanout)
+        fanout = task.info("fanout", 0)
+        if fanout > 0:
+            cmd_l.append("-f %d" % fanout)
 
-            # Pdsh flag '-t' do not really works well. Better to use
-            # PDSH_SSH_ARGS_APPEND variable to transmit ssh ConnectTimeout
-            # flag.
-            connect_timeout = self.task.info("connect_timeout", 0)
-            if connect_timeout > 0:
-                pdsh_env['PDSH_SSH_ARGS_APPEND'] = "-o ConnectTimeout=%d" % \
-                        connect_timeout
+        # Pdsh flag '-t' do not really works well. Better to use
+        # PDSH_SSH_ARGS_APPEND variable to transmit ssh ConnectTimeout
+        # flag.
+        connect_timeout = task.info("connect_timeout", 0)
+        if connect_timeout > 0:
+            pdsh_env['PDSH_SSH_ARGS_APPEND'] = "-o ConnectTimeout=%d" % \
+                    connect_timeout
 
-            command_timeout = self.task.info("command_timeout", 0)
-            if command_timeout > 0:
-                cmd_l.append("-u %d" % command_timeout)
+        command_timeout = task.info("command_timeout", 0)
+        if command_timeout > 0:
+            cmd_l.append("-u %d" % command_timeout)
 
-            cmd_l.append("-w %s" % self.nodes)
-            cmd_l.append("%s" % self.command)
+        cmd_l.append("-w %s" % self.key)
+        cmd_l.append("%s" % self.command)
 
-            if self.task.info("debug", False):
-                self.task.info("print_debug")(self.task, "PDSH: %s" % \
-                                                            ' '.join(cmd_l))
-        else:
-            # Build pdcp command
-            if self.reverse:
-                executable  = self.task.info('rpdcp_path') or "rpdcp"
-            else:
-                executable = self.task.info("pdcp_path") or "pdcp"
-            cmd_l = [ executable, "-b" ]
-
-            fanout = self.task.info("fanout", 0)
-            if fanout > 0:
-                cmd_l.append("-f %d" % fanout)
-
-            connect_timeout = self.task.info("connect_timeout", 0)
-            if connect_timeout > 0:
-                cmd_l.append("-t %d" % connect_timeout)
-
-            cmd_l.append("-w %s" % self.nodes)
-
-            if self.isdir:
-                cmd_l.append("-r")
-
-            if self.preserve:
-                cmd_l.append("-p")
-
-            cmd_l.append(self.source)
-            cmd_l.append(self.dest)
-
-            if self.task.info("debug", False):
-                self.task.info("print_debug")(self.task,"PDCP: %s" % \
-                                                            ' '.join(cmd_l))
-
-        self.popen = self._exec_nonblock(cmd_l, env=pdsh_env)
-        self._on_start()
-
-        return self
-
-    def write(self, buf):
-        """
-        Write data to process. Not supported with Pdsh worker.
-        """
-        raise EngineClientNotSupportedError("writing is not " \
-                                            "supported by pdsh worker")
+        return (cmd_l, pdsh_env)
 
     def _close(self, abort, timeout):
-        """
-        Close client. See EngineClient._close().
-        """
+        """Close client. See EngineClient._close()."""
         if abort:
             prc = self.popen.poll()
             if prc is None:
@@ -211,22 +102,18 @@ class WorkerPdsh(EngineClient, DistantWorker):
             rc = prc
             if rc != 0:
                 raise WorkerError("Cannot run pdsh (error %d)" % rc)
-        if abort and timeout:
-            if self.eh:
-                self.eh.ev_timeout(self)
 
         self.streams.clear()
 
         if timeout:
             assert abort, "abort flag not set on timeout"
-            for node in (self.nodes - self.closed_nodes):
-                self._on_node_timeout(node)
+            for node in (self.key - self._closed_nodes):
+                self.worker._on_node_timeout(node)
         else:
-            for node in (self.nodes - self.closed_nodes):
-                self._on_node_rc(node, 0)
+            for node in (self.key - self._closed_nodes):
+                self.worker._on_node_rc(node, 0)
 
-        if self.eh:
-            self.eh.ev_close(self)
+        self.worker._check_fini()
 
     def _parse_line(self, line, fname):
         """
@@ -251,15 +138,17 @@ class WorkerPdsh(EngineClient, DistantWorker):
 
                 words  = line.split()
                 # Set return code for nodename of worker
-                if self.mode == 'pdsh':
+                if self.MODE == 'pdsh':
                     if len(words) == 4 and words[2] == "command" and \
                        words[3] == "timeout":
                         pass
                     elif len(words) == 8 and words[3] == "exited" and \
                          words[7].isdigit():
-                        self._on_node_rc(words[1][:-1], int(words[7]))
-                elif self.mode == 'pdcp':
-                    self._on_node_rc(words[1][:-1], errno.ENOENT)
+                        self._closed_nodes.add(words[1][:-1])
+                        self.worker._on_node_rc(words[1][:-1], int(words[7]))
+                elif self.MODE == 'pdcp':
+                    self._closed_nodes.add(words[1][:-1])
+                    self.worker._on_node_rc(words[1][:-1], errno.ENOENT)
 
             except Exception, exc:
                 print >> sys.stderr, exc
@@ -267,19 +156,17 @@ class WorkerPdsh(EngineClient, DistantWorker):
         else:
             # split pdsh reply "nodename: msg"
             nodename, msg = line.split(': ', 1)
-            self._on_node_msgline(nodename, msg, fname)
+            self.worker._on_node_msgline(nodename, msg, fname)
 
     def _flush_read(self, fname):
         """Called at close time to flush stream read buffer."""
         pass
 
     def _handle_read(self, fname):
-        """
-        Engine is telling us a read is available.
-        """
-        debug = self.task.info("debug", False)
+        """Engine is telling us a read is available."""
+        debug = self.worker.task.info("debug", False)
         if debug:
-            print_debug = self.task.info("print_debug")
+            print_debug = self.worker.task.info("print_debug")
 
         suffix = ""
         if fname == 'stderr':
@@ -287,14 +174,96 @@ class WorkerPdsh(EngineClient, DistantWorker):
 
         for msg in self._readlines(fname):
             if debug:
-                print_debug(self.task, "PDSH%s: %s" % (suffix, msg))
+                print_debug(self.worker.task, "PDSH%s: %s" % (suffix, msg))
             self._parse_line(msg, fname)
 
-    def _on_node_rc(self, node, rc):
-        """
-        Return code received from a node, update last* stuffs.
-        """
-        DistantWorker._on_node_rc(self, node, rc)
-        self.closed_nodes.add(node)
 
-WORKER_CLASS=WorkerPdsh
+class PdcpClient(CopyClient, PdshClient):
+    """EngineClient when pdsh is run to copy file, using pdcp."""
+
+    MODE = 'pdcp'
+
+    def _build_cmd(self):
+
+        cmd_l = []
+
+        # Build pdcp command
+        if self.reverse:
+            executable = self.worker.task.info("rpdcp_path") or "rpdcp"
+        else:
+            executable = self.worker.task.info("pdcp_path") or "pdcp"
+        cmd_l = [ executable, "-b" ]
+
+        fanout = self.worker.task.info("fanout", 0)
+        if fanout > 0:
+            cmd_l.append("-f %d" % fanout)
+
+        connect_timeout = self.worker.task.info("connect_timeout", 0)
+        if connect_timeout > 0:
+            cmd_l.append("-t %d" % connect_timeout)
+
+        cmd_l.append("-w %s" % self.key)
+
+        if self.isdir:
+            cmd_l.append("-r")
+
+        if self.preserve:
+            cmd_l.append("-p")
+
+        cmd_l.append(self.source)
+        cmd_l.append(self.dest)
+
+        return (cmd_l, None)
+
+
+class WorkerPdsh(ExecWorker):
+    """
+    ClusterShell pdsh-based worker Class.
+
+    Remote Shell (pdsh) usage example:
+       >>> worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
+       ...                     timeout=30, command="/bin/hostname")
+       >>> task.schedule(worker)      # schedule worker for execution
+       >>> task.resume()              # run
+
+    Remote Copy (pdcp) usage example:
+       >>> worker = WorkerPdsh(nodeset, handler=MyEventHandler(),
+       ...                     timeout=30, source="/etc/my.conf",
+       ...                     dest="/etc/my.conf")
+       >>> task.schedule(worker)      # schedule worker for execution
+       >>> task.resume()              # run
+
+    Known limitations:
+      - write() is not supported by WorkerPdsh
+      - return codes == 0 are not garanteed when a timeout is used (rc > 0
+        are fine)
+    """
+
+    SHELL_CLASS = PdshClient
+    COPY_CLASS = PdcpClient
+
+    #
+    # Spawn and control
+    #
+
+    def _create_clients(self, **kwargs):
+        self._add_client(self.nodes, **kwargs)
+
+    def write(self, buf):
+        """
+        Write data to process. Not supported with Pdsh worker.
+        """
+        raise EngineClientNotSupportedError("writing is not supported by pdsh "
+                                            "worker")
+
+    def set_write_eof(self):
+        """
+        Tell worker to close its writer file descriptor once flushed. Do not
+        perform writes after this call.
+
+        Not supported by PDSH Worker.
+        """
+        raise EngineClientNotSupportedError("writing is not supported by pdsh "
+                                            "worker")
+
+WORKER_CLASS = WorkerPdsh
