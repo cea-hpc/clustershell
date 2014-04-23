@@ -14,7 +14,7 @@ import unittest
 sys.path.insert(0, '../lib')
 
 from ClusterShell.NodeSet import RangeSet, NodeSet, fold, expand
-from ClusterShell.NodeSet import NodeGroupBase, NodeSetBase
+from ClusterShell.NodeSet import NodeSetBase
 
 
 class NodeSetTest(unittest.TestCase):
@@ -675,6 +675,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodeset[-1], "yeti60")
         for n in range(1, len(nodeset)):
             self.assertEqual(nodeset[-n], nodeset[len(nodeset)-n])
+        self.assertRaises(IndexError, nodeset.__getitem__, -100)
 
         # test getitem with some nodes without range
         nodeset = NodeSet("abc,cde[3-9,11],fgh")
@@ -1461,13 +1462,6 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nsb), "foo[1-100,200]bar")
         self.assertEqual(len(nsbcpy), 102)
         self.assertEqual(str(nsbcpy), "foo[1-100,200-201]bar")
-
-    def testNodeGroupBase(self):
-        """test underlying NodeGroupBase class"""
-        ngb = NodeGroupBase("@group")
-        self.assertEqual(len(ngb), 1)
-        self.assertEqual(str(ngb), "@group")
-        self.assertRaises(ValueError, NodeGroupBase, "badgroup")
 
     def test_nd_simple(self):
         ns1 = NodeSet("da3c1")

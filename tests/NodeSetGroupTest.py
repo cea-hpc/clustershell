@@ -594,7 +594,7 @@ list: echo x1y1 x1y2 @illegal x1y[3-4]
         """)
         res = GroupResolverConfig(f.name, illegal_chars=ILLEGAL_GROUP_CHARS)
         nodeset = NodeSet("rack3z40", resolver=res)
-        self.assertEqual(res.grouplist(), ['x1y1', 'x1y2', 'x1y[3-4]', '@dummy'])
+        self.assertRaises(GroupResolverIllegalCharError, res.grouplist)
 
     def testConfigResolverSources(self):
         """test sources() with groups config of 2 sources"""

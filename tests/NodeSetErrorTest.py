@@ -11,7 +11,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.RangeSet import RangeSet
+from ClusterShell.RangeSet import RangeSet, RangeSetND
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.NodeSet import NodeSetBase
 from ClusterShell.NodeSet import NodeSetError
@@ -121,9 +121,22 @@ class NodeSetErrorTest(unittest.TestCase):
 
     def test_bad_slices(self):
         nodeset = NodeSet("cluster[1-30]c[1-2]")
+        self.assertRaises(TypeError, nodeset.__getitem__, "zz")
         self.assertRaises(TypeError, nodeset.__getitem__, slice(1,'foo'))
 
+    def test_binary_bad_object_type(self):
+        nodeset = NodeSet("cluster[1-30]c[1-2]")
+        class Dummy: pass
+        dummy = Dummy()
+        self.assertRaises(TypeError, nodeset.add, dummy)
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(NodeSetErrorTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    def test_internal_mismatch(self):
+        nodeset = NodeSet("cluster[1-30]c[1-2]")
+        self.assertTrue("cluster%sc%s" in nodeset._patterns)
+        nodeset._patterns["cluster%sc%s"] = RangeSetND([[1]])
+        self.assertRaises(NodeSetParseError, str, nodeset)
+        nodeset._patterns["cluster%sc%s"] = RangeSetND([[1, 1]])
+        self.assertEqual(str(nodeset), "cluster1c1")
+        nodeset._patterns["cluster%sc%s"] = RangeSetND([[1, 1, 1]])
+        self.assertRaises(NodeSetParseError, str, nodeset)
+

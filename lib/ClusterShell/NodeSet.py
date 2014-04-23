@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
@@ -230,10 +230,17 @@ class NodeSetBase(object):
     def __str__(self):
         """Get ranges-based pattern of node list."""
         results = []
-        for pat, rset in sorted(self._patterns.iteritems()):
-            if rset:
-                if rset.dim() > 1:
-                    # nD
+        try:
+            for pat, rset in sorted(self._patterns.iteritems()):
+                if not rset:
+                    results.append(pat)
+                elif rset.dim() == 1:
+                    rgs = str(rset)
+                    cnt = len(rset)
+                    if cnt > 1:
+                        rgs = "[%s]" % rgs
+                    results.append(pat % rgs)
+                elif rset.dim() > 1:
                     for rgvec in rset.vectors():
                         rgargs = []
                         for rangeset in rgvec:
@@ -242,20 +249,10 @@ class NodeSetBase(object):
                             if cnt > 1:
                                 rgs = "[%s]" % rgs
                             rgargs.append(rgs)
-                        try:
-                            results.append(pat % tuple(rgargs))
-                        except TypeError:
-                            raise NodeSetParseError(pat, \
-                                "node pattern and nD ranges mismatch")
-                else:
-                    # 1D
-                    rgs = str(rset)
-                    cnt = len(rset)
-                    if cnt > 1:
-                        rgs = "[%s]" % rgs
-                    results.append(pat % rgs)
-            else:
-                results.append(pat)
+                        results.append(pat % tuple(rgargs))
+        except TypeError:
+            raise NodeSetParseError(pat, "Internal error: " \
+                                         "node pattern and ranges mismatch")
         return ",".join(results)
 
     def copy(self):
@@ -680,18 +677,6 @@ class NodeSetBase(object):
         return self
 
 
-class NodeGroupBase(NodeSetBase):
-    """NodeGroupBase aims to ease node group names management."""
-    def _add(self, pat, rangeset, copy_rangeset=True):
-        """
-        Add groups from a (pat, rangeset) tuple. `pat' may be an existing
-        pattern and `rangeset' may be None.
-        """
-        if pat and pat[0] != '@':
-            raise ValueError("NodeGroup name must begin with character '@'")
-        NodeSetBase._add(self, pat, rangeset, copy_rangeset)
-
-
 class ParsingEngine(object):
     """
     Class that is able to transform a source into a NodeSetBase.
@@ -740,7 +725,7 @@ class ParsingEngine(object):
             #print "OPC %s PAT %s RANGESETS %s" % (opc, pat, rgnd)
             if self.group_resolver and pat[0] == '@':
                 ns_group = NodeSetBase()
-                for nodegroup in NodeGroupBase(pat, rgnd):
+                for nodegroup in NodeSetBase(pat, rgnd):
                     # parse/expand nodes group
                     ns_string_ext = self.parse_group_string(nodegroup)
                     if ns_string_ext:
@@ -1050,14 +1035,6 @@ class NodeSet(NodeSetBase):
         else:
             self._parser = ParsingEngine(self._resolver)
             self.update(nodes)
-
-    @classmethod
-    def _fromone(cls, single, autostep=None, resolver=None):
-        """Class method that returns a new NodeSet from a single node string
-        (optimized constructor)."""
-        inst = NodeSet(autostep=autostep, resolver=resolver)
-        inst.update(inst._parser.parse_string_single(single, autostep))
-        return inst
 
     @classmethod
     def _fromlist1(cls, nodelist, autostep=None, resolver=None):
