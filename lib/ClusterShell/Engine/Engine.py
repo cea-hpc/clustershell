@@ -390,6 +390,10 @@ class Engine:
         # runloop-has-exited flag
         self._exited = False
 
+    def release(self):
+        """Release engine-specific resources."""
+        pass
+
     def clients(self):
         """
         Get a copy of clients set.

@@ -1,3 +1,7 @@
+2014-04-23 S. Thiell <stephane.thiell@cea.fr>
+
+	* EPoll.py: Close epoll control file descriptor when engine is released.
+
 2014-01-26 A. Degremont <aurelien.degremont@cea.fr>
 
 	* NodeUtils.py: Add group source caching expiration (ticket #98).

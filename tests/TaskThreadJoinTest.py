@@ -120,10 +120,5 @@ class TaskThreadJoinTest(unittest.TestCase):
         self.assertEqual(task.key_buffer(1), "raisefoobar")
         time.sleep(1) # for pretty display, because unhandled exception
                       # traceback may be sent to stderr after the join()
-        self.assert_(not task.running())
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskThreadJoinTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+        self.assertFalse(task.running())
 

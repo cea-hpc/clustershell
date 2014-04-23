@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012, 2013)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -287,9 +287,8 @@ class Task(object):
         return object.__new__(cls)
 
     def __init__(self, thread=None):
-        """
-        Initialize a Task, creating a new thread if needed.
-        """
+        """Initialize a Task, creating a new non-daemonic thread if
+        needed."""
         if not getattr(self, "_engine", None):
             # first time called
             self._default_lock = threading.Lock()
@@ -918,6 +917,9 @@ class Task(object):
             self._dispatch_port = None
         # clear engine
         self._engine.clear(clear_ports=kill)
+        if kill:
+            self._engine.release()
+            self._engine = None
 
         # clear result objects
         self._reset()
@@ -958,7 +960,7 @@ class Task(object):
         """
         Return True if the task is running.
         """
-        return self._engine.running
+        return self._engine and self._engine.running
 
     def _reset(self):
         """
