@@ -8,10 +8,10 @@
 import copy
 import shutil
 import sys
-import tempfile
 
 sys.path.insert(0, '../lib')
 
+from TLib import make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
@@ -52,10 +52,10 @@ class TaskDistantPdshMixin(object):
         self.assertEqual(worker1.command, "/bin/echo foo bar fuu")
         self.assertEqual(worker2.node_buffer("localhost"), "blah blah foo")
         self.assertEqual(worker2.command, "/bin/echo blah blah foo")
-    
+
     def testLocalhostExplicitPdshCopy(self):
         # test simple localhost copy with explicit pdsh worker
-        dest = "/tmp/cs-test_testLocalhostExplicitPdshCopy"
+        dest = make_temp_filename(suffix='LocalhostExplicitPdshCopy')
         try:
             worker = WorkerPdsh("localhost", source="/etc/hosts",
                     dest=dest, handler=None, timeout=10)
@@ -64,14 +64,13 @@ class TaskDistantPdshMixin(object):
             self.assertEqual(worker.source, "/etc/hosts")
             self.assertEqual(worker.dest, dest)
         finally:
-            os.remove(dest)
+            os.unlink(dest)
 
     def testLocalhostExplicitPdshCopyDir(self):
         # test simple localhost copy dir with explicit pdsh worker
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_src = make_temp_dir('src')
         # pdcp worker doesn't create custom destination directory
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitPdshCopyDir")
+        dtmp_dst = make_temp_dir('testLocalhostExplicitPdshCopyDir')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -80,7 +79,7 @@ class TaskDistantPdshMixin(object):
                     dest=dtmp_dst, handler=None, timeout=10)
             self._task.schedule(worker)
             self._task.resume()
-            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
+            self.assertTrue(os.path.exists(os.path.join(dtmp_dst, \
                 os.path.basename(dtmp_src), "lev1_a", "lev2")))
         finally:
             shutil.rmtree(dtmp_dst, ignore_errors=True)
@@ -88,10 +87,9 @@ class TaskDistantPdshMixin(object):
 
     def testLocalhostExplicitPdshCopyDirPreserve(self):
         # test simple localhost preserve copy dir with explicit pdsh worker
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
+        dtmp_src = make_temp_dir('src')
         # pdcp worker doesn't create custom destination directory
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitPdshCopyDirPreserve")
+        dtmp_dst = make_temp_dir('testLocalhostExplicitPdshCopyDirPreserve')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -187,7 +185,7 @@ class TaskDistantPdshMixin(object):
         self._task.resume()
         # test events received: start, read, hup, close
         self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_HUP | EV_CLOSE)
-    
+
     def testExplicitWorkerPdshShellEventsWithTimeout(self):
         # test triggered events (with timeout) with explicit pdsh worker
         # init worker
@@ -438,7 +436,7 @@ class TaskDistantPdshMixin(object):
         worker = WorkerPdsh("localhost", command="sleep 1", handler=None,
                             timeout=None)
         worker.abort()
-        
+
     def testLocalhostExplicitPdshReverseCopy(self):
         # test simple localhost rcopy with explicit pdsh worker
         dest = "/tmp/cs-test_testLocalhostExplicitPdshRCopy"
@@ -457,9 +455,8 @@ class TaskDistantPdshMixin(object):
 
     def testLocalhostExplicitPdshReverseCopyDir(self):
         # test simple localhost rcopy dir with explicit pdsh worker
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitPdshReverseCopyDir")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitPdshReverseCopyDir')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
@@ -476,9 +473,8 @@ class TaskDistantPdshMixin(object):
 
     def testLocalhostExplicitPdshReverseCopyDirPreserve(self):
         # test simple localhost preserve rcopy dir with explicit pdsh worker
-        dtmp_src = tempfile.mkdtemp("_cs-test_src")
-        dtmp_dst = tempfile.mkdtemp( \
-            "_cs-test_testLocalhostExplicitPdshReverseCopyDirPreserve")
+        dtmp_src = make_temp_dir('src')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitPdshReverseCopyDirPreserve')
         try:
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
