@@ -895,7 +895,7 @@ but not in both, minus the nodes found in odd \verb+@chassis+ groups from 1 to 9
 $ nodeset -f @gpu^@slurm:bigmem\!@chassis[1-9/2]
 \end{lstlisting}
 
-Also, version 1.7 introduces a notation extension \verb+@*+ (or \verb+@SOURCE:*+) that has been added to quickly represent "all nodes".
+Also, version 1.7 introduces a notation extension \verb+@*+ (or \verb+@SOURCE:*+) that has been added to quickly represent "all nodes" (please refer to section~\ref{nodeset-all-nodes} page~\pageref{nodeset-all-nodes} for more details).
 
 \subsection{Range sets}
 \label{nodeset-rangeset}
@@ -1043,6 +1043,7 @@ node26: 0.02 0.01 0.00 1/202 23042
 \end{lstlisting}
 
 \subsubsection{All nodes selection}
+\label{nodeset-all-nodes}
 Finally, a special option \verb+-a+ (without argument) can be used to select "all" nodes, in the sense of ClusterShell node groups (see section \ref{groups-config} page~\pageref{groups-config} for more details on special \textbf{all} external shell command (\textit{upcall}) configuration). If not properly configured, the \verb+-a+ option may lead to a runtime error like \textit{"clush: External error: Not enough working external calls (all, or map + list) defined to get all nodes"}.
 
 \subsection{Non-interactive (or one-shot) mode}

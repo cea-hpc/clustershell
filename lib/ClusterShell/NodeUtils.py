@@ -1,4 +1,4 @@
-# Copyright CEA/DAM/DIF (2010, 2012)
+# Copyright CEA/DAM/DIF (2010, 2012, 2013, 2014)
 #  Contributors:
 #   Stephane THIELL <stephane.thiell@cea.fr>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
@@ -103,13 +103,13 @@ class GroupSource(object):
             print >> sys.stderr, "%s<%s> %s" % \
                 (self.__class__.__name__, self.name, msg)
 
-    def _upcall_read(self, cmdtpl, vars=dict()):
+    def _upcall_read(self, cmdtpl, args=dict()):
         """
         Invoke the specified upcall command, raise an Exception if
         something goes wrong and return the command output otherwise.
         """
         cmdline = Template(getattr(self, "%s_upcall" % \
-                    cmdtpl)).safe_substitute(vars)
+                    cmdtpl)).safe_substitute(args)
         self._verbose_print("EXEC '%s'" % cmdline)
         proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir)
         output = proc.communicate()[0].strip()
@@ -223,11 +223,11 @@ class GroupResolver(object):
         assert source
         raw = getattr(source, 'resolv_%s' % what)(*args)
         for line in raw.splitlines():
-            for x in line.strip().split():
-                if self.illegal_chars.intersection(x):
+            for grpstr in line.strip().split():
+                if self.illegal_chars.intersection(grpstr):
                     raise GroupResolverIllegalCharError( \
-                        ' '.join(self.illegal_chars.intersection(x)))
-                result.append(x)
+                        ' '.join(self.illegal_chars.intersection(grpstr)))
+                result.append(grpstr)
         return result
 
     def _source(self, namespace):
@@ -342,6 +342,7 @@ class GroupResolverConfig(GroupResolver):
 
         try:
             for section, (cfg, cfgdir) in groupscfgs.iteritems():
+                # only map is a mandatory upcall
                 map_upcall = cfg.get(section, 'map', True)
                 all_upcall = list_upcall = reverse_upcall = None
                 if cfg.has_option(section, 'all'):

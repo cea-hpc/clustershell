@@ -14,6 +14,11 @@
 
 2014-01-14 S. Thiell <stephane.thiell@cea.fr>
 
+	* NodeSet.py: fix and clean fromall()/@* magic and add resolver option to
+	grouplist()'s NodeSet module function.
+
+2014-01-14 S. Thiell <stephane.thiell@cea.fr>
+
 	* NodeSet.py: Define module API to access and set group resolver used for
 	@-prefixed (eg. '@group') resolution. This is used to circumvent accessing
 	and setting NodeSet module's variable 'RESOLVER_STD_GROUP' directly, which

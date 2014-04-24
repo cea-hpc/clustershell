@@ -413,6 +413,26 @@ list: echo foo
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertRaises(GroupResolverSourceError, nodeset.regroup, "unknown")
 
+    def testConfigNoListNoReverse(self):
+        """test groups with no list and not reverse upcall"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+#all:
+#list:
+#reverse:
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        # not able to regroup, should still return valid nodeset
+        self.assertEqual(nodeset.regroup(), "example[1-100]")
+
     def testConfigNoListButReverseQuery(self):
         """test groups with no list but reverse upcall"""
         f = make_temp_file("""
@@ -432,6 +452,23 @@ reverse: echo foo
         self.assertEqual(str(nodeset), "example[1-100]")
         self.assertEqual(nodeset.regroup(), "@foo")
 
+    def testConfigNoMap(self):
+        """test groups with no map upcall"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+#map: echo example[1-100]
+all:
+list: echo foo
+#reverse: echo foo
+        """)
+        # map is a mandatory upcall, an exception should be raised early
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
     def testConfigWithEmptyList(self):
         """test groups with list upcall returning nothing"""
         f = make_temp_file("""
@@ -450,6 +487,114 @@ reverse: echo foo
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
         self.assertEqual(nodeset.regroup(), "@foo")
+
+    def testConfigListAllWithAll(self):
+        """test all groups listing with all upcall"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+all: echo foo bar
+list: echo foo
+#reverse:
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-50]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-50]")
+        self.assertEqual(str(NodeSet.fromall(resolver=res)), "bar,foo")
+        # test "@*" magic group listing
+        nodeset = NodeSet("@*", resolver=res)
+        self.assertEqual(str(nodeset), "bar,foo")
+        nodeset = NodeSet("rab,@*,oof", resolver=res)
+        self.assertEqual(str(nodeset), "bar,foo,oof,rab")
+        # with group source
+        nodeset = NodeSet("@local:*", resolver=res)
+        self.assertEqual(str(nodeset), "bar,foo")
+        nodeset = NodeSet("rab,@local:*,oof", resolver=res)
+        self.assertEqual(str(nodeset), "bar,foo,oof,rab")
+
+
+    def testConfigListAllWithoutAll(self):
+        """test all groups listing without all upcall"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+#all:
+list: echo foo bar
+#reverse:
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-50]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-50]")
+        self.assertEqual(str(NodeSet.fromall(resolver=res)), "example[1-100]")
+        # test "@*" magic group listing
+        nodeset = NodeSet("@*", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        nodeset = NodeSet("@*,example[101-104]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-104]")
+        nodeset = NodeSet("example[105-149],@*,example[101-104]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-149]")
+        # with group source
+        nodeset = NodeSet("@local:*", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        nodeset = NodeSet("example0,@local:*,example[101-110]", resolver=res)
+        self.assertEqual(str(nodeset), "example[0-110]")
+
+    def testConfigListAllNDWithoutAll(self):
+        """test all groups listing without all upcall (nD)"""
+        # Even in nD, ensure that $GROUP is a simple group that has been previously expanded
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: if [[ $GROUP == "x1y[3-4]" ]]; then exit 1; elif [[ $GROUP == "x1y1" ]]; then echo rack[1-5]z[1-42]; else echo rack[6-10]z[1-42]; fi
+#all:
+list: echo x1y1 x1y2 x1y[3-4]
+#reverse:
+        """)
+        res = GroupResolverConfig(f.name, illegal_chars=ILLEGAL_GROUP_CHARS)
+        nodeset = NodeSet("rack3z40", resolver=res)
+        self.assertEqual(str(NodeSet.fromall(resolver=res)), "rack[1-10]z[1-42]")
+        self.assertEqual(res.grouplist(), ['x1y1', 'x1y2', 'x1y[3-4]']) # raw
+        self.assertEqual(grouplist(resolver=res), ['x1y1', 'x1y2', 'x1y3', 'x1y4']) # cleaned
+        # test "@*" magic group listing
+        nodeset = NodeSet("@*", resolver=res)
+        self.assertEqual(str(nodeset), "rack[1-10]z[1-42]")
+        # with group source
+        nodeset = NodeSet("@local:*", resolver=res)
+        self.assertEqual(str(nodeset), "rack[1-10]z[1-42]")
+        nodeset = NodeSet("rack11z1,@local:*,rack11z[2-42]", resolver=res)
+        self.assertEqual(str(nodeset), "rack[1-11]z[1-42]")
+
+    def testConfigIllegalCharsND(self):
+        """test group list containing illegal characters"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo rack[6-10]z[1-42]
+#all:
+list: echo x1y1 x1y2 @illegal x1y[3-4]
+#reverse:
+        """)
+        res = GroupResolverConfig(f.name, illegal_chars=ILLEGAL_GROUP_CHARS)
+        nodeset = NodeSet("rack3z40", resolver=res)
+        self.assertEqual(res.grouplist(), ['x1y1', 'x1y2', 'x1y[3-4]', '@dummy'])
 
     def testConfigResolverSources(self):
         """test sources() with groups config of 2 sources"""
@@ -537,6 +682,43 @@ list: echo bar
             self.assertEqual(nodeset.regroup(), "@bar")
             self.assertEqual(str(NodeSet("@bar", resolver=res)), "example[1-100]")
         finally:
+            f2.close()
+            f.close()
+            shutil.rmtree(dname, ignore_errors=True)
+
+    def testConfigGroupsDirDupConfig(self):
+        """test groups with duplicate in groupsdir"""
+        dname = make_temp_dir()
+        f = make_temp_file("""
+
+[Main]
+default: iamdup
+groupsdir: %s
+
+[local]
+map: echo example[1-100]
+#all:
+list: echo foo
+#reverse:
+        """ % dname)
+        f2 = make_temp_file("""
+[iamdup]
+map: echo example[1-100]
+#all:
+list: echo bar
+#reverse:
+        """, suffix=".conf", dir=dname)
+        f3 = make_temp_file("""
+[iamdup]
+map: echo example[10-200]
+#all:
+list: echo patato
+#reverse:
+        """, suffix=".conf", dir=dname)
+        try:
+            self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        finally:
+            f3.close()
             f2.close()
             f.close()
             shutil.rmtree(dname, ignore_errors=True)
@@ -796,9 +978,3 @@ class NodeSetRegroupTest(unittest.TestCase):
         self.assertEqual(nodeset.regroup(), "@chassis[1-3]")
         self.assertEqual(nodeset.regroup(), "@chassis[1-3]")
 
-
-if __name__ == '__main__':
-    suites = [unittest.TestLoader().loadTestsFromTestCase(NodeSetGroupTest)]
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(NodeSetGroup2GSTest))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(NodeSetRegroupTest))
-    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))

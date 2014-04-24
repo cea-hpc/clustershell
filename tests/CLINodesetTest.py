@@ -375,9 +375,9 @@ list: echo foo bar moo
 
     def test_022_list(self):
         """test nodeset --list"""
-        self._nodeset_t(["--list"], None, "@foo\n@bar\n@moo\n")
-        self._nodeset_t(["-ll"], None, "@foo example[1-100]\n@bar example[1-100]\n@moo example[1-100]\n")
-        self._nodeset_t(["-lll"], None, "@foo example[1-100] 100\n@bar example[1-100] 100\n@moo example[1-100] 100\n")
+        self._nodeset_t(["--list"], None, "@bar\n@foo\n@moo\n")
+        self._nodeset_t(["-ll"], None, "@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
+        self._nodeset_t(["-lll"], None, "@bar example[1-100] 100\n@foo example[1-100] 100\n@moo example[1-100] 100\n")
         self._nodeset_t(["-l", "example[4,95]", "example5"], None, "@moo\n@bar\n@foo\n")
         self._nodeset_t(["-ll", "example[4,95]", "example5"], None, "@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
         self._nodeset_t(["-lll", "example[4,95]", "example5"], None, "@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")

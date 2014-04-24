@@ -778,14 +778,47 @@ class ParsingEngine(object):
         if grpstr.find(':') < 0:
             # default namespace
             if grpstr == '*':
-                return ",".join(self.group_resolver.all_nodes())
+                return ",".join(self.all_nodes())
             return ",".join(self.group_resolver.group_nodes(grpstr))
         else:
             # specified namespace
             namespace, group = grpstr.split(':', 1)
             if group == '*':
-                return ",".join(self.group_resolver.all_nodes(namespace))
+                return ",".join(self.all_nodes(namespace))
             return ",".join(self.group_resolver.group_nodes(group, namespace))
+
+    def grouplist(self, namespace=None):
+        """Return a sorted list of groups from current resolver (in optional
+        group source / namespace)."""
+        grpset = NodeSetBase()
+        for grpstr in self.group_resolver.grouplist(namespace):
+            # We scan each group string to expand any range seen...
+            for opc, pat, rgnd in self._scan_string(grpstr, None):
+                getattr(grpset, opc)(NodeSetBase(pat, rgnd, False))
+        return list(grpset)
+
+    def all_nodes(self, namespace=None):
+        """Get all nodes from group resolver as a list of strings."""
+        # namespace is the optional group source
+        assert self.group_resolver is not None
+        all = []
+        try:
+            # Ask resolver to provide all nodes.
+            all = self.group_resolver.all_nodes(namespace)
+        except NodeUtils.GroupSourceNoUpcall:
+            try:
+                # As the resolver is not able to provide all nodes directly,
+                # failback to list + map(s) method:
+                for grp in self.grouplist(namespace):
+                    all += self.group_resolver.group_nodes(grp, namespace)
+            except NodeUtils.GroupSourceNoUpcall:
+                # We are not able to find "all" nodes, definitely.
+                raise NodeSetExternalError("Not enough working external " \
+                    "calls (all, or map + list) defined to get all nodes")
+        except NodeUtils.GroupSourceQueryFailed, exc:
+            raise NodeSetExternalError("Unable to get all nodes due to the " \
+                "following external failure:\n\t%s" % exc)
+        return all
 
     def _next_op(self, pat):
         """Opcode parsing subroutine."""
@@ -1050,30 +1083,8 @@ class NodeSet(NodeSetBase):
         inst = NodeSet(autostep=autostep, resolver=resolver)
         if not inst._resolver:
             raise NodeSetExternalError("No node group resolver")
-        try:
-            # Ask resolver to provide all nodes.
-            for nodes in inst._resolver.all_nodes(groupsource):
-                inst.update(nodes)
-        except NodeUtils.GroupSourceNoUpcall:
-            # As the resolver is not able to provide all nodes directly,
-            # failback to list + map(s) method:
-            try:
-                # Like in regroup(), we get a NodeSet of all groups in
-                # specified group source.
-                allgrpns = NodeSet.fromlist( \
-                                inst._resolver.grouplist(groupsource),
-                                resolver=RESOLVER_NOGROUP)
-                # For each individual group, resolve it to node and accumulate.
-                for grp in allgrpns:
-                    inst.update(NodeSet.fromlist( \
-                                inst._resolver.group_nodes(grp, groupsource)))
-            except NodeUtils.GroupSourceNoUpcall:
-                # We are not able to find "all" nodes, definitely.
-                raise NodeSetExternalError("Not enough working external " \
-                    "calls (all, or map + list) defined to get all nodes")
-        except NodeUtils.GroupSourceQueryFailed, exc:
-            raise NodeSetExternalError("Unable to get all nodes due to the " \
-                "following external failure:\n\t%s" % exc)
+        # Fill this nodeset with all nodes found by resolver
+        inst.updaten(inst._parser.all_nodes(groupsource))
         return inst
 
     def __getstate__(self):
@@ -1108,7 +1119,6 @@ class NodeSet(NodeSetBase):
     def copy(self):
         """Return a shallow copy of a NodeSet."""
         cpy = self.__class__(resolver=RESOLVER_NOINIT)
-        cpy._length = self._length
         dic = {}
         for pat, rangeset in self._patterns.iteritems():
             if rangeset is None:
@@ -1140,28 +1150,27 @@ class NodeSet(NodeSetBase):
         if not self._resolver:
             raise NodeSetExternalError("No node group resolver")
         try:
-            # Get a NodeSet of all groups in specified group source.
-            allgrpns = NodeSet.fromlist(self._resolver.grouplist(groupsource),
-                                        resolver=RESOLVER_NOGROUP)
+            # Get all groups in specified group source.
+            allgrplist = self._parser.grouplist(groupsource)
         except NodeUtils.GroupSourceException:
             # If list query failed, we still might be able to regroup
             # using reverse.
-            allgrpns = None
+            allgrplist = None
         groups_info = {}
         allgroups = {}
         # Check for external reverse presence, and also use the
         # following heuristic: external reverse is used only when number
         # of groups is greater than the NodeSet size.
         if self._resolver.has_node_groups(groupsource) and \
-            (not allgrpns or len(allgrpns) >= len(self)):
+            (not allgrplist or len(allgrplist) >= len(self)):
             # use external reverse
             pass
         else:
-            if not allgrpns: # list query failed and no way to reverse!
+            if not allgrplist: # list query failed and no way to reverse!
                 return groups_info # empty
             try:
                 # use internal reverse: populate allgroups
-                for grp in allgrpns:
+                for grp in allgrplist:
                     nodelist = self._resolver.group_nodes(grp, groupsource)
                     allgroups[grp] = NodeSet(",".join(nodelist))
             except NodeUtils.GroupSourceQueryFailed, exc:
@@ -1337,13 +1346,13 @@ def fold(pat):
     """
     return str(NodeSet(pat))
 
-def grouplist(namespace=None):
+def grouplist(namespace=None, resolver=None):
     """
     Commodity function that retrieves the list of raw groups for a specified
     group namespace (or use default namespace).
     Group names are not prefixed with "@".
     """
-    return RESOLVER_STD_GROUP.grouplist(namespace)
+    return ParsingEngine(resolver or RESOLVER_STD_GROUP).grouplist(namespace)
 
 def std_group_resolver():
     """
