@@ -129,6 +129,15 @@ rack-all: @rack-x[1-2]y[1-2]
 
 class NodeSetGroupTest(unittest.TestCase):
 
+    def setUp(self):
+        """setUp test reproducibility: change standard group resolver
+        to ensure that no local group source is used during tests"""
+        set_std_group_resolver(GroupResolver()) # dummy resolver
+
+    def tearDown(self):
+        """tearDown: restore standard group resolver"""
+        set_std_group_resolver(None) # restore std resolver
+
     def testGroupResolverSimple(self):
         """test NodeSet with simple custom GroupResolver"""
 
@@ -912,6 +921,15 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
 
 class NodeSetRegroupTest(unittest.TestCase):
+
+    def setUp(self):
+        """setUp test reproducibility: change standard group resolver
+        to ensure that no local group source is used during tests"""
+        set_std_group_resolver(GroupResolver()) # dummy resolver
+
+    def tearDown(self):
+        """tearDown: restore standard group resolver"""
+        set_std_group_resolver(None) # restore std resolver
 
     def testGroupResolverReverse(self):
         """test NodeSet GroupResolver with reverse upcall"""
