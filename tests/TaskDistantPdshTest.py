@@ -25,6 +25,7 @@ class TaskDistantPdshEngineSelectTest(TaskDistantPdshMixin, unittest.TestCase):
         task_terminate()
         self.engine_id_save = Task._std_default['engine']
         Task._std_default['engine'] = ENGINE_SELECT_ID
+        # select should be supported anywhere...
         self.assertEqual(task_self().info('engine'), ENGINE_SELECT_ID)
         TaskDistantPdshMixin.setUp(self)
 
@@ -38,7 +39,8 @@ class TaskDistantPdshEnginePollTest(TaskDistantPdshMixin, unittest.TestCase):
         task_terminate()
         self.engine_id_save = Task._std_default['engine']
         Task._std_default['engine'] = ENGINE_POLL_ID
-        self.assertEqual(task_self().info('engine'), ENGINE_POLL_ID)
+        if task_self().info('engine') != ENGINE_POLL_ID:
+            self.skipTest("engine %s not supported on this host" % ENGINE_POLL_ID)
         TaskDistantPdshMixin.setUp(self)
 
     def tearDown(self):
@@ -55,7 +57,8 @@ if sys.version_info >= (2, 6, 0):
             task_terminate()
             self.engine_id_save = Task._std_default['engine']
             Task._std_default['engine'] = ENGINE_EPOLL_ID
-            self.assertEqual(task_self().info('engine'), ENGINE_EPOLL_ID)
+            if task_self().info('engine') != ENGINE_EPOLL_ID:
+                self.skipTest("engine %s not supported on this host" % ENGINE_EPOLL_ID)
             TaskDistantPdshMixin.setUp(self)
 
         def tearDown(self):

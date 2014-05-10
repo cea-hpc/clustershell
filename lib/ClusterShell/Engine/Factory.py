@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2009-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -67,9 +67,16 @@ class PreferredEngine(object):
             raise RuntimeError("FATAL: No supported ClusterShell.Engine found")
         else:
             # User overriding engine selection
+            engines = cls.engines.copy()
             try:
-                # constructor may raise EngineNotSupportedError
-                return cls.engines[hint](info)
+                tryengine = engines.pop(hint)
+                while True:
+                    try:
+                        return tryengine(info)
+                    except EngineNotSupportedError:
+                        if len(engines) == 0:
+                            raise
+                    tryengine = engines.popitem()[1]
             except KeyError, exc:
                 print >> sys.stderr, "Invalid engine identifier", exc
                 raise
