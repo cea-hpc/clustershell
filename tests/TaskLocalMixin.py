@@ -619,15 +619,16 @@ class TaskLocalMixin(object):
     def testWorkerSimplePipe(self):
         task = task_self()
         self.assert_(task != None)
-        r, w = os.pipe()
-        os.write(w, "test\n")
-        worker = WorkerSimple(r, None, None, "pipe", None, 0, True)
+        rfd, wfd = os.pipe()
+        os.write(wfd, "test\n")
+        worker = WorkerSimple(os.fdopen(rfd), None, None, "pipe", None, 0, True)
         self.assert_(worker != None)
         task.schedule(worker)
         task.resume()
         self.assertEqual(task.key_buffer("pipe"), 'test')
-        self.assertRaises(OSError, os.close, r)
-        os.close(w)
+        dummy = os.fstat(rfd) # just to check that rfd is still valid here
+        os.close(wfd)
+        # rfd will be closed when associated file is released
 
 
     # FIXME: reconsider this kind of test (which now must fail) especially

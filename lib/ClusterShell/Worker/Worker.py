@@ -391,6 +391,8 @@ class WorkerSimple(EngineClient, Worker):
             self.fd_error = file_error.fileno()
         if file_writer:
             self.fd_writer = file_writer.fileno()
+        # keep reference of provided file objects during worker lifetime
+        self._filerefs = (file_reader, file_writer, file_error)
 
     def _engine_clients(self):
         """
@@ -433,13 +435,6 @@ class WorkerSimple(EngineClient, Worker):
             # We still have some read data available in buffer, but no
             # EOL. Generate a final message before closing.
             self.worker._on_msgline(self._rbuf)
-
-        if self.fd_reader:
-            os.close(self.fd_reader)
-        if self.fd_error:
-            os.close(self.fd_error)
-        if self.fd_writer:
-            os.close(self.fd_writer)
 
         if timeout:
             assert abort, "abort flag not set on timeout"
