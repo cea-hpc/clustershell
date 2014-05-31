@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2009-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -36,7 +36,8 @@ EngineClient
 ClusterShell engine's client interface.
 
 An engine client is similar to a process, you can start/stop it, read data from
-it and write data to it.
+it and write data to it. Multiple data channels are supported (eg. stdin, stdout
+and stderr, or even more...)
 """
 
 import errno
@@ -47,7 +48,7 @@ import thread
 from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
     set_nonblock_flag
 
-from ClusterShell.Engine.Engine import EngineBaseTimer
+from ClusterShell.Engine.Engine import EngineBaseTimer, E_READ, E_WRITE
 
 
 class EngineClientException(Exception):
@@ -63,6 +64,115 @@ class EngineClientNotSupportedError(EngineClientError):
     """Operation not supported by EngineClient."""
 
 
+class EngineClientStream(object):
+    """EngineClient I/O stream object.
+
+    Internal object used by EngineClient to manage its Engine-registered I/O
+    streams. Each EngineClientStream is bound to a file object (file
+    descriptor). It can be either an input, an output or a bidirectional
+    stream (not used for now)."""
+
+    def __init__(self, name, sfile=None, evmask=0):
+        """Initialize an EngineClientStream object.
+
+        @param name: Name of stream.
+        @param sfile: File object or file descriptor.
+        @param evmask: Config I/O event bitmask.
+        """
+        self.name = name
+        self.fd = None
+        self.rbuf = ""
+        self.wbuf = ""
+        self.eof = False
+        self.evmask = evmask
+        self.events = 0
+        self.new_events = 0
+        self.set_file(sfile)
+
+    def set_file(self, sfile, evmask=0):
+        """
+        Set the stream file and event mask for this object.
+        sfile should be a file object or a file descriptor.
+        Event mask can be either E_READ, E_WRITE or both.
+        Currently does NOT retain file object.
+        """
+        try:
+            # file descriptor
+            self.fd = sfile.fileno()
+        except AttributeError:
+            self.fd = sfile
+        # Set I/O event mask
+        self.evmask = evmask
+
+    def __repr__(self):
+        return "<%s at 0x%s (fd=%s rbuflen=%d wbuflen=%d eof=%d evmask=0x%x)>" \
+            % (self.__class__.__name__, id(self), self.fd, len(self.rbuf), \
+               len(self.wbuf), self.eof, self.evmask)
+
+    def close(self):
+        """Close stream."""
+        os.close(self.fd)
+
+    def readable(self):
+        """Return whether the stream is setup as readable."""
+        return self.evmask & E_READ
+
+    def writable(self):
+        """Return whether the stream is setup as writable."""
+        return self.evmask & E_WRITE
+
+
+class EngineClientStreamDict(dict):
+    """EngineClient's named stream dictionary."""
+
+    def add(self, fname, sfile=None, evmask=0):
+        """Add file object or file descriptor to this pool."""
+        engfile = dict.setdefault(self, fname, EngineClientStream(fname))
+        engfile.set_file(sfile, evmask)
+        return engfile
+
+    def add_reader(self, fname, sfile=None):
+        """Add readable file object or file descriptor to this pool."""
+        self.add(fname, sfile, E_READ)
+
+    def add_writer(self, fname, sfile=None):
+        """Add writable file object or file descriptor to this pool."""
+        self.add(fname, sfile, E_WRITE)
+
+    def destroy(self, key):
+        """Close file object and remove it from this pool."""
+        self[key].close()
+        dict.pop(self, key)
+
+    def __delitem__(self, key):
+        self.destroy(key)
+
+    def clear(self):
+        """Clear File Pool"""
+        for stream in self.values():
+            stream.close()
+        dict.clear(self)
+
+    def readers(self):
+        """Convenience method to get an iterator on streams setup as
+        readable."""
+        return [s for s in self.values() if \
+                (s.fd is not None) and s.evmask & E_READ]
+
+    def writers(self):
+        """Convenience method to get an iterator on streams setup as
+        writable."""
+        return [s for s in self.values() if \
+                (s.fd is not None) and s.evmask & E_WRITE]
+
+    def events(self):
+        """Return all interest event bitmask for this stream dict."""
+        result = 0
+        for stream in self.values():
+            result |= stream.events
+        return result
+
+
 class EngineClient(EngineBaseTimer):
     """
     Abstract class EngineClient.
@@ -74,11 +184,6 @@ class EngineClient(EngineBaseTimer):
         """
         EngineBaseTimer.__init__(self, timeout, -1, autoclose)
 
-        # engine-friendly variables
-        self._events = 0                    # current configured set of
-                                            # interesting events (read,
-                                            # write) for client
-        self._new_events = 0                # new set of interesting events
         self._reg_epoch = 0                 # registration generation number
 
         # read-only public
@@ -90,16 +195,8 @@ class EngineClient(EngineBaseTimer):
         # boolean indicating whether stderr is on a separate fd
         self._stderr = stderr
 
-        # associated file descriptors
-        self.fd_error = None
-        self.fd_reader = None
-        self.fd_writer = None
-
-        # initialize error, read and write buffers
-        self._ebuf = ""
-        self._rbuf = ""
-        self._wbuf = ""
-        self._weof = False                  # write-ends notification
+        # streams associated with this client
+        self.streams = EngineClientStreamDict()
 
     def _fire(self):
         """
@@ -115,109 +212,84 @@ class EngineClient(EngineBaseTimer):
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def error_fileno(self):
+    def _close(self, abort, timeout):
         """
-        Return the standard error reader file descriptor as an integer.
-        """
-        return self.fd_error
-
-    def reader_fileno(self):
-        """
-        Return the reader file descriptor as an integer.
-        """
-        return self.fd_reader
-    
-    def writer_fileno(self):
-        """
-        Return the writer file descriptor as an integer.
-        """
-        return self.fd_writer
-
-    def _close(self, abort, flush, timeout):
-        """
-        Close client. Called by the engine after client has been
-        unregistered. This method should handle all termination types
-        (normal or aborted) with some options like flushing I/O buffers
-        or setting timeout status.
+        Close client. Called by the engine after client has been unregistered.
+        This method should handle both termination types (normal or aborted)
+        and should set timeout status accordingly.
 
         Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _set_reading(self):
+    def _close_stream(self, fname):
+        """
+        Close specific stream by name (internal, called by engine). This method
+        is the regular way to close a stream flushing read buffers accordingly.
+        """
+        self._flush_read(fname)
+        del self.streams[fname]
+
+    def _set_reading(self, fname):
         """
         Set reading state.
         """
-        self._engine.set_reading(self)
+        self._engine.set_reading(self, fname)
 
-    def _set_reading_error(self):
-        """
-        Set error reading state.
-        """
-        self._engine.set_reading_error(self)
-
-    def _set_writing(self):
+    def _set_writing(self, fname):
         """
         Set writing state.
         """
-        self._engine.set_writing(self)
+        self._engine.set_writing(self, fname)
 
-    def _read(self, size=65536):
+    def _read(self, fname, size=65536):
         """
         Read data from process.
         """
-        result = os.read(self.fd_reader, size)
-        if not len(result):
+        result = os.read(self.streams[fname].fd, size)
+        if len(result) == 0:
             raise EngineClientEOF()
-        self._set_reading()
+        self._set_reading(fname)
         return result
 
-    def _readerr(self, size=65536):
-        """
-        Read error data from process.
-        """
-        result = os.read(self.fd_error, size)
-        if not len(result):
-            raise EngineClientEOF()
-        self._set_reading_error()
-        return result
+    def _flush_read(self, fname):
+        """Called when stream is closing to flush read buffers."""
+        pass # derived classes may implement
 
-    def _handle_read(self):
+    def _handle_read(self, fname):
         """
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
         """
         raise NotImplementedError("Derived classes must implement.")
 
-    def _handle_error(self):
-        """
-        Handle a stderr read notification. Called by the engine as the result
-        of an event indicating that a read is available on stderr.
-        """
-        raise NotImplementedError("Derived classes must implement.")
-
-    def _handle_write(self):
+    def _handle_write(self, fname):
         """
         Handle a write notification. Called by the engine as the result of an
         event indicating that a write can be performed now.
         """
-        if len(self._wbuf) > 0:
+        wfile = self.streams[fname]
+        if not wfile.wbuf and wfile.eof:
+            # remove stream from engine (not directly)
+            self._engine.remove_stream(self, wfile)
+        elif len(wfile.wbuf) > 0:
             try:
-                wcnt = os.write(self.fd_writer, self._wbuf)
+                wcnt = os.write(wfile.fd, wfile.wbuf)
             except OSError, exc:
                 if (exc.errno == errno.EAGAIN):
-                    self._set_writing()
+                    self._set_writing(fname)
                     return
                 raise
             if wcnt > 0:
                 # dequeue written buffer
-                self._wbuf = self._wbuf[wcnt:]
+                wfile.wbuf = wfile.wbuf[wcnt:]
                 # check for possible ending
-                if self._weof and not self._wbuf:
-                    self._close_writer()
+                if wfile.eof and not wfile.wbuf:
+                    # remove stream from engine (not directly)
+                    self._engine.remove_stream(self, wfile)
                 else:
-                    self._set_writing()
-    
+                    self._set_writing(fname)
+
     def _exec_nonblock(self, commandlist, shell=False, env=None):
         """
         Utility method to launch a command with stdin/stdout file
@@ -238,26 +310,26 @@ class EngineClient(EngineBaseTimer):
             stderr=stderr_setup, shell=shell, env=full_env)
 
         if self._stderr:
-            self.fd_error = proc.stderr
-        self.fd_reader = proc.stdout
-        self.fd_writer = proc.stdin
+            self.streams.add('stderr', proc.stderr, E_READ)
+        self.streams.add('stdout', proc.stdout, E_READ)
+        self.streams.add('stdin', proc.stdin, E_WRITE)
 
         return proc
 
-    def _readlines(self):
-        """
-        Utility method to read client lines
-        """
+    def _readlines(self, fname):
+        """Utility method to read client lines."""
         # read a chunk of data, may raise eof
-        readbuf = self._read()
+        readbuf = self._read(fname)
         assert len(readbuf) > 0, "assertion failed: len(readbuf) > 0"
 
         # Current version implements line-buffered reads. If needed, we could
         # easily provide direct, non-buffered, data reads in the future.
 
-        buf = self._rbuf + readbuf
+        rfile = self.streams[fname]
+
+        buf = rfile.rbuf + readbuf
         lines = buf.splitlines(True)
-        self._rbuf = ""
+        rfile.rbuf = ""
         for line in lines:
             if line.endswith('\n'):
                 if line.endswith('\r\n'):
@@ -267,61 +339,37 @@ class EngineClient(EngineBaseTimer):
                     yield line[:-1] # trim LF
             else:
                 # keep partial line in buffer
-                self._rbuf = line
+                rfile.rbuf = line
                 # breaking here
 
-    def _readerrlines(self):
-        """
-        Utility method to read client lines
-        """
-        # read a chunk of data, may raise eof
-        readerrbuf = self._readerr()
-        assert len(readerrbuf) > 0, "assertion failed: len(readerrbuf) > 0"
+    def _write(self, fname, buf):
+        """Add some data to be written to the client."""
+        try:
+            wfile = self.streams[fname]
+        except KeyError:
+            wfile = self.streams.add(fname)
 
-        buf = self._ebuf + readerrbuf
-        lines = buf.splitlines(True)
-        self._ebuf = ""
-        for line in lines:
-            if line.endswith('\n'):
-                if line.endswith('\r\n'):
-                    yield line[:-2] # trim CRLF
-                else:
-                    # trim LF
-                    yield line[:-1] # trim LF
-            else:
-                # keep partial line in buffer
-                self._ebuf = line
-                # breaking here
-
-    def _write(self, buf):
-        """
-        Add some data to be written to the client.
-        """
-        fd = self.fd_writer
-        if fd:
-            self._wbuf += buf
+        if wfile.fd:
+            wfile.wbuf += buf
             # give it a try now (will set writing flag anyhow)
-            self._handle_write()
+            self._handle_write(fname)
         else:
             # bufferize until pipe is ready
-            self._wbuf += buf
+            wfile.wbuf += buf
 
-    def _set_write_eof(self):
-        self._weof = True
-        if not self._wbuf:
-            # sendq empty, try to close writer now
-            self._close_writer()
-
-    def _close_writer(self):
-        if self.fd_writer is not None:
-            self._engine.unregister_writer(self)
-            os.close(self.fd_writer)
-            self.fd_writer = None
+    def _set_write_eof(self, fname):
+        """Set EOF on specific writable stream"""
+        try:
+            wfile = self.streams[fname]
+        except KeyError:
+            wfile = self.streams.add(fname)
+        wfile.eof = True
+        if wfile.fd and not wfile.wbuf:
+            # sendq empty, remove stream now
+            self._engine.remove_stream(self, wfile)
 
     def abort(self):
-        """
-        Abort processing any action by this client.
-        """
+        """Abort processing any action by this client."""
         if self._engine:
             self._engine.remove(self, abort=True)
 
@@ -375,13 +423,25 @@ class EnginePort(EngineClient):
         # Set nonblocking flag
         set_nonblock_flag(readfd)
         set_nonblock_flag(writefd)
-        self.fd_reader = readfd
-        self.fd_writer = writefd
+        self.streams.add('in', readfd, E_READ)
+        self.streams.add('out', writefd, E_WRITE)
+
+    def __repr__(self):
+        try:
+            fd_in = self.streams['in'].fd
+        except KeyError:
+            fd_in = None
+        try:
+            fd_out = self.streams['out'].fd
+        except KeyError:
+            fd_out = None
+        return "<%s at 0x%s (streams=(%d, %d))>" % (self.__class__.__name__, \
+                                                    id(self), fd_in, fd_out)
 
     def _start(self):
         return self
 
-    def _close(self, abort, flush, timeout):
+    def _close(self, abort, timeout):
         """
         Close port pipes.
         """
@@ -396,17 +456,15 @@ class EnginePort(EngineClient):
             except Queue.Empty:
                 pass
         self._msgq = None
-        os.close(self.fd_reader)
-        self.fd_reader = None
-        os.close(self.fd_writer)
-        self.fd_writer = None
+        del self.streams['out']
+        del self.streams['in']
 
-    def _handle_read(self):
+    def _handle_read(self, fname):
         """
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
         """
-        readbuf = self._read(4096)
+        readbuf = self._read(fname, 4096)
         for dummy_char in readbuf:
             # raise Empty if empty (should never happen)
             pmsg = self._msgq.get(block=False)
@@ -420,7 +478,7 @@ class EnginePort(EngineClient):
         pmsg = EnginePort._Msg(send_msg, not send_once)
         self._msgq.put(pmsg, block=True, timeout=None)
         try:
-            ret = os.write(self.writer_fileno(), "M")
+            ret = os.write(self.streams['out'].fd, "M")
         except OSError:
             raise
         pmsg.sync()

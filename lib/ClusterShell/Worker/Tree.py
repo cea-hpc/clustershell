@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2011, 2012)
+# Copyright CEA/DAM/DIF (2011-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -62,14 +62,16 @@ class MetaWorkerEventHandler(EventHandler):
         Called to indicate that a worker has data to read.
         """
         self.metaworker._on_node_msgline(worker.current_node,
-                                         worker.current_msg)
+                                         worker.current_msg,
+                                         'stdout')
 
     def ev_error(self, worker):
         """
         Called to indicate that a worker has error to read (on stderr).
         """
-        self.metaworker._on_node_errline(worker.current_node,
-                                         worker.current_errmsg)
+        self.metaworker._on_node_msgline(worker.current_node,
+                                         worker.current_errmsg,
+                                         'stderr')
 
     def ev_written(self, worker):
         """

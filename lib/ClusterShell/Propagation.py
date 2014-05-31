@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2010-2014)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -350,14 +350,14 @@ class PropagationChannel(Channel):
                     self.logger.debug("StdOutMessage: \"%s\"", msg.data)
                     for line in msg.data.splitlines():
                         for node in nodeset:
-                            metaworker._on_node_msgline(node, line)
+                            metaworker._on_node_msgline(node, line, 'stdout')
             elif msg.type == StdErrMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
                     self.logger.debug("StdErrMessage: \"%s\"", msg.data)
                     for line in msg.data.splitlines():
                         for node in nodeset:
-                            metaworker._on_node_errline(node, line)
+                            metaworker._on_node_msgline(node, line, 'stderr')
             elif msg.type == RetcodeMessage.ident:
                 rc = msg.retcode
                 for node in NodeSet(msg.nodes):

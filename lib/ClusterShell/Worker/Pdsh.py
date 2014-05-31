@@ -197,7 +197,7 @@ class WorkerPdsh(EngineClient, DistantWorker):
         raise EngineClientNotSupportedError("writing is not " \
                                             "supported by pdsh worker")
 
-    def _close(self, abort, flush, timeout):
+    def _close(self, abort, timeout):
         """
         Close client. See EngineClient._close().
         """
@@ -215,14 +215,7 @@ class WorkerPdsh(EngineClient, DistantWorker):
             if self.eh:
                 self.eh.ev_timeout(self)
 
-        os.close(self.fd_reader)
-        self.fd_reader = None
-        if self.fd_error:
-            os.close(self.fd_error)
-            self.fd_error = None
-        if self.fd_writer:
-            os.close(self.fd_writer)
-            self.fd_writer = None
+        self.streams.clear()
 
         if timeout:
             assert abort, "abort flag not set on timeout"
@@ -235,7 +228,7 @@ class WorkerPdsh(EngineClient, DistantWorker):
         if self.eh:
             self.eh.ev_close(self)
 
-    def _parse_line(self, line, stderr):
+    def _parse_line(self, line, fname):
         """
         Parse Pdsh line syntax.
         """
@@ -274,12 +267,13 @@ class WorkerPdsh(EngineClient, DistantWorker):
         else:
             # split pdsh reply "nodename: msg"
             nodename, msg = line.split(': ', 1)
-            if stderr:
-                self._on_node_errline(nodename, msg)
-            else:
-                self._on_node_msgline(nodename, msg)
+            self._on_node_msgline(nodename, msg, fname)
 
-    def _handle_read(self):
+    def _flush_read(self, fname):
+        """Called at close time to flush stream read buffer."""
+        pass
+
+    def _handle_read(self, fname):
         """
         Engine is telling us a read is available.
         """
@@ -287,23 +281,14 @@ class WorkerPdsh(EngineClient, DistantWorker):
         if debug:
             print_debug = self.task.info("print_debug")
 
-        for msg in self._readlines():
-            if debug:
-                print_debug(self.task, "PDSH: %s" % msg)
-            self._parse_line(msg, False)
+        suffix = ""
+        if fname == 'stderr':
+            suffix = "@STDERR"
 
-    def _handle_error(self):
-        """
-        Engine is telling us an error read is available.
-        """
-        debug = self.worker.task.info("debug", False)
-        if debug:
-            print_debug = self.worker.task.info("print_debug")
-
-        for msg in self._readerrlines():
+        for msg in self._readlines(fname):
             if debug:
-                print_debug(self.task, "PDSH@STDERR: %s" % msg)
-            self._parse_line(msg, True)
+                print_debug(self.task, "PDSH%s: %s" % (suffix, msg))
+            self._parse_line(msg, fname)
 
     def _on_node_rc(self, node, rc):
         """

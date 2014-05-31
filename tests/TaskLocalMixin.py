@@ -21,6 +21,9 @@ from ClusterShell.Task import *
 from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
 from ClusterShell.Worker.Worker import WorkerBadArgumentError
 
+# private import
+from ClusterShell.Engine.Engine import E_READ, E_WRITE
+
 import socket
 
 import threading
@@ -457,6 +460,20 @@ class TaskLocalMixin(object):
         # read result
         self.assertEqual(worker.read(), "4")
 
+    def testLocalWorkerWritesWithLateEOF(self):
+        class LateEOFHandler(EventHandler):
+            def ev_start(self, worker):
+                worker.set_write_eof()
+
+        task = task_self()
+        self.assert_(task != None)
+        worker = task.shell("(sleep 1; cat)", handler=LateEOFHandler())
+        worker.write("cracoucasse\n")
+        task.resume()
+
+        # read result
+        self.assertEqual(worker.read(), "cracoucasse")
+
     def testEscape(self):
         task = task_self()
         self.assert_(task != None)
@@ -476,11 +493,33 @@ class TaskLocalMixin(object):
         self.assertEqual(worker.read(), "foobar")
 
     def testEngineClients(self):
+        # private EngineClient stream basic tests
+        class StartHandler(EventHandler):
+            def __init__(self, test):
+                self.test = test
+            def ev_start(self, worker):
+                if len(streams) == 2:
+                    for streamd in streams:
+                        for name, stream in streamd.iteritems():
+                            self.test.assertTrue(name in ['stdin', 'stdout', 'stderr'])
+                            if name == 'stdin':
+                                self.test.assertTrue(stream.writable())
+                                self.test.assertFalse(stream.readable())
+                            else:
+                                self.test.assertTrue(stream.readable())
+                                self.test.assertFalse(stream.writable())
+
         task = task_self()
         self.assert_(task != None)
-        worker = task.shell("/bin/hostname")
-        self.assert_(worker != None)
-        self.assertEqual(len(task._engine.clients()), 1)
+        shdl = StartHandler(self)
+        worker1 = task.shell("/bin/hostname", handler=shdl)
+        self.assert_(worker1 != None)
+        worker2 = task.shell("echo ok", handler=shdl)
+        self.assert_(worker2 != None)
+        engine = task._engine
+        clients = engine.clients()
+        self.assertEqual(len(clients), 2)
+        streams = [client.streams for client in clients]
         task.resume()
 
     def testEnginePorts(self):

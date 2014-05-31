@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2009-2014)
 #  Contributors:
 #   Henri DOREAU <henri.doreau@cea.fr>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
@@ -44,7 +44,7 @@ import select
 import sys
 import time
 
-from ClusterShell.Engine.Engine import Engine
+from ClusterShell.Engine.Engine import Engine, E_READ, E_WRITE
 from ClusterShell.Engine.Engine import EngineTimeoutException
 from ClusterShell.Worker.EngineClient import EngineClientEOF
 
@@ -70,9 +70,10 @@ class EngineSelect(Engine):
         """
         Engine-specific fd registering. Called by Engine register.
         """
-        if event & (Engine.E_READ | Engine.E_ERROR):
+        if event & E_READ:
             self._fds_r.append(fd)
-        elif event & Engine.E_WRITE:
+        else:
+            assert event & E_WRITE
             self._fds_w.append(fd)
 
     def _unregister_specific(self, fd, ev_is_set):
@@ -135,64 +136,50 @@ class EngineSelect(Engine):
                     continue
                 elif ex_errno in [errno.EINVAL, errno.EBADF, errno.ENOMEM]:
                     print >> sys.stderr, "EngineSelect: %s" % ex_strerror
-                else:
-                    raise
+                raise
 
             # iterate over fd on which events occured
             for fd in set(r_ready) | set(w_ready):
 
                 # get client instance
-                client, fdev = self._fd2client(fd)
+                client, stream = self._fd2client(fd)
                 if client is None:
                     continue
+
+                fdev = stream.evmask
+                fname = stream.name
 
                 # process this client
                 self._current_client = client
 
                 # check for possible unblocking read on this fd
                 if fd in r_ready:
-                    assert fdev & (Engine.E_READ | Engine.E_ERROR)
-                    assert client._events & fdev
-                    self.modify(client, 0, fdev)
+                    self._debug("R_READY fd=%d %s (%s)" % (fd,
+                        client.__class__.__name__, client.streams))
+                    assert fdev & E_READ
+                    assert stream.events & fdev
+                    self.modify(client, fname, 0, fdev)
                     try:
-                        if fdev & Engine.E_READ:
-                            client._handle_read()
-                        else:
-                            client._handle_error()
+                        client._handle_read(fname)
                     except EngineClientEOF:
                         self._debug("EngineClientEOF %s" % client)
-                        # if the EOF occurs on E_READ...
-                        if fdev & Engine.E_READ:
-                            # and if the client is also waiting for E_ERROR
-                            if client._events & Engine.E_ERROR:
-                                # just clear the event for E_READ
-                                self.modify(client, 0, fdev)
-                            else:
-                                # otherwise we can remove the client
-                                self.remove(client)
-                        else:
-                            # same thing in the other order...
-                            if client._events & Engine.E_READ:
-                                self.modify(client, 0, fdev)
-                            else:
-                                self.remove(client)
+                        self.remove_stream(client, stream)
 
                 # check for writing
                 if fd in w_ready:
-                    self._debug("W_READY fd=%d %s (r%s,e%s,w%s)" % (fd,
-                        client.__class__.__name__, client.reader_fileno(),
-                        client.error_fileno(), client.writer_fileno()))
-                    assert fdev == Engine.E_WRITE
-                    assert client._events & fdev
-                    self.modify(client, 0, fdev)
-                    client._handle_write()
+                    self._debug("W_READY fd=%d %s (%s)" % (fd,
+                        client.__class__.__name__, client.streams))
+                    assert fdev == E_WRITE
+                    assert stream.events & fdev
+                    self.modify(client, fname, 0, fdev)
+                    client._handle_write(fname)
 
                 # post processing
                 self._current_client = None
 
                 # apply any changes occured during processing
                 if client.registered:
-                    self.set_events(client, client._new_events)
+                    self.set_events(client, stream)
 
             # check for task runloop timeout
             if timeout > 0 and time.time() >= start_time + timeout:

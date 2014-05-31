@@ -1,3 +1,9 @@
+2014-05-20 S. Thiell <stephane.thiell@cea.fr>
+
+	* EngineClient.py: Code improvement to support multiple customizable I/O
+	streams per EngineClient in different mode, each being named and having
+	their own read/write buffers and attributes.
+
 2014-04-30 A. Degremont <aurelien.degremont@cea.fr>
 
 	* Clush.py: Add a 'worker' option to switch default worker (ticket #221).

@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -41,6 +41,11 @@ import errno
 import heapq
 import logging
 import time
+
+# Engine client fd I/O event interest bits
+E_READ  = 0x1
+E_WRITE = 0x2
+E_ANY   = E_READ | E_WRITE
 
 # Define epsilon value for time float arithmetic operations
 EPSILON = 1.0e-3
@@ -337,22 +342,17 @@ class _EngineTimerQ:
 
 class Engine:
     """
-    Interface for ClusterShell engine. Subclasses have to implement a runloop
-    listening for client events.
-    """
+    Base class for ClusterShell Engines.
 
-    # Engine client I/O event interest bits
-    E_READ = 0x1
-    E_ERROR = 0x2
-    E_WRITE = 0x4
-    E_ANY = E_READ | E_ERROR | E_WRITE
+    Subclasses have to implement a runloop listening for client events.
+    Subclasses that override other than "pure virtual methods" should call
+    corresponding base class methods.
+    """
 
     identifier = "(none)"
 
     def __init__(self, info):
-        """
-        Initialize base class.
-        """
+        """Initialize base class."""
         # take a reference on info dict
         self.info = info
 
@@ -367,7 +367,7 @@ class Engine:
         self.reg_clients = 0
 
         # keep track of registered file descriptors in a dict where keys
-        # are fileno and values are clients
+        # are fileno and values are (EngineClient, EngineClientStream) tuples
         self.reg_clifds = {}
 
         # Current loop iteration counter. It is the number of performed engine
@@ -395,9 +395,7 @@ class Engine:
         pass
 
     def clients(self):
-        """
-        Get a copy of clients set.
-        """
+        """Get a copy of clients set."""
         return self._clients.copy()
 
     def ports(self):
@@ -407,20 +405,17 @@ class Engine:
         return self._ports.copy()
 
     def _fd2client(self, fd):
-        client, fdev = self.reg_clifds.get(fd, (None, None))
+        client, stream = self.reg_clifds.get(fd, (None, None))
         if client:
             if client._reg_epoch < self._current_loopcnt:
-                return client, fdev
+                return client, stream
             else:
                 self._debug("ENGINE _fd2client: ignoring just re-used FD %d" \
-                            % fd)
+                            % stream.fd)
         return (None, None)
 
     def add(self, client):
-        """
-        Add a client to engine. Subclasses that override this method
-        should call base class method.
-        """
+        """Add a client to engine."""
         # bind to engine
         client._set_engine(self)
 
@@ -438,21 +433,19 @@ class Engine:
             elif self.info["fanout"] > self.reg_clients:
                 self.register(client._start())
 
-    def _remove(self, client, abort, did_timeout=False, force=False):
-        """
-        Remove a client from engine (subroutine).
-        """
+    def _remove(self, client, abort, did_timeout=False):
+        """Remove a client from engine (subroutine)."""
         # be careful to also remove ports when engine has not started yet
         if client.registered or not client.delayable:
             if client.registered:
                 self.unregister(client)
             # care should be taken to ensure correct closing flags
-            client._close(abort=abort, flush=not force, timeout=did_timeout)
+            client._close(abort=abort, timeout=did_timeout)
 
     def remove(self, client, abort=False, did_timeout=False):
         """
-        Remove a client from engine. Subclasses that override this
-        method should call base class method.
+        Remove a client from engine. Does NOT aim to flush individual stream
+        read buffers.
         """
         self._debug("REMOVE %s" % client)
         if client.delayable:
@@ -462,10 +455,22 @@ class Engine:
         self._remove(client, abort, did_timeout)
         self.start_all()
     
+    def remove_stream(self, client, stream):
+        """
+        Regular way to remove a client stream from engine, performing needed
+        read flush as needed. If no more readable stream remains for this
+        client, this method automatically removes the entire client from engine.
+        """
+        self.unregister_stream(client, stream)
+        # _close_stream() will flush pending read buffers
+        client._close_stream(stream.name)
+        if client.streams.events() & ~E_WRITE == 0:
+            self.remove(client)
+
     def clear(self, did_timeout=False, clear_ports=False):
         """
-        Remove all clients. Subclasses that override this method should
-        call base class method.
+        Remove all clients. Does not flush read buffers.
+        Subclasses that override this method should call base class method.
         """
         all_clients = [self._clients]
         if clear_ports:
@@ -474,7 +479,7 @@ class Engine:
         for clients in all_clients:
             while len(clients) > 0:
                 client = clients.pop()
-                self._remove(client, True, did_timeout, force=True)
+                self._remove(client, True, did_timeout)
 
     def register(self, client):
         """
@@ -484,121 +489,79 @@ class Engine:
         assert client in self._clients or client in self._ports
         assert not client.registered
 
-        efd = client.fd_error
-        rfd = client.fd_reader
-        wfd = client.fd_writer
-        assert rfd is not None or wfd is not None
+        self._debug("REG %s (%s)(autoclose=%s)" % \
+                (client.__class__.__name__, client.streams,
+                 client.autoclose))
 
-        self._debug("REG %s(e%s,r%s,w%s)(autoclose=%s)" % \
-                (client.__class__.__name__, efd, rfd, wfd,
-                    client.autoclose))
-
-        client._events = 0
         client.registered = True
         client._reg_epoch = self._current_loopcnt
 
         if client.delayable:
             self.reg_clients += 1
 
-        if client.autoclose:
-            refcnt_inc = 0
-        else:
-            refcnt_inc = 1
-
-        if efd != None:
-            self.reg_clifds[efd] = client, Engine.E_ERROR
-            client._events |= Engine.E_ERROR
-            self.evlooprefcnt += refcnt_inc
-            self._register_specific(efd, Engine.E_ERROR)
-        if rfd != None:
-            self.reg_clifds[rfd] = client, Engine.E_READ
-            client._events |= Engine.E_READ
-            self.evlooprefcnt += refcnt_inc
-            self._register_specific(rfd, Engine.E_READ)
-        if wfd != None:
-            self.reg_clifds[wfd] = client, Engine.E_WRITE
-            client._events |= Engine.E_WRITE
-            self.evlooprefcnt += refcnt_inc
-            self._register_specific(wfd, Engine.E_WRITE)
-
-        client._new_events = client._events
+        # set interest event bits...
+        for streams, ievent in ((client.streams.readers, E_READ), \
+                                (client.streams.writers, E_WRITE)):
+            for stream in streams():
+                self.reg_clifds[stream.fd] = client, stream
+                stream.events |= ievent
+                if not client.autoclose:
+                    self.evlooprefcnt += 1
+                self._register_specific(stream.fd, ievent)
 
         # start timeout timer
         self.timerq.schedule(client)
 
-    def unregister_writer(self, client):
-        self._debug("UNREG WRITER r%s,w%s" % (client.reader_fileno(), \
-            client.writer_fileno()))
-        if client.autoclose:
-            refcnt_inc = 0
-        else:
-            refcnt_inc = 1
-
-        wfd = client.fd_writer
-        if wfd != None:
-            self._unregister_specific(wfd, client._events & Engine.E_WRITE)
-            client._events &= ~Engine.E_WRITE
-            del self.reg_clifds[wfd]
-            self.evlooprefcnt -= refcnt_inc
+    def unregister_stream(self, client, stream):
+        """Unregister a stream from a client."""
+        self._debug("UNREG_STREAM stream=%s" % stream)
+        assert stream is not None and stream.fd is not None
+        assert stream.fd in self.reg_clifds, "stream fd %d not registered" % stream.fd
+        assert client.registered
+        self._unregister_specific(stream.fd, stream.events & stream.evmask)
+        self._debug("UNREG_STREAM unregistering stream fd %d (%d)" % \
+                    (stream.fd, len(client.streams)))
+        stream.events &= ~stream.evmask
+        del self.reg_clifds[stream.fd]
+        if not client.autoclose:
+            self.evlooprefcnt -= 1
 
     def unregister(self, client):
-        """
-        Unregister a client. Subclasses that override this method should
-        call base class method.
-        """
+        """Unregister a client"""
         # sanity check
         assert client.registered
-        self._debug("UNREG %s (r%s,e%s,w%s)" % (client.__class__.__name__,
-            client.reader_fileno(), client.error_fileno(),
-            client.writer_fileno()))
-        
+        self._debug("UNREG %s (%s)" % (client.__class__.__name__, \
+                client.streams))
+
         # remove timeout timer
         self.timerq.invalidate(client)
         
-        if client.autoclose:
-            refcnt_inc = 0
-        else:
-            refcnt_inc = 1
-            
-        # clear interest events
-        efd = client.fd_error
-        if efd is not None:
-            self._unregister_specific(efd, client._events & Engine.E_ERROR)
-            client._events &= ~Engine.E_ERROR
-            del self.reg_clifds[efd]
-            self.evlooprefcnt -= refcnt_inc
+        # clear interest events...
+        for streams, ievent in ((client.streams.readers, E_READ), \
+                                (client.streams.writers, E_WRITE)):
+            for stream in streams():
+                if stream.fd in self.reg_clifds:
+                    self._unregister_specific(stream.fd, stream.events & ievent)
+                    stream.events &= ~ievent
+                    del self.reg_clifds[stream.fd]
+                    if not client.autoclose:
+                        self.evlooprefcnt -= 1
 
-        rfd = client.fd_reader
-        if rfd is not None:
-            self._unregister_specific(rfd, client._events & Engine.E_READ)
-            client._events &= ~Engine.E_READ
-            del self.reg_clifds[rfd]
-            self.evlooprefcnt -= refcnt_inc
-
-        wfd = client.fd_writer
-        if wfd is not None:
-            self._unregister_specific(wfd, client._events & Engine.E_WRITE)
-            client._events &= ~Engine.E_WRITE
-            del self.reg_clifds[wfd]
-            self.evlooprefcnt -= refcnt_inc
-
-        client._new_events = 0
         client.registered = False
         if client.delayable:
             self.reg_clients -= 1
 
-    def modify(self, client, setmask, clearmask):
-        """
-        Modify the next loop interest events bitset for a client.
-        """
-        self._debug("MODEV set:0x%x clear:0x%x %s" % (setmask, clearmask,
-                                                      client))
-        client._new_events &= ~clearmask
-        client._new_events |= setmask
+    def modify(self, client, fname, setmask, clearmask):
+        """Modify the next loop interest events bitset for a client stream."""
+        self._debug("MODEV set:0x%x clear:0x%x %s (%s)" % (setmask, clearmask,
+                                                           client, fname))
+        stream = client.streams[fname]
+        stream.new_events &= ~clearmask
+        stream.new_events |= setmask
 
         if self._current_client is not client:
             # modifying a non processing client, apply new_events now
-            self.set_events(client, client._new_events)
+            self.set_events(client, stream)
 
     def _register_specific(self, fd, event):
         """Engine-specific register fd for event method."""
@@ -612,100 +575,59 @@ class Engine:
         """Engine-specific modify fd for event method."""
         raise NotImplementedError("Derived classes must implement.")
         
-    def set_events(self, client, new_events):
-        """
-        Set the active interest events bitset for a client.
-        """
-        self._debug("SETEV new_events:0x%x events:0x%x %s" % (new_events,
-            client._events, client))
+    def set_events(self, client, stream):
+        """Set the active interest events bitset for a client stream."""
+        self._debug("SETEV new_events:0x%x events:0x%x for %s[%s]" % \
+            (stream.new_events, stream.events, client, stream.name))
 
         if not client.registered:
             logging.getLogger(__name__).debug( \
                 "set_events: client %s not registered" % self)
             return
 
-        chgbits = new_events ^ client._events
+        chgbits = stream.new_events ^ stream.events
         if chgbits == 0:
             return
 
         # configure interest events as appropriate
-        efd = client.fd_error
-        if efd is not None:
-            if chgbits & Engine.E_ERROR:
-                status = new_events & Engine.E_ERROR
-                self._modify_specific(efd, Engine.E_ERROR, status)
+        for interest in (E_READ, E_WRITE):
+            if chgbits & interest:
+                assert stream.evmask & interest
+                status = stream.new_events & interest
+                self._modify_specific(stream.fd, interest, status)
                 if status:
-                    client._events |= Engine.E_ERROR
+                    stream.events |= interest
                 else:
-                    client._events &= ~Engine.E_ERROR
+                    stream.events &= ~interest
 
-        rfd = client.fd_reader
-        if rfd is not None:
-            if chgbits & Engine.E_READ:
-                status = new_events & Engine.E_READ
-                self._modify_specific(rfd, Engine.E_READ, status)
-                if status:
-                    client._events |= Engine.E_READ
-                else:
-                    client._events &= ~Engine.E_READ
+        stream.new_events = stream.events
 
-        wfd = client.fd_writer
-        if wfd is not None:
-            if chgbits & Engine.E_WRITE:
-                status = new_events & Engine.E_WRITE
-                self._modify_specific(wfd, Engine.E_WRITE, status)
-                if status:
-                    client._events |= Engine.E_WRITE
-                else:
-                    client._events &= ~Engine.E_WRITE
-
-        client._new_events = client._events
-
-    def set_reading(self, client):
-        """
-        Set client reading state.
-        """
+    def set_reading(self, client, fname):
+        """Set client reading state."""
         # listen for readable events
-        self.modify(client, Engine.E_READ, 0)
+        self.modify(client, fname, E_READ, 0)
 
-    def set_reading_error(self, client):
-        """
-        Set client reading error state.
-        """
-        # listen for readable events
-        self.modify(client, Engine.E_ERROR, 0)
-
-    def set_writing(self, client):
-        """
-        Set client writing state.
-        """
+    def set_writing(self, client, fname):
+        """Set client writing state."""
         # listen for writable events
-        self.modify(client, Engine.E_WRITE, 0)
+        self.modify(client, fname, E_WRITE, 0)
 
     def add_timer(self, timer):
-        """
-        Add engine timer.
-        """
+        """Add a timer instance to engine."""
         timer._set_engine(self)
         self.timerq.schedule(timer)
 
     def remove_timer(self, timer):
-        """
-        Remove engine timer.
-        """
+        """Remove engine timer from engine."""
         self.timerq.invalidate(timer)
 
     def fire_timers(self):
-        """
-        Fire expired timers for processing.
-        """
+        """Fire expired timers for processing."""
         while self.timerq.expired():
             self.timerq.fire()
 
     def start_ports(self):
-        """
-        Start and register all port clients.
-        """
+        """Start and register all port clients."""
         # Ports are special, non-delayable engine clients
         for port in self._ports:
             if not port.registered:
@@ -714,7 +636,8 @@ class Engine:
 
     def start_all(self):
         """
-        Start and register all other possible clients, in respect of task fanout.
+        Start and register all other possible clients, in respect of task
+        fanout.
         """
         # Get current fanout value
         fanout = self.info["fanout"]
@@ -731,9 +654,7 @@ class Engine:
                     break
     
     def run(self, timeout):
-        """
-        Run engine in calling thread.
-        """
+        """Run engine in calling thread."""
         # change to running state
         if self.running:
             raise EngineAlreadyRunningError()
@@ -767,46 +688,41 @@ class Engine:
     def snoop_ports(self):
         """
         Peek in ports for possible early pending messages.
-        This method simply tries to read port pipes in non-
-        blocking mode.
+        This method simply tries to read port pipes in non-blocking mode.
         """
         # make a copy so that early messages on installed ports may
         # lead to new ports
         ports = self._ports.copy()
         for port in ports:
             try:
-                port._handle_read()
-            except (IOError, OSError), (err, strerr):
-                if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+                port._handle_read('in')
+            except (IOError, OSError), ex:
+                if ex.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
                     # no pending message
                     return
                 # raise any other error
                 raise
 
     def runloop(self, timeout):
-        """
-        Engine specific run loop. Derived classes must implement.
-        """
+        """Engine specific run loop. Derived classes must implement."""
         raise NotImplementedError("Derived classes must implement.")
 
     def abort(self, kill):
-        """
-        Abort runloop.
-        """
+        """Abort runloop."""
         if self.running:
             raise EngineAbortException(kill)
 
         self.clear(clear_ports=kill)
 
     def exited(self):
-        """
-        Returns True if the engine has exited the runloop once.
-        """
+        """Returns True if the engine has exited the runloop once."""
         return not self.running and self._exited
 
     def _debug(self, s):
+        """
         # library engine debugging hook
-        #import sys
-        #print >>sys.stderr, s
+        import sys
+        print >>sys.stderr, s
+        """
         pass
 

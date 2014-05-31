@@ -102,15 +102,10 @@ class Rsh(EngineClient):
         self.worker._on_start()
         return self
 
-    def _close(self, abort, flush, timeout):
+    def _close(self, abort, timeout):
         """
         Close client. See EngineClient._close().
         """
-        if flush and self._rbuf:
-            # We still have some read data available in buffer, but no
-            # EOL. Generate a final message before closing.
-            self.worker._on_node_msgline(self.key, self._rbuf)
-
         rc = -1
         if abort:
             prc = self.popen.poll()
@@ -121,14 +116,7 @@ class Rsh(EngineClient):
         if prc >= 0:
             rc = prc
 
-        os.close(self.fd_reader)
-        self.fd_reader = None
-        if self.fd_error:
-            os.close(self.fd_error)
-            self.fd_error = None
-        if self.fd_writer:
-            os.close(self.fd_writer)
-            self.fd_writer = None
+        self.streams.clear()
 
         if rc >= 0:
             self.worker._on_node_rc(self.key, rc)
@@ -138,7 +126,15 @@ class Rsh(EngineClient):
 
         self.worker._check_fini()
 
-    def _handle_read(self):
+    def _flush_read(self, fname):
+        """Called at close time to flush stream read buffer."""
+        stream = self.streams[fname]
+        if stream.readable() and stream.rbuf:
+            # We still have some read data available in buffer, but no
+            # EOL. Generate a final message before closing.
+            self.worker._on_node_msgline(self.key, stream.rbuf, fname)
+
+    def _handle_read(self, fname):
         """
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
@@ -151,28 +147,10 @@ class Rsh(EngineClient):
         debug = task.info("debug", False)
         if debug:
             print_debug = task.info("print_debug")
-        for msg in self._readlines():
+        for msg in self._readlines(fname):
             if debug:
                 print_debug(task, "%s: %s" % (key, msg))
-            node_msgline(key, msg)  # handle full msg line
-
-    def _handle_error(self):
-        """
-        Handle a read error (stderr) notification.
-        """
-        # Local variables optimization
-        worker = self.worker
-        task = worker.task
-        key = self.key
-        node_errline = worker._on_node_errline
-        debug = task.info("debug", False)
-        if debug:
-            print_debug = task.info("print_debug")
-        for msg in self._readerrlines():
-            if debug:
-                print_debug(task, "%s@STDERR: %s" % (key, msg))
-            node_errline(key, msg)  # handle full stderr line
-
+            node_msgline(key, msg, fname)  # handle full msg line
 
 
 class Rcp(Rsh):
@@ -336,15 +314,15 @@ class WorkerRsh(DistantWorker):
         Write to worker clients.
         """
         for client in self.clients:
-            client._write(buf)
+            client._write('stdin', buf)
 
     def set_write_eof(self):
         """
-        Tell worker to close its writer file descriptor once flushed. Do not
+        Tell worker to close its writer file descriptors once flushed. Do not
         perform writes after this call.
         """
         for client in self.clients:
-            client._set_write_eof()
+            client._set_write_eof('stdin')
 
     def abort(self):
         """

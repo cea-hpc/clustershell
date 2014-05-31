@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -37,12 +37,11 @@ The poll() system call is available on Linux and BSD.
 """
 
 import errno
-import os
 import select
 import sys
 import time
 
-from ClusterShell.Engine.Engine import Engine
+from ClusterShell.Engine.Engine import Engine, E_READ, E_WRITE
 from ClusterShell.Engine.Engine import EngineException
 from ClusterShell.Engine.Engine import EngineNotSupportedError
 from ClusterShell.Engine.Engine import EngineTimeoutException
@@ -71,9 +70,11 @@ class EnginePoll(Engine):
             raise EngineNotSupportedError(EnginePoll.identifier)
 
     def _register_specific(self, fd, event):
-        if event & (Engine.E_READ | Engine.E_ERROR):
+        """Engine-specific fd registering. Called by Engine register."""
+        if event & E_READ:
             eventmask = select.POLLIN
-        elif event == Engine.E_WRITE:
+        else:
+            assert event & E_WRITE
             eventmask = select.POLLOUT
 
         self.polling.register(fd, eventmask)
@@ -92,12 +93,7 @@ class EnginePoll(Engine):
         self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event,
                                                             setvalue))
         if setvalue:
-            eventmask = 0
-            if event & (Engine.E_READ | Engine.E_ERROR):
-                eventmask = select.POLLIN
-            elif event == Engine.E_WRITE:
-                eventmask = select.POLLOUT
-            self.polling.register(fd, eventmask)
+            self._register_specific(fd, event)
         else:
             self.polling.unregister(fd)
 
@@ -142,9 +138,12 @@ class EnginePoll(Engine):
                     raise EngineException("Caught POLLNVAL on fd %d" % fd)
 
                 # get client instance
-                client, fdev = self._fd2client(fd)
+                client, stream = self._fd2client(fd)
                 if client is None:
                     continue
+
+                fdev = stream.evmask
+                fname = stream.name
 
                 # process this client
                 self._current_client = client
@@ -152,61 +151,48 @@ class EnginePoll(Engine):
                 # check for poll error condition of some sort
                 if event & select.POLLERR:
                     self._debug("POLLERR %s" % client)
-                    self.unregister_writer(client)
-                    os.close(client.fd_writer)
-                    client.fd_writer = None
+                    assert fdev & E_WRITE
+                    self._debug("POLLERR: remove_stream fname %s fdev 0x%x" % (fname, fdev))
+                    self.remove_stream(client, stream)
                     self._current_client = None
                     continue
 
                 # check for data to read
                 if event & select.POLLIN:
-                    assert fdev & (Engine.E_READ | Engine.E_ERROR)
-                    assert client._events & fdev
-                    self.modify(client, 0, fdev)
+                    assert fdev & E_READ
+                    assert stream.events & fdev, (stream.events, fdev)
+                    self.modify(client, fname, 0, fdev)
                     try:
-                        if fdev & Engine.E_READ:
-                            client._handle_read()
-                        else:
-                            client._handle_error()
+                        client._handle_read(fname)
                     except EngineClientEOF:
-                        self._debug("EngineClientEOF %s" % client)
-                        if fdev & Engine.E_READ:
-                            self.remove(client)
+                        self._debug("EngineClientEOF %s %s" % (client, fname))
+                        self.remove_stream(client, stream)
                         self._current_client = None
                         continue
 
                 # or check for end of stream (do not handle both at the same
                 # time because handle_read() may perform a partial read)
                 elif event & select.POLLHUP:
-                    self._debug("POLLHUP fd=%d %s (r%s,e%s,w%s)" % (fd,
-                        client.__class__.__name__, client.fd_reader,
-                        client.fd_error, client.fd_writer))		
-                    if fdev & Engine.E_READ:
-                        if client._events & Engine.E_ERROR:
-                            self.modify(client, 0, fdev)
-                        else:
-                            self.remove(client)
-                    else:
-                        if client._events & Engine.E_READ:
-                            self.modify(client, 0, fdev)
-                        else:
-                            self.remove(client)
+                    self._debug("POLLHUP fd=%d %s (%s)" % (fd,
+                        client.__class__.__name__, client.streams))
+                    self.remove_stream(client, stream)
+                    self._current_client = None
+                    continue
 
                 # check for writing
                 if event & select.POLLOUT:
-                    self._debug("POLLOUT fd=%d %s (r%s,e%s,w%s)" % (fd,
-                        client.__class__.__name__, client.fd_reader,
-                        client.fd_error, client.fd_writer))
-                    assert fdev == Engine.E_WRITE
-                    assert client._events & fdev
-                    self.modify(client, 0, fdev)
-                    client._handle_write()
+                    self._debug("POLLOUT fd=%d %s (%s)" % (fd,
+                        client.__class__.__name__, client.streams))
+                    assert fdev == E_WRITE
+                    assert stream.events & fdev
+                    self.modify(client, fname, 0, fdev)
+                    client._handle_write(fname)
 
                 self._current_client = None
 
                 # apply any changes occured during processing
                 if client.registered:
-                    self.set_events(client, client._new_events)
+                    self.set_events(client, stream)
 
             # check for task runloop timeout
             if timeout > 0 and time.time() >= start_time + timeout:

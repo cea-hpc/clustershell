@@ -88,15 +88,10 @@ class WorkerPopen(WorkerSimple):
 
         return self
 
-    def _close(self, abort, flush, timeout):
+    def _close(self, abort, timeout):
         """
         Close client. See EngineClient._close().
         """
-        if flush and self._rbuf:
-            # We still have some read data available in buffer, but no
-            # EOL. Generate a final message before closing.
-            self.worker._on_msgline(self._rbuf)
-
         rc = -1
         if abort:
             # check if process has terminated
@@ -114,14 +109,7 @@ class WorkerPopen(WorkerSimple):
             # if process was signaled, return 128 + signum (bash-like)
             rc = 128 + -prc
 
-        os.close(self.fd_reader)
-        self.fd_reader = None
-        if self.fd_error:
-            os.close(self.fd_error)
-            self.fd_error = None
-        if self.fd_writer:
-            os.close(self.fd_writer)
-            self.fd_writer = None
+        self.streams.clear()
 
         if rc >= 0: # filter valid rc
             self._on_rc(rc)

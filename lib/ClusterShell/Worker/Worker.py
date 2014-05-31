@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -38,8 +38,6 @@ A worker is a generic object which provides "grouped" work in a specific task.
 
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
-
-import os
 
 
 class WorkerException(Exception):
@@ -185,7 +183,7 @@ class DistantWorker(Worker):
     to use with distant workers like ssh or pdsh.
     """
 
-    def _on_node_msgline(self, node, msg):
+    def _on_node_msgline(self, node, msg, fname):
         """
         Message received from node, update last* stuffs.
         """
@@ -194,29 +192,16 @@ class DistantWorker(Worker):
         handler = self.eh
 
         self.current_node = node
-        self.current_msg = msg
-
-        if task._msgtree is not None:   # don't waste time
-            task._msg_add((self, node), msg)
-
-        if handler is not None:
-            handler.ev_read(self)
-
-    def _on_node_errline(self, node, msg):
-        """
-        Error message received from node, update last* stuffs.
-        """
-        task = self.task
-        handler = self.eh
-
-        self.current_node = node
-        self.current_errmsg = msg
-
-        if task._errtree is not None:
+        if fname == 'stderr':
+            self.current_errmsg = msg
             task._errmsg_add((self, node), msg)
-
-        if handler is not None:
-            handler.ev_error(self)
+            if handler is not None:
+                handler.ev_error(self)
+        else:
+            self.current_msg = msg
+            task._msg_add((self, node), msg)
+            if handler is not None:
+                handler.ev_read(self)
 
     def _on_node_rc(self, node, rc):
         """
@@ -370,11 +355,13 @@ class DistantWorker(Worker):
 
 class WorkerSimple(EngineClient, Worker):
     """
-    Implements a simple Worker being itself an EngineClient.
+    Implements a simple Worker being itself an EngineClient that reads from
+    file_reader (eg. stdout) and file_error (stderr) and writes to file_writer
+    (eg. stdin).
     """
 
     def __init__(self, file_reader, file_writer, file_error, key, handler,
-            stderr=False, timeout=-1, autoclose=False):
+                 stderr=False, timeout=-1, autoclose=False):
         """
         Initialize worker.
         """
@@ -386,11 +373,11 @@ class WorkerSimple(EngineClient, Worker):
         else:
             self.key = key
         if file_reader:
-            self.fd_reader = file_reader.fileno()
+            self.streams.add_reader('stdout', file_reader)
         if file_error:
-            self.fd_error = file_error.fileno()
+            self.streams.add_reader('stderr', file_error)
         if file_writer:
-            self.fd_writer = file_writer.fileno()
+            self.streams.add_writer('stdin', file_writer)
         # keep reference of provided file objects during worker lifetime
         self._filerefs = (file_reader, file_writer, file_error)
 
@@ -415,27 +402,16 @@ class WorkerSimple(EngineClient, Worker):
         self._on_start()
         return self
 
-    def _read(self, size=65536):
+    def _read(self, fname, size=65536):
         """
         Read data from process.
         """
-        return EngineClient._read(self, size)
+        return EngineClient._read(self, fname, size)
 
-    def _readerr(self, size=65536):
-        """
-        Read error data from process.
-        """
-        return EngineClient._readerr(self, size)
-
-    def _close(self, abort, flush, timeout):
+    def _close(self, abort, timeout):
         """
         Close client. See EngineClient._close().
         """
-        if flush and self._rbuf:
-            # We still have some read data available in buffer, but no
-            # EOL. Generate a final message before closing.
-            self.worker._on_msgline(self._rbuf)
-
         if timeout:
             assert abort, "abort flag not set on timeout"
             self._on_timeout()
@@ -443,7 +419,15 @@ class WorkerSimple(EngineClient, Worker):
         if self.eh:
             self.eh.ev_close(self)
 
-    def _handle_read(self):
+    def _flush_read(self, fname):
+        """Called at close time to flush stream read buffer."""
+        stream = self.streams[fname]
+        if stream.readable() and stream.rbuf:
+            # We still have some read data available in buffer, but no
+            # EOL. Generate a final message before closing.
+            self.worker._on_msgline(stream.rbuf, fname)
+
+    def _handle_read(self, fname):
         """
         Engine is telling us there is data available for reading.
         """
@@ -454,29 +438,12 @@ class WorkerSimple(EngineClient, Worker):
         debug = task.info("debug", False)
         if debug:
             print_debug = task.info("print_debug")
-            for msg in self._readlines():
+            for msg in self._readlines(fname):
                 print_debug(task, "LINE %s" % msg)
-                msgline(msg)
+                msgline(msg, fname)
         else:
-            for msg in self._readlines():
-                msgline(msg)
-
-    def _handle_error(self):
-        """
-        Engine is telling us there is error available for reading.
-        """
-        task = self.worker.task
-        errmsgline = self._on_errmsgline
-
-        debug = task.info("debug", False)
-        if debug:
-            print_debug = task.info("print_debug")
-            for msg in self._readerrlines():
-                print_debug(task, "LINE@STDERR %s" % msg)
-                errmsgline(msg)
-        else:
-            for msg in self._readerrlines():
-                errmsgline(msg)
+            for msg in self._readlines(fname):
+                msgline(msg, fname)
 
     def last_read(self):
         """
@@ -490,31 +457,28 @@ class WorkerSimple(EngineClient, Worker):
         """
         return self.current_errmsg
 
-    def _on_msgline(self, msg):
+    def _on_msgline(self, msg, fname):
         """
         Add a message.
         """
-        # add last msg to local buffer
-        self.current_msg = msg
+        if fname == 'stderr':
+            # add last msg to local buffer
+            self.current_errmsg = msg
 
-        # update task
-        self.task._msg_add((self, self.key), msg)
+            # update task
+            self.task._errmsg_add((self, self.key), msg)
 
-        if self.eh:
-            self.eh.ev_read(self)
+            if self.eh:
+                self.eh.ev_error(self)
+        else:
+            # add last msg to local buffer
+            self.current_msg = msg
 
-    def _on_errmsgline(self, msg):
-        """
-        Add a message.
-        """
-        # add last msg to local buffer
-        self.current_errmsg = msg
+            # update task
+            self.task._msg_add((self, self.key), msg)
 
-        # update task
-        self.task._errmsg_add((self, self.key), msg)
-
-        if self.eh:
-            self.eh.ev_error(self)
+            if self.eh:
+                self.eh.ev_read(self)
 
     def _on_rc(self, rc):
         """
@@ -561,12 +525,12 @@ class WorkerSimple(EngineClient, Worker):
         """
         Write to worker.
         """
-        self._write(buf)
+        self._write('stdin', buf)
 
     def set_write_eof(self):
         """
         Tell worker to close its writer file descriptor once flushed. Do not
         perform writes after this call.
         """
-        self._set_write_eof()
+        self._set_write_eof('stdin')
 
