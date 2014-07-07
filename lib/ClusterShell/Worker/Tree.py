@@ -176,6 +176,9 @@ class WorkerTree(DistantWorker):
         self.upchannel = None
         self.metahandler = MetaWorkerEventHandler(self)
 
+        # gateway -> targets selection
+        self.gwtargets = {}
+
     def _set_task(self, task):
         """
         Bind worker to task. Called by task.schedule().
@@ -189,18 +192,27 @@ class WorkerTree(DistantWorker):
         # Now bound to task - initalize router
         self.topology = self.topology or task.topology
         self.router = self.router or task._default_router()
+        self._launch(self.nodes)
+
+    def _launch(self, nodes):
+        #self.task.router = None
+        #self.router = self.task._default_router()
+        self.logger.debug("WorkerTree._launch on %s (fanout=%d)" % \
+                          (nodes, self.task.info("fanout")))
         # And launch stuffs
-        next_hops = self._distribute(self.task.info("fanout"), self.nodes)
+        next_hops = self._distribute(self.task.info("fanout"), nodes)
+        self.logger.debug("next_hops=%s" % next_hops)
         for gw, targets in next_hops.iteritems():
             if gw == targets:
-                self.logger.debug('task.shell cmd=%s nodes=%s timeout=%d' % \
-                    (self.command, self.nodes, self.timeout))
+                self.logger.debug('task.shell cmd=%s nodes=%s timeout=%s' % \
+                    (self.command, nodes, self.timeout))
                 self._child_count += 1
                 self._target_count += len(targets)
                 self.workers.append(self.task.shell(self.command,
                     nodes=targets, timeout=self.timeout,
                     handler=self.metahandler, stderr=self.stderr, tree=False))
             else:
+                self.logger.debug("trying gateway %s to reach %s", gw, targets)
                 self._execute_remote(self.command, targets, gw, self.timeout)
 
     def _distribute(self, fanout, dst_nodeset):
@@ -222,6 +234,9 @@ class WorkerTree(DistantWorker):
         #self._start_count += 1
         #self._child_count += 1
         self._target_count += len(targets)
+
+        self.gwtargets[gateway] = targets
+
         self.task.pchannel(gateway, self).shell(nodes=targets,
             command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
             gw_invoke_cmd=self.invoke_gateway)
@@ -259,24 +274,28 @@ class WorkerTree(DistantWorker):
             self.task._pchannel_release(self)
 
     def write(self, buf):
-        """
-        Write to worker clients.
-        """
-        for c in self._engine_clients():
-            c._write(buf)
+        """Write to worker clients."""
+        # Differentiate directly handled writes from remote ones
+        for worker in self.workers:
+            worker.write(buf)
+        for gateway, targets in self.gwtargets.items():
+            self.task.pchannel(gateway, self).write(nodes=targets, buf=buf,
+                                                    worker=self)
 
     def set_write_eof(self):
         """
         Tell worker to close its writer file descriptor once flushed. Do not
         perform writes after this call.
         """
-        for c in self._engine_clients():
-            c._set_write_eof()
+        # Differentiate directly handled EOFs from remote ones
+        for worker in self.workers:
+            worker.set_write_eof()
+        for gateway, targets in self.gwtargets.items():
+            self.task.pchannel(gateway, self).set_write_eof(nodes=targets,
+                                                            worker=self)
 
     def abort(self):
-        """
-        Abort processing any action by this worker.
-        """
-        for c in self._engine_clients():
-            c.abort()
+        """Abort processing any action by this worker."""
+        # Not yet supported by WorkerTree
+        raise NotImplementedError("see github issue #229")
 

@@ -34,8 +34,8 @@
 
 """
 ClusterShell agent launched on remote gateway nodes. This script reads messages
-on stdin via the SSH connexion, interprets them, takes decisions, and prints out
-replies on stdout.
+on stdin via the SSH connection, interprets them, takes decisions, and prints
+out replies on stdout.
 """
 
 import logging
@@ -208,16 +208,27 @@ class GatewayChannel(Channel):
                                               topology=self.topology,
                                               newroot=self.hostname,
                                               stderr=stderr)
-                responder.worker = self.propagation # FIXME ev_start-not-called workaround
+                # FIXME ev_start-not-called workaround
+                responder.worker = self.propagation
                 self.propagation.upchannel = self
                 task.schedule(self.propagation)
                 self.logger.debug("WorkerTree scheduled")
+            elif msg.action == 'write':
+                data = msg.data_decode()
+                self.logger.debug('GatewayChannel write: %d bytes', \
+                                  len(data['buf']))
+                self.propagation.write(data['buf'])
+            elif msg.action == 'eof':
+                self.logger.debug('GatewayChannel eof')
+                self.propagation.set_write_eof()
+            else:
+                logging.error('unexpected CTL action: %s', msg.action)
         else:
             logging.error('unexpected message: %s', str(msg))
 
     def _state_gtr(self, msg):
         """gather outputs"""
-        # FIXME
+        # FIXME: state GTR not really used, remove it?
         self.logger.debug('GatewayChannel._state_gtr')
         self.logger.debug('incoming output msg: %s' % str(msg))
 

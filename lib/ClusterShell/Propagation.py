@@ -261,7 +261,7 @@ class PropagationChannel(Channel):
 
     def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd):
         """command execution through channel"""
-        self.logger.debug("shell nodes=%s timeout=%f worker=%s" % \
+        self.logger.debug("shell nodes=%s timeout=%s worker=%s" % \
             (nodes, timeout, id(worker)))
 
         self.workers[id(worker)] = worker
@@ -288,14 +288,53 @@ class PropagationChannel(Channel):
             self.send(ctl)
         else:
             self._sendq.append(ctl)
-    
+
+    def write(self, nodes, buf, worker):
+        """write buffer through channel to nodes on standard input"""
+        self.logger.debug("write buflen=%d", len(buf))
+        assert id(worker) in self.workers
+
+        ctl = ControlMessage(id(worker))
+        ctl.action = 'write'
+        ctl.target = nodes
+
+        ctl_data = {
+            'buf': buf,
+        }
+        ctl.data_encode(ctl_data)
+        self._history['ctl_id'] = ctl.msgid
+        if self.current_state == self.states['STATE_CTL']:
+            # send now if channel state is CTL
+            self.send(ctl)
+        else:
+            self._sendq.append(ctl)
+
+    def set_write_eof(self, nodes, worker):
+        """send EOF through channel to specified nodes"""
+        self.logger.debug("set_write_eof")
+        assert id(worker) in self.workers
+
+        ctl = ControlMessage(id(worker))
+        ctl.action = 'eof'
+        ctl.target = nodes
+
+        self._history['ctl_id'] = ctl.msgid
+        if self.current_state == self.states['STATE_CTL']:
+            # send now if channel state is CTL
+            self.send(ctl)
+        else:
+            self._sendq.append(ctl)
+
     def _state_config(self, msg):
         """handle incoming messages for state 'propagate configuration'"""
         if msg.type == 'ACK': # and msg.ack == self._history['cfg_id']:
+            self.logger.debug("CTL - connection with gateway fully established")
             self.current_state = self.states['STATE_CTL']
             for ctl in self._sendq:
+                self.logger.debug("dequeuing sendq: %s", ctl)
                 self.send(ctl)
         else:
+            self.logger.debug("_state_config error")
             print str(msg)
 
     def _state_control(self, msg):
