@@ -1049,8 +1049,8 @@ class GroupSourceCacheTest(unittest.TestCase):
         self.assertEqual("foo2", str(NodeSet("@b", resolver=res)))
         self.assertEqual(len(source._cache['map']), 2)
 
-        # Wait for cache expiration
-        time.sleep(0.2)
+        # Be sure 0.2 cache delay is expired (especially for old Python version)
+        time.sleep(0.25)
 
         source._data['map']['a'] = 'something_else'
         self.assertEqual('something_else', str(NodeSet("@a", resolver=res)))
