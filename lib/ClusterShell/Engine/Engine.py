@@ -658,24 +658,21 @@ class Engine:
         # change to running state
         if self.running:
             raise EngineAlreadyRunningError()
-        self.running = True
-
-        # start port clients
-        self.start_ports()
-
-        # peek in ports for early pending messages
-        self.snoop_ports()
-
-        # start all other clients
-        self.start_all()
 
         # note: try-except-finally not supported before python 2.5
         try:
+            self.running = True
             try:
+                # start port clients
+                self.start_ports()
+                # peek in ports for early pending messages
+                self.snoop_ports()
+                # start all other clients
+                self.start_all()
+                # run loop until all clients and timers are removed
                 self.runloop(timeout)
-            except Exception, e:
-                # any exceptions invalidate clients
-                self.clear(isinstance(e, EngineTimeoutException))
+            except EngineTimeoutException:
+                self.clear(did_timeout=True)
                 raise
             except: # could later use BaseException above (py2.5+)
                 self.clear()
