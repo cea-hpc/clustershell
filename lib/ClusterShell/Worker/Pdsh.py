@@ -93,15 +93,18 @@ class PdshClient(ExecClient):
     def _close(self, abort, timeout):
         """Close client. See EngineClient._close()."""
         if abort:
+            # it's safer to call poll() first for long time completed processes
             prc = self.popen.poll()
+            # if prc is None, process is still running
             if prc is None:
-                # process is still running, kill it
-                self.popen.kill()
+                try: # try to kill it
+                    self.popen.kill()
+                except OSError:
+                    pass
         prc = self.popen.wait()
-        if prc >= 0:
-            rc = prc
-            if rc != 0:
-                raise WorkerError("Cannot run pdsh (error %d)" % rc)
+
+        if prc > 0:
+            raise WorkerError("Cannot run pdsh (error %d)" % prc)
 
         self.streams.clear()
 

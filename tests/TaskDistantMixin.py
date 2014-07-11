@@ -64,6 +64,10 @@ class TaskDistantMixin(object):
         self.assertEqual(worker1.command, "/bin/hostname")
         self.assertEqual(worker2.command, "/bin/uname -r")
 
+    def testTaskShellRunDistant(self):
+        wrk = task_self().run("false", nodes=HOSTNAME)
+        self.assertEqual(wrk.node_retcode(HOSTNAME), 1)
+
     def testLocalhostCopy(self):
         # init worker
         dest = make_temp_filename(suffix='LocalhostCopy')
@@ -79,10 +83,9 @@ class TaskDistantMixin(object):
         dest = make_temp_filename(suffix='LocalhostCopyF')
         worker = self._task.copy("/etc/hosts", dest,
                                  nodes='unlikely-node,%s' % HOSTNAME)
-        self.assert_(worker != None)
         self._task.resume()
-        self.assert_(worker.node_error_buffer("unlikely-node") is None)
-        self.assert_(len(worker.node_buffer("unlikely-node")) > 2)
+        self.assertEqual(worker.node_error_buffer("unlikely-node"), None)
+        self.assertTrue(len(worker.node_buffer("unlikely-node")) > 2)
         os.unlink(dest)
 
         # == stderr separated ==

@@ -697,12 +697,21 @@ class TaskLocalMixin(object):
         kth.pidkill = os.getpid()
 
         task = task_self()
-        self.assert_(task != None)
         signal.signal(signal.SIGUSR1, lambda x, y: None)
         task.shell("/bin/sleep 2", timeout=5)
 
         kth.start()
         task.resume()
+
+    def testSignalWorker(self):
+        class TestSignalHandler(EventHandler):
+            def ev_read(self, worker):
+                pid = int(worker.current_msg)
+                os.kill(pid, signal.SIGTERM)
+        task = task_self()
+        wrk = task.shell("echo $$; /bin/sleep 2", handler=TestSignalHandler())
+        task.resume()
+        self.assertEqual(wrk.retcode(), 128 + signal.SIGTERM)
 
     def testShellDelayedIO(self):
         class TestDelayedHandler(EventHandler):
@@ -843,11 +852,6 @@ class TaskLocalMixin(object):
         wrk = task_self().run("sleep 1", timeout=0.3)
         self.assertTrue(wrk)
         self.assertEqual(task_self().num_timeout(), 1)
-
-    def testTaskShellRunDistant(self):
-        wrk = task_self().run("false", nodes="localhost")
-        self.assertTrue(wrk)
-        self.assertEqual(wrk.node_retcode("localhost"), 1)
 
     def testTaskEngineUserSelection(self):
         task_terminate()

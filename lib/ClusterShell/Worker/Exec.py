@@ -103,43 +103,49 @@ class ExecClient(EngineClient):
         return (_replace_cmd(self.command, self.key, self.rank), None)
 
     def _start(self):
-        """
-        Start worker, initialize buffers, prepare command.
-        """
+        """Prepare command and start client."""
 
         # Build command
         cmd, cmd_env = self._build_cmd()
 
+        # If command line is string, we need to interpret it as a shell command
+        shell = type(cmd) is str
+
         task = self.worker.task
         if task.info("debug", False):
             name = str(self.__class__).upper().split('.')[-1]
-            task.info("print_debug")(task, "%s: %s" % (name, ' '.join(cmd_l)))
+            if shell:
+                task.info("print_debug")(task, "%s: %s" % (name, cmd))
+            else:
+                task.info("print_debug")(task, "%s: %s" % (name, ' '.join(cmd)))
 
-        # If command line is string, we need to interpret it as a shell command
-        shell = type(cmd) is str
         self.popen = self._exec_nonblock(cmd, env=cmd_env, shell=shell)
         self.worker._on_start()
         return self
 
     def _close(self, abort, timeout):
         """Close client. See EngineClient._close()."""
-        rc = -1
         if abort:
+            # it's safer to call poll() first for long time completed processes
             prc = self.popen.poll()
+            # if prc is None, process is still running
             if prc is None:
-                # process is still running, kill it
-                self.popen.kill()
+                try: # try to kill it
+                    self.popen.kill()
+                except OSError:
+                    pass
         prc = self.popen.wait()
-        if prc >= 0:
-            rc = prc
 
         self.streams.clear()
 
-        if rc >= 0:
-            self.worker._on_node_rc(self.key, rc)
+        if prc >= 0:
+            self.worker._on_node_rc(self.key, prc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
             self.worker._on_node_timeout(self.key)
+        elif not abort:
+            # if process was signaled, return 128 + signum (bash-like)
+            self.worker._on_node_rc(self.key, 128 + -prc)
 
         self.worker._check_fini()
 

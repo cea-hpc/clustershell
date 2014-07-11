@@ -92,30 +92,27 @@ class WorkerPopen(WorkerSimple):
         """
         Close client. See EngineClient._close().
         """
-        rc = -1
         if abort:
-            # check if process has terminated
+            # it's safer to call poll() first for long time completed processes
             prc = self.popen.poll()
+            # if prc is None, process is still running
             if prc is None:
-                # process is still running, kill it
-                self.popen.kill()
-        # release process
+                try: # try to kill it
+                    self.popen.kill()
+                except OSError:
+                    pass
         prc = self.popen.wait()
-        # get exit status
-        if prc >= 0:
-            # process exited normally
-            rc = prc
-        elif not abort:
-            # if process was signaled, return 128 + signum (bash-like)
-            rc = 128 + -prc
 
         self.streams.clear()
 
-        if rc >= 0: # filter valid rc
-            self._on_rc(rc)
+        if prc >= 0: # filter valid rc
+            self._on_rc(prc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
             self._on_timeout()
+        elif not abort:
+            # if process was signaled, return 128 + signum (bash-like)
+            self._on_rc(128 + -prc)
 
         if self.eh:
             self.eh.ev_close(self)

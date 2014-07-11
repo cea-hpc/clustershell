@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # scripts/clush.py tool test suite
-# Written by S. Thiell 2012-03-28
+# Written by S. Thiell
 
 
 """Unit test for CLI/Clush.py"""
@@ -282,6 +282,9 @@ class CLIClushTest_A(unittest.TestCase):
         """test clush (worker)"""
         self._clush_t(["-w", HOSTNAME, "--worker=ssh", "echo ok"], None,
                        "%s: ok\n" % HOSTNAME, 0)
+        # also test in debug mode...
+        self._clush_t(["-w", HOSTNAME, "--worker=exec", "-d", "echo ok"], None,
+            '+EXECCLIENT: echo ok\n%s: ok\n%s: ok\n' % (HOSTNAME, HOSTNAME), 0)
 
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):

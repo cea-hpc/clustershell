@@ -80,7 +80,12 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         sys.stderr = saved_stderr
         sys.stdin = saved_stdin
     if expected_stdout is not None:
-        test.assertEqual(out.getvalue(), expected_stdout)
+        if len(expected_stdout) > 0 and expected_stdout[0] == '+': # magic char
+            # only check stdout tail
+            test.assertTrue(out.getvalue().endswith(expected_stdout[1:]),
+                            out.getvalue())
+        else:
+            test.assertEqual(out.getvalue(), expected_stdout)
     out.close()
     if expected_stderr is not None:
         # check the end as stderr messages are often prefixed with argv[0]
