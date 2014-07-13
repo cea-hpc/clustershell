@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011)
+# Copyright CEA/DAM/DIF (2007-2014)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -33,11 +33,11 @@
 """
 MsgTree
 
-ClusterShell message tree module. The purpose of MsgTree is to
-provide a shared message tree for storing message lines received
-from ClusterShell Workers (for example, from remote cluster
-commands). It should be efficient, in term of algorithm and memory
-consumption, especially when remote messages are the same.
+ClusterShell message tree module. The purpose of MsgTree is to provide a
+shared message tree for storing message lines received from ClusterShell
+Workers (for example, from remote cluster commands). It should be
+efficient, in term of algorithm and memory consumption, especially when
+remote messages are the same.
 """
 
 from itertools import ifilterfalse, imap
@@ -166,12 +166,13 @@ class MsgTreeElem(object):
 
 class MsgTree(object):
     """
-    A MsgTree object maps key objects to multi-lines messages.
-    MsgTree's are mutable objects. Keys are almost arbitrary values
-    (must be hashable). Message lines are organized as a tree
-    internally. MsgTree provides low memory consumption especially
-    on a cluster when all nodes return similar messages. Also,
-    the gathering of messages is done automatically.
+    MsgTree maps key objects to multi-lines messages.
+
+    MsgTree is a mutable object. Keys are almost arbitrary values (must
+    be hashable). Message lines are organized as a tree internally.
+    MsgTree provides low memory consumption especially on a cluster when
+    all nodes return similar messages. Also, the gathering of messages is
+    done automatically.
     """
 
     def __init__(self, mode=MODE_DEFER):
@@ -180,8 +181,11 @@ class MsgTree(object):
         The `mode' parameter should be set to one of the following constant:
 
         MODE_DEFER: all messages are processed immediately, saving memory from
-        duplicate message lines, but keys are associated to tree elements only
-        when needed.
+        duplicate message lines, but keys are associated to tree elements
+        usually later when tree is first "walked", saving useless state
+        updates and CPU time. Once the tree is "walked" for the first time, its
+        mode changes to MODE_SHIFT to keep track of further tree updates.
+        This is the default mode.
 
         MODE_SHIFT: all keys and messages are processed immediately, it is more
         CPU time consuming as MsgTree full state is updated at each add() call.
@@ -233,10 +237,12 @@ class MsgTree(object):
         self._keys[key] = e_msg.append(msgline, key_shift)
 
     def _update_keys(self):
-        """Update keys associated to tree elements."""
+        """Update keys associated to tree elements (MODE_DEFER)."""
         for key, e_msg in self._keys.iteritems():
             assert key is not None and e_msg is not None
             e_msg._add_key(key)
+        # MODE_DEFER is no longer valid as keys are now assigned to MsgTreeElems
+        self.mode = MODE_SHIFT
 
     def keys(self):
         """Return an iterator over MsgTree's keys."""
@@ -327,16 +333,17 @@ class MsgTree(object):
         Example of use:
             >>> msgtree.remove(lambda k: k > 3)
         """
-        estack = [ self._root ]
+        # do not walk tree in MODE_DEFER as no key is associated
+        if self.mode != MODE_DEFER:
+            estack = [ self._root ]
+            # walk the tree to keep only matching keys
+            while estack:
+                elem = estack.pop()
+                if len(elem.children) > 0:
+                    estack += elem.children.values()
+                if elem.keys: # has some keys
+                    elem.keys = set(ifilterfalse(match, elem.keys))
 
-        # walk the tree to keep only matching keys
-        while estack:
-            elem = estack.pop()
-            if len(elem.children) > 0:
-                estack += elem.children.values()
-            if elem.keys: # has some keys
-                elem.keys = set(ifilterfalse(match, elem.keys))
-
-        # also remove key(s) from known keys dict
+        # remove key(s) from known keys dict
         for key in filter(match, self._keys.keys()):
             del self._keys[key]

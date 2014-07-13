@@ -232,8 +232,60 @@ class MsgTreeTest(unittest.TestCase):
              ('message4', ['item2', 'item3'], 2, 0),
              ('message3', ['item4'], 1, 0)])
 
+    def test_009_defer_to_shift_mode(self):
+        """test MsgTree defer to shift mode"""
+        tree = MsgTree(mode=MODE_DEFER)
+        tree.add("item1", "message0")
+        self.assertEqual(len(tree), 1)
+        tree.add("item2", "message1")
+        self.assertEqual(len(tree), 2)
+        tree.add("item3", "message2")
+        self.assertEqual(len(tree), 3)
+        tree.add("item2", "message4")
+        tree.add("item1", "message3")
+        self.assertEqual(tree["item1"], "message0\nmessage3")
+        self.assertEqual(tree.mode, MODE_DEFER)
+        # calling walk with call _update_keys() and change to MODE_SHIFT
+        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+                         [(['item1'], 'message0\nmessage3'),
+                          (['item2'], 'message1\nmessage4'),
+                          (['item3'], 'message2')])
+        self.assertEqual(tree.mode, MODE_SHIFT)
+        # further tree modifications should be safe...
+        tree.add("item1", "message5")
+        tree.add("item2", "message6")
+        self.assertEqual(tree["item1"], "message0\nmessage3\nmessage5")
+        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+                         [(['item1'], 'message0\nmessage3\nmessage5'),
+                          (['item2'], 'message1\nmessage4\nmessage6'),
+                          (['item3'], 'message2')])
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(MsgTreeTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    def test_010_remove_in_defer_mode(self):
+        """test MsgTree remove in defer mode"""
+        tree = MsgTree(mode=MODE_DEFER)
+        tree.add("item1", "message0")
+        self.assertEqual(len(tree), 1)
+        tree.add("item2", "message1")
+        self.assertEqual(len(tree), 2)
+        tree.add("item3", "message2")
+        self.assertEqual(len(tree), 3)
+        tree.add("item2", "message4")
+        tree.add("item1", "message3")
+        tree.remove(lambda k: k == "item2")
+        self.assertEqual(tree["item1"], "message0\nmessage3")
+        self.assertRaises(KeyError, tree.__getitem__, "item2")
+        # calling walk with call _update_keys() and change to MODE_SHIFT
+        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+                         [(['item1'], 'message0\nmessage3'),
+                          (['item3'], 'message2')])
+        self.assertEqual(tree.mode, MODE_SHIFT)
+        # further tree modifications should be safe...
+        tree.add("item1", "message5")
+        tree.add("item2", "message6")
+        self.assertEqual(tree["item1"], "message0\nmessage3\nmessage5")
+        self.assertEqual(tree["item2"], "message6")
+        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+                         [(['item1'], 'message0\nmessage3\nmessage5'),
+                          (['item3'], 'message2'),
+                          (['item2'], 'message6')])
 
