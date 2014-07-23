@@ -8,10 +8,9 @@
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.Task import Task, TaskMsgTreeError
 from ClusterShell.Task import task_cleanup, task_self
+from ClusterShell.Event import EventHandler
 
 
 class TaskMsgTreeTest(unittest.TestCase):
@@ -23,10 +22,8 @@ class TaskMsgTreeTest(unittest.TestCase):
     def testEnabledMsgTree(self):
         """test TaskMsgTree enabled"""
         task = task_self()
-        self.assert_(task != None)
         # init worker
         worker = task.shell("echo foo bar")
-        self.assert_(worker != None)
         task.set_default('stdout_msgtree', True)
         # run task
         task.resume()
@@ -34,26 +31,60 @@ class TaskMsgTreeTest(unittest.TestCase):
         for buf, keys in task.iter_buffers():
             pass
 
+    def testEmptyMsgTree(self):
+        """test TaskMsgTree empty"""
+        task = task_self()
+        worker = task.shell("/bin/true")
+        # should not raise nor returns anything
+        self.assertEqual(list(task.iter_buffers()), [])
+
     def testDisabledMsgTree(self):
         """test TaskMsgTree disabled"""
         task = task_self()
-        self.assert_(task != None)
-        # init worker
         worker = task.shell("echo foo bar2")
-        self.assert_(worker != None)
         task.set_default('stdout_msgtree', False)
-        # run task
         task.resume()
         self.assertRaises(TaskMsgTreeError, task.iter_buffers)
+        #
+        # can be re-enabled (cold)
+        task.set_default('stdout_msgtree', True)
+        # but no messages should be found
+        self.assertEqual(list(task.iter_buffers()), [])
+
+    def testHotEnablingMsgTree(self):
+        """test TaskMsgTree enabling at runtime (v1.7)"""
+        class HotEH2(EventHandler):
+            def ev_read(self, worker):
+                worker.task.set_default("stdout_msgtree", True)
+                worker.task.shell("echo foo bar2") # default EH
+        task = task_self()
+        task.set_default("stdout_msgtree", False)
+        self.assertEqual(task.default("stdout_msgtree"), False)
+        worker = task.shell("echo foo bar", handler=HotEH2())
+        task.resume()
+        # only second message has been recorded
+        for buf, keys in task.iter_buffers():
+            self.assertEqual(buf, "foo bar2")
+
+    def testHotDisablingMsgTree(self):
+        """test TaskMsgTree disabling at runtime (v1.7)"""
+        class HotEH2(EventHandler):
+            def ev_read(self, worker):
+                worker.task.set_default("stdout_msgtree", False)
+                worker.task.shell("echo foo bar2") # default EH
+        task = task_self()
+        self.assertEqual(task.default("stdout_msgtree"), True)
+        worker = task.shell("echo foo bar", handler=HotEH2())
+        task.resume()
+        # only first message has been recorded
+        for buf, keys in task.iter_buffers():
+            self.assertEqual(buf, "foo bar")
 
     def testEnabledMsgTreeStdErr(self):
         """test TaskMsgTree enabled for stderr"""
         task = task_self()
-        self.assert_(task != None)
-        # init worker
         worker = task.shell("echo foo bar 1>&2", stderr=True)
         worker = task.shell("echo just foo bar", stderr=True)
-        self.assert_(worker != None)
         task.set_default('stderr_msgtree', True)
         # run task
         task.resume()
@@ -67,27 +98,26 @@ class TaskMsgTreeTest(unittest.TestCase):
     def testDisabledMsgTreeStdErr(self):
         """test TaskMsgTree disabled for stderr"""
         task = task_self()
-        self.assert_(task != None)
-        # init worker
         worker = task.shell("echo foo bar2 1>&2", stderr=True)
         worker = task.shell("echo just foo bar2", stderr=True)
-        self.assert_(worker != None)
         task.set_default('stderr_msgtree', False)
         # run task
         task.resume()
-        # should not raise:
+        # iter_errors() should raise
+        self.assertRaises(TaskMsgTreeError, task.iter_errors)
+        # but stdout should not
         for buf, keys in task.iter_buffers():
             pass
-        # but this should:
-        self.assertRaises(TaskMsgTreeError, task.iter_errors)
+        #
+        # can be re-enabled (cold)
+        task.set_default('stderr_msgtree', True)
+        # but no messages should be found
+        self.assertEqual(list(task.iter_errors()), [])
 
     def testTaskFlushBuffers(self):
         """test Task.flush_buffers"""
         task = task_self()
-        self.assert_(task != None)
-        # init worker
         worker = task.shell("echo foo bar")
-        self.assert_(worker != None)
         task.set_default('stdout_msgtree', True)
         # run task
         task.resume()
@@ -97,18 +127,10 @@ class TaskMsgTreeTest(unittest.TestCase):
     def testTaskFlushErrors(self):
         """test Task.flush_errors"""
         task = task_self()
-        self.assert_(task != None)
-        # init worker
         worker = task.shell("echo foo bar 1>&2")
-        self.assert_(worker != None)
         task.set_default('stderr_msgtree', True)
         # run task
         task.resume()
         task.flush_errors()
         self.assertEqual(len(list(task.iter_errors())), 0)
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskMsgTreeTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
 

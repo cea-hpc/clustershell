@@ -316,10 +316,8 @@ class Task(object):
             self.pwrks = {}
             self.pmwkrs = {}
 
-            # STDIN tree
-            self._msgtree = None
-            # STDERR tree
-            self._errtree = None
+            # dict of MsgTree by fname
+            self._msgtrees = {}
             # dict of sources to return codes
             self._d_source_rc = {}
             # dict of return codes to sources
@@ -457,9 +455,9 @@ class Task(object):
           - "stderr": Boolean value indicating whether to enable
             stdout/stderr separation when using task.shell(), if not
             specified explicitly (default: False).
-          - "stdout_msgtree": Whether to enable standard output MsgTree
-            for automatic internal gathering of result messages
-            (default: True).
+          - "stdout_msgtree": Whether to instantiate standard output
+            MsgTree for automatic internal gathering of result messages
+            coming from Workers (default: True).
           - "stderr_msgtree": Same for stderr (default: True).
           - "engine": Used to specify an underlying Engine explicitly
             (default: "auto").
@@ -966,48 +964,45 @@ class Task(object):
         """
         Reset buffers and retcodes management variables.
         """
-        # check and reset stdout MsgTree
-        if self.default("stdout_msgtree"):
-            if not self._msgtree:
-                self._msgtree = MsgTree()
-            self._msgtree.clear()
-        else:
-            self._msgtree = None
-        # check and reset stderr MsgTree
-        if self.default("stderr_msgtree"):
-            if not self._errtree:
-                self._errtree = MsgTree()
-            self._errtree.clear()
-        else:
-            self._errtree = None
+        # reinit MsgTree dict
+        self._msgtrees = {}
         # other re-init's
         self._d_source_rc = {}
         self._d_rc_sources = {}
         self._max_rc = 0
         self._timeout_sources.clear()
 
-    def _msg_add(self, source, msg):
+    def _msgtree(self, fname, strict=True):
+        """Helper method to return msgtree instance by fname if allowed."""
+        if self.default("%s_msgtree" % fname):
+            if fname not in self._msgtrees:
+                self._msgtrees[fname] = MsgTree()
+            return self._msgtrees[fname]
+        elif strict:
+            raise TaskMsgTreeError("%s_msgtree not set" % fname)
+
+    def _msg_add(self, worker, node, fname, msg):
         """
-        Add a worker message associated with a source.
+        Process a new message into Task's MsgTree that is coming from:
+            - a worker instance of this task
+            - a node
+            - a stream name fname (string identifier)
         """
-        msgtree = self._msgtree
+        assert worker.task == self, "better to add messages from my workers"
+        msgtree = self._msgtree(fname, strict=False)
+        # As strict=False, if msgtree is None, this means task is set to NOT
+        # record messages... in that case we ignore this request, still
+        # keeping possible existing MsgTree, thus allowing temporarily
+        # disabled ones.
         if msgtree is not None:
-            msgtree.add(source, msg)
+            msgtree.add((worker, node), msg)
 
-    def _errmsg_add(self, source, msg):
+    def _rc_set(self, worker, node, rc):
         """
-        Add a worker error message associated with a source.
+        Add a worker return code (rc) that is coming from a node of a
+        worker instance.
         """
-        errtree = self._errtree
-        if errtree is not None:
-            errtree.add(source, msg)
-
-    def _rc_set(self, source, rc, override=True):
-        """
-        Add a worker return code associated with a source.
-        """
-        if not override and self._d_source_rc.has_key(source):
-            return
+        source = (worker, node)
 
         # store rc by source
         self._d_source_rc[source] = rc
@@ -1019,34 +1014,20 @@ class Task(object):
         if rc > self._max_rc:
             self._max_rc = rc
 
-    def _timeout_add(self, source):
+    def _timeout_add(self, worker, node):
         """
-        Add a worker timeout associated with a source.
+        Add a timeout indicator that is coming from a node of a worker
+        instance.
         """
         # store source in timeout set
-        self._timeout_sources.add(source)
+        self._timeout_sources.add((worker, node))
 
-    def _msg_by_source(self, source):
-        """
-        Get a message by its source (worker, key).
-        """
-        if self._msgtree is None:
-            raise TaskMsgTreeError("stdout_msgtree not set")
-        s = self._msgtree.get(source)
-        if s is None:
+    def _msg_by_source(self, worker, node, fname):
+        """Get a message by its worker instance, node and stream name."""
+        msg = self._msgtree(fname).get((worker, node))
+        if msg is None:
             return None
-        return str(s)
-
-    def _errmsg_by_source(self, source):
-        """
-        Get an error message by its source (worker, key).
-        """
-        if self._errtree is None:
-            raise TaskMsgTreeError("stderr_msgtree not set")
-        s = self._errtree.get(source)
-        if s is None:
-            return None
-        return str(s)
+        return str(msg)
 
     def _call_tree_matcher(self, tree_match_func, match_keys=None, worker=None):
         """Call identified tree matcher (items, walk) method with options."""
@@ -1064,11 +1045,9 @@ class Task(object):
         # Call tree matcher function (items or walk)
         return tree_match_func(match, itemgetter(1))
     
-    def _rc_by_source(self, source):
-        """
-        Get a return code by its source (worker, key).
-        """
-        return self._d_source_rc[source]
+    def _rc_by_source(self, worker, node):
+        """Get a return code by worker instance and node."""
+        return self._d_source_rc[(worker, node)]
    
     def _rc_iter_by_key(self, key):
         """
@@ -1127,15 +1106,17 @@ class Task(object):
         """
         Remove any messages from specified worker.
         """
-        if self._msgtree is not None:
-            self._msgtree.remove(lambda k: k[0] == worker)
+        msgtree = self._msgtree('stdout', strict=False)
+        if msgtree is not None:
+            msgtree.remove(lambda k: k[0] == worker)
 
     def _flush_errors_by_worker(self, worker):
         """
         Remove any error messages from specified worker.
         """
-        if self._errtree is not None:
-            self._errtree.remove(lambda k: k[0] == worker)
+        errtree = self._msgtree('stderr', strict=False)
+        if errtree is not None:
+            errtree.remove(lambda k: k[0] == worker)
 
     def key_buffer(self, key):
         """
@@ -1144,9 +1125,7 @@ class Task(object):
         all workers content that may overlap. This method returns an
         empty buffer if key is not found in any workers.
         """
-        msgtree = self._msgtree
-        if msgtree is None:
-            raise TaskMsgTreeError("stdout_msgtree not set")
+        msgtree = self._msgtree('stdout')
         select_key = lambda k: k[1] == key
         return "".join(imap(str, msgtree.messages(select_key)))
     
@@ -1159,9 +1138,7 @@ class Task(object):
         workers content that may overlap. This method returns an empty
         error buffer if key is not found in any workers.
         """
-        errtree = self._errtree
-        if errtree is None:
-            raise TaskMsgTreeError("stderr_msgtree not set")
+        errtree = self._msgtree('stderr')
         select_key = lambda k: k[1] == key
         return "".join(imap(str, errtree.messages(select_key)))
     
@@ -1193,6 +1170,16 @@ class Task(object):
         """
         return self._max_rc
 
+    def _iter_msgtree(self, fname, match_keys=None):
+        """Helper method to iterate over recorded buffers by fname."""
+        try:
+            msgtree = self._msgtrees[fname]
+            return self._call_tree_matcher(msgtree.walk, match_keys)
+        except KeyError:
+            if not self.default("%s_msgtree" % fname):
+                raise TaskMsgTreeError("%s_msgtree not set" % fname)
+            return iter([])
+
     def iter_buffers(self, match_keys=None):
         """
         Iterate over buffers, returns a tuple (buffer, keys). For remote
@@ -1208,10 +1195,7 @@ class Task(object):
         ...     print NodeSet.fromlist(nodelist)
         ...     print buffer
         """
-        msgtree = self._msgtree
-        if msgtree is None:
-            raise TaskMsgTreeError("stdout_msgtree not set")
-        return self._call_tree_matcher(msgtree.walk, match_keys)
+        return self._iter_msgtree('stdout', match_keys)
 
     def iter_errors(self, match_keys=None):
         """
@@ -1219,10 +1203,7 @@ class Task(object):
 
         See iter_buffers().
         """
-        errtree = self._errtree
-        if errtree is None:
-            raise TaskMsgTreeError("stderr_msgtree not set")
-        return self._call_tree_matcher(errtree.walk, match_keys)
+        return self._iter_msgtree('stderr', match_keys)
         
     def iter_retcodes(self, match_keys=None):
         """
@@ -1262,15 +1243,17 @@ class Task(object):
         """
         Flush all task messages (from all task workers).
         """
-        if self._msgtree is not None:
-            self._msgtree.clear()
+        msgtree = self._msgtree('stdout', strict=False)
+        if msgtree is not None:
+            msgtree.clear()
 
     def flush_errors(self):
         """
         Flush all task error messages (from all task workers).
         """
-        if self._errtree is not None:
-            self._errtree.clear()
+        errtree = self._msgtree('stderr', strict=False)
+        if errtree is not None:
+            errtree.clear()
 
     @classmethod
     def wait(cls, from_thread):

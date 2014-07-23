@@ -310,12 +310,12 @@ class TaskDistantMixin(object):
         self._task.set_info("fanout", fanout)
 
     def testWorkerBuffers(self):
+        # Warning: if you modify this test, please also modify testWorkerErrorBuffers()
         task = task_self()
-        self.assert_(task != None)
-
-        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'", nodes='localhost')
+        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n'",
+                            nodes='localhost')
         task.resume()
-
+        # test iter_buffers() by worker...
         cnt = 2
         for buf, nodes in worker.iter_buffers():
             cnt -= 1
@@ -336,6 +336,40 @@ class TaskDistantMixin(object):
                 self.assertEqual(len(nodes), 1)
                 self.assertEqual(str(nodes), "localhost")
         self.assertEqual(cnt, 0)
+        # test flushing buffers by worker
+        worker.flush_buffers()
+        self.assertEqual(list(worker.iter_buffers()), [])
+
+    def testWorkerErrorBuffers(self):
+        # Warning: if you modify this test, please also modify testWorkerBuffers()
+        task = task_self()
+        worker = task.shell("/usr/bin/printf 'foo\nbar\nxxx\n' 1>&2",
+                            nodes='localhost', stderr=True)
+        task.resume()
+        # test iter_errors() by worker...
+        cnt = 2
+        for buf, nodes in worker.iter_errors():
+            cnt -= 1
+            if buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(nodes), 1)
+                self.assertEqual(str(nodes), "localhost")
+        self.assertEqual(cnt, 1)
+        # new check in 1.7 to ensure match_keys is not a string
+        testgen = worker.iter_errors("localhost")
+        # cast to list to effectively iterate
+        self.assertRaises(TypeError, list, testgen)
+        # and also fixed an issue when match_keys was an empty list
+        for buf, nodes in worker.iter_errors([]):
+            self.assertFalse("Found error buffer with empty match_keys?!")
+        for buf, nodes in worker.iter_errors(["localhost"]):
+            cnt -= 1
+            if buf == "foo\nbar\nxxx\n":
+                self.assertEqual(len(nodes), 1)
+                self.assertEqual(str(nodes), "localhost")
+        self.assertEqual(cnt, 0)
+        # test flushing error buffers by worker
+        worker.flush_errors()
+        self.assertEqual(list(worker.iter_errors()), [])
 
     def testWorkerNodeBuffers(self):
         task = task_self()

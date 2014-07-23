@@ -190,16 +190,16 @@ class DistantWorker(Worker):
         # Maxoptimize this method as it might be called very often.
         task = self.task
         handler = self.eh
-
+        # update task msgtree
+        task._msg_add(self, node, fname, msg)
+        # generate event
         self.current_node = node
         if fname == 'stderr':
             self.current_errmsg = msg
-            task._errmsg_add((self, node), msg)
             if handler is not None:
                 handler.ev_error(self)
         else:
             self.current_msg = msg
-            task._msg_add((self, node), msg)
             if handler is not None:
                 handler.ev_read(self)
 
@@ -210,7 +210,7 @@ class DistantWorker(Worker):
         self.current_node = node
         self.current_rc = rc
 
-        self.task._rc_set((self, node), rc)
+        self.task._rc_set(self, node, rc)
 
         if self.eh:
             self.eh.ev_hup(self)
@@ -222,7 +222,7 @@ class DistantWorker(Worker):
         # Update current_node to allow node resolution after ev_timeout.
         self.current_node = node
 
-        self.task._timeout_add((self, node))
+        self.task._timeout_add(self, node)
 
     def last_node(self):
         """
@@ -258,14 +258,14 @@ class DistantWorker(Worker):
         Get specific node buffer.
         """
         self._task_bound_check()
-        return self.task._msg_by_source((self, node))
+        return self.task._msg_by_source(self, node, 'stdout')
         
     def node_error(self, node):
         """
         Get specific node error buffer.
         """
         self._task_bound_check()
-        return self.task._errmsg_by_source((self, node))
+        return self.task._msg_by_source(self, node, 'stderr')
 
     node_error_buffer = node_error
 
@@ -277,7 +277,7 @@ class DistantWorker(Worker):
         """
         self._task_bound_check()
         try:
-            rc = self.task._rc_by_source((self, node))
+            rc = self.task._rc_by_source(self, node)
         except KeyError:
             raise KeyError(node)
         return rc
@@ -291,8 +291,8 @@ class DistantWorker(Worker):
         keys found in match_keys are returned.
         """
         self._task_bound_check()
-        for msg, keys in self.task._call_tree_matcher( \
-                            self.task._msgtree.walk, match_keys, self):
+        for msg, keys in self.task._call_tree_matcher(
+                self.task._msgtree('stdout').walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
 
     def iter_errors(self, match_keys=None):
@@ -302,8 +302,8 @@ class DistantWorker(Worker):
         keys found in match_keys are returned.
         """
         self._task_bound_check()
-        for msg, keys in self.task._call_tree_matcher( \
-                            self.task._errtree.walk, match_keys, self):
+        for msg, keys in self.task._call_tree_matcher(
+                self.task._msgtree('stderr').walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
 
     def iter_node_buffers(self, match_keys=None):
@@ -311,16 +311,16 @@ class DistantWorker(Worker):
         Returns an iterator over each node and associated buffer.
         """
         self._task_bound_check()
-        return self.task._call_tree_matcher(self.task._msgtree.items,
-                                            match_keys, self)
+        return self.task._call_tree_matcher(
+            self.task._msgtree('stdout').items, match_keys, self)
 
     def iter_node_errors(self, match_keys=None):
         """
         Returns an iterator over each node and associated error buffer.
         """
         self._task_bound_check()
-        return self.task._call_tree_matcher(self.task._errtree.items,
-                                            match_keys, self)
+        return self.task._call_tree_matcher(
+            self.task._msgtree('stderr').items, match_keys, self)
 
     def iter_retcodes(self, match_keys=None):
         """
@@ -461,22 +461,17 @@ class WorkerSimple(EngineClient, Worker):
         """
         Add a message.
         """
+        # update task msgtree
+        self.task._msg_add(self, self.key, fname, msg)
+        # generate event
         if fname == 'stderr':
             # add last msg to local buffer
             self.current_errmsg = msg
-
-            # update task
-            self.task._errmsg_add((self, self.key), msg)
-
             if self.eh:
                 self.eh.ev_error(self)
         else:
             # add last msg to local buffer
             self.current_msg = msg
-
-            # update task
-            self.task._msg_add((self, self.key), msg)
-
             if self.eh:
                 self.eh.ev_read(self)
 
@@ -486,16 +481,14 @@ class WorkerSimple(EngineClient, Worker):
         """
         self.current_rc = rc
 
-        self.task._rc_set((self, self.key), rc)
+        self.task._rc_set(self, self.key, rc)
 
         if self.eh:
             self.eh.ev_hup(self)
 
     def _on_timeout(self):
-        """
-        Update on timeout.
-        """
-        self.task._timeout_add((self, self.key))
+        """Update on timeout."""
+        self.task._timeout_add(self, self.key)
 
         # trigger timeout event
         if self.eh:
@@ -506,8 +499,8 @@ class WorkerSimple(EngineClient, Worker):
         Read worker buffer.
         """
         self._task_bound_check()
-        for key, msg in self.task._call_tree_matcher(self.task._msgtree.items,
-                                                     worker=self):
+        for key, msg in self.task._call_tree_matcher(
+                self.task._msgtree('stdout').items, worker=self):
             assert key == self.key
             return str(msg)
 
@@ -516,8 +509,8 @@ class WorkerSimple(EngineClient, Worker):
         Read worker error buffer.
         """
         self._task_bound_check()
-        for key, msg in self.task._call_tree_matcher(self.task._errtree.items,
-                                                     worker=self):
+        for key, msg in self.task._call_tree_matcher(
+                self.task._msgtree('stderr').items, worker=self):
             assert key == self.key
             return str(msg)
 
