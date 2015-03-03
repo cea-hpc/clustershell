@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from TLib import my_node, make_temp_file, make_temp_dir
+from TLib import HOSTNAME, make_temp_file, make_temp_dir
 
 from ClusterShell.Worker.Exec import ExecWorker, WorkerError
 from ClusterShell.Task import task_self
@@ -45,18 +45,18 @@ class ExecTest(unittest.TestCase):
 
     def test_timeout(self):
         """test ExecWorker with a timeout"""
-        nodes = "localhost,%s" % my_node()
+        nodes = "localhost,%s" % HOSTNAME
         self.execw(nodes=nodes, handler=None, command="sleep 1", timeout=0.2)
         self.assertEqual(task_self().max_retcode(), 0)
         self.assertEqual(task_self().num_timeout(), 2)
 
     def test_node_placeholder(self):
         """test ExecWorker with several nodes and %h (host)"""
-        nodes = "localhost,%s" % my_node()
+        nodes = "localhost,%s" % HOSTNAME
         self.execw(nodes=nodes, handler=None, command="echo %h")
         self.assertEqual(task_self().max_retcode(), 0)
         self.assertEqual(task_self().node_buffer('localhost'), 'localhost')
-        self.assertEqual(task_self().node_buffer(my_node()), my_node())
+        self.assertEqual(task_self().node_buffer(HOSTNAME), HOSTNAME)
 
     def test_bad_placeholder(self):
         """test ExecWorker with unknown placeholder pattern"""
@@ -65,7 +65,7 @@ class ExecTest(unittest.TestCase):
 
     def test_rank_placeholder(self):
         """test ExecWorker with several nodes and %n (rank)"""
-        nodes = "localhost,%s" % my_node()
+        nodes = "localhost,%s" % HOSTNAME
         self.execw(nodes=nodes, handler=None, command="echo %n")
         self.assertEqual(task_self().max_retcode(), 0)
         self.assertEqual([str(msg) for msg, _ in task_self().iter_buffers()],

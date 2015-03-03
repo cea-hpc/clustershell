@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, '../lib')
 
-from TLib import make_temp_filename, make_temp_dir
+from TLib import HOSTNAME, make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
@@ -37,27 +37,27 @@ class TaskDistantPdshMixin(object):
 
     def testWorkerPdshGetCommand(self):
         # test worker.command with WorkerPdsh
-        worker1 = WorkerPdsh("localhost", command="/bin/echo foo bar fuu",
+        worker1 = WorkerPdsh(HOSTNAME, command="/bin/echo foo bar fuu",
                              handler=None, timeout=5)
         self.assert_(worker1 != None)
         self._task.schedule(worker1)
-        worker2 = WorkerPdsh("localhost", command="/bin/echo blah blah foo",
+        worker2 = WorkerPdsh(HOSTNAME, command="/bin/echo blah blah foo",
                              handler=None, timeout=5)
         self.assert_(worker2 != None)
         self._task.schedule(worker2)
         # run task
         self._task.resume()
         # test output
-        self.assertEqual(worker1.node_buffer("localhost"), "foo bar fuu")
+        self.assertEqual(worker1.node_buffer(HOSTNAME), "foo bar fuu")
         self.assertEqual(worker1.command, "/bin/echo foo bar fuu")
-        self.assertEqual(worker2.node_buffer("localhost"), "blah blah foo")
+        self.assertEqual(worker2.node_buffer(HOSTNAME), "blah blah foo")
         self.assertEqual(worker2.command, "/bin/echo blah blah foo")
 
     def testLocalhostExplicitPdshCopy(self):
         # test simple localhost copy with explicit pdsh worker
         dest = make_temp_filename(suffix='LocalhostExplicitPdshCopy')
         try:
-            worker = WorkerPdsh("localhost", source="/etc/hosts",
+            worker = WorkerPdsh(HOSTNAME, source="/etc/hosts",
                     dest=dest, handler=None, timeout=10)
             self._task.schedule(worker)
             self._task.resume()
@@ -75,7 +75,7 @@ class TaskDistantPdshMixin(object):
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
             os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerPdsh("localhost", source=dtmp_src,
+            worker = WorkerPdsh(HOSTNAME, source=dtmp_src,
                     dest=dtmp_dst, handler=None, timeout=10)
             self._task.schedule(worker)
             self._task.resume()
@@ -94,7 +94,7 @@ class TaskDistantPdshMixin(object):
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
             os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerPdsh("localhost", source=dtmp_src,
+            worker = WorkerPdsh(HOSTNAME, source=dtmp_src,
                     dest=dtmp_dst, handler=None, timeout=10, preserve=True)
             self._task.schedule(worker)
             self._task.resume()
@@ -107,41 +107,41 @@ class TaskDistantPdshMixin(object):
     def testExplicitPdshWorker(self):
         # test simple localhost command with explicit pdsh worker
         # init worker
-        worker = WorkerPdsh("localhost", command="echo alright", handler=None, timeout=5)
+        worker = WorkerPdsh(HOSTNAME, command="echo alright", handler=None, timeout=5)
         self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
         # test output
-        self.assertEqual(worker.node_buffer("localhost"), "alright")
+        self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
 
     def testExplicitPdshWorkerStdErr(self):
         # test simple localhost command with explicit pdsh worker (stderr)
         # init worker
-        worker = WorkerPdsh("localhost", command="echo alright 1>&2",
+        worker = WorkerPdsh(HOSTNAME, command="echo alright 1>&2",
                     handler=None, stderr=True, timeout=5)
         self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
         # test output
-        self.assertEqual(worker.node_error_buffer("localhost"), "alright")
+        self.assertEqual(worker.node_error_buffer(HOSTNAME), "alright")
 
         # Re-test with stderr=False
-        worker = WorkerPdsh("localhost", command="echo alright 1>&2",
+        worker = WorkerPdsh(HOSTNAME, command="echo alright 1>&2",
                     handler=None, stderr=False, timeout=5)
         self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
         # test output
-        self.assertEqual(worker.node_error_buffer("localhost"), None)
+        self.assertEqual(worker.node_error_buffer(HOSTNAME), None)
 
 
     def testPdshWorkerWriteNotSupported(self):
         # test that write is reported as not supported with pdsh
         # init worker
-        worker = WorkerPdsh("localhost", command="uname -r", handler=None, timeout=5)
+        worker = WorkerPdsh(HOSTNAME, command="uname -r", handler=None, timeout=5)
         self.assertRaises(EngineClientNotSupportedError, worker.write, "toto")
 
     class TEventHandlerChecker(EventHandler):
@@ -178,7 +178,7 @@ class TaskDistantPdshMixin(object):
         # test triggered events with explicit pdsh worker
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="hostname", handler=test_eh, timeout=None)
+        worker = WorkerPdsh(HOSTNAME, command="hostname", handler=test_eh, timeout=None)
         self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
@@ -190,7 +190,7 @@ class TaskDistantPdshMixin(object):
         # test triggered events (with timeout) with explicit pdsh worker
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="echo alright && sleep 10",
+        worker = WorkerPdsh(HOSTNAME, command="echo alright && sleep 10",
                 handler=test_eh, timeout=2)
         self.assert_(worker != None)
         self._task.schedule(worker)
@@ -198,13 +198,13 @@ class TaskDistantPdshMixin(object):
         self._task.resume()
         # test events received: start, read, timeout, close
         self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_TIMEOUT | EV_CLOSE)
-        self.assertEqual(worker.node_buffer("localhost"), "alright")
+        self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
 
     def testShellPdshEventsNoReadNoTimeout(self):
         # test triggered events (no read, no timeout) with explicit pdsh worker
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
-        worker = WorkerPdsh("localhost", command="sleep 2",
+        worker = WorkerPdsh(HOSTNAME, command="sleep 2",
                 handler=test_eh, timeout=None)
         self.assert_(worker != None)
         self._task.schedule(worker)
@@ -212,14 +212,14 @@ class TaskDistantPdshMixin(object):
         self._task.resume()
         # test events received: start, close
         self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
-        self.assertEqual(worker.node_buffer("localhost"), None)
+        self.assertEqual(worker.node_buffer(HOSTNAME), None)
 
     def testWorkerPdshBuffers(self):
         # test buffers at pdsh worker level
         task = task_self()
         self.assert_(task != None)
 
-        worker = WorkerPdsh("localhost", command="printf 'foo\nbar\nxxx\n'",
+        worker = WorkerPdsh(HOSTNAME, command="printf 'foo\nbar\nxxx\n'",
                             handler=None, timeout=None)
         task.schedule(worker)
         task.resume()
@@ -229,20 +229,20 @@ class TaskDistantPdshMixin(object):
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
                 self.assertEqual(len(nodes), 1)
-                self.assertEqual(str(nodes), "localhost")
+                self.assertEqual(str(nodes), HOSTNAME)
         self.assertEqual(cnt, 1)
         # new check in 1.7 to ensure match_keys is not a string
-        testgen = worker.iter_buffers("localhost")
+        testgen = worker.iter_buffers(HOSTNAME)
         # cast to list to effectively iterate
         self.assertRaises(TypeError, list, testgen)
         # and also fixed an issue when match_keys was an empty list
         for buf, nodes in worker.iter_buffers([]):
             self.assertFalse("Found buffer with empty match_keys?!")
-        for buf, nodes in worker.iter_buffers(["localhost"]):
+        for buf, nodes in worker.iter_buffers([HOSTNAME]):
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
                 self.assertEqual(len(nodes), 1)
-                self.assertEqual(str(nodes), "localhost")
+                self.assertEqual(str(nodes), HOSTNAME)
         self.assertEqual(cnt, 0)
 
     def testWorkerPdshNodeBuffers(self):
@@ -250,7 +250,7 @@ class TaskDistantPdshMixin(object):
         task = task_self()
         self.assert_(task != None)
 
-        worker = WorkerPdsh("localhost", command="/usr/bin/printf 'foo\nbar\nxxx\n'",
+        worker = WorkerPdsh(HOSTNAME, command="/usr/bin/printf 'foo\nbar\nxxx\n'",
                             handler=None, timeout=None)
         task.schedule(worker)
         task.resume()
@@ -259,7 +259,7 @@ class TaskDistantPdshMixin(object):
         for node, buf in worker.iter_node_buffers():
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
-                self.assertEqual(node, "localhost")
+                self.assertEqual(node, HOSTNAME)
         self.assertEqual(cnt, 0)
 
     def testWorkerPdshNodeErrors(self):
@@ -267,7 +267,7 @@ class TaskDistantPdshMixin(object):
         task = task_self()
         self.assert_(task != None)
 
-        worker = WorkerPdsh("localhost", command="/usr/bin/printf 'foo\nbar\nxxx\n' 1>&2",
+        worker = WorkerPdsh(HOSTNAME, command="/usr/bin/printf 'foo\nbar\nxxx\n' 1>&2",
                             handler=None, timeout=None, stderr=True)
         task.schedule(worker)
         task.resume()
@@ -276,7 +276,7 @@ class TaskDistantPdshMixin(object):
         for node, buf in worker.iter_node_errors():
             cnt -= 1
             if buf == "foo\nbar\nxxx\n":
-                self.assertEqual(node, "localhost")
+                self.assertEqual(node, HOSTNAME)
         self.assertEqual(cnt, 0)
 
     def testWorkerPdshRetcodes(self):
@@ -284,7 +284,7 @@ class TaskDistantPdshMixin(object):
         task = task_self()
         self.assert_(task != None)
 
-        worker = WorkerPdsh("localhost", command="/bin/sh -c 'exit 3'",
+        worker = WorkerPdsh(HOSTNAME, command="/bin/sh -c 'exit 3'",
                             handler=None, timeout=None)
         task.schedule(worker)
         task.resume()
@@ -294,21 +294,21 @@ class TaskDistantPdshMixin(object):
             cnt -= 1
             self.assertEqual(rc, 3)
             self.assertEqual(len(keys), 1)
-            self.assert_(keys[0] == "localhost")
+            self.assert_(keys[0] == HOSTNAME)
 
         self.assertEqual(cnt, 1)
 
-        for rc, keys in worker.iter_retcodes("localhost"):
+        for rc, keys in worker.iter_retcodes(HOSTNAME):
             cnt -= 1
             self.assertEqual(rc, 3)
             self.assertEqual(len(keys), 1)
-            self.assert_(keys[0] == "localhost")
+            self.assert_(keys[0] == HOSTNAME)
 
         self.assertEqual(cnt, 0)
 
         # test node_retcode
-        self.assertEqual(worker.node_retcode("localhost"), 3)   # 1.2.91+
-        self.assertEqual(worker.node_rc("localhost"), 3)
+        self.assertEqual(worker.node_retcode(HOSTNAME), 3)   # 1.2.91+
+        self.assertEqual(worker.node_rc(HOSTNAME), 3)
 
         # test node_retcode failure
         self.assertRaises(KeyError, worker.node_retcode, "dummy")
@@ -321,7 +321,7 @@ class TaskDistantPdshMixin(object):
         task = task_self()
         self.assert_(task != None)
 
-        worker = WorkerPdsh("localhost", command="/bin/sh -c 'exit 3'",
+        worker = WorkerPdsh(HOSTNAME, command="/bin/sh -c 'exit 3'",
                             handler=None, timeout=None)
         task.schedule(worker)
         task.resume()
@@ -330,13 +330,13 @@ class TaskDistantPdshMixin(object):
         for node, rc in worker.iter_node_retcodes():
             cnt -= 1
             self.assertEqual(rc, 3)
-            self.assertEqual(node, "localhost")
+            self.assertEqual(node, HOSTNAME)
 
         self.assertEqual(cnt, 0)
 
     def testEscapePdsh(self):
         # test distant worker (pdsh) cmd with escaped variable
-        worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'",
+        worker = WorkerPdsh(HOSTNAME, command="export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'",
                 handler=None, timeout=None)
         self.assert_(worker != None)
         #task.set_info("debug", True)
@@ -344,17 +344,17 @@ class TaskDistantPdshMixin(object):
         # execute
         self._task.resume()
         # read result
-        self.assertEqual(worker.node_buffer("localhost"), "$CSTEST")
+        self.assertEqual(worker.node_buffer(HOSTNAME), "$CSTEST")
 
     def testEscapePdsh2(self):
         # test distant worker (pdsh) cmd with non-escaped variable
-        worker = WorkerPdsh("localhost", command="export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'",
+        worker = WorkerPdsh(HOSTNAME, command="export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'",
                 handler=None, timeout=None)
         self._task.schedule(worker)
         # execute
         self._task.resume()
         # read result
-        self.assertEqual(worker.node_buffer("localhost"), "foobar")
+        self.assertEqual(worker.node_buffer(HOSTNAME), "foobar")
 
     def testShellPdshStderrWithHandler(self):
         # test reading stderr of distant pdsh worker on event handler
@@ -362,20 +362,20 @@ class TaskDistantPdshMixin(object):
             def ev_error(self, worker):
                 assert worker.last_error() == "something wrong"
 
-        worker = WorkerPdsh("localhost", command="echo something wrong 1>&2",
+        worker = WorkerPdsh(HOSTNAME, command="echo something wrong 1>&2",
                 handler=StdErrHandler(), timeout=None)
         self._task.schedule(worker)
         self._task.resume()
         for buf, nodes in worker.iter_errors():
             self.assertEqual(buf, "something wrong")
-        for buf, nodes in worker.iter_errors(['localhost']):
+        for buf, nodes in worker.iter_errors([HOSTNAME]):
             self.assertEqual(buf, "something wrong")
 
     def testCommandTimeoutOption(self):
         # test pdsh shell with command_timeout set
         command_timeout_orig = self._task.info("command_timeout")
         self._task.set_info("command_timeout", 1)
-        worker = WorkerPdsh("localhost", command="sleep 10",
+        worker = WorkerPdsh(HOSTNAME, command="sleep 10",
                 handler=None, timeout=None)
         self._task.schedule(worker)
         self.assert_(worker != None)
@@ -387,17 +387,17 @@ class TaskDistantPdshMixin(object):
     def testPdshBadArgumentOption(self):
         # test WorkerPdsh constructor bad argument
 	# Check code < 1.4 compatibility
-        self.assertRaises(WorkerBadArgumentError, WorkerPdsh, "localhost",
+        self.assertRaises(WorkerBadArgumentError, WorkerPdsh, HOSTNAME,
 			  None, None)
 	# As of 1.4, ValueError is raised for missing parameter
-        self.assertRaises(ValueError, WorkerPdsh, "localhost",
+        self.assertRaises(ValueError, WorkerPdsh, HOSTNAME,
 			  None, None) # 1.4+
 
     def testCopyEvents(self):
         test_eh = self.__class__.TEventHandlerChecker(self)
         dest = "/tmp/cs-test_testLocalhostPdshCopyEvents"
         try:
-            worker = WorkerPdsh("localhost", source="/etc/hosts",
+            worker = WorkerPdsh(HOSTNAME, source="/etc/hosts",
                     dest=dest, handler=test_eh, timeout=10)
             self._task.schedule(worker)
             self._task.resume()
@@ -419,7 +419,7 @@ class TaskDistantPdshMixin(object):
                 self.ext_worker.abort()
                 self.testtimer = True
 
-        worker = WorkerPdsh("localhost", command="sleep 10",
+        worker = WorkerPdsh(HOSTNAME, command="sleep 10",
                 handler=None, timeout=None)
         task.schedule(worker)
 
@@ -433,7 +433,7 @@ class TaskDistantPdshMixin(object):
         # test WorkerPdsh abort() (sanity)
         task = task_self()
         # test noop abort() on unscheduled worker
-        worker = WorkerPdsh("localhost", command="sleep 1", handler=None,
+        worker = WorkerPdsh(HOSTNAME, command="sleep 1", handler=None,
                             timeout=None)
         worker.abort()
 
@@ -443,13 +443,13 @@ class TaskDistantPdshMixin(object):
         shutil.rmtree(dest, ignore_errors=True)
         try:
             os.mkdir(dest)
-            worker = WorkerPdsh("localhost", source="/etc/hosts",
+            worker = WorkerPdsh(HOSTNAME, source="/etc/hosts",
                     dest=dest, handler=None, timeout=10, reverse=True)
             self._task.schedule(worker)
             self._task.resume()
             self.assertEqual(worker.source, "/etc/hosts")
             self.assertEqual(worker.dest, dest)
-            self.assert_(os.path.exists(os.path.join(dest, "hosts.localhost")))
+            self.assert_(os.path.exists(os.path.join(dest, "hosts.%s" % HOSTNAME)))
         finally:
             shutil.rmtree(dest, ignore_errors=True)
 
@@ -461,12 +461,12 @@ class TaskDistantPdshMixin(object):
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
             os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerPdsh("localhost", source=dtmp_src,
+            worker = WorkerPdsh(HOSTNAME, source=dtmp_src,
                     dest=dtmp_dst, handler=None, timeout=30, reverse=True)
             self._task.schedule(worker)
             self._task.resume()
             self.assert_(os.path.exists(os.path.join(dtmp_dst, \
-                "%s.localhost" % os.path.basename(dtmp_src), "lev1_a", "lev2")))
+                "%s.%s" % (os.path.basename(dtmp_src), HOSTNAME), "lev1_a", "lev2")))
         finally:
             shutil.rmtree(dtmp_dst, ignore_errors=True)
             shutil.rmtree(dtmp_src, ignore_errors=True)
@@ -479,13 +479,13 @@ class TaskDistantPdshMixin(object):
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
             os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerPdsh("localhost", source=dtmp_src,
+            worker = WorkerPdsh(HOSTNAME, source=dtmp_src,
                     dest=dtmp_dst, handler=None, timeout=30, preserve=True,
                     reverse=True)
             self._task.schedule(worker)
             self._task.resume()
             self.assert_(os.path.exists(os.path.join(dtmp_dst, \
-                "%s.localhost" % os.path.basename(dtmp_src), "lev1_a", "lev2")))
+                "%s.%s" % (os.path.basename(dtmp_src), HOSTNAME), "lev1_a", "lev2")))
         finally:
             shutil.rmtree(dtmp_dst, ignore_errors=True)
             shutil.rmtree(dtmp_src, ignore_errors=True)

@@ -10,6 +10,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
+from TLib import HOSTNAME
 from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Popen import WorkerPopen
 from ClusterShell.Worker.Ssh import WorkerSsh
@@ -38,10 +39,10 @@ class MisusageTest(unittest.TestCase):
     def testWorkerNotScheduledDistant(self):
         """test library misusage (distant worker not scheduled)"""
         task = task_self()
-        worker = WorkerSsh("localhost", command="/bin/hostname", handler=None, timeout=0)
+        worker = WorkerSsh(HOSTNAME, command="/bin/hostname", handler=None, timeout=0)
         self.assert_(worker != None)
         task.resume()
-        self.assertRaises(WorkerError, worker.node_buffer, "localhost")
+        self.assertRaises(WorkerError, worker.node_buffer, HOSTNAME)
 
     def testTaskScheduleTwice(self):
         """test task worker schedule twice error"""

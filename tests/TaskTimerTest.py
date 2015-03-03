@@ -13,6 +13,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
+from TLib import HOSTNAME
 from ClusterShell.Engine.Engine import EngineTimer, EngineIllegalOperationError
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import *
@@ -223,7 +224,7 @@ class TaskTimerTest(unittest.TestCase):
         # init worker
         worker = task.shell("/bin/sleep 1", handler=test_eh)
         self.assert_(worker != None)
-        worker = task.shell("/bin/sleep 3", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 3", nodes=HOSTNAME, handler=test_eh)
         self.assert_(worker != None)
         # init timer
         timer = task.timer(1.5, interval=0.5, handler=test_eh)
@@ -270,7 +271,7 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(task != None)
         test_eh = self.__class__.TEventHandlerTimerSetNextFire(self)
         # init worker
-        worker = task.shell("/bin/sleep 3", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 3", nodes=HOSTNAME, handler=test_eh)
         self.assert_(worker != None)
         # init timer
         timer = task.timer(1.0, interval=0.2, handler=test_eh)
@@ -315,7 +316,7 @@ class TaskTimerTest(unittest.TestCase):
         # init worker
         worker = task.shell("/bin/uname -r", handler=test_eh)
         self.assert_(worker != None)
-        worker = task.shell("/bin/sleep 2", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 2", nodes=HOSTNAME, handler=test_eh)
         self.assert_(worker != None)
         # init timer
         timer = task.timer(1.0, interval=0.5, handler=test_eh)
@@ -363,7 +364,7 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(task != None)
         test_eh = self.__class__.TEventHandlerTimerOtherSetNextFire(self)
         # init worker
-        worker = task.shell("/bin/sleep 1", nodes='localhost', handler=test_eh)
+        worker = task.shell("/bin/sleep 1", nodes=HOSTNAME, handler=test_eh)
         self.assert_(worker != None)
         # init timer
         timer = task.timer(10.0, interval=0.5, handler=test_eh)

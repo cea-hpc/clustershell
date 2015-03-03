@@ -12,6 +12,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
+from TLib import HOSTNAME
 from ClusterShell.Task import *
 from ClusterShell.Worker.Pdsh import WorkerPdsh
 
@@ -50,7 +51,7 @@ class TaskRLimitsTest(unittest.TestCase):
         self.assert_(task != None)
         task.set_info("fanout", 10)
         for i in xrange(400):
-            worker = task.shell("/bin/hostname", nodes="localhost",
+            worker = task.shell("/bin/hostname", nodes=HOSTNAME,
                                 stderr=stderr)
             self.assert_(worker != None)
         # run task
@@ -69,7 +70,7 @@ class TaskRLimitsTest(unittest.TestCase):
         self.assert_(task != None)
         task.set_info("fanout", 10)
         for i in xrange(200):
-            worker = WorkerPdsh("localhost", handler=None,
+            worker = WorkerPdsh(HOSTNAME, handler=None,
                                 timeout=0,
                                 command="/bin/hostname",
                                 stderr=stderr)

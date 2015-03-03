@@ -10,10 +10,9 @@ import time
 from ConfigParser import ConfigParser
 from StringIO import StringIO
 
+# Get machine short hostname
+HOSTNAME = socket.gethostname().split('.', 1)[0]
 
-def my_node():
-    """Helper to get local short hostname."""
-    return socket.gethostname().split('.')[0]
 
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
