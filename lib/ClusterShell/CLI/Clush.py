@@ -362,7 +362,8 @@ def readline_setup():
 def ttyloop(task, nodeset, timeout, display):
     """Manage the interactive prompt to run command"""
     readline_avail = False
-    if task.default("USER_interactive"):
+    interactive = task.default("USER_interactive")
+    if interactive:
         try:
             import readline
             readline_setup()
@@ -376,8 +377,13 @@ def ttyloop(task, nodeset, timeout, display):
     ns = NodeSet(nodeset)
     ns_info = True
     cmd = ""
-    while task.default("USER_running") or cmd.lower() != 'quit':
+    while task.default("USER_running") or \
+            (interactive and cmd.lower() != 'quit'):
         try:
+            # Set SIGUSR1 handler if needed
+            if task.default("USER_handle_SIGUSR1"):
+                signal.signal(signal.SIGUSR1, signal_handler)
+
             if task.default("USER_interactive") and \
                     not task.default("USER_running"):
                 if ns_info:
@@ -387,9 +393,6 @@ def ttyloop(task, nodeset, timeout, display):
                 prompt = "clush> "
             else:
                 prompt = ""
-            # Set SIGUSR1 handler if needed
-            if task.default("USER_handle_SIGUSR1"):
-                signal.signal(signal.SIGUSR1, signal_handler)
             try:
                 cmd = raw_input(prompt)
                 assert cmd is not None, "Result of raw_input() is None!"

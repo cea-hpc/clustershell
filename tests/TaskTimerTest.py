@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell timer test suite
-# Written by S. Thiell 2009-02-15
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task's timer"""
@@ -364,7 +364,7 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(task != None)
         test_eh = self.__class__.TEventHandlerTimerOtherSetNextFire(self)
         # init worker
-        worker = task.shell("/bin/sleep 1", nodes=HOSTNAME, handler=test_eh)
+        worker = task.shell("/bin/sleep 1", handler=test_eh)
         self.assert_(worker != None)
         # init timer
         timer = task.timer(10.0, interval=0.5, handler=test_eh)
@@ -466,9 +466,3 @@ class TaskTimerTest(unittest.TestCase):
         thread.start_new_thread(TaskTimerTest._thread_timer_create_func, (self, task))
         task.resume()
         task_wait()
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskTimerTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-

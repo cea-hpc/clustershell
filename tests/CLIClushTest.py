@@ -200,8 +200,8 @@ class CLIClushTest_A(unittest.TestCase):
     def test_014_stderr(self):
         """test clush (stderr)"""
         self._clush_t(["-w", HOSTNAME, "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
-        self._clush_t(["-b", "-w", HOSTNAME, "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
-        self._clush_t(["-B", "-w", HOSTNAME, "echo err 1>&2"], None,
+        self._clush_t(["-b", "-w", HOSTNAME, "-q", "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
+        self._clush_t(["-B", "-w", HOSTNAME, "-q", "echo err 1>&2"], None,
             "---------------\n%s\n---------------\nerr\n" % HOSTNAME)
 
     def test_015_stderr_tty(self):
