@@ -7,7 +7,7 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2014-01-16
+:Date:   2015-03-05
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -46,7 +46,7 @@ OPTIONS
     -f, --fold          fold nodeset(s) (or separate nodes) into one nodeset
     -l, --list          list node groups, list node groups and nodes (``-ll``) or list node groups, nodes and node count (``-lll``). When no argument is specified at all, this command will list all node group names found in selected group source (see also -s *GROUPSOURCE*). If any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually). Optionally for each group, the fraction of these nodes being member of the group may be displayed (with ``-ll``), and also member count/total group node count (with ``-lll``). If a single hyphen-minus (-) is given as a nodeset, it will be read from standard input.
     -r, --regroup       fold nodes using node groups (see -s *GROUPSOURCE*)
-    --groupsources      list all configured group sources (see ``groups.conf``\(5))
+    --groupsources      list all active group sources (see ``groups.conf``\(5))
 
   Operations:
     -x SUB_NODES, --exclude=SUB_NODES

@@ -405,6 +405,11 @@ default: test
 map: echo example[1-100]
 all: echo @foo,@bar,@moo
 list: echo foo bar moo
+
+[other]
+map: echo nova[030-489]
+all: echo @baz,@qux,@norf
+list: echo baz qux norf
         """)
         set_std_group_resolver(GroupResolverConfig(f.name))
 
@@ -412,7 +417,6 @@ list: echo foo bar moo
         set_std_group_resolver(None)
 
     def test_023_groups(self):
-        """test nodeset with groups"""
         self._nodeset_t(["--split=2","-r", "unknown2", "unknown3"], None, "unknown2\nunknown3\n")
         self._nodeset_t(["-f", "-a"], None, "example[1-100]\n")
         self._nodeset_t(["-f", "@moo"], None, "example[1-100]\n")
@@ -420,10 +424,47 @@ list: echo foo bar moo
         self._nodeset_t(["-e", "-a"], None, ' '.join(["example%d" % i for i in range(1, 101)]) + '\n')
         self._nodeset_t(["-c", "-a"], None, "100\n")
         self._nodeset_t(["-r", "-a"], None, "@bar\n")
+        self._nodeset_t(["--split=2","-r", "unknown2", "unknown3"], None, "unknown2\nunknown3\n")
+
+    # We need to split following unit tests in order to reset group
+    # source in setUp/tearDown...
+
+    def test_024_groups(self):
         self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, "100\n")
+
+    def test_025_groups(self):
         self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
+
+    def test_026_groups(self):
         self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
-        self._nodeset_t(["-s", "test", "--groupsources"], None, "test (default)\n")
+
+    def test_027_groups(self):
+        self._nodeset_t(["-s", "test", "--groupsources"], None, "test (default)\nother\n")
+
+    def test_029_groups(self):
         self._nodeset_t(["-f", "-a", "-"], "example101\n", "example[1-101]\n")
         self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", "example[1-102]\n")
+
+    # Check default group source switching...
+
+    def test_030_groups(self):
+        self._nodeset_t(["-s", "other", "-c", "-a", "-d"], None, "460\n")
+        self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, "100\n")
+
+    def test_031_groups(self):
+        self._nodeset_t(["-s", "other", "-r", "-a"], None, "@other:baz\n")
+        self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
+
+    def test_032_groups(self):
+        self._nodeset_t(["-s", "other", "-G", "-r", "-a"], None, "@baz\n")
+        self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
+
+    def test_033_groups(self):
+        self._nodeset_t(["--groupsources"], None, "test (default)\nother\n")
+
+    def test_034_groups(self):
+        self._nodeset_t(["-s", "other", "--groupsources"], None, "other (default)\ntest\n")
+
+    def test_035_groups(self):
+        self._nodeset_t(["--groupsources"], None, "test (default)\nother\n")
 

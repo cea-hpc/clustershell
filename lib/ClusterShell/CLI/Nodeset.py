@@ -169,10 +169,14 @@ def nodeset():
     if options.maxsplit is None:
         options.maxsplit = 1
 
-    if options.groupsource and not options.quiet and \
-       (class_set == RangeSet or options.groupsources):
+    if options.groupsource and not options.quiet and class_set == RangeSet:
         print >> sys.stderr, "WARNING: option group source \"%s\" ignored" \
                                 % options.groupsource
+
+    # We want -s <groupsource> to act as a substition of default groupsource
+    # (ie. it's not necessary to prefix group names by this group source).
+    if options.groupsource:
+        group_resolver.default_source_name = options.groupsource
 
     # The groupsources command simply lists group sources.
     if options.groupsources:
@@ -185,17 +189,12 @@ def nodeset():
             dispdefault = ""
         return
 
-    # We want -s <groupsource> to act as a substition of default groupsource
-    # (ie. it's not necessary to prefix group names by this group source).
-    if options.groupsource:
-        group_resolver.default_sourcename = options.groupsource
-
     # Instantiate RangeSet or NodeSet object
     xset = class_set(autostep=options.autostep)
 
     if options.all:
         # Include all nodes from external node groups support.
-        xset.update(NodeSet.fromall()) # uses default_sourcename
+        xset.update(NodeSet.fromall()) # uses default_source when set
 
     if not args and not options.all and not options.list:
         # No need to specify '-' to read stdin in these cases

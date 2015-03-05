@@ -733,7 +733,7 @@ def main():
 
     if options.groupsource:
         # Be sure -a/g -s source work as espected.
-        std_group_resolver().default_sourcename = options.groupsource
+        std_group_resolver().default_source_name = options.groupsource
 
     # FIXME: add public API to enforce engine
     Task._std_default['engine'] = options.engine

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.CLI.Display test suite
-# Written by S. Thiell 2010-09-25
+# Written by S. Thiell
 
 
 """Unit test for CLI.Display"""
@@ -9,6 +9,7 @@ import os
 import sys
 import tempfile
 import unittest
+from StringIO import StringIO
 
 sys.path.insert(0, '../lib')
 
@@ -16,9 +17,10 @@ from ClusterShell.CLI.Display import Display, WHENCOLOR_CHOICES, VERB_STD
 from ClusterShell.CLI.OptionParser import OptionParser
 
 from ClusterShell.MsgTree import MsgTree
-from ClusterShell.NodeSet import NodeSet
+from ClusterShell.NodeSet import NodeSet, set_std_group_resolver
 
 from ClusterShell.NodeUtils import GroupResolverConfig
+
 
 
 def makeTestFile(text):
@@ -38,10 +40,10 @@ class CLIDisplayTest(unittest.TestCase):
         parser.install_display_options(verbose_options=True)
         options, _ = parser.parse_args([])
 
-        ns = NodeSet("localhost")
+        ns = NodeSet("hostfoo")
         mtree = MsgTree()
-        mtree.add("localhost", "message0")
-        mtree.add("localhost", "message1")
+        mtree.add("hostfoo", "message0")
+        mtree.add("hostfoo", "message1")
 
         for whencolor in WHENCOLOR_CHOICES: # test whencolor switch
             for label in [True, False]:     # test no-label switch
@@ -49,40 +51,24 @@ class CLIDisplayTest(unittest.TestCase):
                 options.whencolor = whencolor
                 disp = Display(options)
                 # inhibit output
-                disp.out = open("/dev/null", "w")
-                disp.err = open("/dev/null", "w")
-                self.assert_(disp != None)
+                disp.out = StringIO()
+                disp.err = StringIO()
                 # test print_* methods...
                 disp.print_line(ns, "foo bar")
                 disp.print_line_error(ns, "foo bar")
                 disp.print_gather(ns, list(mtree.walk())[0][0])
                 # test also string nodeset as parameter
-                disp.print_gather("localhost", list(mtree.walk())[0][0])
+                disp.print_gather("hostfoo", list(mtree.walk())[0][0])
                 # test line_mode property
                 self.assertEqual(disp.line_mode, False)
                 disp.line_mode = True
                 self.assertEqual(disp.line_mode, True)
-                disp.print_gather("localhost", list(mtree.walk())[0][0])
+                disp.print_gather("hostfoo", list(mtree.walk())[0][0])
                 disp.line_mode = False
                 self.assertEqual(disp.line_mode, False)
 
     def testDisplayRegroup(self):
         """test CLI.Display (regroup)"""
-        parser = OptionParser("dummy")
-        parser.install_display_options(verbose_options=True)
-        options, _ = parser.parse_args(["-r"])
-
-        mtree = MsgTree()
-        mtree.add("localhost", "message0")
-        mtree.add("localhost", "message1")
-
-        disp = Display(options)
-        self.assertEqual(disp.regroup, True)
-        disp.out = open("/dev/null", "w")
-        disp.err = open("/dev/null", "w")
-        self.assert_(disp != None)
-        self.assertEqual(disp.line_mode, False)
-
         f = makeTestFile("""
 # A comment
 
@@ -90,16 +76,32 @@ class CLIDisplayTest(unittest.TestCase):
 default: local
 
 [local]
-map: echo localhost
+map: echo hostfoo
 #all:
 list: echo all
 #reverse:
         """)
         res = GroupResolverConfig(f.name)
-        ns = NodeSet("localhost", resolver=res)
+        set_std_group_resolver(res)
+        try:
+            parser = OptionParser("dummy")
+            parser.install_display_options(verbose_options=True)
+            options, _ = parser.parse_args(["-r"])
 
-        # nodeset.regroup() is performed by print_gather()
-        disp.print_gather(ns, list(mtree.walk())[0][0])
+            disp = Display(options, color=False)
+            self.assertEqual(disp.regroup, True)
+            disp.out = StringIO()
+            disp.err = StringIO()
+            self.assertEqual(disp.line_mode, False)
+
+            ns = NodeSet("hostfoo")
+
+            # nodeset.regroup() is performed by print_gather()
+            disp.print_gather(ns, "message0\nmessage1\n")
+            self.assertEqual(disp.out.getvalue(),
+                "---------------\n@all\n---------------\nmessage0\nmessage1\n\n")
+        finally:
+            set_std_group_resolver(None)
 
     def testDisplayClubak(self):
         """test CLI.Display for clubak"""
@@ -116,8 +118,3 @@ list: echo all
         self.assertEqual(disp.maxrc, False)
         self.assertEqual(disp.node_count, True)
         self.assertEqual(disp.verbosity, VERB_STD)
-
-
-if __name__ == '__main__':
-    suites = [unittest.TestLoader().loadTestsFromTestCase(CLIDisplayTest)]
-    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))

@@ -234,7 +234,7 @@ class OptionParser(optparse.OptionParser):
                           "using node groups (see -s GROUPSOURCE)")
         optgrp.add_option("--groupsources", action="store_true",
                           dest="groupsources", default=False, help="list " \
-                          "all configured group sources (see groups.conf(5))")
+                          "all active group sources (see groups.conf(5))")
         self.add_option_group(optgrp)
 
     def install_nodeset_operations(self):

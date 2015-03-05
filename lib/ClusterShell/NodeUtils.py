@@ -228,7 +228,25 @@ class GroupResolver(object):
 
     def sources(self):
         """Get the list of all resolver source names. """
-        return self._sources.keys()
+        srcs = list(self._sources.keys())
+        if srcs and srcs[0] is not self._default_source:
+            srcs.remove(self._default_source.name)
+            srcs.insert(0, self._default_source.name)
+        return srcs
+
+    def _get_default_source_name(self):
+        """Get default source name of resolver."""
+        return self._default_source.name
+
+    def _set_default_source_name(self, sourcename):
+        """Set default source of resolver (by name)."""
+        try:
+            self._default_source = self._sources[sourcename]
+        except KeyError:
+            raise GroupResolverSourceError(sourcename)
+
+    default_source_name = property(_get_default_source_name,
+                                   _set_default_source_name)
 
     def _list_nodes(self, source, what, *args):
         """Helper method that returns a list of results (nodes) when
@@ -316,7 +334,7 @@ class GroupResolverConfig(GroupResolver):
         """
         GroupResolver.__init__(self, illegal_chars=illegal_chars)
 
-        self.default_sourcename = None
+        default_sourcename = None
 
         self.config = ConfigParser()
         self.config.read(configfile)
@@ -349,20 +367,20 @@ class GroupResolverConfig(GroupResolver):
             pass
 
         try:
-            self.default_sourcename = self.config.get('Main', 'default')
-            if self.default_sourcename and self.default_sourcename \
+            default_sourcename = self.config.get('Main', 'default')
+            if default_sourcename and default_sourcename \
                                             not in groupscfgs.keys():
                 raise GroupResolverConfigError("Default group source not " \
-                    "found: \"%s\"" % self.default_sourcename)
+                    "found: \"%s\"" % default_sourcename)
         except (NoSectionError, NoOptionError):
             pass
 
         if not groupscfgs:
             return
 
-        # When not specified, select a random section.
-        if not self.default_sourcename:
-            self.default_sourcename = groupscfgs.keys()[0]
+        # When default is not specified, select a random section.
+        if not default_sourcename:
+            default_sourcename = groupscfgs.keys()[0]
 
         try:
             for section, (cfg, cfgdir) in groupscfgs.iteritems():
@@ -383,18 +401,5 @@ class GroupResolverConfig(GroupResolver):
         except (NoSectionError, NoOptionError), exc:
             raise GroupResolverConfigError(str(exc))
 
-    def _source(self, namespace):
-        return GroupResolver._source(self, namespace or self.default_sourcename)
-
-    def sources(self):
-        """
-        Get the list of all resolver source names (default source is always
-        first).
-        """
-        srcs = GroupResolver.sources(self)
-        if srcs:
-            srcs.remove(self.default_sourcename)
-            srcs.insert(0, self.default_sourcename)
-        return srcs
-
+        self.default_source_name = default_sourcename
 
