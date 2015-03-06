@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009-2014)
+# Copyright CEA/DAM/DIF (2009-2015)
 #  Contributors:
 #   Henri DOREAU <henri.doreau@cea.fr>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
@@ -147,7 +147,7 @@ class EngineSelect(Engine):
                     continue
 
                 fdev = stream.evmask
-                fname = stream.name
+                sname = stream.name
 
                 # process this client
                 self._current_client = client
@@ -158,9 +158,9 @@ class EngineSelect(Engine):
                         client.__class__.__name__, client.streams))
                     assert fdev & E_READ
                     assert stream.events & fdev
-                    self.modify(client, fname, 0, fdev)
+                    self.modify(client, sname, 0, fdev)
                     try:
-                        client._handle_read(fname)
+                        client._handle_read(sname)
                     except EngineClientEOF:
                         self._debug("EngineClientEOF %s" % client)
                         self.remove_stream(client, stream)
@@ -171,8 +171,8 @@ class EngineSelect(Engine):
                         client.__class__.__name__, client.streams))
                     assert fdev == E_WRITE
                     assert stream.events & fdev
-                    self.modify(client, fname, 0, fdev)
-                    client._handle_write(fname)
+                    self.modify(client, sname, 0, fdev)
+                    client._handle_write(sname)
 
                 # post processing
                 self._current_client = None

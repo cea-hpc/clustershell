@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007-2014)
+# Copyright CEA/DAM/DIF (2007-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -143,7 +143,7 @@ class EnginePoll(Engine):
                     continue
 
                 fdev = stream.evmask
-                fname = stream.name
+                sname = stream.name
 
                 # process this client
                 self._current_client = client
@@ -152,7 +152,7 @@ class EnginePoll(Engine):
                 if event & select.POLLERR:
                     self._debug("POLLERR %s" % client)
                     assert fdev & E_WRITE
-                    self._debug("POLLERR: remove_stream fname %s fdev 0x%x" % (fname, fdev))
+                    self._debug("POLLERR: remove_stream sname %s fdev 0x%x" % (sname, fdev))
                     self.remove_stream(client, stream)
                     self._current_client = None
                     continue
@@ -161,11 +161,11 @@ class EnginePoll(Engine):
                 if event & select.POLLIN:
                     assert fdev & E_READ
                     assert stream.events & fdev, (stream.events, fdev)
-                    self.modify(client, fname, 0, fdev)
+                    self.modify(client, sname, 0, fdev)
                     try:
-                        client._handle_read(fname)
+                        client._handle_read(sname)
                     except EngineClientEOF:
-                        self._debug("EngineClientEOF %s %s" % (client, fname))
+                        self._debug("EngineClientEOF %s %s" % (client, sname))
                         self.remove_stream(client, stream)
                         self._current_client = None
                         continue
@@ -185,8 +185,8 @@ class EnginePoll(Engine):
                         client.__class__.__name__, client.streams))
                     assert fdev == E_WRITE
                     assert stream.events & fdev
-                    self.modify(client, fname, 0, fdev)
-                    client._handle_write(fname)
+                    self.modify(client, sname, 0, fdev)
+                    client._handle_write(sname)
 
                 self._current_client = None
 

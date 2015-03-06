@@ -1,3 +1,11 @@
+2015-03-11 S. Thiell <stephane.thiell@cea.fr>
+
+	* Worker.py: Introduce StreamWorker as a generic worker class to manage a
+	set of streams (using one EngineClient with multiple I/O streams
+	internally). It's a concrete class that is now used in Gateway.py to
+	manage I/O from the parent host in tree propagation mode. Also changed
+	WorkerSimple (and thus WorkerPopen) to inherit from StreamWorker.
+
 2014-05-20 S. Thiell <stephane.thiell@cea.fr>
 
 	* EngineClient.py: Code improvement to support multiple customizable I/O

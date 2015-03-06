@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -47,7 +47,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, _getshorthostname
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Worker.fastsubprocess import set_nonblock_flag
-from ClusterShell.Worker.Worker import WorkerSimple
+from ClusterShell.Worker.Worker import StreamWorker
 from ClusterShell.Worker.Tree import WorkerTree
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
     ControlMessage, ACKMessage, ErrorMessage, EndMessage, StdOutMessage, \
@@ -256,8 +256,8 @@ def gateway_main():
     set_nonblock_flag(sys.stderr.fileno())
 
     task = task_self()
-    
-    # Pre-enable MsgTree buffering on gateway (not available at runtime - #181)
+
+    # Pre-enable MsgTree buffering on gateway (FIXME)
     task.set_default("stdout_msgtree", True)
     task.set_default("stderr_msgtree", True)
 
@@ -265,8 +265,11 @@ def gateway_main():
         logger.critical('Gateway failure: sys.stdin.isatty() is True')
         sys.exit(1)
 
-    worker = WorkerSimple(sys.stdin, sys.stdout, sys.stderr, None,
-                          handler=GatewayChannel(task, host))
+    worker = StreamWorker(handler=GatewayChannel(task, host))
+    worker.set_reader('r-stdin', sys.stdin)
+    worker.set_writer('w-stdout', sys.stdout, retain=False)
+    # stderr stream not used yet
+    #worker.set_writer('w-stderr', sys.stderr, retain=False) # stderr stream not used yet
     task.schedule(worker)
     logger.debug('Starting task')
     try:

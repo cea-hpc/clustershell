@@ -86,11 +86,12 @@ class ExecClient(EngineClient):
 
         @param node: will be used as key.
         """
-        EngineClient.__init__(self, worker, stderr, timeout, autoclose)
+        EngineClient.__init__(self, worker, node, stderr, timeout, autoclose)
         self.rank = rank
-        self.key = copy.copy(node)
         self.command = command
         self.popen = None
+        # Declare writer stream to allow early buffering
+        self.streams.set_writer('stdin', None, retain=True)
 
     def _build_cmd(self):
         """
@@ -149,15 +150,15 @@ class ExecClient(EngineClient):
 
         self.worker._check_fini()
 
-    def _flush_read(self, fname):
+    def _flush_read(self, sname):
         """Called at close time to flush stream read buffer."""
-        stream = self.streams[fname]
+        stream = self.streams[sname]
         if stream.readable() and stream.rbuf:
             # We still have some read data available in buffer, but no
             # EOL. Generate a final message before closing.
-            self.worker._on_node_msgline(self.key, stream.rbuf, fname)
+            self.worker._on_node_msgline(self.key, stream.rbuf, sname)
 
-    def _handle_read(self, fname):
+    def _handle_read(self, sname):
         """
         Handle a read notification. Called by the engine as the result of an
         event indicating that a read is available.
@@ -170,10 +171,10 @@ class ExecClient(EngineClient):
         debug = task.info("debug", False)
         if debug:
             print_debug = task.info("print_debug")
-        for msg in self._readlines(fname):
+        for msg in self._readlines(sname):
             if debug:
                 print_debug(task, "%s: %s" % (key, msg))
-            node_msgline(key, msg, fname)  # handle full msg line
+            node_msgline(key, msg, sname)  # handle full msg line
 
 class CopyClient(ExecClient):
     """

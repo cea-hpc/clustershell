@@ -121,7 +121,7 @@ class PdshClient(ExecClient):
 
         self.worker._check_fini()
 
-    def _parse_line(self, line, fname):
+    def _parse_line(self, line, sname):
         """
         Parse Pdsh line syntax.
         """
@@ -162,26 +162,26 @@ class PdshClient(ExecClient):
         else:
             # split pdsh reply "nodename: msg"
             nodename, msg = line.split(': ', 1)
-            self.worker._on_node_msgline(nodename, msg, fname)
+            self.worker._on_node_msgline(nodename, msg, sname)
 
-    def _flush_read(self, fname):
+    def _flush_read(self, sname):
         """Called at close time to flush stream read buffer."""
         pass
 
-    def _handle_read(self, fname):
+    def _handle_read(self, sname):
         """Engine is telling us a read is available."""
         debug = self.worker.task.info("debug", False)
         if debug:
             print_debug = self.worker.task.info("print_debug")
 
         suffix = ""
-        if fname == 'stderr':
+        if sname == 'stderr':
             suffix = "@STDERR"
 
-        for msg in self._readlines(fname):
+        for msg in self._readlines(sname):
             if debug:
                 print_debug(self.worker.task, "PDSH%s: %s" % (suffix, msg))
-            self._parse_line(msg, fname)
+            self._parse_line(msg, sname)
 
 
 class PdcpClient(CopyClient, PdshClient):

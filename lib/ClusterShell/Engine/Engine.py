@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007-2014)
+# Copyright CEA/DAM/DIF (2007-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -43,9 +43,8 @@ import logging
 import time
 
 # Engine client fd I/O event interest bits
-E_READ  = 0x1
-E_WRITE = 0x2
-E_ANY   = E_READ | E_WRITE
+E_READ   = 0x1
+E_WRITE  = 0x2
 
 # Define epsilon value for time float arithmetic operations
 EPSILON = 1.0e-3
@@ -297,7 +296,7 @@ class _EngineTimerQ:
 
         timercase = heapq.heappop(self.timers)
         client = timercase.disarm()
-        
+
         client.fire_delay = -1.0
         client._fire()
 
@@ -454,17 +453,19 @@ class Engine:
             self._ports.remove(client)
         self._remove(client, abort, did_timeout)
         self.start_all()
-    
+
     def remove_stream(self, client, stream):
         """
-        Regular way to remove a client stream from engine, performing needed
-        read flush as needed. If no more readable stream remains for this
-        client, this method automatically removes the entire client from engine.
+        Regular way to remove a client stream from engine, performing
+        needed read flush as needed. If no more retainable stream
+        remains for this client, this method automatically removes the
+        entire client from engine.
         """
         self.unregister_stream(client, stream)
         # _close_stream() will flush pending read buffers
         client._close_stream(stream.name)
-        if client.streams.events() & ~E_WRITE == 0:
+        # check whether some retained streams remain
+        if not client.streams.retained():
             self.remove(client)
 
     def clear(self, did_timeout=False, clear_ports=False):
@@ -500,8 +501,8 @@ class Engine:
             self.reg_clients += 1
 
         # set interest event bits...
-        for streams, ievent in ((client.streams.readers, E_READ), \
-                                (client.streams.writers, E_WRITE)):
+        for streams, ievent in ((client.streams.active_readers, E_READ),
+                                (client.streams.active_writers, E_WRITE)):
             for stream in streams():
                 self.reg_clifds[stream.fd] = client, stream
                 stream.events |= ievent
@@ -516,7 +517,8 @@ class Engine:
         """Unregister a stream from a client."""
         self._debug("UNREG_STREAM stream=%s" % stream)
         assert stream is not None and stream.fd is not None
-        assert stream.fd in self.reg_clifds, "stream fd %d not registered" % stream.fd
+        assert stream.fd in self.reg_clifds, \
+            "stream fd %d not registered" % stream.fd
         assert client.registered
         self._unregister_specific(stream.fd, stream.events & stream.evmask)
         self._debug("UNREG_STREAM unregistering stream fd %d (%d)" % \
@@ -535,10 +537,10 @@ class Engine:
 
         # remove timeout timer
         self.timerq.invalidate(client)
-        
+
         # clear interest events...
-        for streams, ievent in ((client.streams.readers, E_READ), \
-                                (client.streams.writers, E_WRITE)):
+        for streams, ievent in ((client.streams.active_readers, E_READ),
+                                (client.streams.active_writers, E_WRITE)):
             for stream in streams():
                 if stream.fd in self.reg_clifds:
                     self._unregister_specific(stream.fd, stream.events & ievent)
@@ -551,11 +553,11 @@ class Engine:
         if client.delayable:
             self.reg_clients -= 1
 
-    def modify(self, client, fname, setmask, clearmask):
+    def modify(self, client, sname, setmask, clearmask):
         """Modify the next loop interest events bitset for a client stream."""
         self._debug("MODEV set:0x%x clear:0x%x %s (%s)" % (setmask, clearmask,
-                                                           client, fname))
-        stream = client.streams[fname]
+                                                           client, sname))
+        stream = client.streams[sname]
         stream.new_events &= ~clearmask
         stream.new_events |= setmask
 
@@ -574,7 +576,7 @@ class Engine:
     def _modify_specific(self, fd, event, setvalue):
         """Engine-specific modify fd for event method."""
         raise NotImplementedError("Derived classes must implement.")
-        
+
     def set_events(self, client, stream):
         """Set the active interest events bitset for a client stream."""
         self._debug("SETEV new_events:0x%x events:0x%x for %s[%s]" % \
@@ -602,15 +604,15 @@ class Engine:
 
         stream.new_events = stream.events
 
-    def set_reading(self, client, fname):
+    def set_reading(self, client, sname):
         """Set client reading state."""
         # listen for readable events
-        self.modify(client, fname, E_READ, 0)
+        self.modify(client, sname, E_READ, 0)
 
-    def set_writing(self, client, fname):
+    def set_writing(self, client, sname):
         """Set client writing state."""
         # listen for writable events
-        self.modify(client, fname, E_WRITE, 0)
+        self.modify(client, sname, E_WRITE, 0)
 
     def add_timer(self, timer):
         """Add a timer instance to engine."""

@@ -840,7 +840,8 @@ def main():
 
     if options.worker:
         try:
-            task.set_default('worker', _load_workerclass(options.worker))
+            task.set_default('distant_worker',
+                             _load_workerclass(options.worker))
         except (ImportError, AttributeError):
             msg = "ERROR: Could not load worker '%s'" % options.worker
             display.vprint_err(VERB_QUIET, msg)

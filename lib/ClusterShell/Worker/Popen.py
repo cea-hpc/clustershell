@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008-2014)
+# Copyright CEA/DAM/DIF (2008-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -36,7 +36,7 @@ WorkerPopen
 ClusterShell worker for executing local commands.
 
 Usage example:
-   >>> worker = WorkerPopen("/bin/uname", key="mykernel") 
+   >>> worker = WorkerPopen("/bin/uname", key="mykernel")
    >>> task.schedule(worker)    # schedule worker
    >>> task.resume()            # run task
    >>> worker.retcode()         # get return code
@@ -46,46 +46,30 @@ Usage example:
 
 """
 
-import os
-
-from ClusterShell.Worker.Worker import WorkerSimple
+from ClusterShell.Worker.Worker import WorkerSimple, StreamClient
 
 
-class WorkerPopen(WorkerSimple):
-    """
-    Implements the Popen Worker.
-    """
+class PopenClient(StreamClient):
 
-    def __init__(self, command, key=None, handler=None,
-        stderr=False, timeout=-1, autoclose=False):
-        """
-        Initialize Popen worker.
-        """
-        WorkerSimple.__init__(self, None, None, None, key, handler,
-            stderr, timeout, autoclose)
-
-        self.command = command
-        if not self.command:
-            raise ValueError("missing command parameter in WorkerPopen " \
-			     "constructor")
-
+    def __init__(self, worker, key, stderr, timeout, autoclose):
+        StreamClient.__init__(self, worker, key, stderr, timeout, autoclose)
         self.popen = None
         self.rc = None
+        # Declare writer stream to allow early buffering
+        self.streams.set_writer('stdin', None, retain=False)
 
     def _start(self):
-        """
-        Start worker.
-        """
+        """Worker is starting."""
+        assert not self.worker.started
         assert self.popen is None
 
-        self.popen = self._exec_nonblock(self.command, shell=True)
+        self.popen = self._exec_nonblock(self.worker.command, shell=True)
 
-        if self.task.info("debug", False):
-            self.task.info("print_debug")(self.task, "POPEN: %s" % self.command)
+        task = self.worker.task
+        if task.info("debug", False):
+            task.info("print_debug")(task, "POPEN: %s" % self.worker.command)
 
-        if self.eh:
-            self.eh.ev_start(self)
-
+        self.worker._on_start()
         return self
 
     def _close(self, abort, timeout):
@@ -106,28 +90,36 @@ class WorkerPopen(WorkerSimple):
         self.streams.clear()
 
         if prc >= 0: # filter valid rc
-            self._on_rc(prc)
+            self.rc = prc
+            self.worker._on_rc(self.key, prc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
-            self._on_timeout()
+            self.worker._on_timeout(self.key)
         elif not abort:
             # if process was signaled, return 128 + signum (bash-like)
-            self._on_rc(128 + -prc)
+            self.rc = 128 + -prc
+            self.worker._on_rc(self.key, self.rc)
 
-        if self.eh:
-            self.eh.ev_close(self)
+        if self.worker.eh:
+            self.worker.eh.ev_close(self.worker)
 
-    def _on_rc(self, rc):
-        """
-        Set return code.
-        """
-        self.rc = rc        # 1.4- compat
-        WorkerSimple._on_rc(self, rc)
+
+class WorkerPopen(WorkerSimple):
+    """
+    Implements the Popen Worker.
+    """
+    def __init__(self, command, key=None, handler=None,
+                 stderr=False, timeout=-1, autoclose=False):
+        """Initialize Popen worker."""
+        WorkerSimple.__init__(self, None, None, None, key, handler, stderr,
+                              timeout, autoclose, client_class=PopenClient)
+        self.command = command
+        if not self.command:
+            raise ValueError("missing command parameter in WorkerPopen "
+                             "constructor")
 
     def retcode(self):
-        """
-        Return return code or None if command is still in progress.
-        """
-        return self.rc
+        """Return return code or None if command is still in progress."""
+        return self.clients[0].rc
 
-WORKER_CLASS=WorkerPopen
+WORKER_CLASS = WorkerPopen

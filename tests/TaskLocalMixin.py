@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (local) test suite
-# Written by S. Thiell 2008-04-09
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task (local)"""
@@ -432,7 +432,6 @@ class TaskLocalMixin(object):
     def testLocalWorkerWrites(self):
         # Simple test: we write to a cat process and see if read matches.
         task = task_self()
-        self.assert_(task != None)
         worker = task.shell("cat")
         # write first line
         worker.write("foobar\n")
@@ -440,7 +439,6 @@ class TaskLocalMixin(object):
         worker.write("deadbeaf\n")
         worker.set_write_eof()
         task.resume()
-
         self.assertEqual(worker.read(), "foobar\ndeadbeaf")
 
     def testLocalWorkerWritesBcExample(self):
@@ -655,20 +653,53 @@ class TaskLocalMixin(object):
         task.resume()
         self.assert_(task.key_buffer("bar") == "foobar")
 
-    def testWorkerSimplePipe(self):
+    def testWorkerSimplePipeStdout(self):
         task = task_self()
-        self.assert_(task != None)
         rfd, wfd = os.pipe()
         os.write(wfd, "test\n")
-        worker = WorkerSimple(os.fdopen(rfd), None, None, "pipe", None, 0, True)
-        self.assert_(worker != None)
+        os.close(wfd)
+        worker = WorkerSimple(os.fdopen(rfd), None, None, "pipe", None,
+                              stderr=True, timeout=-1, autoclose=False,
+                              closefd=False)
+        self.assertEqual(worker.reader_fileno(), rfd)
         task.schedule(worker)
         task.resume()
         self.assertEqual(task.key_buffer("pipe"), 'test')
         dummy = os.fstat(rfd) # just to check that rfd is still valid here
-        os.close(wfd)
+                              # (worker keeps a reference of file object)
         # rfd will be closed when associated file is released
 
+    def testWorkerSimplePipeStdErr(self):
+        task = task_self()
+        rfd, wfd = os.pipe()
+        os.write(wfd, "test\n")
+        os.close(wfd)
+        # be careful, stderr is arg #3
+        worker = WorkerSimple(None, None, os.fdopen(rfd), "pipe", None,
+                              stderr=True, timeout=-1, autoclose=False,
+                              closefd=False)
+        self.assertEqual(worker.error_fileno(), rfd)
+        task.schedule(worker)
+        task.resume()
+        self.assertEqual(task.key_error("pipe"), 'test')
+        dummy = os.fstat(rfd) # just to check that rfd is still valid here
+        # rfd will be closed when associated file is released
+
+    def testWorkerSimplePipeStdin(self):
+        task = task_self()
+        rfd, wfd = os.pipe()
+        # be careful, stdin is arg #2
+        worker = WorkerSimple(None, os.fdopen(wfd, "w"), None, "pipe", None,
+                              stderr=True, timeout=-1, autoclose=False,
+                              closefd=False)
+        self.assertEqual(worker.writer_fileno(), wfd)
+        worker.write("write to stdin test\n")
+        worker.set_write_eof() # close stream after write!
+        task.schedule(worker)
+        task.resume()
+        self.assertEqual(os.read(rfd, 1024), "write to stdin test\n")
+        os.close(rfd)
+        # wfd will be closed when associated file is released
 
     # FIXME: reconsider this kind of test (which now must fail) especially
     #        when using epoll engine, as soon as testsuite is improved (#95).

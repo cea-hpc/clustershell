@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2009-2014)
+# Copyright CEA/DAM/DIF (2009-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -142,15 +142,15 @@ class EngineEPoll(Engine):
                     continue
 
                 fdev = stream.evmask
-                fname = stream.name
+                sname = stream.name
 
                 # set as current processed client
                 self._current_client = client
 
                 # check for poll error condition of some sort
                 if event & select.EPOLLERR:
-                    self._debug("EPOLLERR fd=%d fname=%s fdev=0x%x (%s)" % \
-                                (fd, fname, fdev, client))
+                    self._debug("EPOLLERR fd=%d sname=%s fdev=0x%x (%s)" % \
+                                (fd, sname, fdev, client))
                     assert fdev & E_WRITE
                     self.remove_stream(client, stream)
                     self._current_client = None
@@ -160,11 +160,11 @@ class EngineEPoll(Engine):
                 if event & select.EPOLLIN:
                     assert fdev & E_READ
                     assert stream.events & fdev, (stream.events, fdev)
-                    self.modify(client, fname, 0, fdev)
+                    self.modify(client, sname, 0, fdev)
                     try:
-                        client._handle_read(fname)
+                        client._handle_read(sname)
                     except EngineClientEOF:
-                        self._debug("EngineClientEOF %s %s" % (client, fname))
+                        self._debug("EngineClientEOF %s %s" % (client, sname))
                         self.remove_stream(client, stream)
                         self._current_client = None
                         continue
@@ -173,20 +173,20 @@ class EngineEPoll(Engine):
                 # time because handle_read() may perform a partial read)
                 elif event & select.EPOLLHUP:
                     assert fdev & E_READ, "fdev 0x%x & E_READ" % fdev
-                    self._debug("EPOLLHUP fd=%d fname=%s %s (%s)" % \
-                                (fd, fname, client, client.streams))
+                    self._debug("EPOLLHUP fd=%d sname=%s %s (%s)" % \
+                                (fd, sname, client, client.streams))
                     self.remove_stream(client, stream)
                     self._current_client = None
                     continue
 
                 # check for writing
                 if event & select.EPOLLOUT:
-                    self._debug("EPOLLOUT fd=%d fname=%s %s (%s)" % \
-                                (fd, fname, client, client.streams))
+                    self._debug("EPOLLOUT fd=%d sname=%s %s (%s)" % \
+                                (fd, sname, client, client.streams))
                     assert fdev & E_WRITE
                     assert stream.events & fdev, (stream.events, fdev)
-                    self.modify(client, fname, 0, fdev)
-                    client._handle_write(fname)
+                    self.modify(client, sname, 0, fdev)
+                    client._handle_write(sname)
 
                 self._current_client = None
 
