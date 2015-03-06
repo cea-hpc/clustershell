@@ -7,10 +7,14 @@
 
 import errno
 import pwd
+import signal
 import subprocess
 import sys
+import threading
 import time
 import unittest
+
+from subprocess import Popen, PIPE
 
 from TLib import *
 import ClusterShell.CLI.Clush
@@ -285,6 +289,27 @@ class CLIClushTest_A(unittest.TestCase):
         # also test in debug mode...
         self._clush_t(["-w", HOSTNAME, "--worker=exec", "-d", "echo ok"], None,
             '+EXECCLIENT: echo ok\n%s: ok\n%s: ok\n' % (HOSTNAME, HOSTNAME), 0)
+
+    def test_025_keyboard_interrupt(self):
+        """test clush on keyboard interrupt"""
+        # Note: the scope of this test is still limited as we cannot force user
+        # interaction (as clush is launched by subprocess). For replicated
+        # observation, we use --nostdin and only check if Keyboard interrupt
+        # message is printed...
+
+        class KillerThread(threading.Thread):
+            def run(self):
+                time.sleep(1)
+                # replace later by process.send_signal() [py2.6+]
+                os.kill(self.pidkill, signal.SIGINT)
+
+        kth = KillerThread()
+        args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b", "echo start; sleep 10"]
+        process = Popen(["../scripts/clush.py"] + args, stderr=PIPE, stdout=PIPE, bufsize=0)
+        kth.pidkill = process.pid
+        kth.start()
+        stderr = process.communicate()[1]
+        self.assertEqual(stderr, "Keyboard interrupt.\n")
 
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):

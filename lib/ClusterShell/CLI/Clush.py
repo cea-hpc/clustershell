@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007, 2008, 2009, 2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2007-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -199,7 +199,6 @@ class GatherOutputHandler(OutputHandler):
     def ev_close(self, worker):
         # Worker is closing -- it's time to gather results...
         self._runtimer_finalize(worker)
-        assert worker.current_node is not None, "cannot gather local command"
         # Display command output, try to order buffers by rc
         nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
         cleaned = False
@@ -406,11 +405,21 @@ def ttyloop(task, nodeset, timeout, display):
                 continue
             return
         except KeyboardInterrupt, kbe:
+            # Caught SIGINT here (main thread) but the signal will also reach
+            # subprocesses (that will most likely kill them)
             if display.gather:
-                # Suspend task, so we can safely access its data from
-                # the main thread
+                # Suspend task, so we can safely access its data from here
                 task.suspend()
 
+                # If USER_running is not set, the task had time to finish,
+                # that could mean all subprocesses have been killed and all
+                # handlers have been processed.
+                if not task.default("USER_running"):
+                    # let's clush_excepthook handle the rest
+                    raise kbe
+
+                # If USER_running is set, the task didn't have time to finish
+                # its work, so we must print something for the user...
                 print_warn = False
 
                 # Display command output, but cannot order buffers by rc
@@ -652,13 +661,13 @@ def clush_exit(status, task=None):
         # Use os._exit to avoid threads cleanup
         os._exit(status)
 
-def clush_excepthook(extype, value, traceback):
+def clush_excepthook(extype, exp, traceback):
     """Exceptions hook for clush: this method centralizes exception
     handling from main thread and from (possible) separate task thread.
     This hook has to be previously installed on startup by overriding
     sys.excepthook and task.excepthook."""
     try:
-        raise extype(value)
+        raise exp
     except ClushConfigError, econf:
         print >> sys.stderr, "ERROR: %s" % econf
     except KeyboardInterrupt, kbe:
@@ -679,7 +688,7 @@ def clush_excepthook(extype, value, traceback):
         clush_exit(handle_generic_error(exc))
 
     # Error not handled
-    task_self().default_excepthook(extype, value, traceback)
+    task_self().default_excepthook(extype, exp, traceback)
 
 def main():
     """clush script entry point"""
