@@ -109,9 +109,6 @@ class ScpClient(CopyClient):
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
-        # Disable passphrase/password querying
-        cmd_l.append("-oBatchMode=yes")
-
         # Add custom scp options
         for opts in options:
             if opts:
