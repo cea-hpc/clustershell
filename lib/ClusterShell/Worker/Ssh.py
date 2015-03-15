@@ -94,7 +94,7 @@ class ScpClient(CopyClient):
         task = self.worker.task
         path = task.info("scp_path") or "scp"
         user = task.info("scp_user") or task.info("ssh_user")
-        options = [ task.info("ssh_options"), task.info("scp_options") ]
+        options = [ task.info("scp_options"), task.info("ssh_options") ]
 
         # Build scp command
         cmd_l = [ path ]
