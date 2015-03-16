@@ -58,7 +58,12 @@ class SshClient(ExecClient):
         options = task.info("ssh_options")
 
         # Build ssh command
-        cmd_l = [ path, "-a", "-x"  ]
+        cmd_l = path.split()
+        # Add custom ssh options first as the first obtained value is used
+        if options:
+           cmd_l += options.split()
+        # Add other options there (overridable by user)
+        cmd_l += [ "-a", "-x"  ]
 
         if user:
             cmd_l.append("-l")
@@ -68,16 +73,10 @@ class SshClient(ExecClient):
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
-        # Disable passphrase/password querying
+        # Disable passphrase/password querying (overridable by user)
         cmd_l.append("-oBatchMode=yes")
-
-        # Add custom ssh options
-        if options:
-            cmd_l += options.split()
-
         cmd_l.append("%s" % self.key)
         cmd_l.append("%s" % self.command)
-
         return (cmd_l, None)
 
 class ScpClient(CopyClient):
@@ -97,7 +96,13 @@ class ScpClient(CopyClient):
         options = [ task.info("ssh_options"), task.info("scp_options") ]
 
         # Build scp command
-        cmd_l = [ path ]
+        cmd_l = path.split()
+
+        # Add custom ssh options first as the first obtained value is used
+        # Add custom scp options
+        for opts in options:
+            if opts:
+                cmd_l += opts.split()
 
         if self.isdir:
             cmd_l.append("-r")
@@ -109,13 +114,8 @@ class ScpClient(CopyClient):
         if connect_timeout > 0:
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
-        # Disable passphrase/password querying
+        # Disable passphrase/password querying (overridable by user)
         cmd_l.append("-oBatchMode=yes")
-
-        # Add custom scp options
-        for opts in options:
-            if opts:
-                cmd_l += opts.split()
 
         if self.reverse:
             if user:
@@ -131,7 +131,6 @@ class ScpClient(CopyClient):
                 cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
             else:
                 cmd_l.append("%s:%s" % (self.key, self.dest))
-
         return (cmd_l, None)
 
 class WorkerSsh(ExecWorker):
