@@ -80,11 +80,13 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         sys.stderr = saved_stderr
         sys.stdin = saved_stdin
     if expected_stdout is not None:
-        if len(expected_stdout) > 0 and expected_stdout[0] == '+': # magic char
-            # only check stdout tail
-            test.assertTrue(out.getvalue().endswith(expected_stdout[1:]),
-                            out.getvalue())
-        else:
+        # expected_stdout might be a compiled regexp or a string
+        try:
+            if not expected_stdout.search(out.getvalue()):
+                # search failed; use assertEqual() to display expected/output
+                test.assertEqual(out.getvalue(), expected_stdout.pattern)
+        except AttributeError:
+            # not a regexp
             test.assertEqual(out.getvalue(), expected_stdout)
     out.close()
     if expected_stderr is not None:

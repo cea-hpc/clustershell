@@ -1,3 +1,7 @@
+2015-03-23 S. Thiell <stephane.thiell@cea.fr>
+
+	* Clush.py: Fix --diff against null content (ticket #214).
+
 2015-03-19 S. Thiell <stephane.thiell@cea.fr>
 
 	* Task.py: Make max_retcode() return None on no-op. Until now, max_retcode()

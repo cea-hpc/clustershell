@@ -189,6 +189,11 @@ class Display(object):
         object settings."""
         return self._display(NodeSet(nodeset), obj)
 
+    def print_gather_finalize(self, nodeset):
+        """Finalize display of diff-like gathered contents."""
+        if self._display == self._print_diff and self._diffref:
+            return self._display(nodeset, '')
+
     def print_gather_keys(self, keys, obj):
         """Generic method for displaying raw keys/content according to current
         object settings (used by clubak)."""

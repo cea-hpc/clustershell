@@ -203,6 +203,7 @@ class GatherOutputHandler(OutputHandler):
         nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
         cleaned = False
         for _rc, nodelist in sorted(worker.iter_retcodes()):
+            ns_remain = NodeSet._fromlist1(nodelist)
             # Then order by node/nodeset (see bufnodeset_cmp)
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
@@ -212,6 +213,9 @@ class GatherOutputHandler(OutputHandler):
                     self._runtimer_clean()
                     cleaned = True
                 self._display.print_gather(nodeset, buf)
+                ns_remain.difference_update(nodeset)
+            if ns_remain:
+                self._display.print_gather_finalize(ns_remain)
         self._display.flush()
 
         self._close_common(worker)

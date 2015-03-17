@@ -7,6 +7,7 @@
 
 import errno
 import pwd
+import re
 import signal
 import subprocess
 import sys
@@ -182,7 +183,7 @@ class CLIClushTest_A(unittest.TestCase):
     def test_010_diff(self):
         """test clush (diff)"""
         self._clush_t(["-w", HOSTNAME, "--diff", "echo", "ok"], None, "")
-        self._clush_t(["-w", "%s,127.0.0.1" % HOSTNAME, "--diff", "echo", "ok"], None, "")
+        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff", "echo", "ok"], None, "")
 
     def test_011_diff_tty(self):
         """test clush (diff) [tty]"""
@@ -192,7 +193,13 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
-    def test_012_stdin(self):
+    def test_012_diff_null(self):
+        """test clush (diff w/o output)"""
+        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff",
+            'echo "${SSH_CLIENT%% *}" | egrep "^(127.0.0.1|::1)$" >/dev/null || echo ok'],
+            None, re.compile(r"^--- %s\n\+\+\+ localhost\n@@ -1(,1)? \+[01],0 @@\n-ok\n$" % HOSTNAME))
+
+    def test_013_stdin(self):
         """test clush (stdin)"""
         self._clush_t(["-w", HOSTNAME, "sleep 1 && cat"], "ok", "%s: ok\n" % HOSTNAME)
         self._clush_t(["-w", HOSTNAME, "cat"], "ok\nok", "%s: ok\n%s: ok\n" % (HOSTNAME, HOSTNAME))
@@ -201,22 +208,22 @@ class CLIClushTest_A(unittest.TestCase):
             "1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000".decode("hex"),
             "%s: foo bar\n" % HOSTNAME)
 
-    def test_014_stderr(self):
+    def test_015_stderr(self):
         """test clush (stderr)"""
         self._clush_t(["-w", HOSTNAME, "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
         self._clush_t(["-b", "-w", HOSTNAME, "-q", "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
         self._clush_t(["-B", "-w", HOSTNAME, "-q", "echo err 1>&2"], None,
             "---------------\n%s\n---------------\nerr\n" % HOSTNAME)
 
-    def test_015_stderr_tty(self):
+    def test_016_stderr_tty(self):
         """test clush (stderr) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
         try:
-            self.test_014_stderr()
+            self.test_015_stderr()
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
-    def test_016_retcodes(self):
+    def test_017_retcodes(self):
         """test clush (retcodes)"""
         self._clush_t(["-w", HOSTNAME, "/bin/false"], None, "", 0,
             "clush: %s: exited with exit code 1\n" % HOSTNAME)
@@ -230,51 +237,51 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-v", "-w", HOSTNAME, "/bin/false"], None, "", 0,
             "clush: %s: exited with exit code 1\n" % HOSTNAME)
 
-    def test_017_retcodes_tty(self):
+    def test_018_retcodes_tty(self):
         """test clush (retcodes) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
         try:
-            self.test_016_retcodes()
+            self.test_017_retcodes()
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
-    def test_018_timeout(self):
+    def test_019_timeout(self):
         """test clush (timeout)"""
         self._clush_t(["-w", HOSTNAME, "-u", "1", "sleep 3"], None,
                        "", 0, "clush: %s: command timeout\n" % HOSTNAME)
         self._clush_t(["-w", HOSTNAME, "-u", "1", "-b", "sleep 3"], None,
                        "", 0, "clush: %s: command timeout\n" % HOSTNAME)
 
-    def test_019_timeout_tty(self):
+    def test_020_timeout_tty(self):
         """test clush (timeout) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
         try:
-            self.test_018_timeout()
+            self.test_019_timeout()
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
-    def test_020_file_copy_timeout(self):
+    def test_021_file_copy_timeout(self):
         """test clush file copy (timeout)"""
         content = "%f" % time.time()
         f = make_temp_file(content)
         self._clush_t(["-w", HOSTNAME, "-u", "0.01", "-c", f.name], None,
                        "", 0, "clush: %s: command timeout\n" % HOSTNAME)
 
-    def test_021_file_copy_timeout_tty(self):
+    def test_022_file_copy_timeout_tty(self):
         """test clush file copy (timeout) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
         try:
-            self.test_020_file_copy_timeout()
+            self.test_021_file_copy_timeout()
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
-    def test_022_load_workerclass(self):
+    def test_023_load_workerclass(self):
         """test _load_workerclass()"""
         for name in ('rsh', 'ssh', 'pdsh'):
             cls = ClusterShell.CLI.Clush._load_workerclass(name)
             self.assertTrue(cls)
 
-    def test_023_load_workerclass_error(self):
+    def test_024_load_workerclass_error(self):
         """test _load_workerclass() bad use cases"""
         func = ClusterShell.CLI.Clush._load_workerclass
         # Bad module
@@ -282,15 +289,16 @@ class CLIClushTest_A(unittest.TestCase):
         # Worker module but not supported
         self.assertRaises(AttributeError, func, 'worker')
 
-    def test_024_worker(self):
+    def test_025_worker(self):
         """test clush (worker)"""
         self._clush_t(["-w", HOSTNAME, "--worker=ssh", "echo ok"], None,
                        "%s: ok\n" % HOSTNAME, 0)
         # also test in debug mode...
         self._clush_t(["-w", HOSTNAME, "--worker=exec", "-d", "echo ok"], None,
-            '+EXECCLIENT: echo ok\n%s: ok\n%s: ok\n' % (HOSTNAME, HOSTNAME), 0)
+                      re.compile(r'EXECCLIENT: echo ok\n%s: ok\n%s: ok\n'
+                      % (HOSTNAME, HOSTNAME)), 0)
 
-    def test_025_keyboard_interrupt(self):
+    def test_026_keyboard_interrupt(self):
         """test clush on keyboard interrupt"""
         # Note: the scope of this test is still limited as we cannot force user
         # interaction (as clush is launched by subprocess). For replicated
