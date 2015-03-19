@@ -34,7 +34,6 @@ class TaskDistantMixin(object):
 
     def setUp(self):
         self._task = task_self()
-        self.assert_(self._task != None)
 
     def testLocalhostCommand(self):
         # init worker
@@ -69,13 +68,16 @@ class TaskDistantMixin(object):
         self.assertEqual(wrk.node_retcode(HOSTNAME), 1)
 
     def testLocalhostCopy(self):
-        # init worker
-        dest = make_temp_filename(suffix='LocalhostCopy')
-        worker = self._task.copy("/etc/hosts", dest, nodes=HOSTNAME)
-        self.assert_(worker != None)
-        # run task
-        self._task.resume()
-        os.unlink(dest)
+        dests = []
+        try:
+            for i in range(5):
+                dest = make_temp_filename(suffix='LocalhostCopy')
+                dests.append(dest)
+                worker = self._task.copy("/etc/hosts", dest, nodes=HOSTNAME)
+            self._task.resume()
+        finally:
+            for dest in dests:
+                os.unlink(dest)
 
     def testCopyNodeFailure(self):
         # == stderr merged ==
@@ -647,6 +649,19 @@ class TaskDistantMixin(object):
         worker = WorkerSsh(HOSTNAME, command="sleep 1", handler=None,
                            timeout=None)
         worker.abort()
+
+    def testLocalhostRCopy(self):
+        try:
+            dest = make_temp_dir('testLocalhostRCopy')
+            # use fake node 'aaa' to test rank > 0
+            worker = self._task.rcopy("/etc/hosts", dest, "aaa,%s" % HOSTNAME,
+                                      handler=None, timeout=10)
+            self._task.resume()
+            self.assertEqual(worker.source, "/etc/hosts")
+            self.assertEqual(worker.dest, dest)
+            self.assertTrue(os.path.exists(os.path.join(dest, "hosts.%s" % HOSTNAME)))
+        finally:
+            shutil.rmtree(dest, ignore_errors=True)
 
     def testLocalhostExplicitSshReverseCopy(self):
         dest = make_temp_dir('testLocalhostExplicitSshRCopy')

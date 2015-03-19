@@ -724,4 +724,3 @@ class Engine:
         print >>sys.stderr, s
         """
         pass
-

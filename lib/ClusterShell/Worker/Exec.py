@@ -183,10 +183,11 @@ class CopyClient(ExecClient):
     Destination could be a directory.
     """
 
-    def __init__(self, node, source, dest, worker, stderr, timeout, preserve,
-                 reverse, rank=None):
+    def __init__(self, node, source, dest, worker, stderr, timeout, autoclose,
+                 preserve, reverse, rank=None):
         """Create an EngineClient-type instance to locally run 'cp'."""
-        ExecClient.__init__(self, node, None, worker, stderr, timeout, rank)
+        ExecClient.__init__(self, node, None, worker, stderr, timeout,
+                            autoclose, rank)
         self.source = source
         self.dest = dest
 
@@ -302,8 +303,9 @@ class ExecWorker(DistantWorker):
         elif self.source:
             cls = self.__class__.COPY_CLASS
             self._clients.append(cls(nodes, self.source, self.dest, self,
-                                stderr, timeout, kwargs.get('preserve', False),
-                                kwargs.get('reverse', False), rank))
+                                     stderr, timeout, autoclose,
+                                     kwargs.get('preserve', False),
+                                     kwargs.get('reverse', False), rank))
         else:
             raise ValueError("missing command or source parameter in "
                              "worker constructor")

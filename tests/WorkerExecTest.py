@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from TLib import HOSTNAME, make_temp_file, make_temp_dir
+from TLib import HOSTNAME, make_temp_file, make_temp_filename, make_temp_dir
 
 from ClusterShell.Worker.Exec import ExecWorker, WorkerError
 from ClusterShell.Task import task_self
@@ -85,3 +85,65 @@ class ExecTest(unittest.TestCase):
         finally:
             os.unlink(dstpath + '.localhost')
             os.rmdir(dstdir)
+
+    def test_copy_preserve(self):
+        """test copying with an ExecWorker (preserve=True)"""
+        src = make_temp_file("data")
+        past_time = 443757600
+        os.utime(src.name, (past_time, past_time))
+        dstpath = make_temp_filename()
+        try:
+            self.execw(nodes='localhost', handler=None, source=src.name,
+                       dest=dstpath, preserve=True)
+            self.assertEqual(task_self().max_retcode(), 0)
+            self.assertTrue(os.stat(dstpath).st_mtime, past_time)
+        finally:
+            os.unlink(dstpath)
+
+    def test_copy_directory(self):
+        """test copying directory with an ExecWorker"""
+        srcdir = make_temp_dir()
+        dstdir = make_temp_dir()
+        ref1 = make_temp_file("data1", dir=srcdir)
+        pathdstsrcdir = os.path.join(dstdir, os.path.basename(srcdir))
+        pathdst1 = os.path.join(pathdstsrcdir, os.path.basename(ref1.name))
+        try:
+            self.execw(nodes='localhost', handler=None, source=srcdir,
+                       dest=dstdir)
+            self.assertEqual(task_self().max_retcode(), 0)
+            self.assertTrue(os.path.isdir(pathdstsrcdir))
+            self.assertTrue(os.path.isfile(pathdst1))
+            self.assertEqual(open(pathdst1).readlines()[0], "data1")
+        finally:
+            os.unlink(pathdst1)
+            os.rmdir(pathdstsrcdir)
+            del ref1
+            os.rmdir(dstdir)
+            os.rmdir(srcdir)
+
+    def test_copy_wrong_directory(self):
+        """test copying wrong directory with an ExecWorker"""
+        srcdir = make_temp_dir()
+        dst = make_temp_file("data")
+        ref1 = make_temp_file("data1", dir=srcdir)
+        try:
+            self.execw(nodes='localhost', handler=None, source=srcdir,
+                       dest=dst.name, stderr=True)
+            self.assertEqual(task_self().max_retcode(), 1)
+            self.assertTrue(len(task_self().node_error("localhost")) > 0)
+            self.assertTrue(os.path.isfile(ref1.name))
+        finally:
+            del ref1
+            os.rmdir(srcdir)
+
+    def test_rcopy_wrong_directory(self):
+        """test ExecWorker reverse copying with wrong directory"""
+        dstbasedir = make_temp_dir()
+        dstdir = os.path.join(dstbasedir, "wrong")
+        src = make_temp_file("data")
+        try:
+            self.assertRaises(ValueError, self.execw, nodes='localhost',
+                              handler=None, source=src.name, dest=dstdir,
+                              stderr=True, reverse=True)
+        finally:
+            os.rmdir(dstbasedir)
