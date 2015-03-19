@@ -1,6 +1,9 @@
 
 """Unit test small library"""
 
+__all__ = ['HOSTNAME', 'load_cfg', 'chrono', 'make_temp_filename',
+           'make_temp_file', 'make_temp_dir', 'CLI_main']
+
 import os
 import socket
 import sys
@@ -90,8 +93,15 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
             test.assertEqual(out.getvalue(), expected_stdout)
     out.close()
     if expected_stderr is not None:
-        # check the end as stderr messages are often prefixed with argv[0]
-        test.assertTrue(err.getvalue().endswith(expected_stderr), err.getvalue())
+        # expected_stderr might be a compiled regexp or a string
+        try:
+            if not expected_stderr.match(err.getvalue()):
+                # match failed; use assertEqual() to display expected/output
+                test.assertEqual(err.getvalue(), expected_stderr.pattern)
+        except AttributeError:
+            # check the end as stderr messages are often prefixed with argv[0]
+            test.assertTrue(err.getvalue().endswith(expected_stderr),
+                            err.getvalue())
     if expected_rc is not None:
         test.assertEqual(rc, expected_rc, "rc=%d err=%s" % (rc, err.getvalue()))
     err.close()

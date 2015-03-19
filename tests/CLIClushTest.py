@@ -6,11 +6,12 @@
 """Unit test for CLI/Clush.py"""
 
 import errno
+import os
 import pwd
 import re
 import signal
-import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -30,7 +31,7 @@ class CLIClushTest_A(unittest.TestCase):
         """cleanup all tasks"""
         task_cleanup()
 
-    def _clush_t(self, args, input, expected_stdout, expected_rc=0,
+    def _clush_t(self, args, stdin, expected_stdout, expected_rc=0,
                   expected_stderr=None):
         """This new version allows code coverage checking by calling clush's
         main entry point."""
@@ -43,7 +44,7 @@ class CLIClushTest_A(unittest.TestCase):
             return ""
         ClusterShell.CLI.Clush.raw_input = raw_input_mock
         try:
-            CLI_main(self, main, [ 'clush' ] + args, input, expected_stdout,
+            CLI_main(self, main, [ 'clush' ] + args, stdin, expected_stdout,
                      expected_rc, expected_stderr)
         finally:
             ClusterShell.CLI.Clush.raw_input = raw_input
@@ -51,26 +52,32 @@ class CLIClushTest_A(unittest.TestCase):
     def test_000_display(self):
         """test clush (display options)"""
         self._clush_t(["-w", HOSTNAME, "true"], None, "")
-        self._clush_t(["-w", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-w", HOSTNAME, "echo", "ok", "ok"], None, \
-            "%s: ok ok\n" % HOSTNAME)
-        self._clush_t(["-N", "-w", HOSTNAME, "echo", "ok", "ok"], None, \
-            "ok ok\n")
-        self._clush_t(["-qw", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-vw", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-qvw", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-Sw", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-Sqw", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-Svw", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["--nostdin", "-w", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "echo", "ok", "ok"], None,
+                      "%s: ok ok\n" % HOSTNAME)
+        self._clush_t(["-N", "-w", HOSTNAME, "echo", "ok", "ok"], None,
+                      "ok ok\n")
+        self._clush_t(["-w", "badhost,%s" % HOSTNAME, "-x", "badhost", "echo",
+                       "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-qw", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-vw", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-qvw", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-Sw", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-Sqw", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-Svw", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--nostdin", "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "--color=always", "echo", "ok"], None,
+                      "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "--color=never", "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
 
     def test_001_display_tty(self):
         """test clush (display options) [tty]"""
@@ -97,19 +104,21 @@ class CLIClushTest_A(unittest.TestCase):
 
     def test_004_ssh_options(self):
         """test clush (ssh options)"""
-        self._clush_t(["-o", "-oStrictHostKeyChecking=no", "-w", HOSTNAME, \
-            "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-o", "-oStrictHostKeyChecking=no -oForwardX11=no", \
-            "-w", HOSTNAME, "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-o", "-oStrictHostKeyChecking=no", "-o", \
-            "-oForwardX11=no", "-w", HOSTNAME, "echo", "ok"], None, \
-                "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-o-oStrictHostKeyChecking=no", "-o-oForwardX11=no", \
-            "-w", HOSTNAME, "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-u", "4", "-w", HOSTNAME, "echo", "ok"], None, \
-            "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-t", "4", "-u", "4", "-w", HOSTNAME, "echo", \
-            "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-o", "-oStrictHostKeyChecking=no", "-w", HOSTNAME,
+                       "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-o", "-oStrictHostKeyChecking=no -oForwardX11=no",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-o", "-oStrictHostKeyChecking=no", "-o",
+                       "-oForwardX11=no", "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-o-oStrictHostKeyChecking=no", "-o-oForwardX11=no",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-u", "30", "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-t", "30", "-u", "30", "-w", HOSTNAME, "echo", "ok"],
+                      None, "%s: ok\n" % HOSTNAME)
 
     def test_005_ssh_options_tty(self):
         """test clush (ssh options) [tty]"""
@@ -135,8 +144,9 @@ class CLIClushTest_A(unittest.TestCase):
             "%s: ok\n" % HOSTNAME)
         self._clush_t(["-w", HOSTNAME, "-qBLS", "echo", "ok"], None, \
             "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-w", HOSTNAME, "-vb", "echo", "ok"], None, \
-            "%s: ok\n---------------\n%s\n---------------\nok\n" % (HOSTNAME, HOSTNAME))
+        self._clush_t(["-w", HOSTNAME, "-vb", "echo", "ok"], None,
+                      "%s: ok\n---------------\n%s\n---------------\nok\n"
+                      % (HOSTNAME, HOSTNAME))
 
     def test_007_output_gathering_tty(self):
         """test clush (output gathering) [tty]"""
@@ -183,7 +193,8 @@ class CLIClushTest_A(unittest.TestCase):
     def test_010_diff(self):
         """test clush (diff)"""
         self._clush_t(["-w", HOSTNAME, "--diff", "echo", "ok"], None, "")
-        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff", "echo", "ok"], None, "")
+        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff", "echo",
+                       "ok"], None, "")
 
     def test_011_diff_tty(self):
         """test clush (diff) [tty]"""
@@ -201,8 +212,10 @@ class CLIClushTest_A(unittest.TestCase):
 
     def test_013_stdin(self):
         """test clush (stdin)"""
-        self._clush_t(["-w", HOSTNAME, "sleep 1 && cat"], "ok", "%s: ok\n" % HOSTNAME)
-        self._clush_t(["-w", HOSTNAME, "cat"], "ok\nok", "%s: ok\n%s: ok\n" % (HOSTNAME, HOSTNAME))
+        self._clush_t(["-w", HOSTNAME, "sleep 1 && cat"], "ok",
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "cat"], "ok\nok", "%s: ok\n%s: ok\n"
+                      % (HOSTNAME, HOSTNAME))
         # write binary to stdin
         self._clush_t(["-w", HOSTNAME, "gzip -d"], \
             "1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000".decode("hex"),
@@ -210,8 +223,10 @@ class CLIClushTest_A(unittest.TestCase):
 
     def test_015_stderr(self):
         """test clush (stderr)"""
-        self._clush_t(["-w", HOSTNAME, "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
-        self._clush_t(["-b", "-w", HOSTNAME, "-q", "echo err 1>&2"], None, "", 0, "%s: err\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "echo err 1>&2"], None, "", 0,
+                      "%s: err\n" % HOSTNAME)
+        self._clush_t(["-b", "-w", HOSTNAME, "-q", "echo err 1>&2"], None, "",
+                      0, "%s: err\n" % HOSTNAME)
         self._clush_t(["-B", "-w", HOSTNAME, "-q", "echo err 1>&2"], None,
             "---------------\n%s\n---------------\nerr\n" % HOSTNAME)
 
@@ -312,13 +327,49 @@ class CLIClushTest_A(unittest.TestCase):
                 os.kill(self.pidkill, signal.SIGINT)
 
         kth = KillerThread()
-        args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b", "echo start; sleep 10"]
-        process = Popen(["../scripts/clush.py"] + args, stderr=PIPE, stdout=PIPE, bufsize=0)
+        args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b",
+                "echo start; sleep 10"]
+        process = Popen(["../scripts/clush.py"] + args, stderr=PIPE,
+                        stdout=PIPE, bufsize=0)
         kth.pidkill = process.pid
         kth.start()
         stderr = process.communicate()[1]
         self.assertEqual(stderr, "Keyboard interrupt.\n")
 
+    def test_027_warn_shell_globbing_nodes(self):
+        """test clush warning on shell globbing (-w)"""
+        tdir = make_temp_dir()
+        tfile = open(os.path.join(tdir, HOSTNAME), "w")
+        curdir = os.getcwd()
+        try:
+            os.chdir(tdir)
+            self._clush_t(["-w", HOSTNAME, "echo", "ok"], None,
+                          "%s: ok\n" % HOSTNAME, 0, "Warning: using '-w %s' "
+                          "and local path '%s' exists, was it expanded by "
+                          "the shell?\n" % (HOSTNAME, HOSTNAME))
+        finally:
+            os.chdir(curdir)
+            tfile.close()
+            os.unlink(tfile.name)
+            os.rmdir(tdir)
+
+    def test_028_warn_shell_globbing_exclude(self):
+        """test clush warning on shell globbing (-x)"""
+        tdir = make_temp_dir()
+        tfile = open(os.path.join(tdir, HOSTNAME), "w")
+        curdir = os.getcwd()
+        try:
+            os.chdir(tdir)
+            self._clush_t(["-S", "-w", "badhost,%s" % HOSTNAME, "-x", HOSTNAME,
+                           "echo", "ok"], None, "", 255,
+                          re.compile(r"^Warning: using '-x %s' and local path "
+                                     "'%s' exists, was it expanded by the "
+                                     "shell\?\n" % (HOSTNAME, HOSTNAME)))
+        finally:
+            os.chdir(curdir)
+            tfile.close()
+            os.unlink(tfile.name)
+            os.rmdir(tdir)
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
@@ -337,9 +388,9 @@ class CLIClushTest_B_StdinFailure(unittest.TestCase):
         task_cleanup()
         sys.stdin = sys.__stdin__
 
-    def _clush_t(self, args, input, expected_stdout, expected_rc=0,
+    def _clush_t(self, args, stdin, expected_stdout, expected_rc=0,
                   expected_stderr=None):
-        CLI_main(self, main, [ 'clush' ] + args, input, expected_stdout,
+        CLI_main(self, main, [ 'clush' ] + args, stdin, expected_stdout,
                  expected_rc, expected_stderr)
 
     def test_022_broken_stdin(self):

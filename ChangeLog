@@ -1,5 +1,7 @@
 2015-03-23 S. Thiell <stephane.thiell@cea.fr>
 
+	* Clush.py: Warn user of possible use of shell globbing, especially when
+	using brackets and bash without GLOBIGNORE set (ticket #225).
 	* Clush.py: Fix --diff against null content (ticket #214).
 
 2015-03-19 S. Thiell <stephane.thiell@cea.fr>

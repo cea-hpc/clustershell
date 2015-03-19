@@ -698,9 +698,6 @@ def main():
     """clush script entry point"""
     sys.excepthook = clush_excepthook
 
-    # Default values
-    nodeset_base, nodeset_exclude = NodeSet(), NodeSet()
-
     #
     # Argument management
     #
@@ -736,17 +733,27 @@ def main():
     except ValueError, exc:
         parser.error("option mismatch (%s)" % exc)
 
-    #
-    # Compute the nodeset
-    #
-    if options.nodes:
-        nodeset_base = NodeSet.fromlist(options.nodes)
-    if options.exclude:
-        nodeset_exclude = NodeSet.fromlist(options.exclude)
-
     if options.groupsource:
         # Be sure -a/g -s source work as espected.
         std_group_resolver().default_source_name = options.groupsource
+
+    # Compute the nodeset and warn for possible use of shell pathname
+    # expansion (#225)
+    wnodelist = xnodelist = []
+    if options.nodes:
+        wnodelist = [NodeSet(nodes) for nodes in options.nodes]
+    if options.exclude:
+        xnodelist = [NodeSet(nodes) for nodes in options.exclude]
+
+    for (opt, nodelist) in (('w', wnodelist), ('x', xnodelist)):
+        for nodes in nodelist:
+            if len(nodes) == 1 and os.path.exists(str(nodes)):
+                display.vprint_err(VERB_STD, "Warning: using '-%s %s' and "
+                                   "local path '%s' exists, was it expanded "
+                                   "by the shell?" % (opt, nodes, nodes))
+
+    nodeset_base = NodeSet.fromlist(wnodelist)
+    nodeset_exclude = NodeSet.fromlist(xnodelist)
 
     # FIXME: add public API to enforce engine
     Task._std_default['engine'] = options.engine
