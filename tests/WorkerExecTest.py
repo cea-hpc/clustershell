@@ -22,7 +22,7 @@ class ExecTest(unittest.TestCase):
     def test_no_nodes(self):
         """test ExecWorker with a simple command without nodes"""
         self.execw(nodes=None, handler=None, command="echo ok")
-        self.assertEqual(task_self().max_retcode(), 0)
+        self.assertEqual(task_self().max_retcode(), None)
 
     def test_shell_syntax(self):
         """test ExecWorker with a command using shell syntax"""
@@ -47,7 +47,7 @@ class ExecTest(unittest.TestCase):
         """test ExecWorker with a timeout"""
         nodes = "localhost,%s" % HOSTNAME
         self.execw(nodes=nodes, handler=None, command="sleep 1", timeout=0.2)
-        self.assertEqual(task_self().max_retcode(), 0)
+        self.assertEqual(task_self().max_retcode(), None)
         self.assertEqual(task_self().num_timeout(), 2)
 
     def test_node_placeholder(self):

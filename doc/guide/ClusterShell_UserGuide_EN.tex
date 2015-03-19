@@ -59,7 +59,7 @@
   /Producer (pdfLaTeX)
   /Author (S. THIELL)
   /CreationDate (D:20110912)
-  /ModDate (D: 20150323)
+  /ModDate (D: 20150331)
   /Keywords (ClusterShell, clush, shell, nodeset, Python, HPC, Linux)
 }
 
@@ -1927,11 +1927,32 @@ Before you run a \Task, you must add at least one worker (shell command, file co
 task.resume()
 \end{lstlisting}
 
-At this time, all previously submitted commands will start in the associated \Task's thread. From an library user point of view, the task's thread is blocked until the end of the command executions.
+At this time, all previously submitted commands will start in the associated \Task thread. From a library user point of view, the task thread is blocked until the end of the command executions.
 
 Please note that the special method \lstinline+Task.run()+ does a \lstinline+Task.shell()+ and a \lstinline+Task.resume()+ in once.
 
 To set a \Task execution timeout, use the optional \lstinline+timeout+ parameter to set the timeout value in seconds. Once this time is elapsed when the Task is still running, , the running Task raises  a \lstinline+TimeoutError+ exception, cleaning by the way all scheduled workers and timers. Using such a timeout ensures that the Task will not exceed a given time for all its scheduled works. You can also configure per-worker timeout that generates an event (\lstinline+ev_timeout+) but will not raise an exception, allowing the Task to continue. Indeed, using a per-worker timeout is the prefered way for most applications.
+
+\subsubsection{Getting \Task results}
+
+After the task is finished (after \lstinline+Task.resume()+ or \lstinline+Task.run()+) or after a worker is completed when you have previously defined an event handler (at \lstinline+ev_close+), you can use \Task result getters:
+
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+task.iter_buffers([match_keys=nodelist])
+task.iter_errors([match_keys=nodelist])
+task.node_buffer(nodename)
+task.node_error(nodename)
+task.max_retcode()
+task.num_timeout()
+task.iter_keys_timeout()
+\end{lstlisting}
+
+\lstinline+buffer+ refers to standard output, \lstinline+error+ to standard error.
+
+Please see some examples in section \ref{examples} or refer to the API documentation for more information:
+\begin{verbatim}
+$ pydoc ClusterShell.Task
+\end{verbatim}
 
 \subsubsection{Exiting the Task}
 
@@ -1960,13 +1981,13 @@ task.timer(self, fire=secs, handler=handler [, interval=secs])
 \subsubsection{Changing default worker}
 \label{task-default-worker}
 
-When calling \lstinline+task.shell()+ or \lstinline+task.copy()+ the \Task object creates a worker instance for each call. The worker class used for these calls is based on \Task default \verb+worker+. Change this value to use another worker class, by example \lstinline+Rsh+:
+When calling \lstinline+task.shell()+ or \lstinline+task.copy()+ the \Task object creates a worker instance for each call. When the \lstinline+nodes+ argument is defined, the worker class used for these calls is based on \Task default \verb+distant_worker+. Change this value to use another worker class, by example \lstinline+Rsh+:
 \medskip
 \begin{lstlisting}[breaklines=true, breakatwhitespace=true]
 from ClusterShell.Task import task_self
 from ClusterShell.Worker.Rsh import WorkerRsh
 
-task_self().set_default('worker', WorkerRsh)
+task_self().set_default('distant_worker', WorkerRsh)
 \end{lstlisting}
 
 \subsubsection{Thread safety and Task objects}
@@ -2011,6 +2032,7 @@ worker = WorkerPdsh('node3', command="/bin/echo alright")
 \newpage
 
 \section{Programming examples}
+\label{examples}
 
 \subsection{Remote command example (sequential mode)}
 
@@ -2020,36 +2042,42 @@ The following example shows how to send a command on some nodes, how to get a sp
 from ClusterShell.Task import task_self
 task = task_self()
 
-task.shell("/bin/uname -r", nodes="green[36-39,133]")
-
-task.resume()
+task.run("/bin/uname -r", nodes="green[36-39,133]")
 
 print task.node_buffer("green37")
 
 for buf, nodes in task.iter_buffers():
 	print nodes, buf
 
+if task.max_retcode() != 0:
+    print "An error occurred (max rc = %s)" % task.max_retcode()
 \end{lstlisting}
 
 Result:
 \begin{verbatim}
-2.6.25.11
-['green37', 'green38', 'green36', 'green39'] 2.6.25.11
-['green133'] 2.6.25
+2.6.32-431.el6.x86_64
+['green37', 'green38', 'green36', 'green39'] 2.6.32-431.el6.x86_64
+['green133'] 3.10.0-123.20.1.el7.x86_64
+Max return code is 0
 \end{verbatim}
 
 \subsection{Remote command example with live output (event-based mode)}
 
-The following example shows how to use the event-based programmation model by installing an EventHandler and listening for \lstinline+ev_read+ events. The goal here is to print standard outputs of ``uname -a'' commands during their execution.
+The following example shows how to use the event-based programmation model by installing an EventHandler and listening for \lstinline+ev_read+ (we've got a line to read) and \lstinline+ev_hup+ (one command has just completed) events. The goal here is to print standard outputs of ``uname -a'' commands during their execution and also to notify the user of any erroneous return codes.
 \medskip
 \begin{lstlisting}[breaklines=true, breakatwhitespace=true]
 from ClusterShell.Task import task_self
 from ClusterShell.Event import EventHandler
 
 class MyHandler(EventHandler):
+
    def ev_read(self, worker):
-       node, buf = worker.last_read()
-       print "%s: %s" % (node, buf)
+       print "%s: %s" % (worker.current_node, worker.current_msg)
+
+   def ev_hup(self, worker):
+       if worker.current_rc != 0:
+           print "%s: returned with error code %s" % (
+                worker.current_node, worker.current_rc)
 
 task = task_self()
 

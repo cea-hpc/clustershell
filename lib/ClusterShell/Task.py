@@ -322,7 +322,7 @@ class Task(object):
             # dict of return codes to sources
             self._d_rc_sources = {}
             # keep max rc
-            self._max_rc = 0
+            self._max_rc = None
             # keep timeout'd sources
             self._timeout_sources = set()
             # allow no-op call to getters before resume()
@@ -968,7 +968,7 @@ class Task(object):
         # other re-init's
         self._d_source_rc = {}
         self._d_rc_sources = {}
-        self._max_rc = 0
+        self._max_rc = None
         self._timeout_sources.clear()
 
     def _msgtree(self, sname, strict=True):
@@ -1010,7 +1010,7 @@ class Task(object):
         self._d_rc_sources.setdefault(rc, set()).add(source)
 
         # update max rc
-        if rc > self._max_rc:
+        if self._max_rc is None or rc > self._max_rc:
             self._max_rc = rc
 
     def _timeout_add(self, worker, node):
@@ -1159,7 +1159,10 @@ class Task(object):
 
     def max_retcode(self):
         """
-        Get max return code encountered during last run.
+        Get max return code encountered during last run
+            or None in the following cases:
+                - all commands timed out,
+                - no command was executed.
 
         How retcodes work
         =================

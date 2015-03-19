@@ -1,3 +1,10 @@
+2015-03-19 S. Thiell <stephane.thiell@cea.fr>
+
+	* Task.py: Make max_retcode() return None on no-op. Until now, max_retcode()
+	returned 0 by default, so even when no command was able to finish (for
+	example, due to reached timeout). This behavior did not allow users to
+	distinguish between successful commands and such no-op.
+
 2015-03-11 S. Thiell <stephane.thiell@cea.fr>
 
 	* Worker.py: Introduce StreamWorker as a generic worker class to manage a
