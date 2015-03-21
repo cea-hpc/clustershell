@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007-2014)
+# Copyright CEA/DAM/DIF (2007-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
@@ -539,7 +539,7 @@ class NodeSetBase(object):
                 # intersect two nodes with no rangeset
                 tmp_ns._add(pat, None)
 
-        # Substitute 
+        # Substitute
         self._patterns = tmp_ns._patterns
 
     def __iand__(self, other):
@@ -619,7 +619,7 @@ class NodeSetBase(object):
         """
         s.symmetric_difference(t) returns the symmetric difference of
         two nodesets as a new NodeSet.
-        
+
         (ie. all nodes that are in exactly one of the nodesets.)
         """
         self_copy = self.copy()
@@ -713,7 +713,7 @@ class ParsingEngine(object):
                 raise NodeSetParseError(nsobj, str(exc))
 
         raise TypeError("Unsupported NodeSet input %s" % type(nsobj))
-        
+
     def parse_string(self, nsstr, autostep):
         """
         Parse provided string and return a NodeSetBase object.
@@ -737,7 +737,7 @@ class ParsingEngine(object):
                 getattr(nodeset, opc)(NodeSetBase(pat, rgnd, False))
 
         return nodeset
-        
+
     def parse_string_single(self, nsstr, autostep):
         """Parse provided string and return a NodeSetBase object."""
         pat, rangesets = self._scan_string_single(nsstr, autostep)
@@ -748,13 +748,13 @@ class ParsingEngine(object):
         else: # non-indexed nodename
             rgobj = None
         return NodeSetBase(pat, rgobj, False)
-        
+
     def parse_group(self, group, namespace=None, autostep=None):
         """Parse provided single group name (without @ prefix)."""
         assert self.group_resolver is not None
         nodestr = self.group_resolver.group_nodes(group, namespace)
         return self.parse(",".join(nodestr), autostep)
-        
+
     def parse_group_string(self, nodegroup):
         """Parse provided group string and return a string."""
         assert nodegroup[0] == '@'
@@ -858,7 +858,7 @@ class ParsingEngine(object):
                 # undefined pad means no node index
                 pat += pfx
         return pat, rangesets
-    
+
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
         pat = nsstr.strip()
@@ -912,6 +912,9 @@ class ParsingEngine(object):
 
                     # but pfx itself can
                     if pfxlen > 0:
+                        if pfx[-1] in "0123456789":
+                            raise NodeSetParseError(pfx + "[", "illegal opening"
+                                                    " bracket after digit")
                         pfx, pfxrvec = self._scan_string_single(pfx, autostep)
                         rsets += pfxrvec
 
@@ -960,7 +963,7 @@ class ParsingEngine(object):
                     pat = None # break next time
                 else:
                     node, pat = pat.split(self.OP_CODES[next_op_code], 1)
-                
+
                 # Check for illegal closing bracket
                 if node.find(']') > -1:
                     raise NodeSetParseError(node, "illegal closing bracket")

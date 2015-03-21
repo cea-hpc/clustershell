@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.NodeSet.NodeSet error handling test suite
-# Written by S. Thiell 2008-09-28
+# Written by S. Thiell
 
 
 """Unit test for RangeSet errors"""
@@ -34,7 +34,6 @@ class NodeSetErrorTest(unittest.TestCase):
         except:
             raise
         self.assert_(0, "error not detected/no exception raised [pattern=%s]" % pattern)
-            
 
     def testBadRangeUsages(self):
         """test NodeSet parse errors in range"""
@@ -98,7 +97,10 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova6,", NodeSetParseError)
         self._testNS("nova6[", NodeSetParseError)
         self._testNS("nova6]", NodeSetParseError)
-        #self._testNS("nova%s", NodeSetParseError)
+        # ticket #228
+        self._testNS("nova6[1-4]", NodeSetParseError)
+        self._testNS("nova6[1-4]56", NodeSetParseError)
+        self._testNS("nova6[1-4]56c", NodeSetParseError)
         # nD more
         self._testNS("[1-30][4-9]", NodeSetParseError)
         self._testNS("[1-30][4-9]p", NodeSetParseError)

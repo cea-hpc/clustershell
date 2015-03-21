@@ -1,3 +1,7 @@
+2015-03-24 S. Thiell <stephane.thiell@cea.fr>
+
+	* NodeSet.py: disallow opening bracket after digit (ticket #228).
+
 2015-03-23 S. Thiell <stephane.thiell@cea.fr>
 
 	* Clush.py: Warn user of possible use of shell globbing, especially when
