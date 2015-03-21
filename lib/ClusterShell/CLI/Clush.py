@@ -865,6 +865,10 @@ def main():
         task.set_info("ssh_path", config.ssh_path)
     if config.ssh_options:
         task.set_info("ssh_options", config.ssh_options)
+    if config.scp_path:
+        task.set_info("scp_path", config.scp_path)
+    if config.scp_options:
+        task.set_info("scp_options", config.scp_options)
     if config.rsh_path:
         task.set_info("rsh_path", config.rsh_path)
     if config.rcp_path:

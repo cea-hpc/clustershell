@@ -39,7 +39,9 @@ This module implements OpenSSH engine client and task's worker.
 import os
 
 from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
-
+# Older versions of shlex can not handle unicode correctly.
+# Consider using ushlex instead.
+import shlex
 
 class SshClient(ExecClient):
     """
@@ -58,7 +60,15 @@ class SshClient(ExecClient):
         options = task.info("ssh_options")
 
         # Build ssh command
-        cmd_l = [ path, "-a", "-x"  ]
+        cmd_l = shlex.split(path)
+
+        # Add custom ssh options first as the first obtained value is 
+        # used. Thus all options are overidable by custom options. 
+        if options:
+            cmd_l += shlex.split(options)
+
+        # Hardwired options (overidable by ssh_options)
+        cmd_l += [  "-a", "-x"  ]
 
         if user:
             cmd_l.append("-l")
@@ -69,11 +79,9 @@ class SshClient(ExecClient):
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
         # Disable passphrase/password querying
+        # When used together with ssh_pass this must be overwritten 
+        # by a custom option to "-oBatchMode=no". 
         cmd_l.append("-oBatchMode=yes")
-
-        # Add custom ssh options
-        if options:
-            cmd_l += options.split()
 
         cmd_l.append("%s" % self.key)
         cmd_l.append("%s" % self.command)
@@ -94,11 +102,20 @@ class ScpClient(CopyClient):
         task = self.worker.task
         path = task.info("scp_path") or "scp"
         user = task.info("scp_user") or task.info("ssh_user")
-        options = [ task.info("ssh_options"), task.info("scp_options") ]
 
-        # Build scp command
-        cmd_l = [ path ]
+        # If defined exclusively use scp_options. If no scp_options  
+        # given use ssh_options instead.
+        options = task.info("scp_options") or task.info("ssh_options")
 
+        # Build scph command
+        cmd_l = shlex.split(path)
+
+        # Add custom ssh options first as the first obtained value is 
+        # used. Thus all options are overidable by custom options. 
+        if options:
+            cmd_l += shlex.split(options)
+
+        # Hardwired options (overidable by ssh_options)
         if self.isdir:
             cmd_l.append("-r")
 
@@ -110,12 +127,10 @@ class ScpClient(CopyClient):
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
         # Disable passphrase/password querying
+        # When used together with ssh_pass this must be overwritten 
+        # by a custom option to "-oBatchMode=no". 
         cmd_l.append("-oBatchMode=yes")
 
-        # Add custom scp options
-        for opts in options:
-            if opts:
-                cmd_l += opts.split()
 
         if self.reverse:
             if user:

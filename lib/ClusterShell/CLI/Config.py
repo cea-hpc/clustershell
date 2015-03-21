@@ -172,6 +172,16 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         return self._get_optional("Main", "ssh_options")
 
     @property
+    def scp_path(self):
+        """scp_path value as a string (optional)"""
+        return self._get_optional("Main", "scp_path")
+
+    @property
+    def scp_options(self):
+        """scp_options value as a string (optional)"""
+        return self._get_optional("Main", "scp_options")
+
+    @property
     def rsh_path(self):
         """rsh_path value as a string (optional)"""
         return self._get_optional("Main", "rsh_path")
