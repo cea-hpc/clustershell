@@ -37,6 +37,8 @@ ClusterShell worker for executing commands with LLNL pdsh.
 """
 
 import errno
+import os
+import shlex
 import sys
 
 from ClusterShell.NodeSet import NodeSet
@@ -66,8 +68,9 @@ class PdshClient(ExecClient):
         pdsh_env = {}
 
         # Build pdsh command
-        executable = task.info("pdsh_path") or "pdsh"
-        cmd_l = [ executable, "-b" ]
+        path = task.info("pdsh_path") or "pdsh"
+        cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
+        cmd_l.append("-b")
 
         fanout = task.info("fanout", 0)
         if fanout > 0:
@@ -192,10 +195,11 @@ class PdcpClient(CopyClient, PdshClient):
 
         # Build pdcp command
         if self.reverse:
-            executable = self.worker.task.info("rpdcp_path") or "rpdcp"
+            path = self.worker.task.info("rpdcp_path") or "rpdcp"
         else:
-            executable = self.worker.task.info("pdcp_path") or "pdcp"
-        cmd_l = [ executable, "-b" ]
+            path = self.worker.task.info("pdcp_path") or "pdcp"
+        cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
+        cmd_l.append("-b")
 
         fanout = self.worker.task.info("fanout", 0)
         if fanout > 0:

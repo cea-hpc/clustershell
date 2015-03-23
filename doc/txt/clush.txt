@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2014-01-30
+:Date:   2015-03-23
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -168,7 +168,7 @@ Connection options:
   -l USER, --user=USER
                       execute remote command as user
   -o OPTIONS, --options=OPTIONS
-                      can be used to give ssh options, eg. ``-o "-p 2022 -i ~/.ssh/myidrsa"``
+                      can be used to give ssh options, eg. ``-o "-p 2022 -i ~/.ssh/myidrsa"``; these options are added first to ssh and override default ones
   -t CONNECT_TIMEOUT, --connect_timeout=CONNECT_TIMEOUT
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
@@ -268,7 +268,7 @@ FILES
 
 */etc/clustershell/clush.conf*
   System-wide ``clush`` configuration file.
-  
+
 *~/.clush.conf*
   This is the per-user ``clush`` configuration file.
 

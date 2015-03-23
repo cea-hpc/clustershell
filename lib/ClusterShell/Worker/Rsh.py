@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2013, 2014)
+# Copyright CEA/DAM/DIF (2013-2015)
 #
 # This file is part of the ClusterShell library.
 #
@@ -37,6 +37,7 @@ This is also the base class for rsh evolutions, like Ssh worker.
 """
 
 import os
+import shlex
 
 from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 
@@ -57,7 +58,7 @@ class RshClient(ExecClient):
         user = task.info("rsh_user")
         options = task.info("rsh_options")
 
-        cmd_l = [ path ]
+        cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
 
         if user:
             cmd_l.append("-l")
@@ -65,7 +66,7 @@ class RshClient(ExecClient):
 
         # Add custom options
         if options:
-            cmd_l += options.split()
+            cmd_l += shlex.split(options)
 
         cmd_l.append("%s" % self.key)  # key is the node
         cmd_l.append("%s" % self.command)
@@ -88,9 +89,9 @@ class RcpClient(CopyClient):
         task = self.worker.task
         path = task.info("rcp_path") or "rcp"
         user = task.info("rsh_user")
-        options = [ task.info("rsh_options"), task.info("rcp_options") ]
+        options = task.info("rcp_options") or task.info("rsh_options")
 
-        cmd_l = [ path ]
+        cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
 
         if self.isdir:
             cmd_l.append("-r")
@@ -99,9 +100,8 @@ class RcpClient(CopyClient):
             cmd_l.append("-p")
 
         # Add custom rcp options
-        for opts in options:
-            if opts:
-                cmd_l += opts.split()
+        if options:
+            cmd_l += shlex.split(options)
 
         if self.reverse:
             if user:

@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-02-15
+:Date:   2015-03-23
 :Copyright: CeCILL-C V1
-:Version: 1.6
+:Version: 1.7
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -71,15 +71,19 @@ verbosity
 ssh_user
   Set the ssh user to use for remote connection (default is to not specify).
 ssh_path
-  Set the ssh binary path to use for remote connection (default is
-  `/usr/bin/ssh`).
+  Set the ssh binary path to use for remote connection (default is `ssh`).
 ssh_options
   Set additional options to pass to the underlying ssh command.
+scp_path
+  Set the scp binary path to use for remote copy (default is `scp`).
+scp_options
+  Set additional options to pass to the underlying scp command. If not
+  specified, ssh_options are used instead.
 rsh_path
   Set the rsh binary path to use for remote connection (default is
   `rsh`). You could easily use mrsh or krsh by simply changing this value.
 rcp_path
-  Same a rsh_path for rcp command. (Default is 'rcp')
+  Same a rsh_path for rcp command. (Default is `rcp`)
 rsh_options
   Set additional options to pass to the underlying rsh/rcp command.
 
@@ -99,7 +103,7 @@ Simple configuration file.
 | color: auto
 | fd_max: 10240
 | node_count: yes
-| 
+|
 
 
 FILES

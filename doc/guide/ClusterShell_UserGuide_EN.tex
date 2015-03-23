@@ -13,7 +13,7 @@
 \usepackage[colorlinks=true]{hyperref}
 
 \definecolor{gray}{gray}{0.5}
-\definecolor{key}{rgb}{0,0.5,0} 
+\definecolor{key}{rgb}{0,0.5,0}
 \definecolor{darkgreen}{cmyk}{0.7, 0, 1, 0.5}
 \definecolor{darkblue}{cmyk}{1, 0.8, 0, 0}
 \definecolor{lightblue}{cmyk}{0.05,0,0,0.05}
@@ -59,7 +59,7 @@
   /Producer (pdfLaTeX)
   /Author (S. THIELL)
   /CreationDate (D:20110912)
-  /ModDate (D: 20140424)
+  /ModDate (D: 20150323)
   /Keywords (ClusterShell, clush, shell, nodeset, Python, HPC, Linux)
 }
 
@@ -1346,9 +1346,13 @@ The configuration file \verb+/etc/clustershell/clush.conf+ defines default value
 \hline
 \verb+ssh_user+ & Set the \textit{ssh(1)} user to use for remote connection (default is to not specify).\\
 \hline
-\verb+ssh_path+ & Set the \textit{ssh(1)} binary path to use for remote connection (default is \verb+/usr/bin/ssh+).\\
+\verb+ssh_path+ & Set the \textit{ssh(1)} binary path to use for remote connection (default is \verb+ssh+).\\
 \hline
 \verb+ssh_options+ & Set additional (raw) options to pass to the underlying \textit{ssh(1)} command.\\
+\hline
+\verb+scp_path+ & Set the \textit{scp(1)} binary path to use for remote copy (default is \verb+scp+).\\
+\hline
+\verb+scp_options+ & Set additional options to pass to the underlying \textit{scp(1)} command. If not specified, \verb+ssh_options+ are used instead.\\
 \hline
 \verb+rsh_path+ & Set the \verb+rsh+ binary path to use for remote connection (default is
   \verb+rsh+). You could easily use \verb+mrsh+ or \verb+krsh+ by simply changing this value.\\

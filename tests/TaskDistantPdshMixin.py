@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (distant, pdsh worker) test suite
-# Written by S. Thiell 2009-02-13
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task (distant, pdsh worker)"""
@@ -33,17 +33,14 @@ class TaskDistantPdshMixin(object):
 
     def setUp(self):
         self._task = task_self()
-        self.assert_(self._task != None)
 
     def testWorkerPdshGetCommand(self):
         # test worker.command with WorkerPdsh
         worker1 = WorkerPdsh(HOSTNAME, command="/bin/echo foo bar fuu",
                              handler=None, timeout=5)
-        self.assert_(worker1 != None)
         self._task.schedule(worker1)
         worker2 = WorkerPdsh(HOSTNAME, command="/bin/echo blah blah foo",
                              handler=None, timeout=5)
-        self.assert_(worker2 != None)
         self._task.schedule(worker2)
         # run task
         self._task.resume()
@@ -65,6 +62,23 @@ class TaskDistantPdshMixin(object):
             self.assertEqual(worker.dest, dest)
         finally:
             os.unlink(dest)
+
+    def testLocalhostExplicitPdshCopyWithOptions(self):
+        dest = make_temp_dir('testLocalhostExplicitPdshCopyWithOptions')
+        self._task.set_info("pdcp_path", "pdcp -p")
+        try:
+            worker = WorkerPdsh(HOSTNAME, source="/etc/hosts", dest=dest,
+                                handler=None)
+            self._task.schedule(worker)
+            self._task.resume()
+            self.assertEqual(self._task.max_retcode(), 0)
+            self.assertTrue(os.path.exists(os.path.join(dest, "hosts")))
+        finally:
+            os.unlink(os.path.join(dest, "hosts"))
+            os.rmdir(dest)
+        # clear options after test
+        task_cleanup()
+        self.assertEqual(task_self().info("pdcp_path"), None)
 
     def testLocalhostExplicitPdshCopyDir(self):
         # test simple localhost copy dir with explicit pdsh worker
@@ -107,20 +121,29 @@ class TaskDistantPdshMixin(object):
     def testExplicitPdshWorker(self):
         # test simple localhost command with explicit pdsh worker
         # init worker
-        worker = WorkerPdsh(HOSTNAME, command="echo alright", handler=None, timeout=5)
-        self.assert_(worker != None)
+        worker = WorkerPdsh(HOSTNAME, command="echo alright", handler=None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
         # test output
         self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
 
+    def testExplicitPdshWorkerWithOptions(self):
+        self._task.set_info("pdsh_path", "/usr/bin/pdsh -S")
+        worker = WorkerPdsh(HOSTNAME, command="echo alright", handler=None)
+        self._task.schedule(worker)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
+        # clear options after test
+        task_cleanup()
+        self.assertEqual(task_self().info("pdsh_path"), None)
+
     def testExplicitPdshWorkerStdErr(self):
         # test simple localhost command with explicit pdsh worker (stderr)
-        # init worker
         worker = WorkerPdsh(HOSTNAME, command="echo alright 1>&2",
-                    handler=None, stderr=True, timeout=5)
-        self.assert_(worker != None)
+                            handler=None, stderr=True)
         self._task.schedule(worker)
         # run task
         self._task.resume()
@@ -129,8 +152,7 @@ class TaskDistantPdshMixin(object):
 
         # Re-test with stderr=False
         worker = WorkerPdsh(HOSTNAME, command="echo alright 1>&2",
-                    handler=None, stderr=False, timeout=5)
-        self.assert_(worker != None)
+                            handler=None, stderr=False)
         self._task.schedule(worker)
         # run task
         self._task.resume()
@@ -140,8 +162,8 @@ class TaskDistantPdshMixin(object):
 
     def testPdshWorkerWriteNotSupported(self):
         # test that write is reported as not supported with pdsh
-        # init worker
-        worker = WorkerPdsh(HOSTNAME, command="uname -r", handler=None, timeout=5)
+        worker = WorkerPdsh(HOSTNAME, command="uname -r", handler=None,
+                            timeout=5)
         self.assertRaises(EngineClientNotSupportedError, worker.write, "toto")
 
     class TEventHandlerChecker(EventHandler):
@@ -176,10 +198,8 @@ class TaskDistantPdshMixin(object):
 
     def testExplicitWorkerPdshShellEvents(self):
         # test triggered events with explicit pdsh worker
-        # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
         worker = WorkerPdsh(HOSTNAME, command="hostname", handler=test_eh, timeout=None)
-        self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
@@ -188,11 +208,9 @@ class TaskDistantPdshMixin(object):
 
     def testExplicitWorkerPdshShellEventsWithTimeout(self):
         # test triggered events (with timeout) with explicit pdsh worker
-        # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
         worker = WorkerPdsh(HOSTNAME, command="echo alright && sleep 10",
                 handler=test_eh, timeout=2)
-        self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
@@ -202,11 +220,9 @@ class TaskDistantPdshMixin(object):
 
     def testShellPdshEventsNoReadNoTimeout(self):
         # test triggered events (no read, no timeout) with explicit pdsh worker
-        # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
         worker = WorkerPdsh(HOSTNAME, command="sleep 2",
                 handler=test_eh, timeout=None)
-        self.assert_(worker != None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
@@ -216,13 +232,10 @@ class TaskDistantPdshMixin(object):
 
     def testWorkerPdshBuffers(self):
         # test buffers at pdsh worker level
-        task = task_self()
-        self.assert_(task != None)
-
         worker = WorkerPdsh(HOSTNAME, command="printf 'foo\nbar\nxxx\n'",
                             handler=None, timeout=None)
-        task.schedule(worker)
-        task.resume()
+        self._task.schedule(worker)
+        self._task.resume()
 
         cnt = 2
         for buf, nodes in worker.iter_buffers():
@@ -247,13 +260,10 @@ class TaskDistantPdshMixin(object):
 
     def testWorkerPdshNodeBuffers(self):
         # test iter_node_buffers on distant pdsh workers
-        task = task_self()
-        self.assert_(task != None)
-
         worker = WorkerPdsh(HOSTNAME, command="/usr/bin/printf 'foo\nbar\nxxx\n'",
                             handler=None, timeout=None)
-        task.schedule(worker)
-        task.resume()
+        self._task.schedule(worker)
+        self._task.resume()
 
         cnt = 1
         for node, buf in worker.iter_node_buffers():
@@ -264,13 +274,10 @@ class TaskDistantPdshMixin(object):
 
     def testWorkerPdshNodeErrors(self):
         # test iter_node_errors on distant pdsh workers
-        task = task_self()
-        self.assert_(task != None)
-
         worker = WorkerPdsh(HOSTNAME, command="/usr/bin/printf 'foo\nbar\nxxx\n' 1>&2",
                             handler=None, timeout=None, stderr=True)
-        task.schedule(worker)
-        task.resume()
+        self._task.schedule(worker)
+        self._task.resume()
 
         cnt = 1
         for node, buf in worker.iter_node_errors():
@@ -281,13 +288,10 @@ class TaskDistantPdshMixin(object):
 
     def testWorkerPdshRetcodes(self):
         # test retcodes on distant pdsh workers
-        task = task_self()
-        self.assert_(task != None)
-
         worker = WorkerPdsh(HOSTNAME, command="/bin/sh -c 'exit 3'",
                             handler=None, timeout=None)
-        task.schedule(worker)
-        task.resume()
+        self._task.schedule(worker)
+        self._task.resume()
 
         cnt = 2
         for rc, keys in worker.iter_retcodes():
@@ -314,17 +318,14 @@ class TaskDistantPdshMixin(object):
         self.assertRaises(KeyError, worker.node_retcode, "dummy")
 
         # test max retcode API
-        self.assertEqual(task.max_retcode(), 3)
+        self.assertEqual(self._task.max_retcode(), 3)
 
     def testWorkerNodeRetcodes(self):
         # test iter_node_retcodes on distant pdsh workers
-        task = task_self()
-        self.assert_(task != None)
-
         worker = WorkerPdsh(HOSTNAME, command="/bin/sh -c 'exit 3'",
                             handler=None, timeout=None)
-        task.schedule(worker)
-        task.resume()
+        self._task.schedule(worker)
+        self._task.resume()
 
         cnt = 1
         for node, rc in worker.iter_node_retcodes():
@@ -338,7 +339,6 @@ class TaskDistantPdshMixin(object):
         # test distant worker (pdsh) cmd with escaped variable
         worker = WorkerPdsh(HOSTNAME, command="export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'",
                 handler=None, timeout=None)
-        self.assert_(worker != None)
         #task.set_info("debug", True)
         self._task.schedule(worker)
         # execute
@@ -407,9 +407,6 @@ class TaskDistantPdshMixin(object):
 
     def testWorkerAbort(self):
         # test WorkerPdsh abort() on timer
-        task = task_self()
-        self.assert_(task != None)
-
         class AbortOnTimer(EventHandler):
             def __init__(self, worker):
                 EventHandler.__init__(self)
@@ -421,17 +418,16 @@ class TaskDistantPdshMixin(object):
 
         worker = WorkerPdsh(HOSTNAME, command="sleep 10",
                 handler=None, timeout=None)
-        task.schedule(worker)
+        self._task.schedule(worker)
 
         aot = AbortOnTimer(worker)
         self.assertEqual(aot.testtimer, False)
-        task.timer(2.0, handler=aot)
-        task.resume()
+        self._task.timer(2.0, handler=aot)
+        self._task.resume()
         self.assertEqual(aot.testtimer, True)
 
     def testWorkerAbortSanity(self):
         # test WorkerPdsh abort() (sanity)
-        task = task_self()
         # test noop abort() on unscheduled worker
         worker = WorkerPdsh(HOSTNAME, command="sleep 1", handler=None,
                             timeout=None)

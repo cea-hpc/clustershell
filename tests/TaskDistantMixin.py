@@ -93,7 +93,7 @@ class TaskDistantMixin(object):
         try:
             dest = make_temp_filename(suffix='LocalhostCopyF2')
             worker = self._task.copy("/etc/hosts", dest,
-                nodes='unlikely-node,%s' % HOSTNAME)
+                                     nodes='unlikely-node,%s' % HOSTNAME)
             self.assert_(worker != None)
             # run task
             self._task.resume()
@@ -121,13 +121,33 @@ class TaskDistantMixin(object):
 
     def testLocalhostExplicitSshCopy(self):
         dest = make_temp_filename('testLocalhostExplicitSshCopy')
+        srcsz = os.path.getsize("/etc/hosts")
         try:
             worker = WorkerSsh(HOSTNAME, source="/etc/hosts", dest=dest,
-                    handler=None, timeout=10)
+                               handler=None, timeout=10)
             self._task.schedule(worker)
             self._task.resume()
+            self.assertEqual(srcsz, os.path.getsize(dest))
         finally:
             os.remove(dest)
+
+    def testLocalhostExplicitSshCopyWithOptions(self):
+        dest = make_temp_dir('testLocalhostExplicitSshCopyWithOptions')
+        self._task.set_info("scp_path", "/usr/bin/scp -l 10")
+        self._task.set_info("scp_options", "-oLogLevel=QUIET")
+        try:
+            worker = WorkerSsh(HOSTNAME, source="/etc/hosts", dest=dest,
+                               handler=None)
+            self._task.schedule(worker)
+            self._task.resume()
+            self.assertEqual(self._task.max_retcode(), 0)
+            self.assertTrue(os.path.exists(os.path.join(dest, "hosts")))
+        finally:
+            os.unlink(os.path.join(dest, "hosts"))
+            os.rmdir(dest)
+        # clear options after test
+        task_cleanup()
+        self.assertEqual(task_self().info("scp_path"), None)
 
     def testLocalhostExplicitSshCopyDir(self):
         dtmp_src = make_temp_dir('src')
@@ -136,12 +156,14 @@ class TaskDistantMixin(object):
             os.mkdir(os.path.join(dtmp_src, "lev1_a"))
             os.mkdir(os.path.join(dtmp_src, "lev1_b"))
             os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerSsh(HOSTNAME, source=dtmp_src,
-                    dest=dtmp_dst, handler=None, timeout=10)
+            worker = WorkerSsh(HOSTNAME, source=dtmp_src, dest=dtmp_dst,
+                               handler=None)
             self._task.schedule(worker)
             self._task.resume()
-            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
-                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+            self.assertTrue(os.path.exists(
+                            os.path.join(dtmp_dst,
+                                         os.path.basename(dtmp_src),
+                                         "lev1_a", "lev2")))
         finally:
             shutil.rmtree(dtmp_dst, ignore_errors=True)
             shutil.rmtree(dtmp_src, ignore_errors=True)
@@ -165,19 +187,30 @@ class TaskDistantMixin(object):
 
     def testExplicitSshWorker(self):
         # init worker
-        worker = WorkerSsh(HOSTNAME, command="/bin/echo alright", handler=None, timeout=5)
-        self.assert_(worker != None)
+        worker = WorkerSsh(HOSTNAME, command="/bin/echo alright", handler=None)
         self._task.schedule(worker)
         # run task
         self._task.resume()
         # test output
         self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
 
+    def testExplicitSshWorkerWithOptions(self):
+        self._task.set_info("ssh_path", "/usr/bin/ssh -C")
+        self._task.set_info("ssh_options", "-oLogLevel=QUIET")
+        worker = WorkerSsh(HOSTNAME, command="/bin/echo alright", handler=None)
+        self._task.schedule(worker)
+        # run task
+        self._task.resume()
+        # test output
+        self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
+        # clear options after test
+        task_cleanup()
+        self.assertEqual(task_self().info("ssh_path"), None)
+
     def testExplicitSshWorkerStdErr(self):
         # init worker
         worker = WorkerSsh(HOSTNAME, command="/bin/echo alright 1>&2",
-                    handler=None, stderr=True, timeout=5)
-        self.assert_(worker != None)
+                           handler=None, stderr=True)
         self._task.schedule(worker)
         # run task
         self._task.resume()
@@ -186,8 +219,7 @@ class TaskDistantMixin(object):
 
         # Re-test with stderr=False
         worker = WorkerSsh(HOSTNAME, command="/bin/echo alright 1>&2",
-                    handler=None, stderr=False, timeout=5)
-        self.assert_(worker != None)
+                           handler=None, stderr=False)
         self._task.schedule(worker)
         # run task
         self._task.resume()

@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2008-2014)
+# Copyright CEA/DAM/DIF (2008-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -37,11 +37,12 @@ This module implements OpenSSH engine client and task's worker.
 """
 
 import os
-
-from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 # Older versions of shlex can not handle unicode correctly.
 # Consider using ushlex instead.
 import shlex
+
+from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
+
 
 class SshClient(ExecClient):
     """
@@ -60,14 +61,15 @@ class SshClient(ExecClient):
         options = task.info("ssh_options")
 
         # Build ssh command
-        cmd_l = shlex.split(path)
+        cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
 
-        # Add custom ssh options first as the first obtained value is 
-        # used. Thus all options are overidable by custom options. 
+        # Add custom ssh options first as the first obtained value is
+        # used. Thus all options are overridable by custom options.
         if options:
-            cmd_l += shlex.split(options)
+            # use expanduser() for options like '-i ~/.ssh/my_id_rsa'
+            cmd_l += [os.path.expanduser(opt) for opt in shlex.split(options)]
 
-        # Hardwired options (overidable by ssh_options)
+        # Hardwired options (overridable by ssh_options)
         cmd_l += [  "-a", "-x"  ]
 
         if user:
@@ -79,8 +81,8 @@ class SshClient(ExecClient):
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
         # Disable passphrase/password querying
-        # When used together with ssh_pass this must be overwritten 
-        # by a custom option to "-oBatchMode=no". 
+        # When used together with sshpass this must be overwritten
+        # by a custom option to "-oBatchMode=no".
         cmd_l.append("-oBatchMode=yes")
 
         cmd_l.append("%s" % self.key)
@@ -103,19 +105,20 @@ class ScpClient(CopyClient):
         path = task.info("scp_path") or "scp"
         user = task.info("scp_user") or task.info("ssh_user")
 
-        # If defined exclusively use scp_options. If no scp_options  
+        # If defined exclusively use scp_options. If no scp_options
         # given use ssh_options instead.
         options = task.info("scp_options") or task.info("ssh_options")
 
-        # Build scph command
-        cmd_l = shlex.split(path)
+        # Build scp command
+        cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
 
-        # Add custom ssh options first as the first obtained value is 
-        # used. Thus all options are overidable by custom options. 
+        # Add custom ssh options first as the first obtained value is
+        # used. Thus all options are overridable by custom options.
         if options:
-            cmd_l += shlex.split(options)
+            # use expanduser() for options like '-i ~/.ssh/my_id_rsa'
+            cmd_l += [os.path.expanduser(opt) for opt in shlex.split(options)]
 
-        # Hardwired options (overidable by ssh_options)
+        # Hardwired options (overridable by ssh_options)
         if self.isdir:
             cmd_l.append("-r")
 
@@ -127,8 +130,8 @@ class ScpClient(CopyClient):
             cmd_l.append("-oConnectTimeout=%d" % connect_timeout)
 
         # Disable passphrase/password querying
-        # When used together with ssh_pass this must be overwritten 
-        # by a custom option to "-oBatchMode=no". 
+        # When used together with sshpass this must be overwritten
+        # by a custom option to "-oBatchMode=no".
         cmd_l.append("-oBatchMode=yes")
 
 
@@ -159,7 +162,7 @@ class WorkerSsh(ExecWorker):
        >>> task.schedule(worker)      # schedule worker for execution
        >>> task.resume()              # run
 
-    Remote Copy (scp) usage example: 
+    Remote Copy (scp) usage example:
        >>> worker = WorkerSsh(nodeset, handler=MyEventHandler(),
        ...                    timeout=30, source="/etc/my.conf",
        ...                    dest="/etc/my.conf")
