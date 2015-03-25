@@ -273,6 +273,7 @@ class WorkerTree(DistantWorker):
                 if self._has_timeout:
                     handler.ev_timeout(self)
                 handler.ev_close(self)
+            self.logger.debug("WorkerTree._check_fini %s call pchannel_release" % self)
             self.task._pchannel_release(self)
 
     def write(self, buf):

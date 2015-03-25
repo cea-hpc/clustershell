@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -68,16 +68,19 @@ from cStringIO import StringIO
 from ClusterShell.Event import EventHandler
 
 
+ENCODING = 'utf-8'
+
+
 class MessageProcessingError(Exception):
     """base exception raised when an error occurs while processing incoming or
     outgoing messages.
     """
 
+
 class XMLReader(ContentHandler):
     """SAX handler for XML -> Messages instances conversion"""
     def __init__(self):
-        """
-        """
+        """XMLReader initializer"""
         ContentHandler.__init__(self)
         self.msg_queue = deque()
         # current packet under construction
@@ -87,11 +90,9 @@ class XMLReader(ContentHandler):
     def startElement(self, name, attrs):
         """read a starting xml tag"""
         if name == 'channel':
-            pass
+            self.msg_queue.appendleft(StartMessage())
         elif name == 'message':
             self._draft_new(attrs)
-        elif self._draft is not None:
-            self._draft_update(name, attrs)
         else:
             raise MessageProcessingError('Invalid starting tag %s' % name)
 
@@ -102,12 +103,12 @@ class XMLReader(ContentHandler):
             self.msg_queue.appendleft(self._draft)
             self._draft = None
         elif name == 'channel':
-            self.msg_queue.append(EndMessage())
+            self.msg_queue.appendleft(EndMessage())
 
     def characters(self, content):
         """read content characters"""
         if self._draft is not None:
-            content = content.decode('utf-8')
+            content = content.decode(ENCODING)
             if content != '':
                 self._draft.data_update(content)
 
@@ -117,7 +118,7 @@ class XMLReader(ContentHandler):
 
     def pop_msg(self):
         """pop and return the oldest message queued"""
-        if len(self.msg_queue) > 0:
+        if self.msg_available():
             return self.msg_queue.pop()
 
     def _draft_new(self, attributes):
@@ -140,18 +141,10 @@ class XMLReader(ContentHandler):
             ctor = ctors_map[msg_type]
         except KeyError:
             raise MessageProcessingError('Unknown message type')
+        # build message with its attributes
         self._draft = ctor()
-        # obtain expected sections map for this type of messages
-        self._draft_update('message', attributes)
+        self._draft.selfbuild(attributes)
 
-    def _draft_update(self, name, attributes):
-        """update the current message draft with a new section"""
-        assert(self._draft is not None)
-        
-        if name == 'message':
-            self._draft.selfbuild(attributes)
-        else:
-            raise MessageProcessingError('Invalid tag %s' % name)
 
 class Channel(EventHandler):
     """Use this event handler to establish a communication channel between to
@@ -159,23 +152,27 @@ class Channel(EventHandler):
 
     The endpoint's logic has to be implemented by subclassing the Channel class
     and overriding the start() and recv() methods.
-    
+
     There is no default behavior for these methods apart raising a
     NotImplementedError.
-    
+
     Usage:
       >> chan = MyChannel() # inherits Channel
       >> task = task_self()
       >> task.shell("uname -a", node="host2", handler=chan)
       >> task.resume()
     """
+
     def __init__(self):
         """
         """
         EventHandler.__init__(self)
-        
-        self.exit = False
+
         self.worker = None
+
+        # channel state flags
+        self.opened = False
+        self.setup = False
 
         self._xml_reader = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
@@ -183,64 +180,71 @@ class Channel(EventHandler):
 
         self.logger = logging.getLogger(__name__)
 
+    def _init(self):
+        """start xml document for communication"""
+        XMLGenerator(self.worker, encoding=ENCODING).startDocument()
+
     def _open(self):
         """open a new communication channel from src to dst"""
-        generator = XMLGenerator(self.worker, encoding='UTF-8')
-        generator.startDocument()
-        generator.startElement('channel', {})
+        XMLGenerator(self.worker, encoding=ENCODING).startElement('channel', {})
 
     def _close(self):
         """close an already opened channel"""
-        generator = XMLGenerator(self.worker)
-        generator.endElement('channel')
-        # XXX
-        self.worker.write('\n')
-        self.exit = True
+        send_endtag = self.opened
+        # set to False before sending tag for state test purposes
+        self.opened = self.setup = False
+        if send_endtag:
+            XMLGenerator(self.worker, encoding=ENCODING).endElement('channel')
+        self.worker.abort()
 
     def ev_start(self, worker):
         """connection established. Open higher level channel"""
         self.worker = worker
         self.start()
 
-    def ev_written(self, worker):
-        if self.exit:
-            self.logger.debug("aborting worker after last write")
-            self.worker.abort()
-
     def ev_read(self, worker):
         """channel has data to read"""
         raw = worker.current_msg
-        #self.logger.debug("ev_read raw=\'%s\'" % raw)
+        self.logger.debug('ev_read raw="%s"', raw)
         try:
             self._parser.feed(raw + '\n')
         except SAXParseException, ex:
-            raise MessageProcessingError( \
-                'Invalid communication (%s): "%s"' % (ex.getMessage(), raw))
+            self.logger.error("SAXParseException: %s: %s", ex.getMessage(), raw)
+            # Warning: do not send malformed raw message back
+            self.send(ErrorMessage('Parse error: %s' % ex.getMessage()))
+            self._close()
+            return
+        except MessageProcessingError, ex:
+            self.send(ErrorMessage(str(ex)))
+            self._close()
+            return
 
-        # pass next message to the driver if ready
-        if self._xml_reader.msg_available():
+        # pass messages to the driver if ready
+        while self._xml_reader.msg_available():
             msg = self._xml_reader.pop_msg()
             assert msg is not None
             self.recv(msg)
 
     def send(self, msg):
         """write an outgoing message as its XML representation"""
-        #print '[DBG] send: %s' % str(msg)
-        #self.logger.debug("SENDING to %s: \"%s\"" % (self.worker, msg.xml()))
+        self.logger.debug('SENDING to worker %s: "%s"', id(self.worker),
+                          msg.xml())
         self.worker.write(msg.xml() + '\n')
 
     def start(self):
         """initialization logic"""
         raise NotImplementedError('Abstract method: subclasses must implement')
-    
+
     def recv(self, msg):
         """callback: process incoming message"""
         raise NotImplementedError('Abstract method: subclasses must implement')
+
 
 class Message(object):
     """base message class"""
     _inst_counter = 0
     ident = 'GEN'
+    has_payload = False
 
     def __init__(self):
         """
@@ -257,13 +261,21 @@ class Message(object):
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
-        return cPickle.loads(base64.decodestring(self.data))
+        try:
+            return cPickle.loads(base64.decodestring(self.data))
+        except EOFError:
+            # raised by cPickle.loads() if self.data is not valid
+            raise MessageProcessingError('Message %s has an invalid payload'
+                                         % self.ident)
 
     def data_update(self, raw):
         """append data to the instance (used for deserialization)"""
-        # TODO : bufferize and use ''.join() for performance
-        #self.logger.debug("data_update raw=%s" % raw)
-        self.data += raw
+        if self.has_payload:
+            self.data += raw
+        else:
+            # ensure that incoming messages don't contain unexpected payloads
+            raise MessageProcessingError('Got unexpected payload for Message %s'
+                                         % self.ident)
 
     def selfbuild(self, attributes):
         """self construction from a table of attributes"""
@@ -283,7 +295,7 @@ class Message(object):
     def xml(self):
         """generate XML version of a configuration message"""
         out = StringIO()
-        generator = XMLGenerator(out)
+        generator = XMLGenerator(out, encoding=ENCODING)
 
         # "stringify" entries for XML conversion
         state = {}
@@ -300,6 +312,7 @@ class Message(object):
 class ConfigurationMessage(Message):
     """configuration propagation container"""
     ident = 'CFG'
+    has_payload = True
 
 class RoutedMessageBase(Message):
     """abstract class for routed message (with worker source id)"""
@@ -311,6 +324,7 @@ class RoutedMessageBase(Message):
 class ControlMessage(RoutedMessageBase):
     """action request"""
     ident = 'CTL'
+    has_payload = True
 
     def __init__(self, srcid=0):
         """
@@ -331,12 +345,6 @@ class ACKMessage(Message):
         self.attr.update({'ack': int})
         self.ack = ackid
 
-    def data_update(self, raw):
-        """override method to ensure that incoming ACK messages don't contain
-        unexpected payloads
-        """
-        raise MessageProcessingError('ACK messages have no payload')
-
 class ErrorMessage(Message):
     """error message"""
     ident = 'ERR'
@@ -348,15 +356,10 @@ class ErrorMessage(Message):
         self.attr.update({'reason': str})
         self.reason = err
 
-    def data_update(self, raw):
-        """override method to ensure that incoming ACK messages don't contain
-        unexpected payloads
-        """
-        raise MessageProcessingError('Error message have no payload')
-
 class StdOutMessage(RoutedMessageBase):
     """container message for standard output"""
     ident = 'OUT'
+    has_payload = True
 
     def __init__(self, nodes='', output='', srcid=0):
         """
@@ -381,12 +384,6 @@ class RetcodeMessage(RoutedMessageBase):
         self.retcode = retcode
         self.nodes = nodes
 
-    def data_update(self, raw):
-        """override method to ensure that incoming ACK messages don't contain
-        unexpected payloads
-        """
-        raise MessageProcessingError('Retcode message has no payload')
-
 class TimeoutMessage(RoutedMessageBase):
     """container message for timeout notification"""
     ident = 'TIM'
@@ -397,6 +394,10 @@ class TimeoutMessage(RoutedMessageBase):
         RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'nodes': str})
         self.nodes = nodes
+
+class StartMessage(Message):
+    """message indicating the start of a channel communication"""
+    ident = 'CHA'
 
 class EndMessage(Message):
     """end of channel message"""

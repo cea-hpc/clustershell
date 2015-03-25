@@ -104,7 +104,7 @@ class TopologyTest(unittest.TestCase):
         ns2_sup = NodeSet('somenode[0-10]')
         ns2_sup.add(ns2)
         self.assertRaises(TopologyError, g.add_route, ns2_sup, NodeSet('foo1'))
-        
+
         # Add a known dst nodeset as a src nodeset
         ns3 = NodeSet('nodes[30-39]')
         g.add_route(ns1, ns3)
@@ -157,7 +157,7 @@ class TopologyTest(unittest.TestCase):
         for nodegroup in g.to_tree('root'):
             ns_all.difference_update(nodegroup.nodeset)
         self.assertEqual(len(ns_all), 0)
-    
+
     def testInvalidRootNode(self):
         """test invalid root node specification"""
         g = TopologyGraph()
@@ -412,7 +412,7 @@ class TopologyTest(unittest.TestCase):
         r1 = TopologyRoute(NodeSet('src[10-19]'), NodeSet('dst[15-18]'))
 
         self.assertEquals(str(r0), 'src[0-9] -> dst[5-8]')
-        
+
         t.add_route(r0)
         t.add_route(r1)
         self.assertEquals(str(t), 'src[0-9] -> dst[5-8]\nsrc[10-19] -> dst[15-18]')
@@ -420,13 +420,4 @@ class TopologyTest(unittest.TestCase):
         g = TopologyGraph()
         # XXX: Actually if g is not empty other things will be printed out...
         self.assertEquals(str(g), '<TopologyGraph>\n')
-
-
-def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(TopologyTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-if __name__ == '__main__':
-    #cProfile.run('main()')
-    main()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010-2014)
+# Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -43,7 +43,8 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ControlMessage, StdOutMessage
 from ClusterShell.Communication import StdErrMessage, RetcodeMessage
-from ClusterShell.Communication import RoutedMessageBase, EndMessage
+from ClusterShell.Communication import StartMessage, EndMessage
+from ClusterShell.Communication import RoutedMessageBase
 from ClusterShell.Communication import ConfigurationMessage, TimeoutMessage
 
 
@@ -225,39 +226,38 @@ class PropagationChannel(Channel):
         Channel.__init__(self)
         self.task = task
         self.workers = {}
-
-        self.current_state = None
-        self.states = {
-            'STATE_CFG': self._state_config,
-            'STATE_CTL': self._state_control,
-            #'STATE_GTR': self._state_gather,
-        }
-
         self._history = {} # track informations about previous states
         self._sendq = []
         self.logger = logging.getLogger(__name__)
 
     def start(self):
-        """initial actions"""
-        #print '[DBG] start'
+        """start propagation channel"""
+        self._init()
         self._open()
         cfg = ConfigurationMessage()
         #cfg.data_encode(self.task._default_topology())
         cfg.data_encode(self.task.topology)
         self._history['cfg_id'] = cfg.msgid
         self.send(cfg)
-        self.current_state = self.states['STATE_CFG']
 
     def recv(self, msg):
         """process incoming messages"""
         self.logger.debug("[DBG] rcvd from: %s" % str(msg))
-        if msg.ident == EndMessage.ident:
+        if msg.type == EndMessage.ident:
             #??#self.ptree.notify_close()
-            self.logger.debug("closing")
+            self.logger.debug("got EndMessage; closing")
             # abort worker (now working)
             self.worker.abort()
+        elif self.setup:
+            self.recv_ctl(msg)
+        elif self.opened:
+            self.recv_cfg(msg)
+        elif msg.type == StartMessage.ident:
+            self.opened = True
+            self.logger.debug('channel started')
+            # TODO: channel versioning
         else:
-            self.current_state(msg)
+            self.logger.error('unexpected message: %s', str(msg))
 
     def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd):
         """command execution through channel"""
@@ -265,14 +265,14 @@ class PropagationChannel(Channel):
             (nodes, timeout, id(worker)))
 
         self.workers[id(worker)] = worker
-        
+
         ctl = ControlMessage(id(worker))
         ctl.action = 'shell'
         ctl.target = nodes
 
         info = self.task._info.copy()
         info['debug'] = False
-        
+
         ctl_data = {
             'cmd': command,
             'invoke_gateway': gw_invoke_cmd, # XXX
@@ -283,8 +283,8 @@ class PropagationChannel(Channel):
         ctl.data_encode(ctl_data)
 
         self._history['ctl_id'] = ctl.msgid
-        if self.current_state == self.states['STATE_CTL']:
-            # send now if channel state is CTL
+        if self.setup:
+            # send now if channel is setup
             self.send(ctl)
         else:
             self._sendq.append(ctl)
@@ -303,8 +303,8 @@ class PropagationChannel(Channel):
         }
         ctl.data_encode(ctl_data)
         self._history['ctl_id'] = ctl.msgid
-        if self.current_state == self.states['STATE_CTL']:
-            # send now if channel state is CTL
+        if self.setup:
+            # send now if channel is setup
             self.send(ctl)
         else:
             self._sendq.append(ctl)
@@ -319,29 +319,29 @@ class PropagationChannel(Channel):
         ctl.target = nodes
 
         self._history['ctl_id'] = ctl.msgid
-        if self.current_state == self.states['STATE_CTL']:
-            # send now if channel state is CTL
+        if self.setup:
+            # send now if channel is setup
             self.send(ctl)
         else:
             self._sendq.append(ctl)
 
-    def _state_config(self, msg):
+    def recv_cfg(self, msg):
         """handle incoming messages for state 'propagate configuration'"""
+        self.logger.debug("recv_cfg")
         if msg.type == 'ACK': # and msg.ack == self._history['cfg_id']:
             self.logger.debug("CTL - connection with gateway fully established")
-            self.current_state = self.states['STATE_CTL']
+            self.setup = True
             for ctl in self._sendq:
                 self.logger.debug("dequeuing sendq: %s", ctl)
                 self.send(ctl)
         else:
-            self.logger.debug("_state_config error")
-            print str(msg)
+            self.logger.debug("_state_config error (msg=%s)", msg)
 
-    def _state_control(self, msg):
+    def recv_ctl(self, msg):
         """handle incoming messages for state 'control'"""
+        self.logger.debug("recv_ctl")
         if msg.type == 'ACK': # and msg.ack == self._history['ctl_id']:
-            #self.current_state = self.states['STATE_GTR']
-            self.logger.debug("PropChannel: _state_control -> STATE_GTR")
+            self.logger.debug("got ack (%s)", msg.type)
         elif isinstance(msg, RoutedMessageBase):
             metaworker = self.workers[msg.srcid]
             if msg.type == StdOutMessage.ident:
@@ -377,7 +377,7 @@ class PropagationChannel(Channel):
         else:
             assert False
         """
- 
+
     def ev_close(self, worker):
         worker.flush_buffers()
 

@@ -50,8 +50,9 @@ from ClusterShell.Worker.fastsubprocess import set_nonblock_flag
 from ClusterShell.Worker.Worker import StreamWorker
 from ClusterShell.Worker.Tree import WorkerTree
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
-    ControlMessage, ACKMessage, ErrorMessage, EndMessage, StdOutMessage, \
-    StdErrMessage, RetcodeMessage, TimeoutMessage
+    ControlMessage, ACKMessage, ErrorMessage, StartMessage, EndMessage, \
+    StdOutMessage, StdErrMessage, RetcodeMessage, TimeoutMessage, \
+    MessageProcessingError
 
 
 class WorkerTreeResponder(EventHandler):
@@ -124,53 +125,60 @@ class GatewayChannel(Channel):
         self.propagation = None
         self.logger = logging.getLogger(__name__)
 
-        self.current_state = None
-        self.states = {
-            'CFG': self._state_cfg,
-            'CTL': self._state_ctl,
-            'GTR': self._state_gtr,
-        }
-
     def start(self):
         """initialization"""
-        self._open()
-        # prepare to receive topology configuration
-        self.current_state = self.states['CFG']
-        self.logger.debug('entering config state')
+        # prepare communication
+        self._init()
+        self.logger.debug('ready to accept channel communication')
 
     def close(self):
         """close gw channel"""
-        self.logger.debug('closing gw channel')
+        self.logger.debug('closing gateway channel')
         self._close()
-        self.current_state = None
 
     def recv(self, msg):
         """handle incoming message"""
         try:
             self.logger.debug('handling incoming message: %s', str(msg))
-            if msg.ident == EndMessage.ident:
+            if msg.type == EndMessage.ident:
                 self.logger.debug('recv: got EndMessage')
-                self.worker.abort()
+                self._close()
+            elif self.setup:
+                self.recv_ctl(msg)
+            elif self.opened:
+                self.recv_cfg(msg)
+            elif msg.type == StartMessage.ident:
+                self.logger.debug('got channel start')
+                self.opened = True
+                self._open()
+                # TODO: channel versioning
             else:
-                self.current_state(msg)
+                self.logger.error('unexpected message: %s', str(msg))
+                raise MessageProcessingError('unexpected message: %s' % msg)
+        except MessageProcessingError, ex:
+            self.logger.error('on recv(): %s', str(ex))
+            self.send(ErrorMessage(str(ex)))
+            self._close()
+
         except Exception, ex:
             self.logger.exception('on recv(): %s', str(ex))
             self.send(ErrorMessage(str(ex)))
+            self._close()
 
-    def _state_cfg(self, msg):
-        """receive topology configuration"""
+    def recv_cfg(self, msg):
+        """receive cfg/topology configuration"""
         if msg.type == ConfigurationMessage.ident:
+            self.logger.debug('got channel configuration')
             self.topology = msg.data_decode()
             task_self().topology = self.topology
             self.logger.debug('decoded propagation tree')
             self.logger.debug('%s' % str(self.topology))
+            self.setup = True
             self._ack(msg)
-            self.current_state = self.states['CTL']
-            self.logger.debug('entering control state')
         else:
-            logging.error('unexpected message: %s', str(msg))
+            raise MessageProcessingError('unexpected message: %s' % msg)
 
-    def _state_ctl(self, msg):
+    def recv_ctl(self, msg):
         """receive control message with actions to perform"""
         if msg.type == ControlMessage.ident:
             self.logger.debug('GatewayChannel._state_ctl')
@@ -198,7 +206,6 @@ class GatewayChannel(Channel):
                 self.logger.debug('inherited fanout value=%d', \
                                   task.info("fanout"))
 
-                #self.current_state = self.states['GTR']
                 self.logger.debug('launching execution/enter gathering state')
 
                 responder = WorkerTreeResponder(task, self, msg.srcid)
@@ -222,15 +229,9 @@ class GatewayChannel(Channel):
                 self.logger.debug('GatewayChannel eof')
                 self.propagation.set_write_eof()
             else:
-                logging.error('unexpected CTL action: %s', msg.action)
+                self.logger.error('unexpected CTL action: %s', msg.action)
         else:
-            logging.error('unexpected message: %s', str(msg))
-
-    def _state_gtr(self, msg):
-        """gather outputs"""
-        # FIXME: state GTR not really used, remove it?
-        self.logger.debug('GatewayChannel._state_gtr')
-        self.logger.debug('incoming output msg: %s' % str(msg))
+            self.logger.error('unexpected message: %s', str(msg))
 
     def _ack(self, msg):
         """acknowledge a received message"""

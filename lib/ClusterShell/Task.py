@@ -1302,12 +1302,11 @@ class Task(object):
         """Release propagation channel"""
         if metaworker in self.pmwkrs:
             for worker in self.pmwkrs[metaworker]:
-                #print >>sys.stderr, "pchannel_release2 %s" % worker
                 worker.metarefcnt -= 1
                 if worker.metarefcnt == 0:
-                    #print >>sys.stderr, "worker abort"
-                    worker.eh._close()
-                    #worker.abort()
+                    infomsg = "_pchannel_release: worker abort"
+                    logging.getLogger(__name__).info(infomsg)
+                    worker.abort()
 
 
 def task_self():
