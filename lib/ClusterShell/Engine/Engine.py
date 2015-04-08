@@ -374,8 +374,8 @@ class Engine:
         # safely process FDs by chunk and re-use FDs (see Engine._fd2client).
         self._current_loopcnt = 0
 
-        # Current client being processed
-        self._current_client = None
+        # Current stream being processed
+        self._current_stream = None
 
         # timer queue to handle both timers and clients timeout
         self.timerq = _EngineTimerQ(self)
@@ -563,8 +563,8 @@ class Engine:
         stream.new_events &= ~clearmask
         stream.new_events |= setmask
 
-        if self._current_client is not client:
-            # modifying a non processing client, apply new_events now
+        if self._current_stream is not stream:
+            # modifying a non processing stream, apply new_events now
             self.set_events(client, stream)
 
     def _register_specific(self, fd, event):

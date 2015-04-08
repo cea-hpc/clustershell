@@ -149,8 +149,8 @@ class EngineSelect(Engine):
                 fdev = stream.evmask
                 sname = stream.name
 
-                # process this client
-                self._current_client = client
+                # process this stream
+                self._current_stream = stream
 
                 # check for possible unblocking read on this fd
                 if fd in r_ready:
@@ -175,7 +175,7 @@ class EngineSelect(Engine):
                     client._handle_write(sname)
 
                 # post processing
-                self._current_client = None
+                self._current_stream = None
 
                 # apply any changes occured during processing
                 if client.registered:

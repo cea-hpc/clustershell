@@ -145,8 +145,8 @@ class EnginePoll(Engine):
                 fdev = stream.evmask
                 sname = stream.name
 
-                # process this client
-                self._current_client = client
+                # process this stream
+                self._current_stream = stream
 
                 # check for poll error condition of some sort
                 if event & select.POLLERR:
@@ -154,7 +154,7 @@ class EnginePoll(Engine):
                     assert fdev & E_WRITE
                     self._debug("POLLERR: remove_stream sname %s fdev 0x%x" % (sname, fdev))
                     self.remove_stream(client, stream)
-                    self._current_client = None
+                    self._current_stream = None
                     continue
 
                 # check for data to read
@@ -167,7 +167,7 @@ class EnginePoll(Engine):
                     except EngineClientEOF:
                         self._debug("EngineClientEOF %s %s" % (client, sname))
                         self.remove_stream(client, stream)
-                        self._current_client = None
+                        self._current_stream = None
                         continue
 
                 # or check for end of stream (do not handle both at the same
@@ -176,7 +176,7 @@ class EnginePoll(Engine):
                     self._debug("POLLHUP fd=%d %s (%s)" % (fd,
                         client.__class__.__name__, client.streams))
                     self.remove_stream(client, stream)
-                    self._current_client = None
+                    self._current_stream = None
                     continue
 
                 # check for writing
@@ -188,7 +188,7 @@ class EnginePoll(Engine):
                     self.modify(client, sname, 0, fdev)
                     client._handle_write(sname)
 
-                self._current_client = None
+                self._current_stream = None
 
                 # apply any changes occured during processing
                 if client.registered:
