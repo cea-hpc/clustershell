@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
-# Written by S. Thiell 2010-02-18
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell TaskMsgTree variants"""
@@ -14,7 +14,8 @@ from ClusterShell.Event import EventHandler
 
 
 class TaskMsgTreeTest(unittest.TestCase):
-    
+    """Task/MsgTree test case class"""
+
     def tearDown(self):
         # cleanup task_self between tests to restore defaults
         task_cleanup()
@@ -133,4 +134,14 @@ class TaskMsgTreeTest(unittest.TestCase):
         task.resume()
         task.flush_errors()
         self.assertEqual(len(list(task.iter_errors())), 0)
+
+    def testTaskModifyCommonStreams(self):
+        """test worker common stream names change"""
+        task = task_self()
+        worker = task.shell("echo foo 1>&2; echo bar", stderr=True)
+        worker.SNAME_STDOUT = 'dummy-stdout' # disable buffering on stdout only
+        task.resume()
+        # only stderr should have been buffered at task level
+        self.assertEqual(len(list(task.iter_buffers())), 0)
+        self.assertEqual(len(list(task.iter_errors())), 1)
 

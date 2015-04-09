@@ -91,7 +91,7 @@ class ExecClient(EngineClient):
         self.command = command
         self.popen = None
         # Declare writer stream to allow early buffering
-        self.streams.set_writer('stdin', None, retain=True)
+        self.streams.set_writer(worker.SNAME_STDIN, None, retain=True)
 
     def _build_cmd(self):
         """
@@ -319,7 +319,7 @@ class ExecWorker(DistantWorker):
 
     def write(self, buf):
         """Write to worker clients."""
-        sname = 'stdin'
+        sname = self.SNAME_STDIN
         for client in self._clients:
             if sname in client.streams:
                 client._write(sname, buf)
@@ -330,7 +330,7 @@ class ExecWorker(DistantWorker):
         perform writes after this call.
         """
         for client in self._clients:
-            client._set_write_eof('stdin')
+            client._set_write_eof(self.SNAME_STDIN)
 
     def abort(self):
         """Abort processing any action by this worker."""

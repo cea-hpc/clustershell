@@ -353,9 +353,11 @@ class EngineClient(EngineBaseTimer):
                      stderr=stderr_setup, shell=shell, env=full_env)
 
         if self._stderr:
-            self.streams.set_stream('stderr', proc.stderr, E_READ)
-        self.streams.set_stream('stdout', proc.stdout, E_READ)
-        self.streams.set_stream('stdin', proc.stdin, E_WRITE, retain=False)
+            self.streams.set_stream(self.worker.SNAME_STDERR, proc.stderr,
+                                    E_READ)
+        self.streams.set_stream(self.worker.SNAME_STDOUT, proc.stdout, E_READ)
+        self.streams.set_stream(self.worker.SNAME_STDIN, proc.stdin, E_WRITE,
+                                retain=False)
 
         return proc
 

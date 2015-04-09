@@ -56,7 +56,7 @@ class PopenClient(StreamClient):
         self.popen = None
         self.rc = None
         # Declare writer stream to allow early buffering
-        self.streams.set_writer('stdin', None, retain=False)
+        self.streams.set_writer(worker.SNAME_STDIN, None, retain=False)
 
     def _start(self):
         """Worker is starting."""

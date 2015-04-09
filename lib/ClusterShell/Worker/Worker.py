@@ -88,6 +88,12 @@ class Worker(object):
         ...
     """
 
+    # The following common stream names are recognized by the Task class.
+    # They can be changed per Worker, thus avoiding any Task buffering.
+    SNAME_STDIN  = 'stdin'
+    SNAME_STDOUT = 'stdout'
+    SNAME_STDERR = 'stderr'
+
     def __init__(self, handler):
         """Initializer. Should be called from derived classes."""
         # Associated EventHandler object
@@ -197,7 +203,7 @@ class DistantWorker(Worker):
         task._msg_add(self, node, sname, msg)
         # generate event
         self.current_node = node
-        if sname == 'stderr':
+        if sname == self.SNAME_STDERR:
             self.current_errmsg = msg
             if handler is not None:
                 handler.ev_error(self)
@@ -254,11 +260,11 @@ class DistantWorker(Worker):
 
     def node_buffer(self, node):
         """Get specific node buffer."""
-        return self.read(node, 'stdout')
+        return self.read(node, self.SNAME_STDOUT)
 
     def node_error(self, node):
         """Get specific node error buffer."""
-        return self.read(node, 'stderr')
+        return self.read(node, self.SNAME_STDERR)
 
     node_error_buffer = node_error
 
@@ -285,7 +291,7 @@ class DistantWorker(Worker):
         """
         self._task_bound_check()
         for msg, keys in self.task._call_tree_matcher(
-                self.task._msgtree('stdout').walk, match_keys, self):
+                self.task._msgtree(self.SNAME_STDOUT).walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
 
     def iter_errors(self, match_keys=None):
@@ -296,7 +302,7 @@ class DistantWorker(Worker):
         """
         self._task_bound_check()
         for msg, keys in self.task._call_tree_matcher(
-                self.task._msgtree('stderr').walk, match_keys, self):
+                self.task._msgtree(self.SNAME_STDERR).walk, match_keys, self):
             yield msg, NodeSet.fromlist(keys)
 
     def iter_node_buffers(self, match_keys=None):
@@ -305,7 +311,7 @@ class DistantWorker(Worker):
         """
         self._task_bound_check()
         return self.task._call_tree_matcher(
-            self.task._msgtree('stdout').items, match_keys, self)
+            self.task._msgtree(self.SNAME_STDOUT).items, match_keys, self)
 
     def iter_node_errors(self, match_keys=None):
         """
@@ -313,7 +319,7 @@ class DistantWorker(Worker):
         """
         self._task_bound_check()
         return self.task._call_tree_matcher(
-            self.task._msgtree('stderr').items, match_keys, self)
+            self.task._msgtree(self.SNAME_STDERR).items, match_keys, self)
 
     def iter_retcodes(self, match_keys=None):
         """
