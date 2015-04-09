@@ -1,0 +1,12 @@
+# ClusterShell cluster topology example file
+#
+#  rio0
+#  |- rio[10-11]
+#  |  `- rio[100-240]
+#  `- rio[12-13]
+#     `- rio[300-440]
+
+[Main]
+rio0: rio[10-13]
+rio[10-11]: rio[100-240]
+rio[12-13]: rio[300-440]
