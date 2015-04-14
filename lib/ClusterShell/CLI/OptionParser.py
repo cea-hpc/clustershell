@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -32,7 +32,7 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 
 """
-common ClusterShell CLI OptionParser
+Common ClusterShell CLI OptionParser
 
 With few exceptions, ClusterShell command-lines share most option
 arguments. This module provides a common OptionParser class.
@@ -44,6 +44,7 @@ import optparse
 from ClusterShell import __version__
 from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.CLI.Display import THREE_CHOICES
+
 
 def check_safestring(option, opt, value):
     """type-checker function for safestring"""
@@ -66,7 +67,7 @@ class Option(optparse.Option):
 
 class OptionParser(optparse.OptionParser):
     """Derived OptionParser for all CLIs"""
-    
+
     def __init__(self, usage, **kwargs):
         """Initialize ClusterShell CLI OptionParser"""
         optparse.OptionParser.__init__(self, usage,
@@ -100,8 +101,10 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-E", "--engine", action="store", dest="engine",
                           choices=["auto"] + PreferredEngine.engines.keys(),
                           default="auto", help=optparse.SUPPRESS_HELP)
-        optgrp.add_option("-T", "--topology", action="store", dest="topofile",
-                          default=None, help=optparse.SUPPRESS_HELP)
+        optgrp.add_option("--topology", action="store", dest="topofile",
+                          default=None, metavar='FILE',
+                          help="topology configuration file to use for tree "
+                               "mode")
         self.add_option_group(optgrp)
 
     def install_display_options(self,
@@ -143,8 +146,8 @@ class OptionParser(optparse.OptionParser):
         if separator_option:
             optgrp.add_option("-S", "--separator", action="store",
                               dest="separator", default=':',
-                              help="node / line content separator string " \
-                              "(default: ':')")
+                              help="node / line content separator string "
+                                   "(default: ':')")
         else:
             optgrp.add_option("-S", action="store_true", dest="maxrc",
                               help="return the largest of command return codes")
@@ -159,11 +162,11 @@ class OptionParser(optparse.OptionParser):
                               help="message tree trace mode")
             optgrp.add_option("--interpret-keys", action="store",
                               dest="interpret_keys", choices=THREE_CHOICES,
-                              default=THREE_CHOICES[-1], help="whether to " \
+                              default=THREE_CHOICES[-1], help="whether to "
                               "interpret keys (never, always or auto)")
 
         optgrp.add_option("--color", action="store", dest="whencolor",
-                          choices=THREE_CHOICES, help="whether to use ANSI " \
+                          choices=THREE_CHOICES, help="whether to use ANSI "
                           "colors (never, always or auto)")
         optgrp.add_option("--diff", action="store_true", dest="diff",
                           help="show diff between gathered outputs")
@@ -191,50 +194,61 @@ class OptionParser(optparse.OptionParser):
                           help="preserve modification times and modes")
         self.add_option_group(optgrp)
 
-    
+
     def install_connector_options(self):
         """Install engine/connector (ssh, ...) options"""
         optgrp = optparse.OptionGroup(self, "Connection options")
-        optgrp.add_option("-f", "--fanout", action="store", dest="fanout", 
+        optgrp.add_option("-f", "--fanout", action="store", dest="fanout",
                           help="use a specified fanout", type="int")
         #help="queueing delay for traffic grooming"
-        optgrp.add_option("-Q", action="store", dest="grooming_delay", 
+        optgrp.add_option("--grooming", action="store", dest="grooming_delay",
                           help=optparse.SUPPRESS_HELP, type="float")
         optgrp.add_option("-l", "--user", action="store", type="safestring",
                           dest="user", help="execute remote command as user")
         optgrp.add_option("-o", "--options", action="store", dest="options",
                           help="can be used to give ssh options")
         optgrp.add_option("-t", "--connect_timeout", action="store",
-                          dest="connect_timeout", help="limit time to " \
-                          "connect to a node" ,type="float")
+                          dest="connect_timeout",
+                          help="limit time to connect to a node", type="float")
         optgrp.add_option("-u", "--command_timeout", action="store",
-                          dest="command_timeout", help="limit time for " \
-                          "command to run on the node", type="float")
+                          dest="command_timeout",
+                          help="limit time for command to run on the node",
+                          type="float")
         optgrp.add_option("--worker", action="store", dest="worker",
-                          help="worker name to use for connection (default is 'ssh')")
+                          help="worker name to use for command execution "
+                               "('exec', 'rsh', 'ssh', etc. default is 'ssh')")
+        optgrp.add_option("--remote", action="store", dest="remote",
+                          choices=('yes', 'no'),
+                          help="whether to enable remote execution: in tree "
+                               "mode, 'yes' forces connections to the leaf "
+                               "nodes for execution, 'no' establishes "
+                               "connections up to the leaf parent nodes for "
+                               "execution (default is 'yes')")
         self.add_option_group(optgrp)
 
     def install_nodeset_commands(self):
         """Install nodeset commands"""
         optgrp = optparse.OptionGroup(self, "Commands")
-        optgrp.add_option("-c", "--count", action="store_true", dest="count", 
-                          default=False, help="show number of nodes in " \
-                          "nodeset(s)")
-        optgrp.add_option("-e", "--expand", action="store_true",
-                          dest="expand", default=False, help="expand " \
-                          "nodeset(s) to separate nodes")
-        optgrp.add_option("-f", "--fold", action="store_true", dest="fold", 
-                          default=False, help="fold nodeset(s) (or " \
-                          "separate nodes) into one nodeset")
-        optgrp.add_option("-l", "--list", action="count", dest="list", 
-                          default=False, help="list node groups (see -s " \
-                          "GROUPSOURCE)")
+        optgrp.add_option("-c", "--count", action="store_true", dest="count",
+                          default=False,
+                          help="show number of nodes in nodeset(s)")
+        optgrp.add_option("-e", "--expand", action="store_true", dest="expand",
+                          default=False,
+                          help="expand nodeset(s) to separate nodes")
+        optgrp.add_option("-f", "--fold", action="store_true", dest="fold",
+                          default=False, help="fold nodeset(s) (or separate "
+                                              "nodes) into one nodeset")
+        optgrp.add_option("-l", "--list", action="count", dest="list",
+                          default=False,
+                          help="list node groups (see -s GROUPSOURCE)")
         optgrp.add_option("-r", "--regroup", action="store_true",
-                          dest="regroup", default=False, help="fold nodes " \
-                          "using node groups (see -s GROUPSOURCE)")
+                          dest="regroup", default=False,
+                          help="fold nodes using node groups (see -s "
+                               "GROUPSOURCE)")
         optgrp.add_option("--groupsources", action="store_true",
-                          dest="groupsources", default=False, help="list " \
-                          "all active group sources (see groups.conf(5))")
+                          dest="groupsources", default=False,
+                          help="list all active group sources (see "
+                               "groups.conf(5))")
         self.add_option_group(optgrp)
 
     def install_nodeset_operations(self):
@@ -247,42 +261,42 @@ class OptionParser(optparse.OptionParser):
                           dest="and_nodes", default=[], type="string",
                           help="calculate nodesets intersection")
         optgrp.add_option("-X", "--xor", action="append", dest="xor_nodes",
-                          default=[], type="string", help="calculate " \
-                          "symmetric difference between nodesets")
+                          default=[], type="string",
+                          help="calculate symmetric difference between "
+                               "nodesets")
         self.add_option_group(optgrp)
 
     def install_nodeset_options(self):
         """Install nodeset options"""
         optgrp = optparse.OptionGroup(self, "Options")
-        optgrp.add_option("-a", "--all", action="store_true", dest="all", 
-                          help="call external node groups support to " \
+        optgrp.add_option("-a", "--all", action="store_true", dest="all",
+                          help="call external node groups support to "
                                "display all nodes")
-        optgrp.add_option("--autostep", action="store", dest="autostep", 
-                          help="auto step threshold number when folding " \
-                               "nodesets", type="int")
+        optgrp.add_option("--autostep", action="store", dest="autostep",
+                          help="auto step threshold number when folding "
+                               "nodesets",
+                          type="int")
         optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
                           help="output more messages for debugging purpose")
         optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
                           help="be quiet, print essential output only")
         optgrp.add_option("-R", "--rangeset", action="store_true",
-                          dest="rangeset", help="switch to RangeSet instead " \
-                          "of NodeSet. Useful when working on numerical " \
+                          dest="rangeset", help="switch to RangeSet instead "
+                          "of NodeSet. Useful when working on numerical "
                           "cluster ranges, eg. 1,5,18-31")
         optgrp.add_option("-G", "--groupbase", action="store_true",
-                          dest="groupbase", help="hide group source prefix " \
+                          dest="groupbase", help="hide group source prefix "
                           "(always \"@groupname\")")
         optgrp.add_option("-S", "--separator", action="store", dest="separator",
-                          default=' ', help="separator string to use when " \
-                          "expanding nodesets (default: ' ')")
+                          default=' ', help="separator string to use when "
+                                            "expanding nodesets (default: ' ')")
         optgrp.add_option("-I", "--slice", action="store",
                           dest="slice_rangeset",
                           help="return sliced off result", type="string")
-        optgrp.add_option("--split", action="store", dest="maxsplit", 
+        optgrp.add_option("--split", action="store", dest="maxsplit",
                           help="split result into a number of subsets",
                           type="int")
         optgrp.add_option("--contiguous", action="store_true",
-                          dest="contiguous", help="split result into " \
-                          "contiguous subsets")
+                          dest="contiguous", help="split result into "
+                                                  "contiguous subsets")
         self.add_option_group(optgrp)
-
-

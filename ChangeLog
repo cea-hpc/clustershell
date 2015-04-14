@@ -1,3 +1,10 @@
+2015-04-01 S. Thiell <stephane.thiell@cea.fr>
+
+	* Tree: allow local command execution on gateways by adding remote=False to
+	task.shell()/run().  In practice with this patch, we can now easily
+	execute local commands on (remote) gateways using node argument like
+	`ipmitool -H %h` to spread the load between gateways.
+
 2015-03-24 S. Thiell <stephane.thiell@cea.fr>
 
 	* NodeSet.py: disallow opening bracket after digit (ticket #228).

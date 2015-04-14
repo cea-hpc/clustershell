@@ -100,7 +100,7 @@ class WorkerTreeResponder(EventHandler):
             NodeSet._fromlist1(worker.iter_keys_timeout()), self.srcwkr))
 
     def ev_close(self, worker):
-        """End of responder"""
+        """End of CTL SHELL responder"""
         self.logger.debug("WorkerTreeResponder: ev_close")
         # finalize grooming
         self.ev_timer(None)
@@ -109,8 +109,6 @@ class WorkerTreeResponder(EventHandler):
             self.logger.debug("iter(rc): %s: rc=%d" % (nodes, rc))
             self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
         self.timer.invalidate()
-        # clean channel closing
-        ####self.gwchan.close()
 
 
 class GatewayChannel(Channel):
@@ -160,6 +158,10 @@ class GatewayChannel(Channel):
             self.send(ErrorMessage(str(ex)))
             self._close()
 
+        except EngineAbortException:
+            # gateway task abort: don't handle like other exceptions
+            raise
+
         except Exception, ex:
             self.logger.exception('on recv(): %s', str(ex))
             self.send(ErrorMessage(str(ex)))
@@ -188,6 +190,7 @@ class GatewayChannel(Channel):
                 cmd = data['cmd']
                 stderr = data['stderr']
                 timeout = data['timeout']
+                remote = data['remote']
 
                 #self.propagation.invoke_gateway = data['invoke_gateway']
                 self.logger.debug('decoded gw invoke (%s)', \
@@ -214,7 +217,8 @@ class GatewayChannel(Channel):
                                               command=cmd,
                                               topology=self.topology,
                                               newroot=self.hostname,
-                                              stderr=stderr)
+                                              stderr=stderr,
+                                              remote=remote)
                 # FIXME ev_start-not-called workaround
                 responder.worker = self.propagation
                 self.propagation.upchannel = self
@@ -236,6 +240,15 @@ class GatewayChannel(Channel):
     def _ack(self, msg):
         """acknowledge a received message"""
         self.send(ACKMessage(msg.msgid))
+
+    def ev_close(self, worker):
+        """Gateway (parent) channel is closing.
+
+        We abort the whole gateway task to stop other running workers.
+        This avoids any unwanted remaining processes on gateways.
+        """
+        self.logger.debug('GatewayChannel: ev_close')
+        self.worker.task.abort()
 
 
 def gateway_main():

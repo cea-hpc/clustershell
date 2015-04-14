@@ -268,7 +268,10 @@ class EngineClient(EngineBaseTimer):
         is the regular way to close a stream flushing read buffers accordingly.
         """
         self._flush_read(sname)
-        del self.streams[sname]
+        # flush_read() is useful but may generate user events (ev_read) that
+        # could lead to worker abort and then ev_close. Be careful there.
+        if sname in self.streams:
+            del self.streams[sname]
 
     def _set_reading(self, sname):
         """

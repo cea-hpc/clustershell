@@ -59,7 +59,7 @@
   /Producer (pdfLaTeX)
   /Author (S. THIELL)
   /CreationDate (D:20110912)
-  /ModDate (D: 20150331)
+  /ModDate (D: 20150402)
   /Keywords (ClusterShell, clush, shell, nodeset, Python, HPC, Linux)
 }
 
@@ -1011,9 +1011,13 @@ $ rangeset -e 0-8/2
 
 Some features of \clush command line tool are:
 \begin{itemize}
-\item{execution of commands in parallel}
+\item two modes of parallel cluster commands execution:
+    \begin{itemize}
+        \item flat mode: sliding window of local or \textit{ssh(1)} commands
+        \item tree mode: commands propagated to the targets through a tree of pre-configured gateways; gateways are then using a sliding window of local or \textit{ssh(1)} commands to reach the targets (if the target count per gateway is greater than the fanout value)
+    \end{itemize}
 \item{smart display of command results (integrated output gathering, sorting by node, nodeset or node groups)}
-\item{standard input text redirection to remote nodes}
+\item{standard input redirection to remote nodes}
 \item{files copying in parallel}
 \item{\textit{pdsh}\footnote{LLNL parallel remote shell utility (\url{https://computing.llnl.gov/linux/pdsh.html})} options backward compatibility}
 \end{itemize}
@@ -1045,6 +1049,33 @@ node26: 0.02 0.01 0.00 1/202 23042
 \subsubsection{All nodes selection}
 \label{nodeset-all-nodes}
 Finally, a special option \verb+-a+ (without argument) can be used to select "all" nodes, in the sense of ClusterShell node groups (see section \ref{groups-config} page~\pageref{groups-config} for more details on special \textbf{all} external shell command (\textit{upcall}) configuration). If not properly configured, the \verb+-a+ option may lead to a runtime error like \textit{"clush: External error: Not enough working external calls (all, or map + list) defined to get all nodes"}.
+
+\subsection{Tree mode}
+\label{clush-tree}
+
+ClusterShell Tree mode is a major horizontal scalability improvement by enabling a hierarchical command propagation scheme. This section describes how to use the tree mode with the \clush command.
+
+\subsubsection{Enabling tree mode}
+\label{clush-tree-enabling}
+
+As of version 1.7, the tree mode is enabled by default when a configuration is present. The system-wide library configuration file \verb+/etc/clustershell/topology.conf+ defines the routes of default command propagation tree. When this file exists, \clush will use it by default for target nodes that are defined there. This file path can be changed at runtime using the \verb+--topology+ command line option.
+
+% how to disable tree mode ?
+
+\subsubsection{Tree-related options}
+\label{clush-tree-options}
+
+The \verb+--remote=yes|no+ command line option controls the remote execution behavior:
+\begin{itemize}
+\item Default is \verb+yes+, that will make \clush establish connections up to the leaf nodes using a \emph{distant worker} like \textit{ssh}.
+\item Changing it to \verb+no+ will make \clush establish connections up to the leaf parent nodes only, then the commands are executed locally on the gateways (like if it would be with \verb+--worker=exec+ on the gateways themselves). This execution mode allows users to schedule remote commands on gateways that take a node as an argument. On large clusters, this is useful to spread the load and resources used of one-shot monitoring, IPMI, or other commands on gateways. A simple example of use is:
+    \begin{itemize}
+    \item \lstinline+$ clush -w node[100-199] --remote=no /usr/sbin/ipmipower -h %h-ipmi -s+
+    \end{itemize}
+This command is also valid if you don't have any tree configured, because in that case, \verb+--remote=no+ is an alias of \verb+--worker=exec+ worker.
+\end{itemize}
+
+The \verb+--grooming+ command line option allows users to change the grooming delay (float, in seconds). This feature allows gateways to aggregate responses received within a certain timeframe before transmitting them back to the root node in a batch fashion. This contributes to reducing the load on the root node by delegating the first steps of this CPU intensive task to the gateways.
 
 \subsection{Non-interactive (or one-shot) mode}
 \label{clush-oneshot}

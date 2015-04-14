@@ -70,6 +70,7 @@ from ClusterShell.Engine.Engine import EngineAlreadyRunningError
 from ClusterShell.Engine.Engine import EngineTimer
 from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.Worker.EngineClient import EnginePort
+from ClusterShell.Worker.Exec import ExecWorker
 from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.Popen import WorkerPopen
 from ClusterShell.Worker.Tree import WorkerTree
@@ -184,6 +185,7 @@ class Task(object):
                       "port_qlimit"        : 100,
                       "auto_tree"          : True,
                       "topology_file"      : "/etc/clustershell/topology.conf",
+                      "local_worker"       : ExecWorker,
                       "distant_worker"     : WorkerSsh }
 
     _std_info =     { "debug"              : False,
@@ -557,7 +559,8 @@ class Task(object):
         Distant usage::
             task.shell(command, nodes=nodeset [, handler=handler]
                   [, timeout=secs], [, autoclose=enable_autoclose]
-                  [, strderr=enable_stderr], [tree=None|False|True])
+                  [, tree=None|False|True] [, remote=False|True]
+                  [, stderr=enable_stderr])
 
         Example:
 
@@ -570,6 +573,7 @@ class Task(object):
         timeo = kwargs.get("timeout", None)
         autoclose = kwargs.get("autoclose", False)
         stderr = kwargs.get("stderr", self.default("stderr"))
+        remote = kwargs.get("remote", True)
 
         if kwargs.get("nodes", None):
             assert kwargs.get("key", None) is None, \
@@ -585,15 +589,18 @@ class Task(object):
                                     "command with unknown topology!")
                 # create tree worker
                 wrkcls = WorkerTree
+            elif not remote:
+                # create local worker
+                wrkcls = self.default('local_worker')
             else:
                 # create distant worker
                 wrkcls = self.default('distant_worker')
 
             worker = wrkcls(NodeSet(kwargs["nodes"]), command=command,
                             handler=handler, stderr=stderr,
-                            timeout=timeo, autoclose=autoclose)
+                            timeout=timeo, autoclose=autoclose, remote=remote)
         else:
-            # create local worker
+            # create old fashioned local worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),
                                  handler=handler, stderr=stderr,
                                  timeout=timeo, autoclose=autoclose)
@@ -1283,7 +1290,7 @@ class Task(object):
         """
         # create gateway channel if needed
         if gateway not in self.gateways:
-            chan = PropagationChannel(self)
+            chan = PropagationChannel(self, gateway)
             logging.getLogger(__name__).info("pchannel: creating new channel")
             # invoke gateway
             timeout = None # FIXME: handle timeout for gateway channels

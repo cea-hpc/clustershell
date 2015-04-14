@@ -461,11 +461,13 @@ class Engine:
         remains for this client, this method automatically removes the
         entire client from engine.
         """
+        logging.getLogger(__name__).debug("remove_stream %s %s", client, stream)
         self.unregister_stream(client, stream)
-        # _close_stream() will flush pending read buffers
+        # _close_stream() will flush pending read buffers so may generate events
         client._close_stream(stream.name)
-        # check whether some retained streams remain
-        if not client.streams.retained():
+        # client may have been removed by previous events, if not check whether
+        # some retained streams still remain
+        if client in self._clients and not client.streams.retained():
             self.remove(client)
 
     def clear(self, did_timeout=False, clear_ports=False):
@@ -718,9 +720,6 @@ class Engine:
         return not self.running and self._exited
 
     def _debug(self, s):
-        """
-        # library engine debugging hook
-        import sys
-        print >>sys.stderr, s
-        """
+        """library engine debugging hook"""
+        #logging.getLogger(__name__).debug(s)
         pass

@@ -40,6 +40,7 @@ import os
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.Worker import DistantWorker
+from ClusterShell.Worker.Exec import ExecWorker
 
 from ClusterShell.Propagation import PropagationTreeRouter
 
@@ -146,6 +147,7 @@ class WorkerTree(DistantWorker):
         self.dest = kwargs.get('dest')
         autoclose = kwargs.get('autoclose', False)
         self.stderr = kwargs.get('stderr', False)
+        self.remote = kwargs.get('remote', True)
         self._close_count = 0
         self._start_count = 0
         self._child_count = 0
@@ -158,8 +160,8 @@ class WorkerTree(DistantWorker):
         elif self.source:
             raise NotImplementedError
         else:
-            raise ValueError("missing command or source parameter in " \
-			     "WorkerTree constructor")
+            raise ValueError("missing command or source parameter in "
+                             "WorkerTree constructor")
 
         # build gateway invocation command
         invoke_gw_args = []
@@ -201,22 +203,37 @@ class WorkerTree(DistantWorker):
         self._launch(self.nodes)
 
     def _launch(self, nodes):
-        #self.task.router = None
-        #self.router = self.task._default_router()
-        self.logger.debug("WorkerTree._launch on %s (fanout=%d)" % \
-                          (nodes, self.task.info("fanout")))
+        self.logger.debug("WorkerTree._launch on %s (fanout=%d)"
+                          % (nodes, self.task.info("fanout")))
         # And launch stuffs
         next_hops = self._distribute(self.task.info("fanout"), nodes)
-        self.logger.debug("next_hops=%s" % next_hops)
+        self.logger.debug("next_hops=%s"
+                          % [(str(n), str(v)) for n, v in next_hops.items()])
         for gw, targets in next_hops.iteritems():
             if gw == targets:
-                self.logger.debug('task.shell cmd=%s nodes=%s timeout=%s' % \
-                    (self.command, nodes, self.timeout))
+                self.logger.debug('task.shell cmd=%s nodes=%s timeout=%s '
+                                  'remote=%s' % (self.command, nodes,
+                                                 self.timeout, self.remote))
                 self._child_count += 1
                 self._target_count += len(targets)
-                self.workers.append(self.task.shell(self.command,
-                    nodes=targets, timeout=self.timeout,
-                    handler=self.metahandler, stderr=self.stderr, tree=False))
+                if self.remote:
+                    worker = self.task.shell(self.command,
+                                             nodes=targets,
+                                             timeout=self.timeout,
+                                             handler=self.metahandler,
+                                             stderr=self.stderr,
+                                             tree=False)
+                else:
+                    worker = ExecWorker(nodes=targets,
+                                        command=self.command,
+                                        handler=self.metahandler,
+                                        timeout=self.timeout,
+                                        stderr=self.stderr)
+                    self.task.schedule(worker)
+
+                self.workers.append(worker)
+                self.logger.debug("added child worker %s count=%d", worker,
+                                  len(self.workers))
             else:
                 self.logger.debug("trying gateway %s to reach %s", gw, targets)
                 self._execute_remote(self.command, targets, gw, self.timeout)
@@ -241,11 +258,11 @@ class WorkerTree(DistantWorker):
         #self._child_count += 1
         self._target_count += len(targets)
 
-        self.gwtargets[gateway] = targets
+        self.gwtargets[gateway] = targets.copy()
 
         self.task._pchannel(gateway, self).shell(nodes=targets,
             command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
-            gw_invoke_cmd=self.invoke_gateway)
+            gw_invoke_cmd=self.invoke_gateway, remote=self.remote)
 
         self._check_ini()
 

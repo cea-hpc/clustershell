@@ -3,13 +3,13 @@
 
 import logging
 import os
+import re
 import unittest
 import xml.sax
 
-from ClusterShell.Communication import ConfigurationMessage, ControlMessage
-from ClusterShell.Communication import StdOutMessage, RetcodeMessage, ACKMessage
-from ClusterShell.Communication import StartMessage, EndMessage, ErrorMessage
-from ClusterShell.Communication import XMLReader
+from ClusterShell.Communication import ConfigurationMessage, ControlMessage, \
+    StdOutMessage, StdErrMessage, RetcodeMessage, ACKMessage, ErrorMessage, \
+    TimeoutMessage, StartMessage, EndMessage, XMLReader
 from ClusterShell.Gateway import GatewayChannel
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import Task, task_self
@@ -240,7 +240,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         """test gateway unknown tag in channel"""
         self._check_channel_err('<foo></foo>', 'Invalid starting tag foo')
 
-    def test_channel_err_unknown_tag(self):
+    def test_channel_err_unknown_tag_setup(self):
         """test gateway unknown tag in channel (setup)"""
         self._check_channel_err('<foo></foo>',
                                 'Invalid starting tag foo',
@@ -318,23 +318,22 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         self.gateway.close()
         self.gateway.wait()
 
-    def test_channel_ctl_shell(self):
-        """test gateway channel remote shell command"""
+    def _check_channel_ctl_shell(self, command, target, stderr, remote,
+                                 reply_msg_class, reply_pattern, timeout=-1,
+                                 replycnt=1, reply_rc=0):
+        """helper to check channel shell action"""
         self.channel_send_start()
         msg = self.recvxml(StartMessage)
         self.channel_send_cfg()
         msg = self.recvxml(ACKMessage)
 
-        # test remote shell command request
-        command = "echo ok"
-        target = NodeSet("n10")
-        timeout = -1
+        # prepare a remote shell command request...
         workertree = WorkerTree(nodes=target, handler=None, timeout=timeout,
                                 command=command)
         # code snippet from PropagationChannel.shell()
         ctl = ControlMessage(id(workertree))
         ctl.action = 'shell'
-        ctl.target = target
+        ctl.target = NodeSet(target)
 
         info = task_self()._info.copy()
         info['debug'] = False
@@ -343,21 +342,83 @@ class TreeGatewayTest(TreeGatewayBaseTest):
             'cmd': command,
             'invoke_gateway': workertree.invoke_gateway,
             'taskinfo': info,
-            'stderr': False,
+            'stderr': stderr,
             'timeout': timeout,
+            'remote': remote
         }
         ctl.data_encode(ctl_data)
         self.gateway.send(ctl.xml())
 
         self.recvxml(ACKMessage)
 
-        msg = self.recvxml(StdOutMessage)
-        self.assertEqual(msg.nodes, "n10")
-        self.assertTrue("Name or service not known" in msg.data)
+        for _ in range(replycnt):
+            msg = self.recvxml(reply_msg_class)
+            self.assertTrue(msg.nodes in ctl.target)
+            try:
+                if not reply_pattern.search(msg.data):
+                    self.assertEqual(msg.data, reply_pattern,
+                                     'Pattern "%s" not found in msg.data="%s"'
+                                     % (reply_pattern.pattern, msg.data))
+            except AttributeError:
+                # not a regexp
+                self.assertEqual(msg.data, reply_pattern)
 
-        msg = self.recvxml(RetcodeMessage)
-        self.assertEqual(msg.retcode, 255)
+        if timeout <= 0:
+            msg = self.recvxml(RetcodeMessage)
+            self.assertEqual(msg.retcode, reply_rc)
 
         self.channel_send_stop()
         self.gateway.wait()
         self.gateway.close()
+
+    def test_channel_ctl_shell_local1(self):
+        """test gateway channel shell stdout (stderr=False remote=False)"""
+        self._check_channel_ctl_shell("echo ok", "n10", False, False,
+                                      StdOutMessage, "ok")
+
+    def test_channel_ctl_shell_local2(self):
+        """test gateway channel shell stdout (stderr=True remote=False)"""
+        self._check_channel_ctl_shell("echo ok", "n10", True, False,
+                                      StdOutMessage, "ok")
+
+    def test_channel_ctl_shell_local3(self):
+        """test gateway channel shell stderr (stderr=True remote=False)"""
+        self._check_channel_ctl_shell("echo ok >&2", "n10", True, False,
+                                      StdErrMessage, "ok")
+
+    def test_channel_ctl_shell_mlocal1(self):
+        """test gateway channel shell multi (remote=False)"""
+        self._check_channel_ctl_shell("echo ok", "n[10-49]", True, False,
+                                      StdOutMessage, "ok")
+
+    def test_channel_ctl_shell_mlocal2(self):
+        """test gateway channel shell multi stderr (remote=False)"""
+        self._check_channel_ctl_shell("echo ok 1>&2", "n[10-49]", True, False,
+                                      StdErrMessage, "ok")
+
+    def test_channel_ctl_shell_mlocal3(self):
+        """test gateway channel shell multi placeholder (remote=False)"""
+        self._check_channel_ctl_shell('echo node %h rank %n', "n[10-29]", True,
+                                      False, StdOutMessage,
+                                      re.compile("node n\d+ rank \d+"),
+                                      replycnt=20)
+
+    def test_channel_ctl_shell_remote1(self):
+        """test gateway channel shell stdout (stderr=False remote=True)"""
+        self._check_channel_ctl_shell("echo ok", "n10", False, True,
+                                      StdOutMessage,
+                                      re.compile("Name or service not known"),
+                                      reply_rc=255)
+
+    def test_channel_ctl_shell_remote2(self):
+        """test gateway channel shell stdout (stderr=True remote=True)"""
+        self._check_channel_ctl_shell("echo ok", "n10", True, True,
+                                      StdErrMessage,
+                                      re.compile("Name or service not known"),
+                                      reply_rc=255)
+
+    def test_channel_ctl_shell_timeo1(self):
+        """test gateway channel shell timeout"""
+        self._check_channel_ctl_shell("sleep 10", "n10", False, False,
+                                      TimeoutMessage, None, timeout=0.5)
+

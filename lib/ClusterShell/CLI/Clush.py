@@ -32,7 +32,7 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 
 """
-execute cluster commands in parallel
+Execute cluster commands in parallel
 
 clush is an utility program to run commands on a cluster which benefits
 from the ClusterShell library and its Ssh worker. It features an
@@ -362,7 +362,7 @@ def readline_setup():
     except IOError:
         pass
 
-def ttyloop(task, nodeset, timeout, display):
+def ttyloop(task, nodeset, timeout, display, remote):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     interactive = task.default("USER_interactive")
@@ -504,13 +504,13 @@ def ttyloop(task, nodeset, timeout, display):
                 continue
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
-                run_command(task, cmd[1:], None, timeout, display)
+                run_command(task, cmd[1:], None, timeout, display, remote)
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                run_command(task, cmd, ns, timeout, display)
+                run_command(task, cmd, ns, timeout, display, remote)
     return rc
 
 def _stdin_thread_start(stdin_port, display):
@@ -546,7 +546,7 @@ def bind_stdin(worker, display):
     # may result in different behaviors depending on selected engine.
     threading.Thread(None, _stdin_thread_start, args=(port, display)).start()
 
-def run_command(task, cmd, ns, timeout, display):
+def run_command(task, cmd, ns, timeout, display, remote):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
@@ -566,11 +566,11 @@ def run_command(task, cmd, ns, timeout, display):
 
         if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
             handler.runtimer_init(task, len(ns))
-
-        worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout)
     else:
-        worker = task.shell(cmd, nodes=ns, handler=DirectOutputHandler(display),
-                            timeout=timeout)
+        handler = DirectOutputHandler(display)
+
+    worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
+                        remote=remote)
     if ns is None:
         worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
@@ -851,8 +851,12 @@ def main():
 
     if options.worker:
         try:
-            task.set_default('distant_worker',
-                             _load_workerclass(options.worker))
+            if options.remote == 'no':
+                task.set_default('local_worker',
+                                 _load_workerclass(options.worker))
+            else:
+                task.set_default('distant_worker',
+                                 _load_workerclass(options.worker))
         except (ImportError, AttributeError):
             msg = "ERROR: Could not load worker '%s'" % options.worker
             display.vprint_err(VERB_QUIET, msg)
@@ -939,10 +943,11 @@ def main():
             run_rcopy(task, args, options.dest_path, nodeset_base, timeout,
                       options.preserve_flag, display)
         else:
-            run_command(task, ' '.join(args), nodeset_base, timeout, display)
+            run_command(task, ' '.join(args), nodeset_base, timeout, display,
+                        options.remote != 'no')
 
     if user_interaction:
-        ttyloop(task, nodeset_base, timeout, display)
+        ttyloop(task, nodeset_base, timeout, display, options.remote != 'no')
     elif task.default("USER_interactive"):
         display.vprint_err(VERB_QUIET, \
             "ERROR: interactive mode requires a tty")

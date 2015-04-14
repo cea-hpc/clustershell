@@ -256,7 +256,7 @@ class Message(object):
         self.attr = {'type': str, 'msgid': int}
         self.type = self.__class__.ident
         self.msgid = Message._inst_counter
-        self.data = ''
+        self.data = None
         Message._inst_counter += 1
 
     def data_encode(self, inst):
@@ -267,7 +267,7 @@ class Message(object):
         """deserialize a previously encoded instance and return it"""
         try:
             return cPickle.loads(base64.decodestring(self.data))
-        except EOFError:
+        except (EOFError, TypeError):
             # raised by cPickle.loads() if self.data is not valid
             raise MessageProcessingError('Message %s has an invalid payload'
                                          % self.ident)
@@ -275,7 +275,10 @@ class Message(object):
     def data_update(self, raw):
         """append data to the instance (used for deserialization)"""
         if self.has_payload:
-            self.data += raw
+            if not self.data:
+                self.data = raw
+            else:
+                self.data += raw
         else:
             # ensure that incoming messages don't contain unexpected payloads
             raise MessageProcessingError('Got unexpected payload for Message %s'
@@ -307,7 +310,8 @@ class Message(object):
             state[k] = str(getattr(self, k))
 
         generator.startElement('message', state)
-        generator.characters(self.data)
+        if self.data:
+            generator.characters(self.data)
         generator.endElement('message')
         xml_msg = out.getvalue()
         out.close()

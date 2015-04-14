@@ -105,12 +105,13 @@ class PropagationTreeRouter(object):
         associated hosts. It should provide a rather good load balancing
         between the gateways.
         """
-        # Check for directly connected targets
-        res = [tmp & dst for tmp in self.table.values()]
-        nexthop = NodeSet()
-        [nexthop.add(x) for x in res]
-        if len(nexthop) > 0:
-            yield nexthop, nexthop
+        ### Disabled to handle all remaining nodes as directly connected nodes
+        ## Check for directly connected targets
+        #res = [tmp & dst for tmp in self.table.values()]
+        #nexthop = NodeSet()
+        #[nexthop.add(x) for x in res]
+        #if len(nexthop) > 0:
+        #    yield nexthop, nexthop
 
         # Check for remote targets, that require a gateway to be reached
         for network in self.table.iterkeys():
@@ -118,6 +119,10 @@ class PropagationTreeRouter(object):
             dst.difference_update(dst_inter)
             for host in dst_inter.nsiter():
                 yield self.next_hop(host), host
+
+        # remaining nodes are considered as directly connected nodes
+        if dst:
+            yield dst, dst
 
     def next_hop(self, dst):
         """perform the next hop resolution. If several hops are
@@ -135,7 +140,7 @@ class PropagationTreeRouter(object):
 
         ## ------------------
         # the routing table is organized this way:
-        # 
+        #
         #  NETWORK    | NEXT HOP
         # ------------+-----------
         # node[0-9]   | gateway0
@@ -220,11 +225,12 @@ class PropagationChannel(Channel):
       - gtr
         Final state: wait for results from the subtree and store them.
     """
-    def __init__(self, task):
+    def __init__(self, task, gateway):
         """
         """
         Channel.__init__(self)
         self.task = task
+        self.gateway = gateway
         self.workers = {}
         self._history = {} # track informations about previous states
         self._sendq = []
@@ -259,10 +265,10 @@ class PropagationChannel(Channel):
         else:
             self.logger.error('unexpected message: %s', str(msg))
 
-    def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd):
+    def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd, remote):
         """command execution through channel"""
-        self.logger.debug("shell nodes=%s timeout=%s worker=%s" % \
-            (nodes, timeout, id(worker)))
+        self.logger.debug("shell nodes=%s timeout=%s worker=%s remote=%s",
+                          nodes, timeout, id(worker), remote)
 
         self.workers[id(worker)] = worker
 
@@ -279,6 +285,7 @@ class PropagationChannel(Channel):
             'taskinfo': info, #self.task._info,
             'stderr': stderr,
             'timeout': timeout,
+            'remote': remote,
         }
         ctl.data_encode(ctl_data)
 
@@ -350,22 +357,28 @@ class PropagationChannel(Channel):
                     self.logger.debug("StdOutMessage: \"%s\"", msg.data)
                     for line in msg.data.splitlines():
                         for node in nodeset:
-                            metaworker._on_node_msgline(node, line, 'stdout')
+                            metaworker._on_remote_node_msgline(node,
+                                                               line,
+                                                               'stdout',
+                                                               self.gateway)
             elif msg.type == StdErrMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
                     self.logger.debug("StdErrMessage: \"%s\"", msg.data)
                     for line in msg.data.splitlines():
                         for node in nodeset:
-                            metaworker._on_node_msgline(node, line, 'stderr')
+                            metaworker._on_remote_node_msgline(node,
+                                                               line,
+                                                               'stderr',
+                                                               self.gateway)
             elif msg.type == RetcodeMessage.ident:
                 rc = msg.retcode
                 for node in NodeSet(msg.nodes):
-                    metaworker._on_node_rc(node, rc)
+                    metaworker._on_remote_node_rc(node, rc, self.gateway)
             elif msg.type == TimeoutMessage.ident:
                 self.logger.debug("TimeoutMessage for %s", msg.nodes)
                 for node in NodeSet(msg.nodes):
-                    metaworker._on_node_timeout(node)
+                    metaworker._on_remote_node_timeout(node, self.gateway)
         else:
             self.logger.debug("PropChannel: _state_gather unhandled msg %s" % \
                               msg)
