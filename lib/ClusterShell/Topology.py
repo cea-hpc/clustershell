@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
+# Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
@@ -370,7 +370,7 @@ class TopologyGraph(object):
             leaf = route.dst - aggregated_src
             if len(leaf) > 0:
                 self._nodegroups[str(leaf)] = TopologyNodeGroup(leaf)
-        
+
         # add the parent <--> children relationships
         for group in self._nodegroups.itervalues():
             dst_ns = self._routing.connected(group.nodeset)
@@ -395,7 +395,7 @@ class TopologyGraph(object):
             self._nodegroups[root] = group
         else:
             raise TopologyError('"%s" is not a valid root node!' % root)
-        
+
         self._root = root
 
 class TopologyParser(ConfigParser.ConfigParser):
@@ -405,7 +405,7 @@ class TopologyParser(ConfigParser.ConfigParser):
     # Comment
     <these machines> : <can reach these ones>
     """
-    def __init__(self):
+    def __init__(self, filename=None):
         """instance wide variables initialization"""
         ConfigParser.ConfigParser.__init__(self)
         self.optionxform = str # case sensitive parser
@@ -413,6 +413,9 @@ class TopologyParser(ConfigParser.ConfigParser):
         self._topology = {}
         self.graph = None
         self._tree = None
+
+        if filename:
+            self.load(filename)
 
     def load(self, filename):
         """read a given topology configuration file and store the results in

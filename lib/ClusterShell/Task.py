@@ -57,6 +57,7 @@ Simple example of use:
 from itertools import imap
 import logging
 from operator import itemgetter
+import os
 import socket
 import sys
 import threading
@@ -181,7 +182,7 @@ class Task(object):
                       "stderr_msgtree"     : True,
                       "engine"             : 'auto',
                       "port_qlimit"        : 100,
-                      "auto_tree"          : False,
+                      "auto_tree"          : True,
                       "topology_file"      : "/etc/clustershell/topology.conf",
                       "distant_worker"     : WorkerSsh }
 
@@ -410,27 +411,28 @@ class Task(object):
         finally:
             self._run_lock.release()
 
-    def set_topology(self, topology_file):
-        """Set new propagation topology from provided file."""
-        self.set_default("topology_file", topology_file)
-        self.topology = self._default_topology()
+    def _default_tree_is_enabled(self):
+        """Return whether default tree is enabled (load topology_file btw)"""
+        if self.topology is None:
+            if os.path.exists(self.default("topology_file")):
+                self.load_topology(self.default("topology_file"))
+        return (self.topology is not None) and self.default("auto_tree")
 
-    def _default_topology(self):
-        try:
-            parser = TopologyParser()
-            parser.load(self.default("topology_file"))
-            return parser.tree(_getshorthostname())
-        except TopologyError, exc:
-            logging.getLogger(__name__).exception("_default_topology(): %s", \
-                                                  str(exc))
-            raise
-        return None
+    def load_topology(self, topology_file):
+        """Load propagation topology from provided file.
+
+        On success, task.topology is set to a corresponding TopologyTree
+        instance.
+
+        On failure, task.topology is left untouched and a TopologyError
+        exception is raised.
+        """
+        self.topology = TopologyParser(topology_file).tree(_getshorthostname())
 
     def _default_router(self):
         if self.router is None:
-            topology = self.topology
-            self.router = PropagationTreeRouter(str(topology.root.nodeset), \
-                                                topology)
+            self.router = PropagationTreeRouter(str(self.topology.root.nodeset),
+                                                self.topology)
         return self.router
 
     def default(self, default_key, def_val=None):
@@ -575,22 +577,22 @@ class Task(object):
                     "'key' argument not supported for distant command"
 
             tree = kwargs.get("tree")
-            if tree and self.topology is None:
-                raise TaskError("tree mode required for distant shell command" \
-                                " with unknown topology!")
-            if tree is None: # means auto
-                tree = self.default("auto_tree") and (self.topology is not None)
-            if tree:
-                # create tree of distant workers (eg. ssh)
-                worker = WorkerTree(NodeSet(kwargs["nodes"]), command=command,
-                                    handler=handler, stderr=stderr,
-                                    timeout=timeo, autoclose=autoclose)
+
+            # tree == None means auto
+            if tree != False and self._default_tree_is_enabled():
+                # fail if tree is forced without any topology
+                if tree and self.topology is None:
+                    raise TaskError("tree mode required for distant shell "
+                                    "command with unknown topology!")
+                # create tree worker
+                wrkcls = WorkerTree
             else:
                 # create distant worker
                 wrkcls = self.default('distant_worker')
-                worker = wrkcls(NodeSet(kwargs["nodes"]), command=command,
-                                handler=handler, stderr=stderr,
-                                timeout=timeo, autoclose=autoclose)
+
+            worker = wrkcls(NodeSet(kwargs["nodes"]), command=command,
+                            handler=handler, stderr=stderr,
+                            timeout=timeo, autoclose=autoclose)
         else:
             # create local worker
             worker = WorkerPopen(command, key=kwargs.get("key", None),

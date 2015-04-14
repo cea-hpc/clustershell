@@ -858,12 +858,11 @@ def main():
             display.vprint_err(VERB_QUIET, msg)
             clush_exit(1, task)
 
-    if options.topofile:
+    if options.topofile or task._default_tree_is_enabled():
         if config.verbosity >= VERB_VERB:
-            print Display.COLOR_RESULT_FMT % \
-                "Enabling TREE MODE (technology preview)"
-        task.set_default("auto_tree", True)
-        task.set_topology(options.topofile)
+            print Display.COLOR_RESULT_FMT % "TREE MODE enabled"
+        if options.topofile:
+            task.load_topology(options.topofile)
 
     if options.grooming_delay:
         if config.verbosity >= VERB_VERB:

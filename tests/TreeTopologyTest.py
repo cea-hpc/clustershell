@@ -36,7 +36,12 @@ class TopologyTest(unittest.TestCase):
     def testInvalidConfigurationFile(self):
         """test detecting invalid configuration file"""
         parser = TopologyParser()
-        self.assertRaises(TopologyError, parser.load, '/invalid/path/for/testing')
+        self.assertRaises(TopologyError,
+                          parser.load,
+                          '/invalid/path/for/testing')
+        self.assertRaises(TopologyError,
+                          TopologyParser,
+                          '/invalid/path/for/testing')
 
     def testTopologyGraphGeneration(self):
         """test graph generation"""
@@ -181,8 +186,7 @@ class TopologyTest(unittest.TestCase):
         tmpfile.write('nodes[0-1]: nodes[10-19]\n')
         tmpfile.write('nodes[2-3]: nodes[20-29]\n')
         tmpfile.flush()
-        parser = TopologyParser()
-        parser.load(tmpfile.name)
+        parser = TopologyParser(tmpfile.name)
 
         ns_all = NodeSet('admin2,nodes[2-3,20-29]')
         ns_tree = NodeSet()
@@ -216,8 +220,7 @@ class TopologyTest(unittest.TestCase):
             tmpfile.write('%s: %s\n' % (prev, str(n)))
             prev = n
         tmpfile.flush()
-        parser = TopologyParser()
-        parser.load(tmpfile.name)
+        parser = TopologyParser(tmpfile.name)
 
         tree = parser.tree('admin')
 
@@ -236,8 +239,7 @@ class TopologyTest(unittest.TestCase):
         tmpfile.write('nodes[0-1]: nodes[2-5]\n')
         tmpfile.write('nodes[4-5]: nodes[6-9]\n')
         tmpfile.flush()
-        parser = TopologyParser()
-        parser.load(tmpfile.name)
+        parser = TopologyParser(tmpfile.name)
 
         parser.tree('admin')
         ns_all = NodeSet('admin,nodes[0-9]')

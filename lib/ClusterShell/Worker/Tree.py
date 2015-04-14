@@ -263,7 +263,7 @@ class WorkerTree(DistantWorker):
     def _check_ini(self):
         self.logger.debug("WorkerTree: _check_ini (%d, %d)" % \
             (self._start_count,self._child_count))
-        if self._start_count >= self._child_count:
+        if self.eh and self._start_count >= self._child_count:
             self.eh.ev_start(self)
 
     def _check_fini(self):
