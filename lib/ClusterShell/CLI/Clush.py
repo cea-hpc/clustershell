@@ -47,6 +47,7 @@ When no command are specified, clush runs interactively.
 import errno
 import logging
 import os
+from os.path import abspath, dirname, exists, isdir, join
 import resource
 import sys
 import signal
@@ -316,12 +317,22 @@ class RunTimer(EventHandler):
             sys.stderr.write(' ' * self.wholelen + '\r')
 
     def update(self):
-        cnt = len(self.task._engine.clients())
+        gws = self.task.gateways.keys()
+        if gws:
+            # tree mode
+            act_targets = NodeSet()
+            for gw, (chan, metaworkers) in self.task.gateways.iteritems():
+                act_targets.updaten(mw.gwtargets[gw] for mw in metaworkers)
+            cnt = len(act_targets)
+            gwinfo = ' gw %d' % len(gws)
+        else:
+            cnt = len(self.task._engine.clients())
+            gwinfo = ''
         if cnt != self.cnt_last:
             self.cnt_last = cnt
             # display completed/total clients
-            towrite = 'clush: %*d/%*d\r' % (self.tslen, self.total - cnt,
-                self.tslen, self.total)
+            towrite = 'clush: %*d/%*d%s\r' % (self.tslen, self.total - cnt,
+                                              self.tslen, self.total, gwinfo)
             self.wholelen = len(towrite)
             sys.stderr.write(towrite)
             self.started = True
@@ -347,7 +358,7 @@ def signal_handler(signum, frame):
 
 def get_history_file():
     """Turn the history file path"""
-    return os.path.join(os.environ["HOME"], ".clush_history")
+    return join(os.environ["HOME"], ".clush_history")
 
 def readline_setup():
     """
@@ -429,7 +440,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 # Display command output, but cannot order buffers by rc
                 nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
                 for buf, nodeset in sorted(map(nodesetify, task.iter_buffers()),
-                                            cmp=bufnodeset_cmp):
+                                           cmp=bufnodeset_cmp):
                     if not print_warn:
                         print_warn = True
                         display.vprint_err(VERB_STD, \
@@ -469,9 +480,26 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 pending = "\nclush: pending(%d): %s" % (len(ns_unreg), ns_unreg)
             else:
                 pending = ""
-            display.vprint_err(VERB_QUIET, "clush: interrupt (^C to " \
-                "abort task)\nclush: in progress(%d): %s%s" % (len(ns_reg), \
-                ns_reg, pending))
+            display.vprint_err(VERB_QUIET,
+                               "clush: interrupt (^C to abort task)")
+            gws = task.gateways.keys()
+            if not gws:
+                display.vprint_err(VERB_QUIET,
+                                   "clush: in progress(%d): %s%s"
+                                   % (len(ns_reg), ns_reg, pending))
+            else:
+                display.vprint_err(VERB_QUIET,
+                                   "clush: in progress(%d): %s%s\n"
+                                   "clush: [tree] open gateways(%d): %s"
+                                   % (len(ns_reg), ns_reg, pending,
+                                      len(gws), NodeSet._fromlist1(gws)))
+            for gw, (chan, metaworkers) in task.gateways.iteritems():
+                act_targets = NodeSet.fromlist(mw.gwtargets[gw]
+                                               for mw in metaworkers)
+                if act_targets:
+                    display.vprint_err(VERB_QUIET,
+                                       "clush: [tree] in progress(%d) on %s: %s"
+                                       % (len(act_targets), gw, act_targets))
         else:
             cmdl = cmd.lower()
             try:
@@ -585,13 +613,18 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
 
+    if display.verbosity >= VERB_VERB and task.topology:
+        print Display.COLOR_RESULT_FMT % '-' * 15
+        print Display.COLOR_RESULT_FMT % task.topology,
+        print Display.COLOR_RESULT_FMT % '-' * 15
+
     copyhandler = CopyOutputHandler(display)
     if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
         copyhandler.runtimer_init(task, len(ns) * len(sources))
 
     # Sources check
     for source in sources:
-        if not os.path.exists(source):
+        if not exists(source):
             display.vprint_err(VERB_QUIET, "ERROR: file \"%s\" not found" % \
                                            source)
             clush_exit(1, task)
@@ -607,11 +640,11 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
     task.set_default("USER_copies", len(sources))
 
     # Sanity checks
-    if not os.path.exists(dest):
+    if not exists(dest):
         display.vprint_err(VERB_QUIET, "ERROR: directory \"%s\" not found" % \
                                        dest)
         clush_exit(1, task)
-    if not os.path.isdir(dest):
+    if not isdir(dest):
         display.vprint_err(VERB_QUIET, \
             "ERROR: destination \"%s\" is not a directory" % dest)
         clush_exit(1, task)
@@ -747,7 +780,7 @@ def main():
 
     for (opt, nodelist) in (('w', wnodelist), ('x', xnodelist)):
         for nodes in nodelist:
-            if len(nodes) == 1 and os.path.exists(str(nodes)):
+            if len(nodes) == 1 and exists(str(nodes)):
                 display.vprint_err(VERB_STD, "Warning: using '-%s %s' and "
                                    "local path '%s' exists, was it expanded "
                                    "by the shell?" % (opt, nodes, nodes))
@@ -921,11 +954,12 @@ def main():
         parser.error("--[r]copy option requires at least one argument")
     if options.copy:
         if not options.dest_path:
-            options.dest_path = os.path.dirname(os.path.abspath(args[0]))
+            # append '/' to clearly indicate a directory for tree mode
+            options.dest_path = join(dirname(abspath(args[0])), '')
         op = "copy sources=%s dest=%s" % (args, options.dest_path)
     elif options.rcopy:
         if not options.dest_path:
-            options.dest_path = os.path.dirname(os.path.abspath(args[0]))
+            options.dest_path = dirname(abspath(args[0]))
         op = "rcopy sources=%s dest=%s" % (args, options.dest_path)
     else:
         op = "command=\"%s\"" % ' '.join(args)

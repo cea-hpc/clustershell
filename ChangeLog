@@ -1,3 +1,7 @@
+2015-04-10 S. Thiell <stephane.thiell@cea.fr>
+
+	* Tree: implement task.copy() in tree mode using temporary tar file.
+
 2015-04-01 S. Thiell <stephane.thiell@cea.fr>
 
 	* Tree: allow local command execution on gateways by adding remote=False to

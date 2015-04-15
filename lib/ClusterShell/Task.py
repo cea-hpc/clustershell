@@ -630,8 +630,21 @@ class Task(object):
         preserve = kwargs.get("preserve", None)
         reverse = kwargs.get("reverse", False)
 
-        # create a new copy worker
-        wrkcls = self.default('distant_worker')
+        tree = kwargs.get("tree")
+
+        # tree == None means auto
+        if tree != False and self._default_tree_is_enabled():
+            # fail if tree is forced without any topology
+            if tree and self.topology is None:
+                raise TaskError("tree mode required for distant shell "
+                                "command with unknown topology!")
+
+            # create tree worker
+            wrkcls = WorkerTree
+        else:
+            # create a new copy worker
+            wrkcls = self.default('distant_worker')
+
         worker = wrkcls(nodes, source=source, dest=dest, handler=handler,
                         stderr=stderr, timeout=timeo, preserve=preserve,
                         reverse=reverse)

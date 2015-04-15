@@ -36,10 +36,13 @@ ClusterShell v2 tree propagation worker
 
 import logging
 import os
+from os.path import basename, dirname, isfile, normpath
+import tarfile
+import tempfile
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Worker.Worker import DistantWorker
+from ClusterShell.Worker.Worker import DistantWorker, WorkerError
 from ClusterShell.Worker.Exec import ExecWorker
 
 from ClusterShell.Propagation import PropagationTreeRouter
@@ -125,6 +128,7 @@ class WorkerTree(DistantWorker):
     ClusterShell tree worker Class.
 
     """
+    UNTAR_CMD_FMT = 'tar -xf - -C "%s"'
 
     def __init__(self, nodes, handler, timeout, **kwargs):
         """
@@ -155,11 +159,7 @@ class WorkerTree(DistantWorker):
         self._has_timeout = False
         self.logger = logging.getLogger(__name__)
 
-        if self.command is not None:
-            pass
-        elif self.source:
-            raise NotImplementedError
-        else:
+        if self.command is None and self.source is None:
             raise ValueError("missing command or source parameter in "
                              "WorkerTree constructor")
 
@@ -201,29 +201,60 @@ class WorkerTree(DistantWorker):
         self.topology = self.topology or task.topology
         self.router = self.router or task._default_router()
         self._launch(self.nodes)
+        self._check_ini()
 
     def _launch(self, nodes):
         self.logger.debug("WorkerTree._launch on %s (fanout=%d)"
                           % (nodes, self.task.info("fanout")))
+
+        # Prepare copy params if source is defined
+        destdir = None
+        if self.source:
+            self.logger.debug("copy self.dest=%s", self.dest)
+            # Special processing to determine best arcname and destdir for tar.
+            # The only case that we don't support is when source is a file and
+            # dest is a dir without a finishing / (in that case we cannot
+            # determine remotely whether it is a file or a directory).
+            if isfile(self.source):
+                # dest is not normalized here
+                arcname = basename(self.dest) or basename(normpath(self.source))
+                destdir = dirname(self.dest)
+            else:
+                arcname = basename(normpath(self.source))
+                destdir = os.path.normpath(self.dest)
+            self.logger.debug("copy arcname=%s destdir=%s", arcname, destdir)
+
         # And launch stuffs
-        next_hops = self._distribute(self.task.info("fanout"), nodes)
+        next_hops = self._distribute(self.task.info("fanout"), nodes.copy())
         self.logger.debug("next_hops=%s"
                           % [(str(n), str(v)) for n, v in next_hops.items()])
         for gw, targets in next_hops.iteritems():
             if gw == targets:
-                self.logger.debug('task.shell cmd=%s nodes=%s timeout=%s '
-                                  'remote=%s' % (self.command, nodes,
+                self.logger.debug('task.shell cmd=%s source=%s nodes=%s timeout=%s '
+                                  'remote=%s' % (self.command, self.source, nodes,
                                                  self.timeout, self.remote))
                 self._child_count += 1
                 self._target_count += len(targets)
                 if self.remote:
-                    worker = self.task.shell(self.command,
-                                             nodes=targets,
-                                             timeout=self.timeout,
-                                             handler=self.metahandler,
-                                             stderr=self.stderr,
-                                             tree=False)
+                    if self.source:
+                        self.logger.debug('_launch remote untar (destdir=%s)',
+                                          destdir)
+                        self.command = self.UNTAR_CMD_FMT % destdir
+                        worker = self.task.shell(self.command,
+                                                 nodes=targets,
+                                                 timeout=self.timeout,
+                                                 handler=self.metahandler,
+                                                 stderr=self.stderr,
+                                                 tree=False)
+                    else:
+                        worker = self.task.shell(self.command,
+                                                 nodes=targets,
+                                                 timeout=self.timeout,
+                                                 handler=self.metahandler,
+                                                 stderr=self.stderr,
+                                                 tree=False)
                 else:
+                    assert self.source is None
                     worker = ExecWorker(nodes=targets,
                                         command=self.command,
                                         handler=self.metahandler,
@@ -236,7 +267,28 @@ class WorkerTree(DistantWorker):
                                   len(self.workers))
             else:
                 self.logger.debug("trying gateway %s to reach %s", gw, targets)
-                self._execute_remote(self.command, targets, gw, self.timeout)
+                if self.source:
+                    self._copy_remote(self.source, destdir, targets, gw, self.timeout)
+                else:
+                    self._execute_remote(self.command, targets, gw, self.timeout)
+
+        # Copy mode: send tar data after above workers have been initialized
+        if self.source:
+            try:
+                # create temporary tar file with all source files
+                tmptar = tempfile.TemporaryFile()
+                tar = tarfile.open(fileobj=tmptar, mode='w:')
+                tar.add(self.source, arcname=arcname)
+                tar.close()
+                tmptar.flush()
+                # read generated tar file and send to worker
+                tmptar.seek(0)
+                rbuf = tmptar.read(32768)
+                while len(rbuf) > 0:
+                    self.write(rbuf)
+                    rbuf = tmptar.read(32768)
+            except OSError, exc:
+                raise WorkerError(exc)
 
     def _distribute(self, fanout, dst_nodeset):
         """distribute target nodes between next hop gateways"""
@@ -250,6 +302,22 @@ class WorkerTree(DistantWorker):
                 distribution[gw] = dstset
         return distribution
 
+    def _copy_remote(self, source, dest, targets, gateway, timeout):
+        """run a remote copy in tree mode (using gateway)"""
+        self.logger.debug("_copy_remote gateway=%s source=%s dest=%s",
+                          gateway, source, dest)
+
+        self._target_count += len(targets)
+
+        self.gwtargets[gateway] = targets.copy()
+
+        cmd = self.UNTAR_CMD_FMT % dest
+
+        self.task._pchannel(gateway, self).shell(nodes=targets,
+            command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
+            gw_invoke_cmd=self.invoke_gateway, remote=self.remote)
+
+
     def _execute_remote(self, cmd, targets, gateway, timeout):
         """run command against a remote node via a gateway"""
         self.logger.debug("_execute_remote gateway=%s cmd=%s targets=%s",
@@ -262,8 +330,6 @@ class WorkerTree(DistantWorker):
         self.task._pchannel(gateway, self).shell(nodes=targets,
             command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
             gw_invoke_cmd=self.invoke_gateway, remote=self.remote)
-
-        self._check_ini()
 
     def _engine_clients(self):
         """
@@ -292,7 +358,7 @@ class WorkerTree(DistantWorker):
 
     def _on_node_rc(self, node, rc):
         DistantWorker._on_node_rc(self, node, rc)
-        self.logger.debug("_on_node_rc %s %s", node, self._close_count)
+        self.logger.debug("_on_node_rc %s %s (%s)", node, rc, self._close_count)
         self._close_count += 1
 
     def _on_node_timeout(self, node):
@@ -326,13 +392,19 @@ class WorkerTree(DistantWorker):
 
     def write(self, buf):
         """Write to worker clients."""
+        osexc = None
         # Differentiate directly handled writes from remote ones
         for worker in self.workers:
-            worker.write(buf)
+            try:
+                worker.write(buf)
+            except OSError, exc:
+                osexc = exc
         for gateway, targets in self.gwtargets.items():
             self.task._pchannel(gateway, self).write(nodes=targets,
                                                      buf=buf,
                                                      worker=self)
+        if osexc:
+            raise osexc
 
     def set_write_eof(self):
         """
