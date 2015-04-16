@@ -290,6 +290,9 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-S", "--separator", action="store", dest="separator",
                           default=' ', help="separator string to use when "
                                             "expanding nodesets (default: ' ')")
+        optgrp.add_option("-O", "--output-format", action="store",
+                          dest="output_format", metavar='FORMAT', default='%s',
+                          help="output format (default: '%s')")
         optgrp.add_option("-I", "--slice", action="store",
                           dest="slice_rangeset",
                           help="return sliced off result", type="string")

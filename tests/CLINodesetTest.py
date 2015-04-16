@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # scripts/nodeset.py tool test suite
-# Written by S. Thiell 2012-03-25
+# Written by S. Thiell
 
 
 """Unit test for CLI/Nodeset.py"""
@@ -354,6 +354,29 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
         self._nodeset_t(["--autostep=2", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42-68/2,90]\n")
 
+    def test_022_output_format(self):
+        """test nodeset -O"""
+        self._nodeset_t(["--expand", "--output-format", "/path/%s/", "foo"], None, "/path/foo/\n")
+        self._nodeset_t(["--expand", "-O", "/path/%s/", "-S", ":", "foo"], None, "/path/foo/\n")
+        self._nodeset_t(["--expand", "-O", "/path/%s/", "foo[2]"], None, "/path/foo2/\n")
+        self._nodeset_t(["--expand", "-O", "%s-ib0", "foo[1-4]"], None, "foo1-ib0 foo2-ib0 foo3-ib0 foo4-ib0\n")
+        self._nodeset_t(["--expand", "-O", "%s-ib0", "-S", ":", "foo[1-4]"], None, "foo1-ib0:foo2-ib0:foo3-ib0:foo4-ib0\n")
+        self._nodeset_t(["--fold", "-O", "%s-ib0", "foo1", "foo2"], None, "foo[1-2]-ib0\n")
+        self._nodeset_t(["--count", "-O", "result-%s", "foo1", "foo2"], None, "result-2\n")
+        self._nodeset_t(["--contiguous", "-O", "%s-ipmi", "-f", "foo[2-3,7]", "bar9"], None, "bar9-ipmi\nfoo[2-3]-ipmi\nfoo7-ipmi\n")
+        self._nodeset_t(["--split=2", "-O", "%s-ib", "-e", "foo[2-9]"], None, "foo2-ib foo3-ib foo4-ib foo5-ib\nfoo6-ib foo7-ib foo8-ib foo9-ib\n")
+        self._nodeset_t(["--split=3", "-O", "hwm-%s", "-f", "foo[2-9]"], None, "hwm-foo[2-4]\nhwm-foo[5-7]\nhwm-foo[8-9]\n")
+        self._nodeset_t(["-I0", "-O", "{%s}", "-f", "bar[34-68,89-90]"], None, "{bar34}\n")
+        # RangeSet mode (-R)
+        self._nodeset_t(["--fold", "-O", "{%s}", "--rangeset", "1,2"], None, "{1-2}\n")
+        self._nodeset_t(["--expand", "-O", "{%s}", "-R","1-2"], None, "{1} {2}\n")
+        self._nodeset_t(["--fold", "-O", "{%s}", "-R","1-2","-X","2-3"], None, "{1,3}\n")
+        self._nodeset_t(["--fold", "-O", "{%s}", "-S", ":", "--rangeset", "1,2"], None, "{1-2}\n")
+        self._nodeset_t(["--expand", "-O", "{%s}", "-S", ":", "-R","1-2"], None, "{1}:{2}\n")
+        self._nodeset_t(["--fold", "-O", "{%s}", "-S", ":", "-R","1-2","-X","2-3"], None, "{1,3}\n")
+        self._nodeset_t(["-R", "-I0", "-O", "{%s}", "-f", "34-68,89-90"], None, "{34}\n")
+
+
 class CLINodesetGroupResolverTest1(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
 
@@ -441,6 +464,9 @@ list: echo baz qux norf
     def test_027_groups(self):
         self._nodeset_t(["-s", "test", "--groupsources"], None, "test (default)\nother\n")
 
+    def test_028_groups(self):
+        self._nodeset_t(["-s", "test", "-q", "--groupsources"], None, "test\nother\n")
+
     def test_029_groups(self):
         self._nodeset_t(["-f", "-a", "-"], "example101\n", "example[1-101]\n")
         self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", "example[1-102]\n")
@@ -467,4 +493,10 @@ list: echo baz qux norf
 
     def test_035_groups(self):
         self._nodeset_t(["--groupsources"], None, "test (default)\nother\n")
+
+    def test_036_groups_output_format(self):
+        self._nodeset_t(["-r", "-O", "{%s}", "-a"], None, "{@bar}\n")
+
+    def test_037_groups_output_format(self):
+        self._nodeset_t(["-O", "{%s}", "-s", "other", "-r", "-a"], None, "{@other:baz}\n")
 

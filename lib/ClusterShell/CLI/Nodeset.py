@@ -238,16 +238,18 @@ def nodeset():
             _xset.update(xset[sli])
         xset = _xset
 
+    format = options.output_format # default to '%s'
+
     # Display result according to command choice
     if options.expand:
-        xsubres = lambda x: separator.join(x.striter())
+        xsubres = lambda x: separator.join((format % s for s in x.striter()))
     elif options.fold:
-        xsubres = lambda x: x
+        xsubres = lambda x: format % x
     elif options.regroup:
-        xsubres = lambda x: x.regroup(options.groupsource, \
-                                      noprefix=options.groupbase)
+        xsubres = lambda x: format % x.regroup(options.groupsource,
+                                               noprefix=options.groupbase)
     else:
-        xsubres = len
+        xsubres = lambda x: format % len(x)
 
     if not xset or options.maxsplit <= 1 and not options.contiguous:
         print xsubres(xset)

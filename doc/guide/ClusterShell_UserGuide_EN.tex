@@ -59,7 +59,7 @@
   /Producer (pdfLaTeX)
   /Author (S. THIELL)
   /CreationDate (D:20110912)
-  /ModDate (D: 20150402)
+  /ModDate (D: 20150422)
   /Keywords (ClusterShell, clush, shell, nodeset, Python, HPC, Linux)
 }
 
@@ -332,6 +332,7 @@ node[1-3]-ipmi
 
 
 \subsubsection{Commands with inputs}
+\label{nodeset-commands-inputs}
 
 Some  \nodeset commands require input (eg. node names, node sets or node groups), and some only give output. The following table shows commands that require some input:
 
@@ -343,8 +344,7 @@ Some  \nodeset commands require input (eg. node names, node sets or node groups)
 \hline
 \verb+-c, --count+& Count and display the total number of nodes in node sets or/and node groups.\\
 \hline
-\verb+-e, --expand+ & Expand node sets or/and node groups as unitary node names separated by the interpreted string specified with \verb+-S+ (default is the space character\mbox{ " "}), for example:
-\lstinline+$ nodeset -e -S'\n' node[0-3]+\\
+\verb+-e, --expand+ & Expand node sets or/and node groups as unitary node names separated by current separator string (see \verb+--separator+ option described in section~\ref{nodeset-commands-formatting} page~\pageref{nodeset-commands-formatting}).\\
 \hline
 \verb+-f, --fold+ & Fold (compact) node sets or/and node groups into one set of nodes (by previously resolving any groups). The resulting node set is guaranteed to be free from node group (see \verb+--regroup+ below if you want to resolve node groups in result). Please note that folding may be time consuming for multidimensional node sets.\\
 \hline
@@ -416,8 +416,10 @@ $ sinfo -p cuda -o '%N' -h | nodeset -r
 @gpu
 \end{lstlisting}
 
+Most commands described in this section produce output results that may be formatted using \verb+--output-format+ and \verb+--separator+ which are described in section~\ref{nodeset-commands-formatting} page~\pageref{nodeset-commands-formatting}.
 
 \subsubsection{Commands with no input}
+\label{nodeset-commands-noinput}
 
 The following table shows all other commands that are supported by \nodeset. These commands don't support any input (like node sets), but can still recognize options as specified below.
 \label{nodeset-grpcmd}
@@ -430,10 +432,48 @@ The following table shows all other commands that are supported by \nodeset. The
 \hline
 \verb+-l, --list+ & List node groups from selected \textit{group source} as specified with \verb+-s+ or \verb+--groupsource+. If not specified, node groups from the default \textit{group source} are listed (see section \ref{groups-config} page~\pageref{groups-config} for default \textit{group source} configuration).\\
 \hline
-\verb+--groupsources+ & List all configured \textit{group sources}, one per line, as configured in \textit{groups.conf} (see section \ref{groups-config} page~\pageref{groups-config}). The default \textit{group source} is appended with \mbox{" (default)"}, unless the \verb+-q+ (\verb+--quiet+) option is specified. This command is  mainly here to avoid reading any configuration files, or to check if all work fine when configuring \textit{group sources}.\\
+\verb+--groupsources+ & List all configured \textit{group sources}, one per line, as configured in \textit{groups.conf} (see section~\ref{groups-config} page~\pageref{groups-config}). The default \textit{group source} is appended with \mbox{" (default)"}, unless the \verb+-q+ (\verb+--quiet+) option is specified. This command is  mainly here to avoid reading any configuration files, or to check if all work fine when configuring \textit{group sources}.\\
 \hline
 \end{tabular}
 \end{center}
+
+\subsubsection{Output result formatting}
+\label{nodeset-commands-formatting}
+
+When using the expand command \verb+-e, --expand+, a separator string is used when displaying results. The option \verb+--separator+ (or~\verb+-S+) allows you to modify it. The specified string is interpreted, so that you can use special characters as separator, like \verb+\n+ or \verb+\t+. The default separator is the space character\mbox{ " "}. This is an example showing such separator string change:
+\medskip
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+$ nodeset -e --separator='\n' node[0-3]
+node0
+node1
+node2
+node3
+\end{lstlisting}
+
+The option \verb+--output-format+ (or~\verb+-O+) can be used to format output results of most \nodeset commands. The string passed to this option is used as a base format pattern applied to each result. The default format string is\mbox{ "\%s"}. Formatting is performed using the Python builtin string formatting operator, so you must use one format operator of the right type (\verb+%s+ is guaranteed to work in all cases). A simple example when using the fold command is shown below:
+\medskip
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+$ nodeset --output-format='%s-ipmi' -f node1 node2 node3
+node[1-3]-ipmi
+\end{lstlisting}
+
+Another output formatting example when using the expand command:
+\medskip
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+$ nodeset --output-format='%s-ipmi' -e node[1-2]x[1-2]
+node1x1-ipmi node1x2-ipmi node2x1-ipmi node2x2-ipmi
+\end{lstlisting}
+
+Output formatting and separator may be combined when using the expand command:
+\medskip
+\begin{lstlisting}[breaklines=true, breakatwhitespace=true]
+$ nodeset -O '%s-ipmi' -S '\n' -e node[1-2]x[1-2]
+node1x1-ipmi
+node1x2-ipmi
+node2x1-ipmi
+node2x2-ipmi
+\end{lstlisting}
+
 
 \subsection{Stepping and auto-stepping}
 \label{nodeset-stepping}
@@ -449,7 +489,6 @@ node0 node2 node4 node6
 
 However, by default, \nodeset never uses this stepping notation in output results, as other cluster tools seldom if ever support this feature. Thus, to enable such factorized output in \nodeset, you must specify \verb+--autostep=AUTOSTEP+ to set an auto step threshold number when folding nodesets (ie. when using \verb+-f+ or \verb+-r+). This threshold number (\verb+AUTOSTEP+) is the minimum occurrence of equally-spaced integers needed to enable auto-stepping.
 
-\newpage
 For example:
 \medskip
 \begin{lstlisting}[breaklines=true, breakatwhitespace=true] 

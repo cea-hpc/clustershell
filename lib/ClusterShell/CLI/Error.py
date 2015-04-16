@@ -59,6 +59,7 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   GroupSourceNoUpcall,
                   GroupSourceException,
                   TopologyError,
+                  TypeError,
                   IOError,
                   KeyboardInterrupt,
                   WorkerError)
@@ -85,7 +86,7 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print >> sys.stderr, "%s: Other group error:" % prog, exc
     except TopologyError, exc:
         print >> sys.stderr, "%s: TREE MODE:" % prog, exc
-    except WorkerError, exc:
+    except (TypeError, WorkerError), exc:
         print >> sys.stderr, "%s: %s" % (prog, exc)
     except IOError:
         # ignore broken pipe
@@ -97,4 +98,3 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
 
     # Exit with error code 1 (generic failure)
     return 1
-        
