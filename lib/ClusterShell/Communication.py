@@ -163,7 +163,7 @@ class Channel(EventHandler):
       >> task.resume()
     """
 
-    def __init__(self):
+    def __init__(self, error_response=False):
         """
         """
         EventHandler.__init__(self)
@@ -173,6 +173,8 @@ class Channel(EventHandler):
         # channel state flags
         self.opened = False
         self.setup = False
+        # will this channel send communication error responses?
+        self.error_response = error_response
 
         self._xml_reader = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
@@ -211,11 +213,13 @@ class Channel(EventHandler):
         except SAXParseException, ex:
             self.logger.error("SAXParseException: %s: %s", ex.getMessage(), raw)
             # Warning: do not send malformed raw message back
-            self.send(ErrorMessage('Parse error: %s' % ex.getMessage()))
+            if self.error_response:
+                self.send(ErrorMessage('Parse error: %s' % ex.getMessage()))
             self._close()
             return
         except MessageProcessingError, ex:
-            self.send(ErrorMessage(str(ex)))
+            if self.error_response:
+                self.send(ErrorMessage(str(ex)))
             self._close()
             return
 

@@ -118,7 +118,7 @@ class GatewayChannel(Channel):
     def __init__(self, task, hostname):
         """
         """
-        Channel.__init__(self)
+        Channel.__init__(self, error_response=True)
         self.task = task
         self.hostname = hostname
         self.topology = None
