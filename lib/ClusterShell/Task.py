@@ -313,8 +313,7 @@ class Task(object):
             # Default router
             self.topology = None
             self.router = None
-            self.pwrks = {}
-            self.pmwkrs = {}
+            self.gateways = {}
 
             # dict of MsgTree by sname
             self._msgtrees = {}
@@ -1276,39 +1275,49 @@ class Task(object):
             if thread != from_thread:
                 task.join()
 
-    def pchannel(self, gateway, metaworker): #gw_invoke_cmd):
-        """Get propagation channel for gateway (create one if needed)"""
-        # create channel if needed
-        if gateway not in self.pwrks:
+    def _pchannel(self, gateway, metaworker):
+        """Get propagation channel for gateway (create one if needed).
+
+        Use self.gateways dictionary that allows lookup like:
+            gateway => (worker channel, set of metaworkers)
+        """
+        # create gateway channel if needed
+        if gateway not in self.gateways:
             chan = PropagationChannel(self)
+            logging.getLogger(__name__).info("pchannel: creating new channel")
             # invoke gateway
             timeout = None # FIXME: handle timeout for gateway channels
-            worker = self.shell(metaworker.invoke_gateway, nodes=gateway,
-                                handler=chan, timeout=timeout, tree=False)
-            self.pwrks[gateway] = worker
+            chanworker = self.shell(metaworker.invoke_gateway, nodes=gateway,
+                                    handler=chan, timeout=timeout, tree=False)
+            self.gateways[gateway] = (chanworker, set([metaworker]))
         else:
-            worker = self.pwrks[gateway]
-            chan = worker.eh
+            # TODO: assert chanworker is running (need Worker.running())
+            chanworker, metaworkers = self.gateways[gateway]
+            metaworkers.add(metaworker)
+        return chanworker.eh
 
-        if metaworker not in self.pmwkrs:
-            mw = self.pmwkrs[metaworker] = set()
+    def _pchannel_release(self, gateway, metaworker):
+        """Release propagation channel associated to gateway.
+
+        Lookup by gateway, decref associated metaworker set and release
+        channel worker if needed.
+        """
+        logging.getLogger(__name__).info("pchannel_release %s %s", gateway,
+                                         metaworker)
+
+        if gateway not in self.gateways:
+            logging.getLogger(__name__).error("pchannel_release: no pchannel"
+                                              "found for gateway %s",
+                                              gateway)
         else:
-            mw = self.pmwkrs[metaworker]
-        if worker not in mw:
-            #print >>sys.stderr, "pchannel++"
-            worker.metarefcnt += 1
-            mw.add(worker)
-        return chan
-
-    def _pchannel_release(self, metaworker):
-        """Release propagation channel"""
-        if metaworker in self.pmwkrs:
-            for worker in self.pmwkrs[metaworker]:
-                worker.metarefcnt -= 1
-                if worker.metarefcnt == 0:
-                    infomsg = "_pchannel_release: worker abort"
-                    logging.getLogger(__name__).info(infomsg)
-                    worker.abort()
+            # TODO: delay gateway closing when other gateways are running
+            chanworker, metaworkers = self.gateways[gateway]
+            metaworkers.remove(metaworker)
+            if len(metaworkers) == 0:
+                logging.getLogger(__name__).info("worker finishing")
+                chanworker.abort()
+                # delete gateway reference
+                del self.gateways[gateway]
 
 
 def task_self():

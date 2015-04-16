@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2011-2014)
+# Copyright CEA/DAM/DIF (2011-2015)
 #  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -49,11 +49,13 @@ class MetaWorkerEventHandler(EventHandler):
     """
     def __init__(self, metaworker):
         self.metaworker = metaworker
+        self.logger = logging.getLogger(__name__)
 
     def ev_start(self, worker):
         """
         Called to indicate that a worker has just started.
         """
+        self.logger.debug("MetaWorkerEventHandler: ev_start")
         self.metaworker._start_count += 1
         self.metaworker._check_ini()
 
@@ -61,6 +63,7 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker has data to read.
         """
+        self.logger.debug("MetaWorkerEventHandler: ev_read")
         self.metaworker._on_node_msgline(worker.current_node,
                                          worker.current_msg,
                                          'stdout')
@@ -85,7 +88,7 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker's connection has been closed.
         """
-        #print >>sys.stderr, "ev_hup?"
+        self.logger.debug("MetaWorkerEventHandler: ev_hup")
         self.metaworker._on_node_rc(worker.current_node, worker.current_rc)
 
     def ev_timeout(self, worker):
@@ -97,6 +100,7 @@ class MetaWorkerEventHandler(EventHandler):
         #for node in worker.iter_keys_timeout():
         #    self.metaworker._on_node_timeout(node)
         # we use NodeSet to copy set
+        self.logger.debug("MetaWorkerEventHandler: ev_timeout")
         for node in NodeSet._fromlist1(worker.iter_keys_timeout()):
             self.metaworker._on_node_timeout(node)
 
@@ -105,8 +109,8 @@ class MetaWorkerEventHandler(EventHandler):
         Called to indicate that a worker has just finished (it may already
         have failed on timeout).
         """
-        #self.metaworker._check_fini()
-        pass
+        self.logger.debug("MetaWorkerEventHandler: ev_close")
+        self.metaworker._check_fini()
         ##print >>sys.stderr, "ev_close?"
         #self._completed += 1
         #if self._completed >= self.grpcount:
@@ -178,7 +182,7 @@ class WorkerTree(DistantWorker):
         self.upchannel = None
         self.metahandler = MetaWorkerEventHandler(self)
 
-        # gateway -> targets selection
+        # gateway -> active targets selection
         self.gwtargets = {}
 
     def _set_task(self, task):
@@ -239,9 +243,11 @@ class WorkerTree(DistantWorker):
 
         self.gwtargets[gateway] = targets
 
-        self.task.pchannel(gateway, self).shell(nodes=targets,
+        self.task._pchannel(gateway, self).shell(nodes=targets,
             command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
             gw_invoke_cmd=self.invoke_gateway)
+
+        self._check_ini()
 
     def _engine_clients(self):
         """
@@ -249,16 +255,34 @@ class WorkerTree(DistantWorker):
         """
         return []
 
+    def _on_remote_node_msgline(self, node, msg, sname, gateway):
+        DistantWorker._on_node_msgline(self, node, msg, sname)
+
+    def _on_remote_node_rc(self, node, rc, gateway):
+        DistantWorker._on_node_rc(self, node, rc)
+        self.logger.debug("_on_remote_node_rc %s %s via gw %s", node,
+                          self._close_count, gateway)
+        self.gwtargets[gateway].remove(node)
+        self._close_count += 1
+        self._check_fini(gateway)
+
+    def _on_remote_node_timeout(self, node, gateway):
+        DistantWorker._on_node_timeout(self, node)
+        self.logger.debug("_on_remote_node_timeout %s via gw %s", node, gateway)
+        self._close_count += 1
+        self._has_timeout = True
+        self.gwtargets[gateway].remove(node)
+        self._check_fini(gateway)
+
     def _on_node_rc(self, node, rc):
         DistantWorker._on_node_rc(self, node, rc)
+        self.logger.debug("_on_node_rc %s %s", node, self._close_count)
         self._close_count += 1
-        self._check_fini()
 
     def _on_node_timeout(self, node):
         DistantWorker._on_node_timeout(self, node)
         self._close_count += 1
         self._has_timeout = True
-        self._check_fini()
 
     def _check_ini(self):
         self.logger.debug("WorkerTree: _check_ini (%d, %d)" % \
@@ -266,15 +290,23 @@ class WorkerTree(DistantWorker):
         if self.eh and self._start_count >= self._child_count:
             self.eh.ev_start(self)
 
-    def _check_fini(self):
+    def _check_fini(self, gateway=None):
+        self.logger.debug("check_fini %s %s", self._close_count,
+                          self._target_count)
         if self._close_count >= self._target_count:
             handler = self.eh
             if handler:
                 if self._has_timeout:
                     handler.ev_timeout(self)
                 handler.ev_close(self)
-            self.logger.debug("WorkerTree._check_fini %s call pchannel_release" % self)
-            self.task._pchannel_release(self)
+
+        # check completion of targets per gateway
+        if gateway:
+            targets = self.gwtargets[gateway]
+            if not targets:
+                self.logger.debug("WorkerTree._check_fini %s call pchannel_"
+                                  "release for gw %s" % (self, gateway))
+                self.task._pchannel_release(gateway, self)
 
     def write(self, buf):
         """Write to worker clients."""
@@ -282,8 +314,9 @@ class WorkerTree(DistantWorker):
         for worker in self.workers:
             worker.write(buf)
         for gateway, targets in self.gwtargets.items():
-            self.task.pchannel(gateway, self).write(nodes=targets, buf=buf,
-                                                    worker=self)
+            self.task._pchannel(gateway, self).write(nodes=targets,
+                                                     buf=buf,
+                                                     worker=self)
 
     def set_write_eof(self):
         """
@@ -294,8 +327,8 @@ class WorkerTree(DistantWorker):
         for worker in self.workers:
             worker.set_write_eof()
         for gateway, targets in self.gwtargets.items():
-            self.task.pchannel(gateway, self).set_write_eof(nodes=targets,
-                                                            worker=self)
+            self.task._pchannel(gateway, self).set_write_eof(nodes=targets,
+                                                             worker=self)
 
     def abort(self):
         """Abort processing any action by this worker."""
