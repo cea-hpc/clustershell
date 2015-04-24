@@ -92,8 +92,14 @@ class ClushConfig(ConfigParser.ConfigParser, object):
             self._set_main("fanout", options.fanout)
         if options.user:
             self._set_main("ssh_user", options.user)
-        if options.options:
-            self._set_main("ssh_options", options.options)
+        if options.ssh_options:
+            self._set_main("ssh_options", options.ssh_options)
+        if options.ssh_path:
+            self._set_main("ssh_path", options.ssh_path)
+        if options.scp_options:
+            self._set_main("scp_options", options.scp_options)
+        if options.scp_path:
+            self._set_main("scp_path", options.scp_path)
         if options.connect_timeout:
             self._set_main("connect_timeout", options.connect_timeout)
         if options.command_timeout:
