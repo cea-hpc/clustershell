@@ -319,8 +319,10 @@ class ExecWorker(DistantWorker):
 
     def write(self, buf):
         """Write to worker clients."""
+        sname = 'stdin'
         for client in self._clients:
-            client._write('stdin', buf)
+            if sname in client.streams:
+                client._write(sname, buf)
 
     def set_write_eof(self):
         """

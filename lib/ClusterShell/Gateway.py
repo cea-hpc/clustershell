@@ -67,6 +67,8 @@ class WorkerTreeResponder(EventHandler):
         self.timer = task.timer(qdelay, self, qdelay, autoclose=True)
         self.logger = logging.getLogger(__name__)
         self.logger.debug("WorkerTreeResponder: initialized")
+        # self-managed retcodes
+        self.retcodes = {}
 
     def ev_start(self, worker):
         self.logger.debug("WorkerTreeResponder: ev_start")
@@ -77,7 +79,8 @@ class WorkerTreeResponder(EventHandler):
         if not self.worker:
             return
         logger = self.logger
-        # check for grooming opportunities
+
+        # check for grooming opportunities for stdout/stderr
         for msg_elem, nodes in self.worker.iter_errors():
             logger.debug("iter(stderr): %s: %d bytes" % \
                 (nodes, len(msg_elem.message())))
@@ -88,7 +91,17 @@ class WorkerTreeResponder(EventHandler):
                 (nodes, len(msg_elem.message())))
             self.gwchan.send(StdOutMessage(nodes, msg_elem.message(), \
                                            self.srcwkr))
+        # empty internal MsgTree buffers
         self.worker.flush_buffers()
+        self.worker.flush_errors()
+
+        # specifically manage retcodes to periodically return latest
+        # retcodes to parent node, instead of doing it at ev_hup (no msg
+        # aggregation) or at ev_close (no parent node live updates)
+        for rc, nodes in self.retcodes.iteritems():
+            self.logger.debug("iter(rc): %s: rc=%d" % (nodes, rc))
+            self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
+        self.retcodes.clear()
 
     def ev_error(self, worker):
         self.logger.debug("WorkerTreeResponder: ev_error %s" % \
@@ -99,15 +112,18 @@ class WorkerTreeResponder(EventHandler):
         self.gwchan.send(TimeoutMessage( \
             NodeSet._fromlist1(worker.iter_keys_timeout()), self.srcwkr))
 
+    def ev_hup(self, worker):
+        """Received end of command from one node"""
+        if worker.current_rc in self.retcodes:
+            self.retcodes[worker.current_rc].add(worker.current_node)
+        else:
+            self.retcodes[worker.current_rc] = NodeSet(worker.current_node)
+
     def ev_close(self, worker):
-        """End of CTL SHELL responder"""
+        """End of CTL responder"""
         self.logger.debug("WorkerTreeResponder: ev_close")
         # finalize grooming
         self.ev_timer(None)
-        # send retcodes
-        for rc, nodes in self.worker.iter_retcodes():
-            self.logger.debug("iter(rc): %s: rc=%d" % (nodes, rc))
-            self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
         self.timer.invalidate()
 
 
@@ -184,10 +200,10 @@ class GatewayChannel(Channel):
         """receive control message with actions to perform"""
         if msg.type == ControlMessage.ident:
             self.logger.debug('GatewayChannel._state_ctl')
-            self._ack(msg)
             if msg.action == 'shell':
                 data = msg.data_decode()
                 cmd = data['cmd']
+
                 stderr = data['stderr']
                 timeout = data['timeout']
                 remote = data['remote']
@@ -224,14 +240,17 @@ class GatewayChannel(Channel):
                 self.propagation.upchannel = self
                 task.schedule(self.propagation)
                 self.logger.debug("WorkerTree scheduled")
+                self._ack(msg)
             elif msg.action == 'write':
                 data = msg.data_decode()
                 self.logger.debug('GatewayChannel write: %d bytes', \
                                   len(data['buf']))
                 self.propagation.write(data['buf'])
+                self._ack(msg)
             elif msg.action == 'eof':
                 self.logger.debug('GatewayChannel eof')
                 self.propagation.set_write_eof()
+                self._ack(msg)
             else:
                 self.logger.error('unexpected CTL action: %s', msg.action)
         else:

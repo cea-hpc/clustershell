@@ -194,6 +194,14 @@ class Task(object):
                       "grooming_delay"     : 0.25,
                       "connect_timeout"    : 10,
                       "command_timeout"    : 0 }
+
+    # list of _std_info keys whose values can safely be propagated in tree mode
+    _std_info_pkeys = ['debug',
+                       'fanout',
+                       'grooming_delay',
+                       'connect_timeout',
+                       'command_timeout']
+
     _tasks = {}
     _taskid_max = 0
     _task_lock = threading.Lock()

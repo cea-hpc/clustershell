@@ -319,8 +319,9 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         self.gateway.wait()
 
     def _check_channel_ctl_shell(self, command, target, stderr, remote,
-                                 reply_msg_class, reply_pattern, timeout=-1,
-                                 replycnt=1, reply_rc=0):
+                                 reply_msg_class, reply_pattern,
+                                 write_string=None, timeout=-1, replycnt=1,
+                                 reply_rc=0):
         """helper to check channel shell action"""
         self.channel_send_start()
         msg = self.recvxml(StartMessage)
@@ -350,6 +351,25 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         self.gateway.send(ctl.xml())
 
         self.recvxml(ACKMessage)
+
+        if write_string:
+            ctl = ControlMessage(id(workertree))
+            ctl.action = 'write'
+            ctl.target = NodeSet(target)
+            ctl_data = {
+                'buf': write_string,
+            }
+            # Send write message
+            ctl.data_encode(ctl_data)
+            self.gateway.send(ctl.xml())
+            self.recvxml(ACKMessage)
+
+            # Send EOF message
+            ctl = ControlMessage(id(workertree))
+            ctl.action = 'eof'
+            ctl.target = NodeSet(target)
+            self.gateway.send(ctl.xml())
+            self.recvxml(ACKMessage)
 
         for _ in range(replycnt):
             msg = self.recvxml(reply_msg_class)
@@ -422,3 +442,17 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         self._check_channel_ctl_shell("sleep 10", "n10", False, False,
                                       TimeoutMessage, None, timeout=0.5)
 
+    def test_channel_ctl_shell_wrloc1(self):
+        """test gateway channel write (stderr=False remote=False)"""
+        self._check_channel_ctl_shell("cat", "n10", False, False,
+                                      StdOutMessage, "ok", write_string="ok\n")
+
+    def test_channel_ctl_shell_wrloc2(self):
+        """test gateway channel write (stderr=True remote=False)"""
+        self._check_channel_ctl_shell("cat", "n10", True, False,
+                                      StdOutMessage, "ok", write_string="ok\n")
+
+    def test_channel_ctl_shell_mwrloc1(self):
+        """test gateway channel write multi (remote=False)"""
+        self._check_channel_ctl_shell("cat", "n[10-49]", True, False,
+                                      StdOutMessage, "ok", write_string="ok\n")

@@ -37,6 +37,7 @@ ClusterShell Propagation module. Use the topology tree to send commands
 through gateways and gather results.
 """
 
+from collections import deque
 import logging
 
 from ClusterShell.NodeSet import NodeSet
@@ -44,8 +45,9 @@ from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ControlMessage, StdOutMessage
 from ClusterShell.Communication import StdErrMessage, RetcodeMessage
 from ClusterShell.Communication import StartMessage, EndMessage
-from ClusterShell.Communication import RoutedMessageBase
+from ClusterShell.Communication import RoutedMessageBase, ErrorMessage
 from ClusterShell.Communication import ConfigurationMessage, TimeoutMessage
+from ClusterShell.Topology import TopologyError
 
 
 class RouteResolvingError(Exception):
@@ -233,8 +235,24 @@ class PropagationChannel(Channel):
         self.gateway = gateway
         self.workers = {}
         self._history = {} # track informations about previous states
-        self._sendq = []
+        self._sendq = deque()
         self.logger = logging.getLogger(__name__)
+
+    def send_queued(self, ctl):
+        """helper used to send a message, using msg queue if needed"""
+        if self.setup and not self._sendq:
+            # send now if channel is setup and sendq empty
+            self.send(ctl)
+        else:
+            self.logger.debug("send_queued: %d", len(self._sendq))
+            self._sendq.appendleft(ctl)
+
+    def send_dequeue(self):
+        """helper used to send one queued message (if any)"""
+        if self._sendq:
+            ctl = self._sendq.pop()
+            self.logger.debug("dequeuing sendq: %s", ctl)
+            self.send(ctl)
 
     def start(self):
         """start propagation channel"""
@@ -276,8 +294,8 @@ class PropagationChannel(Channel):
         ctl.action = 'shell'
         ctl.target = nodes
 
-        info = self.task._info.copy()
-        info['debug'] = False
+        # copy only subset of task info dict
+        info = dict((k, self.task._info[k]) for k in self.task._std_info_pkeys)
 
         ctl_data = {
             'cmd': command,
@@ -290,11 +308,7 @@ class PropagationChannel(Channel):
         ctl.data_encode(ctl_data)
 
         self._history['ctl_id'] = ctl.msgid
-        if self.setup:
-            # send now if channel is setup
-            self.send(ctl)
-        else:
-            self._sendq.append(ctl)
+        self.send_queued(ctl)
 
     def write(self, nodes, buf, worker):
         """write buffer through channel to nodes on standard input"""
@@ -310,11 +324,7 @@ class PropagationChannel(Channel):
         }
         ctl.data_encode(ctl_data)
         self._history['ctl_id'] = ctl.msgid
-        if self.setup:
-            # send now if channel is setup
-            self.send(ctl)
-        else:
-            self._sendq.append(ctl)
+        self.send_queued(ctl)
 
     def set_write_eof(self, nodes, worker):
         """send EOF through channel to specified nodes"""
@@ -326,11 +336,7 @@ class PropagationChannel(Channel):
         ctl.target = nodes
 
         self._history['ctl_id'] = ctl.msgid
-        if self.setup:
-            # send now if channel is setup
-            self.send(ctl)
-        else:
-            self._sendq.append(ctl)
+        self.send_queued(ctl)
 
     def recv_cfg(self, msg):
         """handle incoming messages for state 'propagate configuration'"""
@@ -338,9 +344,7 @@ class PropagationChannel(Channel):
         if msg.type == 'ACK': # and msg.ack == self._history['cfg_id']:
             self.logger.debug("CTL - connection with gateway fully established")
             self.setup = True
-            for ctl in self._sendq:
-                self.logger.debug("dequeuing sendq: %s", ctl)
-                self.send(ctl)
+            self.send_dequeue()
         else:
             self.logger.debug("_state_config error (msg=%s)", msg)
 
@@ -349,6 +353,7 @@ class PropagationChannel(Channel):
         self.logger.debug("recv_ctl")
         if msg.type == 'ACK': # and msg.ack == self._history['ctl_id']:
             self.logger.debug("got ack (%s)", msg.type)
+            self.send_dequeue()
         elif isinstance(msg, RoutedMessageBase):
             metaworker = self.workers[msg.srcid]
             if msg.type == StdOutMessage.ident:
@@ -379,9 +384,11 @@ class PropagationChannel(Channel):
                 self.logger.debug("TimeoutMessage for %s", msg.nodes)
                 for node in NodeSet(msg.nodes):
                     metaworker._on_remote_node_timeout(node, self.gateway)
+        elif msg.type == ErrorMessage.ident:
+            # tree runtime error, could generate a new event later
+            raise TopologyError(msg.reason)
         else:
-            self.logger.debug("PropChannel: _state_gather unhandled msg %s" % \
-                              msg)
+            self.logger.debug("recv_ctl: unhandled msg %s",  msg)
         """
         return
         if self.ptree.upchannel is not None:
