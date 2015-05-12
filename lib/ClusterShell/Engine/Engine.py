@@ -461,7 +461,7 @@ class Engine:
         remains for this client, this method automatically removes the
         entire client from engine.
         """
-        logging.getLogger(__name__).debug("remove_stream %s %s", client, stream)
+        #logging.getLogger(__name__).debug("remove_stream %s %s", client, stream)
         self.unregister_stream(client, stream)
         # _close_stream() will flush pending read buffers so may generate events
         client._close_stream(stream.name)

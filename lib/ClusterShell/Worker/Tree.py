@@ -92,7 +92,6 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker's connection has been closed.
         """
-        self.logger.debug("MetaWorkerEventHandler: ev_hup")
         self.metaworker._on_node_rc(worker.current_node, worker.current_rc)
 
     def ev_timeout(self, worker):

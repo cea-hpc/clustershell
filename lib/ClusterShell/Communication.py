@@ -207,7 +207,7 @@ class Channel(EventHandler):
     def ev_read(self, worker):
         """channel has data to read"""
         raw = worker.current_msg
-        self.logger.debug('ev_read raw="%s"', raw)
+        #self.logger.debug('ev_read raw="%s"', raw)
         try:
             self._parser.feed(raw + '\n')
         except SAXParseException, ex:
@@ -231,8 +231,8 @@ class Channel(EventHandler):
 
     def send(self, msg):
         """write an outgoing message as its XML representation"""
-        self.logger.debug('SENDING to worker %s: "%s"', id(self.worker),
-                          msg.xml())
+        #self.logger.debug('SENDING to worker %s: "%s"', id(self.worker),
+        #                  msg.xml())
         self.worker.write(msg.xml() + '\n')
 
     def start(self):
@@ -375,7 +375,9 @@ class StdOutMessage(RoutedMessageBase):
         RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'nodes': str})
         self.nodes = nodes
-        self.data = output
+        self.data = None
+        if output:
+            self.data_encode(output)
 
 class StdErrMessage(StdOutMessage):
     ident = 'SER'

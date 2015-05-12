@@ -371,17 +371,20 @@ class TreeGatewayTest(TreeGatewayBaseTest):
             self.gateway.send(ctl.xml())
             self.recvxml(ACKMessage)
 
-        for _ in range(replycnt):
+        while replycnt > 0:
             msg = self.recvxml(reply_msg_class)
+            replycnt -= len(NodeSet(msg.nodes))
             self.assertTrue(msg.nodes in ctl.target)
-            try:
-                if not reply_pattern.search(msg.data):
-                    self.assertEqual(msg.data, reply_pattern,
-                                     'Pattern "%s" not found in msg.data="%s"'
-                                     % (reply_pattern.pattern, msg.data))
-            except AttributeError:
-                # not a regexp
-                self.assertEqual(msg.data, reply_pattern)
+            if msg.has_payload or reply_pattern:
+                msg_data = msg.data_decode()
+                try:
+                    if not reply_pattern.search(msg_data):
+                        self.assertEqual(msg.data, reply_pattern,
+                                         'Pattern "%s" not found in data="%s"'
+                                         % (reply_pattern.pattern, msg_data))
+                except AttributeError:
+                    # not a regexp
+                    self.assertEqual(msg_data, reply_pattern)
 
         if timeout <= 0:
             msg = self.recvxml(RetcodeMessage)
@@ -409,12 +412,12 @@ class TreeGatewayTest(TreeGatewayBaseTest):
     def test_channel_ctl_shell_mlocal1(self):
         """test gateway channel shell multi (remote=False)"""
         self._check_channel_ctl_shell("echo ok", "n[10-49]", True, False,
-                                      StdOutMessage, "ok")
+                                      StdOutMessage, "ok", replycnt=40)
 
     def test_channel_ctl_shell_mlocal2(self):
         """test gateway channel shell multi stderr (remote=False)"""
         self._check_channel_ctl_shell("echo ok 1>&2", "n[10-49]", True, False,
-                                      StdErrMessage, "ok")
+                                      StdErrMessage, "ok", replycnt=40)
 
     def test_channel_ctl_shell_mlocal3(self):
         """test gateway channel shell multi placeholder (remote=False)"""
