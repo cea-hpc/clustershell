@@ -252,10 +252,9 @@ class WorkerTree(DistantWorker):
 
     def _execute_remote(self, cmd, targets, gateway, timeout):
         """run command against a remote node via a gateway"""
-        self.logger.debug("_execute_remote gateway=%s cmd=%s targets=%s" % \
-            (gateway, cmd, targets))
-        #self._start_count += 1
-        #self._child_count += 1
+        self.logger.debug("_execute_remote gateway=%s cmd=%s targets=%s",
+                          gateway, cmd, targets)
+
         self._target_count += len(targets)
 
         self.gwtargets[gateway] = targets.copy()

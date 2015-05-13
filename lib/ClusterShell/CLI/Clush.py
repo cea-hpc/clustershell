@@ -846,6 +846,8 @@ def main():
         task.set_info("debug", True)
         logging.basicConfig(level=logging.DEBUG)
         logging.debug("clush: STARTING DEBUG")
+    else:
+        logging.basicConfig(level=logging.CRITICAL)
 
     task.set_info("fanout", config.fanout)
 

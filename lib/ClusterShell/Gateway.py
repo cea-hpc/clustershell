@@ -55,6 +55,11 @@ from ClusterShell.Communication import Channel, ConfigurationMessage, \
     MessageProcessingError
 
 
+def _gw_print_debug(task, s):
+    """Default gateway task debug printing function"""
+    logging.getLogger(__name__).debug(s)
+
+
 class WorkerTreeResponder(EventHandler):
     """Gateway WorkerTree handler"""
     def __init__(self, task, gwchan, srcwkr):
@@ -213,14 +218,15 @@ class GatewayChannel(Channel):
                                   data['invoke_gateway'])
 
                 taskinfo = data['taskinfo']
-                task = task_self()
-                task._info = taskinfo
-                task._engine.info = taskinfo
-
-                #logging.setLevel(logging.DEBUG)
-
                 self.logger.debug('assigning task infos (%s)' % \
                     str(data['taskinfo']))
+
+                task = task_self()
+                task._info.update(taskinfo)
+                task.set_info('print_debug', _gw_print_debug)
+
+                if task.info('debug'):
+                    self.logger.setLevel(logging.DEBUG)
 
                 self.logger.debug('inherited fanout value=%d', \
                                   task.info("fanout"))
