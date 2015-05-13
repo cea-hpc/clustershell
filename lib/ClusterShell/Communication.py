@@ -207,7 +207,6 @@ class Channel(EventHandler):
     def ev_read(self, worker):
         """channel has data to read"""
         raw = worker.current_msg
-        #self.logger.debug('ev_read raw="%s"', raw)
         try:
             self._parser.feed(raw + '\n')
         except SAXParseException, ex:

@@ -1315,8 +1315,15 @@ class Task(object):
             logging.getLogger(__name__).info("pchannel: creating new channel")
             # invoke gateway
             timeout = None # FIXME: handle timeout for gateway channels
-            chanworker = self.shell(metaworker.invoke_gateway, nodes=gateway,
-                                    handler=chan, timeout=timeout, tree=False)
+            wrkcls = self.default('distant_worker')
+            chanworker = wrkcls(gateway, command=metaworker.invoke_gateway,
+                                handler=chan, stderr=False, timeout=timeout)
+            # change default stream names to avoid internal task buffering
+            chanworker.SNAME_STDIN = 'gw-stdin'
+            chanworker.SNAME_STDOUT = 'gw-stdout'
+            chanworker.SNAME_STDERR = 'gw-stderr'
+            self.schedule(chanworker)
+            # update gateways dict
             self.gateways[gateway] = (chanworker, set([metaworker]))
         else:
             # TODO: assert chanworker is running (need Worker.running())

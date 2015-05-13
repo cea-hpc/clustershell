@@ -67,7 +67,8 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker has data to read.
         """
-        self.logger.debug("MetaWorkerEventHandler: ev_read")
+        self.logger.debug("MetaWorkerEventHandler: ev_read (%s)",
+                          worker.current_sname)
         self.metaworker._on_node_msgline(worker.current_node,
                                          worker.current_msg,
                                          'stdout')
