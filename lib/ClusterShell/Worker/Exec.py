@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2014)
+# Copyright CEA/DAM/DIF (2014-2015)
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -41,7 +41,6 @@ This is the base class for most of other distant workers.
 """
 
 import os
-import copy
 from string import Template
 
 from ClusterShell.NodeSet import NodeSet
@@ -57,18 +56,19 @@ def _replace_cmd(pattern, node, rank):
     %n, %rank map `rank'
     """
     variables = {
-        'h':    node,
-        'host': node,
+        'h':     node,
+        'host':  node,
+        'hosts': node,
+        'n':     rank or 0,
+        'rank':  rank or 0,
     #    'u': None,
-        'n':    rank,
-        'rank': rank,
     }
     class Replacer(Template):
         delimiter = '%'
     try:
         cmd = Replacer(pattern).substitute(variables)
     except KeyError, error:
-        msg = "'%s' is not a valid pattern, use '%%%%' to escape '%%'" % error
+        msg = "%s is not a valid pattern, use '%%%%' to escape '%%'" % error
         raise WorkerError(msg)
     return cmd
 
@@ -140,15 +140,31 @@ class ExecClient(EngineClient):
         self.streams.clear()
 
         if prc >= 0:
-            self.worker._on_node_rc(self.key, prc)
+            self._on_nodeset_rc(self.key, prc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
             self.worker._on_node_timeout(self.key)
         elif not abort:
             # if process was signaled, return 128 + signum (bash-like)
-            self.worker._on_node_rc(self.key, 128 + -prc)
+            self._on_nodeset_rc(self.key, 128 + -prc)
 
         self.worker._check_fini()
+
+    def _on_nodeset_rc(self, nodes, rc):
+        """local wrapper over _on_node_rc that can also handle nodeset"""
+        if isinstance(nodes, NodeSet):
+            for node in nodes:
+                self.worker._on_node_rc(node, rc)
+        else:
+            self.worker._on_node_rc(nodes, rc)
+
+    def _on_nodeset_msgline(self, nodes, msg, sname):
+        """local wrapper over _on_node_msgline that can also handle nodeset"""
+        if isinstance(nodes, NodeSet):
+            for node in nodes:
+                self.worker._on_node_msgline(node, msg, sname)
+        else:
+            self.worker._on_node_msgline(nodes, msg, sname)
 
     def _flush_read(self, sname):
         """Called at close time to flush stream read buffer."""
@@ -156,7 +172,7 @@ class ExecClient(EngineClient):
         if stream.readable() and stream.rbuf:
             # We still have some read data available in buffer, but no
             # EOL. Generate a final message before closing.
-            self.worker._on_node_msgline(self.key, stream.rbuf, sname)
+            self._on_nodeset_msgline(self.key, stream.rbuf, sname)
 
     def _handle_read(self, sname):
         """
@@ -167,7 +183,7 @@ class ExecClient(EngineClient):
         worker = self.worker
         task = worker.task
         key = self.key
-        node_msgline = worker._on_node_msgline
+        node_msgline = self._on_nodeset_msgline
         debug = task.info("debug", False)
         if debug:
             print_debug = task.info("print_debug")
@@ -286,8 +302,13 @@ class ExecWorker(DistantWorker):
         Additional arguments in `kwargs' will be used for client creation.
         There will be one client per node in self.nodes
         """
-        for rank, node in enumerate(self.nodes):
-            self._add_client(node, rank=rank, **kwargs)
+        # do not iterate if special %hosts placeholder is found in command
+        if self.command and ('%hosts' in self.command or
+                             '%{hosts}' in self.command):
+            self._add_client(self.nodes, rank=None, **kwargs)
+        else:
+            for rank, node in enumerate(self.nodes):
+                self._add_client(node, rank=rank, **kwargs)
 
     def _add_client(self, nodes, **kwargs):
         """Create one shell or copy client."""

@@ -197,6 +197,7 @@ class DistantWorker(Worker):
         # Maxoptimize this method as it might be called very often.
         task = self.task
         handler = self.eh
+        assert type(node) is not NodeSet # for testing
         # set stream name
         self.current_sname = sname
         # update task msgtree
