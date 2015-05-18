@@ -236,6 +236,7 @@ class PropagationChannel(Channel):
         self.workers = {}
         self._history = {} # track informations about previous states
         self._sendq = deque()
+        self._rc = None
         self.logger = logging.getLogger(__name__)
 
     def send_queued(self, ctl):
@@ -400,6 +401,21 @@ class PropagationChannel(Channel):
             assert False
         """
 
-    def ev_close(self, worker):
-        worker.flush_buffers()
+    def ev_hup(self, worker):
+        """Channel command is closing"""
+        self._rc = worker.current_rc
 
+    def ev_close(self, worker):
+        """Channel is closing"""
+        # do not use worker buffer or rc accessors here as we doesn't use
+        # common stream names
+        gateway = str(worker.nodes)
+        self.logger.debug("ev_close gateway=%s %s", gateway, self)
+        self.logger.debug("ev_close rc=%s", self._rc) # may be None
+
+        if self._rc: # got explicit error code
+            # ev_routing?
+            self.logger.debug("unreachable gateway %s", gateway)
+            worker.task.router.mark_unreachable(gateway)
+            self.logger.debug("worker.task.gateways=%s" % worker.task.gateways)
+            # TODO: find best gateway, update WorkerTree counters, relaunch...

@@ -1317,7 +1317,7 @@ class Task(object):
             timeout = None # FIXME: handle timeout for gateway channels
             wrkcls = self.default('distant_worker')
             chanworker = wrkcls(gateway, command=metaworker.invoke_gateway,
-                                handler=chan, stderr=False, timeout=timeout)
+                                handler=chan, stderr=True, timeout=timeout)
             # change default stream names to avoid internal task buffering
             chanworker.SNAME_STDIN = 'gw-stdin'
             chanworker.SNAME_STDOUT = 'gw-stdout'

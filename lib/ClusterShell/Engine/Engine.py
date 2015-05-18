@@ -656,7 +656,7 @@ class Engine:
                 self.register(client._start())
                 if fanout <= self.reg_clients:
                     break
-    
+
     def run(self, timeout):
         """Run engine in calling thread."""
         # change to running state
