@@ -196,6 +196,9 @@ class _EngineTimerQ:
             assert self.client.fire_delay > -EPSILON
             self.fire_date = self.client.fire_delay + time.time()
 
+        def __repr__(self):
+            return "%s{%s}" % (self.client, self.client.fire_delay)
+
         def __cmp__(self, other):
             return cmp(self.fire_date, other.fire_date)
 
@@ -245,6 +248,7 @@ class _EngineTimerQ:
         """
         Insert and arm a client's timer.
         """
+        logging.getLogger(__name__).debug("TimerQ: schedule %s", client)
         # arm only if fire is set
         if client.fire_delay > -EPSILON:
             heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
@@ -627,7 +631,11 @@ class Engine:
 
     def fire_timers(self):
         """Fire expired timers for processing."""
+        logging.getLogger(__name__).debug("fire_timers: %s",
+                                          self.timerq.timers)
         while self.timerq.expired():
+            logging.getLogger(__name__).debug("fire_timers: firing %s",
+                                              self.timerq.timers[0])
             self.timerq.fire()
 
     def start_ports(self):
