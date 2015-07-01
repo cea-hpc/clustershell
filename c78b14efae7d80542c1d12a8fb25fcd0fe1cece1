@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7a5e2beb",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-01T07:53:46Z",
+      "side": 1,
+      "message": "Pour ma culture: c\u0027est plus joli %s que %r ici?",
+      "range": {
+        "startLine": 200,
+        "startChar": 24,
+        "endLine": 200,
+        "endChar": 25
+      },
+      "revId": "c78b14efae7d80542c1d12a8fb25fcd0fe1cece1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
