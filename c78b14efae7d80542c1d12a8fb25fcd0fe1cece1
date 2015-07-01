@@ -22,6 +22,30 @@
       "revId": "c78b14efae7d80542c1d12a8fb25fcd0fe1cece1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0b02af7",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-01T14:52:01Z",
+      "side": 1,
+      "message": "T\u0027as raison, %r est peut-être plus adapté ici pour self.client ! Je ne pense pas lander ce patch de toute façon car le rajout de debugging au niveau des timers pourrait être un peu lourd je pense. Par contre ce __repr__ est a reprendre. Merci.",
+      "parentUuid": "9ad9bd40_7a5e2beb",
+      "range": {
+        "startLine": 200,
+        "startChar": 24,
+        "endLine": 200,
+        "endChar": 25
+      },
+      "revId": "c78b14efae7d80542c1d12a8fb25fcd0fe1cece1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
