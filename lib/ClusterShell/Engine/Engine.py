@@ -196,6 +196,9 @@ class _EngineTimerQ:
             assert self.client.fire_delay > -EPSILON
             self.fire_date = self.client.fire_delay + time.time()
 
+        def __repr__(self):
+            return "%r{%s}" % (self.client, self.client.fire_delay)
+
         def __cmp__(self, other):
             return cmp(self.fire_date, other.fire_date)
 
@@ -214,8 +217,13 @@ class _EngineTimerQ:
                 # If the firing time is delayed so far that it passes one
                 # or more of the scheduled firing times, reschedule the
                 # timer for the next scheduled firing time in the future.
-                while self.fire_date < time_current:
-                    self.fire_date += interval
+                if self.fire_date < time_current:
+                    logging.getLogger(__name__).debug(
+                        "Warning: passed interval time for %r (long running "
+                        "event handler?)", self.client)
+                    self.fire_date += \
+                        interval * (1 + int((time_current - self.fire_date) \
+                                   / interval))
 
         def disarm(self):
             client = self.client
@@ -287,19 +295,26 @@ class _EngineTimerQ:
         while len(self.timers) > 0 and not self.timers[0].armed():
             heapq.heappop(self.timers)
 
-    def fire(self):
+    def fire_expired(self):
         """
         Remove the smallest timer from the queue and fire its associated client.
-        Raise IndexError if the queue is empty.
         """
         self._dequeue_disarmed()
 
+        # Has a timer expired?
+        if not self.timers or (self.timers[0].fire_date
+                               - time.time()) > EPSILON:
+            return
+
+        # Yes - disarm it
         timercase = heapq.heappop(self.timers)
         client = timercase.disarm()
 
+        # Fire
         client.fire_delay = -1.0
         client._fire()
 
+        # Rearm if needed
         # Note: fire=0 is valid, interval=0 is not
         if client.fire_delay >= -EPSILON or client.interval > EPSILON:
             timercase.arm(client)
@@ -318,14 +333,6 @@ class _EngineTimerQ:
             return max(0., self.timers[0].fire_date - time.time())
 
         return -1
-
-    def expired(self):
-        """
-        Has a timer expired?
-        """
-        self._dequeue_disarmed()
-        return len(self.timers) > 0 and \
-            (self.timers[0].fire_date - time.time()) <= EPSILON
 
     def clear(self):
         """
@@ -627,8 +634,7 @@ class Engine:
 
     def fire_timers(self):
         """Fire expired timers for processing."""
-        while self.timerq.expired():
-            self.timerq.fire()
+        self.timerq.fire_expired()
 
     def start_ports(self):
         """Start and register all port clients."""

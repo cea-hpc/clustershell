@@ -415,7 +415,7 @@ class TaskTimerTest(unittest.TestCase):
             self.count += 1
             if self.count == 1:
                 # force delay timer (NOT a best practice!)
-                sleep(4)
+                sleep(2)
                 # do not invalidate first time
             else:
                 # invalidate next time to stop repeater
@@ -426,10 +426,41 @@ class TaskTimerTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         test_handler = self.__class__.TForceDelayedRepeaterChecker()
-        repeater1 = task.timer(1.0, interval=0.5, handler=test_handler)
+        repeater1 = task.timer(0.5, interval=0.25, handler=test_handler)
         self.assert_(repeater1 != None)
         task.resume()
         self.assertEqual(test_handler.count, 2)
+
+    class TForceDelayedRepeaterAutoCloseChecker(EventHandler):
+
+        INTERVAL = 0.25
+
+        def __init__(self):
+            self.count = 0
+
+        def ev_timer(self, timer):
+            self.count += 1
+            sleep(self.INTERVAL + 0.1)
+
+    def testForceDelayedRepeaterAutoClose(self):
+        """test repeater being forcibly delayed (w/ autoclose)"""
+        # Test Github issue #254
+        INTERVAL = 0.25
+        task = task_self()
+        teh = self.__class__.TForceDelayedRepeaterAutoCloseChecker()
+        bootstrap = task.shell("sleep %f" % INTERVAL)
+        # first timer will fire after INTERVAL and will block for INTERVAL+0.1
+        repeater1 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
+        # clustershell will then see shell command termination, then
+        # second timer will be fired (expired) and as we're still in runloop
+        # the autoclose flag is not rechecked
+        repeater2 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
+        # thread will be blocked for more INTERVAL+0.1sec, after that we exit
+        # the current runloop due to lack of engine client (except autoclosing
+        # one), so repeater3 is never fired (checked below)
+        repeater3 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
+        task.resume()
+        self.assertEqual(teh.count, 2)
 
     def testMultipleAddSameTimerPrivate(self):
         """test multiple add() of same timer [private]"""
