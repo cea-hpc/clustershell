@@ -1026,10 +1026,15 @@ class NodeSet(NodeSetBase):
 
         self._autostep = autostep
 
-        # Set group resolver.
+        # Set group resolver - several use cases apply:
         if resolver in (RESOLVER_NOGROUP, RESOLVER_NOINIT):
+            # Special constants to avoid any resolver binding
             self._resolver = None
+        elif hasattr(resolver, '_resolver'):
+            # Inherit _resolver from object (eg. NodeSet object)
+            self._resolver = resolver._resolver
         else:
+            # Pass a resolver instance or None to default to standard one
             self._resolver = resolver or RESOLVER_STD_GROUP
 
         # Initialize default parser.
@@ -1152,8 +1157,7 @@ class NodeSet(NodeSetBase):
                 # use internal reverse: populate allgroups
                 for grp in allgrplist:
                     nodelist = self._resolver.group_nodes(grp, groupsource)
-                    allgroups[grp] = NodeSet(",".join(nodelist), \
-                                             resolver=RESOLVER_NOGROUP)
+                    allgroups[grp] = NodeSet(",".join(nodelist), resolver=self)
             except NodeUtils.GroupSourceQueryFailed, exc:
                 # External result inconsistency
                 raise NodeSetExternalError("Unable to map a group " \
@@ -1186,8 +1190,7 @@ class NodeSet(NodeSetBase):
                 key = "@%s:%s" % (groupsource, grp)
             else:
                 key = "@" + grp
-            result[key] = (NodeSet(nsb, resolver=RESOLVER_NOGROUP), \
-                           self.intersection(nsb))
+            result[key] = (NodeSet(nsb, resolver=self), self.intersection(nsb))
         return result
 
     def regroup(self, groupsource=None, autostep=None, overlap=False,
