@@ -43,8 +43,8 @@ import logging
 import time
 
 # Engine client fd I/O event interest bits
-E_READ   = 0x1
-E_WRITE  = 0x2
+E_READ = 0x1
+E_WRITE = 0x2
 
 # Define epsilon value for time float arithmetic operations
 EPSILON = 1.0e-3
@@ -128,7 +128,7 @@ class EngineBaseTimer:
         Returns a boolean value that indicates whether an EngineTimer
         object is valid and able to fire.
         """
-        return self._engine != None
+        return self._engine is not None
 
     def set_nextfire(self, fire_delay, interval=-1):
         """
@@ -177,7 +177,7 @@ class EngineTimer(EngineBaseTimer):
     def __init__(self, fire_delay, interval, autoclose, handler):
         EngineBaseTimer.__init__(self, fire_delay, interval, autoclose)
         self.eh = handler
-        assert self.eh != None, "An event handler is needed for timer."
+        assert self.eh is not None, "An event handler is needed for timer."
 
     def _fire(self):
         self.eh.ev_timer(self)
@@ -200,7 +200,7 @@ class _EngineTimerQ:
             return cmp(self.fire_date, other.fire_date)
 
         def arm(self, client):
-            assert client != None
+            assert client is not None
             self.client = client
             self.client._timercase = self
             # setup next firing date
@@ -210,12 +210,16 @@ class _EngineTimerQ:
             else:
                 interval = float(self.client.interval)
                 assert interval > 0
+                # Keep it simple: increase fire_date by interval even if
+                # fire_date stays in the past, as in that case it's going to
+                # fire again at next runloop anyway.
                 self.fire_date += interval
-                # If the firing time is delayed so far that it passes one
-                # or more of the scheduled firing times, reschedule the
-                # timer for the next scheduled firing time in the future.
-                while self.fire_date < time_current:
-                    self.fire_date += interval
+                # Just print a debug message that could help detect issues
+                # coming from a long-running timer handler.
+                if self.fire_date < time_current:
+                    logging.getLogger(__name__).debug(
+                        "Warning: passed interval time for %r (long running "
+                        "event handler?)", self.client)
 
         def disarm(self):
             client = self.client
@@ -224,8 +228,8 @@ class _EngineTimerQ:
             return client
 
         def armed(self):
-            return self.client != None
-            
+            return self.client is not None
+
 
     def __init__(self, engine):
         """
@@ -287,27 +291,41 @@ class _EngineTimerQ:
         while len(self.timers) > 0 and not self.timers[0].armed():
             heapq.heappop(self.timers)
 
-    def fire(self):
+    def fire_expired(self):
         """
-        Remove the smallest timer from the queue and fire its associated client.
-        Raise IndexError if the queue is empty.
+        Remove expired timers from the queue and fire associated clients.
         """
         self._dequeue_disarmed()
 
-        timercase = heapq.heappop(self.timers)
-        client = timercase.disarm()
+        # Build a queue of expired timercases. Any expired (and still armed)
+        # timer is fired, but only once per call.
+        expired_timercases = []
+        now = time.time()
+        while self.timers and (self.timers[0].fire_date - now) <= EPSILON:
+            expired_timercases.append(heapq.heappop(self.timers))
+            self._dequeue_disarmed()
 
-        client.fire_delay = -1.0
-        client._fire()
+        for timercase in expired_timercases:
+            # Be careful to recheck and skip any disarmed timers (eg. timer
+            # could be invalidated from another timer's event handler)
+            if not timercase.armed():
+                continue
 
-        # Note: fire=0 is valid, interval=0 is not
-        if client.fire_delay >= -EPSILON or client.interval > EPSILON:
-            timercase.arm(client)
-            heapq.heappush(self.timers, timercase)
-        else:
-            self.armed_count -= 1
-            if not client.autoclose:
-                self._engine.evlooprefcnt -= 1
+            # Disarm timer
+            client = timercase.disarm()
+
+            # Fire timer
+            client.fire_delay = -1.0
+            client._fire()
+
+            # Rearm it if needed - Note: fire=0 is valid, interval=0 is not
+            if client.fire_delay >= -EPSILON or client.interval > EPSILON:
+                timercase.arm(client)
+                heapq.heappush(self.timers, timercase)
+            else:
+                self.armed_count -= 1
+                if not client.autoclose:
+                    self._engine.evlooprefcnt -= 1
 
     def nextfire_delay(self):
         """
@@ -318,14 +336,6 @@ class _EngineTimerQ:
             return max(0., self.timers[0].fire_date - time.time())
 
         return -1
-
-    def expired(self):
-        """
-        Has a timer expired?
-        """
-        self._dequeue_disarmed()
-        return len(self.timers) > 0 and \
-            (self.timers[0].fire_date - time.time()) <= EPSILON
 
     def clear(self):
         """
@@ -461,7 +471,6 @@ class Engine:
         remains for this client, this method automatically removes the
         entire client from engine.
         """
-        #logging.getLogger(__name__).debug("remove_stream %s %s", client, stream)
         self.unregister_stream(client, stream)
         # _close_stream() will flush pending read buffers so may generate events
         client._close_stream(stream.name)
@@ -627,8 +636,10 @@ class Engine:
 
     def fire_timers(self):
         """Fire expired timers for processing."""
-        while self.timerq.expired():
-            self.timerq.fire()
+        # Only fire timers if runloop is still retained
+        if self.evlooprefcnt > 0:
+            # Fire once any expired timers
+            self.timerq.fire_expired()
 
     def start_ports(self):
         """Start and register all port clients."""
