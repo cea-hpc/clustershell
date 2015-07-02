@@ -1152,8 +1152,8 @@ class NodeSet(NodeSetBase):
                 # use internal reverse: populate allgroups
                 for grp in allgrplist:
                     nodelist = self._resolver.group_nodes(grp, groupsource)
-                    allgroups[grp] = NodeSet(",".join(nodelist), \
-                                             resolver=RESOLVER_NOGROUP)
+                    allgroups[grp] = NodeSet(",".join(nodelist),
+                                             resolver=self._resolver)
             except NodeUtils.GroupSourceQueryFailed, exc:
                 # External result inconsistency
                 raise NodeSetExternalError("Unable to map a group " \
@@ -1186,7 +1186,7 @@ class NodeSet(NodeSetBase):
                 key = "@%s:%s" % (groupsource, grp)
             else:
                 key = "@" + grp
-            result[key] = (NodeSet(nsb, resolver=RESOLVER_NOGROUP), \
+            result[key] = (NodeSet(nsb, resolver=self._resolver),
                            self.intersection(nsb))
         return result
 
