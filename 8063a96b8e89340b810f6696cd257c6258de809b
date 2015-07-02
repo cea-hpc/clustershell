@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0e3f9c26",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-02T17:10:32Z",
+      "side": 1,
+      "message": "Are you sure of this? That means that delay interval won\u0027t be constant? Do you mean we are already late?",
+      "revId": "8063a96b8e89340b810f6696cd257c6258de809b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8eee4c8a",
+        "filename": "tests/TaskTimerTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-02T17:10:32Z",
+      "side": 1,
+      "message": "I think it should be only 2. task.shell lasts only for 0.25. No reason to run twice a timer which has delay\u003d0.25 and interval\u003d0.25\n\n t\u003d0 : shell\n t\u003d0.25 : timer1 + timer2 fired. shell is dead.\n (sleep 0.25+.1 * 2)\n\n t\u003d0.95 : shell is dead for a long time, timers should be autoclosed. No reason to fire them again.",
+      "revId": "8063a96b8e89340b810f6696cd257c6258de809b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
