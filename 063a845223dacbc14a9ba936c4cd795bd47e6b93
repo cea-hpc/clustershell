@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fa1156ad",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-02T05:59:01Z",
+      "side": 1,
+      "message": "any",
+      "range": {
+        "startLine": 304,
+        "startChar": 14,
+        "endLine": 304,
+        "endChar": 15
+      },
+      "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
