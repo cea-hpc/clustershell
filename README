@@ -60,7 +60,9 @@ Regression testing scripts are available in the 'tests' directory:
     $ nosetests -sv <Test.py>
     $ nosetests -sv --all-modules
 
-You have to allow 'ssh localhost' with no warning for "remote" tests to run.
+You have to allow 'ssh localhost' and 'ssh $HOSTNAME' without any warnings for
+"remote" tests to run as expected. $HOSTNAME should not be 127.0.0.1 nor ::1.
+Also some tests use the 'bc' command.
 
  --------------
  Documentation
