@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_3dad7832",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-02T09:25:01Z",
+      "side": 1,
+      "message": "Could be tricky to read. Add a temp variable?\n\n nb_interval \u003d math.ceil((time_current - self.fire_date) / interval)\n self.fire_data +\u003d addltime * interval",
+      "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fa1156ad",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 1
@@ -19,6 +36,23 @@
         "endLine": 304,
         "endChar": 15
       },
+      "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fd7230e4",
+        "filename": "tests/TaskTimerTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-02T09:25:01Z",
+      "side": 1,
+      "message": "What I\u0027m expecting from this snippet, as a normal user, is that each timer is fired once, or never, as each timer has the same delay\nWhat\u0027s done in ev_timer() should not impact other timers.",
       "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
