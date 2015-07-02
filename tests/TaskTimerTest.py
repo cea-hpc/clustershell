@@ -328,6 +328,33 @@ class TaskTimerTest(unittest.TestCase):
         self.assert_(test_eh.flags & EV_READ)
         self.assert_(not test_eh.flags & EV_TIMER)
 
+    class TEventHandlerTimerInvalidateSameRunloop(EventHandler):
+        """timer operations event handler simulator"""
+
+        def __init__(self, test):
+            self.timer1 = None
+            self.timer2 = None
+            self.count = 0
+
+        def ev_timer(self, timer):
+            self.count += 1
+            # Invalidate both timers, the other is expected to fire during the
+            # same runloop, but now it should not.
+            self.timer1.invalidate()
+            self.timer2.invalidate()
+
+    def testTimerInvalidateSameRunloop(self):
+        """test timer invalidate by other timer in same runloop"""
+        task = task_self()
+        test_eh = self.__class__.TEventHandlerTimerInvalidateSameRunloop(self)
+        timer1 = task.timer(0.5, interval=0.5, handler=test_eh)
+        test_eh.timer1 = timer1
+        timer2 = task.timer(0.5, interval=0.5, handler=test_eh)
+        test_eh.timer2 = timer2
+        task.resume()
+        # check that only one timer is fired
+        self.assertEqual(test_eh.count, 1)
+
     class TEventHandlerTimerOtherSetNextFire(EventHandler):
         def __init__(self, test):
             self.test = test
@@ -406,7 +433,7 @@ class TaskTimerTest(unittest.TestCase):
         # run task
         task.resume()
         self.assertEqual(test_handler.count, 1)
-    
+
     class TForceDelayedRepeaterChecker(EventHandler):
         def __init__(self):
             self.count = 0
@@ -415,7 +442,7 @@ class TaskTimerTest(unittest.TestCase):
             self.count += 1
             if self.count == 1:
                 # force delay timer (NOT a best practice!)
-                sleep(4)
+                sleep(2)
                 # do not invalidate first time
             else:
                 # invalidate next time to stop repeater
@@ -426,10 +453,39 @@ class TaskTimerTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         test_handler = self.__class__.TForceDelayedRepeaterChecker()
-        repeater1 = task.timer(1.0, interval=0.5, handler=test_handler)
+        repeater1 = task.timer(0.5, interval=0.25, handler=test_handler)
         self.assert_(repeater1 != None)
         task.resume()
         self.assertEqual(test_handler.count, 2)
+
+    class TForceDelayedRepeaterAutoCloseChecker(EventHandler):
+
+        INTERVAL = 0.25
+
+        def __init__(self):
+            self.count = 0
+
+        def ev_timer(self, timer):
+            self.count += 1
+            sleep(self.INTERVAL + 0.1)
+
+    def testForceDelayedRepeaterAutoClose(self):
+        """test repeater being forcibly delayed (w/ autoclose)"""
+        # Test Github issue #254
+        INTERVAL = 0.25
+        task = task_self()
+        teh = self.__class__.TForceDelayedRepeaterAutoCloseChecker()
+        bootstrap = task.shell("sleep %f" % INTERVAL)
+        repeater1 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
+        repeater2 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
+        task.resume()
+        # Expected behavior: both timers will fire after INTERVAL, the first
+        # one will block thread for INTERVAL+0.1, the second one will also
+        # block for INTERVAL+0.1 more time. Then at next runloop the engine
+        # will see our shell command termination so will unregister associated
+        # worker client. At this point, only autoclosing timers remain
+        # registered, so timer firing will be skipped and runloop will exit.
+        self.assertEqual(teh.count, 2)
 
     def testMultipleAddSameTimerPrivate(self):
         """test multiple add() of same timer [private]"""
