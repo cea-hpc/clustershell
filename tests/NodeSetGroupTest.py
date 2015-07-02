@@ -822,14 +822,31 @@ reverse: echo f^oo
         nodeset = NodeSet("@rack-all", resolver=res)
         self.assertEqual(str(nodeset), "idaho[1-7]z1")
 
-        # test nD groups()
-        self.assertEqual(sorted(nodeset.groups().keys()), ['@rack-x1y1', '@rack-x1y2', '@rack-x2y1', '@rack-x2y2'])
-        self.assertEqual(sorted(nodeset.groups(groupsource="simple").keys()), ['@simple:rack-x1y1', '@simple:rack-x1y2', '@simple:rack-x2y1', '@simple:rack-x2y2'])
-        self.assertEqual(sorted(nodeset.groups(groupsource="simple", noprefix=True).keys()), ['@rack-x1y1', '@rack-x1y2', '@rack-x2y1', '@rack-x2y2'])
+        # test NESTED nD groups()
+        self.assertEqual(sorted(nodeset.groups().keys()),
+                         ['@rack-all', '@rack-x1', '@rack-x1y1', '@rack-x1y2',
+                          '@rack-x2', '@rack-x2y1', '@rack-x2y2', '@rack-y1',
+                          '@rack-y2'])
+        self.assertEqual(sorted(nodeset.groups(groupsource="simple").keys()),
+                         ['@simple:rack-all', '@simple:rack-x1',
+                          '@simple:rack-x1y1', '@simple:rack-x1y2',
+                          '@simple:rack-x2', '@simple:rack-x2y1',
+                          '@simple:rack-x2y2', '@simple:rack-y1',
+                          '@simple:rack-y2'])
+        self.assertEqual(sorted(nodeset.groups(groupsource="simple",
+                                               noprefix=True).keys()),
+                         ['@rack-all', '@rack-x1', '@rack-x1y1', '@rack-x1y2',
+                          '@rack-x2', '@rack-x2y1', '@rack-x2y2', '@rack-y1',
+                          '@rack-y2'])
         testns = NodeSet()
         for gnodes, inodes in nodeset.groups().itervalues():
             testns.update(inodes)
         self.assertEqual(testns, nodeset)
+
+        # one more test with single node nodeset and nested groups
+        nodeset = NodeSet("idaho5z1", resolver=res)
+        self.assertEqual(sorted(nodeset.groups().keys()),
+                         ['@rack-all', '@rack-x2', '@rack-x2y1', '@rack-y1'])
 
 
 class NodeSetGroup2GSTest(unittest.TestCase):
