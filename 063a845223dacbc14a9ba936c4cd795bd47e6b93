@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5355cdc4",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-02T14:22:44Z",
+      "side": 1,
+      "message": "Simplified, set fire_date to current time to reschedule ASAP but now during next runloop. Indeed I think it\u0027s a better behavior for delayed timer...",
+      "parentUuid": "9ad9bd40_3dad7832",
+      "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fa1156ad",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 1
@@ -53,6 +71,24 @@
       "writtenOn": "2015-07-02T09:25:01Z",
       "side": 1,
       "message": "What I\u0027m expecting from this snippet, as a normal user, is that each timer is fired once, or never, as each timer has the same delay\nWhat\u0027s done in ev_timer() should not impact other timers.",
+      "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7352d1de",
+        "filename": "tests/TaskTimerTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-02T14:22:44Z",
+      "side": 1,
+      "message": "Very good remark... In next patchset, each timers will be fired twice there, as timers are checked at the runloop end. I wrote an Note about that in the next patch. At least now each similar timer is fired the same number of time. I also removed repeater3.\nWe could also process timers at the beginning of runloop, it\u0027s another approach. Long time ago I decided to prioritize i/o events against timers.",
+      "parentUuid": "9ad9bd40_fd7230e4",
       "revId": "063a845223dacbc14a9ba936c4cd795bd47e6b93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
