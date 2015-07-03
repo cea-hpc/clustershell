@@ -16,6 +16,63 @@
       "revId": "75ccce171946137c5751d3243f4ed348c5e41dd6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ff0b0029",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-03T11:06:45Z",
+      "side": 1,
+      "message": "(stentor voice) PEP-8 says: \"Comparisons to singletons like None should always be done with is or is not, never the equality operators.\"",
+      "range": {
+        "startLine": 206,
+        "startChar": 26,
+        "endLine": 206,
+        "endChar": 28
+      },
+      "revId": "75ccce171946137c5751d3243f4ed348c5e41dd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3f064821",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-03T11:06:45Z",
+      "side": 1,
+      "message": "This I don\u0027t get. What\u0027s the point in updating fire_date to time_current, since it\u0027ll be \"a date in the past\" anyway in next iteration?",
+      "revId": "75ccce171946137c5751d3243f4ed348c5e41dd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5f030c0f",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-03T11:06:45Z",
+      "side": 1,
+      "message": "idem is not None",
+      "revId": "75ccce171946137c5751d3243f4ed348c5e41dd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
