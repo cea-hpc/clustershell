@@ -19,6 +19,47 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_eea43859",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-03T01:55:58Z",
+      "side": 1,
+      "message": "Yes exactly, in this case we\u0027re already late, so fire ASAP. I don\u0027t know why I did that before... there is no really needs to \"scale\" on next interval.",
+      "parentUuid": "9ad9bd40_0e3f9c26",
+      "revId": "8063a96b8e89340b810f6696cd257c6258de809b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0e895cca",
+        "filename": "tests/TaskTimerTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-03T01:55:58Z",
+      "side": 1,
+      "message": "I\u0027ll fix that",
+      "range": {
+        "startLine": 330,
+        "startChar": 0,
+        "endLine": 330,
+        "endChar": 4
+      },
+      "revId": "8063a96b8e89340b810f6696cd257c6258de809b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8eee4c8a",
         "filename": "tests/TaskTimerTest.py",
         "patchSetId": 2
@@ -30,6 +71,24 @@
       "writtenOn": "2015-07-02T17:10:32Z",
       "side": 1,
       "message": "I think it should be only 2. task.shell lasts only for 0.25. No reason to run twice a timer which has delay\u003d0.25 and interval\u003d0.25\n\n t\u003d0 : shell\n t\u003d0.25 : timer1 + timer2 fired. shell is dead.\n (sleep 0.25+.1 * 2)\n\n t\u003d0.95 : shell is dead for a long time, timers should be autoclosed. No reason to fire them again.",
+      "revId": "8063a96b8e89340b810f6696cd257c6258de809b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_44f2659b",
+        "filename": "tests/TaskTimerTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-03T01:55:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8eee4c8a",
       "revId": "8063a96b8e89340b810f6696cd257c6258de809b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
