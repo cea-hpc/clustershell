@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1ff6e4d7",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-03T08:41:55Z",
+      "side": 1,
+      "message": "(defect) client could be None (see disarm by example). Need some tests?",
+      "revId": "75ccce171946137c5751d3243f4ed348c5e41dd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
