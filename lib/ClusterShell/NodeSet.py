@@ -66,6 +66,7 @@ import sys
 
 import ClusterShell.NodeUtils as NodeUtils
 from ClusterShell.RangeSet import RangeSet, RangeSetND, RangeSetParseError
+from ClusterShell.RangeSet import AUTOSTEP_DISABLED
 
 
 # Define default GroupResolver object used by NodeSet
@@ -129,8 +130,10 @@ class NodeSetBase(object):
        >>> str(nsb)
        'node[1-5,7]-ib[1-2]'
     """
-    def __init__(self, pattern=None, rangeset=None, copy_rangeset=True):
+    def __init__(self, pattern=None, rangeset=None, copy_rangeset=True,
+                 autostep=None):
         """New NodeSetBase object initializer"""
+        self._autostep = autostep
         self._length = 0
         self._patterns = {}
         if pattern:
@@ -258,6 +261,7 @@ class NodeSetBase(object):
     def copy(self):
         """Return a shallow copy."""
         cpy = self.__class__()
+        cpy._autostep = self._autostep
         cpy._length = self._length
         dic = {}
         for pat, rangeset in self._patterns.iteritems():
@@ -431,7 +435,7 @@ class NodeSetBase(object):
         """Add nodes from a (pat, rangeset) tuple.
         `pat' may be an existing pattern and `rangeset' may be None.
         RangeSet or RangeSetND objects are copied if re-used internally
-        when provided and if copy_rangesets flag is set.
+        when provided and if copy_rangeset flag is set.
         """
         if pat in self._patterns:
             # existing pattern: get RangeSet or RangeSetND entry...
@@ -445,7 +449,12 @@ class NodeSetBase(object):
         else:
             # new pattern...
             if rangeset and copy_rangeset:
+                # default is to inherit rangeset autostep value
                 rangeset = rangeset.copy()
+                # but if set, self._autostep does override it
+                if self._autostep is not None:
+                    # works with rangeset 1D or nD
+                    rangeset.autostep = self._autostep
             self._add_new(pat, rangeset)
 
     def union(self, other):
@@ -1017,14 +1026,32 @@ class NodeSet(NodeSetBase):
     _VERSION = 2
 
     def __init__(self, nodes=None, autostep=None, resolver=None):
-        """
-        Initialize a NodeSet.
+        """Initialize a NodeSet object.
+
         The `nodes' argument may be a valid nodeset string or a NodeSet
         object. If no nodes are specified, an empty NodeSet is created.
-        """
-        NodeSetBase.__init__(self)
 
-        self._autostep = autostep
+        The optional `autostep' argument is passed to underlying RangeSet
+        objects and aims to enable and make use of the range/step syntax
+        (eg. node[1-9/2]) when converting NodeSet to string (using folding).
+        To enable this feature, autostep must be set there to the min number of
+        indexes that are found at equal distance of each other inside a range
+        before NodeSet starts to use this syntax. For example, autostep=3 (or
+        less) will pack n[2,4,6] into n[2-6/2]. Default autostep value is None
+        which means "inherit whenever possible", ie. do not enable it unless
+        set in NodeSet objects passed as `nodes' here or during arithmetic
+        operations.
+        You may however use the special AUTOSTEP_DISABLED constant to force
+        turning off autostep feature.
+
+        The optional `resolver' argument may be used to override the group
+        resolving behavior for this NodeSet object. It can either be set to a
+        GroupResolver object, to the RESOLVER_NOGROUP constant to disable any
+        group resolution, or to None (default) to use standard NodeSet group
+        resolver (see set_std_group_resolver() at the module level to change
+        it if needed).
+        """
+        NodeSetBase.__init__(self, autostep=autostep)
 
         # Set group resolver.
         if resolver in (RESOLVER_NOGROUP, RESOLVER_NOINIT):
