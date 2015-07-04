@@ -14,7 +14,7 @@ import unittest
 sys.path.insert(0, '../lib')
 
 from ClusterShell.NodeSet import RangeSet, NodeSet, fold, expand
-from ClusterShell.NodeSet import NodeSetBase
+from ClusterShell.NodeSet import NodeSetBase, AUTOSTEP_DISABLED
 
 
 class NodeSetTest(unittest.TestCase):
@@ -1984,3 +1984,94 @@ class NodeSetTest(unittest.TestCase):
         ns1.symmetric_difference_update(ns2)
         self.assertEqual(str(ns1), "a[1-4,6]b4,a5b[2-3,5]")
         self.assertEqual(ns1, NodeSet("a[1-4,6]b4,a5b[2-3,5]"))
+
+    def test_autostep(self):
+        """test NodeSet autostep (1D)"""
+        n1 = NodeSet("n1,n3,n5")
+        # autostep arg does override origin autostep
+        n2 = NodeSet(n1, autostep=3)
+        self.assertEqual(str(n2), "n[1-5/2]")
+
+        n2.update("p2,p5,p8")
+        self.assertEqual(str(n2), "n[1-5/2],p[2-8/3]")
+
+        n3 = NodeSet(n2, autostep=AUTOSTEP_DISABLED)
+        self.assertEqual(str(n2), "n[1-5/2],p[2-8/3]")
+        self.assertEqual(str(n3), "n[1,3,5],p[2,5,8]")
+
+        # test xor, the other operation that can add nodes
+        n4 = NodeSet()
+        n4.symmetric_difference_update(n2)
+        self.assertEqual(str(n2), "n[1-5/2],p[2-8/3]")
+        self.assertEqual(str(n4), "n[1-5/2],p[2-8/3]")
+
+        n5 = NodeSet(autostep=AUTOSTEP_DISABLED)
+        n5.symmetric_difference_update(n2)
+        self.assertEqual(str(n2), "n[1-5/2],p[2-8/3]")
+        self.assertEqual(str(n5), "n[1,3,5],p[2,5,8]")
+
+        n4 = NodeSet()
+        n4b = n4.symmetric_difference(n2)
+        self.assertEqual(str(n2), "n[1-5/2],p[2-8/3]")
+        self.assertEqual(str(n4), "")
+        self.assertEqual(str(n4b), "n[1-5/2],p[2-8/3]")
+
+        n5 = NodeSet(autostep=AUTOSTEP_DISABLED)
+        n5b = n5.symmetric_difference(n2)
+        self.assertEqual(str(n2), "n[1-5/2],p[2-8/3]")
+        self.assertEqual(str(n5), "")
+        self.assertEqual(str(n5b), "n[1,3,5],p[2,5,8]")
+
+    def test_nd_autostep(self):
+        """test NodeSet autostep (nD)"""
+        n1 = NodeSet("p2n1,p2n3,p2n5")
+        # autostep arg does override origin autostep
+        n2 = NodeSet(n1, autostep=3)
+        self.assertEqual(str(n1), "p2n[1,3,5]") # no change!
+        self.assertEqual(str(n2), "p2n[1-5/2]")
+
+        # test multi-pattern nD
+        n2.update("p2p2,p2p4,p2p6")
+        self.assertEqual(str(n1), "p2n[1,3,5]") # no change!
+        self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-6/2]")
+
+        n3 = NodeSet("p2x1,p2x4,p2x7")
+        n2.update(n3)
+        self.assertEqual(str(n3), "p2x[1,4,7]") # no change!
+        self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-6/2],p2x[1-7/3]")
+
+        # add nodes to same pattern (but not the first one)
+        n4 = NodeSet("p2p8,p2p14,p2p20")
+        n2.update(n4)
+        self.assertEqual(str(n4), "p2p[8,14,20]") # no change!
+        self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
+
+        n4 = NodeSet(n2, autostep=AUTOSTEP_DISABLED)
+        # no change on n2...
+        self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
+        # explicitly disabled on n4
+        n4_noautostep_str = "p2n[1,3,5],p2p[2,4,6,8,14,20],p2x[1,4,7]"
+        self.assertEqual(str(n4), n4_noautostep_str)
+
+        # test xor, the other operation that can add nodes
+        n5 = NodeSet()
+        n5.symmetric_difference_update(n2)
+        self.assertEqual(str(n5), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
+
+        n6 = NodeSet(autostep=AUTOSTEP_DISABLED)
+        n6.symmetric_difference_update(n2)
+        self.assertEqual(str(n6), n4_noautostep_str)
+
+        n5 = NodeSet()
+        n5b = n5.symmetric_difference(n2)
+        # no change on n2...
+        self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
+        self.assertEqual(str(n5), "")
+        self.assertEqual(str(n5b), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
+
+        n6 = NodeSet(autostep=AUTOSTEP_DISABLED)
+        n6b = n6.symmetric_difference(n2)
+        # no change on n2...
+        self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
+        self.assertEqual(str(n6), "")
+        self.assertEqual(str(n6b), n4_noautostep_str)
