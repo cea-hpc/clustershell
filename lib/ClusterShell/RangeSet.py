@@ -59,6 +59,11 @@ __all__ = ['RangeSetException',
            'RangeSet',
            'RangeSetND']
 
+# Special constant used to force turn off autostep feature.
+# Note: +inf is 1E400, but a bug in python 2.4 makes it impossible to be
+# pickled, so we use less. Later, we could consider sys.maxint here.
+AUTOSTEP_DISABLED = 1E100
+
 
 class RangeSetException(Exception):
     """Base RangeSet exception class."""
@@ -216,7 +221,7 @@ class RangeSet(set):
 
     def get_autostep(self):
         """Get autostep value (property)"""
-        if self._autostep >= 1E100:
+        if self._autostep >= AUTOSTEP_DISABLED:
             return None
         else:
             return self._autostep + 1
@@ -224,16 +229,15 @@ class RangeSet(set):
     def set_autostep(self, val):
         """Set autostep value (property)"""
         if val is None:
-            # disabled by default for pdsh compat (+inf is 1E400, but a bug in
-            # python 2.4 makes it impossible to be pickled, so we use less)
-            # NOTE: Later, we could consider sys.maxint here
-            self._autostep = 1E100
+            # disabled by default for compat with other cluster tools
+            self._autostep = AUTOSTEP_DISABLED
         else:
             # - 1 because user means node count, but we means real steps
+            # (this operation has not effect on AUTOSTEP_DISABLED value)
             self._autostep = int(val) - 1
 
     autostep = property(get_autostep, set_autostep)
-    
+
     def dim(self):
         """Get the number of dimensions of this RangeSet object. Common
         method with RangeSetND.  Here, it will always return 1 unless
@@ -494,7 +498,7 @@ class RangeSet(set):
         set.update(self, range(start, stop, step))
 
     def copy(self):
-        """Return a shallow copy of a RangeSet."""
+        """Return a new, mutable shallow copy of a RangeSet."""
         cpy = self.__class__()
         cpy._autostep = self._autostep
         cpy.padding = self.padding
@@ -780,6 +784,9 @@ class RangeSetND(object):
         self._veclist = []
         # Dirty flag to avoid doing veclist folding too often
         self._dirty = True
+        # Initialize autostep through property
+        self._autostep = None
+        self.autostep = autostep
         # Hint on whether several dimensions are varying or not
         self._multivar_hint = False
         if args is None:
@@ -823,18 +830,18 @@ class RangeSetND(object):
 
     @precond_fold()
     def copy(self):
-        """Return a shallow copy of a RangeSetND."""
+        """Return a new, mutable shallow copy of a RangeSetND."""
         cpy = self.__class__()
-        cpy._veclist = list(self._veclist)
+        # Shallow "to the extent possible" says the copy module, so here that
+        # means calling copy() on each sub-RangeSet to keep mutability.
+        cpy._veclist = [[rg.copy() for rg in rgvec] for rgvec in self._veclist]
         cpy._dirty = self._dirty
         return cpy
 
     __copy__ = copy # For the copy module
 
     def __eq__(self, other):
-        """
-        RangeSetND equality comparison.
-        """
+        """RangeSetND equality comparison."""
         # Return NotImplemented instead of raising TypeError, to
         # indicate that the comparison is not implemented with respect
         # to the other type (the other comparand then gets a change to
@@ -909,10 +916,27 @@ class RangeSetND(object):
         except IndexError:
             return ()
 
-    @property
-    def autostep(self):
-        return self._veclist[0][0].autostep
-        #return max(rg.autostep for rg in rgvec for rgvec in self.veclist)
+    def get_autostep(self):
+        """Get autostep value (property)"""
+        if self._autostep >= AUTOSTEP_DISABLED:
+            return None
+        else:
+            return self._autostep + 1
+
+    def set_autostep(self, val):
+        """Set autostep value (property)"""
+        # Must conform to RangeSet.autostep logic
+        if val is None:
+            self._autostep = AUTOSTEP_DISABLED
+        else:
+            self._autostep = int(val) - 1
+
+        # Update our RangeSet objects
+        for rgvec in self._veclist:
+            for rg in rgvec:
+                rg._autostep = self._autostep
+
+    autostep = property(get_autostep, set_autostep)
 
     @precond_fold()
     def __getitem__(self, index):
@@ -1217,10 +1241,14 @@ class RangeSetND(object):
         else:
             iterable = other
         for vec in iterable:
-            # we could avoid rg.copy() here if 'other' is a RangeSetND
-            # with immutable underlying RangeSets...
+            # copy rangesets and set custom autostep
             assert isinstance(vec[0], RangeSet)
-            self._veclist.append([rg.copy() for rg in vec])
+            cpyvec = []
+            for rg in vec:
+                cpyrg = rg.copy()
+                cpyrg.autostep = self.autostep
+                cpyvec.append(cpyrg)
+            self._veclist.append(cpyvec)
         self._dirty = True
         if not self._multivar_hint:
             self._fold_univariate()
