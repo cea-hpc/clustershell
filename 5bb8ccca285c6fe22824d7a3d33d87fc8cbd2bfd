@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_290c4842",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-06T14:54:16Z",
+      "side": 1,
+      "message": "OK I will do it the simple way. Publicizing _resolver might not be so simple (as it uses special value sometimes). Thank you both of you!",
+      "parentUuid": "9ad9bd40_c94f5c91",
+      "revId": "5bb8ccca285c6fe22824d7a3d33d87fc8cbd2bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2977e8d5",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 4
