@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_187350ea",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-06T07:34:42Z",
+      "side": 1,
+      "message": "wouldn\u0027t it be cleaner to let the caller pass in the right object rather than having this kinda obscure indirection (use resolver._resolver, or resolver)?",
+      "revId": "5bb8ccca285c6fe22824d7a3d33d87fc8cbd2bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
