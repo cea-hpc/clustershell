@@ -16,6 +16,58 @@
       "revId": "5bb8ccca285c6fe22824d7a3d33d87fc8cbd2bfd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c94f5c91",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-06T14:46:25Z",
+      "side": 1,
+      "message": "I agree. This is not needed for now. See my comment below. No need for this ack to solve this bug.",
+      "parentUuid": "9ad9bd40_187350ea",
+      "revId": "5bb8ccca285c6fe22824d7a3d33d87fc8cbd2bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2977e8d5",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1160,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-06T14:46:25Z",
+      "side": 1,
+      "message": "You could simply put self._resolver here?",
+      "revId": "5bb8ccca285c6fe22824d7a3d33d87fc8cbd2bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_49742ccf",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1193,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-06T14:46:25Z",
+      "side": 1,
+      "message": "same here",
+      "revId": "5bb8ccca285c6fe22824d7a3d33d87fc8cbd2bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
