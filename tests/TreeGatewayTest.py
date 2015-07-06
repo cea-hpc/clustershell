@@ -423,21 +423,23 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         """test gateway channel shell multi placeholder (remote=False)"""
         self._check_channel_ctl_shell('echo node %h rank %n', "n[10-29]", True,
                                       False, StdOutMessage,
-                                      re.compile("node n\d+ rank \d+"),
+                                      re.compile(r"node n\d+ rank \d+"),
                                       replycnt=20)
 
     def test_channel_ctl_shell_remote1(self):
         """test gateway channel shell stdout (stderr=False remote=True)"""
         self._check_channel_ctl_shell("echo ok", "n10", False, True,
                                       StdOutMessage,
-                                      re.compile("Name or service not known"),
+                                      re.compile("(Could not resolve hostname|"
+                                                 "Name or service not known)"),
                                       reply_rc=255)
 
     def test_channel_ctl_shell_remote2(self):
         """test gateway channel shell stdout (stderr=True remote=True)"""
         self._check_channel_ctl_shell("echo ok", "n10", True, True,
                                       StdErrMessage,
-                                      re.compile("Name or service not known"),
+                                      re.compile("(Could not resolve hostname|"
+                                                 "Name or service not known)"),
                                       reply_rc=255)
 
     def test_channel_ctl_shell_timeo1(self):
