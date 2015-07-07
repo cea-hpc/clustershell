@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c176503e",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1034,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-07T07:37:13Z",
+      "side": 1,
+      "message": "the more?",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_01903842",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1051,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-07T07:37:13Z",
+      "side": 1,
+      "message": "This paragraph should have been better suited in Change #238411.",
+      "range": {
+        "startLine": 1046,
+        "startChar": 3,
+        "endLine": 1051,
+        "endChar": 22
+      },
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_81a3689d",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-07T07:37:13Z",
+      "side": 1,
+      "message": "*has no effect",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_21bc5cbb",
+        "filename": "tests/RangeSetNDTest.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-07T07:37:13Z",
+      "side": 1,
+      "message": "blank lines",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
