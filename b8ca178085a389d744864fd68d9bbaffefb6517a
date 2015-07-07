@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_bcfc0f40",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-07T12:07:14Z",
+      "side": 1,
+      "message": "wow, that sounds fancy!",
+      "range": {
+        "startLine": 15,
+        "startChar": 26,
+        "endLine": 15,
+        "endChar": 43
+      },
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5ca5c351",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-07T12:07:14Z",
+      "side": 1,
+      "message": "(typo) copy_rangeset",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c176503e",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 3
@@ -36,6 +76,23 @@
         "endLine": 1051,
         "endChar": 22
       },
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5cbce369",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1053,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-07T12:07:14Z",
+      "side": 1,
+      "message": "super(NodeSet, self).__init__(autostep\u003dautostep)",
       "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
