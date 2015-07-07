@@ -14,6 +14,7 @@ from ClusterShell.CLI.Nodeset import main
 from ClusterShell.NodeUtils import GroupResolverConfig
 from ClusterShell.NodeSet import std_group_resolver, set_std_group_resolver
 
+
 class CLINodesetTestBase(unittest.TestCase):
     """Base unit test class for testing CLI/Nodeset.py"""
 
@@ -63,6 +64,10 @@ class CLINodesetTest(CLINodesetTestBase):
         self._battery_count(["--autostep=1"])
         self._battery_count(["--autostep=2"])
         self._battery_count(["--autostep=5"])
+        self._battery_count(["--autostep=auto"])
+        self._battery_count(["--autostep=0%"])
+        self._battery_count(["--autostep=50%"])
+        self._battery_count(["--autostep=100%"])
 
     def test_002_count_intersection(self):
         """test nodeset --count --intersection"""
@@ -125,6 +130,11 @@ class CLINodesetTest(CLINodesetTestBase):
         """test nodeset --fold"""
         self._battery_fold([])
         self._battery_fold(["--autostep=3"])
+        # --autostep=auto (1.7)
+        self._battery_fold(["--autostep=auto"])
+        self._battery_count(["--autostep=0%"])
+        self._battery_count(["--autostep=50%"])
+        self._battery_count(["--autostep=100%"])
 
     def test_005_fold_autostep(self):
         """test nodeset --fold --autostep=X"""
@@ -133,6 +143,18 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--autostep=3", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
         self._nodeset_t(["--autostep=4", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
         self._nodeset_t(["--autostep=5", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0,2,4,6]\n")
+        self._nodeset_t(["--autostep=auto", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=auto", "-f", "foo4", "foo2", "foo0", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=auto", "-f", "foo4", "foo2", "foo0", "foo2", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=auto", "-f", "foo4", "foo2", "foo0", "foo5", "foo6"], None, "foo[0,2,4-6]\n")
+        self._nodeset_t(["--autostep=auto", "-f", "foo4", "foo2", "foo0", "foo9", "foo6"], None, "foo[0,2,4,6,9]\n")
+        self._nodeset_t(["--autostep=75%", "-f", "foo0", "foo2", "foo4", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=75%", "-f", "foo4", "foo2", "foo0", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=80%", "-f", "foo4", "foo2", "foo0", "foo2", "foo6"], None, "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=80%", "-f", "foo4", "foo2", "foo0", "foo5", "foo6"], None, "foo[0,2,4-6]\n")
+        self._nodeset_t(["--autostep=80%", "-f", "foo4", "foo2", "foo0", "foo9", "foo6"], None, "foo[0-6/2,9]\n")
+        self._nodeset_t(["--autostep=81%", "-f", "foo4", "foo2", "foo0", "foo9", "foo6"], None, "foo[0,2,4,6,9]\n")
+        self._nodeset_t(["--autostep=100%", "-f", "foo4", "foo2", "foo0", "foo9", "foo6"], None, "foo[0,2,4,6,9]\n")
 
     def test_006_expand(self):
         """test nodeset --expand"""
@@ -275,6 +297,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["-f","-"], "foo\n", "foo\n")
         self._nodeset_t(["-f","-"], "foo1 foo2 foo3\n", "foo[1-3]\n")
         self._nodeset_t(["--autostep=2", "-f"], "foo0 foo2 foo4 foo6\n", "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=auto", "-f"], "foo0 foo2 foo4 foo6\n", "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=100%", "-f"], "foo0 foo2 foo4 foo6\n", "foo[0-6/2]\n")
+        self._nodeset_t(["--autostep=0%", "-f"], "foo0 foo2 foo4 foo6\n", "foo[0-6/2]\n")
 
     def test_018_split(self):
         """test nodeset --split"""
@@ -331,6 +356,11 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["-I 0-100","-f", "bar[34-68,89-90]"], None, "bar[34-68,89-90]\n")
         self._nodeset_t(["-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
         self._nodeset_t(["--autostep=2", "-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42-68/2,90]\n")
+        self._nodeset_t(["--autostep=93%", "-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42-68/2,90]\n")
+        self._nodeset_t(["--autostep=94%", "-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
+        self._nodeset_t(["--autostep=auto", "-I 8-100/2","-f", "bar[34-68,89-90]"], None, "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
+        self._nodeset_t(["--autostep=auto", "-I 8-100/2","-f", "bar[34-68]"], None, "bar[42-68/2]\n")
+        self._nodeset_t(["--autostep=100%", "-I 8-100/2","-f", "bar[34-68]"], None, "bar[42-68/2]\n")
 
     def test_021_slice_stdin(self):
         """test nodeset -I/--slice (stdin)"""
@@ -353,6 +383,11 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["-I 0-100","-f"], "bar[34-68,89-90]\n", "bar[34-68,89-90]\n")
         self._nodeset_t(["-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
         self._nodeset_t(["--autostep=2", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42-68/2,90]\n")
+        self._nodeset_t(["--autostep=93%", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42-68/2,90]\n")
+        self._nodeset_t(["--autostep=93.33%", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42-68/2,90]\n")
+        self._nodeset_t(["--autostep=94%", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
+        self._nodeset_t(["--autostep=auto", "-I 8-100/2","-f"], "bar[34-68,89-90]\n", "bar[42,44,46,48,50,52,54,56,58,60,62,64,66,68,90]\n")
+        self._nodeset_t(["--autostep=2", "-I 8-100/2","-f"], "bar[34-68]\n", "bar[42-68/2]\n")
 
     def test_022_output_format(self):
         """test nodeset -O"""

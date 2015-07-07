@@ -6,8 +6,8 @@
 compute advanced nodeset operations
 -----------------------------------
 
-:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2015-03-05
+:Author: Stephane Thiell <sthiell@stanford.edu>
+:Date:   2015-07-10
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -59,7 +59,7 @@ OPTIONS
   Options:
     -a, --all           call external node groups support to display all nodes
     --autostep=AUTOSTEP
-                        auto step threshold number when folding nodesets, if not specified, auto step is disabled. Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2]
+                        enable a-b/step style syntax when folding nodesets, value is min node count threshold (integer '4', percentage '50%' or 'auto). If not specified, auto step is disabled (best for compatibility with other cluster tools. Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2-6/2].
     -d, --debug         output more messages for debugging purpose
     -q, --quiet         be quiet, print essential output only
     -R, --rangeset      switch to RangeSet instead of NodeSet. Useful when
