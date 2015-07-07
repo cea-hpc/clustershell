@@ -323,7 +323,7 @@ class RunTimer(EventHandler):
             act_targets = NodeSet()
             for gw, (chan, metaworkers) in self.task.gateways.iteritems():
                 act_targets.updaten(mw.gwtargets[gw] for mw in metaworkers)
-            cnt = len(act_targets)
+            cnt = len(act_targets) + len(self.task._engine.clients()) - len(gws)
             gwinfo = ' gw %d' % len(gws)
         else:
             cnt = len(self.task._engine.clients())
