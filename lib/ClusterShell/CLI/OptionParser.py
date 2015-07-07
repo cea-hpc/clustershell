@@ -46,6 +46,16 @@ from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.CLI.Display import THREE_CHOICES
 
 
+def check_auto_int(option, opt, value):
+    """type-checker function for auto_int"""
+    try:
+        return int(value)
+    except ValueError:
+        if value == 'auto':
+            return value
+        error_fmt = "option %s: invalid value: %r, should be integer or 'auto'"
+        raise optparse.OptionValueError(error_fmt % (opt, value))
+
 def check_safestring(option, opt, value):
     """type-checker function for safestring"""
     try:
@@ -61,8 +71,9 @@ def check_safestring(option, opt, value):
 
 class Option(optparse.Option):
     """This Option subclass adds a new safestring type."""
-    TYPES = optparse.Option.TYPES + ("safestring",)
+    TYPES = optparse.Option.TYPES + ("auto_int", "safestring",)
     TYPE_CHECKER = copy(optparse.Option.TYPE_CHECKER)
+    TYPE_CHECKER["auto_int"] = check_auto_int
     TYPE_CHECKER["safestring"] = check_safestring
 
 class OptionParser(optparse.OptionParser):
@@ -275,7 +286,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("--autostep", action="store", dest="autostep",
                           help="auto step threshold number when folding "
                                "nodesets",
-                          type="int")
+                          type="auto_int")
         optgrp.add_option("-d", "--debug", action="store_true", dest="debug",
                           help="output more messages for debugging purpose")
         optgrp.add_option("-q", "--quiet", action="store_true", dest="quiet",
