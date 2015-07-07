@@ -99,6 +99,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_42587e32",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1053,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-07T14:29:06Z",
+      "side": 1,
+      "message": "For now I guess we were against using super. Aurelien do you remember why ?  For python 2.4 compat or was it for other reasons (like https://fuhm.net/super-harmful/)?",
+      "parentUuid": "9ad9bd40_5cbce369",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_81a3689d",
         "filename": "lib/ClusterShell/RangeSet.py",
         "patchSetId": 3
