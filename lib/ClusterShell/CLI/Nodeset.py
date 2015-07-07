@@ -189,8 +189,15 @@ def nodeset():
             dispdefault = ""
         return
 
+    autostep = options.autostep
+
+    # Do not use autostep for computation when the special value 'auto' is
+    # specified. Real autostep value is set post-process.
+    if autostep == 'auto':
+        autostep = None
+
     # Instantiate RangeSet or NodeSet object
-    xset = class_set(autostep=options.autostep)
+    xset = class_set(autostep=autostep)
 
     if options.all:
         # Include all nodes from external node groups support.
@@ -198,32 +205,29 @@ def nodeset():
 
     if not args and not options.all and not options.list:
         # No need to specify '-' to read stdin in these cases
-        process_stdin(xset.update, xset.__class__, options.autostep)
+        process_stdin(xset.update, xset.__class__, autostep)
 
     # Apply first operations (before first non-option)
     for nodes in options.and_nodes:
         if nodes == '-':
-            process_stdin(xset.intersection_update, xset.__class__,
-                          options.autostep)
+            process_stdin(xset.intersection_update, xset.__class__, autostep)
         else:
-            xset.intersection_update(class_set(nodes,
-                                               autostep=options.autostep))
+            xset.intersection_update(class_set(nodes, autostep=autostep))
     for nodes in options.sub_nodes:
         if nodes == '-':
-            process_stdin(xset.difference_update, xset.__class__,
-                          options.autostep)
+            process_stdin(xset.difference_update, xset.__class__, autostep)
         else:
-            xset.difference_update(class_set(nodes, autostep=options.autostep))
+            xset.difference_update(class_set(nodes, autostep=autostep))
     for nodes in options.xor_nodes:
         if nodes == '-':
             process_stdin(xset.symmetric_difference_update, xset.__class__,
-                          options.autostep)
+                          autostep)
         else:
-            xset.symmetric_difference_update(class_set(nodes, \
-                                             autostep=options.autostep))
+            xset.symmetric_difference_update(class_set(nodes,
+                                                       autostep=autostep))
 
     # Finish xset computing from args
-    compute_nodeset(xset, args, options.autostep)
+    compute_nodeset(xset, args, autostep)
 
     # The list command has a special handling
     if options.list > 0:
@@ -238,18 +242,25 @@ def nodeset():
             _xset.update(xset[sli])
         xset = _xset
 
-    format = options.output_format # default to '%s'
+    if options.autostep == 'auto':
+        # simple implementation of --autostep=auto
+        # all index should be foldable as a-b/n
+        xset.autostep = len(xset)
+        # at least 90% of indexes should be foldable as a-b/n ?
+        #xset.autostep = len(xset) - math.ceil(float(len(xset)) / 10.0)
+
+    fmt = options.output_format # default to '%s'
 
     # Display result according to command choice
     if options.expand:
-        xsubres = lambda x: separator.join((format % s for s in x.striter()))
+        xsubres = lambda x: separator.join((fmt % s for s in x.striter()))
     elif options.fold:
-        xsubres = lambda x: format % x
+        xsubres = lambda x: fmt % x
     elif options.regroup:
-        xsubres = lambda x: format % x.regroup(options.groupsource,
-                                               noprefix=options.groupbase)
+        xsubres = lambda x: fmt % x.regroup(options.groupsource,
+                                            noprefix=options.groupbase)
     else:
-        xsubres = lambda x: format % len(x)
+        xsubres = lambda x: fmt % len(x)
 
     if not xset or options.maxsplit <= 1 and not options.contiguous:
         print xsubres(xset)

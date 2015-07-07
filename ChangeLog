@@ -1,5 +1,7 @@
 2015-07-07 S. Thiell <stephane.thiell@cea.fr>
 
+	* CLI/Nodeset.py: add --autostep=auto option (ticket #161).
+
 	* NodeSet: add autostep property to allow changing the way every RangeSet of
 	a NodeSet object is displayed (eg. node[2-8/2] instead of node[2,4,6,8]).
 	Autostep value is the min number of indexes that are found at equal distance
