@@ -1,4 +1,6 @@
-2015-07-07 S. Thiell <stephane.thiell@cea.fr>
+2015-07-07 S. Thiell <sthiell@stanford.edu>
+
+	* CLI/Nodeset.py: add --autostep=auto and --autostep=x% option (#161).
 
 	* NodeSet: add autostep property to allow changing the way every RangeSet of
 	a NodeSet object is displayed (eg. node[2-8/2] instead of node[2,4,6,8]).
