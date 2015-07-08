@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a5aa2f17",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-08T04:14:47Z",
+      "side": 1,
+      "message": "Yeah! don\u0027t know what that means ;)",
+      "parentUuid": "9ad9bd40_bcfc0f40",
+      "range": {
+        "startLine": 15,
+        "startChar": 26,
+        "endLine": 15,
+        "endChar": 43
+      },
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5ca5c351",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2015-07-07T12:07:14Z",
       "side": 1,
       "message": "(typo) copy_rangeset",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_45bc036a",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-08T04:14:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5ca5c351",
       "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e5bc376f",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1034,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-08T04:14:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c176503e",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_01903842",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 3
@@ -70,6 +130,30 @@
       "writtenOn": "2015-07-07T07:37:13Z",
       "side": 1,
       "message": "This paragraph should have been better suited in Change #238411.",
+      "range": {
+        "startLine": 1046,
+        "startChar": 3,
+        "endLine": 1051,
+        "endChar": 22
+      },
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_05c2fbe8",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1051,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-08T04:14:47Z",
+      "side": 1,
+      "message": "You\u0027re right, but it\u0027s too late now. You\u0027d not make me remove additional doc, wouldn\u0027t you ? :)",
+      "parentUuid": "9ad9bd40_01903842",
       "range": {
         "startLine": 1046,
         "startChar": 3,
@@ -134,6 +218,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_65b0278c",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-08T04:14:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_81a3689d",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_21bc5cbb",
         "filename": "tests/RangeSetNDTest.py",
         "patchSetId": 3
@@ -145,6 +247,24 @@
       "writtenOn": "2015-07-07T07:37:13Z",
       "side": 1,
       "message": "blank lines",
+      "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_85ad2b34",
+        "filename": "tests/RangeSetNDTest.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-08T04:14:47Z",
+      "side": 1,
+      "message": "Done but I\u0027m going to remove this file from this patchset. I prepare a cleaning commit for RangeSetNDTest.py as it has lots of easy-to-fix pylint issues.",
+      "parentUuid": "9ad9bd40_21bc5cbb",
       "revId": "b8ca178085a389d744864fd68d9bbaffefb6517a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
