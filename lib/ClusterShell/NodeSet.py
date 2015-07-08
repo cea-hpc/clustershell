@@ -141,6 +141,24 @@ class NodeSetBase(object):
         elif rangeset:
             raise ValueError("missing pattern")
 
+    def get_autostep(self):
+        """Get autostep value (property)"""
+        return self._autostep
+
+    def set_autostep(self, val):
+        """Set autostep value (property)"""
+        if val is None:
+            self._autostep = None
+        else:
+            self._autostep = min(int(val), AUTOSTEP_DISABLED)
+
+        # Update our RangeSet/RangeSetND objects
+        for pat, rset in self._patterns.iteritems():
+            if rset:
+                rset.autostep = self._autostep
+
+    autostep = property(get_autostep, set_autostep)
+
     def _iter(self):
         """Iterator on internal item tuples
             (pattern, indexes, padding, autostep)."""
