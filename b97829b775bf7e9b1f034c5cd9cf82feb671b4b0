@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_60965596",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-08T08:32:10Z",
+      "side": 1,
+      "message": "I do not understand why this code is different in RangeSet.py\nWhy are using \"- 1 \" and not here?",
+      "range": {
+        "startLine": 144,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 61
+      },
+      "revId": "b97829b775bf7e9b1f034c5cd9cf82feb671b4b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
