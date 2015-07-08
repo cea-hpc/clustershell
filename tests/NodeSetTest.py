@@ -2022,6 +2022,56 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(n5), "")
         self.assertEqual(str(n5b), "n[1,3,5],p[2,5,8]")
 
+    def test_autostep_property(self):
+        """test NodeSet autostep property (1D)"""
+        n1 = NodeSet("n1,n3,n5,p04,p07,p10,p13")
+        self.assertEqual(str(n1), "n[1,3,5],p[04,07,10,13]")
+        self.assertEqual(len(n1), 7)
+        self.assertEqual(n1.autostep, None)
+        n1.autostep = 2
+        self.assertEqual(str(n1), "n[1-5/2],p[04-13/3]")
+        self.assertEqual(n1.autostep, 2)
+        self.assertEqual(len(n1), 7)
+        n1.autostep = 5
+        self.assertEqual(str(n1), "n[1,3,5],p[04,07,10,13]")
+        n1.autostep = 4
+        self.assertEqual(str(n1), "n[1,3,5],p[04-13/3]")
+        n1.autostep = 3
+        self.assertEqual(str(n1), "n[1-5/2],p[04-13/3]")
+        self.assertEqual(len(n1), 7)
+        n1.autostep = None
+        self.assertEqual(str(n1), "n[1,3,5],p[04,07,10,13]")
+        self.assertEqual(n1.autostep, None)
+        self.assertEqual(len(n1), 7)
+
+        # check change + init/copy
+        n1.autostep = 4
+        n2 = NodeSet(n1)
+        self.assertEqual(n1.autostep, 4)
+        # autostep set as 'inherit'
+        self.assertEqual(n2.autostep, None)
+        # check that
+        self.assertEqual(str(n2), "n[1,3,5],p[04-13/3]")
+        n2.autostep = 2
+        self.assertEqual(str(n2), "n[1-5/2],p[04-13/3]")
+        self.assertEqual(n1.autostep, 4) # no change
+        self.assertEqual(n2.autostep, 2)
+
+        n1.autostep = 4
+        n2 = NodeSet(n1, autostep=2)
+        self.assertEqual(n1.autostep, 4)
+        self.assertEqual(n2.autostep, 2)
+        self.assertEqual(str(n2), "n[1-5/2],p[04-13/3]")
+
+        n1.autostep = 4
+        n2 = NodeSet(n1, autostep=AUTOSTEP_DISABLED)
+        self.assertEqual(n1.autostep, 4)
+        self.assertEqual(n2.autostep, AUTOSTEP_DISABLED)
+        self.assertEqual(str(n2), "n[1,3,5],p[04,07,10,13]")
+
+        n1.autostep = 3
+        self.assertEqual(n1.copy().autostep, 3)
+
     def test_nd_autostep(self):
         """test NodeSet autostep (nD)"""
         n1 = NodeSet("p2n1,p2n3,p2n5")
@@ -2075,3 +2125,55 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(n2), "p2n[1-5/2],p2p[2-8/2,14,20],p2x[1-7/3]")
         self.assertEqual(str(n6), "")
         self.assertEqual(str(n6b), n4_noautostep_str)
+
+    def test_nd_autostep_property(self):
+        """test NodeSet autostep property (nD)"""
+        n1 = NodeSet("p1n4,p2x011,p1n6,p2x015,p1n2,p2x019,p1n0,p2x003")
+        self.assertEqual(str(n1), "p1n[0,2,4,6],p2x[003,011,015,019]")
+        self.assertEqual(len(n1), 8)
+        self.assertEqual(n1.autostep, None)
+        n1.autostep = 2
+        # 2 is really a too small value for autostep, but well...
+        self.assertEqual(str(n1), "p1n[0-6/2],p2x[003-011/8,015-019/4]")
+        self.assertEqual(n1.autostep, 2)
+        self.assertEqual(len(n1), 8)
+        n1.autostep = 5
+        self.assertEqual(str(n1), "p1n[0,2,4,6],p2x[003,011,015,019]")
+        n1.autostep = 4
+        self.assertEqual(str(n1), "p1n[0-6/2],p2x[003,011,015,019]")
+        n1.autostep = 3
+        self.assertEqual(str(n1), "p1n[0-6/2],p2x[003,011-019/4]")
+        self.assertEqual(len(n1), 8)
+        n1.autostep = None
+        self.assertEqual(str(n1), "p1n[0,2,4,6],p2x[003,011,015,019]")
+        self.assertEqual(n1.autostep, None)
+        self.assertEqual(len(n1), 8)
+
+        # check change + init/copy
+        n1.autostep = 4
+        n2 = NodeSet(n1)
+        self.assertEqual(n1.autostep, 4)
+        # autostep set as 'inherit'
+        self.assertEqual(n2.autostep, None)
+        # check that
+        self.assertEqual(str(n2), "p1n[0-6/2],p2x[003,011,015,019]")
+
+        n2.autostep = 2
+        self.assertEqual(str(n2), "p1n[0-6/2],p2x[003-011/8,015-019/4]")
+        self.assertEqual(n1.autostep, 4) # no change
+        self.assertEqual(n2.autostep, 2)
+
+        n1.autostep = 4
+        n2 = NodeSet(n1, autostep=2)
+        self.assertEqual(n1.autostep, 4)
+        self.assertEqual(n2.autostep, 2)
+        self.assertEqual(str(n2), "p1n[0-6/2],p2x[003-011/8,015-019/4]")
+
+        n1.autostep = 4
+        n2 = NodeSet(n1, autostep=AUTOSTEP_DISABLED)
+        self.assertEqual(n1.autostep, 4)
+        self.assertEqual(n2.autostep, AUTOSTEP_DISABLED)
+        self.assertEqual(str(n2), "p1n[0,2,4,6],p2x[003,011,015,019]")
+
+        n1.autostep = 3
+        self.assertEqual(n1.copy().autostep, 3)
