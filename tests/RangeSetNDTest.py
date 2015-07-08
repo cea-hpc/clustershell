@@ -500,8 +500,3 @@ class RangeSetNDTest(unittest.TestCase):
         rs3.add(4)
         self.assertEqual(str(rs3), "2-4")
         self.assertEqual(str(rn0), "2-5; 0-1\n6-7; 2-3\n")
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetNDTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
