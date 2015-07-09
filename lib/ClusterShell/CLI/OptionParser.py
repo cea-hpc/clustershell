@@ -43,6 +43,7 @@ import optparse
 
 from ClusterShell import __version__
 from ClusterShell.Engine.Factory import PreferredEngine
+from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB
 from ClusterShell.CLI.Display import THREE_CHOICES
 
 
@@ -139,14 +140,18 @@ class OptionParser(optparse.OptionParser):
         """Install options needed by Display class"""
         optgrp = optparse.OptionGroup(self, "Output behaviour")
         if verbose_options:
-            optgrp.add_option("-q", "--quiet", action="store_true",
-                dest="quiet", help="be quiet, print essential output only")
-            optgrp.add_option("-v", "--verbose", action="store_true",
-                dest="verbose", help="be verbose, print informative messages")
+            optgrp.add_option("-q", "--quiet", action="store_const",
+                              dest="verbose", const=VERB_QUIET,
+                              default=VERB_STD,
+                              help="be quiet, print essential output only")
+            optgrp.add_option("-v", "--verbose", action="store_const",
+                              dest="verbose", const=VERB_VERB,
+                              default=VERB_STD,
+                              help="be verbose, print informative messages")
         if debug_option:
-            optgrp.add_option("-d", "--debug", action="store_true",
-                dest="debug",
-                help="output more messages for debugging purpose")
+            optgrp.add_option("-d", "--debug", action="count", dest="debug",
+                              default=0,
+                              help="output more messages for debugging purpose")
         optgrp.add_option("-G", "--groupbase", action="store_true",
             dest="groupbase", default=False,
             help="do not display group source prefix")
@@ -262,10 +267,10 @@ class OptionParser(optparse.OptionParser):
                           default=False, help="fold nodeset(s) (or separate "
                                               "nodes) into one nodeset")
         optgrp.add_option("-l", "--list", action="count", dest="list",
-                          default=False, help="list node groups from one "
-                                              "source (see -s GROUPSOURCE)")
+                          default=0, help="list node groups from one source "
+                                          "(see -s GROUPSOURCE)")
         optgrp.add_option("-L", "--list-all", action="count", dest="listall",
-                          default=False,
+                          default=0,
                           help="list node groups from all group sources")
         optgrp.add_option("-r", "--regroup", action="store_true",
                           dest="regroup", default=False,

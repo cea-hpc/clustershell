@@ -84,12 +84,9 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         self.read(files)
 
         # Apply command line overrides
-        if options.quiet:
-            self._set_main("verbosity", VERB_QUIET)
-        if options.verbose:
-            self._set_main("verbosity", VERB_VERB)
-        if options.debug:
-            self._set_main("verbosity", VERB_DEBUG)
+        self._set_main("verbosity", options.verbose)
+        if options.debug > 0:
+            self._set_main("verbosity", VERB_DEBUG + options.debug - 1)
         if options.fanout:
             self._set_main("fanout", options.fanout)
         if options.user:
