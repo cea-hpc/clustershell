@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2010-2015)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -44,7 +44,7 @@ import sys
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
 from ClusterShell.NodeSet import NodeSetParseError, std_group_resolver
 
-from ClusterShell.CLI.Display import Display, THREE_CHOICES
+from ClusterShell.CLI.Display import Display, THREE_CHOICES, VERB_STD
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Utils import NodeSet, nodeset_cmp
@@ -132,7 +132,7 @@ def clubak():
     for line in sys.stdin:
         try:
             linestripped = line.rstrip('\r\n')
-            if options.verbose or options.debug:
+            if options.verbose > VERB_STD or options.debug:
                 print "INPUT %s" % linestripped
             key, content = linestripped.split(options.separator, 1)
             key = key.strip()

@@ -83,13 +83,12 @@ class ClushConfig(ConfigParser.ConfigParser, object):
             files.insert(1, expanduser('~/.clush.conf'))
         self.read(files)
 
-        # Apply command line overrides
-        if options.quiet:
-            self._set_main("verbosity", VERB_QUIET)
+        # Apply command line overrides. We avoid the use of default option
+        # values. If CLI options are not set, we use config defaults!
         if options.verbose:
-            self._set_main("verbosity", VERB_VERB)
-        if options.debug:
-            self._set_main("verbosity", VERB_DEBUG)
+            self._set_main("verbosity", options.verbose)
+        if options.debug > 0:
+            self._set_main("verbosity", VERB_DEBUG + options.debug - 1)
         if options.fanout:
             self._set_main("fanout", options.fanout)
         if options.user:
