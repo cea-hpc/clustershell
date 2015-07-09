@@ -41,6 +41,7 @@ out replies on stdout.
 import logging
 import os
 import sys
+import traceback
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
@@ -58,6 +59,11 @@ from ClusterShell.Communication import Channel, ConfigurationMessage, \
 def _gw_print_debug(task, s):
     """Default gateway task debug printing function"""
     logging.getLogger(__name__).debug(s)
+
+def gateway_excepthook(exc_type, exc_value, tb):
+    """Default excepthook for a Gateway"""
+    tbexc = traceback.format_exception(exc_type, exc_value, tb)
+    logging.getLogger(__name__).error(''.join(tbexc))
 
 
 class WorkerTreeResponder(EventHandler):
@@ -287,6 +293,8 @@ def gateway_main():
                         format='%(asctime)s %(name)s %(levelname)s %(message)s',
                         filename=os.path.join(logdir, "%s.gw.log" % host))
     logger = logging.getLogger(__name__)
+    sys.excepthook = gateway_excepthook
+
     logger.debug('Starting gateway on %s', host)
     logger.debug("environ=%s" % os.environ)
 
@@ -308,14 +316,14 @@ def gateway_main():
     worker.set_reader('r-stdin', sys.stdin)
     worker.set_writer('w-stdout', sys.stdout, retain=False)
     # stderr stream not used yet
-    #worker.set_writer('w-stderr', sys.stderr, retain=False) # stderr stream not used yet
+    worker.set_writer('w-stderr', sys.stderr, retain=False)
     task.schedule(worker)
     logger.debug('Starting task')
     try:
         task.resume()
         logger.debug('Task performed')
     except EngineAbortException, exc:
-        pass
+        logger.debug('EngineAbortException')
     except IOError, exc:
         logger.debug('Broken pipe (%s)' % exc)
         raise
