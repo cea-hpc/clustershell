@@ -794,9 +794,13 @@ def main():
     #
     config = ClushConfig(options)
 
+    if config.verbosity > VERB_DEBUG:
+        # restore default exception and exit handlers when -dd (debug+)
+        sys.excepthook = sys.__excepthook__
+
     # Should we use ANSI colors for nodes?
     if config.color == "auto":
-        color = sys.stdout.isatty() and (options.gatherall or \
+        color = sys.stdout.isatty() and (options.gatherall or
                                          sys.stderr.isatty())
     else:
         color = config.color == "always"

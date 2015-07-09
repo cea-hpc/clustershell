@@ -130,8 +130,8 @@ class Display(object):
                 self.verbosity = VERB_QUIET
             if hasattr(options, 'verbose') and options.verbose:
                 self.verbosity = VERB_VERB
-            if hasattr(options, 'debug') and options.debug:
-                self.verbosity = VERB_DEBUG
+            if hasattr(options, 'debug') and options.debug > 0:
+                self.verbosity = VERB_DEBUG + options.debug - 1
 
     def flush(self):
         """flush display object buffers"""
