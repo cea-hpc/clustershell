@@ -109,8 +109,7 @@ class XMLReader(ContentHandler):
         """read content characters"""
         if self._draft is not None:
             content = content.decode(ENCODING)
-            if content != '':
-                self._draft.data_update(content)
+            self._draft.data_update(content)
 
     def msg_available(self):
         """return whether a message is available for delivery or not"""
@@ -264,6 +263,7 @@ class Message(object):
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
+        assert self.data is not None
         try:
             return cPickle.loads(base64.decodestring(self.data))
         except (EOFError, TypeError):
@@ -274,8 +274,8 @@ class Message(object):
     def data_update(self, raw):
         """append data to the instance (used for deserialization)"""
         if self.has_payload:
-            if not self.data:
-                self.data = raw
+            if self.data is None:
+                self.data = raw # first encoded packet
             else:
                 self.data += raw
         else:
@@ -368,17 +368,20 @@ class StdOutMessage(RoutedMessageBase):
     ident = 'OUT'
     has_payload = True
 
-    def __init__(self, nodes='', output='', srcid=0):
+    def __init__(self, nodes='', output=None, srcid=0):
         """
+        Initialized either with empty payload (to be loaded, already encoded),
+        or with payload provided (via output to encode here).
         """
         RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'nodes': str})
         self.nodes = nodes
-        self.data = None
-        if output:
+        self.data = None # something encoded or None
+        if output is not None:
             self.data_encode(output)
 
 class StdErrMessage(StdOutMessage):
+    """container message for stderr output"""
     ident = 'SER'
 
 class RetcodeMessage(RoutedMessageBase):
