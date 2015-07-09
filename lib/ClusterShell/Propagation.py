@@ -360,7 +360,7 @@ class PropagationChannel(Channel):
             if msg.type == StdOutMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
-                    decoded = msg.data_decode()
+                    decoded = msg.data_decode() + '\n'
                     self.logger.debug("StdOutMessage: \"%s\"", decoded)
                     for line in decoded.splitlines():
                         for node in nodeset:
@@ -371,7 +371,7 @@ class PropagationChannel(Channel):
             elif msg.type == StdErrMessage.ident:
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
-                    decoded = msg.data_decode()
+                    decoded = msg.data_decode() + '\n'
                     self.logger.debug("StdErrMessage: \"%s\"", decoded)
                     for line in decoded.splitlines():
                         for node in nodeset:
