@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a0ff7866",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 932,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-09T02:10:21Z",
+      "side": 1,
+      "message": "Added comment. I first wanted to avoid this -1 here (as in NodeSet) but this would require a compatibility code check for pickling/reduce etc. ... So for now, RangeSet and RangeSetND._autostep mean number of steps between nodes, and NodeSetBase._autostep and also autostep exposed to the user always mean number of nodes...",
+      "parentUuid": "9ad9bd40_e0e9851b",
+      "revId": "ab56c086b635302c2f99f55701f87e7c89ccce1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_606815bb",
         "filename": "tests/NodeSetTest.py",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-08T08:26:52Z",
       "side": 1,
       "message": "*but not the first one",
+      "revId": "ab56c086b635302c2f99f55701f87e7c89ccce1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40c06c2a",
+        "filename": "tests/NodeSetTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 2043,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-09T02:10:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_606815bb",
       "revId": "ab56c086b635302c2f99f55701f87e7c89ccce1e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
