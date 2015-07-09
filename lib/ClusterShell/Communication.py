@@ -264,6 +264,7 @@ class Message(object):
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
+        assert self.data is not None
         try:
             return cPickle.loads(base64.decodestring(self.data))
         except (EOFError, TypeError):
@@ -375,8 +376,7 @@ class StdOutMessage(RoutedMessageBase):
         self.attr.update({'nodes': str})
         self.nodes = nodes
         self.data = None
-        if output:
-            self.data_encode(output)
+        self.data_encode(output)
 
 class StdErrMessage(StdOutMessage):
     ident = 'SER'
