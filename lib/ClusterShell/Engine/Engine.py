@@ -40,7 +40,9 @@ in response to incoming events (from workers, timers, etc.).
 import errno
 import heapq
 import logging
+import sys
 import time
+import traceback
 
 # Engine client fd I/O event interest bits
 E_READ = 0x1
@@ -689,8 +691,22 @@ class Engine:
             except EngineTimeoutException:
                 self.clear(did_timeout=True)
                 raise
-            except: # could later use BaseException above (py2.5+)
-                self.clear()
+            except: # MUST use BaseException as soon as possible (py2.5+)
+                # The game is over.
+                exc_t, exc_val, exc_tb = sys.exc_info()
+                try:
+                    # Close Engine clients
+                    self.clear()
+                except:
+                    # self.clear() may still generate termination events that
+                    # may raises exceptions, overriding the other one above.
+                    # In the future, we should block new user events to avoid
+                    # that. Also, such cases could be better handled with
+                    # BaseException. For now, print a backtrace in debug to
+                    # help detect the problem.
+                    tbexc = traceback.format_exception(exc_t, exc_val, exc_tb)
+                    logging.getLogger(__name__).debug(''.join(tbexc))
+                    raise
                 raise
         finally:
             # cleanup
