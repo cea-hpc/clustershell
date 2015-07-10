@@ -969,7 +969,12 @@ class ParsingEngine(object):
                 if op_idx < 0:
                     pat = None
                 else:
-                    sfx, pat = sfx.split(self.OP_CODES[next_op_code], 1)
+                    opc = self.OP_CODES[next_op_code]
+                    sfx, pat = sfx.split(opc, 1)
+                    # Detected character operator so right operand is mandatory
+                    if not pat:
+                        msg = "missing nodeset operand with '%s' operator" % opc
+                        raise NodeSetParseError(pat, msg)
 
                 # Ignore whitespace(s)
                 sfx = sfx.rstrip()
@@ -990,7 +995,12 @@ class ParsingEngine(object):
                     node = pat
                     pat = None # break next time
                 else:
-                    node, pat = pat.split(self.OP_CODES[next_op_code], 1)
+                    opc = self.OP_CODES[next_op_code]
+                    node, pat = pat.split(opc, 1)
+                    # Detected character operator so both operands are mandatory
+                    if not node or not pat:
+                        msg = "missing nodeset operand with '%s' operator" % opc
+                        raise NodeSetParseError(node or pat, msg)
 
                 # Check for illegal closing bracket
                 if node.find(']') > -1:
