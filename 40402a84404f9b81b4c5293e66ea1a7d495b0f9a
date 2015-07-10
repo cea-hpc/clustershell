@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_34d721c1",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T15:42:30Z",
+      "side": 1,
+      "message": "No constant here? But if you simply put AUTOSTEP_DISABLED here, I think it will broke things are there is no - 1",
+      "revId": "40402a84404f9b81b4c5293e66ea1a7d495b0f9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
