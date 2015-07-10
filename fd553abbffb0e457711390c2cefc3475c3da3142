@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_94962def",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T15:46:16Z",
+      "side": 1,
+      "message": "here you take the smallest of val and AUTOSTEP_DISABLED... I do not understand why",
+      "revId": "fd553abbffb0e457711390c2cefc3475c3da3142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
