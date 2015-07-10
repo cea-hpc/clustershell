@@ -16,6 +16,24 @@
       "revId": "fd553abbffb0e457711390c2cefc3475c3da3142",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eae152ff",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-10T22:15:00Z",
+      "side": 1,
+      "message": "Hm I think it may be not needed. The idea was just to perform an user-provided value adjustment, eg. to avoid 1e400 to be used.\nMaybe should I raise ValueError. Or perhaps do nothing as 1e400 (sys.maxint) will work and is picklable on Python 2.5+ ...",
+      "parentUuid": "9ad9bd40_94962def",
+      "revId": "fd553abbffb0e457711390c2cefc3475c3da3142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
