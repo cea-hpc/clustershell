@@ -16,6 +16,24 @@
       "revId": "40402a84404f9b81b4c5293e66ea1a7d495b0f9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a47ba1e",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-10T22:07:00Z",
+      "side": 1,
+      "message": "Ah. Thank you! I forgot this one. And it won\u0027t break things as 1e+100 - 1 \u003d 1e+100. The magic of float.\n\n\u003e\u003e\u003e a \u003d 1E100\n\u003e\u003e\u003e a - 1 \u003e\u003d a\nTrue",
+      "parentUuid": "9ad9bd40_34d721c1",
+      "revId": "40402a84404f9b81b4c5293e66ea1a7d495b0f9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
