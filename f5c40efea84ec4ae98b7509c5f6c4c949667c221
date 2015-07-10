@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_af511c10",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T16:44:57Z",
+      "side": 1,
+      "message": "maybe we could remove this 2 comments",
+      "revId": "f5c40efea84ec4ae98b7509c5f6c4c949667c221",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
