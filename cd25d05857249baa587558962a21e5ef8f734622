@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_99510611",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 975,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T09:03:57Z",
+      "side": 1,
+      "message": "I found it easier to read when using a \u0027msg\u0027 variable\n\n  if not sfx or not pat:\n    msg \u003d \"illegal empty nodeset operand with \u0027%s\u0027 operator % opc\n    raise NodeSetParseError(sfx or pat, msg)",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f941323a",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 998,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T09:03:57Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1936d6e7",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T09:03:57Z",
+      "side": 1,
+      "message": "why this change?\nMoreover , this could be factorized\n\n except (NodeSetParseError, NodeSetParseRangeError), exp:\n   ...\n\nBut, moreover(2), NodeSetParseRangeError inherits from NodeSetParseError",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_39355ada",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T09:03:57Z",
+      "side": 1,
+      "message": "empty line",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
