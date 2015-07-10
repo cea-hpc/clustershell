@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_799c42c1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-10T09:07:46Z",
+      "side": 1,
+      "message": "As this patch only fixes one type of pylint comment, it could be nice to put the related message in the commit message\n\nlike: \"Fix pylint warning \u0027...blabla...\u0027",
+      "revId": "04789af05e028c5c85ebd5f3e8d939f3e2c6e1f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
