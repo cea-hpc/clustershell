@@ -5,7 +5,6 @@
 
 """Unit test for RangeSet errors"""
 
-import copy
 import sys
 import unittest
 
@@ -25,10 +24,10 @@ class NodeSetErrorTest(unittest.TestCase):
         try:
             nodeset = NodeSet(pattern)
             print nodeset
-        except NodeSetParseError, e:
+        except NodeSetParseRangeError, e:
             self.assertEqual(e.__class__, expected_exc)
             return
-        except NodeSetParseRangeError, e:
+        except NodeSetParseError, e:
             self.assertEqual(e.__class__, expected_exc)
             return
         except:
@@ -124,7 +123,7 @@ class NodeSetErrorTest(unittest.TestCase):
     def test_bad_slices(self):
         nodeset = NodeSet("cluster[1-30]c[1-2]")
         self.assertRaises(TypeError, nodeset.__getitem__, "zz")
-        self.assertRaises(TypeError, nodeset.__getitem__, slice(1,'foo'))
+        self.assertRaises(TypeError, nodeset.__getitem__, slice(1, 'foo'))
 
     def test_binary_bad_object_type(self):
         nodeset = NodeSet("cluster[1-30]c[1-2]")
@@ -141,4 +140,27 @@ class NodeSetErrorTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster1c1")
         nodeset._patterns["cluster%sc%s"] = RangeSetND([[1, 1, 1]])
         self.assertRaises(NodeSetParseError, str, nodeset)
+
+    def test_empty_operand(self):
+        # right
+        self.assertRaises(NodeSetParseError, NodeSet, "foo!")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo,")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo&")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo^")
+        self.assertRaises(NodeSetParseError, NodeSet, "c[1-30]c[1-2]!")
+
+        # left
+        self.assertRaises(NodeSetParseError, NodeSet, "!foo")
+        self.assertRaises(NodeSetParseError, NodeSet, ",foo")
+        self.assertRaises(NodeSetParseError, NodeSet, "&foo")
+        self.assertRaises(NodeSetParseError, NodeSet, "^foo")
+        self.assertRaises(NodeSetParseError, NodeSet, "!c[1-30]c[1-2]")
+
+        # other
+        self.assertRaises(NodeSetParseError, NodeSet, "!")
+        self.assertRaises(NodeSetParseError, NodeSet, ",")
+        self.assertRaises(NodeSetParseError, NodeSet, "&")
+        self.assertRaises(NodeSetParseError, NodeSet, "^")
+        self.assertRaises(NodeSetParseError, NodeSet, ",,,")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo,,bar")
 
