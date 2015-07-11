@@ -16,6 +16,24 @@
       "revId": "1957900e3a8126cacbd2ae5f15f4186f4f95edb3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0a8af6be",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-11T05:10:44Z",
+      "side": 1,
+      "message": "Yes, let me add a comment.",
+      "parentUuid": "9ad9bd40_992ae67c",
+      "revId": "1957900e3a8126cacbd2ae5f15f4186f4f95edb3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
