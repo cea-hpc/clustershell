@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_eaba326d",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-11T05:24:05Z",
+      "side": 1,
+      "message": "defect here, didn\u0027t catch it at first time because my Gerrit Trigger was broken and didn\u0027t test the right patch ! duh.\nHere we are in the case of presence of bracket and sfx may be None.",
+      "range": {
+        "startLine": 974,
+        "startChar": 23,
+        "endLine": 974,
+        "endChar": 30
+      },
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_99510611",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 1
@@ -13,6 +36,24 @@
       "writtenOn": "2015-07-10T09:03:57Z",
       "side": 1,
       "message": "I found it easier to read when using a \u0027msg\u0027 variable\n\n  if not sfx or not pat:\n    msg \u003d \"illegal empty nodeset operand with \u0027%s\u0027 operator % opc\n    raise NodeSetParseError(sfx or pat, msg)",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8abd266b",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 975,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-11T05:24:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_99510611",
       "revId": "cd25d05857249baa587558962a21e5ef8f734622",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -36,6 +77,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_aac02ae1",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 998,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-11T05:24:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f941323a",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1936d6e7",
         "filename": "tests/NodeSetErrorTest.py",
         "patchSetId": 1
@@ -53,6 +112,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0ab1168f",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-11T05:24:05Z",
+      "side": 1,
+      "message": "pylint reported an except order issue. But yes, I can factorize even more! Thanks!",
+      "parentUuid": "9ad9bd40_1936d6e7",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_39355ada",
         "filename": "tests/NodeSetErrorTest.py",
         "patchSetId": 1
@@ -64,6 +141,24 @@
       "writtenOn": "2015-07-10T09:03:57Z",
       "side": 1,
       "message": "empty line",
+      "revId": "cd25d05857249baa587558962a21e5ef8f734622",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4aab1e1d",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-11T05:24:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_39355ada",
       "revId": "cd25d05857249baa587558962a21e5ef8f734622",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
