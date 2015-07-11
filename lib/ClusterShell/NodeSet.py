@@ -65,8 +65,11 @@ import re
 import sys
 
 import ClusterShell.NodeUtils as NodeUtils
-from ClusterShell.RangeSet import RangeSet, RangeSetND, RangeSetParseError
-from ClusterShell.RangeSet import AUTOSTEP_DISABLED
+
+# Import all RangeSet module public objects
+from ClusterShell.RangeSet import RangeSet, RangeSetND, AUTOSTEP_DISABLED
+from ClusterShell.RangeSet import RangeSetException, RangeSetParseError
+from ClusterShell.RangeSet import RangeSetPaddingError
 
 
 # Define default GroupResolver object used by NodeSet
