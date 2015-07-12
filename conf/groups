@@ -1,3 +1,4 @@
+# Note: this example file is no more the default group source in groups.conf
 adm: example0
 oss: example4 example5
 mds: example6
