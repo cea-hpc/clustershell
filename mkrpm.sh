@@ -55,6 +55,7 @@ install -d $TMPDIR/lib/ClusterShell/Worker
 install -d $TMPDIR/scripts
 install -d $TMPDIR/conf
 install -d $TMPDIR/conf/groups.conf.d
+install -d $TMPDIR/conf/groups.d
 install -d $TMPDIR/doc/epydoc
 install -d $TMPDIR/doc/examples
 install -d $TMPDIR/doc/extras/vim/{ftdetect,syntax}
@@ -72,9 +73,12 @@ install -p -m 0755 scripts/clubak.py $TMPDIR/scripts/
 install -p -m 0755 scripts/clush.py $TMPDIR/scripts/
 install -p -m 0755 scripts/nodeset.py $TMPDIR/scripts/
 install -p -m 0644 conf/clush.conf $TMPDIR/conf/
-install -p -m 0644 conf/groups conf/groups.conf $TMPDIR/conf/
+install -p -m 0644 conf/groups.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf.d/README $TMPDIR/conf/groups.conf.d/
-install -p -m 0644 conf/groups.conf.d/*.conf.example $TMPDIR/conf/groups.conf.d/
+install -p -m 0644 conf/groups.conf.d/*.example $TMPDIR/conf/groups.conf.d/
+install -p -m 0644 conf/groups.d/README $TMPDIR/conf/groups.d/
+install -p -m 0644 conf/groups.d/local.cfg $TMPDIR/conf/groups.d/
+install -p -m 0644 conf/groups.d/*.yaml.example $TMPDIR/conf/groups.d/
 install -p -m 0644 conf/topology.conf.example $TMPDIR/conf/
 install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
 install -p -m 0755 doc/examples/*.py $TMPDIR/doc/examples/
