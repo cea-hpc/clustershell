@@ -74,7 +74,7 @@ install -p -m 0755 scripts/nodeset.py $TMPDIR/scripts/
 install -p -m 0644 conf/clush.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups conf/groups.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf.d/README $TMPDIR/conf/groups.conf.d/
-install -p -m 0644 conf/groups.conf.d/*.conf.example $TMPDIR/conf/groups.conf.d/
+install -p -m 0644 conf/groups.conf.d/*.example $TMPDIR/conf/groups.conf.d/
 install -p -m 0644 conf/topology.conf.example $TMPDIR/conf/
 install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
 install -p -m 0755 doc/examples/*.py $TMPDIR/doc/examples/
