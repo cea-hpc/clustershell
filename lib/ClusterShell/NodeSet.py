@@ -1205,7 +1205,7 @@ class NodeSet(NodeSetBase):
         try:
             # Get all groups in specified group source.
             allgrplist = self._parser.grouplist(groupsource)
-        except NodeUtils.GroupSourceException:
+        except NodeUtils.GroupSourceError:
             # If list query failed, we still might be able to regroup
             # using reverse.
             allgrplist = None

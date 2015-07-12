@@ -43,7 +43,7 @@ from ClusterShell.Engine.Engine import EngineNotSupportedError
 from ClusterShell.CLI.Utils import GroupResolverConfigError  # dummy but safe
 from ClusterShell.NodeUtils import GroupResolverIllegalCharError
 from ClusterShell.NodeUtils import GroupResolverSourceError
-from ClusterShell.NodeUtils import GroupSourceException
+from ClusterShell.NodeUtils import GroupSourceError
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
 from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
 from ClusterShell.NodeSet import RangeSetParseError
@@ -56,8 +56,8 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   RangeSetParseError,
                   GroupResolverIllegalCharError,
                   GroupResolverSourceError,
+                  GroupSourceError,
                   GroupSourceNoUpcall,
-                  GroupSourceException,
                   TopologyError,
                   TypeError,
                   IOError,
@@ -82,8 +82,8 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
     except GroupSourceNoUpcall, exc:
         print >> sys.stderr, "%s: No %s upcall defined for group " \
             "source \"%s\"" % (prog, exc, exc.group_source.name)
-    except GroupSourceException, exc:
-        print >> sys.stderr, "%s: Other group error:" % prog, exc
+    except GroupSourceError, exc:
+        print >> sys.stderr, "%s: Group error:" % prog, exc
     except TopologyError, exc:
         print >> sys.stderr, "%s: TREE MODE:" % prog, exc
     except (TypeError, WorkerError), exc:

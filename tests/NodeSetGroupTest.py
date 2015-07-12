@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # ClusterShell.Node* test suite
-# Written by S. Thiell 2010-03-18
 
 
 """Unit test for NodeSet with Group support"""
@@ -143,11 +142,12 @@ class NodeSetGroupTest(unittest.TestCase):
 
         test_groups1 = makeTestG1()
 
-        source = GroupSource("simple",
-                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
-                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
-                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
-                             None)
+        source = UpcallGroupSource(
+                    "simple",
+                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
+                    "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
+                    "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
+                    None)
 
         # create custom resolver with default source
         res = GroupResolver(source)
@@ -200,11 +200,11 @@ class NodeSetGroupTest(unittest.TestCase):
 
         test_groups1 = makeTestG1()
 
-        source = GroupSource("simple",
-                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
-                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
-                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
-                             None)
+        source = UpcallGroupSource("simple",
+                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
+                                   "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
+                                   "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
+                                   None)
 
         res = GroupResolver(source)
         # adding the same source again should raise ValueError
@@ -215,9 +215,9 @@ class NodeSetGroupTest(unittest.TestCase):
         
         test_groups1 = makeTestG1()
 
-        source = GroupSource("minimal",
-                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
-                             None, None, None)
+        source = UpcallGroupSource("minimal",
+                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
+                                   None, None, None)
 
         # create custom resolver with default source
         res = GroupResolver(source)
@@ -810,11 +810,11 @@ reverse: echo f^oo
 
         test_groups4 = makeTestG4()
 
-        source = GroupSource("simple",
-                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups4.name,
-                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups4.name,
-                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups4.name,
-                             None)
+        source = UpcallGroupSource("simple",
+                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups4.name,
+                                   "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups4.name,
+                                   "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups4.name,
+                                   None)
 
         # create custom resolver with default source
         res = GroupResolver(source)
@@ -875,17 +875,17 @@ class NodeSetGroup2GSTest(unittest.TestCase):
         self.test_groups2 = makeTestG2()
 
         # create 2 GroupSource objects
-        default = GroupSource("default",
-                              "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups1.name,
-                              "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups1.name,
-                              "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups1.name,
-                              None)
+        default = UpcallGroupSource("default",
+                                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups1.name,
+                                    "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups1.name,
+                                    "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups1.name,
+                                    None)
 
-        source2 = GroupSource("source2",
-                              "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups2.name,
-                              "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups2.name,
-                              "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups2.name,
-                              None)
+        source2 = UpcallGroupSource("source2",
+                                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups2.name,
+                                    "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups2.name,
+                                    "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups2.name,
+                                    None)
 
         resolver = GroupResolver(default)
         resolver.add_source(source2)
@@ -970,11 +970,11 @@ class NodeSetRegroupTest(unittest.TestCase):
         test_groups3 = makeTestG3()
         test_reverse3 = makeTestR3()
 
-        source = GroupSource("test",
-                             "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups3.name,
-                             "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups3.name,
-                             "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups3.name,
-                             "awk -F: '/^$NODE:/ { gsub(\",\",\"\\n\",$2); print $2 }' %s" % test_reverse3.name)
+        source = UpcallGroupSource("test",
+                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups3.name,
+                                   "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups3.name,
+                                   "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups3.name,
+                                   "awk -F: '/^$NODE:/ { gsub(\",\",\"\\n\",$2); print $2 }' %s" % test_reverse3.name)
 
         # create custom resolver with default source
         res = GroupResolver(source)
@@ -1028,7 +1028,7 @@ class NodeSetRegroupTest(unittest.TestCase):
         self.assertEqual(nodeset.regroup(), "@chassis[1-3]")
         self.assertEqual(nodeset.regroup(), "@chassis[1-3]")
 
-class StaticGroupSource(GroupSource):
+class StaticGroupSource(UpcallGroupSource):
     """
     A memory only group source based on a provided dict.
     """
@@ -1040,7 +1040,7 @@ class StaticGroupSource(GroupSource):
         list_upcall = None
         if 'list' in data:
             list_upcall = 'fake_list'
-        GroupSource.__init__(self, name, "fake_map", all_upcall, list_upcall)
+        UpcallGroupSource.__init__(self, name, "fake_map", all_upcall, list_upcall)
         self._data = data
 
     def _upcall_read(self, cmdtpl, args=dict()):
@@ -1052,7 +1052,6 @@ class StaticGroupSource(GroupSource):
             return self._data[cmdtpl]
 
 class GroupSourceCacheTest(unittest.TestCase):
-
 
     def test_clear_cache(self):
         """test GroupSource.clear_cache()"""
@@ -1071,7 +1070,7 @@ class GroupSourceCacheTest(unittest.TestCase):
         self.assertEqual(len(source._cache['map']), 0)
 
     def test_expired_cache(self):
-        """test GroupSource cache entries expired according to config"""
+        """test UpcallGroupSource cache entries expired according to config"""
         # create custom resolver with default source
         source = StaticGroupSource('cache', {'map': {'a': 'foo1', 'b': 'foo2'} })
         source.cache_delay = 0.2
@@ -1098,3 +1097,249 @@ map: echo foo1
         res = GroupResolverConfig(f.name)
         self.assertEqual(res._sources['local'].cache_delay, 0.2)
         self.assertEqual("foo1", str(NodeSet("@local:foo", resolver=res)))
+
+
+class GroupSourceTest(unittest.TestCase):
+    """Test class for 1.7 dict-based GroupSource"""
+
+    def test_base_class0(self):
+        """test base GroupSource class (empty)"""
+        gs = GroupSource("emptysrc")
+        self.assertEqual(gs.resolv_map('gr1'), '')
+        self.assertEqual(gs.resolv_map('gr2'), '')
+        self.assertEqual(gs.resolv_list(), [])
+        self.assertRaises(GroupSourceQueryFailed, gs.resolv_all)
+        self.assertRaises(GroupSourceQueryFailed, gs.resolv_reverse, 'n4')
+
+    def test_base_class1(self):
+        """test base GroupSource class (map and list)"""
+        gs = GroupSource("testsrc", { 'gr1': ['n1', 'n4', 'n3', 'n2'],
+                                      'gr2': ['n9', 'n4'] })
+        self.assertEqual(gs.resolv_map('gr1'), ['n1', 'n4', 'n3', 'n2'])
+        self.assertEqual(gs.resolv_map('gr2'), ['n9', 'n4'])
+        self.assertEqual(sorted(gs.resolv_list()), ['gr1', 'gr2'])
+        self.assertRaises(GroupSourceQueryFailed, gs.resolv_all)
+        self.assertRaises(GroupSourceQueryFailed, gs.resolv_reverse, 'n4')
+
+    def test_base_class2(self):
+        """test base GroupSource class (all)"""
+        gs = GroupSource("testsrc", { 'gr1': ['n1', 'n4', 'n3', 'n2'],
+                                      'gr2': ['n9', 'n4'] },
+                         'n[1-9]')
+        self.assertEqual(gs.resolv_all(), 'n[1-9]')
+
+
+class YAMLGroupLoaderTest(unittest.TestCase):
+
+    def test_missing_pyyaml(self):
+        """test YAMLGroupLoader with missing PyYAML"""
+        sys_path_saved = sys.path
+        try:
+            sys.path = [] # make import yaml failed
+            if 'yaml' in sys.modules:
+                # forget about previous yaml import
+                del sys.modules['yaml']
+            f = make_temp_file("""
+    vendors:
+        apricot: node""")
+            self.assertRaises(GroupResolverConfigError, YAMLGroupLoader,
+                              f.name)
+        finally:
+            sys.path = sys_path_saved
+
+    def test_one_source(self):
+        """test YAMLGroupLoader one source"""
+        f = make_temp_file("""
+vendors:
+    apricot: node""")
+        loader = YAMLGroupLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node' })
+
+    def test_multi_sources(self):
+        """test YAMLGroupLoader multi sources"""
+        f = make_temp_file("""
+vendors:
+    apricot: node
+
+customers:
+    cherry: client-4-2""")
+        loader = YAMLGroupLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(len(sources), 2)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node' })
+        self.assertEqual(loader.groups("customers"),
+                         { 'cherry': 'client-4-2' })
+
+    def test_reload(self):
+        """test YAMLGroupLoader cache_delay"""
+        f = make_temp_file("""
+vendors:
+    apricot: "node[1-10]"
+    avocado: 'node[11-20]'
+    banana: node[21-30]
+customers:
+    cherry: client-4-2""")
+        loader = YAMLGroupLoader(f.name, cache_delay=1)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node[1-10]',
+                           'avocado': 'node[11-20]',
+                           'banana': 'node[21-30]' })
+
+        # modify YAML file and check that it is reloaded after cache_delay
+        f.write("\n    nut: node42\n")
+        # oh and BTW for ultimate code coverage, test if we add a new source
+        # on-the-fly, this is not supported but should be ignored
+        f.write("thieves:\n    pomegranate: node100\n")
+        f.flush()
+        time.sleep(0.1)
+        # too soon
+        self.assertEqual(loader.groups("customers"),
+                         { 'cherry': 'client-4-2' })
+        time.sleep(1.0)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node[1-10]',
+                           'avocado': 'node[11-20]',
+                           'banana': 'node[21-30]' })
+        self.assertEqual(loader.groups("customers"),
+                         { 'cherry': 'client-4-2',
+                           'nut': 'node42' })
+
+
+class GroupResolverYAMLTest(unittest.TestCase):
+
+    def setUp(self):
+        """setUp test reproducibility: change standard group resolver
+        to ensure that no local group source is used during tests"""
+        set_std_group_resolver(GroupResolver()) # dummy resolver
+
+    def tearDown(self):
+        """tearDown: restore standard group resolver"""
+        set_std_group_resolver(None) # restore std resolver
+
+    def test_yaml_basic(self):
+        """test groups with a basic YAML config file"""
+        dname = make_temp_dir()
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: yaml
+autodir: %s
+        """ % dname)
+        yamlfile = make_temp_file("""
+yaml:
+    foo: example[1-4,91-100],example90
+    bar: example[5-89]
+        """, suffix=".yaml", dir=dname)
+
+        res = GroupResolverConfig(f.name)
+
+        # Group resolution
+        nodeset = NodeSet("@foo", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-4,90-100]")
+        nodeset = NodeSet("@bar", resolver=res)
+        self.assertEqual(str(nodeset), "example[5-89]")
+        nodeset = NodeSet("@foo,@bar", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        nodeset = NodeSet("@unknown", resolver=res)
+        self.assertEqual(len(nodeset), 0)
+
+        # Regroup
+        nodeset = NodeSet("example[1-4,90-100]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-4,90-100]")
+        self.assertEqual(nodeset.regroup(), "@foo")
+        self.assertEqual(nodeset.groups().keys(), ["@foo"])
+        self.assertEqual(str(NodeSet("@foo", resolver=res)), "example[1-4,90-100]")
+
+        # No 'all' defined: all_nodes() should raise an error
+        self.assertRaises(GroupSourceError, res.all_nodes)
+        # No 'reverse' defined: node_groups() should raise an error
+        self.assertRaises(GroupSourceError, res.node_groups, "example1")
+
+        # regroup with rest
+        nodeset = NodeSet("example[1-101]", resolver=res)
+        self.assertEqual(nodeset.regroup(), "@bar,@foo,example101")
+
+        # regroup incomplete
+        nodeset = NodeSet("example[50-200]", resolver=res)
+        self.assertEqual(nodeset.regroup(), "example[50-200]")
+
+        # regroup no matching
+        nodeset = NodeSet("example[102-200]", resolver=res)
+        self.assertEqual(nodeset.regroup(), "example[102-200]")
+
+    def test_yaml_invalid_groups_not_dict(self):
+        """test groups with an invalid YAML config file (1)"""
+        dname = make_temp_dir()
+        f = make_temp_file("""
+[Main]
+default: yaml
+autodir: %s
+        """ % dname)
+        yamlfile = make_temp_file("""
+yaml: bar
+        """, suffix=".yaml", dir=dname)
+
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+    def test_yaml_invalid_root_dict(self):
+        """test groups with an invalid YAML config file (2)"""
+        dname = make_temp_dir()
+        f = make_temp_file("""
+[Main]
+default: yaml
+autodir: %s
+        """ % dname)
+        yamlfile = make_temp_file("""
+- Casablanca
+- North by Northwest
+- The Man Who Wasn't There
+        """, suffix=".yaml", dir=dname)
+
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+    def test_yaml_invalid_not_yaml(self):
+        """test groups with an invalid YAML config file (3)"""
+        dname = make_temp_dir()
+        f = make_temp_file("""
+[Main]
+default: yaml
+autodir: %s
+        """ % dname)
+        yamlfile = make_temp_file("""
+[Dummy]
+one: un
+two: deux
+three: trois
+        """, suffix=".yaml", dir=dname)
+
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+    def test_wrong_autodir(self):
+        """test wrong autodir (doesn't exist)"""
+        f = make_temp_file("""
+[Main]
+autodir: /i/do/not/=exist=
+default: local
+        """)
+        # absent autodir itself doesn't raise any exception, but default
+        # pointing to nothing does...
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+    def test_wrong_autodir_is_file(self):
+        """test wrong autodir (is a file)"""
+        fe = make_temp_file("")
+        f = make_temp_file("""
+[Main]
+autodir: %s
+default: local
+
+[local]
+map: node
+        """ % fe.name)
+        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
