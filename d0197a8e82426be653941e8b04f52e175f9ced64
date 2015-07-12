@@ -81,6 +81,24 @@
       "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_69ff0f68",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-12T20:29:55Z",
+      "side": 1,
+      "message": "OK. Maybe enabling this for 2 nodes is a bit too much. Let\u0027s keep it this way.",
+      "parentUuid": "9ad9bd40_89861312",
+      "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
