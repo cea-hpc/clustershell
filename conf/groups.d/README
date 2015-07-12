@@ -1,0 +1,22 @@
+groups.d/README
+
+Default directory for YAML node group sources definition files.
+ClusterShell scans the directory set by the autodir variable, defined
+in /etc/clustershell/groups.conf, loading all files of the form *.yaml.
+
+These files are automatically parsed by ClusterShell to avoid the need
+of external upcalls for flat files-based group sources.
+
+Each file may contain one or several group sources definitions.
+Format of each YAML file is as follow:
+
+source1:
+    group1: 'nodeset1'
+    group2: 'nodeset2'
+
+source2:
+    group3: 'nodeset3'
+    group4: 'nodeset4'
+    ...
+
+Please take a look at *.yaml.example files for more examples.

@@ -1,3 +1,15 @@
+2015-08-27 S. Thiell <sthiell@stanford.edu>
+
+	* NodeUtils.py: add support for built-in groups definition files based on
+	YAML. Added autodir configuration option in groups.conf to declare a
+	directory where .yaml files are automatically loaded. Example available in
+	groups.d/cluster.yaml.example. Added support for groups.conf section with
+	multiple source names separated by comma. This is also the case for
+	groups.conf.d/*.conf extensions. Also added new upcall command $SOURCE
+	variable that is replaced by calling source name before execution.
+	Finally, /etc/clustershell/groups is now deprecated and replaced by
+	/etc/clustershell/groups.d/local.cfg for new installation (ticket #258).
+
 2015-07-07 S. Thiell <sthiell@stanford.edu>
 
 	* CLI/Nodeset.py: add --autostep=auto and --autostep=x% option (#161).
