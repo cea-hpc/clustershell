@@ -87,11 +87,14 @@ for several *clush* tool parameters.
 Node groups
 -----------
 
-Since version 1.3, ClusterShell adds the concept of node group (a collection
-of nodes, see section :ref:`nodeset-groups` for usage information). So there
-is now an optional node groups library preference to configure.
+The basics
+^^^^^^^^^^
 
-The system-wide library configuration file */etc/clustershell/groups.conf*,
+ClusterShell defines node group as a collection of nodes, see section
+:ref:`nodeset-groups` for usage information. This section explains how to
+configure group nodes.
+
+The system-wide library configuration file */etc/clustershell/groups.conf*
 defines how the ClusterShell library obtains node groups configuration, mainly
 the way the library should access external node group **sources**. These
 **sources** provide external calls to list groups, to get nodes contained in
@@ -101,7 +104,8 @@ by default::
 
     [Main]
     default: genders
-    groupsdir: /etc/clustershell/groups.conf.d
+    confdir: /etc/clustershell/groups.conf.d
+    autodir: /etc/clustershell/groups.d
 
     [genders]
     map: nodeattr -n $GROUP
@@ -114,18 +118,77 @@ by default::
     list: sinfo -h -o "%P"
     reverse: sinfo -h -N -o "%P" -n $NODE
 
-This configuration file is parsed by Python's `ConfigParser`_. The first
-section whose name is *Main* defines a keyword *default* which is used to
-define a default node group source by referencing a valid section header. The
-second keyword *groupsdir* is used to define an optional list of external
-directories where the ClusterShell library should look for .conf files which
-define group sources to use. Each file in these directories with the .conf
-suffix should contain one or more node group source sections as documented
-below. These will be merged with the group sources defined in
-*/etc/clustershell/groups.conf* to form the complete set of group sources to
-use. Duplicate group source sections are not allowed. Configuration files that
-are not readable by the current user are ignored.
+This configuration file is parsed by Python's `ConfigParser`_:
 
+* The first section whose name is *Main* accepts the following keywords:
+
+  * *default* defines a **default node group source** by referencing a valid
+    section header
+  * *confdir* defines an optional list of directories where the ClusterShell
+    library should look for .conf files which define group sources to use.
+    Each file in these directories with the .conf suffix should contain one or
+    more node group source sections as documented below.  These will be merged
+    with the group sources defined in */etc/clustershell/groups.conf* to form
+    the complete set of group sources to use. Duplicate group source sections
+    are not allowed.  Configuration files that are not readable by the current
+    user are ignored (except the one that defines the default group source).
+  * *autodir* defines an optional list of directories where the ClusterShell
+    library should look for **.yaml** files that define in-file group
+    dictionaries. No need to call external commands for these files, they are
+    parsed by the ClusterShell library itself. Multiple group source
+    definitions in the same file is supported. Please note that if you don't
+    have PyYAML available on your system, you can still comment autodir.
+
+* Each following section (`genders`, `slurm`) defines a  group source. The
+  map, all, list and reverse upcalls are explained below in
+  :ref:`group-sources-upcalls`.
+
+.. _group-multi-sources:
+
+Multiple sources section
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use a comma-separated list of source names in the section header if you want
+to define multiple group sources with similar upcall commands. The special
+variable `$SOURCE` is always replaced by the source name before command
+execution (here `cluster`, `racks` and `cpu`), for example::
+
+    [cluster,racks,cpu]
+    map: get_nodes_from_source.sh $SOURCE $GROUP
+    all: get_all_nodes_from_source.sh $SOURCE
+    list: list_nodes_from_source.sh $SOURCE
+
+is equivalent to::
+
+    [cluster]
+    map: get_nodes_from_source.sh cluster $GROUP
+    all: get_all_nodes_from_source.sh cluster
+    list: list_nodes_from_source.sh cluster
+
+    [racks]
+    map: get_nodes_from_source.sh racks $GROUP
+    all: get_all_nodes_from_source.sh racks
+    list: list_nodes_from_source.sh racks
+
+    [cpu]
+    map: get_nodes_from_source.sh cpu $GROUP
+    all: get_all_nodes_from_source.sh cpu
+    list: list_nodes_from_source.sh cpu
+
+Please note that single flat files with several sections acting as different
+group sources are supported through the *autodir* feature based on YAML files.
+An example of such configuration is available at::
+
+    /etc/clustershell/groups.d/cluster.yaml.example
+
+Just rename it to ``cluster.yaml`` and be sure *autodir* is set to enable it.
+
+Feel free to edit this file to fit your needs.
+
+.. _group-sources-upcalls:
+
+Group source upcalls
+^^^^^^^^^^^^^^^^^^^^
 
 Each node group source is defined by a section name (*source* name) and up to
 four upcalls:
@@ -149,6 +212,10 @@ four upcalls:
   the number of nodes to reverse is greater than the number of available
   groups, the reverse external command is avoided automatically to reduce
   resolution time.
+
+In addition to context-dependent *$GROUP* and *$NODE* variables, the variable
+*$SOURCE* is always replaced by the source name before command execution.
+Please see :ref:`group-multi-sources`.
 
 Return code of external calls
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
