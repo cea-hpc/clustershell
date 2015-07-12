@@ -343,26 +343,33 @@ class GroupResolverConfig(GroupResolver):
         configfile_dirname = os.path.dirname(configfile)
         for section in self.config.sections():
             if section != 'Main':
-                groupscfgs[section] = (self.config, configfile_dirname)
+                # Support grouped sections: section1,section2,section3
+                for srcname in section.split(','):
+                    groupscfgs[srcname] = (self.config,
+                                           configfile_dirname,
+                                           section) # keep full section name
         try:
             self.groupsdir = self.config.get('Main', 'groupsdir')
             for groupsdir in self.groupsdir.split():
                 # support relative-to-dirname(groups.conf) groupsdir
-                groupsdir = os.path.normpath(os.path.join(configfile_dirname, \
+                groupsdir = os.path.normpath(os.path.join(configfile_dirname,
                                                           groupsdir))
                 if not os.path.isdir(groupsdir):
                     if not os.path.exists(groupsdir):
                         continue
-                    raise GroupResolverConfigError("Defined groupsdir %s " \
-                            "is not a directory" % groupsdir)
+                    raise GroupResolverConfigError("Defined groupsdir %s is not"
+                                                   " a directory" % groupsdir)
                 for groupsfn in sorted(glob.glob('%s/*.conf' % groupsdir)):
                     grpcfg = ConfigParser()
                     grpcfg.read(groupsfn) # ignore files that cannot be read
                     for section in grpcfg.sections():
-                        if section in groupscfgs:
-                            raise GroupResolverConfigError("Group source " \
-                                "\"%s\" re-defined in %s" % (section, groupsfn))
-                        groupscfgs[section] = (grpcfg, groupsdir)
+                        # Support grouped sections also in groupsdir confs
+                        for srcname in section.split(','):
+                            if srcname in groupscfgs:
+                                fmt = "Group source \"%s\" re-defined in %s"
+                                raise GroupResolverConfigError(fmt % (srcname,
+                                                                      groupsfn))
+                            groupscfgs[srcname] = (grpcfg, groupsdir, section)
         except (NoSectionError, NoOptionError):
             pass
 
@@ -383,21 +390,28 @@ class GroupResolverConfig(GroupResolver):
             default_sourcename = groupscfgs.keys()[0]
 
         try:
-            for section, (cfg, cfgdir) in groupscfgs.iteritems():
+            for srcname, (cfg, cfgdir, section) in groupscfgs.iteritems():
                 # only map is a mandatory upcall
-                map_upcall = cfg.get(section, 'map', True)
+                raw_cmd = cfg.get(section, 'map', True)
+                # substitute $SOURCE in every command
+                srcmap = { 'SOURCE': srcname }
+                map_upcall = Template(raw_cmd).safe_substitute(srcmap)
                 all_upcall = list_upcall = reverse_upcall = delay = None
                 if cfg.has_option(section, 'all'):
-                    all_upcall = cfg.get(section, 'all', True)
+                    raw_cmd = cfg.get(section, 'all', True)
+                    all_upcall = Template(raw_cmd).safe_substitute(srcmap)
                 if cfg.has_option(section, 'list'):
-                    list_upcall = cfg.get(section, 'list', True)
+                    raw_cmd = cfg.get(section, 'list', True)
+                    list_upcall = Template(raw_cmd).safe_substitute(srcmap)
                 if cfg.has_option(section, 'reverse'):
-                    reverse_upcall = cfg.get(section, 'reverse', True)
+                    raw_cmd = cfg.get(section, 'reverse', True)
+                    reverse_upcall = Template(raw_cmd).safe_substitute(srcmap)
                 if cfg.has_option(section, 'cache_delay'):
                     delay = float(cfg.get(section, 'cache_delay', True))
-
-                self.add_source(GroupSource(section, map_upcall, all_upcall, \
-                                    list_upcall, reverse_upcall, cfgdir, delay))
+                # add new group source
+                self.add_source(GroupSource(srcname, map_upcall, all_upcall,
+                                            list_upcall, reverse_upcall,
+                                            cfgdir, delay))
         except (NoSectionError, NoOptionError), exc:
             raise GroupResolverConfigError(str(exc))
 
