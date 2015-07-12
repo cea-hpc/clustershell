@@ -1,0 +1,11 @@
+# cluster.conf: groups.conf.d group sources config file
+#
+# Multiple sources single flat file "group: nodeset" with sections
+# Note that here $SOURCE is replaced with 'default', 'racks' and 'cpu'
+# (new in version 1.7).
+#
+[cluster,racks,cpu]
+map: sed -n '/\[$SOURCE\]/,/^\[/ s/^$GROUP:\(.*\)/\1/p' /etc/clustershell/groups.conf.d/cluster
+all: sed -n '/\[$SOURCE\]/,/^\[/ s/^all:\(.*\)/\1/p' /etc/clustershell/groups.conf.d/cluster
+list: sed -n '/\[$SOURCE\]/,/^\[/ s/^\([0-9A-Za-z_-]*\):.*/\1/p' /etc/clustershell/groups.conf.d/cluster
+

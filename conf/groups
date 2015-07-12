@@ -1,3 +1,6 @@
+# Note: file used by the default "local" group source.
+# See also groups.conf.d/cluster.conf.example for an example of multiple
+# sources single flat file setup.
 adm: example0
 oss: example4 example5
 mds: example6
