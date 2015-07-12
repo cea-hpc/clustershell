@@ -1,0 +1,26 @@
+# Example of group flat file with multiple group sources.
+# A way to parse it is to use sed address ranges.
+#
+# File used by groups.conf.d/cluster.conf.example
+#
+#
+[cluster]
+adm: example0
+io: @racks:rack2,example2
+compute: @racks:rack[3-4]
+gpu: @racks:rack4
+all: @adm,@io,@compute
+
+[racks]
+rack1: example[0,2]
+rack2: example[4-5]
+rack3: example[32-159]
+rack4: example[156-159]
+# other groups in same source may be referenced without the "source:" prefix
+all: @rack[1-4]
+
+[cpu]
+ivy: example[32-63]
+# groups from other sources must be prefixed with "source:"
+hsw: @cluster:compute!@ivy
+all: @ivy,@hsw
