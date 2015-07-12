@@ -1,0 +1,45 @@
+# ClusterShell groups config cluster.yaml.example
+#
+# Example of YAML groups config file with multiple sources.
+# ^^^^^^^
+# Here you can describe your cluster nodes and equipments using several
+# group sources.
+#
+# Example of group source use-cases are:
+# - functional info (compute, storage, service nodes, etc.)
+# - location like rack position
+# - physical attributes (cpu type, gpu types, memory size...)
+# - vendors and hardware models, useful info for firmware update
+# - infrastructure (pdu, network and interco switches)
+# - ownership of nodes and partitions (for multi owners clusters)
+#
+# File will be auto-loaded once renamed to .yaml
+#
+# Break and adapt to fit your own needs. Use nodeset CLI to test config.
+
+# Group source cluster:
+# define groups @cluster:adm, @cluster:io, etc.
+cluster:
+    adm: 'example0'
+    io: '@racks:rack2,example2'
+    compute: '@racks:rack[3-4]'
+    gpu: '@racks:rack4'
+    all: '@adm,@io,@compute'
+
+# Group source racks:
+# define groups @racks:rack[1-4] (ranges work for groups too!) and @racks:all
+racks:
+    rack1: 'example[0,2]'
+    rack2: 'example[4-5]'
+    rack3: 'example[32-159]'
+    rack4: 'example[156-159]'
+    # other groups in same source may be referenced without the "source:" prefix
+    all: '@rack[1-4]'
+
+# Group source cpu:
+# define groups @cpu:ivy, @cpu:hsw and @cpu:all
+cpu:
+    ivy: 'example[32-63]'
+    # groups from other sources must be prefixed with "source:"
+    hsw: '@cluster:compute!@ivy'
+    all: '@ivy,@hsw'

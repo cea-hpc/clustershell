@@ -46,6 +46,11 @@ import os
 import sys
 import time
 
+try:
+    import yaml
+except ImportError:
+    pass
+
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from string import Template
 from subprocess import Popen, PIPE
@@ -158,6 +163,8 @@ class GroupSource(object):
         # Fetch the data if unknown of just purged
         if key not in cache:
             timestamp = time.time() + self.cache_delay
+            # $SOURCE is always replaced by current name
+            args['SOURCE'] = self.name
             cache[key] = (self._upcall_read(upcall, args), timestamp)
 
         return cache[key][0]
@@ -167,8 +174,7 @@ class GroupSource(object):
         Get nodes from group 'group', using the cached value if
         available.
         """
-        return self._upcall_cache('map', self._cache['map'], group,
-                                  GROUP=group)
+        return self._upcall_cache('map', self._cache['map'], group, GROUP=group)
 
     def resolv_list(self):
         """
@@ -176,7 +182,7 @@ class GroupSource(object):
         the cached value if available.
         """
         return self._upcall_cache('list', self._cache, 'list')
-    
+
     def resolv_all(self):
         """
         Return the content of special group ALL, using the cached value
@@ -192,6 +198,56 @@ class GroupSource(object):
         return self._upcall_cache('reverse', self._cache['reverse'], node,
                                   NODE=node)
 
+
+class YAMLGroupSource(GroupSource):
+    """YAML Group Source"""
+
+    def __init__(self, name, filename, initial_dict=None, cache_delay=None):
+        """
+        Initialize YAMLGroupSource object.
+
+        :param name: group source name (key name of yaml root dict)
+        :param filename: YAML file path
+        :param initial_dict: set initial groups dict content (optional)
+        :param cache_delay: reload YAML file after cache_delay has elapsed
+        """
+        GroupSource.__init__(self, name, 'map', 'all', 'list', None,
+                             cache_delay=cache_delay)
+
+        self.filename = filename
+        # initial_dict is passed there to avoid opening the YAML file
+        # twice: first to scan group sources present in the file, then
+        # to load group source content.
+        self.groups = initial_dict
+        self.timestamp = time.time() + self.cache_delay
+
+    def _upcall_read(self, cmdtpl, args=dict()):
+        """Load YAML file and return group source content dict."""
+        self._verbose_print("YAML LOAD %s" % self.filename)
+        yfile = open(self.filename) # later use: with open() as yfile
+        try:
+            return yaml.load(yfile)[self.name]
+        except NameError, exc:
+            msg = "Disable autodir or install PyYAML!"
+            raise GroupResolverConfigError("%s (%s)" % (str(exc), msg))
+        finally:
+            yfile.close()
+
+    def _upcall_cache(self, upcall, cache, key, **args):
+        """Manage our own dictionary based YAML cache."""
+        if not self.upcalls.get(upcall):
+            raise GroupSourceNoUpcall(upcall, self)
+
+        if self.groups is None or self.timestamp < time.time():
+            self.groups = self._upcall_read(upcall, args)
+            self.timetstamp = time.time()
+
+        if upcall == 'map':
+            return self.groups[args['GROUP']]
+        elif upcall == 'all':
+            return self.groups['all']
+        elif upcall == 'list':
+            return self.groups.keys()
 
 
 class GroupResolver(object):
@@ -236,6 +292,8 @@ class GroupResolver(object):
 
     def _get_default_source_name(self):
         """Get default source name of resolver."""
+        if self._default_source is None:
+            return None
         return self._default_source.name
 
     def _set_default_source_name(self, sourcename):
@@ -264,11 +322,17 @@ class GroupResolver(object):
         result = []
         assert source
         raw = getattr(source, 'resolv_%s' % what)(*args)
-        for line in raw.splitlines():
-            for grpstr in line.strip().split():
+
+        if type(raw) is list:
+            grpiter = raw
+        else:
+            grpiter = raw.splitlines()
+
+        for line in grpiter:
+            for grpstr in  line.strip().split():
                 if self.illegal_chars.intersection(grpstr):
-                    raise GroupResolverIllegalCharError( \
-                        ' '.join(self.illegal_chars.intersection(grpstr)))
+                    errmsg = ' '.join(self.illegal_chars.intersection(grpstr))
+                    raise GroupResolverIllegalCharError(errmsg)
                 result.append(grpstr)
         return result
 
@@ -328,78 +392,118 @@ class GroupResolverConfig(GroupResolver):
     GroupSource's from a configuration file. This is the default
     resolver for NodeSet.
     """
+    SECTION_MAIN = 'Main'
 
     def __init__(self, configfile, illegal_chars=None):
-        """
-        """
+        """Initialize GroupResolverConfig from configfile"""
         GroupResolver.__init__(self, illegal_chars=illegal_chars)
-
-        default_sourcename = None
 
         self.config = ConfigParser()
         self.config.read(configfile)
-        # Get config file sections
-        groupscfgs = {}
-        configfile_dirname = os.path.dirname(configfile)
-        for section in self.config.sections():
-            if section != 'Main':
-                groupscfgs[section] = (self.config, configfile_dirname)
+
+        self._parse_config(os.path.dirname(configfile))
+
+    def _parse_config(self, cfg_dirname):
+        """parse config using relative dir cfg_dirname"""
+        # parse Main.confdir
         try:
-            self.groupsdir = self.config.get('Main', 'groupsdir')
-            for groupsdir in self.groupsdir.split():
-                # support relative-to-dirname(groups.conf) groupsdir
-                groupsdir = os.path.normpath(os.path.join(configfile_dirname, \
-                                                          groupsdir))
-                if not os.path.isdir(groupsdir):
-                    if not os.path.exists(groupsdir):
+            if self.config.has_option(self.SECTION_MAIN, 'groupsdir'):
+                opt_confdir = 'groupsdir'
+            else:
+                opt_confdir = 'confdir'
+            confdirstr = self.config.get(self.SECTION_MAIN, opt_confdir)
+            for confdir in confdirstr.split():
+                # support relative-to-dirname(groups.conf) confdir
+                confdir = os.path.normpath(os.path.join(cfg_dirname, confdir))
+                if not os.path.isdir(confdir):
+                    if not os.path.exists(confdir):
                         continue
-                    raise GroupResolverConfigError("Defined groupsdir %s " \
-                            "is not a directory" % groupsdir)
-                for groupsfn in sorted(glob.glob('%s/*.conf' % groupsdir)):
+                    raise GroupResolverConfigError("Defined confdir %s is not"
+                                                   " a directory" % confdir)
+                # add sources declared in groups.conf.d file parts
+                for groupsfn in sorted(glob.glob('%s/*.conf' % confdir)):
                     grpcfg = ConfigParser()
                     grpcfg.read(groupsfn) # ignore files that cannot be read
-                    for section in grpcfg.sections():
-                        if section in groupscfgs:
-                            raise GroupResolverConfigError("Group source " \
-                                "\"%s\" re-defined in %s" % (section, groupsfn))
-                        groupscfgs[section] = (grpcfg, groupsdir)
+                    self._sources_from_cfg(grpcfg, confdir)
         except (NoSectionError, NoOptionError):
             pass
 
+        # parse Main.autodir
         try:
-            default_sourcename = self.config.get('Main', 'default')
-            if default_sourcename and default_sourcename \
-                                            not in groupscfgs.keys():
-                raise GroupResolverConfigError("Default group source not " \
-                    "found: \"%s\"" % default_sourcename)
+            autodirstr = self.config.get(self.SECTION_MAIN, 'autodir')
+            for autodir in autodirstr.split():
+                # support relative-to-dirname(groups.conf) autodir
+                autodir = os.path.normpath(os.path.join(cfg_dirname, autodir))
+                if not os.path.isdir(autodir):
+                    if not os.path.exists(autodir):
+                        continue
+                    raise GroupResolverConfigError("Defined autodir %s is not"
+                                                   " a directory" % autodir)
+                # add auto sources declared in groups.d YAML files
+                for autosfn in sorted(glob.glob('%s/*.yaml' % autodir)):
+                    self._sources_from_yaml(autosfn)
         except (NoSectionError, NoOptionError):
             pass
 
-        if not groupscfgs:
-            return
+        # add sources declared directly in groups.conf
+        self._sources_from_cfg(self.config, cfg_dirname)
 
-        # When default is not specified, select a random section.
-        if not default_sourcename:
-            default_sourcename = groupscfgs.keys()[0]
-
+        # parse Main.default
         try:
-            for section, (cfg, cfgdir) in groupscfgs.iteritems():
-                # only map is a mandatory upcall
-                map_upcall = cfg.get(section, 'map', True)
-                all_upcall = list_upcall = reverse_upcall = delay = None
-                if cfg.has_option(section, 'all'):
-                    all_upcall = cfg.get(section, 'all', True)
-                if cfg.has_option(section, 'list'):
-                    list_upcall = cfg.get(section, 'list', True)
-                if cfg.has_option(section, 'reverse'):
-                    reverse_upcall = cfg.get(section, 'reverse', True)
-                if cfg.has_option(section, 'cache_delay'):
-                    delay = float(cfg.get(section, 'cache_delay', True))
+            def_sourcename = self.config.get('Main', 'default')
+            # warning: default_source_name is a property
+            self.default_source_name = def_sourcename
+        except (NoSectionError, NoOptionError):
+            pass
+        except GroupResolverSourceError:
+            if def_sourcename: # allow empty Main.default
+                fmt = 'Default group source not found: "%s"'
+                raise GroupResolverConfigError(fmt % self.config.get('Main',
+                                                                     'default'))
+        # pick random default source if not provided by config
+        if not self.default_source_name and self._sources:
+            self.default_source_name = self._sources.keys()[0]
 
-                self.add_source(GroupSource(section, map_upcall, all_upcall, \
-                                    list_upcall, reverse_upcall, cfgdir, delay))
-        except (NoSectionError, NoOptionError), exc:
+    def _sources_from_cfg(self, cfg, cfgdir):
+        """
+        Instantiate as many GroupSources needed from cfg object,
+        cfgdir (CWD for callbacks) and cfg filename.
+        """
+        try:
+            for section in cfg.sections():
+                # Support grouped sections: section1,section2,section3
+                for srcname in section.split(','):
+                    if srcname != self.SECTION_MAIN:
+                        # only map is a mandatory upcall
+                        map_upcall = cfg.get(section, 'map', True)
+                        all_upcall = list_upcall = reverse_upcall = delay = None
+                        if cfg.has_option(section, 'all'):
+                            all_upcall = cfg.get(section, 'all', True)
+                        if cfg.has_option(section, 'list'):
+                            list_upcall = cfg.get(section, 'list', True)
+                        if cfg.has_option(section, 'reverse'):
+                            reverse_upcall = cfg.get(section, 'reverse', True)
+                        if cfg.has_option(section, 'cache_delay'):
+                            delay = float(cfg.get(section, 'cache_delay', True))
+                        # add new group source
+                        self.add_source(GroupSource(srcname, map_upcall,
+                                                    all_upcall, list_upcall,
+                                                    reverse_upcall, cfgdir,
+                                                    delay))
+        except (NoSectionError, NoOptionError, ValueError), exc:
             raise GroupResolverConfigError(str(exc))
 
-        self.default_source_name = default_sourcename
+    def _sources_from_yaml(self, filepath):
+        """Load source(s) from YAML file."""
+        yfile = open(filepath) # later use: with open(filepath) as yfile
+        ysources = None
+        try:
+            ysources = yaml.load(yfile)
+        except NameError, exc:
+            msg = "Disable autodir or install PyYAML!"
+            raise GroupResolverConfigError("%s (%s)" % (str(exc), msg))
+        finally:
+            yfile.close()
 
+        for sourcename, groups in ysources.items():
+            self.add_source(YAMLGroupSource(sourcename, filepath, groups))
