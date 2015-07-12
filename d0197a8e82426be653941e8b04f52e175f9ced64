@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_498c0b36",
+        "filename": "doc/txt/nodeset.txt",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-12T18:44:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e9907f97",
+      "range": {
+        "startLine": 62,
+        "startChar": 144,
+        "endLine": 62,
+        "endChar": 149
+      },
+      "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_098cc37e",
         "filename": "lib/ClusterShell/CLI/Nodeset.py",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2015-07-12T10:31:26Z",
       "side": 1,
       "message": "I do not understand why you need to have at least 3 nodes to apply stepping? 2 is enough?",
+      "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_89861312",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-12T18:44:43Z",
+      "side": 1,
+      "message": "Well hmm there is always a single step between 2 nodes so every time us use --autostep\u003dauto with 2 nodes you got node[a-b/s] syntax which sounds weird. But I agree the hardcoded 3 is not so elegant, I\u0027m ok to remove it. What do you prefer?",
+      "parentUuid": "9ad9bd40_098cc37e",
       "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
