@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a9dd9772",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-12T15:32:31Z",
+      "side": 1,
+      "message": "comment?",
+      "revId": "ef0cc796337592f20c0e77d84ea405eeae5c88fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
