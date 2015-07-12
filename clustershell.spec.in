@@ -12,6 +12,7 @@ Source0:       http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.g
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch:     noarch
 BuildRequires: python-devel python-setuptools
+Requires:      PyYAML
 
 %description
 Tools and event-based Python library to execute commands on cluster nodes in
@@ -41,9 +42,15 @@ rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 
 # config files
+install -d %{buildroot}/%{_sysconfdir}/clustershell
+install -p -m 0644 conf/*.conf conf/topology.conf.example %{buildroot}/%{_sysconfdir}/clustershell/
 install -d %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
-install -p -m 0644 conf/*.conf conf/groups conf/topology.conf.example %{buildroot}/%{_sysconfdir}/clustershell/
-install -p -m 0644 conf/groups.conf.d/README conf/groups.conf.d/*.conf.example %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
+install -p -m 0644 conf/groups.conf.d/*.conf.example %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
+install -p -m 0644 conf/groups.conf.d/README %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
+install -d %{buildroot}/%{_sysconfdir}/clustershell/groups.d
+install -p -m 0644 conf/groups.d/README %{buildroot}/%{_sysconfdir}/clustershell/groups.d
+install -p -m 0644 conf/groups.d/local.cfg %{buildroot}/%{_sysconfdir}/clustershell/groups.d
+install -p -m 0644 conf/groups.d/*.yaml.example %{buildroot}/%{_sysconfdir}/clustershell/groups.d
 
 # man pages
 install -d %{buildroot}/%{_mandir}/{man1,man5}
@@ -78,12 +85,16 @@ rm -rf %{buildroot}
 %{_mandir}/man5/clush.conf.5*
 %{_mandir}/man5/groups.conf.5*
 %dir %{_sysconfdir}/clustershell
-%config(noreplace) %{_sysconfdir}/clustershell/clush.conf
-%config(noreplace) %{_sysconfdir}/clustershell/groups
-%config(noreplace) %{_sysconfdir}/clustershell/groups.conf
+%dir %{_sysconfdir}/clustershell/groups.d
 %dir %{_sysconfdir}/clustershell/groups.conf.d
+%config(noreplace) %{_sysconfdir}/clustershell/clush.conf
+%config(noreplace) %{_sysconfdir}/clustershell/groups.conf
+%ghost %{_sysconfdir}/clustershell/groups
+%config(noreplace) %{_sysconfdir}/clustershell/groups.d/local.cfg
 %doc %{_sysconfdir}/clustershell/groups.conf.d/README
 %doc %{_sysconfdir}/clustershell/groups.conf.d/*.conf.example
+%doc %{_sysconfdir}/clustershell/groups.d/README
+%doc %{_sysconfdir}/clustershell/groups.d/*.yaml.example
 %doc %{_sysconfdir}/clustershell/topology.conf.example
 %{python_sitelib}/ClusterShell/
 %{python_sitelib}/ClusterShell-*-py?.?.egg-info
