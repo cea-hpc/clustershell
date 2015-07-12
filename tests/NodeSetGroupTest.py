@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # ClusterShell.Node* test suite
-# Written by S. Thiell 2010-03-18
 
 
 """Unit test for NodeSet with Group support"""
@@ -1053,7 +1052,6 @@ class StaticGroupSource(GroupSource):
 
 class GroupSourceCacheTest(unittest.TestCase):
 
-
     def test_clear_cache(self):
         """test GroupSource.clear_cache()"""
         source = StaticGroupSource('cache', {'map': {'a': 'foo1', 'b': 'foo2'} })
@@ -1098,3 +1096,64 @@ map: echo foo1
         res = GroupResolverConfig(f.name)
         self.assertEqual(res._sources['local'].cache_delay, 0.2)
         self.assertEqual("foo1", str(NodeSet("@local:foo", resolver=res)))
+
+
+class YAMLGroupFileLoaderTest(unittest.TestCase):
+
+    def test_one_source(self):
+        """test YAMLGroupFileLoader one source"""
+        f = make_temp_file("""
+vendors:
+    apricot: node""")
+        loader = YAMLGroupFileLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node' })
+
+    def test_multi_sources(self):
+        """test YAMLGroupFileLoader multi sources"""
+        f = make_temp_file("""
+vendors:
+    apricot: node
+
+customers:
+    cherry: client-4-2""")
+        loader = YAMLGroupFileLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(len(sources), 2)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node' })
+        self.assertEqual(loader.groups("customers"),
+                         { 'cherry': 'client-4-2' })
+
+    def test_reload(self):
+        """test YAMLGroupFileLoader cache_delay"""
+        f = make_temp_file("""
+vendors:
+    apricot: "node[1-10]"
+    avocado: 'node[11-20]'
+    banana: node[21-30]
+customers:
+    cherry: client-4-2""")
+        loader = YAMLGroupFileLoader(f.name, cache_delay=1)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node[1-10]',
+                           'avocado': 'node[11-20]',
+                           'banana': 'node[21-30]' })
+
+        # modify YAML file and check that it is reloaded after cache_delay
+        f.write("\n    nut: node42\n")
+        f.flush()
+        time.sleep(0.1)
+        # too soon
+        self.assertEqual(loader.groups("customers"),
+                         { 'cherry': 'client-4-2' })
+        time.sleep(1.0)
+        self.assertEqual(loader.groups("vendors"),
+                         { 'apricot': 'node[1-10]',
+                           'avocado': 'node[11-20]',
+                           'banana': 'node[21-30]' })
+        self.assertEqual(loader.groups("customers"),
+                         { 'cherry': 'client-4-2',
+                           'nut': 'node42' })

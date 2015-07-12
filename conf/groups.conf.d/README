@@ -1,5 +1,5 @@
 groups.conf.d/README
 
 Default directory for additional node group sources configuration files.
-ClusterShell scans the directory set by the groupsdir variable, defined
+ClusterShell scans the directory set by the confdir variable, defined
 in /etc/clustershell/groups.conf, loading all files of the form *.conf.
