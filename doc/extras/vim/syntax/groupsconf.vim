@@ -19,15 +19,17 @@ syn match groupsDefaultKey "^default\(:\|=\).*$" contains=groupsColonValue
 syn match groupsGroupsDirKey "^groupsdir\(:\|=\)"
 
 " Sources
-syn match groupsVars "\(\$GROUP\|\$NODE\)" contained
+syn match groupsVars "\(\$GROUP\|\$NODE\|$SOURCE\)" contained
 syn match groupsKeys "^\w\+\(:\|=\)"me=e-1 contained
 syn match groupsKeyValue "^\(map\|all\|list\|reverse\|cache_delay\)\+\(:\|=\).*$" contains=groupsKeys,groupsVars
 
-
 syn match  groupsComment    "#.*$"
 syn match  groupsComment    ";.*$"
-syn match  groupsHeader	    "\[\w\+\]"
+syn match  groupsHeader	    "\[\w\+\(,\w\+\)*\]" contains=gHdrSource,gHdrSourceDelim
 syn match  groupsMainHeader "\[Main\]"
+
+syn match  gHdrSource       '[^,]' contained
+syn match  gHdrSourceDelim  ',' contained
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
@@ -40,7 +42,8 @@ if version >= 508 || !exists("did_groupsconf_syntax_inits")
     command -nargs=+ HiLink hi def link <args>
   endif
 
-  HiLink groupsHeader		Special
+  HiLink gHdrSource		Keyword
+  HiLink gHdrSourceDelim	Delimiter
   HiLink groupsComment		Comment
   HiLink groupsMainHeader	Constant
   HiLink groupsDefaultKey	Identifier
