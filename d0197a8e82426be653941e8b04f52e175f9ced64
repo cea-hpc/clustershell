@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e9907f97",
+        "filename": "doc/txt/nodeset.txt",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-12T10:31:26Z",
+      "side": 1,
+      "message": "a quote is missing",
+      "range": {
+        "startLine": 62,
+        "startChar": 144,
+        "endLine": 62,
+        "endChar": 149
+      },
+      "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_098cc37e",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-12T10:31:26Z",
+      "side": 1,
+      "message": "I do not understand why you need to have at least 3 nodes to apply stepping? 2 is enough?",
+      "revId": "d0197a8e82426be653941e8b04f52e175f9ced64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
