@@ -41,8 +41,8 @@ according to the configuration file.
 
 This file must be written using the following syntax:
 
-# for now only [Main] tree is taken in account:
-[Main]
+# for now only [routes] tree is taken in account:
+[routes]
 admin: first_level_gateways[0-10]
 first_level_gateways[0-10]: second_level_gateways[0-100]
 second_level_gateways[0-100]: nodes[0-2000]
@@ -423,7 +423,11 @@ class TopologyParser(ConfigParser.ConfigParser):
         """
         try:
             self.read(filename)
-            self._topology = self.items("Main")
+            if self.has_section("routes"):
+                self._topology = self.items("routes")
+            else:
+                # compat routes section [deprecated since v1.7]
+                self._topology = self.items("Main")
         except ConfigParser.Error:
             raise TopologyError(
                 'Invalid configuration file: %s' % filename)
