@@ -636,9 +636,18 @@ map: echo example[1-100]
 
 [other]
 map: echo "foo: @local:foo" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
+
+[third]
+map: echo -e "bar: @ref-rel\\nref-rel: @other:foo\\nref-all: @*" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
+list: echo bar
 """)
         res = GroupResolverConfig(f.name)
         nodeset = NodeSet("@other:foo", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        # @third:bar -> @ref-rel (third) -> @other:foo -> @local:foo -> nodes
+        nodeset = NodeSet("@third:bar", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        nodeset = NodeSet("@third:ref-all", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
 
     def testConfigGroupsDirDummy(self):

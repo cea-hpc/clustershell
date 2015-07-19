@@ -745,9 +745,13 @@ class ParsingEngine(object):
 
         raise TypeError("Unsupported NodeSet input %s" % type(nsobj))
 
-    def parse_string(self, nsstr, autostep):
-        """
-        Parse provided string and return a NodeSetBase object.
+    def parse_string(self, nsstr, autostep, namespace=None):
+        """Parse provided string in optional namespace.
+
+        This method parse string, resolves all node groups, and compute
+        set operations.
+
+        Return a NodeSetBase object.
         """
         nodeset = NodeSetBase()
 
@@ -757,11 +761,14 @@ class ParsingEngine(object):
             if self.group_resolver and pat[0] == '@':
                 ns_group = NodeSetBase()
                 for nodegroup in NodeSetBase(pat, rgnd):
-                    # parse/expand nodes group
-                    ns_string_ext = self.parse_group_string(nodegroup)
-                    if ns_string_ext:
-                        # convert result and apply operation
-                        ns_group.update(self.parse(ns_string_ext, autostep))
+                    # parse/expand nodes group: get group string and namespace
+                    ns_str_ext, ns_nsp_ext = self.parse_group_string(nodegroup,
+                                                                     namespace)
+                    if ns_str_ext: # may still contain groups
+                        # recursively parse and aggregate result
+                        ns_group.update(self.parse_string(ns_str_ext,
+                                                          autostep,
+                                                          ns_nsp_ext))
                 # perform operation
                 getattr(nodeset, opc)(ns_group)
             else:
@@ -786,22 +793,24 @@ class ParsingEngine(object):
         nodestr = self.group_resolver.group_nodes(group, namespace)
         return self.parse(",".join(nodestr), autostep)
 
-    def parse_group_string(self, nodegroup):
-        """Parse provided group string and return a string."""
+    def parse_group_string(self, nodegroup, namespace=None):
+        """Parse provided raw nodegroup string in optional namespace.
+
+        Warning: 1 pass only, may still return groups.
+
+        Return a tuple (grp_resolved_string, namespace).
+        """
         assert nodegroup[0] == '@'
         assert self.group_resolver is not None
-        grpstr = nodegroup[1:]
-        if grpstr.find(':') < 0:
-            # default namespace
-            if grpstr == '*':
-                return ",".join(self.all_nodes())
-            return ",".join(self.group_resolver.group_nodes(grpstr))
-        else:
-            # specified namespace
+        grpstr = group = nodegroup[1:]
+        if grpstr.find(':') >= 0:
+            # specified namespace does always override
             namespace, group = grpstr.split(':', 1)
-            if group == '*':
-                return ",".join(self.all_nodes(namespace))
-            return ",".join(self.group_resolver.group_nodes(group, namespace))
+        if group == '*': # @* or @source:* magic
+            reslist = self.all_nodes(namespace)
+        else:
+            reslist = self.group_resolver.group_nodes(group, namespace)
+        return ','.join(reslist), namespace
 
     def grouplist(self, namespace=None):
         """Return a sorted list of groups from current resolver (in optional
