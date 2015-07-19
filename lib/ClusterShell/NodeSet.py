@@ -204,7 +204,7 @@ class NodeSetBase(object):
                     yield pat % tuple(["%0*d" % (pad or 0, i) \
                                       for pad, i in zip(pads, ivec)])
             else:
-                yield pat
+                yield pat % ()
 
     # define striter() alias for convenience (to match RangeSet.striter())
     striter = __iter__
@@ -258,7 +258,7 @@ class NodeSetBase(object):
         try:
             for pat, rset in sorted(self._patterns.iteritems()):
                 if not rset:
-                    results.append(pat)
+                    results.append(pat % ())
                 elif rset.dim() == 1:
                     rgs = str(rset)
                     cnt = len(rset)

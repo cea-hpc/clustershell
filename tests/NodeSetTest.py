@@ -20,8 +20,9 @@ from ClusterShell.NodeSet import NodeSetBase, AUTOSTEP_DISABLED
 class NodeSetTest(unittest.TestCase):
 
     def _assertNode(self, nodeset, nodename):
+        """helper to assert single node presence"""
         self.assertEqual(str(nodeset), nodename)
-        self.assertEqual(list(nodeset), [ nodename ])
+        self.assertEqual(list(nodeset), [nodename])
         self.assertEqual(len(nodeset), 1)
 
     def testUnnumberedNode(self):
@@ -76,10 +77,17 @@ class NodeSetTest(unittest.TestCase):
 
     def testNodeWithPercent(self):
         """test NodeSet on nodename with % character"""
+        # unindexed node with percent (issue #261)
+        nodeset = NodeSet("cluster%s")
+        self._assertNode(nodeset, "cluster%s")
+        # single node indexed
         nodeset = NodeSet("cluster%s3")
         self._assertNode(nodeset, "cluster%s3")
+        # more nodes
         nodeset = NodeSet("clust%ser[3-30]")
         self.assertEqual(str(nodeset), "clust%ser[3-30]")
+        nodeset = NodeSet("myclu%ster,clust%ser[3-30]")
+        self.assertEqual(str(nodeset), "clust%ser[3-30],myclu%ster")
 
     def testNodeEightPad(self):
         """test NodeSet padding feature"""
