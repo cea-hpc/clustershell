@@ -535,8 +535,8 @@ Listing group names
 """""""""""""""""""
 
 If the **list** external shell command is configured (see
-:ref:`node groups configuration <groups-config>`, it is possible to list
-available groups (from the default source) with the following commands::
+:ref:`node groups configuration <groups-config>`), it is possible to list
+available groups *from the default source* with the following commands::
 
     $ nodeset -l
     @mgnt
@@ -545,13 +545,27 @@ available groups (from the default source) with the following commands::
     @login
     @compute
 
-Or, to list groups from a specific group source, use::
+Or, to list groups *from a specific group source*, use *-l* in conjunction
+with *-s* (or *--groupsource*)::
 
     $ nodeset -l -s slurm
     @slurm:parallel
     @slurm:cuda
 
-You can also use ``nodeset -ll`` to see each group's associated node sets.
+Or, to list groups *from all available group sources*, use *-L* (or
+*--list-all*)::
+
+    $ nodeset -L
+    @mgnt
+    @mds
+    @oss
+    @login
+    @compute
+    @slurm:parallel
+    @slurm:cuda
+
+You can also use ``nodeset -ll`` or ``nodeset -LL`` to see each group's
+associated node sets.
 
 
 Using node groups in basic commands
