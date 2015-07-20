@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_79825995",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 688,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-20T15:41:05Z",
+      "side": 1,
+      "message": "Not a big deal but just wondering: why did you choose a dict and not 2 variables like BRACKET_OPEN and BRACKET_CLOSE (as I think it\u0027s the only two possible cases?)",
+      "range": {
+        "startLine": 688,
+        "startChar": 4,
+        "endLine": 688,
+        "endChar": 12
+      },
+      "revId": "fbe3e31cb56497f7da2c8f01ba463ae8e999f292",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_59c6754a",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 1
