@@ -53,6 +53,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2e7249e5",
+        "filename": "doc/sphinx/install.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T11:34:25Z",
+      "side": 1,
+      "message": "LaTex code here",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ceef1d86",
         "filename": "doc/sphinx/tools/clubak.rst",
         "patchSetId": 2
@@ -64,6 +81,23 @@
       "writtenOn": "2015-07-20T10:27:48Z",
       "side": 1,
       "message": "useless whitespace",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4e786dc4",
+        "filename": "doc/sphinx/tools/nodeset.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T11:34:25Z",
+      "side": 1,
+      "message": "bad char \u0027\"\u0027",
       "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
