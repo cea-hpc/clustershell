@@ -22,6 +22,30 @@
       "revId": "fbe3e31cb56497f7da2c8f01ba463ae8e999f292",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_99ee3db3",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T14:45:38Z",
+      "side": 1,
+      "message": "In other words. Yes, OP_CODES is badly indented and it is not a good example. Yes, we understood you follow its example thinking this was the good way to do it. But, we should fix this one day. For now, do not introduce other badly indented lines, just do what PEP8 says here.",
+      "parentUuid": "9ad9bd40_59c6754a",
+      "range": {
+        "startLine": 689,
+        "startChar": 16,
+        "endLine": 689,
+        "endChar": 17
+      },
+      "revId": "fbe3e31cb56497f7da2c8f01ba463ae8e999f292",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
