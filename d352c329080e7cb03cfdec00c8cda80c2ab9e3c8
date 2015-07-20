@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_396e1130",
+        "filename": "doc/sphinx/_static/theme_overrides.css",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T15:08:15Z",
+      "side": 1,
+      "message": "OK. Just add small comment, maybe pointer to this URL?",
+      "parentUuid": "9ad9bd40_79f3399e",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2e3a4936",
         "filename": "doc/sphinx/api/ExecWorker.rst",
         "patchSetId": 2
