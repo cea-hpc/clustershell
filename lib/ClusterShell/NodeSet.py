@@ -685,6 +685,8 @@ class ParsingEngine(object):
                  'difference_update': '!',
                  'intersection_update': '&',
                  'symmetric_difference_update': '^' }
+    BRACKETS = { 'open': '[',
+                'close': ']' }
 
     def __init__(self, group_resolver):
         """
@@ -874,7 +876,7 @@ class ParsingEngine(object):
             op_code = next_op_code
 
             op_idx, next_op_code = self._next_op(pat)
-            bracket_idx = pat.find('[')
+            bracket_idx = pat.find(self.BRACKETS['open'])
 
             # Check if the operator is after the bracket, or if there
             # is no operator at all but some brackets.
@@ -886,19 +888,19 @@ class ParsingEngine(object):
                 newpat = ""
                 sfx = pat
                 while bracket_idx >= 0 and (op_idx > bracket_idx or op_idx < 0):
-                    pfx, sfx = sfx.split('[', 1)
+                    pfx, sfx = sfx.split(self.BRACKETS['open'], 1)
                     try:
-                        rng, sfx = sfx.split(']', 1)
+                        rng, sfx = sfx.split(self.BRACKETS['close'], 1)
                     except ValueError:
                         raise NodeSetParseError(pat, "missing bracket")
 
                     # illegal closing bracket checks
-                    if pfx.find(']') > -1:
+                    if pfx.find(self.BRACKETS['close']) > -1:
                         raise NodeSetParseError(pfx, "illegal closing bracket")
 
                     if len(sfx) > 0:
-                        bra_end = sfx.find(']')
-                        bra_start = sfx.find('[')
+                        bra_end = sfx.find(self.BRACKETS['close'])
+                        bra_start = sfx.find(self.BRACKETS['open'])
                         if bra_start == -1:
                             bra_start = bra_end + 1
                         if bra_end >= 0 and bra_end < bra_start:
@@ -919,7 +921,8 @@ class ParsingEngine(object):
                         rsets += pfxrvec
 
                     # readahead for sanity check
-                    bracket_idx = sfx.find('[', bracket_idx - pfxlen)
+                    bracket_idx = sfx.find(self.BRACKETS['open'],
+                                           bracket_idx - pfxlen)
                     op_idx, next_op_code = self._next_op(sfx)
 
                     # Check for empty component or sequenced ranges
@@ -965,7 +968,7 @@ class ParsingEngine(object):
                     node, pat = pat.split(self.OP_CODES[next_op_code], 1)
 
                 # Check for illegal closing bracket
-                if node.find(']') > -1:
+                if node.find(self.BRACKETS['close']) > -1:
                     raise NodeSetParseError(node, "illegal closing bracket")
 
                 newpat, rsets = self._scan_string_single(node, autostep)
