@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_190ead34",
+        "filename": "conf/groups.conf.d/cluster",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T12:41:43Z",
+      "side": 1,
+      "message": "Even if I\u0027m not yet convince by this path, please name it ``cluster.example`` for now.",
+      "revId": "b3347ea787a0a3d57074382321a52b745aee0b3c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0e46657c",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T12:41:43Z",
+      "side": 1,
+      "message": "This method becomes too big and everything is done in __init__ in this class. It is now times to split this.\n\nWe can start by adding a _parse_config() method which read a config file and returns dict and a directory. The dict will be populate with present upcall values (map, list, reverse, all).\n\nEven better, returns a GroupSource instance?",
+      "revId": "b3347ea787a0a3d57074382321a52b745aee0b3c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ae7d79b3",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-20T12:41:43Z",
+      "side": 1,
+      "message": "please do this substitution in GroupSource class. Probably directly in _upcall_read()",
+      "revId": "b3347ea787a0a3d57074382321a52b745aee0b3c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
