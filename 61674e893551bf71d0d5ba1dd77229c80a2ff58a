@@ -16,6 +16,24 @@
       "revId": "61674e893551bf71d0d5ba1dd77229c80a2ff58a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7bb79a3a",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-21T08:39:39Z",
+      "side": 1,
+      "message": "Actually, original ticket was created because they was a regression in public exports from this class. I do not know if we need to re-export in NodeSet all public elements from RangeSet. In a perfect world, i would like to avoid \"import *\" here.",
+      "parentUuid": "9ad9bd40_5b6736e9",
+      "revId": "61674e893551bf71d0d5ba1dd77229c80a2ff58a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
