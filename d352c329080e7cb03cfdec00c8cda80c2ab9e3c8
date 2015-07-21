@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_981aa97b",
+        "filename": "doc/sphinx/_static/theme_overrides.css",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T03:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_396e1130",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2e3a4936",
         "filename": "doc/sphinx/api/ExecWorker.rst",
         "patchSetId": 2
@@ -66,6 +84,24 @@
       "writtenOn": "2015-07-20T10:27:48Z",
       "side": 1,
       "message": "Could make sense to put Worker in a sub part \"Workers\"?",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_83e23e2d",
+        "filename": "doc/sphinx/api/ExecWorker.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T03:35:42Z",
+      "side": 1,
+      "message": "Good idea! Done (api/workers/)",
+      "parentUuid": "9ad9bd40_2e3a4936",
       "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -89,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f829f537",
+        "filename": "doc/sphinx/guide/examples.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T03:35:42Z",
+      "side": 1,
+      "message": "haha. meth + we\u0027ve got a line... good one.",
+      "parentUuid": "9ad9bd40_2ed6c9c5",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2e7249e5",
         "filename": "doc/sphinx/install.rst",
         "patchSetId": 2
@@ -100,6 +154,24 @@
       "writtenOn": "2015-07-20T11:34:25Z",
       "side": 1,
       "message": "LaTex code here",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b80bed8c",
+        "filename": "doc/sphinx/install.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T03:35:42Z",
+      "side": 1,
+      "message": "Done, |version| should have been substitued also, but it doesn\u0027t work in code blocks. I changed for 1.x, I don\u0027t want to bother with that. :)",
+      "parentUuid": "9ad9bd40_2e7249e5",
       "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -123,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9862a93c",
+        "filename": "doc/sphinx/tools/clubak.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T03:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ceef1d86",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4e786dc4",
         "filename": "doc/sphinx/tools/nodeset.rst",
         "patchSetId": 2
@@ -134,6 +224,24 @@
       "writtenOn": "2015-07-20T11:34:25Z",
       "side": 1,
       "message": "bad char \u0027\"\u0027",
+      "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_98be2964",
+        "filename": "doc/sphinx/tools/nodeset.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T03:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4e786dc4",
       "revId": "d352c329080e7cb03cfdec00c8cda80c2ab9e3c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
