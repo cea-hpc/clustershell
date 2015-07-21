@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_98fe24ad",
+        "filename": "doc/sphinx/api/NodeSet.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-21T07:53:10Z",
+      "side": 1,
+      "message": "Should we expose this class? I tried to use it to implement an Lustre OST-like pattern, but this is not possible. \nWe could start without exposing it for now, and change this later. The opposite is more difficult ;)",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_58f81cc3",
+        "filename": "doc/sphinx/api/RangeSet.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-21T07:53:10Z",
+      "side": 1,
+      "message": "Should we really expose this class as public?\nThis is more or less internal and could confuse people thinking they have to use it if they need nD rangesets.\n\n(edit: this class is used in Programing Guide)",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f8973038",
+        "filename": "doc/sphinx/api/workers/ExecWorker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-21T07:53:10Z",
+      "side": 1,
+      "message": "Should this section be named Exec or ExecWorker? (not sure)",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_189db459",
+        "filename": "doc/sphinx/api/workers/StreamWorker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-21T07:53:10Z",
+      "side": 1,
+      "message": "(idem)",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
