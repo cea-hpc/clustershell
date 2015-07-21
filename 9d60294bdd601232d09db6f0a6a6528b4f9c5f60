@@ -16,6 +16,24 @@
       "revId": "9d60294bdd601232d09db6f0a6a6528b4f9c5f60",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4cfbfec0",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 751,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-21T15:39:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fb3f2a85",
+      "revId": "9d60294bdd601232d09db6f0a6a6528b4f9c5f60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
