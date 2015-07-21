@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5b6736e9",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-07-21T08:36:16Z",
+      "side": 1,
+      "message": "Wouldn\u0027t it bet cleaner to define __all__ in ClusterShell.RangeSet with all publi objects, and then import * here?",
+      "revId": "61674e893551bf71d0d5ba1dd77229c80a2ff58a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
