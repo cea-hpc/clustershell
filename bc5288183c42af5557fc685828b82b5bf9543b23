@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a8a106a",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-22T07:59:50Z",
+      "side": 1,
+      "message": "should we add SOURCE directly in _upcall_cache()?",
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cab7e438",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-22T07:59:50Z",
+      "side": 1,
+      "message": "useless whitespaces",
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2aa3f001",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-22T07:59:50Z",
+      "side": 1,
+      "message": "could be simplify:\n\n  if os.path.exists(groupsdir) and not os.path.isdir(groupsdir):",
+      "range": {
+        "startLine": 354,
+        "startChar": 14,
+        "endLine": 356,
+        "endChar": 32
+      },
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea5d8816",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-22T07:59:50Z",
+      "side": 1,
+      "message": "GroupSource.add_source() already detects collision and raises and exception if so",
+      "range": {
+        "startLine": 396,
+        "startChar": 1,
+        "endLine": 399,
+        "endChar": 75
+      },
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
