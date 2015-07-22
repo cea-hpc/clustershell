@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f68014c2",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-22T06:33:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0e46657c",
+      "revId": "b3347ea787a0a3d57074382321a52b745aee0b3c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ae7d79b3",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 2
@@ -47,6 +65,24 @@
       "writtenOn": "2015-07-20T12:41:43Z",
       "side": 1,
       "message": "please do this substitution in GroupSource class. Probably directly in _upcall_read()",
+      "revId": "b3347ea787a0a3d57074382321a52b745aee0b3c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d67b10f3",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-22T06:33:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ae7d79b3",
       "revId": "b3347ea787a0a3d57074382321a52b745aee0b3c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
