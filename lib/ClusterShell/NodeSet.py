@@ -859,10 +859,13 @@ class ParsingEngine(object):
                 op_idx = idx
         return op_idx, next_op_code
 
-    def _scan_string_single(self, nsstr, autostep):
+    def _scan_string_single(self, nsstr, autostep, strip=True):
         """Single node scan, returns (pat, list of rangesets)"""
-        # ignore whitespace(s)
-        node = nsstr.strip()
+        # ignore whitespace(s) if required
+        node = nsstr
+        if strip:
+            node = nsstr.strip()
+
         if len(node) == 0:
             raise NodeSetParseError(nsstr, "empty node name")
 
@@ -958,7 +961,8 @@ class ParsingEngine(object):
                         if pfx[-1] in "0123456789":
                             raise NodeSetParseError(pfx + "[", "illegal opening"
                                                     " bracket after digit")
-                        pfx, pfxrvec = self._scan_string_single(pfx, autostep)
+                        pfx, pfxrvec = self._scan_string_single(pfx, autostep,
+                                                                False)
                         rsets += pfxrvec
 
                     # readahead for sanity check
@@ -995,7 +999,8 @@ class ParsingEngine(object):
                 # Ignore whitespace(s)
                 sfx = sfx.rstrip()
                 if sfx:
-                    sfx, sfxrvec = self._scan_string_single(sfx, autostep)
+                    sfx, sfxrvec = self._scan_string_single(sfx, autostep,
+                                                            False)
                     newpat += sfx
                     rsets += sfxrvec
 
