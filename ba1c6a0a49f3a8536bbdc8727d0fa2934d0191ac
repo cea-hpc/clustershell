@@ -22,6 +22,29 @@
       "revId": "ba1c6a0a49f3a8536bbdc8727d0fa2934d0191ac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9455f151",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 764,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-24T22:19:41Z",
+      "side": 1,
+      "message": "also for this use case, prefer a generator instead of a comprehension:\n\n   nsstr \u003d opc.join(substr.strip() for substr in nsstr.split(opc))\n\nhttps://docs.python.org/2/reference/expressions.html#grammar-token-generator_expression",
+      "range": {
+        "startLine": 764,
+        "startChar": 29,
+        "endLine": 764,
+        "endChar": 76
+      },
+      "revId": "ba1c6a0a49f3a8536bbdc8727d0fa2934d0191ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
