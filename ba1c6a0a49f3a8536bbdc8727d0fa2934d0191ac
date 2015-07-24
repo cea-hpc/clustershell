@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_740f8d88",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 764,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-24T22:02:33Z",
+      "side": 1,
+      "message": "please do this special trimming early in _scan_string() instead",
+      "range": {
+        "startLine": 763,
+        "startChar": 8,
+        "endLine": 764,
+        "endChar": 77
+      },
+      "revId": "ba1c6a0a49f3a8536bbdc8727d0fa2934d0191ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
