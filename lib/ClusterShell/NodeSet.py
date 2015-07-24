@@ -781,7 +781,8 @@ class ParsingEngine(object):
 
     def parse_string_single(self, nsstr, autostep):
         """Parse provided string and return a NodeSetBase object."""
-        pat, rangesets = self._scan_string_single(nsstr, autostep)
+        # ignore node boundary whitespace(s)
+        pat, rangesets = self._scan_string_single(nsstr.strip(), autostep)
         if len(rangesets) > 1:
             rgobj = RangeSetND([rangesets], None, autostep, copy_rangeset=False)
         elif len(rangesets) == 1:
@@ -861,20 +862,18 @@ class ParsingEngine(object):
 
     def _scan_string_single(self, nsstr, autostep):
         """Single node scan, returns (pat, list of rangesets)"""
-        # ignore whitespace(s)
-        node = nsstr.strip()
-        if len(node) == 0:
+        if len(nsstr) == 0:
             raise NodeSetParseError(nsstr, "empty node name")
 
         # single node parsing
-        pfx_nd = [mobj.groups() for mobj in self.base_node_re.finditer(node)]
+        pfx_nd = [mobj.groups() for mobj in self.base_node_re.finditer(nsstr)]
         pfx_nd = pfx_nd[:-1]
         if not pfx_nd:
-            raise NodeSetParseError(node, "parse error")
+            raise NodeSetParseError(nsstr, "parse error")
 
         # pfx+sfx cannot be empty
         if len(pfx_nd) == 1 and len(pfx_nd[0][0]) == 0:
-            raise NodeSetParseError(node, "empty node name")
+            raise NodeSetParseError(nsstr, "empty node name")
 
         pat = ""
         rangesets = []
@@ -1022,6 +1021,8 @@ class ParsingEngine(object):
                 if node.find(self.BRACKET_CLOSE) > -1:
                     raise NodeSetParseError(node, "illegal closing bracket")
 
+                # Ignore whitespace(s)
+                node = node.rstrip()
                 newpat, rsets = self._scan_string_single(node, autostep)
 
             if len(rsets) > 1:
