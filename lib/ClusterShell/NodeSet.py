@@ -758,6 +758,11 @@ class ParsingEngine(object):
         """
         nodeset = NodeSetBase()
 
+        # Remove any whitespace around an operator
+        # And also before and after nsstr
+        for opc in self.OP_CODES.values():
+            nsstr = opc.join([substr.strip() for substr in nsstr.split(opc)])
+
         for opc, pat, rgnd in self._scan_string(nsstr, autostep):
             # Parser main debugging:
             #print "OPC %s PAT %s RANGESETS %s" % (opc, pat, rgnd)
@@ -861,20 +866,18 @@ class ParsingEngine(object):
 
     def _scan_string_single(self, nsstr, autostep):
         """Single node scan, returns (pat, list of rangesets)"""
-        # ignore whitespace(s)
-        node = nsstr.strip()
-        if len(node) == 0:
+        if len(nsstr) == 0:
             raise NodeSetParseError(nsstr, "empty node name")
 
         # single node parsing
-        pfx_nd = [mobj.groups() for mobj in self.base_node_re.finditer(node)]
+        pfx_nd = [mobj.groups() for mobj in self.base_node_re.finditer(nsstr)]
         pfx_nd = pfx_nd[:-1]
         if not pfx_nd:
-            raise NodeSetParseError(node, "parse error")
+            raise NodeSetParseError(nsstr, "parse error")
 
         # pfx+sfx cannot be empty
         if len(pfx_nd) == 1 and len(pfx_nd[0][0]) == 0:
-            raise NodeSetParseError(node, "empty node name")
+            raise NodeSetParseError(nsstr, "empty node name")
 
         pat = ""
         rangesets = []
@@ -904,15 +907,12 @@ class ParsingEngine(object):
 
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
-        pat = nsstr.strip()
+        pat = nsstr
         # avoid misformatting
         if pat.find('%') >= 0:
             pat = pat.replace('%', '%%')
         next_op_code = 'update'
         while pat is not None:
-            # Ignore whitespace(s) for convenience
-            pat = pat.lstrip()
-
             rsets = []
             op_code = next_op_code
 
@@ -992,8 +992,6 @@ class ParsingEngine(object):
                         msg = "missing nodeset operand with '%s' operator" % opc
                         raise NodeSetParseError(None, msg)
 
-                # Ignore whitespace(s)
-                sfx = sfx.rstrip()
                 if sfx:
                     sfx, sfxrvec = self._scan_string_single(sfx, autostep)
                     newpat += sfx
