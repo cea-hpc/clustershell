@@ -49,6 +49,18 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("   tigrou2 ,    tigrou5,tigrou7 , tigrou[ 9   - 11 ]    ")
         self.assertEqual(str(nodeset), "tigrou[2,5,7,9-11]")
 
+    def testWhitespaceInsideNodeName(self):
+        """test NodeSet parsing keeping whitespaces inside a node name"""
+        nodeset = NodeSet("tigrou 0, tigrou [1],tigrou [2-3]")
+        self.assertEqual(str(nodeset), "tigrou [0-3]")
+        nsstr = "tigrou  1,tigrou 0 1 2 abc,tigrou [2-3] ourgit"
+        nodeset = NodeSet(nsstr)
+        self.assertEqual(str(nodeset), nsstr)
+        nsstr = " tigrou [1-5] & tigrou [0,2,4] ! tigrou [2-3]"
+        nsstr += " ^ tigrou [3-5], tigrou 1 "
+        nodeset = NodeSet(nsstr)
+        self.assertEqual(str(nodeset), "tigrou [1,3,5]")
+
     def testFromListConstructor(self):
         """test NodeSet.fromlist() constructor"""
         nodeset = NodeSet.fromlist([ "cluster33" ])
