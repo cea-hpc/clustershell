@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1fa81f76",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 763,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-24T08:59:39Z",
+      "side": 1,
+      "message": "(minor) FYI. Please use values(). Even if itervalues() seems more optimized, it is deprecated in Python 3+. And this dict is so small there will be absolutely no performance impact.",
+      "revId": "7a2d063d3cb1bda1865636bbc21edb6cba5dfe7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7fae8b82",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 869,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-24T08:59:39Z",
+      "side": 1,
+      "message": "if we keep this patch, please replace node by nsstr in this function and so you could drop this line.",
+      "revId": "7a2d063d3cb1bda1865636bbc21edb6cba5dfe7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
