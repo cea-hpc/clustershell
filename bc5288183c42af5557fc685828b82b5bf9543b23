@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5439a9f0",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:46:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2a8a106a",
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cab7e438",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-22T07:59:50Z",
       "side": 1,
       "message": "useless whitespaces",
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_743eaddb",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:46:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cab7e438",
       "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9426d1cc",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:46:06Z",
+      "side": 1,
+      "message": "there is a raise just below (if not os.path.isdir)",
+      "parentUuid": "9ad9bd40_2aa3f001",
+      "range": {
+        "startLine": 354,
+        "startChar": 14,
+        "endLine": 356,
+        "endChar": 32
+      },
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ea5d8816",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 3
@@ -70,6 +130,30 @@
       "writtenOn": "2015-07-22T07:59:50Z",
       "side": 1,
       "message": "GroupSource.add_source() already detects collision and raises and exception if so",
+      "range": {
+        "startLine": 396,
+        "startChar": 1,
+        "endLine": 399,
+        "endChar": 75
+      },
+      "revId": "bc5288183c42af5557fc685828b82b5bf9543b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b423d5bb",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:46:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ea5d8816",
       "range": {
         "startLine": 396,
         "startChar": 1,
