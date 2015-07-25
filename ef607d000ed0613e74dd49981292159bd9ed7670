@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d42cd9ae",
+        "filename": "doc/sphinx/api/NodeSet.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:24:17Z",
+      "side": 1,
+      "message": "Yeah I agree NodeSetBase should not be exposed for now. Ok I found out an option to show members inherited from base classes !!! it\u0027s  :inherited-members:.\nSo I removed NodeSetBase, added this option to NodeSet just below, and changed the reference (only contiguous() was concerned).",
+      "parentUuid": "9ad9bd40_98fe24ad",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_58f81cc3",
         "filename": "doc/sphinx/api/RangeSet.rst",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-21T07:53:10Z",
       "side": 1,
       "message": "Should we really expose this class as public?\nThis is more or less internal and could confuse people thinking they have to use it if they need nD rangesets.\n\n(edit: this class is used in Programing Guide)",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f429dd9b",
+        "filename": "doc/sphinx/api/RangeSet.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:24:17Z",
+      "side": 1,
+      "message": "Yes I think it could be useful to expose it, for other projects (we never know). We are the only one providing such class. It is clearly stated in the guide that in general, NodeSet use should be preferred.\nAlso, as it is used by NodeSet, it is now more difficult to make it evolve now (for serialization etc.). This is not far from having the same constraints than a public interface.",
+      "parentUuid": "9ad9bd40_58f81cc3",
       "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_141ac17c",
+        "filename": "doc/sphinx/api/workers/ExecWorker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:24:17Z",
+      "side": 1,
+      "message": "With all those different worker names, I prefer to be clear and give the full name in the left menu of RTD.",
+      "parentUuid": "9ad9bd40_f8973038",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_189db459",
         "filename": "doc/sphinx/api/workers/StreamWorker.rst",
         "patchSetId": 3
@@ -64,6 +118,24 @@
       "writtenOn": "2015-07-21T07:53:10Z",
       "side": 1,
       "message": "(idem)",
+      "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_341fc56d",
+        "filename": "doc/sphinx/api/workers/StreamWorker.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-25T02:24:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_189db459",
       "revId": "ef607d000ed0613e74dd49981292159bd9ed7670",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
