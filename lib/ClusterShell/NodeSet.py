@@ -743,7 +743,7 @@ class ParsingEngine(object):
         if type(nsobj) is str:
             try:
                 return self.parse_string(str(nsobj), autostep)
-            except NodeUtils.GroupSourceQueryFailed, exc:
+            except (NodeUtils.GroupSourceQueryFailed, RuntimeError), exc:
                 raise NodeSetParseError(nsobj, str(exc))
 
         raise TypeError("Unsupported NodeSet input %s" % type(nsobj))
