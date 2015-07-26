@@ -805,6 +805,21 @@ reverse: echo f^oo
         self.assertRaises(GroupResolverIllegalCharError, nodeset.groups)
         self.assertRaises(GroupResolverIllegalCharError, nodeset.regroup)
 
+    def testConfigMaxRecursionError(self):
+        """test groups maximum recursion depth exceeded error"""
+        f = make_temp_file("""
+# A comment
+
+[Main]
+default: local
+
+[local]
+map: echo @deep
+list: echo deep
+        """)
+        res = GroupResolverConfig(f.name)
+        self.assertRaises(NodeSetParseError, NodeSet, "@deep", resolver=res)
+
     def testGroupResolverND(self):
         """test NodeSet with simple custom GroupResolver (nD)"""
 
