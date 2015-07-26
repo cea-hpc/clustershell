@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea6656ba",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-26T12:15:01Z",
+      "side": 1,
+      "message": "Could you add a little bit more details about changed code?",
+      "revId": "bfacdf912d3cd5b3650b52e46558499043698865",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8a730a7f",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-26T12:15:01Z",
+      "side": 1,
+      "message": "(minor) glob will return an empty list if the pattern does not exist.",
+      "revId": "bfacdf912d3cd5b3650b52e46558499043698865",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aa70ce72",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-26T12:15:01Z",
+      "side": 1,
+      "message": "we can propably avoid one level of indent using :\n\n for srcname in (section.split(\u0027,\u0027) for section in cfg.sections()):",
+      "revId": "bfacdf912d3cd5b3650b52e46558499043698865",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
