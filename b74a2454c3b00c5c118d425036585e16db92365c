@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4a5662cf",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-26T12:00:38Z",
+      "side": 1,
+      "message": "We are already in Configuration section, no need to repeat it. Just say \"clush tool\" or even \"clush\"",
+      "revId": "b74a2454c3b00c5c118d425036585e16db92365c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a659eb4",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-26T12:00:38Z",
+      "side": 1,
+      "message": "we are already in \"configuration\" section, no need to repeat it. Just say \"Node groups\"",
+      "revId": "b74a2454c3b00c5c118d425036585e16db92365c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
