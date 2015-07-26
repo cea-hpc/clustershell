@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0aa37ab2",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-26T15:50:38Z",
+      "side": 1,
+      "message": "Yeah that sounds weird but the problem is when I use cross references, it keeps the section/header name as the link name. Example from the guide: \"If needed group configuration conditions are met (cf. Node groups configuration), you can use the.....\".\n\nI don\u0027t know how to specify a custom link name. I can still change \"clush tool configuration\" to \"clush\" as it is not referenced, but it may be confusing if I change the \"Node groups configuration\" section name as it is referenced a lot.",
+      "parentUuid": "9ad9bd40_4a5662cf",
+      "revId": "b74a2454c3b00c5c118d425036585e16db92365c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2a659eb4",
         "filename": "doc/sphinx/config.rst",
         "patchSetId": 6
