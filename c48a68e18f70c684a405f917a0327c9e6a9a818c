@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_088b8268",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 867,
+      "author": {
+        "id": 1005773
+      },
+      "writtenOn": "2015-07-27T13:42:20Z",
+      "side": 1,
+      "message": "Would it be better to use a ternary conditional operator here or would it raise compatibility issues? Or any other issue.",
+      "revId": "c48a68e18f70c684a405f917a0327c9e6a9a818c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_88f6b2f7",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 4
