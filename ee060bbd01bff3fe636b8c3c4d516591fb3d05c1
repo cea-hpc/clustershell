@@ -1,0 +1,8 @@
+Verified+1: CS Jenkins Agent <stephanethiell@stanford.edu>
+Code-Review+1: Aurélien Degrémont <aurelien.degremont@cea.fr>
+Code-Review+2: Stephane Thiell <sthiell@stanford.edu>
+Submitted-by: Stephane Thiell <sthiell@stanford.edu>
+Submitted-at: Mon, 27 Jul 2015 20:04:08 +0200
+Reviewed-on: https://review.gerrithub.io/240565
+Project: cea-hpc/clustershell
+Branch: refs/heads/master
