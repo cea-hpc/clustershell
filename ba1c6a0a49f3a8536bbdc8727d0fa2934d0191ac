@@ -45,6 +45,23 @@
       "revId": "ba1c6a0a49f3a8536bbdc8727d0fa2934d0191ac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_df0a3725",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 1005773
+      },
+      "writtenOn": "2015-07-27T11:03:21Z",
+      "side": 1,
+      "message": "Should I do the same here, or do you prefer keeping \u0027pat\u0027 as the variable name ?",
+      "revId": "ba1c6a0a49f3a8536bbdc8727d0fa2934d0191ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
