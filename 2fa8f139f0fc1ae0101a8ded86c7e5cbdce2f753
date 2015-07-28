@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9e550852",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-28T07:48:42Z",
+      "side": 1,
+      "message": "(minor) you can call nsstr.strip() right here",
+      "range": {
+        "startLine": 786,
+        "startChar": 50,
+        "endLine": 786,
+        "endChar": 55
+      },
+      "revId": "2fa8f139f0fc1ae0101a8ded86c7e5cbdce2f753",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
