@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_0bab6a75",
+        "filename": "conf/groupfiles/cluster",
+        "patchSetId": 7
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-30T13:07:31Z",
+      "side": 1,
+      "message": "This file could be written in yaml syntax easily. \n\n cluster:\n    adm: example0 \n    io: @racks:rack2,example\n    compute: @racks:rack[3-4]\n\n racks:\n    rack1: example[0,2]\n    rack2: example[4-5]\n    rack3: example[32-159]",
+      "revId": "eeb29644500c20bb91ee8f38cfbb667a1d183de2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0b18ca1c",
         "filename": "doc/sphinx/config.rst",
         "patchSetId": 7
