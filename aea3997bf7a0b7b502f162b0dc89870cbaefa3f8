@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c145de43",
+        "filename": "doc/extras/vim/ftdetect/clustershell.vim",
+        "patchSetId": 8
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-31T11:39:43Z",
+      "side": 1,
+      "message": "I like when such files are not highlighted by default. This helps people understand they are not active IMHO.",
+      "revId": "aea3997bf7a0b7b502f162b0dc89870cbaefa3f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_813f56b3",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 8
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-07-31T11:39:43Z",
+      "side": 1,
+      "message": "*configure",
+      "revId": "aea3997bf7a0b7b502f162b0dc89870cbaefa3f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
