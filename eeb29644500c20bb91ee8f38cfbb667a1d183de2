@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_309c165d",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 7
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-31T03:00:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0b18ca1c",
+      "revId": "eeb29644500c20bb91ee8f38cfbb667a1d183de2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ab299e38",
         "filename": "doc/sphinx/config.rst",
         "patchSetId": 7
@@ -47,6 +65,30 @@
       "writtenOn": "2015-07-30T12:58:41Z",
       "side": 1,
       "message": "how to configure",
+      "range": {
+        "startLine": 95,
+        "startChar": 17,
+        "endLine": 95,
+        "endChar": 24
+      },
+      "revId": "eeb29644500c20bb91ee8f38cfbb667a1d183de2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_50a6faae",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 7
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-07-31T03:00:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ab299e38",
       "range": {
         "startLine": 95,
         "startChar": 17,
