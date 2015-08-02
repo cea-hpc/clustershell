@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_26fe9b6b",
+        "filename": "conf/groupfiles/cluster",
+        "patchSetId": 7
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-02T22:11:07Z",
+      "side": 1,
+      "message": "FYI this fails to load due to the @ reserved YAML character... http://yaml.org/spec/1.2/spec.html#id2774228",
+      "parentUuid": "9ad9bd40_0bab6a75",
+      "revId": "eeb29644500c20bb91ee8f38cfbb667a1d183de2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0b18ca1c",
         "filename": "doc/sphinx/config.rst",
         "patchSetId": 7
