@@ -3,6 +3,8 @@ Configuration
 
 .. highlight:: ini
 
+.. _clush-config:
+
 clush
 -----
 

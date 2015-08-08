@@ -3,13 +3,14 @@
 Installation
 ============
 
-In this part, we address ClusterShell installation information first. Then,
-ClusterShell user tools are documented. Indeed, three Python scripts using the
-ClusterShell library are provided with the distribution:
+In this part, we address ClusterShell software installation information.
 
-* ``nodeset``: a tool to manage cluster node sets and groups,
-* ``clush``: a powerful parallel command execution tool with output gathering,
-* ``clubak``: a tool to gather and display results from clush/pdsh-like output (and more).
+ClusterShell is distributed in several packages. On RedHat-like OS, we
+recommend to use the RPM  package (.rpm) distribution.
+
+As a system software for cluster, ClusterShell is primarily made for
+system-wide installation. However, changes have been made so that's it is now
+easy to install it without root access (see :ref:`install-pip-user`).
 
 
 Requirements
@@ -129,34 +130,54 @@ ClusterShell is available since "Natty" release (11.04):
 * http://packages.ubuntu.com/clustershell
 
 
-General distribution (Sourceforge and Github)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing ClusterShell using PIP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-ClusterShell is distributed in several packages. On RedHat-like OS, we
-recommend to use the RPM  package (.rpm) distribution. General distribution
-source packages and RPM package are available on the Sourceforge.net download
-page:
+Installing ClusterShell as root using PIP
+"""""""""""""""""""""""""""""""""""""""""
 
-* http://sourceforge.net/projects/clustershell/files/clustershell/
+To install ClusterShell as a standard Python package using PIP [#]_ as root::
 
-There is no difference between Fedora (or EPEL) RPM packages and the ones
-found on Sourceforge.
+    $ pip install clustershell
+
+Or alternatively, using the source tarball::
+
+    $ pip install clustershell-1.x.tar.gz
 
 
-Current source is also available through Git, use the following command to
-retrieve the latest development version from the repository::
+.. _install-pip-user:
+
+Installing ClusterShell as user using PIP
+"""""""""""""""""""""""""""""""""""""""""
+
+To install ClusterShell as a standard Python package using PIP as an user::
+
+    $ pip install --user clustershell
+
+Or alternatively, using the source tarball::
+
+    $ pip install --user clustershell-1.x.tar.gz
+
+Then, you just need to update your ``PYTHONPATH`` environment variable to be
+able to import the library and ``PATH`` to easily use the :ref:`tools`::
+
+    $ export PYTHONPATH=$PYTHONPATH:~/.local/lib
+    $ export PATH=$PATH:~/.local/bin
+
+Configuration files are installed in ``~/.local/etc/clustershell`` and are
+automatically loaded before system-wide ones (for more info about supported
+user config files, please see the :ref:`clush-config` or :ref:`groups-config`
+config sections).
+
+.. _install-source:
+
+Source
+------
+
+Current source is available through Git, use the following command to retrieve
+the latest development version from the repository::
 
     $ git clone git@github.com:cea-hpc/clustershell.git
-
-Install ClusterShell as a standard Python package (may need to be root)::
-
-    $ tar -xzf clustershell-1.x.tar.gz
-    $ cd clustershell-1.x
-    $ python setup.py install
-
-Then, you should create the directory ``/etc/clustershell`` and put in it
-files found in conf directory. This is the same thing when using pip [#]_.
-This should be fixed in a future release.
 
 
 .. [#] Unix in the same sense of the *Availability: Unix* notes in the Python

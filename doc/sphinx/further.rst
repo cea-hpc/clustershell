@@ -6,8 +6,15 @@ Going further
 Running the test suite
 ----------------------
 
+Get the latest :ref:`install-source` code first.
+
+.. note:: "The intent of regression testing is to assure that in the process of
+   fixing a defect no existing functionality has been broken. Non-regression
+   testing is performed to test that an intentional change has had the desired
+   effect." (from `Wikipedia`_)
+
 The *tests* directory of the source archive (not the RPM) contains all
-non-regression tests. To run all tests, use the following::
+regression and non-regression tests. To run all tests, use the following::
 
     $ cd tests
     $ nosetests -sv --all-modules .
@@ -23,4 +30,5 @@ development project. There, you can report bugs or suggestions after logged in
 with your Github account.
 
 
-.. _Github Issues: {https://github.com/cea-hpc/clustershell/issues
+.. _Wikipedia: https://en.wikipedia.org/wiki/Non-regression_testing
+.. _Github Issues: https://github.com/cea-hpc/clustershell/issues
