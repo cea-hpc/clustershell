@@ -39,18 +39,10 @@ Syntax highlighting in the VIM editor for ClusterShell configuration files.
 
 %install
 rm -rf %{buildroot}
+# install library (lib), scripts (bin) and config (etc)
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
-
-# config files
-install -d %{buildroot}/%{_sysconfdir}/clustershell
-install -p -m 0644 conf/*.conf conf/topology.conf.example %{buildroot}/%{_sysconfdir}/clustershell/
-install -d %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
-install -p -m 0644 conf/groups.conf.d/*.conf.example %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
-install -p -m 0644 conf/groups.conf.d/README %{buildroot}/%{_sysconfdir}/clustershell/groups.conf.d
-install -d %{buildroot}/%{_sysconfdir}/clustershell/groups.d
-install -p -m 0644 conf/groups.d/README %{buildroot}/%{_sysconfdir}/clustershell/groups.d
-install -p -m 0644 conf/groups.d/local.cfg %{buildroot}/%{_sysconfdir}/clustershell/groups.d
-install -p -m 0644 conf/groups.d/*.yaml.example %{buildroot}/%{_sysconfdir}/clustershell/groups.d
+# move config dir away from default setuptools /usr prefix (if rpm-building as user)
+[ -d %{buildroot}/usr/etc ] && mv %{buildroot}/usr/etc %{buildroot}/%{_sysconfdir}
 
 # old versions of rpm (el5) requires that a file/link exists in buildroot even
 # when %ghosted, but it is not installed at the end...
@@ -113,8 +105,8 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
-* Mon May 18 2015 Stephane Thiell <stephane.thiell@cea.fr> 1.6.92-1
-- update to 1.6.92
+* Fri Aug  7 2015 Stephane Thiell <stephane.thiell@cea.fr> 1.6.96-1
+- update to 1.6.96
 
 * Sun Apr 08 2012 Stephane Thiell <stephane.thiell@cea.fr> 1.6-1
 - update to 1.6

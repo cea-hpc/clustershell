@@ -6,6 +6,8 @@ Going further
 Running the test suite
 ----------------------
 
+Get the latest :ref:`install-source` code first.
+
 The *tests* directory of the source archive (not the RPM) contains all
 non-regression tests. To run all tests, use the following::
 

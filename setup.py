@@ -42,12 +42,31 @@ if not os.access('scripts/clush', os.F_OK):
 if not os.access('scripts/nodeset', os.F_OK):
     os.symlink('nodeset.py', 'scripts/nodeset')
 
-VERSION='1.6.92'
+if os.geteuid() == 0:
+    # System-wide, out-of-prefix config install (rpmbuild or pip as root)
+    CFGDIR = '/etc/clustershell'
+else:
+    # User, in-prefix config install (rpmbuild or pip as user)
+    CFGDIR = 'etc/clustershell'
+
+VERSION='1.6.97'
 
 setup(name='ClusterShell',
       version=VERSION,
       package_dir={'': 'lib'},
       packages=find_packages('lib'),
+      data_files = [(CFGDIR,
+                     ['conf/clush.conf',
+                      'conf/groups.conf',
+                      'conf/topology.conf.example']),
+                    (os.path.join(CFGDIR, 'groups.conf.d'),
+                     ['conf/groups.conf.d/genders.conf.example',
+                      'conf/groups.conf.d/slurm.conf.example',
+                      'conf/groups.conf.d/README']),
+                    (os.path.join(CFGDIR,'groups.d'),
+                     ['conf/groups.d/cluster.yaml.example',
+                      'conf/groups.d/local.cfg',
+                      'conf/groups.d/README'])],
       scripts=['scripts/clubak',
                'scripts/clush',
                'scripts/nodeset'],

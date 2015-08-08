@@ -5,6 +5,8 @@ Programming Examples
 
 .. highlight:: python
 
+.. _prog-example-seq:
+
 Remote command example (sequential mode)
 ----------------------------------------
 
@@ -32,6 +34,7 @@ Result::
     ['green133'] 3.10.0-123.20.1.el7.x86_64
     Max return code is 0
 
+.. _prog-example-ev:
 
 Remote command example with live output (event-based mode)
 ----------------------------------------------------------
@@ -61,6 +64,7 @@ erroneous return codes::
     # Submit command, install event handler for this command and run task
     task.run("/bin/uname -a", nodes="fortoy[32-159]", handler=MyHandler())
 
+.. _prog-example-script:
 
 *check_nodes.py* example script
 -------------------------------
@@ -183,4 +187,67 @@ is usually packaged with ClusterShell::
 
     if __name__ == '__main__':
         main()
+
+.. _prog-example-pp-sbatch:
+
+Using NodeSet with Parallel Python Batch script using SLURM
+-----------------------------------------------------------
+
+The following example shows how to use the NodeSet class to expand
+``$SLURM_NODELIST`` environment variable in a Parallel Python batch script
+launched by SLURM. This variable may contain folded node sets. If ClusterShell
+is not available system-wide on your compute cluster, you first need to follow
+:ref:`install-pip-user` first.
+
+.. highlight:: bash
+
+Example of SLURM ``pp.sbatch`` to submit using ``sbatch pp.sbatch``::
+
+    #!/bin/bash
+
+    #SBATCH -N 2
+    #SBATCH --ntasks-per-node 1
+
+    # run the servers
+    srun ~/.local/bin/ppserver.py -w $SLURM_CPUS_PER_TASK -t 300 &
+    sleep 10
+
+    # launch the parallel processing
+    python -u ./pp_jobs.py
+
+.. highlight:: python
+
+Example of a ``pp_jobs.py`` script::
+
+    #!/usr/bin/env python
+
+    import os, time
+    import pp
+    from ClusterShell.NodeSet import NodeSet
+
+    # get the nodelist form Slurm
+    nodeset  = NodeSet(os.environ['SLURM_NODELIST'])
+
+    # start the servers (ncpus=0 will make sure that none is started locally)
+    # casting nodelist to tuple/list will correctly expand $SLURM_NODELIST
+    job_server = pp.Server(ncpus=0, ppservers=tuple(nodelist))
+
+    # make sure the servers have enough time to start
+    time.sleep(5)
+
+    # test function to execute on the remove nodes
+    def test_func():
+        print os.uname()
+
+    # start the jobs
+    job_1 = job_server.submit(test_func,(),(),("os",))
+    job_2 = job_server.submit(test_func,(),(),("os",))
+
+    # retrive the results
+    print job_1()
+    print job_2()
+
+    # Cleanup
+    job_server.print_stats()
+    job_server.destroy()
 
