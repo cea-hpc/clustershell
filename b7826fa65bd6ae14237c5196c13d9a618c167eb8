@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e3d46fea",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-15T14:36:30Z",
+      "side": 1,
+      "message": "hopefully nobody was importing this. Ok anyway.",
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_43fd1b6d",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-15T14:36:30Z",
+      "side": 1,
+      "message": "This class is based on Loader and shares almost nothing with UpcallGroupSource.\n\nI\u0027m still in favor of a simple GroupSource base class, based on one or two dicts (actually: one dict for map/list and optionaly a \u0027all\u0027 string. \n\nGroupLoader could be used to feed this information.",
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_03079382",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-15T14:36:30Z",
+      "side": 1,
+      "message": "has_list does not seem to be really use",
+      "range": {
+        "startLine": 99,
+        "startChar": 13,
+        "endLine": 99,
+        "endChar": 21
+      },
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_230ad789",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-15T14:36:30Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 100,
+        "startChar": 13,
+        "endLine": 100,
+        "endChar": 20
+      },
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
