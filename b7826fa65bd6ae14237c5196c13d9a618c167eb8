@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_70a9e77a",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-23T17:53:03Z",
+      "side": 1,
+      "message": "Agreed. I created a simpler GroupSource class, which can be easily initialized with a mapping dict, added a simple FileGroupSource class using GroupLoader as before.",
+      "parentUuid": "9ad9bd40_43fd1b6d",
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_03079382",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 12
@@ -59,6 +77,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_908e6b26",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-23T17:53:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_03079382",
+      "range": {
+        "startLine": 99,
+        "startChar": 13,
+        "endLine": 99,
+        "endChar": 21
+      },
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_230ad789",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 12
@@ -70,6 +112,30 @@
       "writtenOn": "2015-08-15T14:36:30Z",
       "side": 1,
       "message": "same here",
+      "range": {
+        "startLine": 100,
+        "startChar": 13,
+        "endLine": 100,
+        "endChar": 20
+      },
+      "revId": "b7826fa65bd6ae14237c5196c13d9a618c167eb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b0936f4e",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-23T17:53:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_230ad789",
       "range": {
         "startLine": 100,
         "startChar": 13,
