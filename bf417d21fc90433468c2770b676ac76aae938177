@@ -1,0 +1,267 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3bc3bb8b",
+        "filename": "conf/groups.d/cluster.yaml.example",
+        "patchSetId": 13
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "(style, nitpick) examples are given between parenthesis above and below",
+      "range": {
+        "startLine": 10,
+        "startChar": 13,
+        "endLine": 10,
+        "endChar": 17
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7bbd4302",
+        "filename": "conf/groups.d/cluster.yaml.example",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "(wording) if",
+      "range": {
+        "startLine": 16,
+        "startChar": 27,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9b5127db",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 13
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "The \"require\" statement in the specfile expresses a stronger dependency than documented here.",
+      "range": {
+        "startLine": 139,
+        "startChar": 46,
+        "endLine": 140,
+        "endChar": 72
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5b6ebf97",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 13
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "sure that",
+      "range": {
+        "startLine": 184,
+        "startChar": 42,
+        "endLine": 184,
+        "endChar": 47
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9bc0472c",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "I find this syntax cumbersome.\n\noneliner: return self.groups.get(group, \u0027\u0027)",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bbdc2b1a",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "oneliner: allgroups \u003d groups.get(\u0027all\u0027)",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_db2f2ff5",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "this forbids cache_delay\u003d0, though this is no big deal...",
+      "range": {
+        "startLine": 285,
+        "startChar": 26,
+        "endLine": 285,
+        "endChar": 38
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3b881bc6",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "(naming) s/timestamp/cache_expiry",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3b249bc5",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "what about moving `import yaml\u0027 here?",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1b1197ac",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "Use isinstance(sources, collections.Mapping) instead",
+      "range": {
+        "startLine": 306,
+        "startChar": 35,
+        "endLine": 306,
+        "endChar": 39
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5b223f02",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "idem collections.Mapping",
+      "range": {
+        "startLine": 314,
+        "startChar": 38,
+        "endLine": 314,
+        "endChar": 42
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_db99ef20",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "How will this evaluate? Wouldn\u0027t the following be more pythonic?\n\nfor v in self.sources.itervalues():\n    yield v",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9ba68752",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-25T11:31:02Z",
+      "side": 1,
+      "message": "Use duck typing:\n\nif hasattr(raw, \u0027splitlines\u0027):\n    grpiter \u003d raw.splitlines()\nelse:\n    grpiter \u003d raw",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
