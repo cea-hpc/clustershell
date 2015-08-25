@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_841c686c",
+        "filename": "conf/groups.d/cluster.yaml.example",
+        "patchSetId": 13
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3bc3bb8b",
+      "range": {
+        "startLine": 10,
+        "startChar": 13,
+        "endLine": 10,
+        "endChar": 17
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7bbd4302",
         "filename": "conf/groups.d/cluster.yaml.example",
         "patchSetId": 13
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-25T11:31:02Z",
       "side": 1,
       "message": "(wording) if",
+      "range": {
+        "startLine": 16,
+        "startChar": 27,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c42590af",
+        "filename": "conf/groups.d/cluster.yaml.example",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_7bbd4302",
       "range": {
         "startLine": 16,
         "startChar": 27,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_443980d7",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 13
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Right... I removed it, everybody should have PyYAML available anyway.... thx",
+      "parentUuid": "9ad9bd40_9b5127db",
+      "range": {
+        "startLine": 139,
+        "startChar": 46,
+        "endLine": 140,
+        "endChar": 72
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5b6ebf97",
         "filename": "doc/sphinx/config.rst",
         "patchSetId": 13
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-25T11:31:02Z",
       "side": 1,
       "message": "sure that",
+      "range": {
+        "startLine": 184,
+        "startChar": 42,
+        "endLine": 184,
+        "endChar": 47
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e49ff4b2",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 13
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5b6ebf97",
       "range": {
         "startLine": 184,
         "startChar": 42,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6447641e",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_9bc0472c",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_bbdc2b1a",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 13
@@ -122,6 +236,24 @@
       "writtenOn": "2015-08-25T11:31:02Z",
       "side": 1,
       "message": "oneliner: allgroups \u003d groups.get(\u0027all\u0027)",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_245d5cea",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_bbdc2b1a",
       "revId": "bf417d21fc90433468c2770b676ac76aae938177",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_44718076",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_db2f2ff5",
+      "range": {
+        "startLine": 285,
+        "startChar": 26,
+        "endLine": 285,
+        "endChar": 38
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3b881bc6",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 13
@@ -162,6 +318,24 @@
       "writtenOn": "2015-08-25T11:31:02Z",
       "side": 1,
       "message": "(naming) s/timestamp/cache_expiry",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_646e8498",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3b881bc6",
       "revId": "bf417d21fc90433468c2770b676ac76aae938177",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -185,6 +359,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_846b8884",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Good idea! Done",
+      "parentUuid": "9ad9bd40_3b249bc5",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1b1197ac",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 13
@@ -196,6 +388,30 @@
       "writtenOn": "2015-08-25T11:31:02Z",
       "side": 1,
       "message": "Use isinstance(sources, collections.Mapping) instead",
+      "range": {
+        "startLine": 306,
+        "startChar": 35,
+        "endLine": 306,
+        "endChar": 39
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_242b9c31",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_1b1197ac",
       "range": {
         "startLine": 306,
         "startChar": 35,
@@ -231,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_441fc009",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5b223f02",
+      "range": {
+        "startLine": 314,
+        "startChar": 38,
+        "endLine": 314,
+        "endChar": 42
+      },
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_db99ef20",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 13
@@ -248,6 +488,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8419c824",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Well I think this change is not needed as itervalues() returns an iterator over the dictionary values. Another, maybe better way for the future could be to use return iter(self.sources.values()) ?",
+      "parentUuid": "9ad9bd40_db99ef20",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9ba68752",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 13
@@ -259,6 +517,24 @@
       "writtenOn": "2015-08-25T11:31:02Z",
       "side": 1,
       "message": "Use duck typing:\n\nif hasattr(raw, \u0027splitlines\u0027):\n    grpiter \u003d raw.splitlines()\nelse:\n    grpiter \u003d raw",
+      "revId": "bf417d21fc90433468c2770b676ac76aae938177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a416ccef",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-25T21:19:17Z",
+      "side": 1,
+      "message": "Good idea, thx! I changed it to use duck typing but using exception instead of hasattr() ( I prefer)",
+      "parentUuid": "9ad9bd40_9ba68752",
       "revId": "bf417d21fc90433468c2770b676ac76aae938177",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
