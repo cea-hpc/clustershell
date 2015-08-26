@@ -37,6 +37,7 @@ CLI configuration classes
 
 import ConfigParser
 import os
+from os.path import expanduser, join
 
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, \
     VERB_VERB, VERB_DEBUG, THREE_CHOICES
@@ -78,7 +79,14 @@ class ClushConfig(ConfigParser.ConfigParser, object):
             files = [filename]
         else:
             files = ['/etc/clustershell/clush.conf',
-                     os.path.expanduser('~/.clush.conf')]
+                     # deprecated user config, kept in 1.x for 1.6 compat
+                     expanduser('~/.clush.conf'),
+                     # default pip --user config file
+                     expanduser('~/.local/etc/clustershell/clush.conf'),
+                     # per-user clush.conf config top override
+                     join(os.environ.get('XDG_CONFIG_HOME',
+                                         expanduser('~/.config')),
+                          'clustershell', 'clush.conf')]
         self.read(files)
 
         # Apply command line overrides
