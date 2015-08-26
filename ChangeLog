@@ -1,3 +1,9 @@
+2015-08-28 S. Thiell <sthiell@stanford.edu>
+
+	* CLI/Config.py: better per-user clush.conf support. clush now also checks
+	for $XDG_CONFIG_HOME/clustershell/clush.conf and
+	$HOME/.local/etc/clustershell/clush.conf (ticket #111).
+
 2015-08-27 S. Thiell <sthiell@stanford.edu>
 
 	* CLI/Nodeset.py: add --list-all / -L to list groups from all group
