@@ -1,6 +1,6 @@
-.\" Man page generated from reStructeredText.
+.\" Man page generated from reStructuredText.
 .
-.TH CLUSH.CONF 5 "2015-03-23" "1.7" "ClusterShell User Manual"
+.TH CLUSH.CONF 5 "2015-08-27" "1.7" "ClusterShell User Manual"
 .SH NAME
 clush.conf \- Configuration file for clush
 .
@@ -32,19 +32,18 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH DESCRIPTION
 .sp
-\fCclush\fP(1) obtains configuration options from the following sources in the
+\fBclush\fP(1) obtains configuration options from the following sources in the
 following order:
 .INDENT 0.0
 .INDENT 3.5
 .INDENT 0.0
 .IP 1. 3
-.
 command\-line options
 .IP 2. 3
-.
-user configuration file (\fI~/.clush.conf\fP)
+user configuration file (\fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP)
 .IP 3. 3
-.
+local pip user installation (\fI$HOME/.local/etc/clustershell/clush.conf\fP)
+.IP 4. 3
 system\-wide configuration file (\fI/etc/clustershell/clush.conf\fP)
 .UNINDENT
 .UNINDENT
@@ -57,93 +56,76 @@ of one main section:
 .INDENT 0.0
 .TP
 .B Main
-.
 Program options definition
 .UNINDENT
 .SS [Main]
 .sp
-Configuration parameters of the \fCMain\fP section are described below.
+Configuration parameters of the \fBMain\fP section are described below.
 .INDENT 0.0
 .TP
 .B fanout
-.
 Size of the sliding window of ssh connectors.
 .TP
 .B connect_timeout
-.
 Timeout in seconds to allow a connection to establish. This parameter is
 passed to ssh. If set to \fI0\fP, no timeout occurs.
 .TP
 .B command_timeout
-.
 Timeout in seconds to allow a command to complete since the connection has
 been established. This parameter is passed to ssh.  In addition, the
 ClusterShell library ensures that any commands complete in less than
 ( connect_timeout + command_timeout ). If set to \fI0\fP, no timeout occurs.
 .TP
 .B color
-.
 Whether to use ANSI colors to surround node or nodeset prefix/header with
 escape sequences to display them in color on the terminal. Valid arguments
-are \fCnever\fP, \fCalways\fP or \fCauto\fP (which use color if standard
+are \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard
 output/error refer to a terminal). Colors are set to [34m (blue foreground
 text) for stdout and [31m (red foreground text) for stderr, and cannot be
 modified.
 .TP
 .B fd_max
-.
 Maximum number of open file descriptors permitted per clush process (soft
 resource limit for open files). This limit can never exceed the system
 (hard) limit. The \fIfd_max\fP (soft) and system (hard) limits should be high
-enough to run \fCclush\fP, although their values depend on your \fIfanout\fP value.
+enough to run \fBclush\fP, although their values depend on your \fIfanout\fP value.
 .TP
 .B history_size
-.
 Set the maximum number of history entries saved in the GNU readline history
 list. Negative values imply unlimited history file size.
 .TP
 .B node_count
-.
-Should \fCclush\fP display additional (node count) information in buffer
+Should \fBclush\fP display additional (node count) information in buffer
 header? (\fIyes\fP/\fIno\fP)
 .TP
 .B verbosity
-.
 Set the verbosity level: \fI0\fP (quiet), \fI1\fP (default), \fI2\fP (verbose) or more
 (debug).
 .TP
 .B ssh_user
-.
 Set the ssh user to use for remote connection (default is to not specify).
 .TP
 .B ssh_path
-.
 Set the ssh binary path to use for remote connection (default is \fIssh\fP).
 .TP
 .B ssh_options
-.
 Set additional options to pass to the underlying ssh command.
 .TP
 .B scp_path
-.
 Set the scp binary path to use for remote copy (default is \fIscp\fP).
 .TP
 .B scp_options
-.
 Set additional options to pass to the underlying scp command. If not
 specified, ssh_options are used instead.
 .TP
 .B rsh_path
-.
 Set the rsh binary path to use for remote connection (default is
 \fIrsh\fP). You could easily use mrsh or krsh by simply changing this value.
 .TP
 .B rcp_path
-.
 Same a rsh_path for rcp command. (Default is \fIrcp\fP)
 .TP
 .B rsh_options
-.
 Set additional options to pass to the underlying rsh/rcp command.
 .UNINDENT
 .SH EXAMPLES
@@ -165,29 +147,33 @@ node_count: yes
 .SH FILES
 .INDENT 0.0
 .TP
-.B \fI~/.clush.conf\fP
-.sp
-This is the per\-user configuration file.
-.TP
 .B \fI/etc/clustershell/clush.conf\fP
-.sp
-System\-wide configuration file.
+System\-wide clush configuration file.
+.TP
+.B \fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP
+User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
+\fI$HOME/.config/clustershell/clush.conf\fP is used instead.
+.TP
+.B \fI$HOME/.local/etc/clustershell/clush.conf\fP
+Local user configuration file for clush (default installation for pip \-\-user)
+.TP
+.B \fI~/.clush.conf\fP
+Deprecated per\-user clush configuration file.
 .UNINDENT
 .SH HISTORY
 .sp
-As of ClusterShell version 1.3, the \fCExternal\fP section has been removed
-from \fIclush.conf\fP.  External commands whose outputs were used by \fCclush\fP
+As of ClusterShell version 1.3, the \fBExternal\fP section has been removed
+from \fIclush.conf\fP\&.  External commands whose outputs were used by \fBclush\fP
 (\-a, \-g, \-X) are now handled by the library itself and defined in
-\fCgroups.conf\fP(5).
+\fBgroups.conf\fP(5).
 .SH SEE ALSO
 .sp
-\fCclush\fP(1), \fCnodeset\fP(1), \fCgroups.conf\fP(5)
+\fBclush\fP(1), \fBnodeset\fP(1), \fBgroups.conf\fP(5)
 .sp
 \fI\%http://clustershell.sourceforge.net/\fP
 .SH AUTHOR
-Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+Stephane Thiell, <sthiell@stanford.edu>
 .SH COPYRIGHT
 CeCILL-C V1
 .\" Generated by docutils manpage writer.
-.\" 
 .

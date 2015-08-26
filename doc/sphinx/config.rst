@@ -6,8 +6,20 @@ Configuration
 clush
 -----
 
-The configuration file */etc/clustershell/clush.conf* defines default values
-for several *clush* tool parameters.
+The following configuration file defines system-wide default values for
+several *clush* tool parameters::
+
+    /etc/clustershell/clush.conf
+
+*clush* settings might then be overridden per user if one of the following
+files is found, in priority order::
+
+    $XDG_CONFIG_HOME/clustershell/clush.conf
+    $HOME/.config/clustershell/clush.conf (if $XDG_CONFIG_HOME not defined)
+    $HOME/.local/etc/clustershell/clush.conf
+    $HOME/.clush.conf (deprecated, for 1.6 compatibility only)
+
+The following table describes available *clush* config file settings.
 
 +-----------------+----------------------------------------------------+
 | Key             | Value                                              |
