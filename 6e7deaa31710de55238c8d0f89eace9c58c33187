@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_756e2c98",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-26T11:19:34Z",
+      "side": 1,
+      "message": "Any reason why not to initialize cache_expiry from within _load()?",
+      "revId": "6e7deaa31710de55238c8d0f89eace9c58c33187",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b568b488",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-26T11:19:34Z",
+      "side": 1,
+      "message": "So it PyYAML a strict requirement or not? If you decide so, just import it like any other module and expect that to succeed.\n\nI understand that this code section makes potential failure look nicer here but it leaves it unclear whether we can expect yaml to be available...\n\nI have no preference (ok... maybe strong requirement, as it makes cleaner code and is not too difficult to satisfy) but it should be clear.",
+      "revId": "6e7deaa31710de55238c8d0f89eace9c58c33187",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
