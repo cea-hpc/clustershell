@@ -6,8 +6,8 @@
 Configuration file for `clush`
 ------------------------------
 
-:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2015-03-23
+:Author: Stephane Thiell, <sthiell@stanford.edu>
+:Date:   2015-08-27
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 5
@@ -21,8 +21,9 @@ DESCRIPTION
 following order:
 
  1. command-line options
- 2. user configuration file (*~/.clush.conf*)
- 3. system-wide configuration file (*/etc/clustershell/clush.conf*)
+ 2. user configuration file (*$XDG_CONFIG_HOME/clustershell/clush.conf*)
+ 3. local pip user installation (*$HOME/.local/etc/clustershell/clush.conf*)
+ 4. system-wide configuration file (*/etc/clustershell/clush.conf*)
 
 For each parameter, the first obtained value will be used.
 
@@ -109,11 +110,18 @@ Simple configuration file.
 FILES
 =====
 
-*~/.clush.conf*
-  This is the per-user configuration file.
-
 */etc/clustershell/clush.conf*
-  System-wide configuration file.
+  System-wide clush configuration file.
+
+*$XDG_CONFIG_HOME/clustershell/clush.conf*
+  User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
+  *$HOME/.config/clustershell/clush.conf* is used instead.
+
+*$HOME/.local/etc/clustershell/clush.conf*
+  Local user configuration file for clush (default installation for pip --user)
+
+*~/.clush.conf*
+  Deprecated per-user clush configuration file.
 
 
 HISTORY
@@ -131,4 +139,3 @@ SEE ALSO
 ``clush``\(1), ``nodeset``\(1), ``groups.conf``\(5)
 
 http://clustershell.sourceforge.net/
-

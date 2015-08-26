@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 # ClusterShell.CLI.Config test suite
-# Written by S. Thiell 2010-09-19
+# Written by S. Thiell
 
 
 """Unit test for CLI.Config"""
 
 import resource
+import os.path
+import shutil
 import sys
 import tempfile
 import unittest
 
 sys.path.insert(0, '../lib')
 
+from TLib import make_temp_dir
 
 from ClusterShell.CLI.Clush import set_fdlimit
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
@@ -293,7 +296,59 @@ verbosity: 1
         config = ClushConfig(options)
         self.assert_(config != None)
 
+    def testClushConfigUserOverride(self):
+        """test CLI.Config.ClushConfig (XDG_CONFIG_HOME user config)"""
 
-if __name__ == '__main__':
-    suites = [unittest.TestLoader().loadTestsFromTestCase(CLIClushConfigTest)]
-    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))
+        # XXX Test should be improved when CLUSTERSHELL_CONFIG is available
+        # Improvement: override CLUSTERSHELL_CONFIG and set a sys clush config
+        # then verify that user config overrides CLUSTERSHELL_CONFIG as
+        # expected...
+        # For now, it has been tested manually. This test only really only
+        # ensures that user config is taken into account.
+
+        xdg_config_home_save = os.environ.get('XDG_CONFIG_HOME')
+
+        # Create fake XDG_CONFIG_HOME
+        dname = make_temp_dir()
+        try:
+            os.environ['XDG_CONFIG_HOME'] = dname
+
+            # create $XDG_CONFIG_HOME/clustershell/clush.conf
+            usercfgdir = os.path.join(dname, 'clustershell')
+            os.mkdir(usercfgdir)
+            cfgfile = open(os.path.join(usercfgdir, 'clush.conf'), 'w')
+            cfgfile.write("""
+[Main]
+fanout: 42
+connect_timeout: 14
+command_timeout: 0
+history_size: 100
+color: never
+verbosity: 2
+ssh_user: trump
+ssh_path: ~/bin/ssh
+ssh_options: -oSomeDummyUserOption=yes
+""")
+
+            cfgfile.flush()
+            parser = OptionParser("dummy")
+            parser.install_display_options(verbose_options=True)
+            parser.install_connector_options()
+            options, _ = parser.parse_args([])
+            config = ClushConfig(options) # filename=None to use defaults!
+            self.assertEqual(config.color, WHENCOLOR_CHOICES[0])
+            self.assertEqual(config.verbosity, VERB_VERB) # takes biggest
+            self.assertEqual(config.fanout, 42)
+            self.assertEqual(config.connect_timeout, 14)
+            self.assertEqual(config.command_timeout, 0)
+            self.assertEqual(config.ssh_user, 'trump')
+            self.assertEqual(config.ssh_path, '~/bin/ssh')
+            self.assertEqual(config.ssh_options, '-oSomeDummyUserOption=yes')
+            cfgfile.close()
+
+        finally:
+            if xdg_config_home_save:
+                os.environ['XDG_CONFIG_HOME'] = xdg_config_home_save
+            else:
+                del os.environ['XDG_CONFIG_HOME']
+            shutil.rmtree(dname, ignore_errors=True)
