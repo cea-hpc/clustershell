@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ae5f7e74",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-27T18:55:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_18ec30c7",
+      "revId": "62827399519a5b69212212dfe55188e9801ad87e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d8e1e8d1",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 16
@@ -30,6 +48,30 @@
       "writtenOn": "2015-08-27T12:36:20Z",
       "side": 1,
       "message": "I still found this weird. With Python introspection, upcalls, etc... we should not need this kind of flag, regarding this patch and how this flag is used.",
+      "range": {
+        "startLine": 103,
+        "startChar": 13,
+        "endLine": 103,
+        "endChar": 24
+      },
+      "revId": "62827399519a5b69212212dfe55188e9801ad87e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e96d00ce",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-27T18:55:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d8e1e8d1",
       "range": {
         "startLine": 103,
         "startChar": 13,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_097304b2",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-27T18:55:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_53ca1b6f",
+      "revId": "62827399519a5b69212212dfe55188e9801ad87e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_58f5d8c9",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 16
@@ -70,6 +130,30 @@
       "writtenOn": "2015-08-27T12:36:20Z",
       "side": 1,
       "message": "double space",
+      "range": {
+        "startLine": 431,
+        "startChar": 25,
+        "endLine": 431,
+        "endChar": 27
+      },
+      "revId": "62827399519a5b69212212dfe55188e9801ad87e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2967e8eb",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-27T18:55:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_58f5d8c9",
       "range": {
         "startLine": 431,
         "startChar": 25,
