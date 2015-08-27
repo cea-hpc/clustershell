@@ -47,6 +47,7 @@ from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Utils import NodeSet  # safe import
 
 from ClusterShell.NodeSet import RangeSet, grouplist, std_group_resolver
+from ClusterShell.NodeUtils import GroupSourceNoUpcall
 
 
 def process_stdin(xsetop, xsetcls, autostep):
@@ -97,40 +98,63 @@ def compute_nodeset(xset, args, autostep):
 
     return xset
 
-def command_list(options, xset):
-    """List (-l/-ll/-lll) command handler."""
-    list_level = options.list
+def print_source_groups(source, level, xset, opts):
+    """
+    Print groups from a source, a level of verbosity and an optional
+    nodeset acting as a filter.
+    """
     # list groups of some specified nodes?
-    if options.all or xset or \
-        options.and_nodes or options.sub_nodes or options.xor_nodes:
+    if opts.all or xset or opts.and_nodes or opts.sub_nodes or opts.xor_nodes:
         # When some node sets are provided as argument, the list command
         # retrieves node groups these nodes belong to, thanks to the
-        # groups() method (new in 1.6). Note: stdin support is enabled
-        # when the '-' special character is encountered.
-        groups = xset.groups(options.groupsource, options.groupbase)
+        # groups() method.
+        # Note: stdin support is enabled when '-' is found.
+        groups = xset.groups(source, opts.groupbase)
         for group, (gnodes, inodes) in groups.iteritems():
-            if list_level == 1:         # -l
+            if level == 1:
                 print group
-            elif list_level == 2:       # -ll
+            elif level == 2:
                 print "%s %s" % (group, inodes)
-            else:                       # -lll
-                print "%s %s %d/%d" % (group, inodes, len(inodes), \
+            else:
+                print "%s %s %d/%d" % (group, inodes, len(inodes),
                                        len(gnodes))
-        return
-    # "raw" group list when no argument at all
-    for group in grouplist(options.groupsource):
-        if options.groupsource and not options.groupbase:
-            nsgroup = "@%s:%s" % (options.groupsource, group)
-        else:
-            nsgroup = "@%s" % group
-        if list_level == 1:         # -l
-            print nsgroup
-        else:
-            nodes = NodeSet(nsgroup)
-            if list_level == 2:     # -ll
-                print "%s %s" % (nsgroup, nodes)
-            else:                   # -lll
-                print "%s %s %d" % (nsgroup, nodes, len(nodes))
+    else:
+        # "raw" group list when no argument at all
+        for group in grouplist(source):
+            if source and not opts.groupbase:
+                nsgroup = "@%s:%s" % (source, group)
+            else:
+                nsgroup = "@%s" % group
+            if level == 1:
+                print nsgroup
+            else:
+                nodes = NodeSet(nsgroup)
+                if level == 2:
+                    print "%s %s" % (nsgroup, nodes)
+                else:
+                    print "%s %s %d" % (nsgroup, nodes, len(nodes))
+
+def command_list(options, xset, group_resolver):
+    """List command handler (-l/-ll/-lll/-L/-LL/-LLL)."""
+    list_level = options.list + options.listall
+    if options.listall:
+        # useful: sources[0] is always the default or selected source
+        sources = group_resolver.sources()
+        # do not print name of default group source unless -s specified
+        if not options.groupsource:
+            sources[0] = None
+    else:
+        sources = [options.groupsource]
+
+    for source in sources:
+        try:
+            print_source_groups(source, list_level, xset, options)
+        except GroupSourceNoUpcall, exc:
+            if not options.listall:
+                raise
+            # missing list upcall is not fatal with -L
+            msgfmt = "Warning: No %s upcall defined for group source %s"
+            print >>sys.stderr, msgfmt % (exc, source)
 
 def nodeset():
     """script subroutine"""
@@ -151,7 +175,8 @@ def nodeset():
     # Check for command presence
     cmdcount = int(options.count) + int(options.expand) + \
                int(options.fold) + int(bool(options.list)) + \
-               int(options.regroup) + int(options.groupsources)
+               int(bool(options.listall)) + int(options.regroup) + \
+               int(options.groupsources)
     if not cmdcount:
         parser.error("No command specified.")
     elif cmdcount > 1:
@@ -204,7 +229,7 @@ def nodeset():
         # Include all nodes from external node groups support.
         xset.update(NodeSet.fromall()) # uses default_source when set
 
-    if not args and not options.all and not options.list:
+    if not args and not options.all and not (options.list or options.listall):
         # No need to specify '-' to read stdin in these cases
         process_stdin(xset.update, xset.__class__, autostep)
 
@@ -231,8 +256,8 @@ def nodeset():
     compute_nodeset(xset, args, autostep)
 
     # The list command has a special handling
-    if options.list > 0:
-        return command_list(options, xset)
+    if options.list > 0 or options.listall > 0:
+        return command_list(options, xset, group_resolver)
 
     # Interprete special characters (may raise SyntaxError)
     separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
