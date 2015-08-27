@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_139ed356",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-27T12:39:45Z",
+      "side": 1,
+      "message": "awkward",
+      "range": {
+        "startLine": 13,
+        "startChar": 42,
+        "endLine": 14,
+        "endChar": 6
+      },
+      "revId": "7ec773fc39a06e1a4fb03e78796385ea159831f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_539f7b50",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-27T12:39:45Z",
+      "side": 1,
+      "message": "80 cols",
+      "revId": "7ec773fc39a06e1a4fb03e78796385ea159831f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
