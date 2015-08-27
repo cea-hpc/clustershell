@@ -1,5 +1,8 @@
 2015-08-27 S. Thiell <sthiell@stanford.edu>
 
+	* CLI/Nodeset.py: add --list-all / -L to list groups from all group
+	sources (ticket #266). If repeated, it has the same behavior than -l.
+
 	* NodeUtils.py: add support for built-in groups definition files based on
 	YAML. Added autodir configuration option in groups.conf to declare a
 	directory where .yaml files are automatically loaded. Example available in
