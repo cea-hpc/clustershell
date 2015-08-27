@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_fd2a1e2b",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-27T05:45:56Z",
+      "side": 1,
+      "message": "You\u0027re right. And damn, this led me to review my FileGroupSource code, it was not using loader.groups() as wanted. Now it should be better :) thx!",
+      "parentUuid": "9ad9bd40_756e2c98",
+      "revId": "6e7deaa31710de55238c8d0f89eace9c58c33187",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b568b488",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 15
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-26T11:19:34Z",
       "side": 1,
       "message": "So it PyYAML a strict requirement or not? If you decide so, just import it like any other module and expect that to succeed.\n\nI understand that this code section makes potential failure look nicer here but it leaves it unclear whether we can expect yaml to be available...\n\nI have no preference (ok... maybe strong requirement, as it makes cleaner code and is not too difficult to satisfy) but it should be clear.",
+      "revId": "6e7deaa31710de55238c8d0f89eace9c58c33187",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5d194a21",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-27T05:45:56Z",
+      "side": 1,
+      "message": "For me, PyYAML is optional in 1.7 for the vanilla form of clustershell, say like when used from source, or with pip. You just miss the autodir feature but the error provided just below is clear, I guess.\n\nHowever, from a Linux distro packaging point of view, PyYAML is made mandatory (added as requirement in the specfile) to enable all features (like autodir). This is a lightweight packaging constraint as PyYAML and ClusterShell are commonly found both in the same repo (eg. Fedora or EPEL).",
+      "parentUuid": "9ad9bd40_b568b488",
       "revId": "6e7deaa31710de55238c8d0f89eace9c58c33187",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
