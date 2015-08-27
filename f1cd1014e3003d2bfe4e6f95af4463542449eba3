@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_33d037f7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-08-27T12:46:05Z",
+      "side": 1,
+      "message": "seems to me this is fixing #111 ?",
+      "revId": "f1cd1014e3003d2bfe4e6f95af4463542449eba3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
