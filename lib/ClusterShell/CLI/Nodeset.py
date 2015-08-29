@@ -195,6 +195,9 @@ def nodeset():
     if options.maxsplit is None:
         options.maxsplit = 1
 
+    if options.axis and (not options.fold or options.rangeset):
+        parser.error("--axis option is only supported when folding nodeset")
+
     if options.groupsource and not options.quiet and class_set == RangeSet:
         print >> sys.stderr, "WARNING: option group source \"%s\" ignored" \
                                 % options.groupsource
@@ -276,6 +279,10 @@ def nodeset():
         # at least % of nodes should be foldable as a-b/n
         autofactor = float(options.autostep)
         xset.autostep = int(math.ceil(float(len(xset)) * autofactor))
+
+    # user-specified nD-nodeset fold axis
+    if options.axis:
+        xset.fold_axis = RangeSet(options.axis)
 
     fmt = options.output_format # default to '%s'
 
