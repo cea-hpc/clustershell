@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.NodeSet test suite
-# Written by S. Thiell 2007-12-05
+# Written by S. Thiell (first version in 2007)
 
 
 """Unit test for NodeSet"""
@@ -2197,3 +2197,62 @@ class NodeSetTest(unittest.TestCase):
 
         n1.autostep = 3
         self.assertEqual(n1.copy().autostep, 3)
+
+    def test_nd_fold_axis(self):
+        """test NodeSet fold_axis feature"""
+        n1 = NodeSet("a3b2c0,a2b3c1,a2b4c1,a1b2c0,a1b2c1,a3b2c1,a2b5c1")
+
+        # default dim is unlimited
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold along three axis
+        n1.fold_axis = (0, 1, 2)
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold along one axis
+        n1.fold_axis = [0]
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [1]
+        self.assertEqual(str(n1), "a1b2c0,a3b2c0,a1b2c1,a3b2c1,a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [2]
+        self.assertEqual(str(n1), "a1b2c[0-1],a3b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold along two axis
+        n1.fold_axis = [0, 1]
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [0, 2]
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [1, 2]
+        self.assertEqual(str(n1), "a1b2c[0-1],a3b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # reset fold_axis
+        n1.fold_axis = None
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold_axis: constructor and copy
+        n1.fold_axis = (0, 2)
+        n2 = NodeSet(n1)
+        self.assertEqual(n1.fold_axis, (0, 2))
+        self.assertTrue(n2.fold_axis is None)
+        n2 = NodeSet(n1, fold_axis=n1.fold_axis)
+        self.assertEqual(n1.fold_axis, (0, 2))
+        self.assertEqual(n2.fold_axis, (0, 2))
+        self.assertEqual(str(n2), "a[1,3]b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        # fold_axis is kept when using copy()
+        n2 = n1.copy()
+        self.assertEqual(n1.fold_axis, (0, 2))
+        self.assertEqual(n2.fold_axis, (0, 2))
+        self.assertEqual(str(n2), "a[1,3]b2c[0-1],a2b3c1,a2b4c1,a2b5c1")

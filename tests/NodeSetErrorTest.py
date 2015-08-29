@@ -160,3 +160,17 @@ class NodeSetErrorTest(unittest.TestCase):
         self.assertRaises(NodeSetParseError, NodeSet, "^")
         self.assertRaises(NodeSetParseError, NodeSet, ",,,")
         self.assertRaises(NodeSetParseError, NodeSet, "foo,,bar")
+
+    def test_nd_fold_axis_errors(self):
+        """test NodeSet fold_axis errors"""
+        n1 = NodeSet("a3b2c0,a2b3c1,a2b4c1,a1b2c0,a1b2c1,a3b2c1,a2b5c1")
+        n1.fold_axis = 0
+        self.assertRaises(NodeSetParseError, str, n1)
+        n1.fold_axis = 1
+        self.assertRaises(NodeSetParseError, str, n1)
+        n1.fold_axis = "0-1" # nok
+        self.assertRaises(NodeSetParseError, str, n1)
+        n1.fold_axis = range(2) # ok
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        n1.fold_axis = RangeSet("0-1") # ok
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
