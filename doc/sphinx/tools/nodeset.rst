@@ -483,6 +483,34 @@ contiguous node set in an expanded manner to separate lines::
     node11 node12 node13 node14 node15 node16 node17 node18 node19
 
 
+Choosing fold axis (nD)
+"""""""""""""""""""""""
+
+The default folding behavior for multidimensional node sets is to fold along
+all *nD* axis. However, other cluster tools barely support nD nodeset syntax,
+so it may be useful to fold along one (or a few) axis only. The ``--axis``
+option allows you to specify indexes of dimensions to fold. Using this
+option, rangesets of unspecified axis there won't be folded. Please note
+however that the obtained result may be suboptimal, this is because
+:class:`.NodeSet` algorithms are optimized for folding along all axis.
+``--axis`` value is a set of 0-indexed integers, representing nD axis, in the
+form of a number or a rangeset. A common case is to restrict folding on a
+single axis, like in the following simple examples::
+
+    $ nodeset --axis=0 -f node1-ib0 node2-ib0 node1-ib1 node2-ib1
+    node[1-2]-ib0,node[1-2]-ib1
+
+    $ nodeset --axis=1 -f node1-ib0 node2-ib0 node1-ib1 node2-ib1
+    node1-ib[0-1],node2-ib[0-1]
+
+Because a single nodeset may have several different dimensions, axis indices
+are silently truncated to fall in the allowed range. Negative indices are
+useful to fold along the last axis whatever number of dimensions used::
+
+    $ nodeset --axis=-1 -f comp-[1-2]-[1-36],login-[1-2]
+    comp-1-[1-36],comp-2-[1-36],login-[1-2]
+
+
 .. _nodeset-groups:
 
 Node groups

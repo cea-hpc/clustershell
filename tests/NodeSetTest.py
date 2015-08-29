@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.NodeSet test suite
-# Written by S. Thiell 2007-12-05
+# Written by S. Thiell (first version in 2007)
 
 
 """Unit test for NodeSet"""
@@ -2197,3 +2197,142 @@ class NodeSetTest(unittest.TestCase):
 
         n1.autostep = 3
         self.assertEqual(n1.copy().autostep, 3)
+
+    def test_nd_fold_axis(self):
+        """test NodeSet fold_axis feature"""
+        n1 = NodeSet("a3b2c0,a2b3c1,a2b4c1,a1b2c0,a1b2c1,a3b2c1,a2b5c1")
+
+        # default dim is unlimited
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold along three axis
+        n1.fold_axis = (0, 1, 2)
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold along one axis
+        n1.fold_axis = [0]
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [1]
+        self.assertEqual(str(n1), "a1b2c0,a3b2c0,a1b2c1,a3b2c1,a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [2]
+        self.assertEqual(str(n1), "a1b2c[0-1],a3b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        # reverse
+        n1.fold_axis = [-1]
+        self.assertEqual(str(n1), "a1b2c[0-1],a3b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [-2]
+        self.assertEqual(str(n1), "a1b2c0,a3b2c0,a1b2c1,a3b2c1,a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [-3]
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        # out of bound silently re-expand everything
+        n1.fold_axis = [3]
+        self.assertEqual(str(n1), "a1b2c0,a3b2c0,a1b2c1,a3b2c1,a2b3c1,a2b4c1,a2b5c1")
+        n1.fold_axis = [-4]
+        self.assertEqual(str(n1), "a1b2c0,a3b2c0,a1b2c1,a3b2c1,a2b3c1,a2b4c1,a2b5c1")
+
+        # fold along two axis
+        n1.fold_axis = [0, 1]
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [0, 2]
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        self.assertEqual(len(n1), 7)
+
+        n1.fold_axis = [1, 2]
+        self.assertEqual(str(n1), "a1b2c[0-1],a3b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # reset fold_axis
+        n1.fold_axis = None
+        self.assertEqual(str(n1), "a[1,3]b2c[0-1],a2b[3-5]c1")
+        self.assertEqual(len(n1), 7)
+
+        # fold_axis: constructor and copy
+        n1.fold_axis = (0, 2)
+        n2 = NodeSet(n1)
+        self.assertEqual(n1.fold_axis, (0, 2))
+        self.assertTrue(n2.fold_axis is None)
+        n2 = NodeSet(n1, fold_axis=n1.fold_axis)
+        self.assertEqual(n1.fold_axis, (0, 2))
+        self.assertEqual(n2.fold_axis, (0, 2))
+        self.assertEqual(str(n2), "a[1,3]b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+        # fold_axis is kept when using copy()
+        n2 = n1.copy()
+        self.assertEqual(n1.fold_axis, (0, 2))
+        self.assertEqual(n2.fold_axis, (0, 2))
+        self.assertEqual(str(n2), "a[1,3]b2c[0-1],a2b3c1,a2b4c1,a2b5c1")
+
+    def test_nd_fold_axis_multi(self):
+        """test NodeSet fold_axis feature (ultimate)"""
+        # A single variable-nD nodeset
+        n1 = NodeSet("master,slave,ln0,ln1,da1c1,da1c2,da2c1,da2c2,"
+                     "x1y1z1,x1y1z2,x1y2z1,x1y2z2,"
+                     "x2y1z1,x2y1z2,x2y2z1,x2y2z2")
+
+        # default is unlimited
+        self.assertEqual(str(n1), "da[1-2]c[1-2],ln[0-1],master,slave,x[1-2]y[1-2]z[1-2]")
+        self.assertEqual(len(n1), 16)
+
+        # fold along one axis
+        n1.fold_axis = [0]
+        self.assertEqual(str(n1), "da[1-2]c1,da[1-2]c2,ln[0-1],master,slave,x[1-2]y1z1,x[1-2]y2z1,x[1-2]y1z2,x[1-2]y2z2")
+        self.assertEqual(len(n1), 16)
+
+        n1.fold_axis = [1]
+        self.assertEqual(str(n1), "da1c[1-2],da2c[1-2],ln0,ln1,master,slave,x1y[1-2]z1,x2y[1-2]z1,x1y[1-2]z2,x2y[1-2]z2")
+        self.assertEqual(len(n1), 16)
+
+        n1.fold_axis = [2]
+        self.assertEqual(str(n1), "da1c1,da2c1,da1c2,da2c2,ln0,ln1,master,slave,x1y1z[1-2],x2y1z[1-2],x1y2z[1-2],x2y2z[1-2]")
+        self.assertEqual(len(n1), 16)
+
+        # reverse
+        n1.fold_axis = [-1] # first indice from the end
+        self.assertEqual(str(n1), "da1c[1-2],da2c[1-2],ln[0-1],master,slave,x1y1z[1-2],x2y1z[1-2],x1y2z[1-2],x2y2z[1-2]")
+        self.assertEqual(len(n1), 16)
+
+        n1.fold_axis = [-2] # second indice from the end
+        self.assertEqual(str(n1), "da[1-2]c1,da[1-2]c2,ln0,ln1,master,slave,x1y[1-2]z1,x2y[1-2]z1,x1y[1-2]z2,x2y[1-2]z2")
+        self.assertEqual(len(n1), 16)
+
+        n1.fold_axis = [-3] # etc.
+        self.assertEqual(str(n1), "da1c1,da2c1,da1c2,da2c2,ln0,ln1,master,slave,x[1-2]y1z1,x[1-2]y2z1,x[1-2]y1z2,x[1-2]y2z2")
+        self.assertEqual(len(n1), 16)
+
+        # out of bound silently re-expand everything
+        n1.fold_axis = [3]
+        self.assertEqual(str(n1), "da1c1,da2c1,da1c2,da2c2,ln0,ln1,master,slave,x1y1z1,x2y1z1,x1y2z1,x2y2z1,x1y1z2,x2y1z2,x1y2z2,x2y2z2")
+        n1.fold_axis = [-4]
+        self.assertEqual(str(n1), "da1c1,da2c1,da1c2,da2c2,ln0,ln1,master,slave,x1y1z1,x2y1z1,x1y2z1,x2y2z1,x1y1z2,x2y1z2,x1y2z2,x2y2z2")
+
+        # fold along two axis
+        n1.fold_axis = [0, 1]
+        self.assertEqual(str(n1), "da[1-2]c[1-2],ln[0-1],master,slave,x[1-2]y[1-2]z1,x[1-2]y[1-2]z2")
+        self.assertEqual(len(n1), 16)
+
+        n1.fold_axis = [0, 2]
+        self.assertEqual(str(n1), "da[1-2]c1,da[1-2]c2,ln[0-1],master,slave,x[1-2]y1z[1-2],x[1-2]y2z[1-2]")
+        self.assertEqual(len(n1), 16)
+
+        n1.fold_axis = [1, 2]
+        self.assertEqual(str(n1), "da1c[1-2],da2c[1-2],ln0,ln1,master,slave,x1y[1-2]z[1-2],x2y[1-2]z[1-2]")
+        self.assertEqual(len(n1), 16)
+
+        # fold along three axis
+        n1.fold_axis = range(3)
+        self.assertEqual(str(n1), "da[1-2]c[1-2],ln[0-1],master,slave,x[1-2]y[1-2]z[1-2]")
+        self.assertEqual(len(n1), 16)

@@ -195,6 +195,9 @@ def nodeset():
     if options.maxsplit is None:
         options.maxsplit = 1
 
+    if options.axis and (not options.fold or options.rangeset):
+        parser.error("--axis option is only supported when folding nodeset")
+
     if options.groupsource and not options.quiet and class_set == RangeSet:
         print >> sys.stderr, "WARNING: option group source \"%s\" ignored" \
                                 % options.groupsource
@@ -277,6 +280,15 @@ def nodeset():
         autofactor = float(options.autostep)
         xset.autostep = int(math.ceil(float(len(xset)) * autofactor))
 
+    # user-specified nD-nodeset fold axis
+    if options.axis:
+        if not options.axis.startswith('-'):
+            # axis are 1-indexed in nodeset CLI (0 ignored)
+            xset.fold_axis = tuple(x - 1 for x in RangeSet(options.axis) if x > 0)
+        else:
+            # negative axis index (only single number supported)
+            xset.fold_axis = [int(options.axis)]
+
     fmt = options.output_format # default to '%s'
 
     # Display result according to command choice
@@ -304,11 +316,8 @@ def main():
     """main script function"""
     try:
         nodeset()
-    except AssertionError, ex:
+    except (AssertionError, IndexError, ValueError), ex:
         print >> sys.stderr, "ERROR:", ex
-        sys.exit(1)
-    except IndexError:
-        print >> sys.stderr, "ERROR: syntax error"
         sys.exit(1)
     except SyntaxError:
         print >> sys.stderr, "ERROR: invalid separator"
