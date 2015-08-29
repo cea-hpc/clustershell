@@ -134,11 +134,12 @@ class NodeSetBase(object):
        'node[1-5,7]-ib[1-2]'
     """
     def __init__(self, pattern=None, rangeset=None, copy_rangeset=True,
-                 autostep=None):
+                 autostep=None, fold_axis=None):
         """New NodeSetBase object initializer"""
         self._autostep = autostep
         self._length = 0
         self._patterns = {}
+        self.fold_axis = fold_axis
         if pattern:
             self._add(pattern, rangeset, copy_rangeset)
         elif rangeset:
@@ -252,6 +253,48 @@ class NodeSetBase(object):
                 cnt += 1
         return cnt
 
+    def _iter_nd_pat(self, pat, rset):
+        """
+        Take a pattern and a RangeSetND object and iterate over nD computed
+        nodeset strings while following fold_axis constraints.
+        """
+        try:
+            if self.fold_axis is None:
+                # fold along all axis (default)
+                fold_axis = range(rset.dim())
+            else:
+                # set of user-provided fold axis (support negative numbers)
+                dims = range(rset.dim())
+                fold_axis = [dims[int(x)] for x in self.fold_axis]
+        except (TypeError, ValueError), exc:
+            raise NodeSetParseError("fold_axis=%s" % self.fold_axis, exc)
+
+        for rgvec in rset.vectors():
+            rgnargs = []    # list of str rangeset args
+            for axis, rangeset in enumerate(rgvec):
+                # build an iterator over rangeset strings to add
+                if len(rangeset) > 1:
+                    if axis not in fold_axis: # expand
+                        rgstrit = rangeset.striter()
+                    else:
+                        rgstrit = ["[%s]" % rangeset]
+                else:
+                    rgstrit = [str(rangeset)]
+
+                # aggregate/expand along previous computed axis...
+                t_rgnargs = []
+                for rgstr in rgstrit: # 1-time when not expanding
+                    if not rgnargs:
+                        t_rgnargs.append([rgstr])
+                    else:
+                        for rga in rgnargs:
+                            t_rgnargs.append(rga + [rgstr])
+                rgnargs = t_rgnargs
+
+            # get nodeset patterns formatted with range strings
+            for rgargs in rgnargs:
+                yield pat % tuple(rgargs)
+
     def __str__(self):
         """Get ranges-based pattern of node list."""
         results = []
@@ -266,23 +309,16 @@ class NodeSetBase(object):
                         rgs = "[%s]" % rgs
                     results.append(pat % rgs)
                 elif rset.dim() > 1:
-                    for rgvec in rset.vectors():
-                        rgargs = []
-                        for rangeset in rgvec:
-                            rgs = str(rangeset)
-                            cnt = len(rangeset)
-                            if cnt > 1:
-                                rgs = "[%s]" % rgs
-                            rgargs.append(rgs)
-                        results.append(pat % tuple(rgargs))
+                    results.extend(self._iter_nd_pat(pat, rset))
         except TypeError:
-            raise NodeSetParseError(pat, "Internal error: " \
-                                         "node pattern and ranges mismatch")
+            raise NodeSetParseError(pat, "Internal error: node pattern and "
+                                         "ranges mismatch")
         return ",".join(results)
 
     def copy(self):
         """Return a shallow copy."""
         cpy = self.__class__()
+        cpy.fold_axis = self.fold_axis
         cpy._autostep = self._autostep
         cpy._length = self._length
         dic = {}
@@ -1071,33 +1107,45 @@ class NodeSet(NodeSetBase):
 
     _VERSION = 2
 
-    def __init__(self, nodes=None, autostep=None, resolver=None):
+    def __init__(self, nodes=None, autostep=None, resolver=None,
+                 fold_axis=None):
         """Initialize a NodeSet object.
 
-        The `nodes' argument may be a valid nodeset string or a NodeSet
+        The `nodes` argument may be a valid nodeset string or a NodeSet
         object. If no nodes are specified, an empty NodeSet is created.
 
-        The optional `autostep' argument is passed to underlying RangeSet
-        objects and aims to enable and make use of the range/step syntax
-        (eg. node[1-9/2]) when converting NodeSet to string (using folding).
-        To enable this feature, autostep must be set there to the min number of
-        indexes that are found at equal distance of each other inside a range
-        before NodeSet starts to use this syntax. For example, autostep=3 (or
-        less) will pack n[2,4,6] into n[2-6/2]. Default autostep value is None
-        which means "inherit whenever possible", ie. do not enable it unless
-        set in NodeSet objects passed as `nodes' here or during arithmetic
-        operations.
-        You may however use the special AUTOSTEP_DISABLED constant to force
+        The optional `autostep` argument is passed to underlying
+        :class:`.RangeSet.RangeSet` objects and aims to enable and make use of
+        the range/step syntax (eg. ``node[1-9/2]``) when converting NodeSet to
+        string (using folding). To enable this feature, autostep must be set
+        there to the min number of indexes that are found at equal distance of
+        each other inside a range before NodeSet starts to use this syntax. For
+        example, `autostep=3` (or less) will pack ``n[2,4,6]`` into
+        ``n[2-6/2]``. Default autostep value is None which means "inherit
+        whenever possible", ie. do not enable it unless set in NodeSet objects
+        passed as `nodes` here or during arithmetic operations.
+        You may however use the special ``AUTOSTEP_DISABLED`` constant to force
         turning off autostep feature.
 
-        The optional `resolver' argument may be used to override the group
+        The optional `resolver` argument may be used to override the group
         resolving behavior for this NodeSet object. It can either be set to a
-        GroupResolver object, to the RESOLVER_NOGROUP constant to disable any
-        group resolution, or to None (default) to use standard NodeSet group
-        resolver (see set_std_group_resolver() at the module level to change
-        it if needed).
+        :class:`.NodeUtils.GroupResolver` object, to the ``RESOLVER_NOGROUP``
+        constant to disable any group resolution, or to None (default) to use
+        standard NodeSet group resolver (see :func:`.set_std_group_resolver()`
+        at the module level to change it if needed).
+
+        nD nodeset only: the optional `fold_axis` parameter, if specified, set
+        the public instance member `fold_axis` to an iterable over nD 0-indexed
+        axis integers. This parameter may be used to disengage some nD folding.
+        That may be useful as all cluster tools don't support folded-nD nodeset
+        syntax. Pass ``[0]``, for example, to only fold along first axis (that
+        is, to fold first dimension using ``[a-b]`` rangeset syntax whenever
+        possible). Using `fold_axis` ensures that rangeset won't be folded on
+        unspecified axis, but please note however, that using `fold_axis` may
+        lead to suboptimial folding, this is because NodeSet algorithms are
+        optimized for folding along all axis (default behavior).
         """
-        NodeSetBase.__init__(self, autostep=autostep)
+        NodeSetBase.__init__(self, autostep=autostep, fold_axis=fold_axis)
 
         # Set group resolver.
         if resolver in (RESOLVER_NOGROUP, RESOLVER_NOINIT):
@@ -1155,6 +1203,7 @@ class NodeSet(NodeSetBase):
         self._resolver = None
         self._parser = ParsingEngine(None)
         if getattr(self, '_version', 1) <= 1:
+            self.fold_axis = None
             # if setting state from first version, a conversion is needed to
             # support native RangeSetND
             old_patterns = self._patterns
@@ -1179,6 +1228,7 @@ class NodeSet(NodeSetBase):
             else:
                 dic[pat] = rangeset.copy()
         cpy._patterns = dic
+        cpy.fold_axis = self.fold_axis
         cpy._autostep = self._autostep
         cpy._resolver = self._resolver
         cpy._parser = self._parser
