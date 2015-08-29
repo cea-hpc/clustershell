@@ -1,3 +1,11 @@
+2015-08-29 S. Thiell <sthiell@stanford.edu>
+
+	* CLI/Nodeset.py: added --axis option to choose nD fold axis (ticket
+	#269).
+	* NodeSet.py: added fold_axis public member to NodeSetBase along with
+	expand algorithm when casting to string to choose nD fold axis (ticket
+	#269).
+
 2015-08-28 S. Thiell <sthiell@stanford.edu>
 
 	* CLI/Config.py: better per-user clush.conf support. clush now also checks
