@@ -5,6 +5,7 @@
 
 """Unit test for CLI/Nodeset.py"""
 
+import random
 import sys
 import unittest
 
@@ -410,6 +411,109 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--expand", "-O", "{%s}", "-S", ":", "-R","1-2"], None, "{1}:{2}\n")
         self._nodeset_t(["--fold", "-O", "{%s}", "-S", ":", "-R","1-2","-X","2-3"], None, "{1,3}\n")
         self._nodeset_t(["-R", "-I0", "-O", "{%s}", "-f", "34-68,89-90"], None, "{34}\n")
+
+    def test_023_axis(self):
+        """test nodeset folding with --axis"""
+        self._nodeset_t(["--axis=0","-f", "bar"], None, "bar\n")
+        self._nodeset_t(["--axis=0","-R","-f", "1,2,3"], None, None, 2,
+                         "--axis option is only supported when folding nodeset\n")
+        self._nodeset_t(["--axis=0","-e", "bar"], None, None, 2,
+                         "--axis option is only supported when folding nodeset\n")
+
+        # 1D and 2D nodeset: fold along axis 0 only
+        self._nodeset_t(["--axis=0","-f", "comp-[1-2]-[1-3],login-[1-2]"], None,
+                         'comp-[1-2]-1,comp-[1-2]-2,comp-[1-2]-3,login-[1-2]\n')
+        # 1D and 2D nodeset: fold along axis 1 only
+        self._nodeset_t(["--axis=1","-f", "comp-[1-2]-[1-3],login-[1-2]"], None,
+                         'comp-1-[1-3],comp-2-[1-3],login-1,login-2\n')
+        # 1D and 2D nodeset: fold along last axis only
+        self._nodeset_t(["--axis=-1","-f", "comp-[1-2]-[1-3],login-[1-2]"], None,
+                         'comp-1-[1-3],comp-2-[1-3],login-[1-2]\n')
+
+        # test for a common case
+        ndnodes = []
+        for ib in range(2):
+            for idx in range(500):
+                ndnodes.append("node%d-ib%d" % (idx, ib))
+        random.shuffle(ndnodes)
+
+        self._nodeset_t(["--axis=0","-f"] + ndnodes, None,
+                         "node[0-499]-ib0,node[0-499]-ib1\n")
+
+        exp_result = []
+        for idx in range(500):
+            exp_result.append("node%d-ib[0-1]" % idx)
+
+        self._nodeset_t(["--axis=1","-f"] + ndnodes, None,
+                         ','.join(exp_result) + '\n')
+
+        # 4D test
+        ndnodes = ["c-1-2-3-4", "c-2-2-3-4", "c-3-2-3-4", "c-5-5-5-5",
+                   "c-5-7-5-5", "c-5-9-5-5", "c-5-11-5-5", "c-9-8-8-08",
+                   "c-9-8-8-09"]
+        self._nodeset_t(["--axis=0","-f"] + ndnodes, None,
+                         "c-5-5-5-5,c-5-7-5-5,c-5-9-5-5,c-5-11-5-5,c-[1-3]-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+        self._nodeset_t(["--axis=1","-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-1-2-3-4,c-2-2-3-4,c-3-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+        self._nodeset_t(["--axis=2","-f"] + ndnodes, None,
+                         "c-5-5-5-5,c-5-7-5-5,c-5-9-5-5,c-5-11-5-5,c-1-2-3-4,c-2-2-3-4,c-3-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+        self._nodeset_t(["--axis=3","-f"] + ndnodes, None,
+                         "c-5-5-5-5,c-5-7-5-5,c-5-9-5-5,c-5-11-5-5,c-1-2-3-4,c-2-2-3-4,c-3-2-3-4,c-9-8-8-[08-09]\n")
+
+        self._nodeset_t(["--axis=0-1","-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-[1-3]-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+        self._nodeset_t(["--axis=1-2","-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-1-2-3-4,c-2-2-3-4,c-3-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+        self._nodeset_t(["--axis=2-3","-f"] + ndnodes, None,
+                         "c-5-5-5-5,c-5-7-5-5,c-5-9-5-5,c-5-11-5-5,c-1-2-3-4,c-2-2-3-4,c-3-2-3-4,c-9-8-8-[08-09]\n")
+        self._nodeset_t(["--axis=0-2","-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-[1-3]-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+        self._nodeset_t(["--axis=1-3","-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-1-2-3-4,c-2-2-3-4,c-3-2-3-4,c-9-8-8-[08-09]\n")
+
+        self._nodeset_t(["--axis=0-3","-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-[1-3]-2-3-4,c-9-8-8-[08-09]\n")
+        self._nodeset_t(["-f"] + ndnodes, None,
+                         "c-5-[5,7,9,11]-5-5,c-[1-3]-2-3-4,c-9-8-8-[08-09]\n")
+
+        # a case where axis and autostep are working
+        self._nodeset_t(["--autostep=4", "--axis=0-1","-f"] + ndnodes, None,
+                         "c-5-[5-11/2]-5-5,c-[1-3]-2-3-4,c-9-8-8-08,c-9-8-8-09\n")
+
+    def test_024_axis_stdin(self):
+        """test nodeset folding with --axis (stdin)"""
+        self._nodeset_t(["--axis=0","-f"], "bar\n", "bar\n")
+        self._nodeset_t(["--axis=0","-R","-f"], "1,2,3", None, 2,
+                         "--axis option is only supported when folding nodeset\n")
+        self._nodeset_t(["--axis=0","-e"], "bar\n", None, 2,
+                         "--axis option is only supported when folding nodeset\n")
+
+        # 1D and 2D nodeset: fold along axis 0 only
+        self._nodeset_t(["--axis=0","-f"], "comp-[1-2]-[1-3],login-[1-2]\n",
+                         'comp-[1-2]-1,comp-[1-2]-2,comp-[1-2]-3,login-[1-2]\n')
+        # 1D and 2D nodeset: fold along axis 1 only
+        self._nodeset_t(["--axis=1","-f"], "comp-[1-2]-[1-3],login-[1-2]\n",
+                         'comp-1-[1-3],comp-2-[1-3],login-1,login-2\n')
+        # 1D and 2D nodeset: fold along last axis only
+        self._nodeset_t(["--axis=-1","-f"], "comp-[1-2]-[1-3],login-[1-2]\n",
+                         'comp-1-[1-3],comp-2-[1-3],login-[1-2]\n')
+
+        # test for a common case
+        ndnodes = []
+        for ib in range(2):
+            for idx in range(500):
+                ndnodes.append("node%d-ib%d" % (idx, ib))
+        random.shuffle(ndnodes)
+
+        self._nodeset_t(["--axis=0","-f"], '\n'.join(ndnodes) + '\n',
+                         "node[0-499]-ib0,node[0-499]-ib1\n")
+
+        exp_result = []
+        for idx in range(500):
+            exp_result.append("node%d-ib[0-1]" % idx)
+
+        self._nodeset_t(["--axis=1","-f"], '\n'.join(ndnodes) + '\n',
+                         ','.join(exp_result) + '\n')
 
 
 class CLINodesetGroupResolverTest1(CLINodesetTestBase):

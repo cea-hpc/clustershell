@@ -321,4 +321,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("--contiguous", action="store_true",
                           dest="contiguous", help="split result into "
                                                   "contiguous subsets")
+        optgrp.add_option("--axis", action="store", dest="axis",
+                          metavar="RANGESET", help="fold along these axis only"
+                                                   "(0..n for nD nodeset)")
         self.add_option_group(optgrp)
