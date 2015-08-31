@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e549978f",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-31T09:26:28Z",
+      "side": 1,
+      "message": "for axis, rangeset in enumerate(rgvec):\n   ...",
+      "revId": "73fa29715e32c0bfeb6e8c339d53f5fb85f2b183",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_054f5b93",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-31T09:26:28Z",
+      "side": 1,
+      "message": "this variable is only used once, just drop it",
+      "revId": "73fa29715e32c0bfeb6e8c339d53f5fb85f2b183",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c5549323",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-31T09:26:28Z",
+      "side": 1,
+      "message": "t\u0027es un malade! :)",
+      "revId": "73fa29715e32c0bfeb6e8c339d53f5fb85f2b183",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
