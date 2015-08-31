@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e578b7fa",
+        "filename": "lib/ClusterShell/CLI/Config.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-31T08:46:26Z",
+      "side": 1,
+      "message": "(style) I find this import of os.path.join kinda confusing (due to the common str.join). I\u0027d either use it as os.path.join or import it as \u0027path_join\u0027 or something like this.\n\nexpanduser is fine as it has no famous homonym :)",
+      "revId": "caae9d2ee00b1a26567a18cddb2efadcada757a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
