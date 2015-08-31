@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_853b6b37",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-31T08:37:26Z",
+      "side": 1,
+      "message": "ok",
+      "revId": "270832425d423658b92db83f90b319eacefaaf6c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_453a4337",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-08-31T08:37:26Z",
+      "side": 1,
+      "message": "What if a reload happens within an iteration? I\u0027m concerned that a risk exist of RuntimeError or failure to iterate over all entries in this case...\n\nCan you at least add a test case (slowly loop over entries with a low expiry delay for instance).",
+      "revId": "270832425d423658b92db83f90b319eacefaaf6c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
