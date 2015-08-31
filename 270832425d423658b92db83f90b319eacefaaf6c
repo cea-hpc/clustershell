@@ -33,6 +33,24 @@
       "revId": "270832425d423658b92db83f90b319eacefaaf6c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1b9fb804",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-31T15:50:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_453a4337",
+      "revId": "270832425d423658b92db83f90b319eacefaaf6c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
