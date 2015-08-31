@@ -16,6 +16,24 @@
       "revId": "caae9d2ee00b1a26567a18cddb2efadcada757a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_57ff5401",
+        "filename": "lib/ClusterShell/CLI/Config.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-08-31T16:11:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e578b7fa",
+      "revId": "caae9d2ee00b1a26567a18cddb2efadcada757a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
