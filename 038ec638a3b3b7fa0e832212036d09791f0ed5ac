@@ -16,6 +16,24 @@
       "revId": "038ec638a3b3b7fa0e832212036d09791f0ed5ac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cb157d4a",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-01T14:02:24Z",
+      "side": 1,
+      "message": "Hm yes, sorry about that, I should have changed file content. Will try to push this mod later. Thx for the review!",
+      "parentUuid": "9ad9bd40_1df24b9a",
+      "revId": "038ec638a3b3b7fa0e832212036d09791f0ed5ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
