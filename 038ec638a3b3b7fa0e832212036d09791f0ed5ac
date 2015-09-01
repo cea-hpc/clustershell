@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1df24b9a",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-09-01T07:16:01Z",
+      "side": 1,
+      "message": "Well, the point of the test was to test what happens when the content of the file changes.\n\nI have checked and it is safe, because the keys are not modified, only values change (and the definition of mappings mentions references over arbitrary objects, i.e. mutable ones). Make sure this remains the case in the future.",
+      "revId": "038ec638a3b3b7fa0e832212036d09791f0ed5ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
