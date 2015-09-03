@@ -62,6 +62,7 @@ Usage example
 """
 
 import re
+import os
 import sys
 
 import ClusterShell.NodeUtils as NodeUtils
@@ -73,9 +74,18 @@ from ClusterShell.RangeSet import RangeSetPaddingError
 
 
 # Define default GroupResolver object used by NodeSet
-DEF_GROUPS_CONFIG = "/etc/clustershell/groups.conf"
+DEF_GROUPS_CONFIGS = [
+    # per-user groups.conf config top override
+    os.path.join(os.environ.get('XDG_CONFIG_HOME',
+                                os.path.expanduser('~/.config')),
+                 'clustershell', 'groups.conf'),
+    # default pip --user config file
+    os.path.expanduser('~/.local/etc/clustershell/groups.conf'),
+    # system-wide config file
+    '/etc/clustershell/groups.conf'
+]
 ILLEGAL_GROUP_CHARS = set("@,!&^*")
-_DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIG, \
+_DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIGS,
                                                         ILLEGAL_GROUP_CHARS)
 # Standard group resolver
 RESOLVER_STD_GROUP = _DEF_RESOLVER_STD_GROUP
@@ -83,7 +93,7 @@ RESOLVER_STD_GROUP = _DEF_RESOLVER_STD_GROUP
 #   RESOLVER_NOGROUP => avoid any group resolution at all
 #   RESOLVER_NOINIT  => reserved use for optimized copy()
 RESOLVER_NOGROUP = -1
-RESOLVER_NOINIT  = -2
+RESOLVER_NOINIT = -2
 # 1.5 compat (deprecated)
 STD_GROUP_RESOLVER = RESOLVER_STD_GROUP
 NOGROUP_RESOLVER = RESOLVER_NOGROUP

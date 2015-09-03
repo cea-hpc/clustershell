@@ -231,7 +231,8 @@ class UpcallGroupSource(GroupSource):
         # Fetch the data if unknown of just purged
         if key not in cache:
             cache_expiry = time.time() + self.cache_delay
-            # $SOURCE is always replaced by current name
+            # $CFGDIR and $SOURCE always replaced
+            args['CFGDIR'] = self.cfgdir
             args['SOURCE'] = self.name
             cache[key] = (self._upcall_read(upcall, args), cache_expiry)
 
@@ -498,12 +499,28 @@ class GroupResolverConfig(GroupResolver):
     """
     SECTION_MAIN = 'Main'
 
-    def __init__(self, configfile, illegal_chars=None):
-        """Initialize GroupResolverConfig from configfile"""
+    def __init__(self, filenames, illegal_chars=None):
+        """
+        Initialize GroupResolverConfig from filenames. Only the first
+        accessible config filename is loaded.
+        """
         GroupResolver.__init__(self, illegal_chars=illegal_chars)
 
         self.config = ConfigParser()
-        self.config.read(configfile)
+
+        configfile = ''
+        if isinstance(filenames, basestring):
+            # single filename
+            configfile = filenames
+            self.config.read(configfile)
+        else:
+            # With 1.7, a list of filenames can be provided. If so, we take
+            # the first accessible config filename only.
+            for filename in filenames:
+                if os.path.isfile(filename) and os.access(filename, os.R_OK):
+                    configfile = filename
+                    self.config.read(filename)
+                    break
 
         self._parse_config(os.path.dirname(configfile))
 

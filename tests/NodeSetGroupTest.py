@@ -879,6 +879,26 @@ list: echo deep
                          ['@rack-all', '@rack-x2', '@rack-x2y1', '@rack-x2y2',
                           '@rack-y1', '@rack-y2'])
 
+    def testConfigCFGDIR(self):
+        """test groups with $CFGDIR use in upcalls"""
+        f = make_temp_file("""
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+list: basename $CFGDIR
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        # just a trick to check $CFGDIR resolution...
+        tmpgroup = os.path.basename(os.path.dirname(f.name))
+        self.assertEqual(nodeset.groups().keys(), ['@%s' % tmpgroup])
+        self.assertEqual(str(nodeset), "example[1-100]")
+        self.assertEqual(nodeset.regroup(), "@%s" % tmpgroup)
+        self.assertEqual(str(NodeSet("@%s" % tmpgroup, resolver=res)),
+                         "example[1-100]")
+
 
 class NodeSetGroup2GSTest(unittest.TestCase):
 

@@ -1,8 +1,8 @@
-.\" Man page generated from reStructeredText.
+.\" Man page generated from reStructuredText.
 .
-.TH GROUPS.CONF 5 "2012-03-31" "1.6" "ClusterShell User Manual"
+.TH GROUPS.CONF 5 "2015-09-03" "1.7" "ClusterShell User Manual"
 .SH NAME
-groups.conf \- Configuration file for ClusterShell external node groups
+groups.conf \- Configuration file for ClusterShell node groups
 .
 .nr rst2man-indent-level 0
 .
@@ -32,10 +32,21 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .SH DESCRIPTION
 .sp
-The ClusterShell library obtains node groups configuration options from the
-system\-wide configuration file \fI/etc/clustershell/groups.conf\fP.
+The ClusterShell library obtains its node groups configuration from the FIRST
+readable \fIgroups.conf\fP file found in the following order:
+.INDENT 0.0
+.IP 1. 3
+$XDG_CONFIG_HOME/clustershell/groups.conf
+.IP 2. 3
+$HOME/.config/clustershell/groups.conf (if $XDG_CONFIG_HOME not defined)
+.IP 3. 3
+$HOME/.local/etc/clustershell/groups.conf
+.IP 4. 3
+/etc/clustershell/groups.conf
+.UNINDENT
+.sp
 Additional configuration files are also read from the directories set by the
-groupsdir option, if present.  See the \fCgroupsdir\fP option below for further
+confdir option, if present.  See the \fBconfdir\fP option below for further
 details.
 .sp
 Configuration files have a format in the style of RFC 822 potentially composed
@@ -44,11 +55,9 @@ sections: Main and Group source:
 .INDENT 0.0
 .TP
 .B Main
-.
 Global configuration options. There should be only one Main section.
 .TP
 .B \fIGroup_source\fP
-.sp
 The \fIGroup_source\fP section(s) define the configuration for each node group
 source (or namespace). This configuration consists in external commands
 definition (map, all, list and reverse).
@@ -57,24 +66,31 @@ definition (map, all, list and reverse).
 Only \fIGroup_source\fP section(s) are allowed in additional configuration files.
 .SS [Main] OPTIONS
 .sp
-Configuration parameters of the \fCMain\fP section are described below.
+Configuration parameters of the \fBMain\fP section are described below.
 .INDENT 0.0
 .TP
 .B default
-.
 Specify the default group source (group namespace) used by the NodeSet parser
 when the user does not explicitly specify the group source (eg. "@io").
 .TP
-.B groupsdir
-.
-Optional list of directories where the ClusterShell library should look
-for .conf files which define group sources to use. Each file in these
+.B confdir
+Optional list of directories where the ClusterShell library should look for
+\fB\&.conf\fP files which define group sources to use. Each file in these
 directories with the .conf suffix should contain one or more \fIGroup_source\fP
-sections as documented in [\fIGroup_source\fP] options below. These will be
-merged with the group sources defined in \fI/etc/clustershell/groups.conf\fP to
-form the complete set of group sources that ClusterShell will use. Duplicate
+sections as documented in [\fIGroup_source\fP] options below. These will be merged
+with the group sources defined in \fI/etc/clustershell/groups.conf\fP to form the
+complete set of group sources that ClusterShell will use. Duplicate
 \fIGroup_source\fP sections are not allowed.  Note: .conf files that are not
-readable by the current user are ignored.
+readable by the current user are ignored. If relative paths are used for
+confdir, they are relative to the directory where groups.conf resides.
+.TP
+.B autodir
+Optional list of directories where the ClusterShell library should look for
+\fB\&.yaml\fP files that define in\-file group dictionaries. No need to call
+external commands for these files, they are parsed by the ClusterShell library
+itself.  Multiple group source definitions in the same file is supported. If
+relative paths are used for autodir, they are relative to the directory where
+groups.conf resides.
 .UNINDENT
 .SS [\fIGroup_source\fP] OPTIONS
 .sp
@@ -82,38 +98,48 @@ Configuration parameters of each group source section are described below.
 .INDENT 0.0
 .TP
 .B map
-.
 Specify the external shell command used to resolve a group name into a
 nodeset, list of nodes or list of nodeset (separated by space characters or
 by carriage returns). The variable \fI$GROUP\fP is replaced before executing the
 command.
 .TP
 .B all
-.
 Optional external shell command that should return a nodeset, list of
 nodes or list of nodeset of all nodes for this group source. If not
-specified, the library will try to resolve all nodes by using the \fClist\fP
-external command in the same group source followed by \fCmap\fP for each group.
+specified, the library will try to resolve all nodes by using the \fBlist\fP
+external command in the same group source followed by \fBmap\fP for each group.
 .TP
 .B list
-.
 Optional external shell command that should return the list of all groups
 for this group source (separated by space characters or by carriage
 returns).
 .TP
 .B reverse
-.
 Optional external shell command used to find the group(s) of a single
 node. The variable $NODE is previously replaced. If this upcall is not
 specified, the reverse operation is computed in memory by the library from
 the \fIlist\fP and \fImap\fP external calls. Also, if the number of nodes to
 reverse is greater than the number of available groups, the \fIreverse\fP
 external command is avoided automatically.
+.TP
+.B cache_delay
+Number of seconds each upcall result is kept in cache, in memory only.
+Default is 3600 seconds. This is useful only for daemons using nodegroups.
 .UNINDENT
 .sp
 When the library executes a group source external shell command, the current
-working directory is previously set to the corresponding groupsdir. This
+working directory is previously set to the corresponding confdir. This
 allows the use of relative paths for third party files in the command.
+.sp
+In addition to context\-dependent $GROUP and $NODE variables described above, the
+two following variables are always available and also replaced before executing
+shell commands:
+.INDENT 0.0
+.IP \(bu 2
+\fI$CFGDIR\fP is replaced by groups.conf base directory path
+.IP \(bu 2
+\fI$SOURCE\fP is replaced by current source name
+.UNINDENT
 .sp
 Each external command might return a non\-zero return code when the operation
 is not doable. But if the call return zero, for instance, for a non\-existing
@@ -121,7 +147,9 @@ group, the user will not receive any error when trying to resolve such unknown
 group.  The desired behaviour is up to the system administrator.
 .SH RESOURCE USAGE
 .sp
-All external command results are cached in memory to avoid multiple calls.
+All external command results are cached in memory to avoid multiple calls. Each
+result is kept for a limited amount of time. See cache_delay option to tune
+this behaviour.
 .SH EXAMPLES
 .sp
 Simple configuration file for local groups and slurm partitions binding.
@@ -129,11 +157,12 @@ Simple configuration file for local groups and slurm partitions binding.
 .nf
 [Main]
 default: local
-#groupsdir: /etc/clustershell/groups.conf.d/
+confdir: groups.conf.d
+autodir: groups.d
 
 [local]
 map: sed \-n \(aqs/^$GROUP:(.*)/1/p\(aq /etc/clustershell/groups
-list: sed \-n \(aqs/^\e(\fC[0\-9A\-Za\-z_\-]\fP*\e):.*/\e1/p\(aq /etc/clustershell/groups
+list: sed \-n \(aqs/^\e(\fB[0\-9A\-Za\-z_\-]\fP*\e):.*/\e1/p\(aq /etc/clustershell/groups
 
 [slurm]
 map: sinfo \-h \-o "%N" \-p $GROUP
@@ -146,22 +175,30 @@ reverse: sinfo \-h \-N \-o "%P" \-n $NODE
 .INDENT 0.0
 .TP
 .B \fI/etc/clustershell/groups.conf\fP
-.sp
-System\-wide external node groups configuration file.
+System\-wide node groups configuration file.
 .TP
 .B \fI/etc/clustershell/groups.conf.d/\fP
-.sp
 Recommended directory for additional configuration files.
+.TP
+.B \fI/etc/clustershell/groups.d/\fP
+Recommended directory for \fIautodir\fP, where native group definitions files
+(.yaml files) are found.
+.TP
+.B \fI$XDG_CONFIG_HOME/clustershell/groups.conf\fP
+Main user groups.conf configuration file. If $XDG_CONFIG_HOME is not defined,
+\fI$HOME/.config/clustershell/groups.conf\fP is used instead.
+.TP
+.B \fI$HOME/.local/etc/clustershell/groups.conf\fP
+Local groups.conf user configuration file (default installation for pip \-\-user)
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fCclush\fP(1), \fCclubak\fP(1), \fCnodeset\fP(1)
+\fBclush\fP(1), \fBclubak\fP(1), \fBnodeset\fP(1)
 .sp
 \fI\%http://clustershell.sourceforge.net/\fP
 .SH AUTHOR
-Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
+Stephane Thiell, <sthiell@stanford.edu>
 .SH COPYRIGHT
 CeCILL-C V1
 .\" Generated by docutils manpage writer.
-.\" 
 .
