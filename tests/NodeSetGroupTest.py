@@ -233,10 +233,22 @@ class NodeSetGroupTest(unittest.TestCase):
         """test groups with an empty configuration file"""
         f = make_temp_file("")
         res = GroupResolverConfig(f.name)
+        # NodeSet should work
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
+        # without group support
         self.assertRaises(GroupResolverSourceError, nodeset.regroup)
-        # non existant group
+        self.assertRaises(GroupResolverSourceError, NodeSet, "@bar", resolver=res)
+
+    def testConfigResolverEmpty(self):
+        """test groups resolver with an empty file list"""
+        # empty file list OR as if no config file is parsable
+        res = GroupResolverConfig([])
+        # NodeSet should work
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        # without group support
+        self.assertRaises(GroupResolverSourceError, nodeset.regroup)
         self.assertRaises(GroupResolverSourceError, NodeSet, "@bar", resolver=res)
 
     def testConfigBasicLocal(self):
@@ -878,6 +890,26 @@ list: echo deep
         self.assertEqual(sorted(nodeset.groups().keys()),
                          ['@rack-all', '@rack-x2', '@rack-x2y1', '@rack-x2y2',
                           '@rack-y1', '@rack-y2'])
+
+    def testConfigCFGDIR(self):
+        """test groups with $CFGDIR use in upcalls"""
+        f = make_temp_file("""
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+list: basename $CFGDIR
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        # just a trick to check $CFGDIR resolution...
+        tmpgroup = os.path.basename(os.path.dirname(f.name))
+        self.assertEqual(nodeset.groups().keys(), ['@%s' % tmpgroup])
+        self.assertEqual(str(nodeset), "example[1-100]")
+        self.assertEqual(nodeset.regroup(), "@%s" % tmpgroup)
+        self.assertEqual(str(NodeSet("@%s" % tmpgroup, resolver=res)),
+                         "example[1-100]")
 
 
 class NodeSetGroup2GSTest(unittest.TestCase):
