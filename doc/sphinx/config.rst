@@ -15,7 +15,7 @@ several *clush* tool parameters::
 files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/clush.conf
-    $HOME/.config/clustershell/clush.conf (if $XDG_CONFIG_HOME not defined)
+    $HOME/.config/clustershell/clush.conf (only if $XDG_CONFIG_HOME is not defined)
     $HOME/.local/etc/clustershell/clush.conf
     $HOME/.clush.conf (deprecated, for 1.6 compatibility only)
 
@@ -99,25 +99,46 @@ The following table describes available *clush* config file settings.
 Node groups
 -----------
 
-The basics
-^^^^^^^^^^
+ClusterShell defines a *node group* syntax to represent a collection of nodes.
+This is a convenient way to manipulate node sets, especially in HPC (High
+Performance Computing) or with large server farms. This section explains how
+to configure node group **sources**. Please see also :ref:`nodeset node groups
+<nodeset-groups>` for specific usage examples.
 
-ClusterShell defines node group as a collection of nodes, see section
-:ref:`nodeset-groups` for usage information. This section explains how to
-configure group nodes.
+groups.conf
+^^^^^^^^^^^
 
-The system-wide library configuration file */etc/clustershell/groups.conf*
-defines how the ClusterShell library obtains node groups configuration, mainly
-the way the library should access external node group **sources**. These
-**sources** provide external calls to list groups, to get nodes contained in
-specified group, etc. The following example is the content of a
-*groups.conf* file where node groups are bound to the source named *genders*
-by default::
+ClusterShell loads *groups.conf* configuration files that define how to
+obtain node groups configuration, ie. the way the library should access
+file-based or external node group **sources**.
+
+The following configuration file defines system-wide default values for
+*groups.conf*::
+
+    /etc/clustershell/groups.conf
+
+*groups.conf* settings might then be overridden per user if one of the
+following files is found, in priority order::
+
+    $XDG_CONFIG_HOME/clustershell/groups.conf
+    $HOME/.config/clustershell/groups.conf (only if $XDG_CONFIG_HOME is not defined)
+    $HOME/.local/etc/clustershell/groups.conf
+
+This makes possible for an user to have its own *node groups* configuration.
+If no readable configuration file is found, group support will be disabled but
+other node set operations will still work.
+
+*groups.conf* defines configuration sub-directories, but may also define
+source definitions by itself. These **sources** provide external calls that
+are detailed in :ref:`group-sources-upcalls`.
+
+The following example shows the content of a *groups.conf* file where node
+groups are bound to the source named *genders* by default::
 
     [Main]
     default: genders
-    confdir: /etc/clustershell/groups.conf.d
-    autodir: /etc/clustershell/groups.d
+    confdir: /etc/clustershell/groups.conf.d $CFGDIR/groups.conf.d
+    autodir: /etc/clustershell/groups.d $CFGDIR/groups.d
 
     [genders]
     map: nodeattr -n $GROUP
@@ -130,25 +151,34 @@ by default::
     list: sinfo -h -o "%P"
     reverse: sinfo -h -N -o "%P" -n $NODE
 
-This configuration file is parsed by Python's `ConfigParser`_:
+The *groups.conf* files are parsed with Python's `ConfigParser`_:
 
 * The first section whose name is *Main* accepts the following keywords:
 
-  * *default* defines a **default node group source** by referencing a valid
-    section header
-  * *confdir* defines an optional list of directories where the ClusterShell
-    library should look for .conf files which define group sources to use.
-    Each file in these directories with the .conf suffix should contain one or
-    more node group source sections as documented below.  These will be merged
-    with the group sources defined in */etc/clustershell/groups.conf* to form
-    the complete set of group sources to use. Duplicate group source sections
-    are not allowed.  Configuration files that are not readable by the current
-    user are ignored (except the one that defines the default group source).
+  * *default* defines a **default node group source** (eg. by referencing a
+    valid section header)
+  * *confdir* defines an optional list of directory paths where the
+    ClusterShell library should look for **.conf** files which define group
+    sources to use.  Each file in these directories with the .conf suffix
+    should contain one or more node group source sections as documented below.
+    These will be merged with the group sources defined in the main
+    *groups.conf* to form the complete set of group sources to use. Duplicate
+    group source sections are not allowed in those files. Configuration files
+    that are not readable by the current user are ignored (except the one that
+    defines the default group source). The variable `$CFGDIR` is replaced by
+    the path of the highest priority configuration directory found (where
+    *groups.conf* resides). The default *confdir* value enables both
+    system-wide and any installed user configuration (thanks to `$CFGDIR`).
+    Duplicate directory paths are ignored.
   * *autodir* defines an optional list of directories where the ClusterShell
     library should look for **.yaml** files that define in-file group
     dictionaries. No need to call external commands for these files, they are
     parsed by the ClusterShell library itself. Multiple group source
-    definitions in the same file is supported.
+    definitions in the same file is supported. The variable `$CFGDIR` is
+    replaced by the path of the highest priority configuration directory found
+    (where *groups.conf* resides). The default *confdir* value enables both
+    system-wide and any installed user configuration (thanks to `$CFGDIR`).
+    Duplicate directory paths are ignored.
 
 * Each following section (`genders`, `slurm`) defines a  group source. The
   map, all, list and reverse upcalls are explained below in
@@ -193,9 +223,7 @@ An example of such configuration is available at::
     /etc/clustershell/groups.d/cluster.yaml.example
 
 Just rename it to ``cluster.yaml`` and be sure that *autodir* is set to enable
-it.
-
-Feel free to edit this file to fit your needs.
+it. Feel free to edit this file to fit your needs.
 
 .. _group-sources-upcalls:
 
@@ -225,9 +253,14 @@ four upcalls:
   groups, the reverse external command is avoided automatically to reduce
   resolution time.
 
-In addition to context-dependent *$GROUP* and *$NODE* variables, the variable
-*$SOURCE* is always replaced by the source name before command execution.
-Please see :ref:`group-multi-sources`.
+In addition to context-dependent *$GROUP* and *$NODE* variables described
+above, the two following variables are always available and also replaced
+before executing shell commands:
+
+* *$CFGDIR* is replaced by *groups.conf* base directory path
+* *$SOURCE* is replaced by current source name
+
+Please see :ref:`group-multi-sources` for a particular use of *$SOURCE*.
 
 Return code of external calls
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

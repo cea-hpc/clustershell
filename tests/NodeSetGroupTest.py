@@ -233,10 +233,22 @@ class NodeSetGroupTest(unittest.TestCase):
         """test groups with an empty configuration file"""
         f = make_temp_file("")
         res = GroupResolverConfig(f.name)
+        # NodeSet should work
         nodeset = NodeSet("example[1-100]", resolver=res)
         self.assertEqual(str(nodeset), "example[1-100]")
+        # without group support
         self.assertRaises(GroupResolverSourceError, nodeset.regroup)
-        # non existant group
+        self.assertRaises(GroupResolverSourceError, NodeSet, "@bar", resolver=res)
+
+    def testConfigResolverEmpty(self):
+        """test groups resolver with an empty file list"""
+        # empty file list OR as if no config file is parsable
+        res = GroupResolverConfig([])
+        # NodeSet should work
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        # without group support
+        self.assertRaises(GroupResolverSourceError, nodeset.regroup)
         self.assertRaises(GroupResolverSourceError, NodeSet, "@bar", resolver=res)
 
     def testConfigBasicLocal(self):
@@ -703,6 +715,55 @@ list: echo bar
             f.close()
             shutil.rmtree(dname, ignore_errors=True)
 
+    def testConfigGroupsMultipleDirs(self):
+        """test groups with multiple confdir defined"""
+        dname1 = make_temp_dir()
+        dname2 = make_temp_dir()
+        # Notes:
+        #   - use dname1 two times to check dup checking code
+        #   - use quotes on one of the directory path
+        f = make_temp_file("""
+
+[Main]
+default: local2
+confdir: "%s" %s %s
+
+[local]
+map: echo example[1-100]
+list: echo foo
+        """ % (dname1, dname2, dname1))
+        fs1 = make_temp_file("""
+[local1]
+map: echo loc1node[1-100]
+list: echo bar
+        """, suffix=".conf", dir=dname1)
+        fs2 = make_temp_file("""
+[local2]
+map: echo loc2node[02-50]
+list: echo toto
+        """, suffix=".conf", dir=dname2)
+        try:
+            res = GroupResolverConfig(f.name)
+            nodeset = NodeSet("example[1-100]", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-100]")
+            # local
+            self.assertEqual(nodeset.regroup("local"), "@local:foo")
+            self.assertEqual(str(NodeSet("@local:foo", resolver=res)), "example[1-100]")
+            # local1
+            nodeset = NodeSet("loc1node[1-100]", resolver=res)
+            self.assertEqual(nodeset.regroup("local1"), "@local1:bar")
+            self.assertEqual(str(NodeSet("@local1:bar", resolver=res)), "loc1node[1-100]")
+            # local2
+            nodeset = NodeSet("loc2node[02-50]", resolver=res)
+            self.assertEqual(nodeset.regroup(), "@toto") # default group source
+            self.assertEqual(str(NodeSet("@toto", resolver=res)), "loc2node[02-50]")
+        finally:
+            fs2.close()
+            fs1.close()
+            f.close()
+            shutil.rmtree(dname2, ignore_errors=True)
+            shutil.rmtree(dname1, ignore_errors=True)
+
     def testConfigGroupsDirDupConfig(self):
         """test groups with duplicate in groupsdir"""
         dname = make_temp_dir()
@@ -878,6 +939,26 @@ list: echo deep
         self.assertEqual(sorted(nodeset.groups().keys()),
                          ['@rack-all', '@rack-x2', '@rack-x2y1', '@rack-x2y2',
                           '@rack-y1', '@rack-y2'])
+
+    def testConfigCFGDIR(self):
+        """test groups with $CFGDIR use in upcalls"""
+        f = make_temp_file("""
+[Main]
+default: local
+
+[local]
+map: echo example[1-100]
+list: basename $CFGDIR
+        """)
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("example[1-100]", resolver=res)
+        # just a trick to check $CFGDIR resolution...
+        tmpgroup = os.path.basename(os.path.dirname(f.name))
+        self.assertEqual(nodeset.groups().keys(), ['@%s' % tmpgroup])
+        self.assertEqual(str(nodeset), "example[1-100]")
+        self.assertEqual(nodeset.regroup(), "@%s" % tmpgroup)
+        self.assertEqual(str(NodeSet("@%s" % tmpgroup, resolver=res)),
+                         "example[1-100]")
 
 
 class NodeSetGroup2GSTest(unittest.TestCase):

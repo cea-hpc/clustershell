@@ -2,14 +2,14 @@
  groups.conf
 =============
 
---------------------------------------------------------
-Configuration file for ClusterShell external node groups
---------------------------------------------------------
+-----------------------------------------------
+Configuration file for ClusterShell node groups
+-----------------------------------------------
 
-:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2012-03-31
+:Author: Stephane Thiell, <sthiell@stanford.edu>
+:Date:   2015-10-12
 :Copyright: CeCILL-C V1
-:Version: 1.6
+:Version: 1.7
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -17,15 +17,22 @@ Configuration file for ClusterShell external node groups
 DESCRIPTION
 ===========
 
-The ClusterShell library obtains node groups configuration options from the
-system-wide configuration file */etc/clustershell/groups.conf*.
+The ClusterShell library obtains its node groups configuration from the
+following sources in the following order:
+
+ 1. user configuration file (*$XDG_CONFIG_HOME/clustershell/groups.conf*)
+ 2. local pip user installation (*$HOME/.local/etc/clustershell/groups.conf*)
+ 3. system-wide configuration file (*/etc/clustershell/groups.conf*)
+
+If no *groups.conf* is found, group support will be disabled.
+
 Additional configuration files are also read from the directories set by the
-groupsdir option, if present.  See the ``groupsdir`` option below for further
+confdir option, if present.  See the ``confdir`` option below for further
 details.
 
 Configuration files have a format in the style of RFC 822 potentially composed
 of several sections which may be present in any order. There are two types of
-sections: Main and Group source:
+sections: Main and *Group_source*:
 
 Main
   Global configuration options. There should be only one Main section.
@@ -45,15 +52,29 @@ default
   Specify the default group source (group namespace) used by the NodeSet parser
   when the user does not explicitly specify the group source (eg. "@io").
 
-groupsdir
-  Optional list of directories where the ClusterShell library should look
-  for .conf files which define group sources to use. Each file in these
+confdir
+  Optional list of directories where the ClusterShell library should look for
+  **.conf** files which define group sources to use. Each file in these
   directories with the .conf suffix should contain one or more *Group_source*
-  sections as documented in [*Group_source*] options below. These will be
-  merged with the group sources defined in */etc/clustershell/groups.conf* to
-  form the complete set of group sources that ClusterShell will use. Duplicate
+  sections as documented in [*Group_source*] options below. These will be merged
+  with the group sources defined in */etc/clustershell/groups.conf* to form the
+  complete set of group sources that ClusterShell will use. Duplicate
   *Group_source* sections are not allowed.  Note: .conf files that are not
-  readable by the current user are ignored.
+  readable by the current user are ignored (except the one that defines the
+  default group source). The variable *$CFGDIR* is replaced by the path of the
+  highest priority configuration directory found (where groups.conf resides).
+  The default confdir value enables both system-wide and any installed user
+  configuration (thanks to *$CFGDIR*). Duplicate directory paths are ignored.
+
+autodir
+  Optional list of directories where the ClusterShell library should look for
+  **.yaml** files that define in-file group dictionaries. No need to call
+  external commands for these files, they are parsed by the ClusterShell library
+  itself.  Multiple group source definitions in the same file is supported. The
+  variable *$CFGDIR* is replaced by the path of the highest priority
+  configuration directory found (where groups.conf resides). The default
+  confdir value enables both system-wide and any installed user configuration
+  (thanks to *$CFGDIR*). Duplicate directory paths are ignored.
 
 
 [*Group_source*] OPTIONS
@@ -86,8 +107,15 @@ cache_delay
   Default is 3600 seconds. This is useful only for daemons using nodegroups.
 
 When the library executes a group source external shell command, the current
-working directory is previously set to the corresponding groupsdir. This
+working directory is previously set to the corresponding confdir. This
 allows the use of relative paths for third party files in the command.
+
+In addition to context-dependent $GROUP and $NODE variables described above, the
+two following variables are always available and also replaced before executing
+shell commands:
+
+* *$CFGDIR* is replaced by groups.conf highest priority base directory path
+* *$SOURCE* is replaced by current source name
 
 Each external command might return a non-zero return code when the operation
 is not doable. But if the call return zero, for instance, for a non-existing
@@ -113,7 +141,8 @@ Simple configuration file for local groups and slurm partitions binding.
 
 | [Main]
 | default: local
-| #groupsdir: /etc/clustershell/groups.conf.d/
+| confdir: /etc/clustershell/groups.conf.d $CFGDIR/groups.conf.d
+| autodir: /etc/clustershell/groups.d $CFGDIR/groups.d
 | 
 | [local]
 | map: sed -n 's/^$GROUP:\(.*\)/\1/p' /etc/clustershell/groups
@@ -131,9 +160,21 @@ FILES
 =====
 
 */etc/clustershell/groups.conf*
-  System-wide external node groups configuration file.
+  System-wide node groups configuration file.
+
 */etc/clustershell/groups.conf.d/*
   Recommended directory for additional configuration files.
+
+*/etc/clustershell/groups.d/*
+  Recommended directory for *autodir*, where native group definition files
+  (.yaml files) are found.
+
+*$XDG_CONFIG_HOME/clustershell/groups.conf*
+  Main user groups.conf configuration file. If $XDG_CONFIG_HOME is not defined,
+  *$HOME/.config/clustershell/groups.conf* is used instead.
+
+*$HOME/.local/etc/clustershell/groups.conf*
+  Local groups.conf user configuration file (default installation for pip --user)
 
 
 SEE ALSO

@@ -43,6 +43,7 @@ group sources are: files, jobs scheduler, custom scripts, etc.).
 
 import glob
 import os
+import shlex
 import sys
 import time
 
@@ -231,7 +232,8 @@ class UpcallGroupSource(GroupSource):
         # Fetch the data if unknown of just purged
         if key not in cache:
             cache_expiry = time.time() + self.cache_delay
-            # $SOURCE is always replaced by current name
+            # $CFGDIR and $SOURCE always replaced
+            args['CFGDIR'] = self.cfgdir
             args['SOURCE'] = self.name
             cache[key] = (self._upcall_read(upcall, args), cache_expiry)
 
@@ -498,14 +500,22 @@ class GroupResolverConfig(GroupResolver):
     """
     SECTION_MAIN = 'Main'
 
-    def __init__(self, configfile, illegal_chars=None):
-        """Initialize GroupResolverConfig from configfile"""
+    def __init__(self, filenames, illegal_chars=None):
+        """
+        Initialize GroupResolverConfig from filenames. Only the first
+        accessible config filename is loaded.
+        """
         GroupResolver.__init__(self, illegal_chars=illegal_chars)
 
+        # support single or multiple config filenames
         self.config = ConfigParser()
-        self.config.read(configfile)
+        parsed = self.config.read(filenames)
 
-        self._parse_config(os.path.dirname(configfile))
+        # check if at least one parsable config file has been found, otherwise
+        # continue with an empty self._sources
+        if parsed:
+            # for proper $CFGDIR selection, take last parsed configfile only
+            self._parse_config(os.path.dirname(parsed[-1]))
 
     def _parse_config(self, cfg_dirname):
         """parse config using relative dir cfg_dirname"""
@@ -515,10 +525,19 @@ class GroupResolverConfig(GroupResolver):
                 opt_confdir = 'groupsdir'
             else:
                 opt_confdir = 'confdir'
+
+            # keep track of loaded confdirs
+            loaded_confdirs = set()
+
             confdirstr = self.config.get(self.SECTION_MAIN, opt_confdir)
-            for confdir in confdirstr.split():
-                # support relative-to-dirname(groups.conf) confdir
-                confdir = os.path.normpath(os.path.join(cfg_dirname, confdir))
+            for confdir in shlex.split(confdirstr):
+                # substitute $CFGDIR, set to the highest priority clustershell
+                # configuration directory that has been found
+                confdir = Template(confdir).safe_substitute(CFGDIR=cfg_dirname)
+                confdir = os.path.normpath(confdir)
+                if confdir in loaded_confdirs:
+                    continue # load each confdir only once
+                loaded_confdirs.add(confdir)
                 if not os.path.isdir(confdir):
                     if not os.path.exists(confdir):
                         continue
@@ -534,10 +553,18 @@ class GroupResolverConfig(GroupResolver):
 
         # parse Main.autodir
         try:
+            # keep track of loaded autodirs
+            loaded_autodirs = set()
+
             autodirstr = self.config.get(self.SECTION_MAIN, 'autodir')
-            for autodir in autodirstr.split():
-                # support relative-to-dirname(groups.conf) autodir
-                autodir = os.path.normpath(os.path.join(cfg_dirname, autodir))
+            for autodir in shlex.split(autodirstr):
+                # substitute $CFGDIR, set to the highest priority clustershell
+                # configuration directory that has been found
+                autodir = Template(autodir).safe_substitute(CFGDIR=cfg_dirname)
+                autodir = os.path.normpath(autodir)
+                if autodir in loaded_autodirs:
+                    continue # load each autodir only once
+                loaded_autodirs.add(autodir)
                 if not os.path.isdir(autodir):
                     if not os.path.exists(autodir):
                         continue
