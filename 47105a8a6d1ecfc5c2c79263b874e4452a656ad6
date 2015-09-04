@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_44a604c3",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-09-04T20:58:23Z",
+      "side": 1,
+      "message": "Couldn\u0027t we just add new groups and overwrite existing group if we just load files in the opposite order? e.g. system then .local then .config then $XDG\n\nIt\u0027s a shame to lose system groups just because you add a new one... Then again could just include the system groups in your config file I guess - but the way config.read works should just append as one would expect. Not sure why you want to stop?\n\n(And only parse confdir files if that is given, yeah.)",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
