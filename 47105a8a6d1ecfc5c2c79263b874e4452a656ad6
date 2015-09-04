@@ -16,6 +16,24 @@
       "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ef80c98d",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-04T22:46:52Z",
+      "side": 1,
+      "message": "I expected this king of comment. I can quite easily change it to work like you said ( and like clush.conf ....yes), as it is supported by config.read(), but in that case, there won\u0027t be a way to disable a group source. If some system group sources are only available by root, it won\u0027t work for the user. That was my concern when I wrote this.",
+      "parentUuid": "1ae5cdf2_44a604c3",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
