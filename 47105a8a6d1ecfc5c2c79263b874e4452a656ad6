@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1ae5cdf2_dd857eae",
+        "filename": "conf/groups.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-09-07T21:05:41Z",
+      "side": 1,
+      "message": "*upcall",
+      "range": {
+        "startLine": 33,
+        "startChar": 69,
+        "endLine": 33,
+        "endChar": 70
+      },
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_44a604c3",
         "filename": "doc/txt/groups.conf.txt",
         "patchSetId": 1
@@ -49,6 +72,47 @@
       "side": 1,
       "message": "Well then say so in a comment somewhere :D\n\nI don\u0027t think a group that doesn\u0027t work is a problem, if the group isn\u0027t explicitely activated then it won\u0027t run anything right? e.g. needs to be explicitely requested by @foo:bar or -s foo\n\nBasically, either the .conf file is parsed and the group is defined, but that\u0027s not a problem if it\u0027s not used ;\nor one of the files in groupsdir is not readable (e.g. root:root 600) and nodeset just fails the open silently, effectively disabling the group.\nCan\u0027t think of anything bad happening, where are raptors when you need \u0027em!",
       "parentUuid": "1ae5cdf2_ef80c98d",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7db62a8c",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-09-07T21:05:41Z",
+      "side": 1,
+      "message": "I\u0027m backing Dominique on this. It could be better to just add or overwrite groups instead of dropping the main setup (root-only groups could be defined in /root if really needed)",
+      "parentUuid": "1ae5cdf2_0a46c3bf",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5dc16ee3",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-09-07T21:05:41Z",
+      "side": 1,
+      "message": "*definition",
+      "range": {
+        "startLine": 163,
+        "startChar": 68,
+        "endLine": 163,
+        "endChar": 69
+      },
       "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
