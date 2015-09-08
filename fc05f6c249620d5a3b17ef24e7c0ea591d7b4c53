@@ -159,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_0d48932c",
+        "filename": "setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T21:04:19Z",
+      "side": 1,
+      "message": "It\u0027s my way to do it :) Well, I\u0027m looking for the best solution for a long time now, and there is no really good clean way to do it with setuptools (for system software like ClusterShell). No clear recommended way to do it. But using data_files for config files put us  closer to some recommended way.",
+      "parentUuid": "1ae5cdf2_38e2f09f",
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_381d90be",
         "filename": "setup.py",
         "patchSetId": 1
