@@ -49,6 +49,29 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_58eedc8c",
+        "filename": "doc/sphinx/guide/examples.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-09-08T07:17:22Z",
+      "side": 1,
+      "message": "too many \u0027first\u0027 in this sentence... pick one",
+      "range": {
+        "startLine": 200,
+        "startChar": 24,
+        "endLine": 200,
+        "endChar": 29
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_fda95a25",
         "filename": "doc/sphinx/guide/examples.rst",
         "patchSetId": 1
@@ -90,6 +113,46 @@
         "endLine": 229,
         "endChar": 13
       },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_78f39873",
+        "filename": "doc/sphinx/install.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-09-08T07:17:22Z",
+      "side": 1,
+      "message": "so that it is",
+      "range": {
+        "startLine": 12,
+        "startChar": 60,
+        "endLine": 12,
+        "endChar": 67
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_38e2f09f",
+        "filename": "setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-09-08T07:17:22Z",
+      "side": 1,
+      "message": "Is that really the regular/recommended/casher way to do it??!",
       "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
