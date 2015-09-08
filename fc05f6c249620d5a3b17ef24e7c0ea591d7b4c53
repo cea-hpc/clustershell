@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_787e38e6",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T04:55:34Z",
+      "side": 1,
+      "message": "U know I like bumping minor version numbers :)",
+      "parentUuid": "1ae5cdf2_ddac9e38",
+      "range": {
+        "startLine": 109,
+        "startChar": 17,
+        "endLine": 109,
+        "endChar": 18
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_fda95a25",
         "filename": "doc/sphinx/guide/examples.rst",
         "patchSetId": 1
@@ -41,6 +65,53 @@
         "startChar": 11,
         "endLine": 229,
         "endChar": 13
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1820d4f6",
+        "filename": "doc/sphinx/guide/examples.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T04:55:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_fda95a25",
+      "range": {
+        "startLine": 229,
+        "startChar": 11,
+        "endLine": 229,
+        "endChar": 13
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_381d90be",
+        "filename": "setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T04:55:34Z",
+      "side": 1,
+      "message": "(CFGDIR definition)",
+      "range": {
+        "startLine": 47,
+        "startChar": 4,
+        "endLine": 47,
+        "endChar": 10
       },
       "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -71,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_781718a4",
+        "filename": "setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T04:55:34Z",
+      "side": 1,
+      "message": "My bad, done.",
+      "parentUuid": "1ae5cdf2_3d63c21b",
+      "range": {
+        "startLine": 52,
+        "startChar": 13,
+        "endLine": 52,
+        "endChar": 15
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5d688ef5",
         "filename": "setup.py",
         "patchSetId": 1
@@ -82,6 +177,30 @@
       "writtenOn": "2015-09-07T21:12:13Z",
       "side": 1,
       "message": "did i miss where CFGDIR is declared?",
+      "range": {
+        "startLine": 58,
+        "startChar": 21,
+        "endLine": 58,
+        "endChar": 27
+      },
+      "revId": "fc05f6c249620d5a3b17ef24e7c0ea591d7b4c53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_58125cb5",
+        "filename": "setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T04:55:34Z",
+      "side": 1,
+      "message": "I guess you did :)",
+      "parentUuid": "1ae5cdf2_5d688ef5",
       "range": {
         "startLine": 58,
         "startChar": 21,
