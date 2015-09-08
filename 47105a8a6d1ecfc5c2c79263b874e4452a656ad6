@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_1877f403",
+        "filename": "conf/groups.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T05:07:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_dd857eae",
+      "range": {
+        "startLine": 33,
+        "startChar": 69,
+        "endLine": 33,
+        "endChar": 70
+      },
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_44a604c3",
         "filename": "doc/txt/groups.conf.txt",
         "patchSetId": 1
@@ -96,6 +120,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_3874b0fc",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T05:07:19Z",
+      "side": 1,
+      "message": "Right, after thinking more about this, I agree it would be better. One behavior however needs to be changed so that is will work smoothly : if we want to put the same config files in user dir than the system ones (eg. with pip), an user should be able to override a source name, which is not possible today (would raise \"source name already exists\"). I need to change it so that when loading 2 times the same sources, it will just override it. This is something to consider.",
+      "parentUuid": "1ae5cdf2_7db62a8c",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5dc16ee3",
         "filename": "doc/txt/groups.conf.txt",
         "patchSetId": 1
@@ -107,6 +149,30 @@
       "writtenOn": "2015-09-07T21:05:41Z",
       "side": 1,
       "message": "*definition",
+      "range": {
+        "startLine": 163,
+        "startChar": 68,
+        "endLine": 163,
+        "endChar": 69
+      },
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_58609c35",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-08T05:07:19Z",
+      "side": 1,
+      "message": "Done, thx!",
+      "parentUuid": "1ae5cdf2_5dc16ee3",
       "range": {
         "startLine": 163,
         "startChar": 68,
