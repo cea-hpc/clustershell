@@ -138,6 +138,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_1c58bf55",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-09-09T22:08:44Z",
+      "side": 1,
+      "message": "Ok, I made a change, tested it a bit, and as groups.conf is loaded using config.read(filenames), options are smoothly inherited from system config if not present, and overrided if needed. So by default, it doesn\u0027t even load system groups.conf.d or groups.d directory, only local ones. But that can be changed or documented as wanted. But the tough thing about groups.conf.d/*.conf and groups.d/*.yaml files is that they are not loaded this way, so duplicates lead to ValueError GroupSource name collision (as I said previously). BUT --- as by default, we have all these dot-files using .example (thx Aurelien ;-), we could stay this way and local user won\u0027t be able to override system source name - it would require a source name changes if user wants to enable a common source. Any thoughts?\n\nP.S. there is no conflict problem for the \"local\" source using local.cfg as it is defined directly in groups.conf AND it is using CFGDIR so only the local local.cfg is used.",
+      "parentUuid": "1ae5cdf2_3874b0fc",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5dc16ee3",
         "filename": "doc/txt/groups.conf.txt",
         "patchSetId": 1
