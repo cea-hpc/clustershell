@@ -156,6 +156,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c54545b4",
+        "filename": "doc/txt/groups.conf.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-03T16:23:35Z",
+      "side": 1,
+      "message": "In a perfect world, I think user would like to override system groups by their own definition. Doing this require to have a slightly more complex patch.\nHowever, I\u0027m fine with going with this limitation for now.\n\nDo not forget to adapt the documentation based on the changes you\u0027ve made.",
+      "parentUuid": "1ae5cdf2_1c58bf55",
+      "revId": "47105a8a6d1ecfc5c2c79263b874e4452a656ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5dc16ee3",
         "filename": "doc/txt/groups.conf.txt",
         "patchSetId": 1
