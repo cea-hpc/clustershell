@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_ff2eb0a4",
+        "filename": "conf/groups.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-12T09:04:13Z",
+      "side": 1,
+      "message": "Are relative paths relative to home user directory?\nIf yes, either enforce ~/ usage or add explicit documentation.\n\nAlso, are path space separated? What about space in path name? Are quote supported?",
+      "revId": "5642d4e1bf0ba2c949a887a9ccd3bb73c2291144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
