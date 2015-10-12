@@ -16,6 +16,24 @@
       "revId": "5be044c743c99be838ab65e7f309c4ececca4b10",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_a20edf32",
+        "filename": "doc/sphinx/further.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-12T09:12:21Z",
+      "side": 1,
+      "message": "According to Wikipedia, both term exist but have a slightly different meaning. Actually, ClusterShell tests cover both regression testing and non-regression testing. So I think you can pick one or the other, at your convenience.",
+      "parentUuid": "baada198_9f7214e4",
+      "revId": "5be044c743c99be838ab65e7f309c4ececca4b10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
