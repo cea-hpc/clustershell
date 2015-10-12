@@ -28,7 +28,7 @@ class TreeTaskTest(unittest.TestCase):
             '[Main]\n%s: dummy-gw\ndummy-gw: dummy-node\n' % HOSTNAME)
         task = task_self()
         task.set_default("auto_tree", True)
-        task.set_default("topology_file", topofile.name)
+        task.TOPOLOGY_CONFIGS = [topofile.name]
         task.run("/bin/hostname", nodes="dummy-node", stderr=True)
         # FIXME gateway errors are not yet being handled correctly
         self.assertEqual(task.max_retcode(), 255)
@@ -44,7 +44,7 @@ class TreeTaskTest(unittest.TestCase):
         task.set_default("auto_tree", True)
         dummyfile = "/some/dummy/path/topo.conf"
         self.assertFalse(os.path.exists(dummyfile))
-        task.set_default("topology_file", dummyfile)
+        task.TOPOLOGY_CONFIGS = [dummyfile]
         # do not raise exception
         task.run("/bin/hostname", nodes="dummy-node")
 
@@ -55,6 +55,6 @@ class TreeTaskTest(unittest.TestCase):
             '[Main]\n%s: dummy-gw\ndummy-gw: dummy-gw\n' % HOSTNAME)
         task = task_self()
         task.set_default("auto_tree", True)
-        task.set_default("topology_file", topofile.name)
+        task.TOPOLOGY_CONFIGS = [topofile.name]
         self.assertRaises(TopologyError, task.run, "/bin/hostname",
                           nodes="dummy-node")

@@ -31,8 +31,7 @@ class CLIClushConfigTest(unittest.TestCase):
         """test CLI.Config.ClushConfig (empty)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-""")
+        f.write("\n")
 
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
@@ -44,7 +43,7 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.fanout, 64)
         self.assertEqual(config.node_count, True)
-        self.assertEqual(config.connect_timeout, 30)
+        self.assertEqual(config.connect_timeout, 10)
         self.assertEqual(config.command_timeout, 0)
         self.assertEqual(config.ssh_user, None)
         self.assertEqual(config.ssh_path, None)
@@ -55,9 +54,7 @@ class CLIClushConfigTest(unittest.TestCase):
         """test CLI.Config.ClushConfig (almost empty)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-[Main]
-""")
+        f.write("[Main]\n")
 
         parser = OptionParser("dummy")
         parser.install_display_options(verbose_options=True)
@@ -69,13 +66,13 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 64)
-        self.assertEqual(config.connect_timeout, 30)
+        self.assertEqual(config.connect_timeout, 10)
         self.assertEqual(config.command_timeout, 0)
         self.assertEqual(config.ssh_user, None)
         self.assertEqual(config.ssh_path, None)
         self.assertEqual(config.ssh_options, None)
         f.close()
-        
+
     def testClushConfigDefault(self):
         """test CLI.Config.ClushConfig (default)"""
 

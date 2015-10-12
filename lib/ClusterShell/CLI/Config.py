@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2010-2015)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -36,9 +36,9 @@ CLI configuration classes
 """
 
 import ConfigParser
-import os
 from os.path import expanduser
 
+from ClusterShell.Defaults import config_paths, DEFAULTS
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, \
     VERB_VERB, VERB_DEBUG, THREE_CHOICES
 
@@ -57,14 +57,14 @@ class ClushConfigError(Exception):
 class ClushConfig(ConfigParser.ConfigParser, object):
     """Config class for clush (specialized ConfigParser)"""
 
-    main_defaults = { "fanout" : "64",
-                      "connect_timeout" : "30",
-                      "command_timeout" : "0",
-                      "history_size" : "100",
-                      "color" : THREE_CHOICES[-1], # auto
-                      "verbosity" : "%d" % VERB_STD,
-                      "node_count" : "yes",
-                      "fd_max" : "16384" }
+    main_defaults = {"fanout": "%d" % DEFAULTS.fanout,
+                     "connect_timeout": "%f" % DEFAULTS.connect_timeout,
+                     "command_timeout": "%f" % DEFAULTS.command_timeout,
+                     "history_size": "100",
+                     "color": THREE_CHOICES[-1], # auto
+                     "verbosity": "%d" % VERB_STD,
+                     "node_count": "yes",
+                     "fd_max": "16384"}
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
@@ -78,15 +78,9 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         if filename:
             files = [filename]
         else:
-            files = ['/etc/clustershell/clush.conf',
-                     # deprecated user config, kept in 1.x for 1.6 compat
-                     expanduser('~/.clush.conf'),
-                     # default pip --user config file
-                     expanduser('~/.local/etc/clustershell/clush.conf'),
-                     # per-user clush.conf config top override
-                     os.path.join(os.environ.get('XDG_CONFIG_HOME',
-                                                 expanduser('~/.config')),
-                                  'clustershell', 'clush.conf')]
+            files = config_paths('clush.conf')
+            # deprecated user config, kept in 1.x for 1.6 compat
+            files.insert(1, expanduser('~/.clush.conf'))
         self.read(files)
 
         # Apply command line overrides
