@@ -267,4 +267,29 @@ group, the user will not receive any error when trying to resolve such unknown
 group. The desired behavior is up to the system administrator.
 
 
+.. _defaults-config:
+
+Library Defaults
+----------------
+
+.. warning:: Modifying library defaults is for advanced users only as that
+   could change the behavior of tools using ClusterShell. Moreover, tools are
+   free to enforce their own defaults, so changing library defaults may not
+   change a global behavior as expected.
+
+Since version 1.7, most defaults of the ClusterShell library may be overridden
+in *defaults.conf*.
+
+The following configuration file defines ClusterShell system-wide defaults::
+
+    /etc/clustershell/defaults.conf
+
+*defaults.conf* settings might then be overridden per user if one of the
+following files is found, in priority order::
+
+    $XDG_CONFIG_HOME/clustershell/defaults.conf
+    $HOME/.config/clustershell/defaults.conf (only if $XDG_CONFIG_HOME is not defined)
+    $HOME/.local/etc/clustershell/defaults.conf
+
+
 .. _ConfigParser: http://docs.python.org/library/configparser.html

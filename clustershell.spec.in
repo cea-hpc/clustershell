@@ -84,6 +84,7 @@ rm -rf %{buildroot}
 %dir %{_sysconfdir}/clustershell/groups.d
 %dir %{_sysconfdir}/clustershell/groups.conf.d
 %config(noreplace) %{_sysconfdir}/clustershell/clush.conf
+%config(noreplace) %{_sysconfdir}/clustershell/defaults.conf
 %config(noreplace) %{_sysconfdir}/clustershell/groups.conf
 %ghost %{_sysconfdir}/clustershell/groups
 %config(noreplace) %{_sysconfdir}/clustershell/groups.d/local.cfg

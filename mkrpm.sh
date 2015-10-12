@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Copyright CEA/DAM/DIF (2008-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -73,6 +73,7 @@ install -p -m 0755 scripts/clubak.py $TMPDIR/scripts/
 install -p -m 0755 scripts/clush.py $TMPDIR/scripts/
 install -p -m 0755 scripts/nodeset.py $TMPDIR/scripts/
 install -p -m 0644 conf/clush.conf $TMPDIR/conf/
+install -p -m 0644 conf/defaults.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf.d/README $TMPDIR/conf/groups.conf.d/
 install -p -m 0644 conf/groups.conf.d/*.example $TMPDIR/conf/groups.conf.d/
