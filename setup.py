@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright CEA/DAM/DIF (2008-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #

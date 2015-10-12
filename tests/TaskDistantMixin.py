@@ -581,7 +581,7 @@ class TaskDistantMixin(object):
                 assert worker.last_error() == "something wrong"
 
         worker = self._task.shell("echo something wrong 1>&2", nodes=HOSTNAME,
-                                  handler=StdErrHandler())
+                                  handler=StdErrHandler(), stderr=True)
         self._task.resume()
         for buf, nodes in worker.iter_errors():
             self.assertEqual(buf, "something wrong")
