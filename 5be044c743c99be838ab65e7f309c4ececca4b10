@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_9f7214e4",
+        "filename": "doc/sphinx/further.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-10-12T08:04:28Z",
+      "side": 1,
+      "message": "I should ask people living in an English-speaking country but to the best of my knowledge, the correct forms are:\n\nFr: tests de non-régression\nEn: regression tests",
+      "revId": "5be044c743c99be838ab65e7f309c4ececca4b10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
