@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_d5470b1c",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-12T19:13:12Z",
+      "side": 1,
+      "message": "I also fixed this one, which was mispositioned",
+      "range": {
+        "startLine": 557,
+        "startChar": 12,
+        "endLine": 557,
+        "endChar": 35
+      },
+      "revId": "8e1d66c6ac98db7f1862acdb878bc03d5c7e1445",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
