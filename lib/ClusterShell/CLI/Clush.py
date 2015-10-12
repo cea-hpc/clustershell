@@ -60,6 +60,7 @@ from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp
 
+from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeSet import RESOLVER_NOGROUP, std_group_resolver
@@ -788,8 +789,8 @@ def main():
     nodeset_base = NodeSet.fromlist(wnodelist)
     nodeset_exclude = NodeSet.fromlist(xnodelist)
 
-    # FIXME: add public API to enforce engine
-    Task._std_default['engine'] = options.engine
+    # Specified engine prevails over default engine
+    DEFAULTS.task_default['engine'] = options.engine
 
     # Do we have nodes group?
     task = task_self()

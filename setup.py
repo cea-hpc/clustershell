@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright CEA/DAM/DIF (2008-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -57,6 +57,7 @@ setup(name='ClusterShell',
       packages=find_packages('lib'),
       data_files = [(CFGDIR,
                      ['conf/clush.conf',
+                      'conf/defaults.conf',
                       'conf/groups.conf',
                       'conf/topology.conf.example']),
                     (os.path.join(CFGDIR, 'groups.conf.d'),

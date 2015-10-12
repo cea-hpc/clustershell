@@ -15,6 +15,7 @@ sys.path.insert(0, '../lib')
 
 import ClusterShell
 
+from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
@@ -90,7 +91,6 @@ class TaskLocalMixin(object):
 
     def testHugeOutputCommand(self):
         task = task_self()
-        self.assert_(task != None)
 
         # init worker
         worker = task.shell("python test_command.py --test huge --rc 0")
@@ -104,14 +104,11 @@ class TaskLocalMixin(object):
     # task configuration
     def testTaskInfo(self):
         task = task_self()
-        self.assert_(task != None)
-
         fanout = task.info("fanout")
-        self.assertEqual(fanout, Task._std_info["fanout"])
+        self.assertEqual(fanout, DEFAULTS.task_info['fanout'])
 
     def testSimpleCommandTimeout(self):
         task = task_self()
-        self.assert_(task != None)
 
         # init worker
         worker = task.shell("/bin/sleep 30")
@@ -122,7 +119,6 @@ class TaskLocalMixin(object):
 
     def testSimpleCommandNoTimeout(self):
         task = task_self()
-        self.assert_(task != None)
 
         # init worker
         worker = task.shell("/bin/sleep 1")
@@ -136,7 +132,6 @@ class TaskLocalMixin(object):
 
     def testSimpleCommandNoTimeout(self):
         task = task_self()
-        self.assert_(task != None)
 
         # init worker
         worker = task.shell("/bin/usleep 900000")
@@ -886,20 +881,21 @@ class TaskLocalMixin(object):
 
     def testTaskEngineUserSelection(self):
         task_terminate()
-        # Uh ho! It's a test case, not an example!
-        Task._std_default['engine'] = 'select'
-        self.assertEqual(task_self().info('engine'), 'select')
-        task_terminate()
+        try:
+            DEFAULTS.task_default['engine'] = 'select'
+            self.assertEqual(task_self().info('engine'), 'select')
+            task_terminate()
+        finally:
+            DEFAULTS.task_default['engine'] = 'auto'
 
     def testTaskEngineWrongUserSelection(self):
         try:
             task_terminate()
-            # Uh ho! It's a test case, not an example!
-            Task._std_default['engine'] = 'foobar'
+            DEFAULTS.task_default['engine'] = 'foobar'
             # Check for KeyError in case of wrong engine request
             self.assertRaises(KeyError, task_self)
         finally:
-            Task._std_default['engine'] = 'auto'
+            DEFAULTS.task_default['engine'] = 'auto'
 
         task_terminate()
 
