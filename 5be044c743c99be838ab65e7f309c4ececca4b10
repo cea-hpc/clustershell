@@ -34,6 +34,24 @@
       "revId": "5be044c743c99be838ab65e7f309c4ececca4b10",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_e208d72f",
+        "filename": "doc/sphinx/further.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-12T17:28:56Z",
+      "side": 1,
+      "message": "@henri: very funny :)\n\n@aurelien: You\u0027re right, I think we can just keep this from Wikipedia to understand: \"The intent of regression testing is to assure that in the process of fixing a defect no existing functionality has been broken. Non-regression testing is performed to test that an intentional change has had the desired effect.\"",
+      "parentUuid": "baada198_a20edf32",
+      "revId": "5be044c743c99be838ab65e7f309c4ececca4b10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
