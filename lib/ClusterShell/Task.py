@@ -64,14 +64,14 @@ import threading
 from time import sleep
 import traceback
 
+from ClusterShell.Defaults import _config_paths, DEFAULTS
+from ClusterShell.Defaults import _local_workerclass, _distant_workerclass
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Engine.Engine import EngineTimeoutException
 from ClusterShell.Engine.Engine import EngineAlreadyRunningError
 from ClusterShell.Engine.Engine import EngineTimer
 from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.Worker.EngineClient import EnginePort
-from ClusterShell.Worker.Exec import ExecWorker
-from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.Popen import WorkerPopen
 from ClusterShell.Worker.Tree import WorkerTree
 
@@ -102,13 +102,6 @@ class TaskMsgTreeError(TaskError):
 def _getshorthostname():
     """Get short hostname (host name cut at the first dot)"""
     return socket.gethostname().split('.')[0]
-
-def _task_print_debug(task, s):
-    """
-    Default task debug printing function. Cannot provide 'print'
-    directly as it is not a function (will be in Py3k!).
-    """
-    print s
 
 
 class Task(object):
@@ -178,29 +171,9 @@ class Task(object):
     node_retcode() and max_retcode() methods after command execution, or
     listen for ev_hup() events in your event handler.
     """
-    _std_default = {  "stderr"             : False,
-                      "stdout_msgtree"     : True,
-                      "stderr_msgtree"     : True,
-                      "engine"             : 'auto',
-                      "port_qlimit"        : 100,
-                      "auto_tree"          : True,
-                      "topology_file"      : "/etc/clustershell/topology.conf",
-                      "local_worker"       : ExecWorker,
-                      "distant_worker"     : WorkerSsh }
 
-    _std_info =     { "debug"              : False,
-                      "print_debug"        : _task_print_debug,
-                      "fanout"             : 64,
-                      "grooming_delay"     : 0.25,
-                      "connect_timeout"    : 10,
-                      "command_timeout"    : 0 }
-
-    # list of _std_info keys whose values can safely be propagated in tree mode
-    _std_info_pkeys = ['debug',
-                       'fanout',
-                       'grooming_delay',
-                       'connect_timeout',
-                       'command_timeout']
+    # topology.conf file path list
+    TOPOLOGY_CONFIGS = _config_paths('topology.conf')
 
     _tasks = {}
     _taskid_max = 0
@@ -302,8 +275,10 @@ class Task(object):
         if not getattr(self, "_engine", None):
             # first time called
             self._default_lock = threading.Lock()
-            self._default = self.__class__._std_default.copy()
-            self._info = self.__class__._std_info.copy()
+            self._default = DEFAULTS._task_default.copy()
+            self._default.update({"local_worker": _local_workerclass(),
+                                  "distant_worker": _distant_workerclass()})
+            self._info = DEFAULTS._task_info.copy()
 
             # use factory class PreferredEngine that gives the proper
             # engine instance
@@ -423,8 +398,10 @@ class Task(object):
     def _default_tree_is_enabled(self):
         """Return whether default tree is enabled (load topology_file btw)"""
         if self.topology is None:
-            if os.path.exists(self.default("topology_file")):
-                self.load_topology(self.default("topology_file"))
+            for topology_file in self.TOPOLOGY_CONFIGS[::-1]:
+                if os.path.exists(topology_file):
+                    self.load_topology(topology_file)
+                    break
         return (self.topology is not None) and self.default("auto_tree")
 
     def load_topology(self, topology_file):

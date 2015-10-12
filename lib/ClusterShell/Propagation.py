@@ -40,6 +40,7 @@ through gateways and gather results.
 from collections import deque
 import logging
 
+from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Communication import Channel
 from ClusterShell.Communication import ControlMessage, StdOutMessage
@@ -300,7 +301,7 @@ class PropagationChannel(Channel):
         ctl.target = nodes
 
         # copy only subset of task info dict
-        info = dict((k, self.task._info[k]) for k in self.task._std_info_pkeys)
+        info = dict((k, self.task._info[k]) for k in DEFAULTS._task_info_pkeys)
 
         ctl_data = {
             'cmd': command,
