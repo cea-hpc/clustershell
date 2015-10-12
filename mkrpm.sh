@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Copyright CEA/DAM/DIF (2008-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -81,6 +81,7 @@ install -p -m 0644 conf/groups.d/local.cfg $TMPDIR/conf/groups.d/
 install -p -m 0644 conf/groups.d/*.yaml.example $TMPDIR/conf/groups.d/
 install -p -m 0644 conf/topology.conf.example $TMPDIR/conf/
 install -p -m 0644 doc/epydoc/clustershell_epydoc.conf $TMPDIR/doc/epydoc/
+install -p -m 0644 doc/examples/defaults.conf-rsh $TMPDIR/doc/examples/
 install -p -m 0755 doc/examples/*.py $TMPDIR/doc/examples/
 install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim $TMPDIR/doc/extras/vim/ftdetect/
 install -p -m 0644 doc/extras/vim/syntax/clushconf.vim $TMPDIR/doc/extras/vim/syntax/

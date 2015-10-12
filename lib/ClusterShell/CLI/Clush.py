@@ -53,6 +53,7 @@ import sys
 import signal
 import threading
 
+from ClusterShell.Defaults import DEFAULTS, _load_workerclass
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
 from ClusterShell.CLI.Display import Display
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
@@ -657,22 +658,6 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
                    preserve=preserve_flag)
     task.resume()
 
-def _load_workerclass(workername):
-    """
-    Return the class pointer matching `workername'.
-
-    The module is loaded if not done yet.
-    """
-
-    modname = "ClusterShell.Worker.%s" % workername.capitalize()
-
-    # Import module if not yet loaded
-    if modname.lower() not in [mod.lower() for mod in sys.modules]:
-        __import__(modname)
-
-    # Get the class pointer
-    return sys.modules[modname].WORKER_CLASS
-
 def set_fdlimit(fd_max, display):
     """Make open file descriptors soft limit the max."""
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -809,8 +794,8 @@ def main():
     # Instantiate filter nodeset (command line only)
     nodeset_exclude = NodeSet.fromlist(xnodelist)
 
-    # FIXME: add public API to enforce engine
-    Task._std_default['engine'] = options.engine
+    # Specified engine prevails over default engine
+    DEFAULTS.engine = options.engine
 
     # Do we have nodes group?
     task = task_self()
@@ -949,8 +934,7 @@ def main():
 
     # Set detailed timeout values
     task.set_info("connect_timeout", config.connect_timeout)
-    command_timeout = config.command_timeout
-    task.set_info("command_timeout", command_timeout)
+    task.set_info("command_timeout", config.command_timeout)
 
     # Enable stdout/stderr separation
     task.set_default("stderr", not options.gatherall)
@@ -962,8 +946,8 @@ def main():
     task.set_default("stderr_msgtree", False)
 
     # Set timeout at worker level when command_timeout is defined.
-    if command_timeout > 0:
-        timeout = command_timeout
+    if config.command_timeout > 0:
+        timeout = config.command_timeout
     else:
         timeout = -1
 
@@ -989,8 +973,8 @@ def main():
     # and not task itself as set_info() is an asynchronous call.
     display.vprint(VERB_DEBUG, "clush: nodeset=%s fanout=%d [timeout " \
                    "conn=%.1f cmd=%.1f] %s" %  (nodeset_base, config.fanout,
-                                                task.info("connect_timeout"),
-                                                task.info("command_timeout"),
+                                                config.connect_timeout,
+                                                config.command_timeout,
                                                 op))
     if not task.default("USER_interactive"):
         if options.copy:
