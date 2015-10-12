@@ -16,6 +16,24 @@
       "revId": "5642d4e1bf0ba2c949a887a9ccd3bb73c2291144",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_621da773",
+        "filename": "conf/groups.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-12T17:19:27Z",
+      "side": 1,
+      "message": "Paths are relative to the clustershell config dir (see doc 3 lines above :). Indeed, it\u0027s relative to $CFGDIR. Maybe I should add the variable there too, like in upcalls....\n\nPaths are space separated yes, I will check for quote support, in case somebody wants to install clustershell on cygwin :D",
+      "parentUuid": "baada198_ff2eb0a4",
+      "revId": "5642d4e1bf0ba2c949a887a9ccd3bb73c2291144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
