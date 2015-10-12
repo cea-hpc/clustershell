@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_a2733fb0",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-12T13:51:17Z",
+      "side": 1,
+      "message": "/me wondering if this config file should be named \u0027defaults.conf\u0027 or \u0027library.conf\u0027. \n\nWhat will be simplest name for admins? I\u0027m not worried by developers, but CS is mostly used by admins. I\u0027m afraid they will modify this file instead of clush.conf when they want to change to default fanout by example.\n\nWe can also just put more text warnings in defaults.conf file header to avoid this error.",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_62792793",
+        "filename": "conf/defaults.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-12T13:51:17Z",
+      "side": 1,
+      "message": "Actually, a man page is better or a local documentation file. You do not always easily have an Internet access.",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_2252cfdd",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-12T13:51:17Z",
+      "side": 1,
+      "message": "what prevent you from making a private local function doing it in this file. This seems pretty straighforward?",
+      "range": {
+        "startLine": 77,
+        "startChar": 6,
+        "endLine": 78,
+        "endChar": 39
+      },
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_82b0fbde",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-12T13:51:17Z",
+      "side": 1,
+      "message": "this could probably be factorized with clush.conf, and groups.conf declaration using a function taking only the filename as arguments.",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
