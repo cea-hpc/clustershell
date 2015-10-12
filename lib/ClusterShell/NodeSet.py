@@ -1,6 +1,6 @@
 #
 # Copyright CEA/DAM/DIF (2007-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -62,10 +62,10 @@ Usage example
 """
 
 import re
-import os
 import string
 import sys
 
+from ClusterShell.Defaults import config_paths
 import ClusterShell.NodeUtils as NodeUtils
 
 # Import all RangeSet module public objects
@@ -75,16 +75,7 @@ from ClusterShell.RangeSet import RangeSetPaddingError
 
 
 # Define default GroupResolver object used by NodeSet
-DEF_GROUPS_CONFIGS = [
-    # system-wide config file
-    '/etc/clustershell/groups.conf',
-    # default pip --user config file
-    os.path.expanduser('~/.local/etc/clustershell/groups.conf'),
-    # per-user groups.conf config top override
-    os.path.join(os.environ.get('XDG_CONFIG_HOME',
-                                os.path.expanduser('~/.config')),
-                 'clustershell', 'groups.conf')
-]
+DEF_GROUPS_CONFIGS = config_paths('groups.conf')
 ILLEGAL_GROUP_CHARS = set("@,!&^*")
 _DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIGS,
                                                         ILLEGAL_GROUP_CHARS)
