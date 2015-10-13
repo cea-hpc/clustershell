@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_18529add",
+        "filename": "conf/defaults.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-13T06:30:37Z",
+      "side": 1,
+      "message": "An idea of the man page name? I can\u0027t imagine adding defaults.conf (or library.conf), though we did it for groups.conf heh...man 5 clustershell-defaults.conf ?\n\nBut I will keep the URL too, having Internet access is not so rare :D",
+      "parentUuid": "baada198_62792793",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_2252cfdd",
         "filename": "lib/ClusterShell/Defaults.py",
         "patchSetId": 2
@@ -70,6 +88,24 @@
       "writtenOn": "2015-10-12T13:51:17Z",
       "side": 1,
       "message": "this could probably be factorized with clush.conf, and groups.conf declaration using a function taking only the filename as arguments.",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_385e7eea",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-13T06:30:37Z",
+      "side": 1,
+      "message": "good idea, and btw probably in Defaults.py",
+      "parentUuid": "baada198_82b0fbde",
       "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
