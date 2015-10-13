@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_7899d66d",
+        "filename": "conf/defaults.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-13T08:43:45Z",
+      "side": 1,
+      "message": "Putting document (rst files?) in /usr/share/doc/clustershell... and referring them here could be sufficient.\n\nYou can also do not provide this file for now and just let the current code manage its internal defaults.",
+      "parentUuid": "baada198_18529add",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_2252cfdd",
         "filename": "lib/ClusterShell/Defaults.py",
         "patchSetId": 2
