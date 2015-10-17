@@ -242,6 +242,19 @@ will automatically spread them out so that they do not overlap), for example::
     $ nodeset -f --autostep=3 node[1-13/4,7]
     node[1,5-9/2,13]
 
+
+A minimum node count threshold **percentage** before autostep is enabled may
+also be specified as autostep value (or ``auto`` which is currently 100%).  In
+the two following examples, only the first 4 of the 7 indexes may be
+represented using the step syntax (57% of them)::
+
+    $ nodeset -f --autostep=50% node[1,3,5,7,34,39,99]
+    node[1-7/2,34,39,99]
+
+    $ nodeset -f --autostep=90% node[1,3,5,7,34,39,99]
+    node[1,3,5,7,34,39,99]
+
+
 Zero-padding
 ^^^^^^^^^^^^
 
@@ -279,6 +292,25 @@ That said, you can see it is not possible to mix *node01* and *node001* in the
 same node set (not supported by the :class:`.NodeSet` class), but that would
 be a tricky case anyway!
 
+
+Leading and trailing digits
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Version 1.7 introduces bracket leading and trailing digits support::
+
+    $ nodeset -f node-00[00-99]
+    node-[0000-0099]
+
+    $ nodeset -f node-00[1-6]0
+    node-[0010-0060]
+
+    $ nodeset -f node-01[01,09,42]
+    node-[0101,0109,0142]
+
+
+.. warning:: Using the step syntax (seen above) within a bracket-delimited
+   range set is not compatible with **trailing** digits. For instance, this is
+   **not** supported: ``node-00[1-6/2]0``
 
 Arithmetic operations
 ^^^^^^^^^^^^^^^^^^^^^
@@ -493,14 +525,14 @@ option allows you to specify indexes of dimensions to fold. Using this
 option, rangesets of unspecified axis there won't be folded. Please note
 however that the obtained result may be suboptimal, this is because
 :class:`.NodeSet` algorithms are optimized for folding along all axis.
-``--axis`` value is a set of 0-indexed integers, representing nD axis, in the
-form of a number or a rangeset. A common case is to restrict folding on a
-single axis, like in the following simple examples::
-
-    $ nodeset --axis=0 -f node1-ib0 node2-ib0 node1-ib1 node2-ib1
-    node[1-2]-ib0,node[1-2]-ib1
+``--axis`` value is a set of integers from 1 to n representing selected nD
+axis, in the form of a number or a rangeset. A common case is to restrict
+folding on a single axis, like in the following simple examples::
 
     $ nodeset --axis=1 -f node1-ib0 node2-ib0 node1-ib1 node2-ib1
+    node[1-2]-ib0,node[1-2]-ib1
+
+    $ nodeset --axis=2 -f node1-ib0 node2-ib0 node1-ib1 node2-ib1
     node1-ib[0-1],node2-ib[0-1]
 
 Because a single nodeset may have several different dimensions, axis indices
