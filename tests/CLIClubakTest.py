@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # scripts/clubak.py tool test suite
-# Written by S. Thiell 2012-03-22
+# Written by S. Thiell
 
 
 """Unit test for CLI/Clubak.py"""
@@ -110,7 +110,7 @@ foo1:abc
         self._clubak_t(["-b", "--interpret-keys=always"], "foo[1-3]: bar\n", outfmt % "foo[1-3] (3)")
         self._clubak_t(["-b", "--interpret-keys=auto"], "[]: bar\n", outfmt % "[]")
         self._clubak_t(["-b", "--interpret-keys=never"], "[]: bar\n", outfmt % "[]")
-        self._clubak_t(["-b", "--interpret-keys=always"], "[]: bar\n", '', 1, "Parse error: empty node name : \"[]\"\n")
+        self._clubak_t(["-b", "--interpret-keys=always"], "[]: bar\n", '', 1, "Parse error: empty node name: \"[]\"\n")
 
     def test_008_color(self):
         """test clubak (--color)"""
@@ -132,8 +132,3 @@ foo1:abc
                                    "\x1b[1m--- foo[1,3] (2)\x1b[0m\n\x1b[1m+++ foo2\x1b[0m\n\x1b[36m@@ -1,2 +1,2 @@\x1b[0m\n\x1b[31m- bar\x1b[0m\n\x1b[32m+ BAR\x1b[0m\n  end\n")
         self._clubak_t(["--diff", "-d"], "foo: bar\n", "INPUT foo: bar\n", 0, "line_mode=False gather=True tree_depth=1\n")
         self._clubak_t(["--diff", "-L"], "foo1: bar\nfoo2: bar", "", 2, "clubak: error: option mismatch (diff not supported in line_mode)\n")
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(CLIClubakTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)

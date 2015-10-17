@@ -93,10 +93,16 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova6,", NodeSetParseError)
         self._testNS("nova6[", NodeSetParseError)
         self._testNS("nova6]", NodeSetParseError)
-        # ticket #228
-        self._testNS("nova6[1-4]", NodeSetParseError)
-        self._testNS("nova6[1-4]56", NodeSetParseError)
-        self._testNS("nova6[1-4]56c", NodeSetParseError)
+        self._testNS("n6[1-4]]", NodeSetParseError)
+        # reopening bracket: no pfx/sfx between delimited ranges
+        self._testNS("n[1-4]0[3-4]", NodeSetParseError)
+        self._testNS("n6[1-4][3-4]", NodeSetParseError)
+        self._testNS("n6[1-4]56[3-4]", NodeSetParseError)
+        # illegal numerical bracket folding with /step syntax
+        self._testNS("prod-0[01-06/2]0", NodeSetParseError)
+        self._testNS("prod-0[1-7/2,9]0", NodeSetParseError)
+        self._testNS("prod-0[1-5/2,7-9]0", NodeSetParseError)
+        self._testNS("prod-00[1-6/2]0", NodeSetParseError) # and not NodeSetParseRangeError
         # nD more
         self._testNS("[1-30][4-9]", NodeSetParseError)
         self._testNS("[1-30][4-9]p", NodeSetParseError)
