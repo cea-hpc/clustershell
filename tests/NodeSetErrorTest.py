@@ -93,10 +93,11 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("nova6,", NodeSetParseError)
         self._testNS("nova6[", NodeSetParseError)
         self._testNS("nova6]", NodeSetParseError)
-        # ticket #228
-        self._testNS("nova6[1-4]", NodeSetParseError)
-        self._testNS("nova6[1-4]56", NodeSetParseError)
-        self._testNS("nova6[1-4]56c", NodeSetParseError)
+        self._testNS("n6[1-4]]", NodeSetParseError)
+        # reopening bracket: no pfx/sfx between delimited ranges
+        self._testNS("n[1-4]0[3-4]", NodeSetParseError)
+        self._testNS("n6[1-4][3-4]", NodeSetParseError)
+        self._testNS("n6[1-4]56[3-4]", NodeSetParseError)
         # nD more
         self._testNS("[1-30][4-9]", NodeSetParseError)
         self._testNS("[1-30][4-9]p", NodeSetParseError)
