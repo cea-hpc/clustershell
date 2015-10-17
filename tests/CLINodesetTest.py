@@ -262,6 +262,10 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--fold", "foo[0-10]", "-i", "foo[0-5]"], None, "foo[0-5]\n")
         self._nodeset_t(["--fold", "foo[6-10]", "-i", "bar[0-5]"], None, "\n")
         self._nodeset_t(["--fold", "foo[0-10]", "foo[13-18]", "-i", "foo[5-10,15]"], None, "foo[5-10,15]\n")
+        # numerical bracket folding (#228)
+        self._nodeset_t(["--fold", "node123[1-2]", "-i", "node1232"], None, "node1232\n")
+        self._nodeset_t(["--fold", "node023[1-2]0", "-i", "node02320"], None, "node02320\n")
+        self._nodeset_t(["--fold", "node023[1-2]0-ipmi2", "-i", "node02320-ipmi2"], None, "node02320-ipmi2\n")
 
     def test_014_fold_intersection_stdin(self):
         """test nodeset --fold --intersection (stdin)"""
@@ -280,6 +284,10 @@ class CLINodesetTest(CLINodesetTestBase):
         # using stdin for -i
         self._nodeset_t(["-f","foo[1-6]","-i","-"], "foo4 foo5 foo6\n", "foo[4-6]\n")
         self._nodeset_t(["-f","-i","-","foo[1-6]"], "foo4 foo5 foo6\n", "foo[1-6]\n")
+        # numerical bracket folding (#228)
+        self._nodeset_t(["--fold", "-i", "node123[1-2]"], "node1232\n", "node1232\n")
+        self._nodeset_t(["--fold", "-i", "node023[1-2]0"], "node02320\n", "node02320\n")
+        self._nodeset_t(["--fold", "-i", "node023[1-2]0-ipmi2"], "node02320-ipmi2\n", "node02320-ipmi2\n")
 
     def test_015_rangeset(self):
         """test nodeset --rangeset"""
