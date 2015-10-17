@@ -207,6 +207,115 @@ class NodeSetTest(unittest.TestCase):
             assert n == "bigcluster%d" % i
             i += 1
 
+    def test_numerical_bracket_folding(self):
+        """test NodeSet numerical bracket folding (eg. 1[2-3]4)"""
+        # Ticket #228
+        nodeset = NodeSet("node01[0-1]")
+        self.assertEqual(str(nodeset), "node[010-011]")
+        nodeset = NodeSet("prod-02[10-20]")
+        self.assertEqual(str(nodeset), "prod-[0210-0220]")
+        nodeset = NodeSet("prod-2[10-320]")
+        self.assertEqual(str(nodeset), "prod-[210-2320]")
+        nodeset = NodeSet("prod-02[010-320]")
+        self.assertEqual(str(nodeset), "prod-[02010-02320]")
+        nodeset = NodeSet("prod-000[1-9]")
+        self.assertEqual(str(nodeset), "prod-[0001-0009]")
+        nodeset = NodeSet("prod-100[1-9]")
+        self.assertEqual(str(nodeset), "prod-[1001-1009]")
+        nodeset = NodeSet("prod-100[040-042]")
+        self.assertEqual(str(nodeset), "prod-[100040-100042]")
+        self.assertEqual(len(nodeset), 3)
+
+        # complex ranges
+        nodeset = NodeSet("prod-10[01,05,09-15,40-50,52]")
+        self.assertEqual(str(nodeset), "prod-[1001,1005,1009-1015,1040-1050,1052]")
+        nodeset.autostep = 3
+        self.assertEqual(str(nodeset), "prod-[1001-1009/4,1010-1015,1040-1050,1052]")
+
+        # multi patterns
+        nodeset = NodeSet("prod-0[040-042],sysgrp-00[01-02]")
+        self.assertEqual(str(nodeset), "prod-[0040-0042],sysgrp-[0001-0002]")
+        nodeset = NodeSet("prod-100[040-042],sysgrp-00[01-02]")
+        self.assertEqual(str(nodeset), "prod-[100040-100042],sysgrp-[0001-0002]")
+
+        # leading digits with step notation (supported)
+        nodeset = NodeSet("prod-000[0-8/2]", autostep=3)
+        self.assertEqual(str(nodeset), "prod-[0000-0008/2]")
+        nodeset = NodeSet("n1[01-40/4]", autostep=3)
+        self.assertEqual(str(nodeset), "n[101-137/4]")
+        nodeset = NodeSet("prod-000[0-8/2],prod-000[1-9/2]")
+        self.assertEqual(str(nodeset), "prod-[0000-0009]")
+        self.assertEqual(len(nodeset), 10)
+
+        # Tricky case due to absence of padding: the one that requires
+        # RangeSet.contiguous() in ParsingEngine._amend_leading_digits()
+        nodeset = NodeSet("node-1[0-48/16]")
+        # => not equal to node-[10-148/16]!
+        self.assertEqual(str(nodeset), "node-[10,116,132,148]")
+        self.assertEqual(len(nodeset), 4)
+
+        # same case with padding
+        nodeset = NodeSet("node-1[00-48/16]")
+        # equal to node-[100-148/16]
+        self.assertEqual(nodeset, NodeSet("node-[100-148/16]"))
+        self.assertEqual(str(nodeset), "node-[100,116,132,148]")
+        self.assertEqual(len(nodeset), 4)
+
+        # see also NodeSetErrorTest.py for unsupported trailing digits w/ steps
+
+        # /!\ padding mismatch cases: current behavior
+        nodeset = NodeSet("prod-0[10-345]") # padding mismatch
+        self.assertEqual(str(nodeset), "prod-[010-345]")
+        nodeset = NodeSet("prod-1[10-345]") # no mismatch there
+        self.assertEqual(str(nodeset), "prod-[110-1345]")
+        nodeset = NodeSet("prod-02[10-345]") # padding mismatch
+        self.assertEqual(str(nodeset), "prod-[0210-2345]")
+        nodeset = NodeSet("prod-02[10-34,069-099]") # padding mismatch
+        self.assertEqual(str(nodeset), "prod-[02010-02034,02069-02099]")
+
+        # numerical folding with nD nodesets
+        nodeset = NodeSet("x01[0-1]y01[0-1]z01[0-1]")
+        self.assertEqual(str(nodeset), "x[010-011]y[010-011]z[010-011]")
+        self.assertEqual(len(nodeset), 2*2*2)
+        nodeset = NodeSet("x22[0-1]y00[0-1]z03[0-1]")
+        self.assertEqual(str(nodeset), "x[220-221]y[000-001]z[030-031]")
+        self.assertEqual(len(nodeset), 2*2*2)
+        nodeset = NodeSet("x22[0-1]y000z03[0-1]")
+        self.assertEqual(str(nodeset), "x[220-221]y000z[030-031]")
+        self.assertEqual(len(nodeset), 2*1*2)
+        # trigger trailing digits to step code
+        nodeset = NodeSet("x22[0-1]0y03[0-1]0")
+        self.assertEqual(str(nodeset), "x[2200,2210]y[0300,0310]")
+        self.assertEqual(len(nodeset), 4)
+        nodeset = NodeSet("x22[0-1]0y03[0-1]0-ipmi")
+        self.assertEqual(str(nodeset), "x[2200,2210]y[0300,0310]-ipmi")
+        self.assertEqual(len(nodeset), 4)
+
+        # more numerical folding (with suffix)
+        nodeset = NodeSet("nova[1-4]56")
+        self.assertEqual(nodeset, NodeSet("nova[156-456/100]"))
+        self.assertEqual(len(nodeset), 4)
+        nodeset = NodeSet("nova16[1-4]56")
+        self.assertEqual(str(nodeset), "nova[16156,16256,16356,16456]")
+        self.assertEqual(len(nodeset), 4)
+        nodeset = NodeSet("nova16[1-4]56c")
+        self.assertEqual(str(nodeset), "nova[16156,16256,16356,16456]c")
+        self.assertEqual(len(nodeset), 4)
+        nodeset = NodeSet("prod-[01-34]0")
+        self.assertEqual(nodeset, NodeSet("prod-[010-340/10]"))
+        nodeset = NodeSet("prod-01[1-5]0")
+        self.assertEqual(nodeset, NodeSet("prod-[0110-0150/10]"))
+        nodeset = NodeSet("node123[1-2]")
+        self.assertEqual(nodeset, NodeSet("node[1231-1232]"))
+        self.assertEqual(str(nodeset), "node[1231-1232]")
+        inodeset = NodeSet("node1232")
+        self.assertEqual(str(nodeset.intersection(inodeset)), "node1232")
+
+        # more nD (with suffix)
+        nodeset = NodeSet("x01[0-1]y01[0-1]z01[0-1]-ipmi")
+        self.assertEqual(str(nodeset), "x[010-011]y[010-011]z[010-011]-ipmi")
+        self.assertEqual(len(nodeset), 2*2*2)
+
     def testCommaSeparated(self):
         """test NodeSet comma separated to ranges (folding)"""
         nodeset = NodeSet("cluster115,cluster116,cluster117,cluster130,"

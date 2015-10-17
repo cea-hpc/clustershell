@@ -63,6 +63,7 @@ Usage example
 
 import re
 import os
+import string
 import sys
 
 import ClusterShell.NodeUtils as NodeUtils
@@ -109,7 +110,7 @@ class NodeSetParseError(NodeSetError):
     """Raised when NodeSet parsing cannot be done properly."""
     def __init__(self, part, msg):
         if part:
-            msg = "%s : \"%s\"" % (msg, part)
+            msg = "%s: \"%s\"" % (msg, part)
         NodeSetError.__init__(self, msg)
         # faulty part; this allows you to target the error
         self.part = part
@@ -996,19 +997,24 @@ class ParsingEngine(object):
                         if bra_start == -1:
                             bra_start = bra_end + 1
                         if bra_end >= 0 and bra_end < bra_start:
-                            raise NodeSetParseError(sfx, \
-                                                    "illegal closing bracket")
-                    pfxlen = len(pfx)
+                            msg = "illegal closing bracket"
+                            raise NodeSetParseError(sfx, msg)
+
+                    pfxlen, sfxlen = len(pfx), len(sfx)
 
                     # pfx + sfx cannot be empty
-                    if pfxlen + len(sfx) == 0:
+                    if pfxlen + sfxlen == 0:
                         raise NodeSetParseError(pat, "empty node name")
 
-                    # but pfx itself can
+                    if sfxlen > 0:
+                        # amending trailing digits generates /steps
+                        sfx, rng = self._amend_trailing_digits(sfx, rng)
+
                     if pfxlen > 0:
-                        if pfx[-1] in "0123456789":
-                            raise NodeSetParseError(pfx + "[", "illegal opening"
-                                                    " bracket after digit")
+                        # this method supports /steps
+                        pfx, rng = self._amend_leading_digits(pfx, rng)
+
+                        # scan pfx as a single node (no bracket)
                         pfx, pfxrvec = self._scan_string_single(pfx, autostep)
                         rsets += pfxrvec
 
@@ -1019,11 +1025,11 @@ class ParsingEngine(object):
 
                     # Check for empty component or sequenced ranges
                     if len(pfx) == 0 and op_idx == 0:
-                        raise NodeSetParseError(sfx, "empty node name before")\
+                        raise NodeSetParseError(sfx, "empty node name before")
 
-                    if len(sfx) > 0 and sfx[0] in "0123456789[":
-                        raise NodeSetParseError(sfx, \
-                                "illegal sequenced numeric ranges")
+                    if len(sfx) > 0 and sfx[0] == '[':
+                        raise NodeSetParseError(sfx,
+                                                "illegal reopening bracket")
 
                     newpat += "%s%%s" % pfx
                     try:
@@ -1085,6 +1091,44 @@ class ParsingEngine(object):
             else:
                 yield op_code, newpat, None
 
+    def _amend_leading_digits(self, outer, inner):
+        """Helper to get rid of leading bracket digits.
+
+        Take a bracket outer prefix string and an inner range set string and
+        return amended strings.
+        """
+        outerstrip = outer.rstrip(string.digits)
+        outerlen, outerstriplen = len(outer), len(outerstrip)
+        if outerstriplen < outerlen:
+            # get outer bracket leading digits
+            outerdigits = outer[outerstriplen:]
+            inner = ','.join(
+                '-'.join(outerdigits + bound for bound in elem.split('-'))
+                for elem in (str(subrng)
+                             for subrng in RangeSet(inner).contiguous()))
+        return outerstrip, inner
+
+    def _amend_trailing_digits(self, outer, inner):
+        """Helper to get rid of trailing bracket digits.
+
+        Take a bracket outer suffix string and an inner range set string and
+        return amended strings.
+        """
+        outerstrip = outer.lstrip(string.digits)
+        outerlen, outerstriplen = len(outer), len(outerstrip)
+        if outerstriplen < outerlen:
+            # step syntax is not compatible with trailing digits
+            if '/' in inner:
+                msg = "illegal trailing digits after range with steps"
+                raise NodeSetParseError(outer, msg)
+            # get outer bracket trailing digits
+            outerdigits = outer[0:outerlen-outerstriplen]
+            outlen = len(outerdigits)
+            inner = ','.join(s + '/1' + '0'*outlen for s in
+                             ('-'.join(bound + outerdigits
+                                       for bound in elem.split('-'))
+                              for elem in inner.split(',')))
+        return outerstrip, inner
 
 class NodeSet(NodeSetBase):
     """
