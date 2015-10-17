@@ -109,7 +109,7 @@ class NodeSetParseError(NodeSetError):
     """Raised when NodeSet parsing cannot be done properly."""
     def __init__(self, part, msg):
         if part:
-            msg = "%s : \"%s\"" % (msg, part)
+            msg = "%s: \"%s\"" % (msg, part)
         NodeSetError.__init__(self, msg)
         # faulty part; this allows you to target the error
         self.part = part
@@ -996,19 +996,49 @@ class ParsingEngine(object):
                         if bra_start == -1:
                             bra_start = bra_end + 1
                         if bra_end >= 0 and bra_end < bra_start:
-                            raise NodeSetParseError(sfx, \
-                                                    "illegal closing bracket")
-                    pfxlen = len(pfx)
+                            msg = "illegal closing bracket"
+                            raise NodeSetParseError(sfx, msg)
+
+                    pfxlen, sfxlen = len(pfx), len(sfx)
 
                     # pfx + sfx cannot be empty
-                    if pfxlen + len(sfx) == 0:
+                    if pfxlen + sfxlen == 0:
                         raise NodeSetParseError(pat, "empty node name")
 
-                    # but pfx itself can
+                    if sfxlen > 0:
+                        # handle digits prefix after bracket (eg. n[0-1]01):
+                        sfxstrip = sfx.lstrip("0123456789")
+                        sfxstriplen = len(sfxstrip)
+                        if sfxstriplen < sfxlen:
+                            # trailing digits found
+                            if '/' in rng: # unsupported
+                                msg = "trailing digits after range with steps"
+                                raise NodeSetParseError(sfx, "illegal " + msg)
+                            sfxintlen = sfxlen - sfxstriplen
+                            sfxdigits = sfx[0:sfxintlen]
+                            # update both sfx (with trailing digits stripped)
+                            # and range string with digits added after each idx
+                            sfx = sfxstrip
+                            rng = ','.join(('-'.join(i + sfxdigits
+                                                     for i in elem.split('-'))
+                                           for elem in rng.split(',')))
+
                     if pfxlen > 0:
-                        if pfx[-1] in "0123456789":
-                            raise NodeSetParseError(pfx + "[", "illegal opening"
-                                                    " bracket after digit")
+                        # handle digits prefix before bracket (eg. n01[0-1]):
+                        pfxstrip = pfx.rstrip("0123456789")
+                        pfxstriplen = len(pfxstrip)
+                        if pfxstriplen < pfxlen:
+                            # leading digits found
+                            pfxdigits = pfx[pfxstriplen:]
+                            pfxintlen = pfxlen - pfxstriplen
+                            # update both pfx (with leading digits stripped)
+                            # and range string with digits added to each index
+                            pfx = pfxstrip
+                            rng = ','.join(('-'.join(pfxdigits + i
+                                                     for i in elem.split('-'))
+                                           for elem in rng.split(',')))
+
+                        # scan pfx as a single node (no bracket)
                         pfx, pfxrvec = self._scan_string_single(pfx, autostep)
                         rsets += pfxrvec
 
@@ -1019,11 +1049,11 @@ class ParsingEngine(object):
 
                     # Check for empty component or sequenced ranges
                     if len(pfx) == 0 and op_idx == 0:
-                        raise NodeSetParseError(sfx, "empty node name before")\
+                        raise NodeSetParseError(sfx, "empty node name before")
 
-                    if len(sfx) > 0 and sfx[0] in "0123456789[":
-                        raise NodeSetParseError(sfx, \
-                                "illegal sequenced numeric ranges")
+                    if len(sfx) > 0 and sfx[0] == '[':
+                        raise NodeSetParseError(sfx,
+                                                "illegal reopening bracket")
 
                     newpat += "%s%%s" % pfx
                     try:

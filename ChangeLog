@@ -1,3 +1,8 @@
+2015-10-16 S. Thiell <sthiell@stanford.edu>
+
+	* NodeSet.py: enhancing parser to recognize nodesets with brackets having
+	leading/trailing digits like in "prod-00[01-99]" (ticket #228).
+
 2015-08-29 S. Thiell <sthiell@stanford.edu>
 
 	* CLI/Nodeset.py: added --axis option to choose nD fold axis (ticket
