@@ -32,22 +32,34 @@ Some features of *clush* command line tool are:
 invoked as an interactive shell. Both modes are discussed here (clush-oneshot
 clush-interactive).
 
-Selecting target nodes
-^^^^^^^^^^^^^^^^^^^^^^
+Target and filter nodes
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Nodes selection
-"""""""""""""""
+*clush* offers different ways to select or filter target nodes through command
+line options or files containing a list of hosts.
+
+Command line options
+""""""""""""""""""""
 
 The ``-w`` option allows you to specify remote hosts by using ClusterShell
 :class:`.NodeSet` syntax, including the node groups *@group* special syntax
-(cf. nodeset-groupsexpr) and the Extended String Patterns syntax (see
+(cf. :ref:`nodeset-groupsexpr`) and the Extended String Patterns syntax (see
 :ref:`class-NodeSet-extended-patterns`) to benefits from :class:`.NodeSet`
 basic arithmetics (like ``@Agroup&@Bgroup``). Additionally, the ``-x`` option
 allows you to exclude nodes from remote hosts list (the same NodeSet syntax
 can be used here). Nodes exclusion has priority over nodes addition.
 
-Node groups selection
-"""""""""""""""""""""
+Using node groups
+"""""""""""""""""
+
+If you have ClusterShell :ref:`node groups <groups-config>` configured on your
+cluster, any node group syntax may be used in place of nodes for ``-w`` as
+well as ``-x``.
+
+For example::
+
+    $ clush -w @rhel6 cat /proc/loadavg
+    node26: 0.02 0.01 0.00 1/202 23042
 
 For *pdsh* backward compatibility, *clush* supports two ``-g`` and ``-X``
 options to respectively select and exclude nodes group(s), but only specified
@@ -60,22 +72,40 @@ For example::
     $ clush -g rhel6 cat /proc/loadavg
     node26: 0.02 0.01 0.00 1/202 23033
 
-    $ clush -w @rhel6 cat /proc/loadavg
-    node26: 0.02 0.01 0.00 1/202 23042
-
 .. _clush-all-nodes:
 
-All nodes selection
+Selecting all nodes
 """""""""""""""""""
 
 Finally, a special option ``-a`` (without argument) can be used to select
-"all" nodes, in the sense of ClusterShell node groups (see
+**all** nodes, in the sense of ClusterShell node groups (see
 :ref:`node groups configuration <groups-config>` for more details on special
 **all** external shell command upcall).  If not properly configured, the
 ``-a`` option may lead to a runtime error like::
 
     clush: External error: Not enough working external calls (all, or map +
     list) defined to get all node
+
+Host files
+""""""""""
+
+The option ``--hostfile`` (or ``--machinefile``)  may be used to specify a
+path to a file containing a list of single hosts, node sets or node groups,
+separated by spaces and lines.  It may be specified multiple times (one per
+file).
+
+For example::
+
+    $ clush --hostfile ./host_file -b systemctl is-enabled httpd
+
+This option has been added as backward compatibility with other parallel shell
+tools. Indeed, ClusterShell provides a preferred way to provision node sets
+from node group sources and flat files to all cluster tools using
+:class:`.NodeSet` (including *clush*). Please see :ref:`node groups
+configuration <groups-config>`.
+
+.. note:: Use ``--debug`` or ``-d`` to see resulting node sets from host
+   files.
 
 
 .. _clush-tree:
