@@ -1,3 +1,8 @@
+2015-10-18 S. Thiell <sthiell@stanford.edu>
+
+	* Clush.py: added --hostfile command line option to specify a file
+	containing single hosts, node sets or node groups (ticket #235).
+
 2015-10-16 S. Thiell <sthiell@stanford.edu>
 
 	* NodeSet.py: enhancing parser to recognize nodesets with brackets having
