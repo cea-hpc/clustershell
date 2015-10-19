@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_b9ae12e6",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-19T14:11:23Z",
+      "side": 1,
+      "message": "Put this file in hnodelist and merge it with wnodelist and xnodelist after the #255 check (below)",
+      "revId": "7e2549071f96819ee2f3f2f2652c6c7f8a2e9990",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d9abc6d4",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 805,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-19T14:11:23Z",
+      "side": 1,
+      "message": "merge here. This avoids raising Warning if user explicitly use a hostfile to avoid shell conflit by example and will still see warnings.",
+      "revId": "7e2549071f96819ee2f3f2f2652c6c7f8a2e9990",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_19b61e3e",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-19T14:11:23Z",
+      "side": 1,
+      "message": "(pep8) bad error",
+      "revId": "7e2549071f96819ee2f3f2f2652c6c7f8a2e9990",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
