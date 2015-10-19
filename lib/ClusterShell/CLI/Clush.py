@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright CEA/DAM/DIF (2007-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -770,11 +770,29 @@ def main():
         # Be sure -a/g -s source work as espected.
         std_group_resolver().default_source_name = options.groupsource
 
+    hnodelist = []
+    for opt_hostfile in options.hostfile:
+        try:
+            fnodeset = NodeSet()
+            hostfile = open(opt_hostfile)
+            for line in hostfile.read().splitlines():
+                fnodeset.updaten(nodes for nodes in line.split())
+            hostfile.close()
+            display.vprint_err(VERB_DEBUG,
+                               "Using nodeset %s from hostfile %s"
+                               % (fnodeset, opt_hostfile))
+            hnodelist.append(fnodeset)
+        except IOError, exc:
+            # re-raise as OSError to be properly handled
+            errno, strerror = exc.args
+            raise OSError(errno, strerror, exc.filename)
+
     # Compute the nodeset and warn for possible use of shell pathname
     # expansion (#225)
     wnodelist = xnodelist = []
     if options.nodes:
         wnodelist = [NodeSet(nodes) for nodes in options.nodes]
+
     if options.exclude:
         xnodelist = [NodeSet(nodes) for nodes in options.exclude]
 
@@ -785,7 +803,10 @@ def main():
                                    "local path '%s' exists, was it expanded "
                                    "by the shell?" % (opt, nodes, nodes))
 
+    # Instantiate target nodeset from command line and hostfile
     nodeset_base = NodeSet.fromlist(wnodelist)
+    nodeset_base.updaten(hnodelist)
+    # Instantiate filter nodeset (command line only)
     nodeset_exclude = NodeSet.fromlist(xnodelist)
 
     # FIXME: add public API to enforce engine
