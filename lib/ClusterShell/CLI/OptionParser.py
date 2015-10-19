@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright CEA/DAM/DIF (2010-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -115,6 +115,9 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-E", "--engine", action="store", dest="engine",
                           choices=["auto"] + PreferredEngine.engines.keys(),
                           default="auto", help=optparse.SUPPRESS_HELP)
+        optgrp.add_option("--hostfile", "--machinefile", action="append",
+                          dest="hostfile", default=[], metavar='FILE',
+                          help="path to file containing a list of target hosts")
         optgrp.add_option("--topology", action="store", dest="topofile",
                           default=None, metavar='FILE',
                           help="topology configuration file to use for tree "
