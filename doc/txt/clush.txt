@@ -6,8 +6,8 @@
 execute shell commands on a cluster
 -----------------------------------
 
-:Author: Stephane Thiell, CEA DAM  <stephane.thiell@cea.fr>
-:Date:   2015-05-18
+:Author: Stephane Thiell <sthiell@stanford.edu>
+:Date:   2015-10-19
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -139,6 +139,7 @@ Selecting target nodes:
   -g GROUP, --group=GROUP
                       run command on a group of nodes
   -X GROUP            exclude nodes from this group
+  --hostfile=FILE     path to a file containing a list of single hosts, node sets or node groups, separated by spaces and lines (may be specified multiple times, one per file)
   --topology=FILE     topology configuration file to use for tree mode
 
 Output behaviour:

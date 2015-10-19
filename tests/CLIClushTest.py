@@ -371,6 +371,19 @@ class CLIClushTest_A(unittest.TestCase):
             os.unlink(tfile.name)
             os.rmdir(tdir)
 
+    def test_029_hostfile(self):
+        """test clush --hostfile"""
+        f = make_temp_file(HOSTNAME)
+        self._clush_t(["--hostfile", f.name, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        f2 = make_temp_file(HOSTNAME)
+        self._clush_t(["--hostfile", f.name, "--hostfile", f2.name,
+                       "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
+        self.assertRaises(OSError, self._clush_t,
+                         ["--hostfile", "/I/do/NOT/exist", "echo", "ok"],
+                         None, 1)
+
+
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
 
