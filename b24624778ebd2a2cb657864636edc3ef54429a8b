@@ -16,6 +16,24 @@
       "revId": "b24624778ebd2a2cb657864636edc3ef54429a8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_631200b6",
+        "filename": "doc/sphinx/tools/clush.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-21T20:57:57Z",
+      "side": 1,
+      "message": "Right, this warning might be confusing - removing it.",
+      "parentUuid": "9ab29df4_838d5434",
+      "revId": "b24624778ebd2a2cb657864636edc3ef54429a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
