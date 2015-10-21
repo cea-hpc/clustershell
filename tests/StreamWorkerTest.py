@@ -83,6 +83,11 @@ class StreamTest(unittest.TestCase):
             def __init__(self, testcase):
                 self.testcase = testcase
                 self.worker = None
+                self.pickup_count = 0
+                self.hup_count = 0
+
+            def ev_pickup(self, worker):
+                self.pickup_count += 1
 
             def ev_read(self, worker):
                 self.testcase.assertEqual(worker.current_sname, "pipe1")
@@ -96,6 +101,7 @@ class StreamTest(unittest.TestCase):
 
             def ev_hup(self, worker):
                 # ev_hup called at the end (after set_write_eof is called)
+                self.hup_count += 1
                 self.testcase.assertEqual(self.worker, 'DONE')
                 # no rc code should be set
                 self.testcase.assertEqual(worker.current_rc, None)
@@ -121,6 +127,9 @@ class StreamTest(unittest.TestCase):
         self.assertRaises(OSError, os.close, wfd2)
         # rfd1 should be closed by CS
         self.assertRaises(OSError, os.close, rfd1)
+        # check pickup/hup
+        self.assertEqual(hdlr.hup_count, 1)
+        self.assertEqual(hdlr.pickup_count, 1)
 
     def test_004_timeout_on_open_stream(self):
         """test StreamWorker with timeout set on open stream"""
@@ -150,9 +159,13 @@ class StreamTest(unittest.TestCase):
         class TestH(EventHandler):
             def __init__(self, testcase):
                 self.testcase = testcase
+                self.ev_pickup_called = False
                 self.ev_read_called = False
                 self.ev_hup_called = False
                 self.ev_timeout_called = False
+
+            def ev_pickup(self, worker):
+                self.ev_pickup_called = True
 
             def ev_read(self, worker):
                 self.ev_read_called = True
@@ -180,6 +193,7 @@ class StreamTest(unittest.TestCase):
         self.run_worker(worker)
         self.assertTrue(hdlr.ev_timeout_called)
         self.assertTrue(hdlr.ev_read_called)
+        self.assertTrue(hdlr.ev_pickup_called)
         self.assertTrue(hdlr.ev_hup_called)
 
         # rfd1 should be already closed by CS

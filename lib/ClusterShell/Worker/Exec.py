@@ -1,6 +1,7 @@
 #
 # Copyright CEA/DAM/DIF (2014-2015)
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -121,7 +122,7 @@ class ExecClient(EngineClient):
                 task.info("print_debug")(task, "%s: %s" % (name, ' '.join(cmd)))
 
         self.popen = self._exec_nonblock(cmd, env=cmd_env, shell=shell)
-        self.worker._on_start()
+        self._on_nodeset_start(self.key)
         return self
 
     def _close(self, abort, timeout):
@@ -149,6 +150,14 @@ class ExecClient(EngineClient):
             self._on_nodeset_rc(self.key, 128 + -prc)
 
         self.worker._check_fini()
+
+    def _on_nodeset_start(self, nodes):
+        """local wrapper over _on_node_start that can also handle nodeset"""
+        if isinstance(nodes, NodeSet):
+            for node in nodes:
+                self.worker._on_node_start(node)
+        else:
+            self.worker._on_node_start(nodes)
 
     def _on_nodeset_rc(self, nodes, rc):
         """local wrapper over _on_node_rc that can also handle nodeset"""

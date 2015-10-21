@@ -12,4 +12,5 @@ ClusterShell public API autodoc.
     MsgTree
     Task
     Event
+    EngineTimer
     workers/index

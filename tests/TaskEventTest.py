@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (local) test suite
-# Written by S. Thiell 2008-04-09
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task (event-based mode)"""
@@ -28,38 +28,58 @@ class TestHandler(EventHandler):
 
     def do_asserts_read_notimeout(self):
         assert self.did_start, "ev_start not called"
+        assert self.cnt_pickup > 0, "ev_pickup not called"
         assert self.did_read, "ev_read not called"
         assert not self.did_readerr, "ev_error called"
+        assert self.cnt_hup > 0, "ev_hup not called"
         assert self.did_close, "ev_close not called"
         assert not self.did_timeout, "ev_timeout called"
 
     def do_asserts_timeout(self):
         assert self.did_start, "ev_start not called"
+        assert self.cnt_pickup > 0, "ev_pickup not called"
         assert not self.did_read, "ev_read called"
         assert not self.did_readerr, "ev_error called"
+        assert self.cnt_hup == 0, "ev_hup called"
         assert self.did_close, "ev_close not called"
         assert self.did_timeout, "ev_timeout not called"
 
+    def do_asserts_noread_notimeout(self):
+        assert self.did_start, "ev_start not called"
+        assert self.cnt_pickup > 0, "ev_pickup not called"
+        assert not self.did_read, "ev_read not called"
+        assert not self.did_readerr, "ev_error called"
+        assert self.cnt_hup > 0, "ev_hup not called"
+        assert self.did_close, "ev_close not called"
+        assert not self.did_timeout, "ev_timeout called"
+
     def reset_asserts(self):
         self.did_start = False
-        self.did_open = False
+        self.cnt_pickup = 0
         self.did_read = False
         self.did_readerr = False
+        self.cnt_hup = 0
         self.did_close = False
         self.did_timeout = False
 
     def ev_start(self, worker):
         self.did_start = True
 
+    def ev_pickup(self, worker):
+        self.cnt_pickup += 1
+
     def ev_read(self, worker):
         self.did_read = True
-        assert worker.last_read() == "abcdefghijklmnopqrstuvwxyz"
-        assert worker.last_error() != "abcdefghijklmnopqrstuvwxyz"
+        assert worker.current_msg == "abcdefghijklmnopqrstuvwxyz"
+        assert worker.current_errmsg != "abcdefghijklmnopqrstuvwxyz"
 
     def ev_error(self, worker):
         self.did_readerr = True
-        assert worker.last_error() == "errerrerrerrerrerrerrerr"
-        assert worker.last_read() != "errerrerrerrerrerrerrerr"
+        assert worker.current_errmsg == "errerrerrerrerrerrerrerr"
+        assert worker.current_msg != "errerrerrerrerrerrerrerr"
+
+    def ev_hup(self, worker):
+        self.cnt_hup += 1
 
     def ev_close(self, worker):
         self.did_close = True
@@ -78,11 +98,10 @@ class TaskEventTest(unittest.TestCase):
     def testSimpleEventHandler(self):
         """test simple event handler"""
         task = task_self()
-        self.assert_(task != None)
+
         eh = TestHandler()
         # init worker
         worker = task.shell("./test_command.py --test=cmp_out", handler=eh)
-        self.assert_(worker != None)
         # run task
         task.resume()
         eh.do_asserts_read_notimeout()
@@ -90,7 +109,6 @@ class TaskEventTest(unittest.TestCase):
         # re-test
         # init worker
         worker = task.shell("./test_command.py --test=cmp_out", handler=eh)
-        self.assert_(worker != None)
         # run task
         task.resume()
         eh.do_asserts_read_notimeout()
@@ -99,12 +117,10 @@ class TaskEventTest(unittest.TestCase):
     def testSimpleEventHandlerWithTaskTimeout(self):
         """test simple event handler with timeout"""
         task = task_self()
-        self.assert_(task != None)
 
         eh = TestHandler()
         # init worker
         worker = task.shell("/bin/sleep 3", handler=eh)
-        self.assert_(worker != None)
 
         try:
             task.resume(2)
@@ -114,8 +130,9 @@ class TaskEventTest(unittest.TestCase):
             self.fail("did not detect timeout")
 
         eh.do_asserts_timeout()
-       
+
     class TInFlyAdder(EventHandler):
+        """Test handler that schedules new commands in-fly"""
         def ev_read(self, worker):
             assert worker.task.running()
             # in-fly workers addition
@@ -127,10 +144,9 @@ class TaskEventTest(unittest.TestCase):
     def testEngineInFlyAdd(self):
         """test client add while running (in-fly add)"""
         task = task_self()
-        self.assert_(task != None)
         eh = self.__class__.TInFlyAdder()
         worker = task.shell("/bin/uname", handler=eh)
-        self.assert_(worker != None)
+        self.assertNotEqual(worker, None)
         task.resume()
 
     class TWriteOnStart(EventHandler):
@@ -144,10 +160,9 @@ class TaskEventTest(unittest.TestCase):
     def testWriteOnStartEvent(self):
         """test write on ev_start"""
         task = task_self()
-        self.assert_(task != None)
         task.shell("cat", handler=self.__class__.TWriteOnStart())
         task.resume()
-        
+
     def testEngineMayReuseFD(self):
         """test write + worker.abort() on read to reuse FDs"""
         task = task_self()
@@ -163,8 +178,39 @@ class TaskEventTest(unittest.TestCase):
         finally:
             task.set_info("fanout", fanout)
 
+    def test_ev_pickup(self):
+        """test ev_pickup event"""
+        task = task_self()
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskEventTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+        eh = TestHandler()
 
+        task.shell("/bin/sleep 1", handler=eh)
+        task.shell("/bin/sleep 1", handler=eh)
+        task.shell("/bin/sleep 1", handler=eh)
+
+        task.resume()
+
+        eh.do_asserts_noread_notimeout()
+        self.assertEqual(eh.cnt_pickup, 3)
+        self.assertEqual(eh.cnt_hup, 3)
+
+    def test_ev_pickup_fanout(self):
+        """test ev_pickup event (with fanout)"""
+        task = task_self()
+        fanout = task.info("fanout")
+        try:
+            task.set_info("fanout", 1)
+
+            eh = TestHandler()
+
+            task.shell("/bin/sleep 1", handler=eh, key="n1")
+            task.shell("/bin/sleep 1", handler=eh, key="n2")
+            task.shell("/bin/sleep 1", handler=eh, key="n3")
+
+            task.resume()
+
+            eh.do_asserts_noread_notimeout()
+            self.assertEqual(eh.cnt_pickup, 3)
+            self.assertEqual(eh.cnt_hup, 3)
+        finally:
+            task.set_info("fanout", fanout)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell (distant) test suite
-# Written by S. Thiell 2009-02-13
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task (distant)"""
@@ -23,12 +23,14 @@ from ClusterShell.Worker.Worker import WorkerBadArgumentError
 import socket
 
 # TEventHandlerChecker 'received event' flags
-EV_START=0x01
-EV_READ=0x02
-EV_WRITTEN=0x04
-EV_HUP=0x08
-EV_TIMEOUT=0x10
-EV_CLOSE=0x20
+EV_START = 0x01
+EV_PICKUP = 0x02
+EV_READ = 0x04
+EV_WRITTEN = 0x08
+EV_HUP = 0x10
+EV_TIMEOUT = 0x20
+EV_CLOSE = 0x40
+
 
 class TaskDistantMixin(object):
 
@@ -229,7 +231,7 @@ class TaskDistantMixin(object):
         self.assertEqual(worker.node_error_buffer(HOSTNAME), None)
 
     class TEventHandlerChecker(EventHandler):
-
+        """simple event trigger validator"""
         def __init__(self, test):
             self.test = test
             self.flags = 0
@@ -238,24 +240,30 @@ class TaskDistantMixin(object):
         def ev_start(self, worker):
             self.test.assertEqual(self.flags, 0)
             self.flags |= EV_START
+        def ev_pickup(self, worker):
+            self.test.assertTrue(self.flags & EV_START)
+            self.flags |= EV_PICKUP
+            self.last_node = worker.current_node
         def ev_read(self, worker):
-            self.test.assertEqual(self.flags, EV_START)
+            self.test.assertEqual(self.flags, EV_START | EV_PICKUP)
             self.flags |= EV_READ
-            self.last_node, self.last_read = worker.last_read()
+            self.last_node = worker.current_node
+            self.last_read = worker.current_msg
         def ev_written(self, worker):
-            self.test.assert_(self.flags & EV_START)
+            self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_WRITTEN
         def ev_hup(self, worker):
-            self.test.assert_(self.flags & EV_START)
+            self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_HUP
-            self.last_rc = worker.last_retcode()
+            self.last_node = worker.current_node
+            self.last_rc = worker.current_rc
         def ev_timeout(self, worker):
-            self.test.assert_(self.flags & EV_START)
+            self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_TIMEOUT
-            self.last_node = worker.last_node()
+            self.last_node = worker.current_node
         def ev_close(self, worker):
-            self.test.assert_(self.flags & EV_START)
-            self.test.assert_(self.flags & EV_CLOSE == 0)
+            self.test.assertTrue(self.flags & EV_START)
+            self.test.assertTrue(self.flags & EV_CLOSE == 0)
             self.flags |= EV_CLOSE
 
     def testShellEvents(self):
@@ -266,18 +274,18 @@ class TaskDistantMixin(object):
         # run task
         self._task.resume()
         # test events received: start, read, hup, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_HUP | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_READ | EV_HUP | EV_CLOSE)
 
     def testShellEventsWithTimeout(self):
         # init worker
         test_eh = self.__class__.TEventHandlerChecker(self)
         worker = self._task.shell("/bin/echo alright && /bin/sleep 10", nodes=HOSTNAME, handler=test_eh,
                 timeout=2)
-        self.assert_(worker != None)
+        self.assertTrue(worker != None)
         # run task
         self._task.resume()
         # test events received: start, read, timeout, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_TIMEOUT | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_READ | EV_TIMEOUT | EV_CLOSE)
         self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
         self.assertEqual(worker.num_timeout(), 1)
         self.assertEqual(self._task.num_timeout(), 1)
@@ -305,8 +313,8 @@ class TaskDistantMixin(object):
         # run task
         self._task.resume()
         # test events received: start, read, timeout, close
-        self.assertEqual(test_eh1.flags, EV_START | EV_READ | EV_TIMEOUT | EV_CLOSE)
-        self.assertEqual(test_eh2.flags, EV_START | EV_READ | EV_TIMEOUT | EV_CLOSE)
+        self.assertEqual(test_eh1.flags, EV_START | EV_PICKUP | EV_READ | EV_TIMEOUT | EV_CLOSE)
+        self.assertEqual(test_eh2.flags, EV_START | EV_PICKUP | EV_READ | EV_TIMEOUT | EV_CLOSE)
         self.assertEqual(worker1.node_buffer(HOSTNAME), "alright")
         self.assertEqual(worker2.node_buffer(HOSTNAME), "okay")
         self.assertEqual(worker1.num_timeout(), 1)
@@ -321,7 +329,7 @@ class TaskDistantMixin(object):
         # run task
         self._task.resume()
         # test events received: start, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_HUP | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_READ | EV_HUP | EV_CLOSE)
         self.assertEqual(worker.node_buffer(HOSTNAME), "okay")
 
     def testShellEventsNoReadNoTimeout(self):
@@ -332,7 +340,7 @@ class TaskDistantMixin(object):
         # run task
         self._task.resume()
         # test events received: start, close
-        self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_HUP | EV_CLOSE)
         self.assertEqual(worker.node_buffer(HOSTNAME), None)
 
     def testLocalhostCommandFanout(self):
@@ -618,7 +626,7 @@ class TaskDistantMixin(object):
         # run task
         self._task.resume()
         os.unlink(dest)
-        self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_HUP | EV_CLOSE)
 
     def testWorkerAbort(self):
         task = task_self()
@@ -723,8 +731,34 @@ class TaskDistantMixin(object):
             # restore fanout value
             self._task.set_info("ssh_path", None)
 
+    class TEventHandlerEvCountChecker(EventHandler):
+        """simple event count validator"""
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskDistantTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+        def __init__(self):
+            self.start_count = 0
+            self.pickup_count = 0
+            self.hup_count = 0
+            self.close_count = 0
 
+        def ev_start(self, worker):
+            self.start_count += 1
+
+        def ev_pickup(self, worker):
+            self.pickup_count += 1
+
+        def ev_hup(self, worker):
+            self.hup_count += 1
+
+        def ev_close(self, worker):
+            self.close_count += 1
+
+    def testWorkerEventCount(self):
+        test_eh = self.__class__.TEventHandlerEvCountChecker()
+        nodes = "localhost,%s" % HOSTNAME
+        worker = self._task.shell("/bin/hostname", nodes=nodes, handler=test_eh)
+        self._task.resume()
+        # test event count
+        self.assertEqual(test_eh.pickup_count, 2)
+        self.assertEqual(test_eh.hup_count, 2)
+        self.assertEqual(test_eh.start_count, 1)
+        self.assertEqual(test_eh.close_count, 1)
