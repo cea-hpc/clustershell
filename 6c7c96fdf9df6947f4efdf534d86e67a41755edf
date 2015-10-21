@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_2376483f",
+        "filename": "doc/sphinx/tools/nodeset.rst",
+        "patchSetId": 9
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-10-21T20:23:25Z",
+      "side": 1,
+      "message": "Hmm is that supposed to be [0010-0060] or [0010-0060/10] (e.g. 10, 20, 30,..., 60?)\n\nCurrent code is that but I\u0027d have expected the /10, not sure how pdsh behaves.",
+      "revId": "6c7c96fdf9df6947f4efdf534d86e67a41755edf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
