@@ -16,6 +16,24 @@
       "revId": "1ba9e529c0c1e083fd63d769273adbb225b4cde9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_43697c8a",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-21T19:35:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_9dca11a0",
+      "revId": "1ba9e529c0c1e083fd63d769273adbb225b4cde9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
