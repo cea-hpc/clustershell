@@ -16,6 +16,24 @@
       "revId": "6c7c96fdf9df6947f4efdf534d86e67a41755edf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c33aec35",
+        "filename": "doc/sphinx/tools/nodeset.rst",
+        "patchSetId": 9
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-21T20:55:03Z",
+      "side": 1,
+      "message": "Damnit, you\u0027re right!!\n\n$ pdsh -w n00[1-6]0 -R exec echo ok | dshbak -c\n----------------\nn[0010,0020,0030,0040,0050,0060]\n----------------\nok\n\n\nUgh. That won\u0027t help to reduce the patch size....",
+      "parentUuid": "9ab29df4_2376483f",
+      "revId": "6c7c96fdf9df6947f4efdf534d86e67a41755edf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
