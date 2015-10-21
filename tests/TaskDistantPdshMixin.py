@@ -22,12 +22,14 @@ from ClusterShell.Worker.EngineClient import *
 import socket
 
 # TEventHandlerChecker 'received event' flags
-EV_START=0x01
-EV_READ=0x02
-EV_WRITTEN=0x04
-EV_HUP=0x08
-EV_TIMEOUT=0x10
-EV_CLOSE=0x20
+EV_START = 0x01
+EV_PICKUP = 0x02
+EV_READ = 0x04
+EV_WRITTEN = 0x08
+EV_HUP = 0x10
+EV_TIMEOUT = 0x20
+EV_CLOSE = 0x40
+
 
 class TaskDistantPdshMixin(object):
 
@@ -176,24 +178,30 @@ class TaskDistantPdshMixin(object):
         def ev_start(self, worker):
             self.test.assertEqual(self.flags, 0)
             self.flags |= EV_START
+        def ev_pickup(self, worker):
+            self.test.assertTrue(self.flags & EV_START)
+            self.flags |= EV_PICKUP
+            self.last_node = worker.current_node
         def ev_read(self, worker):
-            self.test.assertEqual(self.flags, EV_START)
+            self.test.assertEqual(self.flags, EV_START | EV_PICKUP)
             self.flags |= EV_READ
-            self.last_node, self.last_read = worker.last_read()
+            self.last_node = worker.current_node
+            self.last_read = worker.current_msg
         def ev_written(self, worker):
-            self.test.assert_(self.flags & EV_START)
+            self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_WRITTEN
         def ev_hup(self, worker):
-            self.test.assert_(self.flags & EV_START)
+            self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_HUP
-            self.last_rc = worker.last_retcode()
+            self.last_node = worker.current_node
+            self.last_rc = worker.current_rc
         def ev_timeout(self, worker):
-            self.test.assert_(self.flags & EV_START)
+            self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_TIMEOUT
-            self.last_node = worker.last_node()
+            self.last_node = worker.current_node
         def ev_close(self, worker):
-            self.test.assert_(self.flags & EV_START)
-            self.test.assert_(self.flags & EV_CLOSE == 0)
+            self.test.assertTrue(self.flags & EV_START)
+            self.test.assertTrue(self.flags & EV_CLOSE == 0)
             self.flags |= EV_CLOSE
 
     def testExplicitWorkerPdshShellEvents(self):
@@ -204,7 +212,7 @@ class TaskDistantPdshMixin(object):
         # run task
         self._task.resume()
         # test events received: start, read, hup, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_HUP | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_READ | EV_HUP | EV_CLOSE)
 
     def testExplicitWorkerPdshShellEventsWithTimeout(self):
         # test triggered events (with timeout) with explicit pdsh worker
@@ -215,7 +223,7 @@ class TaskDistantPdshMixin(object):
         # run task
         self._task.resume()
         # test events received: start, read, timeout, close
-        self.assertEqual(test_eh.flags, EV_START | EV_READ | EV_TIMEOUT | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_READ | EV_TIMEOUT | EV_CLOSE)
         self.assertEqual(worker.node_buffer(HOSTNAME), "alright")
 
     def testShellPdshEventsNoReadNoTimeout(self):
@@ -227,7 +235,7 @@ class TaskDistantPdshMixin(object):
         # run task
         self._task.resume()
         # test events received: start, close
-        self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
+        self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_HUP | EV_CLOSE)
         self.assertEqual(worker.node_buffer(HOSTNAME), None)
 
     def testWorkerPdshBuffers(self):
@@ -386,12 +394,11 @@ class TaskDistantPdshMixin(object):
 
     def testPdshBadArgumentOption(self):
         # test WorkerPdsh constructor bad argument
-	# Check code < 1.4 compatibility
+        # Check code < 1.4 compatibility
         self.assertRaises(WorkerBadArgumentError, WorkerPdsh, HOSTNAME,
-			  None, None)
-	# As of 1.4, ValueError is raised for missing parameter
-        self.assertRaises(ValueError, WorkerPdsh, HOSTNAME,
-			  None, None) # 1.4+
+                          None, None)
+        # As of 1.4, ValueError is raised for missing parameter
+        self.assertRaises(ValueError, WorkerPdsh, HOSTNAME, None, None) # 1.4+
 
     def testCopyEvents(self):
         test_eh = self.__class__.TEventHandlerChecker(self)
@@ -401,7 +408,7 @@ class TaskDistantPdshMixin(object):
                     dest=dest, handler=test_eh, timeout=10)
             self._task.schedule(worker)
             self._task.resume()
-            self.assertEqual(test_eh.flags, EV_START | EV_HUP | EV_CLOSE)
+            self.assertEqual(test_eh.flags, EV_START | EV_PICKUP | EV_HUP | EV_CLOSE)
         finally:
             os.remove(dest)
 
@@ -486,4 +493,35 @@ class TaskDistantPdshMixin(object):
             shutil.rmtree(dtmp_dst, ignore_errors=True)
             shutil.rmtree(dtmp_src, ignore_errors=True)
 
+    class TEventHandlerEvCountChecker(EventHandler):
+        """simple event count validator"""
 
+        def __init__(self):
+            self.start_count = 0
+            self.pickup_count = 0
+            self.hup_count = 0
+            self.close_count = 0
+
+        def ev_start(self, worker):
+            self.start_count += 1
+
+        def ev_pickup(self, worker):
+            self.pickup_count += 1
+
+        def ev_hup(self, worker):
+            self.hup_count += 1
+
+        def ev_close(self, worker):
+            self.close_count += 1
+
+    def testWorkerEventCount(self):
+        test_eh = self.__class__.TEventHandlerEvCountChecker()
+        nodes = "localhost,%s" % HOSTNAME
+        worker = WorkerPdsh(nodes, command="/bin/hostname", handler=test_eh)
+        self._task.schedule(worker)
+        self._task.resume()
+        # test event count
+        self.assertEqual(test_eh.pickup_count, 2)
+        self.assertEqual(test_eh.hup_count, 2)
+        self.assertEqual(test_eh.start_count, 1)
+        self.assertEqual(test_eh.close_count, 1)

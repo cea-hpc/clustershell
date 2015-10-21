@@ -69,7 +69,7 @@ class Worker(object):
 
     The following public object variables are defined on some events, so you
     may find them useful in event handlers:
-        - worker.current_node [ev_read,ev_error,ev_hup]
+        - worker.current_node [ev_pickup,ev_read,ev_error,ev_hup]
             node/key concerned by event
         - worker.current_msg [ev_read]
             message just read (from stdout)
@@ -128,12 +128,27 @@ class Worker(object):
 
     # Event generators
 
-    def _on_start(self):
-        """Starting worker."""
+    def _on_start(self, key):
+        """Called on command start."""
+        self.current_node = key
+
         if not self.started:
             self.started = True
             if self.eh:
                 self.eh.ev_start(self)
+
+        if self.eh:
+            self.eh.ev_pickup(self)
+
+    def _on_rc(self, key, rc):
+        """Command return code received."""
+        self.current_node = key
+        self.current_rc = rc
+
+        self.task._rc_set(self, key, rc)
+
+        if self.eh:
+            self.eh.ev_hup(self)
 
     # Base getters
 
@@ -192,6 +207,8 @@ class DistantWorker(Worker):
     distant workers like ssh or pdsh.
     """
 
+    # Event generators
+
     def _on_node_msgline(self, node, msg, sname):
         """Message received from node, update last* stuffs."""
         # Maxoptimize this method as it might be called very often.
@@ -214,14 +231,8 @@ class DistantWorker(Worker):
                 handler.ev_read(self)
 
     def _on_node_rc(self, node, rc):
-        """Return code received from a node, update last* stuffs."""
-        self.current_node = node
-        self.current_rc = rc
-
-        self.task._rc_set(self, node, rc)
-
-        if self.eh:
-            self.eh.ev_hup(self)
+        """Command return code received."""
+        Worker._on_rc(self, node, rc)
 
     def _on_node_timeout(self, node):
         """Update on node timeout."""
@@ -364,7 +375,7 @@ class StreamClient(EngineClient):
     def _start(self):
         """Called on EngineClient start."""
         assert not self.worker.started
-        self.worker._on_start()
+        self.worker._on_start(self.key)
         return self
 
     def _read(self, sname, size=65536):
@@ -525,15 +536,6 @@ class StreamWorker(Worker):
             self.current_msg = msg
             if self.eh:
                 self.eh.ev_read(self)
-
-    def _on_rc(self, key, rc):
-        """Set return code received."""
-        self.current_rc = rc
-
-        self.task._rc_set(self, key, rc)
-
-        if self.eh:
-            self.eh.ev_hup(self)
 
     def _on_timeout(self, key):
         """Update on timeout."""
