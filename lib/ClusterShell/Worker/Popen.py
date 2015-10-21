@@ -1,6 +1,6 @@
 #
 # Copyright CEA/DAM/DIF (2008-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -69,7 +69,7 @@ class PopenClient(StreamClient):
         if task.info("debug", False):
             task.info("print_debug")(task, "POPEN: %s" % self.worker.command)
 
-        self.worker._on_start()
+        self.worker._on_start(self.key)
         return self
 
     def _close(self, abort, timeout):

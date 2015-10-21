@@ -969,3 +969,41 @@ class TaskLocalMixin(object):
         # stop task
         task.abort()
 
+    def testLocalPickupHup(self):
+
+        class PickupHupCounter(EventHandler):
+            def __init__(self):
+                self.pickup_count = 0
+                self.hup_count = 0
+            def ev_pickup(self, worker):
+                self.pickup_count += 1
+            def ev_hup(self, worker):
+                self.hup_count += 1
+
+        task = task_self()
+        fanout = task.info("fanout")
+        try:
+            task.set_info("fanout", 3)
+
+            # Test #1: simple
+            chdlr = PickupHupCounter()
+            for i in range(0, 10):
+                task.shell("/bin/echo test %d" % i, handler=chdlr)
+            task.resume()
+            self.assertEqual(chdlr.pickup_count, 10)
+            self.assertEqual(chdlr.hup_count, 10)
+
+            # Test #2: fanout change during run
+            chdlr = PickupHupCounter()
+            class TestFanoutChanger(EventHandler):
+                def ev_timer(self, timer):
+                    task_self().set_info("fanout", 1)
+            timer = task.timer(2.0, handler=TestFanoutChanger())
+            for i in range(0, 10):
+                task.shell("/bin/echo sleep 1", handler=chdlr)
+            task.resume()
+            self.assertEqual(chdlr.pickup_count, 10)
+            self.assertEqual(chdlr.hup_count, 10)
+        finally:
+            # restore original fanout value
+            task.set_info("fanout", fanout)

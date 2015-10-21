@@ -69,7 +69,7 @@ class Worker(object):
 
     The following public object variables are defined on some events, so you
     may find them useful in event handlers:
-        - worker.current_node [ev_read,ev_error,ev_hup]
+        - worker.current_node [ev_pickup,ev_read,ev_error,ev_hup]
             node/key concerned by event
         - worker.current_msg [ev_read]
             message just read (from stdout)
@@ -125,15 +125,6 @@ class Worker(object):
     def _engine_clients(self):
         """Return a list of underlying engine clients."""
         raise NotImplementedError("Derived classes must implement.")
-
-    # Event generators
-
-    def _on_start(self):
-        """Starting worker."""
-        if not self.started:
-            self.started = True
-            if self.eh:
-                self.eh.ev_start(self)
 
     # Base getters
 
@@ -191,6 +182,20 @@ class DistantWorker(Worker):
     DistantWorker provides a useful set of setters/getters to use with
     distant workers like ssh or pdsh.
     """
+
+    # Event generators
+
+    def _on_node_start(self, key):
+        """Starting worker."""
+        self.current_node = key
+
+        if not self.started:
+            self.started = True
+            if self.eh:
+                self.eh.ev_start(self)
+
+        if self.eh:
+            self.eh.ev_pickup(self)
 
     def _on_node_msgline(self, node, msg, sname):
         """Message received from node, update last* stuffs."""
@@ -364,7 +369,7 @@ class StreamClient(EngineClient):
     def _start(self):
         """Called on EngineClient start."""
         assert not self.worker.started
-        self.worker._on_start()
+        self.worker._on_start(self.key)
         return self
 
     def _read(self, sname, size=65536):
@@ -505,6 +510,18 @@ class StreamWorker(Worker):
         Use this method to set the custom source key for this worker.
         """
         self.clients[0].key = key
+
+    def _on_start(self, key):
+        """Starting worker."""
+        self.current_node = key
+
+        if not self.started:
+            self.started = True
+            if self.eh:
+                self.eh.ev_start(self)
+
+        if self.eh:
+            self.eh.ev_pickup(self)
 
     def _on_msgline(self, key, msg, sname):
         """Add a message."""
