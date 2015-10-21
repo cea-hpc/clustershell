@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_9dca11a0",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-21T13:51:05Z",
+      "side": 1,
+      "message": "so now I see no reason to not put this file processing after the local file expansion check. This will group all modification in the same place",
+      "revId": "1ba9e529c0c1e083fd63d769273adbb225b4cde9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
