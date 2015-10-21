@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_838d5434",
+        "filename": "doc/sphinx/tools/clush.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-10-21T20:16:36Z",
+      "side": 1,
+      "message": "warning no longer true with latest patchset?\nNot quite sure what it means actually, the option works well with -w/-x",
+      "revId": "b24624778ebd2a2cb657864636edc3ef54429a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
