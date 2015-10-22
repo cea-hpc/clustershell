@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -40,6 +40,7 @@ out replies on stdout.
 
 import logging
 import os
+import socket
 import sys
 import traceback
 
@@ -47,6 +48,7 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, _getshorthostname
 from ClusterShell.Engine.Engine import EngineAbortException
+from ClusterShell.Topology import TopologyError
 from ClusterShell.Worker.fastsubprocess import set_nonblock_flag
 from ClusterShell.Worker.Worker import StreamWorker
 from ClusterShell.Worker.Tree import WorkerTree
@@ -56,9 +58,9 @@ from ClusterShell.Communication import Channel, ConfigurationMessage, \
     MessageProcessingError
 
 
-def _gw_print_debug(task, s):
+def _gw_print_debug(task, line):
     """Default gateway task debug printing function"""
-    logging.getLogger(__name__).debug(s)
+    logging.getLogger(__name__).debug(line)
 
 def gateway_excepthook(exc_type, exc_value, tb):
     """
@@ -67,6 +69,33 @@ def gateway_excepthook(exc_type, exc_value, tb):
     """
     tbexc = traceback.format_exception(exc_type, exc_value, tb)
     logging.getLogger(__name__).error(''.join(tbexc))
+
+def _ishorthostnames():
+    """
+    Return all local short hostnames found from networking on the system.
+
+    Helper for the propagation tree router that fixes #250 if the netifaces
+    module is available on the gateway host.
+    """
+    logger = logging.getLogger(__name__)
+    result = []
+    try:
+        import netifaces
+
+        for iface in netifaces.interfaces():
+            for proto in (socket.AF_INET, socket.AF_INET6):
+                for link in netifaces.ifaddresses(iface).get(proto, []):
+                    addr = link['addr']
+                    try:
+                        shost = socket.gethostbyaddr(addr)[0].split('.')[0]
+                        if shost not in result:
+                            logger.debug("netifaces: found %s %s", shost, addr)
+                            result.append(shost)
+                    except socket.herror:
+                        logger.debug("netifaces: unable to resolve %s", addr)
+    except ImportError:
+        logger.debug("netifaces module not found")
+    return result
 
 
 class WorkerTreeResponder(EventHandler):
@@ -199,16 +228,44 @@ class GatewayChannel(Channel):
 
     def recv_cfg(self, msg):
         """receive cfg/topology configuration"""
-        if msg.type == ConfigurationMessage.ident:
-            self.logger.debug('got channel configuration')
-            self.topology = msg.data_decode()
-            task_self().topology = self.topology
-            self.logger.debug('decoded propagation tree')
-            self.logger.debug('%s' % str(self.topology))
-            self.setup = True
-            self._ack(msg)
-        else:
+        if msg.type != ConfigurationMessage.ident:
             raise MessageProcessingError('unexpected message: %s' % msg)
+
+        self.logger.debug('got channel configuration')
+        self.topology = msg.data_decode()
+        task_self().topology = self.topology
+        self.logger.debug('decoded propagation tree')
+        self.logger.debug('\n%s' % self.topology)
+        self.setup = True
+        self._ack(msg) # required by protocol
+
+        # Check if we're actually part of received TopologyTree object
+        newroot_group = None
+        try:
+            newroot_group = self.topology.find_nodegroup(self.hostname)
+        except TopologyError:
+            # system hostname not found in tree, try alternatives
+            self.logger.debug('my hostname %s not found in the received '
+                              'topology, trying alternatives (netifaces)...'
+                              % self.hostname)
+            for althostname in _ishorthostnames():
+                try:
+                    newroot_group = self.topology.find_nodegroup(althostname)
+                    self.hostname = althostname
+                    break
+                except TopologyError:
+                    continue
+
+        if newroot_group is None:
+            # Cannot find corresponding TopologyNodeGroup - fatal error
+            self.logger.error('unable to find myself in topology tree')
+            helptxt = "Please check that topology uses system hostnames or " \
+                      "any local interface hostnames when python-netifaces " \
+                      "is installed"
+            errmsg = ErrorMessage('Cannot find myself (%s) in topology tree! %s'
+                                  % (self.hostname, helptxt))
+            self.send(errmsg)
+            self._close()
 
     def recv_ctl(self, msg):
         """receive control message with actions to perform"""
@@ -237,7 +294,7 @@ class GatewayChannel(Channel):
                 if task.info('debug'):
                     self.logger.setLevel(logging.DEBUG)
 
-                self.logger.debug('inherited fanout value=%d', \
+                self.logger.debug('inherited fanout value=%d',
                                   task.info("fanout"))
 
                 self.logger.debug('launching execution/enter gathering state')
@@ -300,6 +357,7 @@ def gateway_main():
 
     logger.debug('Starting gateway on %s', host)
     logger.debug("environ=%s" % os.environ)
+
 
     set_nonblock_flag(sys.stdin.fileno())
     set_nonblock_flag(sys.stdout.fileno())

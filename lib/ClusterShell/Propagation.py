@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -78,15 +78,11 @@ class PropagationTreeRouter(object):
         use to reach these nodes.
         """
         self.table = {}
-        root_group = None
-
-        for entry in topology.groups:
-            if root in entry.nodeset:
-                root_group = entry
-                break
-
-        if root_group is None:
-            raise RouteResolvingError('Invalid admin node: %s' % root)
+        try:
+            root_group = topology.find_nodegroup(root)
+        except TopologyError:
+            msgfmt = "Invalid root or gateway node: %s"
+            raise RouteResolvingError(msgfmt % root)
 
         for group in root_group.children():
             self.table[group.nodeset] = NodeSet()
@@ -389,7 +385,7 @@ class PropagationChannel(Channel):
                     metaworker._on_remote_node_timeout(node, self.gateway)
         elif msg.type == ErrorMessage.ident:
             # tree runtime error, could generate a new event later
-            raise TopologyError(msg.reason)
+            raise TopologyError("%s: %s" % (self.gateway, msg.reason))
         else:
             self.logger.debug("recv_ctl: unhandled msg %s",  msg)
         """
