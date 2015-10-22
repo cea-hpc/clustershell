@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_7e361305",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-10-22T09:36:19Z",
+      "side": 1,
+      "message": "Why did you move it away from the base worker class? Looks like eveyone uses it but it is duplicated... Or am I missing something?",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_de247fc8",
+        "filename": "tests/TaskLocalMixin.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1003,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2015-10-22T09:36:19Z",
+      "side": 1,
+      "message": "hmm... don\u0027t you want that to actually sleep?",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
