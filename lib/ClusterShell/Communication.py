@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -69,6 +69,7 @@ from ClusterShell.Event import EventHandler
 
 
 ENCODING = 'utf-8'
+VERSION = 1
 
 
 class MessageProcessingError(Exception):
@@ -90,7 +91,7 @@ class XMLReader(ContentHandler):
     def startElement(self, name, attrs):
         """read a starting xml tag"""
         if name == 'channel':
-            self.msg_queue.appendleft(StartMessage())
+            self.msg_queue.appendleft(StartMessage(VERSION))
         elif name == 'message':
             self._draft_new(attrs)
         else:
@@ -172,6 +173,8 @@ class Channel(EventHandler):
         # channel state flags
         self.opened = False
         self.setup = False
+        # protocol version
+        self.version = VERSION
         # will this channel send communication error responses?
         self.error_response = error_response
 
@@ -321,6 +324,12 @@ class ConfigurationMessage(Message):
     ident = 'CFG'
     has_payload = True
 
+    def __init__(self, gateway=''):
+        """initialize with gateway node name"""
+        Message.__init__(self)
+        self.attr.update({'gateway': str})
+        self.gateway = gateway
+
 class RoutedMessageBase(Message):
     """abstract class for routed message (with worker source id)"""
     def __init__(self, srcid):
@@ -410,6 +419,12 @@ class TimeoutMessage(RoutedMessageBase):
 class StartMessage(Message):
     """message indicating the start of a channel communication"""
     ident = 'CHA'
+
+    def __init__(self, version=0):
+        """Initialize StartMessage with communication version"""
+        Message.__init__(self)
+        self.attr.update({'version': int})
+        self.version = version
 
 class EndMessage(Message):
     """end of channel message"""

@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -170,7 +170,7 @@ class TopologyTree(object):
     """represent a simplified network topology as a tree of machines to use to
     connect to other ones
     """
-    class TreeIterator:
+    class TreeIterator(object):
         """efficient tool for tree-traversal"""
         def __init__(self, tree):
             """we do simply manage a stack with the remaining nodes"""
@@ -212,6 +212,14 @@ class TopologyTree(object):
         if self.root is None:
             return '<TopologyTree instance (empty)>'
         return self.root.printable_subtree()
+
+    def find_nodegroup(self, node):
+        """Find TopologyNodeGroup from given node (helper to find new root)"""
+        for group in self.groups:
+            if node in group.nodeset:
+                return group
+        raise TopologyError('TopologyNodeGroup not found for node %s' % node)
+
 
 class TopologyRoute(object):
     """A single route between two nodesets"""

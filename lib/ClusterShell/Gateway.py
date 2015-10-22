@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -53,12 +53,12 @@ from ClusterShell.Worker.Tree import WorkerTree
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
     ControlMessage, ACKMessage, ErrorMessage, StartMessage, EndMessage, \
     StdOutMessage, StdErrMessage, RetcodeMessage, TimeoutMessage, \
-    MessageProcessingError
+    MessageProcessingError, VERSION
 
 
-def _gw_print_debug(task, s):
+def _gw_print_debug(task, line):
     """Default gateway task debug printing function"""
-    logging.getLogger(__name__).debug(s)
+    logging.getLogger(__name__).debug(line)
 
 def gateway_excepthook(exc_type, exc_value, tb):
     """
@@ -143,12 +143,12 @@ class WorkerTreeResponder(EventHandler):
 
 class GatewayChannel(Channel):
     """high level logic for gateways"""
-    def __init__(self, task, hostname):
+    def __init__(self, task):
         """
         """
         Channel.__init__(self, error_response=True)
         self.task = task
-        self.hostname = hostname
+        self.nodename = None
         self.topology = None
         self.propagation = None
         self.logger = logging.getLogger(__name__)
@@ -176,10 +176,17 @@ class GatewayChannel(Channel):
             elif self.opened:
                 self.recv_cfg(msg)
             elif msg.type == StartMessage.ident:
-                self.logger.debug('got channel start')
+                self.logger.debug('got channel start %s', msg)
                 self.opened = True
+                # Got propagation channel version
+                if msg.version > VERSION:
+                    self.logger.error('unknown channel version %d! '
+                                      'UPGRADE GATEWAYS FIRST!' % msg.version)
+                    self.version = VERSION # best-effort
+                else:
+                    self.version = msg.version
                 self._open()
-                # TODO: channel versioning
+                self.logger.debug('channel started (version %d)' % self.version)
             else:
                 self.logger.error('unexpected message: %s', str(msg))
                 raise MessageProcessingError('unexpected message: %s' % msg)
@@ -199,16 +206,31 @@ class GatewayChannel(Channel):
 
     def recv_cfg(self, msg):
         """receive cfg/topology configuration"""
-        if msg.type == ConfigurationMessage.ident:
-            self.logger.debug('got channel configuration')
-            self.topology = msg.data_decode()
-            task_self().topology = self.topology
-            self.logger.debug('decoded propagation tree')
-            self.logger.debug('%s' % str(self.topology))
-            self.setup = True
-            self._ack(msg)
-        else:
+        if msg.type != ConfigurationMessage.ident:
             raise MessageProcessingError('unexpected message: %s' % msg)
+
+        self.logger.debug('got channel configuration')
+
+        # gw node name
+        hostname = _getshorthostname()
+        if not msg.gateway:
+            self.nodename = hostname
+            self.logger.warn('gw name not provided, using system hostname %s',
+                             self.nodename)
+        else:
+            self.nodename = msg.gateway
+
+        self.logger.debug('using gateway node name %s', self.nodename)
+        if self.nodename.lower() != hostname.lower():
+            self.logger.debug('gw name %s does not match system hostname %s',
+                              self.nodename, hostname)
+
+        # topology
+        task_self().topology = self.topology = msg.data_decode()
+        self.logger.debug('decoded propagation tree')
+        self.logger.debug('\n%s' % self.topology)
+        self.setup = True
+        self._ack(msg)
 
     def recv_ctl(self, msg):
         """receive control message with actions to perform"""
@@ -223,12 +245,11 @@ class GatewayChannel(Channel):
                 remote = data['remote']
 
                 #self.propagation.invoke_gateway = data['invoke_gateway']
-                self.logger.debug('decoded gw invoke (%s)', \
+                self.logger.debug('decoded gw invoke (%s)',
                                   data['invoke_gateway'])
 
                 taskinfo = data['taskinfo']
-                self.logger.debug('assigning task infos (%s)' % \
-                    str(data['taskinfo']))
+                self.logger.debug('assigning task infos (%s)', data['taskinfo'])
 
                 task = task_self()
                 task._info.update(taskinfo)
@@ -237,7 +258,7 @@ class GatewayChannel(Channel):
                 if task.info('debug'):
                     self.logger.setLevel(logging.DEBUG)
 
-                self.logger.debug('inherited fanout value=%d', \
+                self.logger.debug('inherited fanout value=%d',
                                   task.info("fanout"))
 
                 self.logger.debug('launching execution/enter gathering state')
@@ -247,7 +268,7 @@ class GatewayChannel(Channel):
                 self.propagation = WorkerTree(msg.target, responder, timeout,
                                               command=cmd,
                                               topology=self.topology,
-                                              newroot=self.hostname,
+                                              newroot=self.nodename,
                                               stderr=stderr,
                                               remote=remote)
                 # FIXME ev_start-not-called workaround
@@ -301,6 +322,7 @@ def gateway_main():
     logger.debug('Starting gateway on %s', host)
     logger.debug("environ=%s" % os.environ)
 
+
     set_nonblock_flag(sys.stdin.fileno())
     set_nonblock_flag(sys.stdout.fileno())
     set_nonblock_flag(sys.stderr.fileno())
@@ -315,7 +337,7 @@ def gateway_main():
         logger.critical('Gateway failure: sys.stdin.isatty() is True')
         sys.exit(1)
 
-    worker = StreamWorker(handler=GatewayChannel(task, host))
+    worker = StreamWorker(handler=GatewayChannel(task))
     worker.set_reader('r-stdin', sys.stdin)
     worker.set_writer('w-stdout', sys.stdout, retain=False)
     # stderr stream not used yet
@@ -332,7 +354,7 @@ def gateway_main():
         raise
     except Exception, exc:
         logger.exception('Gateway failure: %s' % exc)
-    logger.debug('The End')
+    logger.debug('-------- The End --------')
 
 if __name__ == '__main__':
     __name__ = 'ClusterShell.Gateway'

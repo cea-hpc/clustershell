@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -47,6 +47,7 @@ from ClusterShell.Communication import StdErrMessage, RetcodeMessage
 from ClusterShell.Communication import StartMessage, EndMessage
 from ClusterShell.Communication import RoutedMessageBase, ErrorMessage
 from ClusterShell.Communication import ConfigurationMessage, TimeoutMessage
+from ClusterShell.Communication import VERSION
 from ClusterShell.Topology import TopologyError
 
 
@@ -78,15 +79,11 @@ class PropagationTreeRouter(object):
         use to reach these nodes.
         """
         self.table = {}
-        root_group = None
-
-        for entry in topology.groups:
-            if root in entry.nodeset:
-                root_group = entry
-                break
-
-        if root_group is None:
-            raise RouteResolvingError('Invalid admin node: %s' % root)
+        try:
+            root_group = topology.find_nodegroup(root)
+        except TopologyError:
+            msgfmt = "Invalid root or gateway node: %s"
+            raise RouteResolvingError(msgfmt % root)
 
         for group in root_group.children():
             self.table[group.nodeset] = NodeSet()
@@ -259,15 +256,15 @@ class PropagationChannel(Channel):
         """start propagation channel"""
         self._init()
         self._open()
-        cfg = ConfigurationMessage()
-        #cfg.data_encode(self.task._default_topology())
+        # Immediately send CFG - cannot be under version control
+        cfg = ConfigurationMessage(self.gateway)
         cfg.data_encode(self.task.topology)
         self._history['cfg_id'] = cfg.msgid
         self.send(cfg)
 
     def recv(self, msg):
         """process incoming messages"""
-        self.logger.debug("[DBG] rcvd from: %s" % str(msg))
+        self.logger.debug("[DBG] rcvd from: %s", msg)
         if msg.type == EndMessage.ident:
             #??#self.ptree.notify_close()
             self.logger.debug("got EndMessage; closing")
@@ -279,12 +276,19 @@ class PropagationChannel(Channel):
             self.recv_cfg(msg)
         elif msg.type == StartMessage.ident:
             self.opened = True
-            self.logger.debug('channel started')
-            # TODO: channel versioning
+            # Got gateway channel version (we already send ours)
+            if msg.version > VERSION:
+                # Gateway supports a newer protocol, this might be supported
+                self.logger.warn('unknown channel version %d', msg.version)
+                self.version = VERSION
+            else:
+                self.version = msg.version
+            self.logger.debug('channel started (version %d)', self.version)
         else:
             self.logger.error('unexpected message: %s', str(msg))
 
-    def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd, remote):
+    def shell(self, nodes, command, worker, timeout, stderr, gw_invoke_cmd,
+              remote):
         """command execution through channel"""
         self.logger.debug("shell nodes=%s timeout=%s worker=%s remote=%s",
                           nodes, timeout, id(worker), remote)
@@ -389,9 +393,9 @@ class PropagationChannel(Channel):
                     metaworker._on_remote_node_timeout(node, self.gateway)
         elif msg.type == ErrorMessage.ident:
             # tree runtime error, could generate a new event later
-            raise TopologyError(msg.reason)
+            raise TopologyError("%s: %s" % (self.gateway, msg.reason))
         else:
-            self.logger.debug("recv_ctl: unhandled msg %s",  msg)
+            self.logger.debug("recv_ctl: unhandled msg %s", msg)
         """
         return
         if self.ptree.upchannel is not None:
@@ -417,5 +421,5 @@ class PropagationChannel(Channel):
             # ev_routing?
             self.logger.debug("unreachable gateway %s", gateway)
             worker.task.router.mark_unreachable(gateway)
-            self.logger.debug("worker.task.gateways=%s" % worker.task.gateways)
+            self.logger.debug("worker.task.gateways=%s", worker.task.gateways)
             # TODO: find best gateway, update WorkerTree counters, relaunch...
