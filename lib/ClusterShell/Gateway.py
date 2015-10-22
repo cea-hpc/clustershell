@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -40,6 +40,7 @@ out replies on stdout.
 
 import logging
 import os
+import socket
 import sys
 import traceback
 
@@ -56,9 +57,9 @@ from ClusterShell.Communication import Channel, ConfigurationMessage, \
     MessageProcessingError
 
 
-def _gw_print_debug(task, s):
+def _gw_print_debug(task, line):
     """Default gateway task debug printing function"""
-    logging.getLogger(__name__).debug(s)
+    logging.getLogger(__name__).debug(line)
 
 def gateway_excepthook(exc_type, exc_value, tb):
     """
@@ -67,6 +68,34 @@ def gateway_excepthook(exc_type, exc_value, tb):
     """
     tbexc = traceback.format_exception(exc_type, exc_value, tb)
     logging.getLogger(__name__).error(''.join(tbexc))
+
+def gateway_shorthostnames():
+    """Return all local short hostnames found on the system.
+
+    Helper for the propagation tree router that fixes #250 if the netifaces
+    module is available on the gateway host.
+    """
+    logger = logging.getLogger(__name__)
+    # Always include system short hostname first
+    result = [_getshorthostname()]
+    try:
+        import netifaces
+
+        for iface in netifaces.interfaces():
+            for proto in (socket.AF_INET, socket.AF_INET6):
+                for link in netifaces.ifaddresses(iface).get(proto, []):
+                    addr = link['addr']
+                    try:
+                        shost = socket.gethostbyaddr(addr)[0].split('.')[0]
+                        if shost != 'localhost' and shost not in result:
+                            logger.debug("netifaces: found %s %s", shost, addr)
+                            result.append(shost)
+                    except socket.herror:
+                        logger.debug("netifaces: unable to resolve %s", addr)
+        return result
+    except ImportError:
+        logger.debug("netifaces module not found: using hostname %s", result[0])
+        return result
 
 
 class WorkerTreeResponder(EventHandler):
@@ -143,12 +172,12 @@ class WorkerTreeResponder(EventHandler):
 
 class GatewayChannel(Channel):
     """high level logic for gateways"""
-    def __init__(self, task, hostname):
+    def __init__(self, task, hostnames):
         """
         """
         Channel.__init__(self, error_response=True)
         self.task = task
-        self.hostname = hostname
+        self.hostnames = hostnames
         self.topology = None
         self.propagation = None
         self.logger = logging.getLogger(__name__)
@@ -247,7 +276,7 @@ class GatewayChannel(Channel):
                 self.propagation = WorkerTree(msg.target, responder, timeout,
                                               command=cmd,
                                               topology=self.topology,
-                                              newroot=self.hostname,
+                                              newroot=self.hostnames,
                                               stderr=stderr,
                                               remote=remote)
                 # FIXME ev_start-not-called workaround
@@ -301,6 +330,8 @@ def gateway_main():
     logger.debug('Starting gateway on %s', host)
     logger.debug("environ=%s" % os.environ)
 
+    myhostnames = gateway_shorthostnames()
+
     set_nonblock_flag(sys.stdin.fileno())
     set_nonblock_flag(sys.stdout.fileno())
     set_nonblock_flag(sys.stderr.fileno())
@@ -315,7 +346,7 @@ def gateway_main():
         logger.critical('Gateway failure: sys.stdin.isatty() is True')
         sys.exit(1)
 
-    worker = StreamWorker(handler=GatewayChannel(task, host))
+    worker = StreamWorker(handler=GatewayChannel(task, myhostnames))
     worker.set_reader('r-stdin', sys.stdin)
     worker.set_writer('w-stdout', sys.stdout, retain=False)
     # stderr stream not used yet

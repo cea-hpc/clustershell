@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -86,7 +86,11 @@ class PropagationTreeRouter(object):
                 break
 
         if root_group is None:
-            raise RouteResolvingError('Invalid admin node: %s' % root)
+            msgfmt = "Invalid root or gateway node: %s (%s)"
+            helptxt = "please check that topology uses system hostnames or " \
+                      "any local interface hostnames when python-netifaces " \
+                      "is installed"
+            raise RouteResolvingError(msgfmt % (root, helptxt))
 
         for group in root_group.children():
             self.table[group.nodeset] = NodeSet()
