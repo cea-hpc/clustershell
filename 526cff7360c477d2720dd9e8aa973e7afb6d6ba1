@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_a8523011",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T16:12:39Z",
+      "side": 1,
+      "message": "useless",
+      "range": {
+        "startLine": 195,
+        "startChar": 19,
+        "endLine": 195,
+        "endChar": 28
+      },
+      "revId": "526cff7360c477d2720dd9e8aa973e7afb6d6ba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_884d6c75",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T16:12:39Z",
+      "side": 1,
+      "message": "there is way too many thing in this __init__ method. Use private methods.",
+      "revId": "526cff7360c477d2720dd9e8aa973e7afb6d6ba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
