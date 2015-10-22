@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_c3110cae",
+        "filename": "lib/ClusterShell/Worker/Exec.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-22T06:14:05Z",
+      "side": 1,
+      "message": "BTW - I\u0027m thinking of using a decorator for the next methods, that should be well suited for those wrapper functions (as soon as we can drop python 2.4, so not before 1.8).",
+      "revId": "a73088a991c6da3da52165a3f0dc3142a374ba25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
