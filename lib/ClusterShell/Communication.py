@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -321,6 +321,12 @@ class ConfigurationMessage(Message):
     ident = 'CFG'
     has_payload = True
 
+    def __init__(self, gateway=''):
+        """initialize with gateway node name"""
+        Message.__init__(self)
+        self.attr.update({'gateway': str})
+        self.gateway = gateway
+
 class RoutedMessageBase(Message):
     """abstract class for routed message (with worker source id)"""
     def __init__(self, srcid):
@@ -414,4 +420,3 @@ class StartMessage(Message):
 class EndMessage(Message):
     """end of channel message"""
     ident = 'END'
-

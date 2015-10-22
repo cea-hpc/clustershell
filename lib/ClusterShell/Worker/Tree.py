@@ -49,8 +49,8 @@ from ClusterShell.Propagation import PropagationTreeRouter
 
 
 class MetaWorkerEventHandler(EventHandler):
-    """
-    """
+    """Handle events for the meta worker WorkerTree"""
+
     def __init__(self, metaworker):
         self.metaworker = metaworker
         self.logger = logging.getLogger(__name__)
@@ -176,7 +176,8 @@ class WorkerTree(DistantWorker):
 
         self.topology = kwargs.get('topology')
         if self.topology is not None:
-            self.newroot = kwargs.get('newroot') or str(self.topology.root.nodeset)
+            self.newroot = kwargs.get('newroot') or \
+                           str(self.topology.root.nodeset)
             self.router = PropagationTreeRouter(self.newroot, self.topology)
         else:
             self.router = None
@@ -204,8 +205,8 @@ class WorkerTree(DistantWorker):
         self._check_ini()
 
     def _launch(self, nodes):
-        self.logger.debug("WorkerTree._launch on %s (fanout=%d)"
-                          % (nodes, self.task.info("fanout")))
+        self.logger.debug("WorkerTree._launch on %s (fanout=%d)", nodes,
+                          self.task.info("fanout"))
 
         # Prepare copy params if source is defined
         destdir = None
@@ -230,9 +231,9 @@ class WorkerTree(DistantWorker):
                           % [(str(n), str(v)) for n, v in next_hops.items()])
         for gw, targets in next_hops.iteritems():
             if gw == targets:
-                self.logger.debug('task.shell cmd=%s source=%s nodes=%s timeout=%s '
-                                  'remote=%s' % (self.command, self.source, nodes,
-                                                 self.timeout, self.remote))
+                self.logger.debug('task.shell cmd=%s source=%s nodes=%s '
+                                  'timeout=%s remote=%s', self.command,
+                                  self.source, nodes, self.timeout, self.remote)
                 self._child_count += 1
                 self._target_count += len(targets)
                 if self.remote:
@@ -268,9 +269,11 @@ class WorkerTree(DistantWorker):
             else:
                 self.logger.debug("trying gateway %s to reach %s", gw, targets)
                 if self.source:
-                    self._copy_remote(self.source, destdir, targets, gw, self.timeout)
+                    self._copy_remote(self.source, destdir, targets, gw,
+                                      self.timeout)
                 else:
-                    self._execute_remote(self.command, targets, gw, self.timeout)
+                    self._execute_remote(self.command, targets, gw,
+                                         self.timeout)
 
         # Copy mode: send tar data after above workers have been initialized
         if self.source:
@@ -313,9 +316,10 @@ class WorkerTree(DistantWorker):
 
         cmd = self.UNTAR_CMD_FMT % dest
 
-        self.task._pchannel(gateway, self).shell(nodes=targets,
-            command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
-            gw_invoke_cmd=self.invoke_gateway, remote=self.remote)
+        pchan = self.task._pchannel(gateway, self)
+        pchan.shell(nodes=targets, command=cmd, worker=self, timeout=timeout,
+                    stderr=self.stderr, gw_invoke_cmd=self.invoke_gateway,
+                    remote=self.remote)
 
 
     def _execute_remote(self, cmd, targets, gateway, timeout):
@@ -327,9 +331,10 @@ class WorkerTree(DistantWorker):
 
         self.gwtargets[gateway] = targets.copy()
 
-        self.task._pchannel(gateway, self).shell(nodes=targets,
-            command=cmd, worker=self, timeout=timeout, stderr=self.stderr,
-            gw_invoke_cmd=self.invoke_gateway, remote=self.remote)
+        pchan = self.task._pchannel(gateway, self)
+        pchan.shell(nodes=targets, command=cmd, worker=self, timeout=timeout,
+                    stderr=self.stderr, gw_invoke_cmd=self.invoke_gateway,
+                    remote=self.remote)
 
     def _engine_clients(self):
         """
@@ -367,8 +372,8 @@ class WorkerTree(DistantWorker):
         self._has_timeout = True
 
     def _check_ini(self):
-        self.logger.debug("WorkerTree: _check_ini (%d, %d)" % \
-            (self._start_count,self._child_count))
+        self.logger.debug("WorkerTree: _check_ini (%d, %d)", self._start_count,
+                          self._child_count)
         if self.eh and self._start_count >= self._child_count:
             self.eh.ev_start(self)
 
@@ -387,7 +392,7 @@ class WorkerTree(DistantWorker):
             targets = self.gwtargets[gateway]
             if not targets:
                 self.logger.debug("WorkerTree._check_fini %s call pchannel_"
-                                  "release for gw %s" % (self, gateway))
+                                  "release for gw %s", self, gateway)
                 self.task._pchannel_release(gateway, self)
 
     def write(self, buf):
