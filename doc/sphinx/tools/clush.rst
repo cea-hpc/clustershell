@@ -114,25 +114,69 @@ Tree mode
 ^^^^^^^^^
 
 ClusterShell Tree mode is a major horizontal scalability improvement by
-enabling a hierarchical command propagation scheme. This section describes how
-to use the tree mode with the *clush* command.
+enabling a hierarchical command propagation scheme.
+
+The Tree mode of ClusterShell has been the subject of `this paper`_ presented
+at the Ottawa Linux Symposium Conference in 2012 and at the PyHPC 2013
+workshop in Denver, USA.
+
+The Tree mode is implemented at the library level, so that all applications
+using ClusterShell may benefits from it. However, this section describes how
+to use the tree mode with the **clush** command only.
 
 .. _clush-tree-enabling:
+
+Configuration
+"""""""""""""
+
+The system-wide library configuration file **/etc/clustershell/topology.conf**
+defines the routes of default command propagation tree. It is recommended that
+all connections between parent and children nodes are carefully
+pre-configured, for example, to avoid any SSH warnings when connecting (if
+using the default SSH remote worker, of course).
+
+.. highlight:: ini
+
+The content of the topology.conf file should look like this::
+
+  [routes]
+  rio0: rio[10-13]
+  rio[10-11]: rio[100-240]
+  rio[12-13]: rio[300-440]
+
+.. highlight:: txt
+
+This file defines the following topology graph::
+
+    rio0
+    |- rio[10-11]
+    |  `- rio[100-240]
+    `- rio[12-13]
+       `- rio[300-440]
+
+
+At runtime, ClusterShell will pick an initial propagation tree from this
+topology graph definition.
+
+.. highlight:: console
 
 Enabling tree mode
 """"""""""""""""""
 
 Since version 1.7, the tree mode is enabled by default when a configuration
-file is present. The system-wide library configuration file
-*/etc/clustershell/topology.conf* defines the routes of default command
-propagation tree. When this file exists, *clush* will use it by default for
-target nodes that are defined there. This file path can be changed at runtime
+file is present. When the configuration file
+**/etc/clustershell/topology.conf** exists, *clush* will use it by default for
+target nodes that are defined there. The topology file path can be changed
 using the ``--topology`` command line option.
+
+.. note:: If using ``clush -v`` (verbose option), clush will display an ASCII
+   representation of the initial propagation tree used. This is useful when
+   working on Tree mode configuration.
 
 .. _clush-tree-options:
 
-Tree-related options
-""""""""""""""""""""
+More Tree command line options
+""""""""""""""""""""""""""""""
 
 The ``--remote=yes|no`` command line option controls the remote execution
 behavior:
@@ -158,10 +202,37 @@ received within a certain timeframe before transmitting them back to the root
 node in a batch fashion. This contributes to reducing the load on the root
 node by delegating the first steps of this CPU intensive task to the gateways.
 
+Multihomed gateways
+"""""""""""""""""""
+
+The algorithm used in Tree mode requires that hostnames used in topology.conf
+match gateway hostnames but also are the hosts needed to reach them. However,
+very often, clusters are using different networks (eg. multiple management
+ethernet networks, Infiniband interconnect sometimes also used for
+administration purposes. etc.). So it may happen that we use
+``gateway3-mgmt1`` to reach ``gateway3``.
+
+Since v1.7, a gateway can also use hostnames corresponding to all local
+interface addresses **if the Python module netifaces is installed** (v0.5 or
+more). This module is broadly available on Linux, for instance, the package
+**python-netifaces** is part of EPEL for Red Hat based clusters.
+
+Debugging Tree mode
+"""""""""""""""""""
+
+To debug Tree mode, you can define the following environment variable before
+running **clush** (or any other applications using ClusterShell)::
+
+    $ export CLUSTERSHELL_GW_LOG_LEVEL=DEBUG  (default value is INFO)
+    $ export CLUSTERSHELL_GW_LOG_DIR=/tmp     (default value is /tmp)
+
+This will generate log files of the form ``$HOSTNAME.gw.log`` in
+``CLUSTERSHELL_GW_LOG_DIR``.
+
 .. _clush-oneshot:
 
 Non-interactive (or one-shot) mode
-""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When *clush* is started non-interactively, the command is executed on the
 specified remote hosts in parallel (given the current *fanout* value and the
@@ -377,3 +448,4 @@ could be changed at runtime thanks to ``--worker`` command line option::
 .. _ticket #166: https://github.com/cea-hpc/clustershell/issues/166
 .. _ticket: https://github.com/cea-hpc/clustershell/issues/new
 
+.. _this paper: https://www.kernel.org/doc/ols/2012/ols2012-thiell.pdf
