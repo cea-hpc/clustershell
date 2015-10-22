@@ -19,6 +19,87 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_c809242e",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T15:55:21Z",
+      "side": 1,
+      "message": "That\u0027s correct. There is a difference between _on_start() and _on_nodes_start()",
+      "parentUuid": "9ab29df4_7e361305",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_358679ba",
+        "filename": "tests/TaskDistantPdshMixin.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T15:55:21Z",
+      "side": 1,
+      "message": "if for some reasons you modify this patch, please also clean these tabs/indents on these 4 lines",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_75a71150",
+        "filename": "tests/TaskEventTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T15:55:21Z",
+      "side": 1,
+      "message": "self.assertRaises ?",
+      "range": {
+        "startLine": 125,
+        "startChar": 7,
+        "endLine": 130,
+        "endChar": 47
+      },
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_3574b9ce",
+        "filename": "tests/TaskEventTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T15:55:21Z",
+      "side": 1,
+      "message": "be careful, running the whole test suite could be very long. Avoid avoid useless long test. 1 second should not be the smallest use case :) At least, take the habit to use 0.5 as the small value :)",
+      "range": {
+        "startLine": 206,
+        "startChar": 10,
+        "endLine": 208,
+        "endChar": 60
+      },
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_de247fc8",
         "filename": "tests/TaskLocalMixin.py",
         "patchSetId": 2
@@ -30,6 +111,24 @@
       "writtenOn": "2015-10-22T09:36:19Z",
       "side": 1,
       "message": "hmm... don\u0027t you want that to actually sleep?",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f5408158",
+        "filename": "tests/TaskLocalMixin.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1003,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-22T15:55:21Z",
+      "side": 1,
+      "message": "Agreed. By the way, I think it would help if we can get an easy way to get the last Task run time (in Task._resume()), in a lot of fanout test cases. This would have avoid this error",
+      "parentUuid": "9ab29df4_de247fc8",
       "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
