@@ -34,6 +34,24 @@
       "revId": "6c7c96fdf9df6947f4efdf534d86e67a41755edf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_de4abf26",
+        "filename": "doc/sphinx/tools/nodeset.rst",
+        "patchSetId": 9
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-10-22T04:47:38Z",
+      "side": 1,
+      "message": "It\u0027s not too bad, the autostep will always be 10^(number of trailing digits) :)",
+      "parentUuid": "9ab29df4_c33aec35",
+      "revId": "6c7c96fdf9df6947f4efdf534d86e67a41755edf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
