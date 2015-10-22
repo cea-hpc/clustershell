@@ -45,7 +45,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.Worker import DistantWorker, WorkerError
 from ClusterShell.Worker.Exec import ExecWorker
 
-from ClusterShell.Propagation import PropagationTreeRouter
+from ClusterShell.Propagation import PropagationTreeRouter, RouteResolvingError
 
 
 class MetaWorkerEventHandler(EventHandler):
@@ -177,7 +177,24 @@ class WorkerTree(DistantWorker):
         self.topology = kwargs.get('topology')
         if self.topology is not None:
             self.newroot = kwargs.get('newroot') or str(self.topology.root.nodeset)
-            self.router = PropagationTreeRouter(self.newroot, self.topology)
+            if type(self.newroot) is not list:
+                self.newroot = [self.newroot]
+            trycnt = len(self.newroot)
+            self.logger.debug("WorkerTree.__init__: newroot=%s", self.newroot)
+            for cnt, tryroot in enumerate(self.newroot):
+                try:
+                    self.logger.debug("WorkerTree.__init__: router: trying root "
+                                      "root %s", tryroot)
+                    self.router = PropagationTreeRouter(tryroot, self.topology)
+                    break
+                except RouteResolvingError:
+                    if cnt + 1 >= trycnt:
+                        self.logger.debug("WorkerTree.__init__: Propagation"
+                                          "TreeRouter no matching root")
+                        raise
+                    continue
+            self.logger.debug("WorkerTree.__init__: router on %s created",
+                              self.router.root)
         else:
             self.router = None
 
@@ -204,8 +221,8 @@ class WorkerTree(DistantWorker):
         self._check_ini()
 
     def _launch(self, nodes):
-        self.logger.debug("WorkerTree._launch on %s (fanout=%d)"
-                          % (nodes, self.task.info("fanout")))
+        self.logger.debug("WorkerTree._launch on %s (fanout=%d)", nodes,
+                          self.task.info("fanout"))
 
         # Prepare copy params if source is defined
         destdir = None
@@ -231,8 +248,8 @@ class WorkerTree(DistantWorker):
         for gw, targets in next_hops.iteritems():
             if gw == targets:
                 self.logger.debug('task.shell cmd=%s source=%s nodes=%s timeout=%s '
-                                  'remote=%s' % (self.command, self.source, nodes,
-                                                 self.timeout, self.remote))
+                                  'remote=%s', self.command, self.source, nodes,
+                                  self.timeout, self.remote)
                 self._child_count += 1
                 self._target_count += len(targets)
                 if self.remote:
@@ -367,8 +384,8 @@ class WorkerTree(DistantWorker):
         self._has_timeout = True
 
     def _check_ini(self):
-        self.logger.debug("WorkerTree: _check_ini (%d, %d)" % \
-            (self._start_count,self._child_count))
+        self.logger.debug("WorkerTree: _check_ini (%d, %d)", self._start_count,
+                          self._child_count)
         if self.eh and self._start_count >= self._child_count:
             self.eh.ev_start(self)
 
@@ -387,7 +404,7 @@ class WorkerTree(DistantWorker):
             targets = self.gwtargets[gateway]
             if not targets:
                 self.logger.debug("WorkerTree._check_fini %s call pchannel_"
-                                  "release for gw %s" % (self, gateway))
+                                  "release for gw %s", self, gateway)
                 self.task._pchannel_release(gateway, self)
 
     def write(self, buf):
