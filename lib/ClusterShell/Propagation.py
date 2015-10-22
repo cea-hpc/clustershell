@@ -86,7 +86,11 @@ class PropagationTreeRouter(object):
                 break
 
         if root_group is None:
-            raise RouteResolvingError('Invalid admin node: %s' % root)
+            msgfmt = "Invalid root or gateway node: %s (%s)"
+            helptxt = "please check that topology uses system hostnames or " \
+                      "any local interface hostnames when python-netifaces " \
+                      "is installed"
+            raise RouteResolvingError(msgfmt % (root, helptxt))
 
         for group in root_group.children():
             self.table[group.nodeset] = NodeSet()
