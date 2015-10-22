@@ -7,6 +7,7 @@ import re
 import unittest
 import xml.sax
 
+from ClusterShell import __version__
 from ClusterShell.Communication import ConfigurationMessage, ControlMessage, \
     StdOutMessage, StdErrMessage, RetcodeMessage, ACKMessage, ErrorMessage, \
     TimeoutMessage, StartMessage, EndMessage, XMLReader
@@ -28,16 +29,14 @@ class Gateway(object):
 
     Initialize a GatewayChannel through a R/W StreamWorker like a real
     remote ClusterShell Gateway but:
-        - using fake gateway remote host (gwhost),
         - using pipes to communicate,
         - running on a dedicated task/thread.
     """
 
-    def __init__(self, gwhost):
+    def __init__(self):
         """init Gateway bound objects"""
         self.task = Task()
-        self.gwhost = gwhost
-        self.channel = GatewayChannel(self.task, gwhost)
+        self.channel = GatewayChannel(self.task)
         self.worker = StreamWorker(handler=self.channel)
         # create communication pipes
         self.pipe_stdin = os.pipe()
@@ -77,7 +76,7 @@ class TreeGatewayBaseTest(unittest.TestCase):
     def setUp(self):
         """setup gateway and topology for each test"""
         # gateway
-        self.gateway = Gateway('n1')
+        self.gateway = Gateway()
         self.chan = self.gateway.channel
         # topology
         graph = TopologyGraph()
@@ -100,16 +99,16 @@ class TreeGatewayBaseTest(unittest.TestCase):
     #
     def channel_send_start(self):
         """send starting channel tag"""
-        self.gateway.send("<channel>")
+        self.gateway.send('<channel version="%s">' % __version__)
 
     def channel_send_stop(self):
         """send channel ending tag"""
         self.gateway.send("</channel>")
 
-    def channel_send_cfg(self):
+    def channel_send_cfg(self, gateway):
         """send configuration part of channel"""
         # code snippet from PropagationChannel.start()
-        cfg = ConfigurationMessage()
+        cfg = ConfigurationMessage(gateway)
         cfg.data_encode(self.topology)
         self.gateway.send(cfg.xml())
 
@@ -188,7 +187,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
 
         if setupchan:
             # send channel configuration
-            self.channel_send_cfg()
+            self.channel_send_cfg('n1')
             msg = self.recvxml(ACKMessage)
             self.assertEqual(self.chan.setup, True)
 
@@ -291,10 +290,16 @@ class TreeGatewayTest(TreeGatewayBaseTest):
             '<message type="ACK" ack="2" msgid="2"></message>',
             'unexpected message: Message ACK (ack: 2, msgid: 2, type: ACK)')
 
+    def test_channel_err_cfg_missing_gw(self):
+        """test gateway channel message missing gateway nodename"""
+        self._check_channel_err(
+            '<message msgid="337" type="CFG">DUMMY</message>',
+            'Invalid "message" attributes: missing key "gateway"')
+
     def test_channel_err_missing_pl(self):
         """test gateway channel message missing payload"""
         self._check_channel_err(
-            '<message msgid="14" type="CFG"></message>',
+            '<message msgid="14" type="CFG" gateway="n1"></message>',
             'Message CFG has an invalid payload')
 
     def test_channel_err_unexpected_pl(self):
@@ -306,7 +311,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
     def test_channel_err_badenc_pl(self):
         """test gateway channel message badly encoded payload"""
         self._check_channel_err(
-            '<message msgid="14" type="CFG">bar</message>',
+            '<message msgid="14" type="CFG" gateway="n1">bar</message>',
             'Incorrect padding')
 
     def test_channel_basic_abort(self):
@@ -325,7 +330,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         """helper to check channel shell action"""
         self.channel_send_start()
         msg = self.recvxml(StartMessage)
-        self.channel_send_cfg()
+        self.channel_send_cfg('n1')
         msg = self.recvxml(ACKMessage)
 
         # prepare a remote shell command request...

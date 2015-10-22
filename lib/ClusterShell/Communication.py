@@ -2,7 +2,7 @@
 #
 # Copyright CEA/DAM/DIF (2010-2015)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -65,6 +65,7 @@ from xml.sax import SAXParseException
 from collections import deque
 from cStringIO import StringIO
 
+from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
 
 
@@ -83,6 +84,8 @@ class XMLReader(ContentHandler):
         """XMLReader initializer"""
         ContentHandler.__init__(self)
         self.msg_queue = deque()
+        # protocol version
+        self.version = None
         # current packet under construction
         self._draft = None
         self._sections_map = None
@@ -90,6 +93,7 @@ class XMLReader(ContentHandler):
     def startElement(self, name, attrs):
         """read a starting xml tag"""
         if name == 'channel':
+            self.version = attrs.get('version')
             self.msg_queue.appendleft(StartMessage())
         elif name == 'message':
             self._draft_new(attrs)
@@ -187,7 +191,8 @@ class Channel(EventHandler):
 
     def _open(self):
         """open a new communication channel from src to dst"""
-        XMLGenerator(self.worker, encoding=ENCODING).startElement('channel', {})
+        xmlgen = XMLGenerator(self.worker, encoding=ENCODING)
+        xmlgen.startElement('channel', {'version': __version__})
 
     def _close(self):
         """close an already opened channel"""
@@ -321,6 +326,12 @@ class ConfigurationMessage(Message):
     ident = 'CFG'
     has_payload = True
 
+    def __init__(self, gateway=''):
+        """initialize with gateway node name"""
+        Message.__init__(self)
+        self.attr.update({'gateway': str})
+        self.gateway = gateway
+
 class RoutedMessageBase(Message):
     """abstract class for routed message (with worker source id)"""
     def __init__(self, srcid):
@@ -414,4 +425,3 @@ class StartMessage(Message):
 class EndMessage(Message):
     """end of channel message"""
     ident = 'END'
-
