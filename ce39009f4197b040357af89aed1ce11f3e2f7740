@@ -234,6 +234,24 @@
       "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4690a595",
+        "filename": "tests/TaskLocalMixin.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1003,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-10-23T06:08:42Z",
+      "side": 1,
+      "message": "Still sleeping way too much, CS 1.7 isn\u0027t released yet!! I guess you\u0027re going to blame us for slow reviews next ;)",
+      "parentUuid": "9ab29df4_0b0cf641",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
