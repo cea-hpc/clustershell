@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_bc58aefb",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-23T16:20:12Z",
+      "side": 1,
+      "message": "there is no _on_node_start() for DistantWorker, so _on_start() should be use.\n\nBut there is _on_node_rc() and _on_rc(). So which method should be the official one?",
+      "revId": "0eff1e14c0ada4ef17c6d8fcb2ba3420037b052b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
