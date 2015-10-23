@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_4b06ee21",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-23T05:00:11Z",
+      "side": 1,
+      "message": "Yes you\u0027re right, there is: their names :p\nOk.. I don\u0027t know why, I wanted to remove any _on_* methods from the base Worker class, and separate _on_node_thing from _on_thing. That makes no sense anyway, so I rollback and I grab _on_rc with me also. Thanks.",
+      "parentUuid": "9ab29df4_c809242e",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_358679ba",
         "filename": "tests/TaskDistantPdshMixin.py",
         "patchSetId": 2
@@ -48,6 +66,24 @@
       "writtenOn": "2015-10-22T15:55:21Z",
       "side": 1,
       "message": "if for some reasons you modify this patch, please also clean these tabs/indents on these 4 lines",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_86ff1d01",
+        "filename": "tests/TaskDistantPdshMixin.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-23T05:00:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_358679ba",
       "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -77,6 +113,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_c609152e",
+        "filename": "tests/TaskEventTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-23T05:00:11Z",
+      "side": 1,
+      "message": "I think the whole point of this test is to not fail on TimeoutError in order to check that ev_timeout has been called thanks to do_asserts_timeout(). Damn, I didn\u0027t even remember that ev_timeout was called in that case..... and it probably shouldn\u0027t. Anyway, ev_timeout needs some kind of improvement and proper documentation too, but not for 1.7....",
+      "parentUuid": "9ab29df4_75a71150",
+      "range": {
+        "startLine": 125,
+        "startChar": 7,
+        "endLine": 130,
+        "endChar": 47
+      },
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_3574b9ce",
         "filename": "tests/TaskEventTest.py",
         "patchSetId": 2
@@ -88,6 +148,30 @@
       "writtenOn": "2015-10-22T15:55:21Z",
       "side": 1,
       "message": "be careful, running the whole test suite could be very long. Avoid avoid useless long test. 1 second should not be the smallest use case :) At least, take the habit to use 0.5 as the small value :)",
+      "range": {
+        "startLine": 206,
+        "startChar": 10,
+        "endLine": 208,
+        "endChar": 60
+      },
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e60e1934",
+        "filename": "tests/TaskEventTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-23T05:00:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_3574b9ce",
       "range": {
         "startLine": 206,
         "startChar": 10,
@@ -128,6 +212,24 @@
       "writtenOn": "2015-10-22T15:55:21Z",
       "side": 1,
       "message": "Agreed. By the way, I think it would help if we can get an easy way to get the last Task run time (in Task._resume()), in a lot of fanout test cases. This would have avoid this error",
+      "parentUuid": "9ab29df4_de247fc8",
+      "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0b0cf641",
+        "filename": "tests/TaskLocalMixin.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1003,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-23T05:00:11Z",
+      "side": 1,
+      "message": "This advanced code snippet reflects my current condition: I tell to myself that I should sleep more, but I actually I do not (enough)...  ;-)",
       "parentUuid": "9ab29df4_de247fc8",
       "revId": "ce39009f4197b040357af89aed1ce11f3e2f7740",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
