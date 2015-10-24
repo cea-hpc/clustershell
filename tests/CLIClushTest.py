@@ -21,6 +21,7 @@ from subprocess import Popen, PIPE
 from TLib import *
 import ClusterShell.CLI.Clush
 from ClusterShell.CLI.Clush import main
+from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_cleanup
 
 
@@ -252,6 +253,15 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-v", "-w", HOSTNAME, "/bin/false"], None, "", 0,
             "clush: %s: exited with exit code 1\n" % HOSTNAME)
 
+        duo = str(NodeSet("%s,localhost" % HOSTNAME))
+        self._clush_t(["-w", duo, "-b", "/bin/false"], None, "", 0,
+            "clush: %s (%d): exited with exit code 1\n" % (duo, 2))
+        self._clush_t(["-w", duo, "-b", "-q", "/bin/false"], None, "", 0,
+            "clush: %s: exited with exit code 1\n" % duo)
+        self._clush_t(["-w", duo, "-S", "-b", "/bin/false"], None, "", 1,
+            "clush: %s (%d): exited with exit code 1\n" % (duo, 2))
+        self._clush_t(["-w", duo, "-S", "-b", "-q", "/bin/false"], None, "", 1)
+
     def test_018_retcodes_tty(self):
         """test clush (retcodes) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
@@ -438,4 +448,3 @@ class CLIClushTest_B_StdinFailure(unittest.TestCase):
         """test clush with broken stdin"""
         self._clush_t(["-w", HOSTNAME, "-v", "sleep 1"], None,
                        "stdin: [Errno 22] Invalid argument\n", 0, "")
-

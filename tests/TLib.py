@@ -101,8 +101,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         except AttributeError:
             # check the end as stderr messages are often prefixed with argv[0]
             test.assertTrue(err.getvalue().endswith(expected_stderr),
-                            err.getvalue())
+                            err.getvalue() + " != " + expected_stderr)
     if expected_rc is not None:
         test.assertEqual(rc, expected_rc, "rc=%d err=%s" % (rc, err.getvalue()))
     err.close()
-

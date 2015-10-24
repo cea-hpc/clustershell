@@ -232,9 +232,11 @@ class GatherOutputHandler(OutputHandler):
         # Display return code if not ok ( != 0)
         for rc, nodelist in worker.iter_retcodes():
             if rc != 0:
-                ns = NodeSet._fromlist1(nodelist)
-                self._display.vprint_err(verbexit, \
-                    "clush: %s: exited with exit code %d" % (ns, rc))
+                nsdisp = ns = NodeSet._fromlist1(nodelist)
+                if self._display.verbosity > VERB_QUIET and len(ns) > 1:
+                    nsdisp = "%s (%d)" % (ns, len(ns))
+                msgrc = "clush: %s: exited with exit code %d" % (nsdisp, rc)
+                self._display.vprint_err(verbexit, msgrc)
 
         # Display nodes that didn't answer within command timeout delay
         if worker.num_timeout() > 0:
@@ -457,9 +459,13 @@ def ttyloop(task, nodeset, timeout, display, remote):
                     ns_ok.add(NodeSet._fromlist1(nodelist))
                     if rc != 0:
                         # Display return code if not ok ( != 0)
-                        ns = NodeSet._fromlist1(nodelist)
-                        display.vprint_err(verbexit, \
-                            "clush: %s: exited with exit code %s" % (ns, rc))
+                        nsdisp = ns = NodeSet._fromlist1(nodelist)
+                        if display.verbosity >= VERB_QUIET and len(ns) > 1:
+                            nsdisp = "%s (%d)" % (ns, len(ns))
+                        msgrc = "clush: %s: exited with exit code %d" % (nsdisp,
+                                                                         rc)
+                        display.vprint_err(verbexit, msgrc)
+
                 # Add uncompleted nodeset to exception object
                 kbe.uncompleted_nodes = ns - ns_ok
 
