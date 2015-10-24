@@ -36,6 +36,8 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
+import warnings
+
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 
@@ -247,6 +249,7 @@ class DistantWorker(Worker):
         callback like ev_read().
         [DEPRECATED] use current_node
         """
+        warnings.warn("use current_node instead", DeprecationWarning)
         return self.current_node
 
     def last_read(self):
@@ -254,6 +257,8 @@ class DistantWorker(Worker):
         Get last (node, buffer), useful in an EventHandler.ev_read()
         [DEPRECATED] use (current_node, current_msg)
         """
+        warnings.warn("use current_node and current_msg instead",
+                      DeprecationWarning)
         return self.current_node, self.current_msg
 
     def last_error(self):
@@ -261,6 +266,8 @@ class DistantWorker(Worker):
         Get last (node, error_buffer), useful in an EventHandler.ev_error()
         [DEPRECATED] use (current_node, current_errmsg)
         """
+        warnings.warn("use current_node and current_errmsg instead",
+                      DeprecationWarning)
         return self.current_node, self.current_errmsg
 
     def last_retcode(self):
@@ -268,6 +275,8 @@ class DistantWorker(Worker):
         Get last (node, rc), useful in an EventHandler.ev_hup()
         [DEPRECATED] use (current_node, current_rc)
         """
+        warnings.warn("use current_node and current_rc instead",
+                      DeprecationWarning)
         return self.current_node, self.current_rc
 
     def node_buffer(self, node):
@@ -621,6 +630,7 @@ class WorkerSimple(StreamWorker):
 
         [DEPRECATED] use current_msg
         """
+        warnings.warn("use current_msg instead", DeprecationWarning)
         return self.current_msg
 
     def last_error(self):
@@ -629,6 +639,7 @@ class WorkerSimple(StreamWorker):
 
         [DEPRECATED] use current_errmsg
         """
+        warnings.warn("use current_errmsg instead", DeprecationWarning)
         return self.current_errmsg
 
     def error(self):
