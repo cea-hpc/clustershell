@@ -9,6 +9,7 @@ import copy
 import pwd
 import shutil
 import sys
+import warnings
 
 sys.path.insert(0, '../lib')
 
@@ -762,3 +763,29 @@ class TaskDistantMixin(object):
         self.assertEqual(test_eh.hup_count, 2)
         self.assertEqual(test_eh.start_count, 1)
         self.assertEqual(test_eh.close_count, 1)
+
+    def test_last_deprecated(self):
+        # Currently does not really test DeprecationWarning but will display
+        # them.
+        # Laster with Python 2.6+, we will be able to use
+        # "with warnings.catch_warnings".
+
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
+
+        class TestHandlerHandler(EventHandler):
+            def ev_read(self, worker):
+                # XXX with Python 2.6+ use:
+                #with warnings.catch_warnings(record=True) as w:
+                self.node, self.msg = worker.last_read()
+            def ev_hup(self, worker):
+                # XXX with Python 2.6+ use:
+                #with warnings.catch_warnings(record=True) as w:
+                self.node, self.rc = worker.last_retcode()
+
+        eh = TestHandlerHandler()
+        reader = self._task.shell("echo foobar", nodes=HOSTNAME, handler=eh)
+        self._task.resume()
+        self.assertEqual(eh.node, HOSTNAME)
+        self.assertEqual(eh.rc, 0)
+        warnings.simplefilter('default')
