@@ -127,6 +127,24 @@
       "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_37811990",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-25T20:37:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_82b0fbde",
+      "revId": "26ac47a4584cdc7cc5724eb45f12fec3e882b0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
