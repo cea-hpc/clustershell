@@ -692,6 +692,7 @@ def clush_excepthook(extype, exp, traceback):
         raise exp
     except ClushConfigError, econf:
         print >> sys.stderr, "ERROR: %s" % econf
+        clush_exit(1)
     except KeyboardInterrupt, kbe:
         uncomp_nodes = getattr(kbe, 'uncompleted_nodes', None)
         if uncomp_nodes:
@@ -726,6 +727,7 @@ def main():
     parser.add_option("--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
 
+    parser.install_config_options('clush.conf(5)')
     parser.install_nodes_options()
     parser.install_display_options(verbose_options=True)
     parser.install_filecopy_options()

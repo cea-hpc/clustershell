@@ -34,6 +34,7 @@ class CLIClushConfigTest(unittest.TestCase):
         f.write("\n")
 
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -57,6 +58,7 @@ class CLIClushConfigTest(unittest.TestCase):
         f.write("[Main]\n")
 
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -92,6 +94,7 @@ verbosity: 1
 
         f.flush()
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -132,6 +135,7 @@ ssh_options: -oStrictHostKeyChecking=no
 
         f.flush()
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -168,6 +172,7 @@ ssh_options: -oStrictHostKeyChecking=no
 
         f.flush()
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -224,6 +229,7 @@ verbosity: 1
 
         f.flush()
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -260,6 +266,7 @@ verbosity: 1
 
         f.flush()
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args(["-f", "36", "-u", "3", "-t", "7",
@@ -281,12 +288,13 @@ verbosity: 1
         self.assertEqual(config.ssh_path, None)
         self.assertEqual(config.ssh_options, "-oSomething")
         f.close()
-        
+
     def testClushConfigWithInstalledConfig(self):
         """test CLI.Config.ClushConfig (installed config required)"""
         # This test needs installed configuration files (needed for
         # maximum coverage).
         parser = OptionParser("dummy")
+        parser.install_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -329,6 +337,7 @@ ssh_options: -oSomeDummyUserOption=yes
 
             cfgfile.flush()
             parser = OptionParser("dummy")
+            parser.install_config_options()
             parser.install_display_options(verbose_options=True)
             parser.install_connector_options()
             options, _ = parser.parse_args([])
