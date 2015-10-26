@@ -8,7 +8,15 @@
 [slurm]
 map: sinfo -h -o "%N" -p $GROUP
 all: sinfo -h -o "%N"
-list: sinfo -h -o "%P"
+list: sinfo -h -o "%R"
 reverse: sinfo -h -N -o "%P" -n $NODE
+
+# SLURM state bindings
+#
+[slurmstate]
+map: if [ "$GROUP" == "broken" ]; then sinfo -h -o "%N" -t down,drained; else sinfo -h -o "%N" -t $GROUP; fi
+all: sinfo -h -o "%N"
+list: sinfo -h -o "%T"
+reverse: sinfo -h -N -o "%T" -n $NODE
 
 # TODO: add slurm jobs bindings here
