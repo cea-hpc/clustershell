@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_169fb653",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:58:45Z",
+      "side": 1,
+      "message": "are we sure we want to display this only in verb mode? I do not find this very \"quiet\" if this number is hidden, but the whole error line is still displayed. I would just display this all the time",
+      "revId": "cca76ef0df2c44cda981f154fb463afed3a39484",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
