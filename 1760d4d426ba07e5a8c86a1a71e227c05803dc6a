@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_364bda2c",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:11:04Z",
+      "side": 1,
+      "message": "I would prefer testing first _getshorthostname() (which is very cheap), and, if it does not match, try to match all interfaces.\nDNS resolution could be expansive and in most cases hostname will match.",
+      "revId": "1760d4d426ba07e5a8c86a1a71e227c05803dc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d6d53e44",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:11:04Z",
+      "side": 1,
+      "message": "(future note) logger could be setup to print the method name in message formatting, avoiding to set this header everywhere...",
+      "range": {
+        "startLine": 196,
+        "startChar": 27,
+        "endLine": 196,
+        "endChar": 50
+      },
+      "revId": "1760d4d426ba07e5a8c86a1a71e227c05803dc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d6637eaf",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:11:04Z",
+      "side": 1,
+      "message": "using enumerate just to propagate the exception for the last element in the list is not really pretty code... while/pop could be better",
+      "revId": "1760d4d426ba07e5a8c86a1a71e227c05803dc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f6ca42a0",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:11:04Z",
+      "side": 1,
+      "message": "... this also avoids wrong method name when moving code.",
+      "range": {
+        "startLine": 206,
+        "startChar": 39,
+        "endLine": 206,
+        "endChar": 58
+      },
+      "revId": "1760d4d426ba07e5a8c86a1a71e227c05803dc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_16d0964f",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:11:04Z",
+      "side": 1,
+      "message": "idem",
+      "range": {
+        "startLine": 210,
+        "startChar": 27,
+        "endLine": 210,
+        "endChar": 46
+      },
+      "revId": "1760d4d426ba07e5a8c86a1a71e227c05803dc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
