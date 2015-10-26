@@ -16,6 +16,24 @@
       "revId": "0eff1e14c0ada4ef17c6d8fcb2ba3420037b052b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_934bd8af",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-26T02:34:16Z",
+      "side": 1,
+      "message": "I would say the ones in the base Worker and StreamWorker classes are the preferred ones (so without _node_). I just keep _on_node_rc() as long as we keep DistantWorker for coherency. But I factorized the code here. This is internal anyways.",
+      "parentUuid": "9ab29df4_bc58aefb",
+      "revId": "0eff1e14c0ada4ef17c6d8fcb2ba3420037b052b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
