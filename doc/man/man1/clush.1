@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2015-10-20" "1.7" "ClusterShell User Manual"
+.TH CLUSH 1 "2015-10-25" "1.7" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -161,6 +161,9 @@ optional \fBgroups.conf\fP(5) group source to use
 .TP
 .B \-\-nostdin
 do not watch for possible input from stdin
+.TP
+.BI \-O \ <KEY=VALUE>\fP,\fB \ \-\-config\-options\fB= <KEY=VALUE>
+override any key=value \fBclush.conf\fP(5) options (repeat as needed)
 .UNINDENT
 .INDENT 0.0
 .TP

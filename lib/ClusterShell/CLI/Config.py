@@ -103,6 +103,15 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         if options.whencolor:
             self._set_main("color", options.whencolor)
 
+        try:
+            # -O/--config-options KEY=VALUE
+            for cfgopt in options.config_options:
+                optkey, optvalue = cfgopt.split('=', 1)
+                self._set_main(optkey, optvalue)
+        except ValueError, exc:
+            raise ClushConfigError("Main", cfgopt,
+                                   "invalid -O/--config-options value")
+
     def _set_main(self, option, value):
         """Set given option/value pair in the Main section."""
         self.set("Main", option, str(value))

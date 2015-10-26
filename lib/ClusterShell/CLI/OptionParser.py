@@ -97,6 +97,12 @@ class OptionParser(optparse.OptionParser):
                         type="safestring", dest="groupsource",
                         help="optional groups.conf(5) group source to use")
 
+    def install_config_options(self, filename=''):
+        """Install config options override"""
+        self.add_option("-O", "--config-options", action="append",
+                        metavar="KEY=VALUE", dest="config_options", default=[],
+                        help="override any key=value %s options" % filename)
+
     def install_nodes_options(self):
         """Install nodes selection options"""
         optgrp = optparse.OptionGroup(self, "Selecting target nodes")

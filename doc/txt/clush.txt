@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2015-10-20
+:Date:   2015-10-25
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -131,6 +131,8 @@ OPTIONS
 -s GROUPSOURCE, --groupsource=GROUPSOURCE
                       optional ``groups.conf``\(5) group source to use
 --nostdin             do not watch for possible input from stdin
+-O <KEY=VALUE>, --config-options=<KEY=VALUE>
+                      override any key=value ``clush.conf``\(5) options (repeat as needed)
 
 Selecting target nodes:
   -w NODES            nodes where to run the command

@@ -423,8 +423,26 @@ destination, example::
     $ ls /tmp/foo.*
     /tmp/foo.node11  /tmp/foo.node12
 
+Other options
+^^^^^^^^^^^^^
+
+Overriding clush.conf settings
+""""""""""""""""""""""""""""""
+
+*clush* default settings are found in a configuration described in
+:ref:`clush configuration <clush-config>`. To override any settings, use the
+``--config-options`` command line option (or ``-O`` for the shorter version),
+and repeat as needed. Here is a simple example to disable the use colors in
+the output nodeset header::
+
+    $ clush -O color=never -w node[11-12] -b echo ok
+    ---------------
+    node[11-12] (2)
+    ---------------
+    ok
+
 Worker selection
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 By default, *clush* is using the default library worker configuration when
 running commands or copying files. In most cases, this is *ssh* (See

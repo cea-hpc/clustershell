@@ -383,6 +383,34 @@ class CLIClushTest_A(unittest.TestCase):
                           ["--hostfile", "/I/do/NOT/exist", "echo", "ok"],
                           None, 1)
 
+    def test_030_config_options(self):
+        """test clush --config-options"""
+        self._clush_t(["--config-options", "color=never", "-w", HOSTNAME,
+                       "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--config-options", "color=always", "-w", HOSTNAME,
+                       "echo", "ok"], None, "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--config-options=color=never", "-w", HOSTNAME,
+                       "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--config-options=color=always", "-w", HOSTNAME,
+                       "echo", "ok"], None, "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["-O", "fd_max=220", "--config-options", "color=never",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-O", "fd_max=220", "--config-options", "color=always",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--config-options", "color=never", "-O", "fd_max=220",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--config-options", "color=always", "-O", "fd_max=220",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--config-options", "color=never", "-O", "fd_max=220",
+                       "-O", "color=always", "-w", HOSTNAME, "echo", "ok"],
+                      None, "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--config-options", "color=always", "-O", "fd_max=220",
+                       "-O", "color=never", "-w", HOSTNAME, "echo", "ok"],
+                      None, "%s: ok\n" % HOSTNAME)
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
