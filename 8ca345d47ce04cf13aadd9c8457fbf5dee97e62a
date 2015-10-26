@@ -1,0 +1,220 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_56f68ed8",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "using this kind of case means that TASK is a strong candidate for next gen task_self() name?",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_561dae0e",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "may be I missed something but it seems to me this is wrong. _config_path is a function, not a \u0027Default\u0027 methods.\n\nBy the way, may be config_path() could be made public.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f6ab2287",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "Having a Defaults instance as parameter, and using DEFAULTS when not set will help writing tests. Singletons in tests are evil.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_36e75a14",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "do not use tripe-quote strings for simple ones: \"\\n\"",
+      "range": {
+        "startLine": 34,
+        "startChar": 16,
+        "endLine": 35,
+        "endChar": 3
+      },
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_16e33608",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "better alignment, easier to read:\n\n  f.write(\"[Main]\\n\")",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 4
+      },
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d6d8de55",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "clean whitespaces",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_56e4ce0c",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "needed?",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_76c8f274",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "use Defaults(), not the singleton in tests.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_b6ba8adf",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "even if tests are numbered, please clear Default instance between each test using setUp() to avoid side effects based on test order.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_56cbee71",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "in this series, you can simply create Default() instances. Thanks to this you will be sure instance will be cleared between each tests.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_16ba56de",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "thanks to textwrap.dedent() you can align/indent the temp file content making test easier to read.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_96c5865d",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-26T09:45:02Z",
+      "side": 1,
+      "message": "in DeprecationWarning patch?",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
