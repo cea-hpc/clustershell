@@ -383,6 +383,34 @@ class CLIClushTest_A(unittest.TestCase):
                           ["--hostfile", "/I/do/NOT/exist", "echo", "ok"],
                           None, 1)
 
+    def test_030_config_options(self):
+        """test clush -O/--option"""
+        self._clush_t(["--option", "color=never", "-w", HOSTNAME,
+                       "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--option", "color=always", "-w", HOSTNAME,
+                       "echo", "ok"], None, "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--option=color=never", "-w", HOSTNAME,
+                       "echo", "ok"], None, "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--option=color=always", "-w", HOSTNAME,
+                       "echo", "ok"], None, "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["-O", "fd_max=220", "--option", "color=never",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-O", "fd_max=220", "--option", "color=always",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--option", "color=never", "-O", "fd_max=220",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["--option", "color=always", "-O", "fd_max=220",
+                       "-w", HOSTNAME, "echo", "ok"], None,
+                      "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--option", "color=never", "-O", "fd_max=220",
+                       "-O", "color=always", "-w", HOSTNAME, "echo", "ok"],
+                      None, "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME)
+        self._clush_t(["--option", "color=always", "-O", "fd_max=220",
+                       "-O", "color=never", "-w", HOSTNAME, "echo", "ok"],
+                      None, "%s: ok\n" % HOSTNAME)
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
