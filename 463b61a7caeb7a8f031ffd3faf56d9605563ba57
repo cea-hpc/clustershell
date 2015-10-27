@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_e2eefc21",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-27T08:47:08Z",
+      "side": 1,
+      "message": "I just do not understand what this \u0027i\u0027 stands for",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 20
+      },
+      "revId": "463b61a7caeb7a8f031ffd3faf56d9605563ba57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
