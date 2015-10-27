@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_42dde86f",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-27T08:48:35Z",
+      "side": 1,
+      "message": "--option is fine to me",
+      "parentUuid": "9ab29df4_e74fee90",
+      "range": {
+        "startLine": 102,
+        "startChar": 33,
+        "endLine": 102,
+        "endChar": 47
+      },
+      "revId": "822988502b4320036347c74d66b72de3554626a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_1688961e",
         "filename": "tests/CLIConfigTest.py",
         "patchSetId": 1
