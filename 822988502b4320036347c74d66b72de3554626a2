@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_e74fee90",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-27T05:32:02Z",
+      "side": 1,
+      "message": "I think about a file when seeing --config, you proposed --options too in the ticket, but what about --option (not --options as there can be only one per --option) ?",
+      "parentUuid": "9ab29df4_f68242ff",
+      "range": {
+        "startLine": 102,
+        "startChar": 33,
+        "endLine": 102,
+        "endChar": 47
+      },
+      "revId": "822988502b4320036347c74d66b72de3554626a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_1688961e",
         "filename": "tests/CLIConfigTest.py",
         "patchSetId": 1
