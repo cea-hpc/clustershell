@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_70c8ed74",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-28T17:45:53Z",
+      "side": 1,
+      "message": "For now it\u0027s not used. My goal here was to start having a version number for 1.7, so that we can say later it is required for future changes. But I think I will do that a different way, I\u0027m more thinking now of adding a version number to the channel tag itself, rather than in StartMessage.",
+      "parentUuid": "9ab29df4_50c1297f",
+      "revId": "6077a9652fc7411a140ea428dcc8f5be1221198e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_90bbc10d",
         "filename": "lib/ClusterShell/Gateway.py",
         "patchSetId": 7
@@ -47,6 +65,24 @@
       "writtenOn": "2015-10-28T17:01:29Z",
       "side": 1,
       "message": "what if 2 gateways with different versions? Let say you\u0027re v4, there is gateway v2 and v3?",
+      "revId": "6077a9652fc7411a140ea428dcc8f5be1221198e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_b0a1a5ab",
+        "filename": "lib/ClusterShell/Propagation.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-28T17:45:53Z",
+      "side": 1,
+      "message": "yes there is one PropagationChannel per gateway, each of them can handle a different version (in theory)",
+      "parentUuid": "9ab29df4_10d0914f",
       "revId": "6077a9652fc7411a140ea428dcc8f5be1221198e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
