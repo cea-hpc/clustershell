@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b088c523",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-28T17:48:41Z",
+      "side": 1,
+      "message": "That\u0027s only for easier unversioning / versioning compatibility. Beginning of 1.7, msg.gateway would be a requirement. We could drop this code after 1.7. It\u0027s already hard enough to maintain the tree code, I would prefer avoid keeping beta code support :)",
+      "parentUuid": "9ab29df4_90bbc10d",
+      "revId": "6077a9652fc7411a140ea428dcc8f5be1221198e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_10d0914f",
         "filename": "lib/ClusterShell/Propagation.py",
         "patchSetId": 7
