@@ -87,6 +87,24 @@
       "revId": "822988502b4320036347c74d66b72de3554626a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_ebb6d089",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T07:08:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_1688961e",
+      "revId": "822988502b4320036347c74d66b72de3554626a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
