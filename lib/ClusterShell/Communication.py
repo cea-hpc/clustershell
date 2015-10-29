@@ -166,6 +166,11 @@ class Channel(EventHandler):
       >> task.resume()
     """
 
+    # Common channel stream names
+    SNAME_WRITER = 'ch-writer'
+    SNAME_READER = 'ch-reader'
+    SNAME_ERROR = 'ch-error'
+
     def __init__(self, error_response=False):
         """
         """
@@ -236,7 +241,7 @@ class Channel(EventHandler):
         """write an outgoing message as its XML representation"""
         #self.logger.debug('SENDING to worker %s: "%s"', id(self.worker),
         #                  msg.xml())
-        self.worker.write(msg.xml() + '\n')
+        self.worker.write(msg.xml() + '\n', sname=self.SNAME_WRITER)
 
     def start(self):
         """initialization logic"""

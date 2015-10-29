@@ -331,11 +331,12 @@ def gateway_main():
         logger.critical('Gateway failure: sys.stdin.isatty() is True')
         sys.exit(1)
 
-    worker = StreamWorker(handler=GatewayChannel(task))
-    worker.set_reader('r-stdin', sys.stdin)
-    worker.set_writer('w-stdout', sys.stdout, retain=False)
-    # stderr stream not used yet
-    worker.set_writer('w-stderr', sys.stderr, retain=False)
+    gateway = GatewayChannel(task)
+    worker = StreamWorker(handler=gateway)
+    worker.set_reader(gateway.SNAME_READER, sys.stdin)
+    worker.set_writer(gateway.SNAME_WRITER, sys.stdout, retain=False)
+    # must stay disabled for now (see #274)
+    #worker.set_writer(gateway.SNAME_ERROR, sys.stderr, retain=False)
     task.schedule(worker)
     logger.debug('Starting task')
     try:
