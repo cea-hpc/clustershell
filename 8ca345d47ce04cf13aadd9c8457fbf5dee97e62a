@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_6b2000f8",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Well pure PEP8 I think it should be lower_case. Here I consider DEFAULTS as a kind of special global constant instance, if that makes sense. I just like the way it sounds, but if you think lower_case is better I would be ok to change.",
+      "parentUuid": "9ab29df4_56f68ed8",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_561dae0e",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2015-10-26T09:45:02Z",
       "side": 1,
       "message": "may be I missed something but it seems to me this is wrong. _config_path is a function, not a \u0027Default\u0027 methods.\n\nBy the way, may be config_path() could be made public.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_eb8330ca",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Defaults is the module here, not the class, thats ok\n\nFor config_path(), I first made it public in my code!!! but then I wasn\u0027t sure and I changed. So I will change it again, np.",
+      "parentUuid": "9ab29df4_561dae0e",
       "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_6be560a7",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_f6ab2287",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_36e75a14",
         "filename": "tests/CLIConfigTest.py",
         "patchSetId": 4
@@ -64,6 +118,30 @@
       "writtenOn": "2015-10-26T09:45:02Z",
       "side": 1,
       "message": "do not use tripe-quote strings for simple ones: \"\\n\"",
+      "range": {
+        "startLine": 34,
+        "startChar": 16,
+        "endLine": 35,
+        "endChar": 3
+      },
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8be2b49d",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_36e75a14",
       "range": {
         "startLine": 34,
         "startChar": 16,
@@ -99,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_abee9889",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_16e33608",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 4
+      },
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_d6d8de55",
         "filename": "tests/CLIConfigTest.py",
         "patchSetId": 4
@@ -110,6 +212,24 @@
       "writtenOn": "2015-10-26T09:45:02Z",
       "side": 1,
       "message": "clean whitespaces",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cbf3cc71",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_d6d8de55",
       "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -133,6 +253,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_505be953",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "It makes things easier to run tests from the current source tree, eg. when for instance you just cloned the repository as you don\u0027t have to set PYTHONPATH explicitely (git clone, cd clustershell/tests and use nosetests !) . It\u0027s there in all tests I guess.",
+      "parentUuid": "9ab29df4_56e4ce0c",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_76c8f274",
         "filename": "tests/DefaultsTest.py",
         "patchSetId": 4
@@ -144,6 +282,24 @@
       "writtenOn": "2015-10-26T09:45:02Z",
       "side": 1,
       "message": "use Defaults(), not the singleton in tests.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2b02883e",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Of course... thx done",
+      "parentUuid": "9ab29df4_76c8f274",
       "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -167,6 +323,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2b89a8ca",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_b6ba8adf",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_56cbee71",
         "filename": "tests/DefaultsTest.py",
         "patchSetId": 4
@@ -178,6 +352,24 @@
       "writtenOn": "2015-10-26T09:45:02Z",
       "side": 1,
       "message": "in this series, you can simply create Default() instances. Thanks to this you will be sure instance will be cleared between each tests.",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4b86dcba",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_56cbee71",
       "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -201,6 +393,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_6b93a0fa",
+        "filename": "tests/DefaultsTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_16ba56de",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_96c5865d",
         "filename": "tests/TaskDistantMixin.py",
         "patchSetId": 4
@@ -212,6 +422,24 @@
       "writtenOn": "2015-10-26T09:45:02Z",
       "side": 1,
       "message": "in DeprecationWarning patch?",
+      "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8b90f4ed",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-29T06:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_96c5865d",
       "revId": "8ca345d47ce04cf13aadd9c8457fbf5dee97e62a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
