@@ -347,20 +347,20 @@ class ExecWorker(DistantWorker):
         """
         return self._clients
 
-    def write(self, buf):
+    def write(self, buf, sname=None):
         """Write to worker clients."""
-        sname = self.SNAME_STDIN
+        sname = sname or self.SNAME_STDIN
         for client in self._clients:
             if sname in client.streams:
                 client._write(sname, buf)
 
-    def set_write_eof(self):
+    def set_write_eof(self, sname=None):
         """
         Tell worker to close its writer file descriptors once flushed. Do not
         perform writes after this call.
         """
         for client in self._clients:
-            client._set_write_eof(self.SNAME_STDIN)
+            client._set_write_eof(sname or self.SNAME_STDIN)
 
     def abort(self):
         """Abort processing any action by this worker."""
