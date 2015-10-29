@@ -1319,9 +1319,10 @@ class Task(object):
             chanworker = wrkcls(gateway, command=metaworker.invoke_gateway,
                                 handler=chan, stderr=True, timeout=timeout)
             # change default stream names to avoid internal task buffering
-            chanworker.SNAME_STDIN = 'gw-stdin'
-            chanworker.SNAME_STDOUT = 'gw-stdout'
-            chanworker.SNAME_STDERR = 'gw-stderr'
+            # and conform with channel stream names
+            chanworker.SNAME_STDIN = chan.SNAME_WRITER
+            chanworker.SNAME_STDOUT = chan.SNAME_READER
+            chanworker.SNAME_STDERR = chan.SNAME_ERROR
             self.schedule(chanworker)
             # update gateways dict
             self.gateways[gateway] = (chanworker, set([metaworker]))

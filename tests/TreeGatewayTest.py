@@ -42,8 +42,10 @@ class Gateway(object):
         self.pipe_stdin = os.pipe()
         self.pipe_stdout = os.pipe()
         # avoid nonblocking flag as we want recv/read() to block
-        self.worker.set_reader('r-stdin', self.pipe_stdin[0])
-        self.worker.set_writer('w-stdout', self.pipe_stdout[1], retain=False)
+        self.worker.set_reader(self.channel.SNAME_READER,
+                               self.pipe_stdin[0])
+        self.worker.set_writer(self.channel.SNAME_WRITER,
+                               self.pipe_stdout[1], retain=False)
         self.task.schedule(self.worker)
         self.task.resume()
 
