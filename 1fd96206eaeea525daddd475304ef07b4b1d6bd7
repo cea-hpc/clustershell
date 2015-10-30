@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_4b5977fd",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-10-30T12:13:27Z",
+      "side": 1,
+      "message": "can\u0027t do something better with  ?\n\n%doc doc/sphinx",
+      "revId": "1fd96206eaeea525daddd475304ef07b4b1d6bd7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
