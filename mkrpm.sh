@@ -60,6 +60,12 @@ install -d $TMPDIR/doc/epydoc
 install -d $TMPDIR/doc/examples
 install -d $TMPDIR/doc/extras/vim/{ftdetect,syntax}
 install -d $TMPDIR/doc/man/{man1,man5}
+install -d $TMPDIR/doc/sphinx
+install -d $TMPDIR/doc/sphinx/_static
+install -d $TMPDIR/doc/sphinx/api
+install -d $TMPDIR/doc/sphinx/api/workers
+install -d $TMPDIR/doc/sphinx/guide
+install -d $TMPDIR/doc/sphinx/tools
 install -d $TMPDIR/doc/txt
 install -d $TMPDIR/tests
 
@@ -91,10 +97,18 @@ install -p -m 0644 doc/man/man1/clush.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man1/nodeset.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man5/clush.conf.5 $TMPDIR/doc/man/man5/
 install -p -m 0644 doc/man/man5/groups.conf.5 $TMPDIR/doc/man/man5/
+install -p -m 0644 doc/sphinx/conf.py $TMPDIR/doc/sphinx/
+install -p -m 0644 doc/sphinx/Makefile $TMPDIR/doc/sphinx/
+install -p -m 0644 doc/sphinx/*.rst $TMPDIR/doc/sphinx/
+install -p -m 0644 doc/sphinx/_static/*.css $TMPDIR/doc/sphinx/_static/
+install -p -m 0644 doc/sphinx/_static/*.png $TMPDIR/doc/sphinx/_static/
+install -p -m 0644 doc/sphinx/api/*.rst $TMPDIR/doc/sphinx/api
+install -p -m 0644 doc/sphinx/api/workers/*.rst $TMPDIR/doc/sphinx/api/workers/
+install -p -m 0644 doc/sphinx/guide/*.rst $TMPDIR/doc/sphinx/guide/
+install -p -m 0644 doc/sphinx/tools/*.rst $TMPDIR/doc/sphinx/tools/
 install -p -m 0644 doc/txt/*.{rst,txt} $TMPDIR/doc/txt/
 install -p -m 0644 doc/txt/README $TMPDIR/doc/txt/
 install -p -m 0644 tests/*.py $TMPDIR/tests/
-chmod 0755 $TMPDIR/tests/run_testsuite.py
 
 sed -e "s/^Version:       %{version}$/Version:       $VERS/" <clustershell.spec.in >$TMPDIR/clustershell.spec
 
