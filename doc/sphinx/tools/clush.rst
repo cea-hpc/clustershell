@@ -144,7 +144,7 @@ The content of the topology.conf file should look like this::
   rio[10-11]: rio[100-240]
   rio[12-13]: rio[300-440]
 
-.. highlight:: txt
+.. highlight:: text
 
 This file defines the following topology graph::
 

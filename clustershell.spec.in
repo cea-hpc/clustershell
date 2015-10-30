@@ -45,7 +45,7 @@ rm -rf %{buildroot}
 [ -d %{buildroot}/usr/etc ] && mv %{buildroot}/usr/etc %{buildroot}/%{_sysconfdir}
 
 # old versions of rpm (el5) requires that a file/link exists in buildroot even
-# when %ghosted, but it is not installed at the end...
+# when ghosted, but it is not installed at the end...
 ln -s conf/groups.d/local.cfg %{buildroot}/%{_sysconfdir}/clustershell/groups
 
 # man pages
@@ -61,6 +61,9 @@ install -d %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/examples
 install -p -m 0644 README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/
 install -p -m 0755 doc/examples/defaults.conf-rsh %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/examples/
 install -p -m 0755 doc/examples/*.py %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/examples/
+cp -a doc/sphinx %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/
+# symlink png as a workaround to make both html and sphinx_rtd_html themes work
+ln -sf _static/clustershell-nautilus-logo200.png  %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/sphinx/clustershell-nautilus-logo200.png
 
 # vim addons
 %define vimdatadir %{_datadir}/vim/vimfiles
@@ -68,7 +71,6 @@ install -d %{buildroot}/%{vimdatadir}/{ftdetect,syntax}
 install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim %{buildroot}/%{vimdatadir}/ftdetect/
 install -p -m 0644 doc/extras/vim/syntax/clushconf.vim %{buildroot}/%{vimdatadir}/syntax/
 install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadir}/syntax/
-
 
 %clean
 rm -rf %{buildroot}
