@@ -16,6 +16,47 @@
       "revId": "1fd96206eaeea525daddd475304ef07b4b1d6bd7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_995be553",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-31T04:13:30Z",
+      "side": 1,
+      "message": "hm? \n%doc is defined below for the whole doc dir\n\nWhat looks bad here is that it\u0027s very long/verbose. I wasn\u0027t sure of whether I should use cp -a. As we have mkrpm.sh that already filter files from working tree, I will use cp -a  ok",
+      "parentUuid": "9ab29df4_4b5977fd",
+      "revId": "1fd96206eaeea525daddd475304ef07b4b1d6bd7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d9555d1e",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-10-31T04:13:30Z",
+      "side": 1,
+      "message": "here",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 42
+      },
+      "revId": "1fd96206eaeea525daddd475304ef07b4b1d6bd7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
