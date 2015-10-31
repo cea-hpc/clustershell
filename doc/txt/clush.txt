@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2015-10-28
+:Date:   2015-10-30
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -101,7 +101,7 @@ Interactive session
 
   To leave an interactive session, type ``quit`` or Control-D.
 
-Local execution ( ``--worker=exec`` )
+Local execution ( ``--worker=exec`` or ``-R exec`` )
   Instead of running provided command on remote nodes, ``clush`` can use the
   dedicated *exec* worker to launch the command *locally*, for each node.
   Some parameters could be used in the command line to make a different
@@ -178,7 +178,8 @@ Connection options:
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
-  --worker=WORKER     worker name to use for connection (``ssh``, ``rsh``, ``pdsh``, ...), default is ``ssh``
+  -R WORKER, --worker=WORKER
+                      worker name to use for connection (``exec``, ``ssh``, ``rsh``, ``pdsh``), default is ``ssh``
 
 For a short explanation of these options, see ``-h, --help``.
 
@@ -201,17 +202,18 @@ similar to:
 EXAMPLES
 ===========
 
-Basic
------
+Remote parallel execution
+-------------------------
 
 :# clush -w node[3-5,62] uname -r:
     Run command `uname -r` in parallel on nodes: node3, node4, node5 and node62
 
-Advanced
---------
+Local parallel execution
+------------------------
 
 :# clush -w node[1-3] --worker=exec ping -c1 %host:
-    Run locally, in parallel, a ping command for nodes: node1, node2 and node3
+    Run locally, in parallel, a ping command for nodes: node1, node2 and node3.
+    You may also use ``-R exec`` as the shorter and pdsh compatible option.
 
 Display features
 ----------------
