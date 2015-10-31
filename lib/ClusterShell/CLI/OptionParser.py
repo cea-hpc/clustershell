@@ -237,7 +237,7 @@ class OptionParser(optparse.OptionParser):
                           dest="command_timeout",
                           help="limit time for command to run on the node",
                           type="float")
-        optgrp.add_option("--worker", action="store", dest="worker",
+        optgrp.add_option("-R", "--worker", action="store", dest="worker",
                           help="worker name to use for command execution "
                                "('exec', 'rsh', 'ssh', etc. default is 'ssh')")
         optgrp.add_option("--remote", action="store", dest="remote",

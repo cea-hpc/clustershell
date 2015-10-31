@@ -435,14 +435,41 @@ Worker selection
 
 By default, *clush* is using the default library worker configuration when
 running commands or copying files. In most cases, this is *ssh* (See
-:ref:`task-default-worker` for default worker selection). ClusterShell
-supports other worker types like *rsh* or also *pdsh*. This worker selection
-could be changed at runtime thanks to ``--worker`` command line option::
+:ref:`task-default-worker` for default worker selection).
+
+Worker selection can be performed at runtime thanks to ``--worker`` command
+line option (or ``-R`` for the shorter version in order to be compatible with
+*pdsh* remote command selection option)::
 
     $ clush -w node[11-12] --worker=rsh echo ok
     node11: ok
     node12: ok
 
+By default, ClusterShell supports the following worker identifiers:
+
+* **exec**: this local worker supports parallel command execution, doesn't
+  rely on any external tool and provides command line placeholders described
+  below:
+
+  * ``%h`` and ``%host`` are substitued with each *target hostname*
+  * ``%hosts`` is substitued with the full *target nodeset*
+  * ``%n`` and ``%rank`` are substitued with the remote *rank* (0 to n-1)
+
+  For example, the following would request the exec worker to locally run
+  multiple *ipmitool* commands across the hosts foo[0-10] and automatically
+  aggregate output results (-b)::
+
+      $ clush -R exec -w foo[0-10] -b ipmitool -H %h-ipmi chassis power status
+      ---------------
+      foo[0-10] (11)
+      ---------------
+      Chassis Power is on
+
+* **rsh**: remote worker based on *rsh*
+* **ssh**: remote worker based on *ssh* (default)
+* **pdsh**: remote worker based on *pdsh* that requires *pdsh* to be
+  installed; doesn't provide write support (eg. you cannot ``cat file | clush
+  --worker pdsh``); it is primarily an 1-to-n worker example.
 
 
 .. [#] LLNL parallel remote shell utility
