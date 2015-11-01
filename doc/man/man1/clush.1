@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2015-10-30" "1.7" "ClusterShell User Manual"
+.TH CLUSH 1 "2015-11-01" "1.7" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -212,6 +212,9 @@ disable header block and order output by nodes; additionally, when used in conju
 .TP
 .B \-N
 disable labeling of command line
+.TP
+.B \-P\fP,\fB  \-\-progress
+show progress during command execution; if writing is performed to standard input, the live progress indicator will display the global bandwidth of data written to the target nodes
 .TP
 .B \-b\fP,\fB  \-\-dshbak
 display gathered results in a dshbak\-like way
