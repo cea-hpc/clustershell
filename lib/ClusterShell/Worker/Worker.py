@@ -36,6 +36,7 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
+import inspect
 import warnings
 
 from ClusterShell.Worker.EngineClient import EngineClient
@@ -151,6 +152,17 @@ class Worker(object):
 
         if self.eh:
             self.eh.ev_hup(self)
+
+    def _on_written(self, key, bytes_count, sname):
+        """Notification of bytes written."""
+        # set node and stream name (compat only)
+        self.current_node = key
+        self.current_sname = sname
+
+        # generate event - for ev_written, also check for new signature (1.7)
+        # NOTE: add DeprecationWarning in 1.8 for old ev_written signature
+        if self.eh and len(inspect.getargspec(self.eh.ev_written)[0]) == 5:
+            self.eh.ev_written(self, key, sname, bytes_count)
 
     # Base getters
 
