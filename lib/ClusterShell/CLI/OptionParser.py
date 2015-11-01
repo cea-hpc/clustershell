@@ -158,6 +158,8 @@ class OptionParser(optparse.OptionParser):
             optgrp.add_option("-b", "-c", "--dshbak", action="store_true",
                 dest="gather", help="gather nodes with same output")
         else:
+            optgrp.add_option("-P", "--progress", action="store_true",
+                dest="progress", help="show progress during command execution")
             optgrp.add_option("-b", "--dshbak", action="store_true",
                 dest="gather", help="gather nodes with same output")
         optgrp.add_option("-B", action="store_true", dest="gatherall",
