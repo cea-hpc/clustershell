@@ -324,6 +324,7 @@ class EngineClient(EngineBaseTimer):
                     return
                 raise
             if wcnt > 0:
+                self.worker._on_written(self.key, wcnt, sname)
                 # dequeue written buffer
                 wfile.wbuf = wfile.wbuf[wcnt:]
                 # check for possible ending

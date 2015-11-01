@@ -90,11 +90,25 @@ class EventHandler(object):
         * :attr:`.Worker.current_errmsg` - read error message
         """
 
-    def ev_written(self, worker):
+    def ev_written(self, worker, node, sname, size):
         """
-        Called to indicate that writing has been done.
+        Called to indicate that some writing has been done by the worker to a
+        node on a given stream. This event is only generated when ``write()``
+        is previously called on the worker.
+
+        This handler may be called very often depending on the number of target
+        nodes, the amount of data to write and the block size used by the
+        worker.
+
+        Note: up to ClusterShell 1.6, this event handler wasn't implemented. To
+        properly handle ev_written after 1.6, the method signature must consist
+        of the following parameters:
 
         :param worker: :class:`.Worker` object
+        :param node: node (or) key
+        :param sname: stream name
+        :param size: amount of bytes that has just been written to node/stream
+            associated with this event
         """
 
     def ev_hup(self, worker):
