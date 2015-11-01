@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010, 2011, 2012)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2010-2015)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -82,6 +82,7 @@ class Display(object):
         self._diffref = None
         # diff implies at least -b
         self.gather = options.gatherall or options.gather or options.diff
+        self.progress = getattr(options, 'progress', False) # only in clush
         # check parameter combinaison
         if options.diff and options.line_mode:
             raise ValueError("diff not supported in line_mode")
