@@ -81,13 +81,14 @@ class MetaWorkerEventHandler(EventHandler):
                                          worker.current_errmsg,
                                          'stderr')
 
-    def ev_written(self, worker):
+    def ev_written(self, worker, bytes_written):
         """
         Called to indicate that writing has been done.
         """
         metaworker = self.metaworker
         metaworker.current_node = worker.current_node
-        metaworker.eh.ev_written(metaworker)
+        metaworker.current_sname = worker.current_sname
+        metaworker.eh.ev_written(metaworker, bytes_written)
 
     def ev_hup(self, worker):
         """
