@@ -51,6 +51,7 @@ from os.path import abspath, dirname, exists, isdir, join
 import resource
 import sys
 import signal
+import time
 import threading
 
 from ClusterShell.Defaults import DEFAULTS, _load_workerclass
@@ -59,7 +60,7 @@ from ClusterShell.CLI.Display import Display
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
-from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp
+from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp, human_bi_bytes_unit
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
@@ -92,10 +93,11 @@ class OutputHandler(EventHandler):
         EventHandler.__init__(self)
         self._runtimer = None
 
-    def runtimer_init(self, task, ntotal):
+    def runtimer_init(self, task, ntotal=0):
         """Init timer for live command-completed progressmeter."""
-        self._runtimer = task.timer(2.0, RunTimer(task, ntotal),
-                                    interval=1./3., autoclose=True)
+        thandler = RunTimer(task, ntotal)
+        self._runtimer = task.timer(1.33, thandler, interval=1./3.,
+                                    autoclose=True)
 
     def _runtimer_clean(self):
         """Hide runtimer counter"""
@@ -123,6 +125,16 @@ class OutputHandler(EventHandler):
         worker.task.set_default("USER_running", False)
         if worker.task.default("USER_handle_SIGUSR1"):
             os.kill(os.getpid(), signal.SIGUSR1)
+
+    def ev_start(self, worker):
+        """Worker is starting."""
+        if self._runtimer:
+            self._runtimer.eh.start_time = time.time()
+
+    def ev_written(self, worker, node, sname, size):
+        """Bytes written on worker"""
+        if self._runtimer:
+            self._runtimer.eh.bytes_written += size
 
 class DirectOutputHandler(OutputHandler):
     """Direct output event handler class."""
@@ -156,7 +168,29 @@ class DirectOutputHandler(OutputHandler):
     def ev_close(self, worker):
         self.update_prompt(worker)
 
-class CopyOutputHandler(DirectOutputHandler):
+class DirectProgressOutputHandler(DirectOutputHandler):
+    """Direct output event handler class with progress support."""
+
+    # NOTE: This class is very similar to DirectOutputHandler, thus it could
+    #       first look overkill, but merging both is slightly impacting ev_read
+    #       performance of current DirectOutputHandler.
+
+    def ev_read(self, worker):
+        self._runtimer_clean()
+        # it is ~10% faster to avoid calling super here
+        node = worker.current_node or worker.key
+        self._display.print_line(node, worker.current_msg)
+
+    def ev_error(self, worker):
+        self._runtimer_clean()
+        node = worker.current_node or worker.key
+        self._display.print_line_error(node, worker.current_errmsg)
+
+    def ev_close(self, worker):
+        self._runtimer_clean()
+        DirectOutputHandler.ev_close(self, worker)
+
+class CopyOutputHandler(DirectProgressOutputHandler):
     """Copy output event handler."""
     def __init__(self, display, reverse=False):
         DirectOutputHandler.__init__(self, display)
@@ -308,6 +342,10 @@ class RunTimer(EventHandler):
         self.tslen = len(str(self.total))
         self.wholelen = 0
         self.started = False
+        self.write_progress = False
+        # updated by worker handler for progress
+        self.start_time = 0
+        self.bytes_written = 0
 
     def ev_timer(self, timer):
         self.update()
@@ -318,8 +356,16 @@ class RunTimer(EventHandler):
     def erase_line(self):
         if self.wholelen:
             sys.stderr.write(' ' * self.wholelen + '\r')
+            self.wholelen = 0
 
     def update(self):
+        """Update runtime progress info"""
+        wrbwinfo = ''
+        if self.bytes_written > 0 or self.write_progress:
+            self.write_progress = True
+            bandwidth = self.bytes_written/(time.time() - self.start_time)
+            wrbwinfo = " write: %s/s" % human_bi_bytes_unit(bandwidth)
+
         gws = self.task.gateways.keys()
         if gws:
             # tree mode
@@ -331,11 +377,12 @@ class RunTimer(EventHandler):
         else:
             cnt = len(self.task._engine.clients())
             gwinfo = ''
-        if cnt != self.cnt_last:
+        if self.write_progress or cnt != self.cnt_last:
             self.cnt_last = cnt
             # display completed/total clients
-            towrite = 'clush: %*d/%*d%s\r' % (self.tslen, self.total - cnt,
-                                              self.tslen, self.total, gwinfo)
+            towrite = 'clush: %*d/%*d%s%s\r' % (self.tslen, self.total - cnt,
+                                                self.tslen, self.total, gwinfo,
+                                                wrbwinfo)
             self.wholelen = len(towrite)
             sys.stderr.write(towrite)
             self.started = True
@@ -344,6 +391,7 @@ class RunTimer(EventHandler):
         """finalize display of runtimer"""
         if not self.started:
             return
+        self.erase_line()
         # display completed/total clients
         fmt = 'clush: %*d/%*d'
         if force_cr:
@@ -599,9 +647,13 @@ def run_command(task, cmd, ns, timeout, display, remote):
         else:
             handler = GatherOutputHandler(display)
 
-        if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
+        if display.progress or display.verbosity in (VERB_STD, VERB_VERB):
             handler.runtimer_init(task, len(ns))
+    elif display.progress:
+        handler = DirectProgressOutputHandler(display)
+        handler.runtimer_init(task, len(ns))
     else:
+        # this is the simpler but faster output handler
         handler = DirectOutputHandler(display)
 
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
@@ -614,9 +666,7 @@ def run_command(task, cmd, ns, timeout, display, remote):
     task.resume()
 
 def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
-    """
-    run copy command
-    """
+    """run copy command"""
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
 
@@ -626,7 +676,7 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
         print Display.COLOR_RESULT_FMT % '-' * 15
 
     copyhandler = CopyOutputHandler(display)
-    if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
+    if display.verbosity in (VERB_STD, VERB_VERB):
         copyhandler.runtimer_init(task, len(ns) * len(sources))
 
     # Sources check
@@ -640,9 +690,7 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     task.resume()
 
 def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
-    """
-    run reverse copy command
-    """
+    """run reverse copy command"""
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
 
