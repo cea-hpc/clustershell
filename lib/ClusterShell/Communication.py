@@ -65,6 +65,7 @@ from xml.sax import SAXParseException
 from collections import deque
 from cStringIO import StringIO
 
+from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
 
 
@@ -83,6 +84,7 @@ class XMLReader(ContentHandler):
         """XMLReader initializer"""
         ContentHandler.__init__(self)
         self.msg_queue = deque()
+        self.version = None
         # current packet under construction
         self._draft = None
         self._sections_map = None
@@ -90,6 +92,7 @@ class XMLReader(ContentHandler):
     def startElement(self, name, attrs):
         """read a starting xml tag"""
         if name == 'channel':
+            self.version = attrs.get('version')
             self.msg_queue.appendleft(StartMessage())
         elif name == 'message':
             self._draft_new(attrs)
@@ -192,7 +195,8 @@ class Channel(EventHandler):
 
     def _open(self):
         """open a new communication channel from src to dst"""
-        XMLGenerator(self.worker, encoding=ENCODING).startElement('channel', {})
+        xmlgen = XMLGenerator(self.worker, encoding=ENCODING)
+        xmlgen.startElement('channel', {'version': __version__})
 
     def _close(self):
         """close an already opened channel"""
