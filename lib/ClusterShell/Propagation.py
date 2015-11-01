@@ -231,7 +231,7 @@ class PropagationChannel(Channel):
         self.task = task
         self.gateway = gateway
         self.workers = {}
-        self._history = {} # track informations about previous states
+        self._cfg_write_hist = deque() # track write requests
         self._sendq = deque()
         self._rc = None
         self.logger = logging.getLogger(__name__)
@@ -259,7 +259,6 @@ class PropagationChannel(Channel):
         # Immediately send CFG
         cfg = ConfigurationMessage(self.gateway)
         cfg.data_encode(self.task.topology)
-        self._history['cfg_id'] = cfg.msgid
         self.send(cfg)
 
     def recv(self, msg):
@@ -305,8 +304,6 @@ class PropagationChannel(Channel):
             'remote': remote,
         }
         ctl.data_encode(ctl_data)
-
-        self._history['ctl_id'] = ctl.msgid
         self.send_queued(ctl)
 
     def write(self, nodes, buf, worker):
@@ -322,7 +319,7 @@ class PropagationChannel(Channel):
             'buf': buf,
         }
         ctl.data_encode(ctl_data)
-        self._history['ctl_id'] = ctl.msgid
+        self._cfg_write_hist.appendleft((ctl.msgid, nodes, len(buf), worker))
         self.send_queued(ctl)
 
     def set_write_eof(self, nodes, worker):
@@ -333,14 +330,12 @@ class PropagationChannel(Channel):
         ctl = ControlMessage(id(worker))
         ctl.action = 'eof'
         ctl.target = nodes
-
-        self._history['ctl_id'] = ctl.msgid
         self.send_queued(ctl)
 
     def recv_cfg(self, msg):
         """handle incoming messages for state 'propagate configuration'"""
         self.logger.debug("recv_cfg")
-        if msg.type == 'ACK': # and msg.ack == self._history['cfg_id']:
+        if msg.type == 'ACK':
             self.logger.debug("CTL - connection with gateway fully established")
             self.setup = True
             self.send_dequeue()
@@ -350,8 +345,15 @@ class PropagationChannel(Channel):
     def recv_ctl(self, msg):
         """handle incoming messages for state 'control'"""
         self.logger.debug("recv_ctl")
-        if msg.type == 'ACK': # and msg.ack == self._history['ctl_id']:
+        if msg.type == 'ACK':
             self.logger.debug("got ack (%s)", msg.type)
+            # check if ack matches write history msgid to generate ev_written
+            if self._cfg_write_hist and msg.ack == self._cfg_write_hist[-1][0]:
+                _, nodes, bytes_count, metaworker = self._cfg_write_hist.pop()
+                for node in nodes:
+                    # we are losing track of the gateway here, we could override
+                    # on_written in WorkerTree if needed (eg. for stats)
+                    metaworker._on_written(node, bytes_count, 'stdin')
             self.send_dequeue()
         elif isinstance(msg, RoutedMessageBase):
             metaworker = self.workers[msg.srcid]

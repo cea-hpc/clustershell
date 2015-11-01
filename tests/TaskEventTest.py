@@ -31,6 +31,7 @@ class TestHandler(EventHandler):
         assert self.cnt_pickup > 0, "ev_pickup not called"
         assert self.did_read, "ev_read not called"
         assert not self.did_readerr, "ev_error called"
+        assert self.cnt_written == 0, "ev_written called"
         assert self.cnt_hup > 0, "ev_hup not called"
         assert self.did_close, "ev_close not called"
         assert not self.did_timeout, "ev_timeout called"
@@ -40,6 +41,7 @@ class TestHandler(EventHandler):
         assert self.cnt_pickup > 0, "ev_pickup not called"
         assert not self.did_read, "ev_read called"
         assert not self.did_readerr, "ev_error called"
+        assert self.cnt_written == 0, "ev_written called"
         assert self.cnt_hup == 0, "ev_hup called"
         assert self.did_close, "ev_close not called"
         assert self.did_timeout, "ev_timeout not called"
@@ -47,8 +49,19 @@ class TestHandler(EventHandler):
     def do_asserts_noread_notimeout(self):
         assert self.did_start, "ev_start not called"
         assert self.cnt_pickup > 0, "ev_pickup not called"
-        assert not self.did_read, "ev_read not called"
+        assert not self.did_read, "ev_read called"
         assert not self.did_readerr, "ev_error called"
+        assert self.cnt_written == 0, "ev_written called"
+        assert self.cnt_hup > 0, "ev_hup not called"
+        assert self.did_close, "ev_close not called"
+        assert not self.did_timeout, "ev_timeout called"
+
+    def do_asserts_read_write_notimeout(self):
+        assert self.did_start, "ev_start not called"
+        assert self.cnt_pickup > 0, "ev_pickup not called"
+        assert self.did_read, "ev_read not called"
+        assert not self.did_readerr, "ev_error called"
+        assert self.cnt_written > 0, "ev_written not called"
         assert self.cnt_hup > 0, "ev_hup not called"
         assert self.did_close, "ev_close not called"
         assert not self.did_timeout, "ev_timeout called"
@@ -58,6 +71,8 @@ class TestHandler(EventHandler):
         self.cnt_pickup = 0
         self.did_read = False
         self.did_readerr = False
+        self.cnt_written = 0
+        self.bytes_written = 0
         self.cnt_hup = 0
         self.did_close = False
         self.did_timeout = False
@@ -77,6 +92,10 @@ class TestHandler(EventHandler):
         self.did_readerr = True
         assert worker.current_errmsg == "errerrerrerrerrerrerrerr"
         assert worker.current_msg != "errerrerrerrerrerrerrerr"
+
+    def ev_written(self, worker, bytes_written):
+        self.cnt_written += 1
+        self.bytes_written += bytes_written
 
     def ev_hup(self, worker):
         self.cnt_hup += 1
@@ -214,3 +233,20 @@ class TaskEventTest(unittest.TestCase):
             self.assertEqual(eh.cnt_hup, 3)
         finally:
             task.set_info("fanout", fanout)
+
+    def test_ev_written(self):
+        """test ev_written event"""
+        task = task_self()
+
+        eh = TestHandler()
+
+        worker = task.shell("cat", handler=eh)
+        content = "abcdefghijklmnopqrstuvwxyz\n"
+        worker.write(content)
+        worker.set_write_eof()
+
+        task.resume()
+
+        eh.do_asserts_read_write_notimeout()
+        self.assertEqual(eh.cnt_written, 1)
+        self.assertEqual(eh.bytes_written, len(content))
