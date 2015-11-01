@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2015-10-30
+:Date:   2015-11-01
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 1
@@ -152,6 +152,7 @@ Output behaviour:
   -G, --groupbase     do not display group source prefix
   -L                  disable header block and order output by nodes; additionally, when used in conjunction with -b/-B, it will enable "life gathering" of results by line mode, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
   -N                  disable labeling of command line
+  -P, --progress      show progress during command execution; if writing is performed to standard input, the live progress indicator will display the global bandwidth of data written to the target nodes
   -b, --dshbak        display gathered results in a dshbak-like way
   -B                  like -b but including standard error
   -r, --regroup       fold nodeset using node groups
