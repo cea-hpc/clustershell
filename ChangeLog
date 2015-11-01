@@ -1,3 +1,8 @@
+2015-11-01 S. Thiell <sthiell@stanford.edu>
+
+	* Clush.py: added -P/--progress to force display of the live progress
+	indicator and display global write bandwidth when writing standard input.
+
 2015-10-25 S. Thiell <sthiell@stanford.edu>
 
 	* Clush.py: added --option/-O clush.conf settings override (pull

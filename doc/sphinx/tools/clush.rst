@@ -228,14 +228,15 @@ specified remote hosts in parallel (given the current *fanout* value and the
 number of commands to execute (see *fanout* library settings in
 :ref:`class-Task-configure`).
 
+.. _clush-gather:
+
 Output gathering options
 """"""""""""""""""""""""
 
 If option ``-b`` or ``--dshbak`` is specified, *clush* waits for command
-completion while displaying a progress indicator (unless ``-q, --quiet``
-switch is provided) and then displays gathered output results. If standard
-output is redirected to a file, *clush* detects it and disable any progress
-indicator.
+completion while displaying a :ref:`progress indicator <clush-progress>` and
+then displays gathered output results. If standard output is redirected to a
+file, *clush* detects it and disable any progress indicator.
 
 The following is a simple example of *clush* command used to execute ``uname
 -r`` on *node40*, *node41* and *node42*, wait for their completion and finally
@@ -311,6 +312,32 @@ Another stdin-bound *clush* usage example::
     node[11-14] (4)
     ---------------
     /etc/yum.repos.d/cobbler-config.repo
+
+.. _clush-progress:
+
+Progress indicator
+""""""""""""""""""
+
+In :ref:`output gathering mode <clush-gather>`, *clush* will display a live
+progress indicator as a simple but convenient way to follow the completion of
+parallel commands. It can be disabled just by using the ``-q`` or ``--quiet``
+options. The progress indicator will appear after 1 to 2 seconds and should
+look like this::
+
+    clush: <command_completed>/<command_total>
+
+If writing is performed to *clush* standard input, like in ``command |
+clush``, the live progress indicator will display the global bandwidth of data
+written to the target nodes.
+
+Finally, the special option ``--progress`` can be used to force the display of
+the live progress indicator. Using this option may interfere with some command
+outputs, but it can be useful when using stdin while remote commands are
+silent. As an example, the following command will copy a local file to
+node[1-3] and display the global write bandwidth to the target nodes::
+
+    $ dd if=/path/to/local/file | clush -w node[1-3] --progress 'dd of=/path/to/remote/file'
+    clush: 0/3 write: 212.27 MiB/s
 
 .. _clush-interactive:
 

@@ -427,6 +427,38 @@ class CLIClushTest_A(unittest.TestCase):
                        "-O", "color=never", "-w", HOSTNAME, "echo", "ok"],
                       None, "%s: ok\n" % HOSTNAME)
 
+    def test_031_progress(self):
+        """test clush -P/--progress"""
+        self._clush_t(["-w", HOSTNAME, "--progress", "echo", "ok"], None,
+                      "%s: ok\n" % HOSTNAME)
+        self._clush_t(["-w", HOSTNAME, "--progress", "sleep", "2"], None, '', 0,
+                      re.compile(r'clush: 0/1\r.*'))
+        self._clush_t(["-w", HOSTNAME, "--progress", "sleep", "2"], 'AAAAAAAA',
+                      '', 0, re.compile(r'clush: 0/1 write: \d B/s\r.*'))
+        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--progress",
+                       "sleep", "2"], 'AAAAAAAAAAAAAA', '', 0,
+                       re.compile(r'clush: 0/2 write: \d+ B/s\r.*'))
+        self._clush_t(["-w", HOSTNAME, "-b", "--progress", "sleep", "2"],
+                      None, '', 0, re.compile(r'clush: 0/1\r.*'))
+        self._clush_t(["-w", HOSTNAME, "-b", "--progress", "sleep", "2"],
+                      'AAAAAAAAAAAAAAAA', '', 0,
+                      re.compile(r'clush: 0/1 write: \d+ B/s\r.*'))
+        # -q and --progress: explicit -q wins
+        self._clush_t(["-w", HOSTNAME, "--progress", "-q", "sleep", "2"], None,
+                      '', 0)
+        self._clush_t(["-w", HOSTNAME, "-b", "--progress", "-q", "sleep", "2"],
+                      None, '', 0, '')
+        self._clush_t(["-w", HOSTNAME, "-b", "--progress", "-q", "sleep", "2"],
+                      'AAAAAAAAAAAAAAAA', '', 0, '')
+        # cover stderr output and --progress
+        self._clush_t(["-w", HOSTNAME, "--progress",
+                       "echo foo >&2; echo bar; sleep 2"], None,
+                      "%s: bar\n" % HOSTNAME, 0,
+                      re.compile(r'%s: foo\nclush: 0/1\r.*'
+                                 % HOSTNAME))
+
+
+
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
 
