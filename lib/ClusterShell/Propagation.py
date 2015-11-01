@@ -275,8 +275,8 @@ class PropagationChannel(Channel):
             self.recv_cfg(msg)
         elif msg.type == StartMessage.ident:
             self.opened = True
-            self.logger.debug('channel started')
-            # TODO: channel versioning
+            self.logger.debug('channel started (version %s on remote gateway)',
+                              self._xml_reader.version)
         else:
             self.logger.error('unexpected message: %s', str(msg))
 
