@@ -4,12 +4,10 @@
 import logging
 import os
 import re
-import sys
 import unittest
 import xml.sax
 
-sys.path.insert(0, '../lib')
-
+from ClusterShell import __version__
 from ClusterShell.Communication import ConfigurationMessage, ControlMessage, \
     StdOutMessage, StdErrMessage, RetcodeMessage, ACKMessage, ErrorMessage, \
     TimeoutMessage, StartMessage, EndMessage, XMLReader
@@ -103,7 +101,7 @@ class TreeGatewayBaseTest(unittest.TestCase):
     #
     def channel_send_start(self):
         """send starting channel tag"""
-        self.gateway.send('<channel>')
+        self.gateway.send('<channel version="%s">' % __version__)
 
     def channel_send_stop(self):
         """send channel ending tag"""

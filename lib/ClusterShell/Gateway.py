@@ -179,8 +179,8 @@ class GatewayChannel(Channel):
                 self.logger.debug('got start message %s', msg)
                 self.opened = True
                 self._open()
-                self.logger.debug('channel started')
-                # TODO: channel versioning
+                self.logger.debug('channel started (version %s on remote end)',
+                                  self._xml_reader.version)
             else:
                 self.logger.error('unexpected message: %s', str(msg))
                 raise MessageProcessingError('unexpected message: %s' % msg)
