@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2010-2015)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -46,6 +46,24 @@ except GroupResolverConfigError, exc:
         "ERROR: ClusterShell node groups configuration error:\n\t%s" % exc
     sys.exit(1)
 
+(KIBI, MEBI, GIBI, TEBI) = (1024.0, 1024.0 ** 2, 1024.0 ** 3, 1024.0 ** 4)
+
+def human_bi_bytes_unit(value):
+    """
+    Format numerical `value` to display it using human readable unit with
+    binary prefix like (KiB, MiB, GiB, ...).
+    """
+    if value >= TEBI:
+        fmt = "%.2f TiB" % (value / TEBI)
+    elif value >= GIBI:
+        fmt = "%.2f GiB" % (value / GIBI)
+    elif value >= MEBI:
+        fmt = "%.2f MiB" % (value / MEBI)
+    elif value >= KIBI:
+        fmt = "%.2f KiB" % (value / KIBI)
+    else:
+        fmt = "%d B" % value
+    return fmt
 
 def nodeset_cmp(ns1, ns2):
     """Compare 2 nodesets by their length (we want larger nodeset
@@ -65,4 +83,3 @@ def bufnodeset_cmp(bn1, bn2):
     node."""
     # Extract nodesets and call nodeset_cmp
     return nodeset_cmp(bn1[1], bn2[1])
-
