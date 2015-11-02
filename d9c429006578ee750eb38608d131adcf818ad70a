@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_e44d1574",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-02T21:56:05Z",
+      "side": 1,
+      "message": "for compat only with code having declared the former version of ev_written()?\nMaybe add a comment to more easily track this compat mode and be able to raise DeprecationWarning/drop this code in the future.",
+      "revId": "d9c429006578ee750eb38608d131adcf818ad70a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
