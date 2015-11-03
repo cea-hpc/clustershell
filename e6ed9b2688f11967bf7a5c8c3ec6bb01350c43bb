@@ -22,6 +22,30 @@
       "revId": "e6ed9b2688f11967bf7a5c8c3ec6bb01350c43bb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_3dee3c89",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-03T16:09:17Z",
+      "side": 1,
+      "message": "no no details are important, thx :) and no big deal as now my brain is setup as a rebase robot :)",
+      "parentUuid": "9ab29df4_7d519461",
+      "range": {
+        "startLine": 103,
+        "startChar": 14,
+        "endLine": 103,
+        "endChar": 16
+      },
+      "revId": "e6ed9b2688f11967bf7a5c8c3ec6bb01350c43bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
