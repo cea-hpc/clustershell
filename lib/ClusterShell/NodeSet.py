@@ -795,7 +795,7 @@ class ParsingEngine(object):
             return nsobj
 
         # or is nsobj a string?
-        if type(nsobj) is str:
+        if isinstance(nsobj, basestring):
             try:
                 return self.parse_string(str(nsobj), autostep)
             except (NodeUtils.GroupSourceQueryFailed, RuntimeError), exc:
