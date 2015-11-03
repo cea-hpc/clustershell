@@ -2474,3 +2474,10 @@ class NodeSetTest(unittest.TestCase):
         n1.fold_axis = range(3)
         self.assertEqual(str(n1), "da[1-2]c[1-2],ln[0-1],master,slave,x[1-2]y[1-2]z[1-2]")
         self.assertEqual(len(n1), 16)
+
+    def test_unicode(self):
+        """test NodeSet with unicode string"""
+        nodeset = NodeSet(u"node1")
+        self._assertNode(nodeset, "node1")
+        # not sure about that, can it work if PYTHONIOENCODING is set?
+        self.assertRaises(UnicodeEncodeError, NodeSet, u"\u0ad0[000-042]")
