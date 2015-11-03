@@ -57,6 +57,8 @@ def makeTestG2():
 #
 para: montana[32-37,42-55]
 gpu: montana[38-41]
+escape%test: montana[87-90]
+esc%test2: @escape%test
 """)
     return f2
 
@@ -959,6 +961,36 @@ list: basename $CFGDIR
         self.assertEqual(nodeset.regroup(), "@%s" % tmpgroup)
         self.assertEqual(str(NodeSet("@%s" % tmpgroup, resolver=res)),
                          "example[1-100]")
+
+    def test_fromall_grouplist(self):
+        """test NodeSet.fromall() without all upcall"""
+        # Group Source that has no all upcall and that can handle special char
+        test_groups2 = makeTestG2()
+
+        source = UpcallGroupSource("simple",
+                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups2.name,
+                                   None,
+                                   "sed -n 's/^\([0-9A-Za-z_-\%%]*\):.*/\\1/p' %s"
+                                   % test_groups2.name,
+                                   None)
+        res = GroupResolver(source)
+
+        # fromall will trigger ParserEngine.grouplist() that we want to test here
+        nsall = NodeSet.fromall(resolver=res)
+
+        # if working, group resolution worked with % char
+        self.assertEqual(str(NodeSet.fromall(resolver=res)), "montana[32-55,87-90]")
+        self.assertEqual(len(nsall), 28)
+
+        # btw explicitly check escaped char
+        nsesc = NodeSet('@escape%test', resolver=res)
+        self.assertEqual(str(nsesc), 'montana[87-90]')
+        self.assertEqual(len(nsesc), 4)
+        nsesc2 = NodeSet('@esc%test2', resolver=res)
+        self.assertEqual(nsesc, nsesc2)
+        ns = NodeSet('montana[87-90]', resolver=res)
+        # could also result in escape%test?
+        self.assertEqual(ns.regroup(), '@esc%test2')
 
 
 class NodeSetGroup2GSTest(unittest.TestCase):

@@ -752,6 +752,14 @@ class NodeSetBase(object):
         return self
 
 
+def _strip_escape(nsstr):
+    """
+    Helper to prepare a nodeset string for parsing: trim boundary
+    whitespaces and escape special characters.
+    """
+    return nsstr.strip().replace('%', '%%')
+
+
 class ParsingEngine(object):
     """
     Class that is able to transform a source into a NodeSetBase.
@@ -801,6 +809,7 @@ class ParsingEngine(object):
         Return a NodeSetBase object.
         """
         nodeset = NodeSetBase()
+        nsstr = _strip_escape(nsstr)
 
         for opc, pat, rgnd in self._scan_string(nsstr, autostep):
             # Parser main debugging:
@@ -825,8 +834,8 @@ class ParsingEngine(object):
 
     def parse_string_single(self, nsstr, autostep):
         """Parse provided string and return a NodeSetBase object."""
-        # ignore node boundary whitespace(s)
-        pat, rangesets = self._scan_string_single(nsstr.strip(), autostep)
+        pat, rangesets = self._scan_string_single(_strip_escape(nsstr),
+                                                  autostep)
         if len(rangesets) > 1:
             rgobj = RangeSetND([rangesets], None, autostep, copy_rangeset=False)
         elif len(rangesets) == 1:
@@ -861,11 +870,14 @@ class ParsingEngine(object):
         return ','.join(reslist), namespace
 
     def grouplist(self, namespace=None):
-        """Return a sorted list of groups from current resolver (in optional
-        group source / namespace)."""
+        """
+        Return a sorted list of groups from current resolver (in optional
+        group source / namespace).
+        """
         grpset = NodeSetBase()
         for grpstr in self.group_resolver.grouplist(namespace):
             # We scan each group string to expand any range seen...
+            grpstr = _strip_escape(grpstr)
             for opc, pat, rgnd in self._scan_string(grpstr, None):
                 getattr(grpset, opc)(NodeSetBase(pat, rgnd, False))
         return list(grpset)
@@ -947,20 +959,16 @@ class ParsingEngine(object):
 
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
-        pat = nsstr.strip()
-        # avoid misformatting
-        if pat.find('%') >= 0:
-            pat = pat.replace('%', '%%')
         next_op_code = 'update'
-        while pat is not None:
+        while nsstr is not None:
             # Ignore whitespace(s) for convenience
-            pat = pat.lstrip()
+            nsstr = nsstr.lstrip()
 
             rsets = []
             op_code = next_op_code
 
-            op_idx, next_op_code = self._next_op(pat)
-            bracket_idx = pat.find(self.BRACKET_OPEN)
+            op_idx, next_op_code = self._next_op(nsstr)
+            bracket_idx = nsstr.find(self.BRACKET_OPEN)
 
             # Check if the operator is after the bracket, or if there
             # is no operator at all but some brackets.
@@ -970,13 +978,13 @@ class ParsingEngine(object):
                 # Fill prefix, range and suffix from pattern
                 # eg. "forbin[3,4-10]-ilo" -> "forbin", "3,4-10", "-ilo"
                 newpat = ""
-                sfx = pat
+                sfx = nsstr
                 while bracket_idx >= 0 and (op_idx > bracket_idx or op_idx < 0):
                     pfx, sfx = sfx.split(self.BRACKET_OPEN, 1)
                     try:
                         rng, sfx = sfx.split(self.BRACKET_CLOSE, 1)
                     except ValueError:
-                        raise NodeSetParseError(pat, "missing bracket")
+                        raise NodeSetParseError(nsstr, "missing bracket")
 
                     # illegal closing bracket checks
                     if pfx.find(self.BRACKET_CLOSE) > -1:
@@ -995,7 +1003,7 @@ class ParsingEngine(object):
 
                     # pfx + sfx cannot be empty
                     if pfxlen + sfxlen == 0:
-                        raise NodeSetParseError(pat, "empty node name")
+                        raise NodeSetParseError(nsstr, "empty node name")
 
                     if sfxlen > 0:
                         # amending trailing digits generates /steps
@@ -1031,12 +1039,12 @@ class ParsingEngine(object):
                 # Check if we have a next op-separated node or pattern
                 op_idx, next_op_code = self._next_op(sfx)
                 if op_idx < 0:
-                    pat = None
+                    nsstr = None
                 else:
                     opc = self.OP_CODES[next_op_code]
-                    sfx, pat = sfx.split(opc, 1)
+                    sfx, nsstr = sfx.split(opc, 1)
                     # Detected character operator so right operand is mandatory
-                    if not pat:
+                    if not nsstr:
                         msg = "missing nodeset operand with '%s' operator" % opc
                         raise NodeSetParseError(None, msg)
 
@@ -1049,22 +1057,22 @@ class ParsingEngine(object):
 
                 # pfx + sfx cannot be empty
                 if len(newpat) == 0:
-                    raise NodeSetParseError(pat, "empty node name")
+                    raise NodeSetParseError(nsstr, "empty node name")
 
             else:
                 # In this case, either there is no comma and no bracket,
                 # or the bracket is after the comma, then just return
                 # the node.
                 if op_idx < 0:
-                    node = pat
-                    pat = None # break next time
+                    node = nsstr
+                    nsstr = None # break next time
                 else:
                     opc = self.OP_CODES[next_op_code]
-                    node, pat = pat.split(opc, 1)
+                    node, nsstr = nsstr.split(opc, 1)
                     # Detected character operator so both operands are mandatory
-                    if not node or not pat:
+                    if not node or not nsstr:
                         msg = "missing nodeset operand with '%s' operator" % opc
-                        raise NodeSetParseError(node or pat, msg)
+                        raise NodeSetParseError(node or nsstr, msg)
 
                 # Check for illegal closing bracket
                 if node.find(self.BRACKET_CLOSE) > -1:
