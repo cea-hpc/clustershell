@@ -100,6 +100,25 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "clust%ser[3-30]")
         nodeset = NodeSet("myclu%ster,clust%ser[3-30]")
         self.assertEqual(str(nodeset), "clust%ser[3-30],myclu%ster")
+        # issue #275
+        nodeset = NodeSet.fromlist(["cluster%eth0", "cluster%eth1"])
+        self.assertEqual(str(nodeset), "cluster%eth[0-1]")
+        nodeset = NodeSet.fromlist(["cluster%eth[0-8]", "cluster%eth9"])
+        self.assertEqual(str(nodeset), "cluster%eth[0-9]")
+        nodeset = NodeSet.fromlist(["super%cluster", "hyper%cluster"])
+        self.assertEqual(str(nodeset), "hyper%cluster,super%cluster")
+        # test also private _fromlist1 constructor
+        nodeset = NodeSet._fromlist1(["cluster%eth0", "cluster%eth1"])
+        self.assertEqual(str(nodeset), "cluster%eth[0-1]")
+        nodeset = NodeSet._fromlist1(["super%cluster", "hyper%cluster"])
+        self.assertEqual(str(nodeset), "hyper%cluster,super%cluster")
+        # real use-case!? exercise nD and escaping!
+        nodeset = NodeSet("fe80::5054:ff:feff:6944%eth0 ")
+        self._assertNode(nodeset, "fe80::5054:ff:feff:6944%eth0")
+        nodeset = NodeSet.fromlist(["fe80::5054:ff:feff:6944%eth0"])
+        self._assertNode(nodeset, "fe80::5054:ff:feff:6944%eth0")
+        nodeset = NodeSet._fromlist1(["fe80::5054:ff:feff:6944%eth0"])
+        self._assertNode(nodeset, "fe80::5054:ff:feff:6944%eth0")
 
     def testNodeEightPad(self):
         """test NodeSet padding feature"""
