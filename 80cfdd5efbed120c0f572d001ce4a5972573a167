@@ -16,6 +16,24 @@
       "revId": "80cfdd5efbed120c0f572d001ce4a5972573a167",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_64d105fb",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-03T04:16:12Z",
+      "side": 1,
+      "message": "Ok here I wasn\u0027t clear enough about why I added this class. I fully agree it sounds weird. Well, the story is that I did some clush benchmark, and noticed that ev_read() is ultra critical here. I lost several seconds of execution just by adding a \"if runtimer_clean()\" in ev_read (on 1 million ev_read triggered). So my goal here is absolutely not to reduce the performance of DirectOutputHandler. That\u0027s why I copied it for another one... I know it\u0027s a bit overkill but performance first, right?",
+      "parentUuid": "9ab29df4_64af45e4",
+      "revId": "80cfdd5efbed120c0f572d001ce4a5972573a167",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
