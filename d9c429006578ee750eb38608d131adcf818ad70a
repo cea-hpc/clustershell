@@ -16,6 +16,24 @@
       "revId": "d9c429006578ee750eb38608d131adcf818ad70a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_04e3e9d9",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-03T04:12:18Z",
+      "side": 1,
+      "message": "Yes, it\u0027s for compat but I\u0027m not sure it\u0027s needed. Have you seen my comment with patch set 1?\nSo I have two choices here:\n1) keep inspect, but as you suggest (good idea) add a comment for future DeprecationWarning. Or why not adding DeprecationWarning right now? It shouldn\u0027t be used yet anyway, well, I think...\n2) Remove inspect and let\u0027s broken codes fail if whenever they exist..",
+      "parentUuid": "9ab29df4_e44d1574",
+      "revId": "d9c429006578ee750eb38608d131adcf818ad70a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
