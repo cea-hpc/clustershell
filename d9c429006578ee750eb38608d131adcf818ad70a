@@ -34,6 +34,24 @@
       "revId": "d9c429006578ee750eb38608d131adcf818ad70a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_020bd9d6",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-03T12:47:48Z",
+      "side": 1,
+      "message": "Definitely not #2 \nI do not like when you cannot migrate without warnings. I like when there is a version with support the 2 modes without triggering warnings.\n\nFor now, a comment (and maybe proper documentation in sphinx or docstring) should be enough. We will add the DeprecationWarning in 1.8",
+      "parentUuid": "9ab29df4_04e3e9d9",
+      "revId": "d9c429006578ee750eb38608d131adcf818ad70a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
