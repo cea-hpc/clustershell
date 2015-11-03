@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_7d519461",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-03T16:00:34Z",
+      "side": 1,
+      "message": "\"up to ClusterShell 1.6, ...\"\n(but this is fine anyway)",
+      "range": {
+        "startLine": 103,
+        "startChar": 14,
+        "endLine": 103,
+        "endChar": 16
+      },
+      "revId": "e6ed9b2688f11967bf7a5c8c3ec6bb01350c43bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
