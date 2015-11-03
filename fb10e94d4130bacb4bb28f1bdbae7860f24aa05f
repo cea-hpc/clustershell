@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_b3aa7d6e",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-03T21:30:56Z",
+      "side": 1,
+      "message": "I just realized, as this signature is Event v2 style. It misses at least stream name/ID, and maybe current nodeset as parameters...",
+      "revId": "fb10e94d4130bacb4bb28f1bdbae7860f24aa05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_73a0e590",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-03T21:30:56Z",
+      "side": 1,
+      "message": "now space is missing after dot",
+      "range": {
+        "startLine": 103,
+        "startChar": 75,
+        "endLine": 103,
+        "endChar": 78
+      },
+      "revId": "fb10e94d4130bacb4bb28f1bdbae7860f24aa05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_33b66dda",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-03T21:30:56Z",
+      "side": 1,
+      "message": "add key and sname here as parameters seem a good idea.",
+      "revId": "fb10e94d4130bacb4bb28f1bdbae7860f24aa05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
