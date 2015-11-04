@@ -34,6 +34,24 @@
       "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e83f9f23",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T16:12:34Z",
+      "side": 1,
+      "message": "Well we used the same thing before, so I didn\u0027t change it, is it negligeable if called 10000 times? I don\u0027t know",
+      "parentUuid": "9ab29df4_422b0c94",
+      "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
