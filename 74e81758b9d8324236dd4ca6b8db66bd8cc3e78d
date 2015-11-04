@@ -70,6 +70,24 @@
       "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_284fd7be",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T16:27:23Z",
+      "side": 1,
+      "message": "I just tried using timeit ok removing the find() is 15% faster if nsstr doesn\u0027t contain \u0027%\u0027 (https://gist.github.com/thiell/683d4ff5741839654f74).\n\nThis timeit scriptlet breaks if using % hmmm it seems a lot slower if replace actually replace things.... but well, let\u0027s remove this find, I\u0027m glad this is faster, thanks !!!",
+      "parentUuid": "9ab29df4_881623a6",
+      "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
