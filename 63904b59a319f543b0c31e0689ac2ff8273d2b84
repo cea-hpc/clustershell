@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_5f7a03f2",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T06:39:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_b3c19d30",
+      "revId": "63904b59a319f543b0c31e0689ac2ff8273d2b84",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_f3e235d4",
         "filename": "lib/ClusterShell/CLI/OptionParser.py",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-03T21:38:43Z",
       "side": 1,
       "message": "do we really need a short option for that? There is only 52 characters in upper/lowercase alphabet you know :p",
+      "revId": "63904b59a319f543b0c31e0689ac2ff8273d2b84",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7f7d07e7",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T06:39:19Z",
+      "side": 1,
+      "message": "Don\u0027t worry, ASCII is plenty of resources :p",
+      "parentUuid": "9ab29df4_f3e235d4",
       "revId": "63904b59a319f543b0c31e0689ac2ff8273d2b84",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
