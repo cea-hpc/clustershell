@@ -16,6 +16,24 @@
       "revId": "ecb19f3d6224c04770fdd39d33bf445e572ee855",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_1ff32b9f",
+        "filename": "tests/NodeSetTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T05:36:13Z",
+      "side": 1,
+      "message": "grouplist() wasn\u0027t broken and did the proper escaping as it is calling _scan_string. But tests were still lacking, so -\u003e done",
+      "parentUuid": "9ab29df4_93dbb91a",
+      "revId": "ecb19f3d6224c04770fdd39d33bf445e572ee855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
