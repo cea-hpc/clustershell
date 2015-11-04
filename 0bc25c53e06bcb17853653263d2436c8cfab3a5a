@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_42022c0c",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T10:58:37Z",
+      "side": 1,
+      "message": "current_node is set in Worker.py. I think that\u0027s good. I do not know if it is important it is set here or not. If you are sure of you, that\u0027s ok.",
+      "revId": "0bc25c53e06bcb17853653263d2436c8cfab3a5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
