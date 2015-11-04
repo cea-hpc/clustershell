@@ -16,6 +16,24 @@
       "revId": "0bc25c53e06bcb17853653263d2436c8cfab3a5a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a8e92782",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T16:34:18Z",
+      "side": 1,
+      "message": "I didn\u0027t really seen this method called when testing. I think that\u0027s called only when the gateway itself if doing local stuff. That\u0027s tricky. Let\u0027s re-add the current_node stuff just in case and we can cleanup that later.",
+      "parentUuid": "9ab29df4_42022c0c",
+      "revId": "0bc25c53e06bcb17853653263d2436c8cfab3a5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
