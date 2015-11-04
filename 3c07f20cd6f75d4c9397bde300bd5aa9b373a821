@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_a8104702",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 797,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T15:53:19Z",
+      "side": 1,
+      "message": "is not better to change default excepthook only if verbosity is not DEBUG?",
+      "revId": "3c07f20cd6f75d4c9397bde300bd5aa9b373a821",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_682d4f46",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T15:53:19Z",
+      "side": 1,
+      "message": "-d, -q and -v could be set to modify the same destination and use store_const (for quiet and verbose) and let count for debug",
+      "revId": "3c07f20cd6f75d4c9397bde300bd5aa9b373a821",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
