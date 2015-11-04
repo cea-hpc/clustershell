@@ -52,6 +52,24 @@
       "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_881623a6",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T16:14:50Z",
+      "side": 1,
+      "message": "replace() will have to first look for the pattern, and so will do the same thing that find(). I\u0027m pretty sure this is implemented the same way internally.\nYou can use the CS benchmark, but I think find is useless",
+      "parentUuid": "9ab29df4_e83f9f23",
+      "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
