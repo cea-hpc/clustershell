@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_cebae36d",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T21:56:57Z",
+      "side": 1,
+      "message": "Oh yeah! thx",
+      "parentUuid": "9ab29df4_8e7d4bea",
+      "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_ce390343",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 6
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_eeb0878d",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T21:56:57Z",
+      "side": 1,
+      "message": "Very good catch, probably very useful for tar | clush and such. We can maybe keep that change in mind for 1.8. I would like to freeze the changes for now. Would you mind open a ticket (github issue) and copy/paste this performance improvement?",
+      "parentUuid": "9ab29df4_ce390343",
+      "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6e2c7703",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 6
@@ -47,6 +83,24 @@
       "writtenOn": "2015-11-04T20:32:51Z",
       "side": 1,
       "message": "should progress win over quiet? (not sure what else quiet implies)",
+      "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_39e80710",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-04T21:56:57Z",
+      "side": 1,
+      "message": "If looking at rsync, -qP makes -q wins. So maybe it\u0027s good to have -q wins there too!",
+      "parentUuid": "9ab29df4_6e2c7703",
       "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
