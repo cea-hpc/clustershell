@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_8e7d4bea",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-04T20:32:51Z",
+      "side": 1,
+      "message": "write_progress seems strictly equivalent to bytes_written \u003e 0 as we never reset bytes_written ?",
+      "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_ce390343",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-04T20:32:51Z",
+      "side": 1,
+      "message": "(unrelated/nitpick so we don\u0027t forget) ssh apparently works with 64k bytes chunks, doubling this improves performance greatly on tests (from 130 to 200MiB/s with a single client, from 400 to 750 with 16)",
+      "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6e2c7703",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-04T20:32:51Z",
+      "side": 1,
+      "message": "should progress win over quiet? (not sure what else quiet implies)",
+      "revId": "977648459f083a9379ea133f3b0507fec66c14a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
