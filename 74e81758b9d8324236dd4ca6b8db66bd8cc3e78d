@@ -16,6 +16,24 @@
       "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_422b0c94",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T10:51:36Z",
+      "side": 1,
+      "message": "agreed, this method could be written with one line",
+      "parentUuid": "9ab29df4_023bd438",
+      "revId": "74e81758b9d8324236dd4ca6b8db66bd8cc3e78d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
