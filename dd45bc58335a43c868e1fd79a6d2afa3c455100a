@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_7906ffcf",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 751,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T22:08:51Z",
+      "side": 1,
+      "message": "why not do that instead?\n\n  if config.verbosity \u003c\u003d VERB_DEBUG:\n    sys.excepthook \u003d clush_excepthook\n\nand drop the first line of this function",
+      "range": {
+        "startLine": 749,
+        "startChar": 3,
+        "endLine": 751,
+        "endChar": 43
+      },
+      "revId": "dd45bc58335a43c868e1fd79a6d2afa3c455100a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_99d4b348",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-04T22:08:51Z",
+      "side": 1,
+      "message": "I thought you could do dest\u003d\u0027verbose\u0027 also here?\n\nIf this works, you can simplify your code and remove options.debug test in other classes.\n\nIf dest\u003d\u0027verbose\u0027, does not work, you will have to do use action\u003dcallback and a callback method doing:\n\n  parser.values.verbose +\u003d max(VERB_DEBUG, parser.values.verbose + 1)\n\nbut i\u0027m not fond of action\u003dcallback",
+      "revId": "dd45bc58335a43c868e1fd79a6d2afa3c455100a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
