@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_3cbf59d2",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-05T22:00:21Z",
+      "side": 1,
+      "message": "parameters",
+      "revId": "ec16a708f6edfc8a1e2ab88721fb1cf88917a3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
