@@ -70,7 +70,7 @@ install -d $TMPDIR/doc/txt
 install -d $TMPDIR/tests
 
 install -p -m 0644 setup.cfg setup.py $TMPDIR/
-install -p -m 0644 README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt $TMPDIR/
+install -p -m 0644 README.md ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt $TMPDIR/
 install -p -m 0644 lib/ClusterShell/*.py $TMPDIR/lib/ClusterShell
 install -p -m 0644 lib/ClusterShell/CLI/*.py $TMPDIR/lib/ClusterShell/CLI/
 install -p -m 0644 lib/ClusterShell/Engine/*.py $TMPDIR/lib/ClusterShell/Engine/
@@ -124,4 +124,3 @@ rpmbuild -ta --define "dist $DIST" $TMPROOT/$PKGNAME.tar.gz
 
 echo "Wrote: $TMPROOT/$PKGNAME.tar.gz"
 md5sum $TMPROOT/$PKGNAME.tar.gz
-

@@ -68,7 +68,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
+%doc README.md ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
 %doc doc/examples
 %doc doc/sphinx
 %{_mandir}/man1/clubak.1*
@@ -101,6 +101,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Fri Nov  6 2015 Stephane Thiell <sthiell@stanford.edu> 1.7-1
+- update to 1.7
+
 * Fri Aug  7 2015 Stephane Thiell <stephane.thiell@cea.fr> 1.6.96-1
 - update to 1.6.96
 
