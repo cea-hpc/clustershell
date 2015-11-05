@@ -7,6 +7,7 @@ Contents:
    :maxdepth: 3
 
    intro
+   release
    install
    config
    tools/index
