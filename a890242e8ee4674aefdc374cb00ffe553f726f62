@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_5ce7b5e4",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-05T22:21:35Z",
+      "side": 1,
+      "message": "I just realized this option is very badly named.\nshould be called cache_period, cache_time or cache_duration\n\nThis is a new feature of 1.6. We can still rename it.",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 11
+      },
+      "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
