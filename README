@@ -1,5 +1,5 @@
  -----------------------------------------
- ClusterShell 1.6 Python Library and Tools
+ ClusterShell 1.7 Python Library and Tools
  -----------------------------------------
 
 ClusterShell is an event-driven open source Python library, designed to run
@@ -17,14 +17,16 @@ command-line tools that allow traditional shell scripts to benefit from some
 of the library features.
 
  -------------------
- Requirements (v1.6)
+ Requirements (v1.7)
  -------------------
 
- * GNU/Linux, *BSD, Mac OS X, etc.
+ * GNU/Linux, *BSD, Mac OS X
 
  * OpenSSH (ssh/scp)
 
  * Python 2.x (x >= 4)
+
+ * PyYAML (optional)
 
  -------
  License
@@ -33,22 +35,28 @@ of the library features.
 ClusterShell is distributed under the CeCILL-C license, a French transposition
 of the GNU LGPL, and is fully LGPL-compatible (see Licence_CeCILL-C_V1-en.txt).
 
- ------------
- Installation
- ------------
+ --------------
+ Documentation
+ -------------
 
-When possible, please use the RPM/deb package distribution:
+Online documentation is available here:
 
-    https://github.com/cea-hpc/clustershell/wiki/GetClusterShell
+    http://clustershell.readthedocs.org/
 
-Otherwise in the source directory, use:
+The Sphinx documentation source is available under the doc/sphinx directory.
+Type 'make' to see all available formats (you need Sphinx installed and
+sphinx_rtd_theme to build the documentation). For example, to generate html
+docs, just type:
 
-    # python setup.py install
-    # cp -r conf /etc/clustershell
+    make html BUILDDIR=/dest/path
 
-For installation on Mac OS X, please see:
+For local library API documentation, just type:
 
-    https://github.com/cea-hpc/clustershell/wiki/ClusterShellOnMacOSX
+    $ pydoc ClusterShell
+
+The following man pages are also provided:
+
+    clush(1), clubak(1), nodeset(1), clush.conl(5), groups.conf(5)
 
  ----------
  Test Suite
@@ -63,18 +71,6 @@ Regression testing scripts are available in the 'tests' directory:
 You have to allow 'ssh localhost' and 'ssh $HOSTNAME' without any warnings for
 "remote" tests to run as expected. $HOSTNAME should not be 127.0.0.1 nor ::1.
 Also some tests use the 'bc' command.
-
- --------------
- Documentation
- -------------
-
-Local API documentation is available, just type:
-
-    $ pydoc ClusterShell
-
-Online API documentation (epydoc) is available here:
-
-    http://packages.python.org/ClusterShell/
 
  --------------------------
  ClusterShell interactively
@@ -95,22 +91,6 @@ linux[32-39] 2.6.40.6-0.fc15.x86_64
 
 linux[4-6] 2.6.32-71.el6.x86_64
 
- ------------------
- ClusterShell Tools
- ------------------
-
-Powerful tools are provided: clush, nodeset and clubak.
-
-* clush is a friendly and full-featured parallel shell (see: man clush).
-  If in doubt, just check if your other parallel tools can do things like:
-  # tar -czf - dir | clush -w node[10-44] tar -C /tmp -xzvf -
-
-* nodeset is used to deal with your cluster nodeset, it can be bound to
-  external groups (see: man nodeset and man groups.conf).
-
-* clubak is a tool used to format output from clush/pdsh-like output
-  (already included in clush with -b), see man clubak.
-
  -----
  Links
  -----
@@ -119,6 +99,10 @@ Main web site:
 
     http://clustershell.sourceforge.net
     or http://cea-hpc.github.com/clustershell/
+
+Online documentation:
+
+    http://clustershell.readthedocs.org/
 
 Github source respository:
 
@@ -148,7 +132,7 @@ ClusterShell was born along with Shine, a scalable Lustre FS admin tool:
  Authors
  -------
 
-Stephane Thiell           <stephane.thiell@cea.fr>
+Stephane Thiell             <sthiell@stanford.edu>
 Aurelien Degremont     <aurelien.degremont@cea.fr>
 Henri Doreau                 <henri.doreau@cea.fr>
 
