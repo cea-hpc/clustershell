@@ -9,7 +9,7 @@
 map: sinfo -h -o "%N" -p $GROUP
 all: sinfo -h -o "%N"
 list: sinfo -h -o "%R"
-reverse: sinfo -h -N -o "%P" -n $NODE
+reverse: sinfo -h -N -o "%R" -n $NODE
 
 # SLURM state bindings
 #
@@ -19,4 +19,8 @@ all: sinfo -h -o "%N"
 list: sinfo -h -o "%T"
 reverse: sinfo -h -N -o "%T" -n $NODE
 
-# TODO: add slurm jobs bindings here
+# SLURM job bindings
+#
+[slurmjob]
+map: squeue -j $GROUP -h -o "%N"
+reverse: squeue -w $NODE -h -o "%i"
