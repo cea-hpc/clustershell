@@ -457,6 +457,9 @@ output nodeset header::
     ---------------
     ok
 
+
+.. _clush-worker:
+
 Worker selection
 """"""""""""""""
 
