@@ -124,4 +124,3 @@ rpmbuild -ta --define "dist $DIST" $TMPROOT/$PKGNAME.tar.gz
 
 echo "Wrote: $TMPROOT/$PKGNAME.tar.gz"
 md5sum $TMPROOT/$PKGNAME.tar.gz
-
