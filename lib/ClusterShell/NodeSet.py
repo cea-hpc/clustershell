@@ -141,7 +141,7 @@ class NodeSetBase(object):
         self._autostep = autostep
         self._length = 0
         self._patterns = {}
-        self.fold_axis = fold_axis
+        self.fold_axis = fold_axis  #: iterable over nD 0-indexed axis
         if pattern:
             self._add(pattern, rangeset, copy_rangeset)
         elif rangeset:
@@ -568,7 +568,7 @@ class NodeSetBase(object):
 
     def __ior__(self, other):
         """
-        Implements the |= operator. So s |= t returns nodeset s with
+        Implements the |= operator. So ``s |= t`` returns nodeset s with
         elements added from t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
@@ -586,7 +586,7 @@ class NodeSetBase(object):
 
     def __and__(self, other):
         """
-        Implements the & operator. So s & t returns a new nodeset with
+        Implements the & operator. So ``s & t`` returns a new nodeset with
         elements common to s and t.
         """
         if not isinstance(other, NodeSet):
@@ -595,7 +595,7 @@ class NodeSetBase(object):
 
     def intersection_update(self, other):
         """
-        s.intersection_update(t) returns nodeset s keeping only
+        ``s.intersection_update(t)`` returns nodeset s keeping only
         elements also found in t.
         """
         if other is self:
@@ -619,7 +619,7 @@ class NodeSetBase(object):
 
     def __iand__(self, other):
         """
-        Implements the &= operator. So s &= t returns nodeset s keeping
+        Implements the &= operator. So ``s &= t`` returns nodeset s keeping
         only elements also found in t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
@@ -628,7 +628,7 @@ class NodeSetBase(object):
 
     def difference(self, other):
         """
-        s.difference(t) returns a new NodeSet with elements in s but not
+        ``s.difference(t)`` returns a new NodeSet with elements in s but not
         in t.
         """
         self_copy = self.copy()
@@ -637,7 +637,7 @@ class NodeSetBase(object):
 
     def __sub__(self, other):
         """
-        Implement the - operator. So s - t returns a new nodeset with
+        Implement the - operator. So ``s - t`` returns a new nodeset with
         elements in s but not in t.
         """
         if not isinstance(other, NodeSetBase):
@@ -646,9 +646,11 @@ class NodeSetBase(object):
 
     def difference_update(self, other, strict=False):
         """
-        s.difference_update(t) returns nodeset s after removing
-        elements found in t. If strict is True, raise KeyError
-        if an element cannot be removed.
+        ``s.difference_update(t)`` returns nodeset s after removing
+        elements found in t.
+
+        :raises KeyError: an element cannot be removed (only if strict is
+            True)
         """
         # the purge of each empty pattern is done afterward to allow self = ns
         purge_patterns = []
@@ -676,7 +678,7 @@ class NodeSetBase(object):
 
     def __isub__(self, other):
         """
-        Implement the -= operator. So s -= t returns nodeset s after
+        Implement the -= operator. So ``s -= t`` returns nodeset s after
         removing elements found in t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
@@ -687,12 +689,14 @@ class NodeSetBase(object):
         """
         Remove element elem from the nodeset. Raise KeyError if elem
         is not contained in the nodeset.
+
+        :raises KeyError: elem is not contained in the nodeset
         """
         self.difference_update(elem, True)
 
     def symmetric_difference(self, other):
         """
-        s.symmetric_difference(t) returns the symmetric difference of
+        ``s.symmetric_difference(t)`` returns the symmetric difference of
         two nodesets as a new NodeSet.
 
         (ie. all nodes that are in exactly one of the nodesets.)
@@ -703,7 +707,7 @@ class NodeSetBase(object):
 
     def __xor__(self, other):
         """
-        Implement the ^ operator. So s ^ t returns a new NodeSet with
+        Implement the ^ operator. So ``s ^ t`` returns a new NodeSet with
         nodes that are in exactly one of the nodesets.
         """
         if not isinstance(other, NodeSet):
@@ -712,7 +716,7 @@ class NodeSetBase(object):
 
     def symmetric_difference_update(self, other):
         """
-        s.symmetric_difference_update(t) returns nodeset s keeping all
+        ``s.symmetric_difference_update(t)`` returns nodeset s keeping all
         nodes that are in exactly one of the nodesets.
         """
         purge_patterns = []
@@ -743,7 +747,7 @@ class NodeSetBase(object):
 
     def __ixor__(self, other):
         """
-        Implement the ^= operator. So s ^= t returns nodeset s after
+        Implement the ^= operator. So ``s ^= t`` returns nodeset s after
         keeping all nodes that are in exactly one of the nodesets.
         (Python version 2.5+ required)
         """
@@ -1139,6 +1143,7 @@ class NodeSet(NodeSetBase):
     Iterable class of nodes with node ranges support.
 
     NodeSet creation examples:
+
        >>> nodeset = NodeSet()               # empty NodeSet
        >>> nodeset = NodeSet("cluster3")     # contains only cluster3
        >>> nodeset = NodeSet("cluster[5,10-42]")
@@ -1151,6 +1156,7 @@ class NodeSet(NodeSetBase):
     so strict for convenience, and understands NodeSet instance or
     NodeSet string as argument. Also, there is no strict definition of
     one element, for example, it IS allowed to do:
+
         >>> nodeset = NodeSet("blue[1-50]")
         >>> nodeset.remove("blue[36-40]")
         >>> print nodeset
@@ -1163,6 +1169,7 @@ class NodeSet(NodeSetBase):
     proceeding any character operators accordinately.
 
     Extended string pattern usage examples:
+
         >>> nodeset = NodeSet("node[0-10],node[14-16]") # union
         >>> nodeset = NodeSet("node[0-10]!node[8-10]")  # difference
         >>> nodeset = NodeSet("node[0-10]&node[5-13]")  # intersection
