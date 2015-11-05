@@ -1,6 +1,6 @@
 #
 # Copyright CEA/DAM/DIF (2007-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -117,19 +117,24 @@ class Task(object):
     singleton". So most of the time, and even more for single-threaded
     applications, you can get the current task object with the following
     top-level Task module function:
+
         >>> task = task_self()
 
     However, if you want to create a task in a new thread, use:
+
         >>> task = Task()
 
     To create or get the instance of the task associated with the thread
     object thr (threading.Thread):
+
         >>> task = Task(thread=thr)
 
     To submit a command to execute locally within task, use:
+
         >>> task.shell("/bin/hostname")
 
     To submit a command to execute to some distant nodes in parallel, use:
+
         >>> task.shell("/bin/hostname", nodes="tiger[1-20]")
 
     The previous examples submit commands to execute but do not allow result
@@ -138,16 +143,20 @@ class Task(object):
     local or remote events. These handlers are based on the EventHandler
     class, defined in ClusterShell.Event. The following example shows how to
     submit a command on a cluster with a registered event handler:
+
         >>> task.shell("uname -r", nodes="node[1-9]", handler=MyEventHandler())
 
     Run task in its associated thread (will block only if the calling thread is
     the task associated thread):
+
         >>> task.resume()
-    or
+    or:
+
         >>> task.run()
 
     You can also pass arguments to task.run() to schedule a command exactly
     like in task.shell(), and run it:
+
         >>> task.run("hostname", nodes="tiger[1-20]", handler=MyEventHandler())
 
     A common need is to set a maximum delay for command execution, especially
@@ -155,6 +164,7 @@ class Task(object):
     very straighforward. To limit the execution time on each node, use the
     timeout parameter of shell() or run() methods to set a delay in seconds,
     like:
+
         >>> task.run("check_network.sh", nodes="tiger[1-20]", timeout=30)
 
     You can then either use Task's iter_keys_timeout() method after execution

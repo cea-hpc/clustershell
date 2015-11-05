@@ -1,6 +1,6 @@
 #
 # Copyright CEA/DAM/DIF (2011-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -135,12 +135,12 @@ class WorkerTree(DistantWorker):
         """
         Initialize Tree worker instance.
 
-        @param nodes: Targeted nodeset.
-        @param handler: Worker EventHandler.
-        @param timeout: Timeout value for worker.
-        @param command: Command to execute.
-        @param topology: Force specific TopologyTree.
-        @param newroot: Root node of TopologyTree.
+        :param nodes: Targeted nodeset.
+        :param handler: Worker EventHandler.
+        :param timeout: Timeout value for worker.
+        :param command: Command to execute.
+        :param topology: Force specific TopologyTree.
+        :param newroot: Root node of TopologyTree.
         """
         DistantWorker.__init__(self, handler)
 
