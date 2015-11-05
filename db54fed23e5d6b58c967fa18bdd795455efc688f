@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_5cb095dd",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:49:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_bcca896c",
+      "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_1ca1bda9",
         "filename": "doc/sphinx/release.rst",
         "patchSetId": 3
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_7cb551cc",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:49:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_1ca1bda9",
+      "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_fc9b2170",
         "filename": "doc/sphinx/release.rst",
         "patchSetId": 3
@@ -47,6 +83,24 @@
       "writtenOn": "2015-11-05T22:04:18Z",
       "side": 1,
       "message": "is enabled by default?",
+      "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_9cc94d5d",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:49:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_fc9b2170",
       "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
