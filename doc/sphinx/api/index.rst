@@ -11,6 +11,7 @@ ClusterShell public API autodoc.
     RangeSet
     MsgTree
     Task
+    Defaults
     Event
     EngineTimer
     workers/index

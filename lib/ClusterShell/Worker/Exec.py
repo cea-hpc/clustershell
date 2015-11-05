@@ -85,7 +85,7 @@ class ExecClient(EngineClient):
         """
         Create an EngineClient-type instance to locally run `command'.
 
-        @param node: will be used as key.
+        :param node: will be used as key.
         """
         EngineClient.__init__(self, worker, node, stderr, timeout, autoclose)
         self.rank = rank
@@ -267,12 +267,14 @@ class ExecWorker(DistantWorker):
     name and rank.
 
     Local shell usage example:
+
        >>> worker = ExecWorker(nodeset, handler=MyEventHandler(),
        ...                     timeout=30, command="/bin/uptime")
        >>> task.schedule(worker)   # schedule worker for execution
        >>> task.run()              # run
 
     Local copy usage example:
+
        >>> worker = ExecWorker(nodeset, handler=MyEventHandler(),
        ...                     source="/etc/my.cnf",
        ...                     dest="/etc/my.cnf.bak")
