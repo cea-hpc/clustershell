@@ -107,6 +107,8 @@ Performance Computing) or with large server farms. This section explains how
 to configure node group **sources**. Please see also :ref:`nodeset node groups
 <nodeset-groups>` for specific usage examples.
 
+.. _groups_config_conf:
+
 groups.conf
 ^^^^^^^^^^^
 
@@ -132,7 +134,7 @@ other node set operations will still work.
 
 *groups.conf* defines configuration sub-directories, but may also define
 source definitions by itself. These **sources** provide external calls that
-are detailed in :ref:`group-sources-upcalls`.
+are detailed in :ref:`group-external-sources`.
 
 The following example shows the content of a *groups.conf* file where node
 groups are bound to the source named *genders* by default::
@@ -186,10 +188,132 @@ The *groups.conf* files are parsed with Python's `ConfigParser`_:
   map, all, list and reverse upcalls are explained below in
   :ref:`group-sources-upcalls`.
 
-.. _group-multi-sources:
+.. _group-file-based:
+
+File-based group sources
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Version 1.7 introduces support for native handling of flat files with
+different group sources to avoid the use of external upcalls for such static
+configuration. This can be achieved through the *autodir* feature and YAML
+files described below.
+
+YAML group files
+""""""""""""""""
+
+Cluster node groups can be defined in straightforward YAML files. In such a
+file, each YAML dictionary defines group to nodes mapping. **Different
+dictionaries** are handled as **different group sources**.
+
+For compatibility reasons with previous versions of ClusterShell, this is not
+the default way to define node groups yet. So here are the steps needed to try
+this out:
+
+Rename the following file::
+
+    /etc/clustershell/groups.d/cluster.yaml.example
+
+to a file having the **.yaml** extension, for example::
+
+  /etc/clustershell/groups.d/cluster.yaml
+
+
+Ensure that *autodir* is set in :ref:`groups_config_conf`::
+
+  autodir: /etc/clustershell/groups.d $CFGDIR/groups.d
+
+In the following example, we also changed the default group source
+to **roles** in :ref:`groups_config_conf` (the first dictionary defined in
+the example), so that *@roles:groupname* can just be shorted *@groupname*.
+
+.. highlight:: yaml
+
+Here is an example of **/etc/clustershell/groups.d/cluster.yaml**::
+
+    roles:
+        adm: 'mgmt[1-2]'                 # define groups @roles:adm and @adm
+        login: 'login[1-2]'
+        compute: 'node[0001-0288]'
+        gpu: 'node[0001-0008]'
+
+        cpu_only: '@compute!@gpu'        # example of inline set operation
+                                         # define group @cpu_only with node[0009-0288]
+
+        storage: '@lustre:mds,@lustre:oss' # example of external source reference
+
+        all: '@login,@compute,@storage'  # special group used for clush/nodeset -a
+                                         # only needed if not including all groups
+
+    lustre:
+        mds: 'mds[1-4]'
+        oss: 'oss[0-15]'
+        rbh: 'rbh[1-2]'
+
+.. highlight:: console
+
+Testing the syntax of your group file can be quickly performed through the
+``-L`` or ``--list-all`` command of :ref:`nodeset-tool`::
+
+    $ nodeset -LL
+    @adm mgmt[1-2]
+    @all login[1-2],mds[1-4],node[0001-0288],oss[0-15],rbh[1-2]
+    @compute node[0001-0288]
+    @cpu_only node[0009-0288]
+    @gpu node[0001-0008]
+    @login login[1-2]
+    @storage mds[1-4],oss[0-15],rbh[1-2]
+    @sysgrp sysgrp[1-4]
+    @lustre:mds mds[1-4]
+    @lustre:oss oss[0-15]
+    @lustre:rbh rbh[1-2]
+
+.. _group-external-sources:
+
+External group sources
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. _group-sources-upcalls:
+
+Group source upcalls
+""""""""""""""""""""
+
+Each node group source is defined by a section name (*source* name) and up to
+four upcalls:
+
+* **map**: External shell command used to resolve a group name into a node
+  set, list of nodes or list of node sets (separated by space characters or by
+  carriage returns). The variable *$GROUP* is replaced before executing the command.
+* **all**: Optional external shell command that should return a node set, list
+  of nodes or list of node sets of all nodes for this group source. If not
+  specified, the library will try to resolve all nodes by using the **list**
+  external command in the same group source followed by **map** for each
+  available group. The notion of *all nodes* is used by ``clush -a`` and also
+  by the special group name ``@*`` (or ``@source:*``).
+* **list**: Optional external shell command that should return the list of all
+  groups for this group source (separated by space characters or by carriage
+  returns). If this upcall is not specified, ClusterShell won't be able to
+  list any available groups (eg. with ``nodeset -l``), so it is highly
+  recommended to set it.
+* **reverse**: Optional external shell command used to find the group(s) of a
+  single node. The variable *$NODE* is previously replaced. If this external
+  call is not specified, the reverse operation is computed in memory by the
+  library from the **list** and **map** external calls, if available. Also, if
+  the number of nodes to reverse is greater than the number of available
+  groups, the reverse external command is avoided automatically to reduce
+  resolution time.
+
+In addition to context-dependent *$GROUP* and *$NODE* variables described
+above, the two following variables are always available and also replaced
+before executing shell commands:
+
+* *$CFGDIR* is replaced by *groups.conf* base directory path
+* *$SOURCE* is replaced by current source name (see an usage example just
+  below)
 
 Multiple sources section
-^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""
+
+.. highlight:: ini
 
 Use a comma-separated list of source names in the section header if you want
 to define multiple group sources with similar upcall commands. The special
@@ -218,54 +342,8 @@ is equivalent to::
     all: get_all_nodes_from_source.sh cpu
     list: list_nodes_from_source.sh cpu
 
-Please note that single flat files with several sections acting as different
-group sources are supported through the *autodir* feature based on YAML files.
-An example of such configuration is available at::
-
-    /etc/clustershell/groups.d/cluster.yaml.example
-
-Just rename it to ``cluster.yaml`` and be sure that *autodir* is set to enable
-it. Feel free to edit this file to fit your needs.
-
-.. _group-sources-upcalls:
-
-Group source upcalls
-^^^^^^^^^^^^^^^^^^^^
-
-Each node group source is defined by a section name (*source* name) and up to
-four upcalls:
-
-* **map**: External shell command used to resolve a group name into a node
-  set, list of nodes or list of node sets (separated by space characters or by
-  carriage returns). The variable *$GROUP* is replaced before executing the command.
-* **all**: Optional external shell command that should return a node set, list
-  of nodes or list of node sets of all nodes for this group source. If not
-  specified, the library will try to resolve all nodes by using the **list**
-  external command in the same group source followed by **map** for each available group.
-* **list**: Optional external shell command that should return the list of all
-  groups for this group source (separated by space characters or by carriage
-  returns). If this upcall is not specified, ClusterShell won't be able to
-  list any available groups (eg. with ``nodeset -l``), so it is highly
-  recommended to set it.
-* **reverse**: Optional external shell command used to find the group(s) of a
-  single node. The variable *$NODE* is previously replaced. If this external
-  call is not specified, the reverse operation is computed in memory by the
-  library from the **list** and **map** external calls, if available. Also, if
-  the number of nodes to reverse is greater than the number of available
-  groups, the reverse external command is avoided automatically to reduce
-  resolution time.
-
-In addition to context-dependent *$GROUP* and *$NODE* variables described
-above, the two following variables are always available and also replaced
-before executing shell commands:
-
-* *$CFGDIR* is replaced by *groups.conf* base directory path
-* *$SOURCE* is replaced by current source name
-
-Please see :ref:`group-multi-sources` for a particular use of *$SOURCE*.
-
 Return code of external calls
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""""
 
 Each external command might return a non-zero return code when the operation
 is not doable. But if the call return zero, for instance, for a non-existing
