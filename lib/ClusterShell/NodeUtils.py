@@ -1,6 +1,6 @@
-# Copyright CEA/DAM/DIF (2010, 2012, 2013, 2014)
+# Copyright CEA/DAM/DIF (2010-2015)
 #  Contributors:
-#   Stephane THIELL <stephane.thiell@cea.fr>
+#   Stephane THIELL <sthiell@stanford.edu>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -77,7 +77,7 @@ class GroupResolverConfigError(GroupResolverError):
     """Raised when a configuration error is encountered"""
 
 
-_DEFAULT_CACHE_DELAY = 3600
+_DEFAULT_CACHE_TIME = 3600
 
 
 class GroupSource(object):
@@ -153,12 +153,12 @@ class UpcallGroupSource(GroupSource):
     GroupSource class managing external calls for nodegroup support.
 
     Upcall results are cached for a customizable amount of time. This is
-    controlled by `cache_delay` attribute. Default is 3600 seconds.
+    controlled by `cache_time` attribute. Default is 3600 seconds.
     """
 
     def __init__(self, name, map_upcall, all_upcall=None,
                  list_upcall=None, reverse_upcall=None, cfgdir=None,
-                 cache_delay=None):
+                 cache_time=None):
         GroupSource.__init__(self, name)
         self.verbosity = 0
         self.cfgdir = cfgdir
@@ -175,10 +175,10 @@ class UpcallGroupSource(GroupSource):
             self.has_reverse = True
 
         # Cache upcall data
-        if cache_delay is None:
-            self.cache_delay = _DEFAULT_CACHE_DELAY
+        if cache_time is None:
+            self.cache_time = _DEFAULT_CACHE_TIME
         else:
-            self.cache_delay = cache_delay
+            self.cache_time = cache_time
         self._cache = {}
         self.clear_cache()
 
@@ -219,7 +219,7 @@ class UpcallGroupSource(GroupSource):
         corresponding `upcall'.
 
         If `key' is missing, it is added to provided `cache'. Each entry in a
-        cache is kept only for a limited time equal to self.cache_delay .
+        cache is kept only for a limited time equal to self.cache_time .
         """
         if not self.upcalls.get(upcall):
             raise GroupSourceNoUpcall(upcall, self)
@@ -231,7 +231,7 @@ class UpcallGroupSource(GroupSource):
 
         # Fetch the data if unknown of just purged
         if key not in cache:
-            cache_expiry = time.time() + self.cache_delay
+            cache_expiry = time.time() + self.cache_time
             # $CFGDIR and $SOURCE always replaced
             args['CFGDIR'] = self.cfgdir
             args['SOURCE'] = self.name
@@ -277,20 +277,20 @@ class YAMLGroupLoader(object):
 
     - create GroupSource objects
     - gather groups dict content on load
-    - reload the file once cache_delay has expired
+    - reload the file once cache_time has expired
     """
 
-    def __init__(self, filename, cache_delay=None):
+    def __init__(self, filename, cache_time=None):
         """
         Initialize YAMLGroupLoader and load file.
 
         :param filename: YAML file path
-        :param cache_delay: cache delay
+        :param cache_time: cache time (seconds)
         """
-        if cache_delay is None:
-            self.cache_delay = _DEFAULT_CACHE_DELAY
+        if cache_time is None:
+            self.cache_time = _DEFAULT_CACHE_TIME
         else:
-            self.cache_delay = cache_delay
+            self.cache_time = cache_time
         self.cache_expiry = 0
         self.filename = filename
         self.sources = {}
@@ -335,7 +335,7 @@ class YAMLGroupLoader(object):
             # else: cannot add new source on reload - just ignore it
 
         # groups are loaded, set cache expiry
-        self.cache_expiry = time.time() + self.cache_delay
+        self.cache_expiry = time.time() + self.cache_time
 
     def __iter__(self):
         """Iterate over GroupSource objects."""
@@ -347,10 +347,10 @@ class YAMLGroupLoader(object):
         Groups dict accessor for sourcename.
 
         This method is called by associated FileGroupSource objects and simply
-        returns dict content, after reloading file if cache_delay has expired.
+        returns dict content, after reloading file if cache_time has expired.
         """
         if self.cache_expiry < time.time():
-            # reload whole file if cache delay expired
+            # reload whole file if cache time expired
             self._load()
 
         return self._groups[sourcename]
@@ -607,21 +607,21 @@ class GroupResolverConfig(GroupResolver):
                     if srcname != self.SECTION_MAIN:
                         # only map is a mandatory upcall
                         map_upcall = cfg.get(section, 'map', True)
-                        all_upcall = list_upcall = reverse_upcall = delay = None
+                        all_upcall = list_upcall = reverse_upcall = ctime = None
                         if cfg.has_option(section, 'all'):
                             all_upcall = cfg.get(section, 'all', True)
                         if cfg.has_option(section, 'list'):
                             list_upcall = cfg.get(section, 'list', True)
                         if cfg.has_option(section, 'reverse'):
                             reverse_upcall = cfg.get(section, 'reverse', True)
-                        if cfg.has_option(section, 'cache_delay'):
-                            delay = float(cfg.get(section, 'cache_delay', True))
+                        if cfg.has_option(section, 'cache_time'):
+                            ctime = float(cfg.get(section, 'cache_time', True))
                         # add new group source
                         self.add_source(UpcallGroupSource(srcname, map_upcall,
                                                           all_upcall,
                                                           list_upcall,
                                                           reverse_upcall,
-                                                          cfgdir, delay))
+                                                          cfgdir, ctime))
         except (NoSectionError, NoOptionError, ValueError), exc:
             raise GroupResolverConfigError(str(exc))
 

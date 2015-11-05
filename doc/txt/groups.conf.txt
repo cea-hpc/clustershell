@@ -7,7 +7,7 @@ Configuration file for ClusterShell node groups
 -----------------------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2015-10-12
+:Date:   2015-11-06
 :Copyright: CeCILL-C V1
 :Version: 1.7
 :Manual section: 5
@@ -102,7 +102,7 @@ reverse
   the *list* and *map* external calls. Also, if the number of nodes to
   reverse is greater than the number of available groups, the *reverse*
   external command is avoided automatically.
-cache_delay
+cache_time
   Number of seconds each upcall result is kept in cache, in memory only.
   Default is 3600 seconds. This is useful only for daemons using nodegroups.
 
@@ -127,7 +127,7 @@ RESOURCE USAGE
 ==============
 
 All external command results are cached in memory to avoid multiple calls. Each
-result is kept for a limited amount of time. See cache_delay option to tune
+result is kept for a limited amount of time. See cache_time option to tune
 this behaviour.
 
 

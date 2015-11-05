@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH GROUPS.CONF 5 "2015-10-12" "1.7" "ClusterShell User Manual"
+.TH GROUPS.CONF 5 "2015-11-06" "1.7" "ClusterShell User Manual"
 .SH NAME
 groups.conf \- Configuration file for ClusterShell node groups
 .
@@ -131,7 +131,7 @@ the \fIlist\fP and \fImap\fP external calls. Also, if the number of nodes to
 reverse is greater than the number of available groups, the \fIreverse\fP
 external command is avoided automatically.
 .TP
-.B cache_delay
+.B cache_time
 Number of seconds each upcall result is kept in cache, in memory only.
 Default is 3600 seconds. This is useful only for daemons using nodegroups.
 .UNINDENT
@@ -157,7 +157,7 @@ group.  The desired behaviour is up to the system administrator.
 .SH RESOURCE USAGE
 .sp
 All external command results are cached in memory to avoid multiple calls. Each
-result is kept for a limited amount of time. See cache_delay option to tune
+result is kept for a limited amount of time. See cache_time option to tune
 this behaviour.
 .SH EXAMPLES
 .sp

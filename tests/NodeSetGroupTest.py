@@ -1201,7 +1201,7 @@ class GroupSourceCacheTest(unittest.TestCase):
         """test UpcallGroupSource cache entries expired according to config"""
         # create custom resolver with default source
         source = StaticGroupSource('cache', {'map': {'a': 'foo1', 'b': 'foo2'} })
-        source.cache_delay = 0.2
+        source.cache_time = 0.2
         res = GroupResolver(source)
 
         # Populate map cache
@@ -1209,21 +1209,21 @@ class GroupSourceCacheTest(unittest.TestCase):
         self.assertEqual("foo2", str(NodeSet("@b", resolver=res)))
         self.assertEqual(len(source._cache['map']), 2)
 
-        # Be sure 0.2 cache delay is expired (especially for old Python version)
+        # Be sure 0.2 cache time is expired (especially for old Python version)
         time.sleep(0.25)
 
         source._data['map']['a'] = 'something_else'
         self.assertEqual('something_else', str(NodeSet("@a", resolver=res)))
 
-    def test_config_cache_delay(self):
-        """test group config cache_delay options"""
+    def test_config_cache_time(self):
+        """test group config cache_time options"""
         f = make_temp_file("""
 [local]
-cache_delay: 0.2
+cache_time: 0.2
 map: echo foo1
         """)
         res = GroupResolverConfig(f.name)
-        self.assertEqual(res._sources['local'].cache_delay, 0.2)
+        self.assertEqual(res._sources['local'].cache_time, 0.2)
         self.assertEqual("foo1", str(NodeSet("@local:foo", resolver=res)))
 
 
@@ -1303,7 +1303,7 @@ customers:
                          { 'cherry': 'client-4-2' })
 
     def test_reload(self):
-        """test YAMLGroupLoader cache_delay"""
+        """test YAMLGroupLoader cache_time"""
         f = make_temp_file("""
 vendors:
     apricot: "node[1-10]"
@@ -1311,13 +1311,13 @@ vendors:
     banana: node[21-30]
 customers:
     cherry: client-4-2""")
-        loader = YAMLGroupLoader(f.name, cache_delay=1)
+        loader = YAMLGroupLoader(f.name, cache_time=1)
         self.assertEqual(loader.groups("vendors"),
                          { 'apricot': 'node[1-10]',
                            'avocado': 'node[11-20]',
                            'banana': 'node[21-30]' })
 
-        # modify YAML file and check that it is reloaded after cache_delay
+        # modify YAML file and check that it is reloaded after cache_time
         f.write("\n    nut: node42\n")
         # oh and BTW for ultimate code coverage, test if we add a new source
         # on-the-fly, this is not supported but should be ignored
@@ -1350,7 +1350,7 @@ src2:
 src3:
     src3grp1: node31
     src3grp2: node32""")
-        loader = YAMLGroupLoader(f.name, cache_delay = 0.1)
+        loader = YAMLGroupLoader(f.name, cache_time = 0.1)
         # iterate sources with cache expired
         for source in loader:
             time.sleep(0.5) # force reload

@@ -21,7 +21,7 @@ syn match groupsGroupsDirKey "^\(groupsdir\|confdir\|autodir\)\(:\|=\)"
 " Sources
 syn match groupsVars "\(\$GROUP\|\$NODE\|$SOURCE\)" contained
 syn match groupsKeys "^\w\+\(:\|=\)"me=e-1 contained
-syn match groupsKeyValue "^\(map\|all\|list\|reverse\|cache_delay\)\+\(:\|=\).*$" contains=groupsKeys,groupsVars
+syn match groupsKeyValue "^\(map\|all\|list\|reverse\|cache_time\)\+\(:\|=\).*$" contains=groupsKeys,groupsVars
 
 syn match  groupsComment    "#.*$"
 syn match  groupsComment    ";.*$"
