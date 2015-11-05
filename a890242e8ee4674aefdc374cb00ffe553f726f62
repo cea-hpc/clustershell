@@ -46,6 +46,30 @@
       "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_fceec1b3",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:29:14Z",
+      "side": 1,
+      "message": "According to https://en.wikipedia.org/wiki/Cache_algorithms, a better name would be cache_latency :)",
+      "parentUuid": "7ac7a964_fcd7a1eb",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 11
+      },
+      "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
