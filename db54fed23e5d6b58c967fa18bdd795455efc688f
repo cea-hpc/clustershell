@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_bcca896c",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-05T22:04:18Z",
+      "side": 1,
+      "message": "omg spaces!",
+      "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_1ca1bda9",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-05T22:04:18Z",
+      "side": 1,
+      "message": "\"it\u0027s called a step and easy to understand\" does not parse\n-\u003e it\u0027s called a step and behaves as one would expect ?",
+      "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_fc9b2170",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-11-05T22:04:18Z",
+      "side": 1,
+      "message": "is enabled by default?",
+      "revId": "db54fed23e5d6b58c967fa18bdd795455efc688f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
