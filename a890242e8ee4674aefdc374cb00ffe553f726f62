@@ -70,6 +70,30 @@
       "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_7c3ab137",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:30:45Z",
+      "side": 1,
+      "message": "Sorry, no matter, the latency is not the caching duration.",
+      "parentUuid": "7ac7a964_fceec1b3",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 11
+      },
+      "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
