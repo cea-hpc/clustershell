@@ -1,6 +1,6 @@
 #
 # Copyright CEA/DAM/DIF (2007-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -82,6 +82,7 @@ class Worker(object):
             return code just received
 
     Example of use:
+
         >>> from ClusterShell.Event import EventHandler
         >>> class MyOutputHandler(EventHandler):
         ...     def ev_read(self, worker):
@@ -100,18 +101,18 @@ class Worker(object):
     def __init__(self, handler):
         """Initializer. Should be called from derived classes."""
         # Associated EventHandler object
-        self.eh = handler
+        self.eh = handler           #: associated :class:`.EventHandler`
         # Parent task (once bound)
-        self.task = None
-        self.started = False
+        self.task = None            #: worker's task when scheduled or None
+        self.started = False        #: set to True when worker has started
         self.metaworker = None
         self.metarefcnt = 0
         # current_x public variables (updated at each event accordingly)
-        self.current_node = None
-        self.current_msg = None
-        self.current_errmsg = None
-        self.current_rc = 0
-        self.current_sname = None
+        self.current_node = None    #: set to node in event handler
+        self.current_msg = None     #: set to stdout message in event handler
+        self.current_errmsg = None  #: set to stderr message in event handler
+        self.current_rc = 0         #: set to return code in event handler
+        self.current_sname = None   #: set to stream name in event handler
 
     def _set_task(self, task):
         """Bind worker to task. Called by task.schedule()."""
@@ -303,9 +304,10 @@ class DistantWorker(Worker):
 
     def node_retcode(self, node):
         """
-        Get specific node return code. Raises a KeyError if command on
-        node has not yet finished (no return code available), or is
-        node is not known by this worker.
+        Get specific node return code.
+
+        :raises KeyError: command on node has not yet finished (no return code
+            available), or this node is not known by this worker
         """
         self._task_bound_check()
         try:

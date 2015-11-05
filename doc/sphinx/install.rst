@@ -3,8 +3,6 @@
 Installation
 ============
 
-In this part, we address ClusterShell software installation information.
-
 ClusterShell is distributed in several packages. On RedHat-like OS, we
 recommend to use the RPM  package (.rpm) distribution.
 

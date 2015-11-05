@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2012, 2013, 2014)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2012-2015)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
 # This file is part of the ClusterShell library.
@@ -87,32 +87,37 @@ class RangeSetPaddingError(RangeSetParseError):
 class RangeSet(set):
     """
     Mutable set of cluster node indexes featuring a fast range-based API.
-    
+
     This class aims to ease the management of potentially large cluster range
-    sets and is used by the NodeSet class.
+    sets and is used by the :class:`.NodeSet` class.
 
     RangeSet basic constructors:
+
        >>> rset = RangeSet()            # empty RangeSet
        >>> rset = RangeSet("5,10-42")   # contains 5, 10 to 42
        >>> rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
 
-    Since v1.6, any iterable of integers can be specified as first argument:
+    Also any iterable of integers can be specified as first argument:
+
        >>> RangeSet([3, 6, 8, 7, 1])
        1,3,6-8
        >>> rset2 = RangeSet(rset)
 
     Padding of ranges (eg. "003-009") can be managed through a public RangeSet
-    instance variable named padding. It may be changed at any time. Since v1.6,
-    padding is a simple display feature per RangeSet object, thus current
-    padding value is not taken into account when computing set operations.
-    Since v1.6, RangeSet is itself an iterator over its items as integers
-    (instead of strings). To iterate over string items as before (with
-    optional padding), you can now use the RangeSet.striter() method.
+    instance variable named padding. It may be changed at any time. Padding is
+    a simple display feature per RangeSet object, thus current padding value is
+    not taken into account when computing set operations.
+    RangeSet is itself an iterator over its items as integers (instead of
+    strings). To iterate over string items with optional padding, you can use
+    the :meth:`RangeSet.striter`: method.
 
-    RangeSet provides methods like union(), intersection(), difference(),
-    symmetric_difference() and their in-place versions update(),
-    intersection_update(), difference_update(),
-    symmetric_difference_update() which conform to the Python Set API.
+    RangeSet provides methods like :meth:`RangeSet.union`,
+    :meth:`RangeSet.intersection`, :meth:`RangeSet.difference`,
+    :meth:`RangeSet.symmetric_difference` and their in-place versions
+    :meth:`RangeSet.update`, :meth:`RangeSet.intersection_update`,
+    :meth:`RangeSet.difference_update`,
+    :meth:`RangeSet.symmetric_difference_update` which conform to the Python
+    Set API.
     """
     _VERSION = 3    # serial version number
 
@@ -120,10 +125,12 @@ class RangeSet(set):
     def __new__(cls, pattern=None, autostep=None):
         """Object constructor"""
         return set.__new__(cls)
-        
+
     def __init__(self, pattern=None, autostep=None):
-        """Initialize RangeSet with optional string pattern and autostep
-        threshold.
+        """Initialize RangeSet object.
+
+        :param pattern: optional string pattern
+        :param autostep: optional autostep threshold
         """
         if pattern is None or isinstance(pattern, str):
             set.__init__(self)
@@ -136,7 +143,7 @@ class RangeSet(set):
         else:
             self._autostep = None
             self.padding = None
-        self.autostep = autostep
+        self.autostep = autostep #: autostep threshold public instance attribute
 
         if isinstance(pattern, str):
             self._parse(pattern)
@@ -197,7 +204,7 @@ class RangeSet(set):
                                          "invalid values in range")
 
             self.add_range(start, stop + 1, step, pad)
-        
+
     @classmethod
     def fromlist(cls, rnglist, autostep=None):
         """Class method that returns a new RangeSet with ranges from provided
@@ -308,7 +315,7 @@ class RangeSet(set):
                 else:
                     yield "%0*d-%0*d/%d" % (pad, sli.start, pad, sli.stop - 1, \
                                             sli.step)
-        
+
     def __str__(self):
         """Get comma-separated range-based string (x-y/step format)."""
         return ','.join(self._strslices())
@@ -489,8 +496,8 @@ class RangeSet(set):
     def add_range(self, start, stop, step=1, pad=0):
         """
         Add a range (start, stop, step and padding length) to RangeSet.
-        Like the Python built-in function range(), the last element is
-        the largest start + i * step less than stop.
+        Like the Python built-in function *range()*, the last element
+        is the largest start + i * step less than stop.
         """
         assert start < stop, "please provide ordered node index ranges"
         assert step > 0
@@ -502,7 +509,7 @@ class RangeSet(set):
         set.update(self, range(start, stop, step))
 
     def copy(self):
-        """Return a new, mutable shallow copy of a RangeSet."""
+        """Return a shallow copy of a RangeSet."""
         cpy = self.__class__()
         cpy._autostep = self._autostep
         cpy.padding = self.padding
@@ -612,7 +619,7 @@ class RangeSet(set):
         Element can be either another RangeSet object, a string or an
         integer.
 
-        (Called in response to the expression `element in self'.)
+        Called in response to the expression ``element in self``.
         """
         if isinstance(element, set):
             return element.issubset(self)
@@ -743,9 +750,10 @@ class RangeSet(set):
 
     def remove(self, element):
         """Remove an element from a RangeSet; it must be a member.
-        
-        Raise KeyError if element is not contained in RangeSet.
-        Raise ValueError if element is not castable to integer.
+
+        :param element: the element to remove
+        :raises KeyError: element is not contained in RangeSet
+        :raises ValueError: element is not castable to integer
         """
         set.remove(self, int(element))
 
@@ -762,35 +770,51 @@ class RangeSet(set):
 
 
 class RangeSetND(object):
-    """Build a N-dimensional RangeSet object.
+    """
+    Build a N-dimensional RangeSet object.
 
-    Constructors:
-        Empty:
-            RangeSetND()
-        Build from a list of list of RangeSet objects:
-            RangeSetND([[rs1, rs2, rs3, ...], ...])
-        Strings are also supported:
-            RangeSetND([["0-3", "4-10", ...], ...])
-        Integers are also supported:
-            RangeSetND([(0, 4), (0, 5), (1, 4), (1, 5), ...]
+    .. warning:: You don't usually need to use this class directly, use
+        :class:`.NodeSet` instead that has ND support.
 
-    Options:
-        pads: list of 0-padding length (default is to not pad any dimensions)
-        autostep: autostep threshold (use range/step notation if more than
-                  #autostep items meet the condition) - default is off (None)
-        copy_rangeset (advanced): if set to False, do not copy RangeSet objects
-            from args (transfer ownership), which is faster. In that case, you
-            should not modify these objects afterwards. (default is True)
+    Empty constructor::
+
+        RangeSetND()
+
+    Build from a list of list of :class:`RangeSet` objects::
+
+        RangeSetND([[rs1, rs2, rs3, ...], ...])
+
+    Strings are also supported::
+
+        RangeSetND([["0-3", "4-10", ...], ...])
+
+    Integers are also supported::
+
+        RangeSetND([(0, 4), (0, 5), (1, 4), (1, 5), ...]
     """
     def __init__(self, args=None, pads=None, autostep=None, copy_rangeset=True):
-        """RangeSetND constructor"""
+        """RangeSetND initializer
+
+        All parameters are optional.
+
+        :param args: generic "list of list" input argument (default is None)
+        :param pads: list of 0-padding length (default is to not pad any
+                     dimensions)
+        :param autostep: autostep threshold (use range/step notation if more
+                         than #autostep items meet the condition) - default is
+                         off (None)
+        :param copy_rangeset: (advanced) if set to False, do not copy RangeSet
+                              objects from args (transfer ownership), which is
+                              faster. In that case, you should not modify these
+                              objects afterwards (default is True).
+        """
         # RangeSetND are arranged as a list of N-dimensional RangeSet vectors
         self._veclist = []
         # Dirty flag to avoid doing veclist folding too often
         self._dirty = True
         # Initialize autostep through property
         self._autostep = None
-        self.autostep = autostep
+        self.autostep = autostep #: autostep threshold public instance attribute
         # Hint on whether several dimensions are varying or not
         self._multivar_hint = False
         if args is None:
@@ -902,7 +926,7 @@ class RangeSetND(object):
     veclist = property(_get_veclist, _set_veclist)
 
     def vectors(self):
-        """Get underlying RangeSet vectors"""
+        """Get underlying :class:`RangeSet` vectors"""
         return iter(self.veclist)
 
     def dim(self):
@@ -1011,7 +1035,7 @@ class RangeSetND(object):
         Element can be either another RangeSetND object, a string or
         an integer.
 
-        (Called in response to the expression `element in self'.)
+        Called in response to the expression ``element in self``.
         """
         if isinstance(element, RangeSetND):
             rgnd_element = element
@@ -1278,7 +1302,7 @@ class RangeSetND(object):
     def difference_update(self, other, strict=False):
         """Remove all elements of another set from this RangeSetND.
 
-        If strict is True, raise KeyError if an element cannot be removed.
+        If strict is True, raise KeyError if an element cannot be removed
         (strict is a RangeSet addition)"""
         if strict and not other in self:
             raise KeyError(other.difference(self)[0])
@@ -1328,8 +1352,8 @@ class RangeSetND(object):
 
     def difference(self, other):
         """
-        s.difference(t) returns a new object with elements in s but not
-        in t.
+        ``s.difference(t)`` returns a new object with elements in s
+        but not in t.
         """
         self_copy = self.copy()
         self_copy.difference_update(other)
@@ -1337,8 +1361,8 @@ class RangeSetND(object):
 
     def intersection(self, other):
         """
-        s.intersection(t) returns a new object with elements common to s
-        and t.
+        ``s.intersection(t)`` returns a new object with elements common
+        to s and t.
         """
         self_copy = self.copy()
         self_copy.intersection_update(other)
@@ -1346,8 +1370,8 @@ class RangeSetND(object):
 
     def __and__(self, other):
         """
-        Implements the & operator. So s & t returns a new object with
-        elements common to s and t.
+        Implements the & operator. So ``s & t`` returns a new object
+        with elements common to s and t.
         """
         if not isinstance(other, RangeSetND):
             return NotImplemented
@@ -1355,7 +1379,7 @@ class RangeSetND(object):
 
     def intersection_update(self, other):
         """
-        s.intersection_update(t) returns nodeset s keeping only
+        ``s.intersection_update(t)`` returns nodeset s keeping only
         elements also found in t.
         """
         if other is self:
@@ -1376,8 +1400,8 @@ class RangeSetND(object):
 
     def __iand__(self, other):
         """
-        Implements the &= operator. So s &= t returns object s keeping
-        only elements also found in t. (Python version 2.5+ required)
+        Implements the &= operator. So ``s &= t`` returns object s
+        keeping only elements also found in t (Python 2.5+ required).
         """
         self._binary_sanity_check(other)
         self.intersection_update(other)
@@ -1385,8 +1409,8 @@ class RangeSetND(object):
 
     def symmetric_difference(self, other):
         """
-        s.symmetric_difference(t) returns the symmetric difference of
-        two objects as a new RangeSetND.
+        ``s.symmetric_difference(t)`` returns the symmetric difference
+        of two objects as a new RangeSetND.
 
         (ie. all items that are in exactly one of the RangeSetND.)
         """
@@ -1396,8 +1420,8 @@ class RangeSetND(object):
 
     def __xor__(self, other):
         """
-        Implement the ^ operator. So s ^ t returns a new RangeSetND with
-        nodes that are in exactly one of the RangeSetND.
+        Implement the ^ operator. So ``s ^ t`` returns a new RangeSetND
+        with nodes that are in exactly one of the RangeSetND.
         """
         if not isinstance(other, RangeSetND):
             return NotImplemented
@@ -1405,8 +1429,8 @@ class RangeSetND(object):
 
     def symmetric_difference_update(self, other):
         """
-        s.symmetric_difference_update(t) returns RangeSetND s keeping all
-        nodes that are in exactly one of the objects.
+        ``s.symmetric_difference_update(t)`` returns RangeSetND s
+        keeping all nodes that are in exactly one of the objects.
         """
         diff2 = other.difference(self)
         self.difference_update(other)
@@ -1414,9 +1438,9 @@ class RangeSetND(object):
 
     def __ixor__(self, other):
         """
-        Implement the ^= operator. So s ^= t returns object s after
-        keeping all items that are in exactly one of the RangeSetND.
-        (Python version 2.5+ required)
+        Implement the ^= operator. So ``s ^= t`` returns object s after
+        keeping all items that are in exactly one of the RangeSetND
+        (Python 2.5+ required).
         """
         self._binary_sanity_check(other)
         self.symmetric_difference_update(other)
