@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_dc54a5cc",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-05T21:35:11Z",
+      "side": 1,
+      "message": "cache_delay to few minutes could be a good idea",
+      "revId": "272d09342c8acb5bd6e276a734d8f70eeb1451cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_bc47e91c",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-05T21:35:11Z",
+      "side": 1,
+      "message": "why not add list upcall too?\n\u0027cache_delay\u0027 could be set to a small value also",
+      "revId": "272d09342c8acb5bd6e276a734d8f70eeb1451cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
