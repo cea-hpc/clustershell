@@ -94,6 +94,30 @@
       "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_fce1619b",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:44:34Z",
+      "side": 1,
+      "message": "Oh well, I think cache_delay name (the delay that an entry will be kept in the cache) is not so bad after all. We can still create another alias for 1.7+ if you really want. So I\u0027ll move forward here!",
+      "parentUuid": "7ac7a964_7c3ab137",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 11
+      },
+      "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
