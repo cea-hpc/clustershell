@@ -49,7 +49,7 @@ else:
     # User, in-prefix config install (rpmbuild or pip as user)
     CFGDIR = 'etc/clustershell'
 
-VERSION='1.6.96'
+VERSION='1.7'
 
 setup(name='ClusterShell',
       version=VERSION,
