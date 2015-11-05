@@ -16,6 +16,24 @@
       "revId": "633d76204dbd55d812bf1c7f48fd9c89c5d830f7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_5c0c1595",
+        "filename": "ChangeLog",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-05T22:35:21Z",
+      "side": 1,
+      "message": "I\u0027m sure it\u0027s not :) (I hate it)",
+      "parentUuid": "7ac7a964_7ce2b104",
+      "revId": "633d76204dbd55d812bf1c7f48fd9c89c5d830f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
