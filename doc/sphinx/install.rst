@@ -28,7 +28,7 @@ operating systems:
 * GNU/Linux RedHat EL5 or CentOS 5.x (Python 2.4), EL6 (Python 2.6) and EL7
   (Python 2.7)
 * GNU/Linux Fedora 11 to 22 (Python 2.6 - 2.7),
-* GNU/Linux Debian (wheezy and sid)
+* GNU/Linux Debian (wheezy and above)
 * Mac OS X 10.5.8 or more
 
 Distribution
@@ -108,14 +108,15 @@ Then, the ClusterShell installation procedure is quite the same of the Fedora
 Debian
 ^^^^^^
 
-ClusterShell is available in Debian since the *wheezy* testing release (February 2011):
-
-* http://packages.debian.org/wheezy/clustershell
-* http://packages.debian.org/sid/clustershell
+ClusterShell is available in Debian **main** repository (since 2011).
 
 To install it on Debian, simply use::
 
     $ apt-get install clustershell
+
+You can get the latest version on::
+
+* http://packages.debian.org/sid/clustershell
 
 
 Ubuntu
