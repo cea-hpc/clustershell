@@ -56,15 +56,6 @@ install -p -m 0644 doc/man/man1/nodeset.1 %{buildroot}/%{_mandir}/man1/
 install -p -m 0644 doc/man/man5/clush.conf.5 %{buildroot}/%{_mandir}/man5/
 install -p -m 0644 doc/man/man5/groups.conf.5 %{buildroot}/%{_mandir}/man5/
 
-# docs and example files
-install -d %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/examples
-install -p -m 0644 README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/
-install -p -m 0755 doc/examples/defaults.conf-rsh %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/examples/
-install -p -m 0755 doc/examples/*.py %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/examples/
-cp -a doc/sphinx %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/
-# symlink png as a workaround to make both html and sphinx_rtd_html themes work
-ln -sf _static/clustershell-nautilus-logo200.png  %{buildroot}/%{_defaultdocdir}/%{name}-%{version}/sphinx/clustershell-nautilus-logo200.png
-
 # vim addons
 %define vimdatadir %{_datadir}/vim/vimfiles
 install -d %{buildroot}/%{vimdatadir}/{ftdetect,syntax}
@@ -77,7 +68,9 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc %{_defaultdocdir}/%{name}-%{version}/
+%doc README ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
+%doc doc/examples
+%doc doc/sphinx
 %{_mandir}/man1/clubak.1*
 %{_mandir}/man1/clush.1*
 %{_mandir}/man1/nodeset.1*

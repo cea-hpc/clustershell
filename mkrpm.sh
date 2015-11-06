@@ -102,6 +102,8 @@ install -p -m 0644 doc/sphinx/Makefile $TMPDIR/doc/sphinx/
 install -p -m 0644 doc/sphinx/*.rst $TMPDIR/doc/sphinx/
 install -p -m 0644 doc/sphinx/_static/*.css $TMPDIR/doc/sphinx/_static/
 install -p -m 0644 doc/sphinx/_static/*.png $TMPDIR/doc/sphinx/_static/
+# symlink png as a workaround to make both html and sphinx_rtd_html themes work
+ln -s _static/clustershell-nautilus-logo200.png $TMPDIR/doc/sphinx/
 install -p -m 0644 doc/sphinx/api/*.rst $TMPDIR/doc/sphinx/api
 install -p -m 0644 doc/sphinx/api/workers/*.rst $TMPDIR/doc/sphinx/api/workers/
 install -p -m 0644 doc/sphinx/guide/*.rst $TMPDIR/doc/sphinx/guide/
