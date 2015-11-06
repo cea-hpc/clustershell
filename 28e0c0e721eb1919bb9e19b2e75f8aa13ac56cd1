@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_d09f244f",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-06T20:22:38Z",
+      "side": 1,
+      "message": "redundant (already in Version 1.7 chapter)",
+      "range": {
+        "startLine": 23,
+        "startChar": 20,
+        "endLine": 23,
+        "endChar": 23
+      },
+      "revId": "28e0c0e721eb1919bb9e19b2e75f8aa13ac56cd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_f0ac208f",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-06T20:22:38Z",
+      "side": 1,
+      "message": "idem",
+      "range": {
+        "startLine": 33,
+        "startChar": 12,
+        "endLine": 33,
+        "endChar": 20
+      },
+      "revId": "28e0c0e721eb1919bb9e19b2e75f8aa13ac56cd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_909e8c55",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-06T20:22:38Z",
+      "side": 1,
+      "message": "and ``krsh``",
+      "revId": "28e0c0e721eb1919bb9e19b2e75f8aa13ac56cd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b0a2a898",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-06T20:22:38Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 169,
+        "startChar": 71,
+        "endLine": 170,
+        "endChar": 21
+      },
+      "revId": "28e0c0e721eb1919bb9e19b2e75f8aa13ac56cd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_30b698dd",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 6
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-06T20:22:38Z",
+      "side": 1,
+      "message": "markup",
+      "range": {
+        "startLine": 186,
+        "startChar": 29,
+        "endLine": 186,
+        "endChar": 42
+      },
+      "revId": "28e0c0e721eb1919bb9e19b2e75f8aa13ac56cd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
