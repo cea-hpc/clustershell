@@ -118,6 +118,30 @@
       "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0abb2b0f",
+        "filename": "conf/groups.conf.d/slurm.conf.example",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-06T17:58:16Z",
+      "side": 1,
+      "message": "\"delay\" is a false-friend.\n\u0027delay\u0027 means \"retard\" in French, \"delai\" in French translates into period, time or duration.\n\nHere, cache_delay means something weird like \"how long should we wait before caching\", or something similar",
+      "parentUuid": "7ac7a964_fce1619b",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 11
+      },
+      "revId": "a890242e8ee4674aefdc374cb00ffe553f726f62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
