@@ -191,7 +191,7 @@ class NodeSetGroupTest(unittest.TestCase):
         """test NodeSet.fromall() with no resolver"""
         self.assertRaises(NodeSetExternalError, NodeSet.fromall,
                           resolver=RESOLVER_NOGROUP)
-            
+
     def testGroupsNoResolver(self):
         """test NodeSet.groups() with no resolver"""
         nodeset = NodeSet("foo", resolver=RESOLVER_NOGROUP)
@@ -214,7 +214,7 @@ class NodeSetGroupTest(unittest.TestCase):
 
     def testGroupResolverMinimal(self):
         """test NodeSet with minimal GroupResolver"""
-        
+
         test_groups1 = makeTestG1()
 
         source = UpcallGroupSource("minimal",
@@ -230,7 +230,6 @@ class NodeSetGroupTest(unittest.TestCase):
 
         self.assertRaises(NodeSetExternalError, NodeSet.fromall, resolver=res)
 
-    
     def testConfigEmpty(self):
         """test groups with an empty configuration file"""
         f = make_temp_file("")
@@ -1403,8 +1402,14 @@ yaml:
         self.assertEqual(nodeset.groups().keys(), ["@foo"])
         self.assertEqual(str(NodeSet("@foo", resolver=res)), "example[1-4,90-100]")
 
-        # No 'all' defined: all_nodes() should raise an error
-        self.assertRaises(GroupSourceError, res.all_nodes)
+        # 'all' not defined, the code falls back to the union of all groups
+        self.assertEqual(res.all_nodes(),
+                         ['example[1-4,91-100],example90,example[5-89]'])
+        nodeset = NodeSet.fromall(resolver=res)
+        self.assertEqual(str(nodeset), "example[1-100]")
+        # regroup doesn't use @all in that case
+        self.assertEqual(nodeset.regroup(), "@bar,@foo")
+
         # No 'reverse' defined: node_groups() should raise an error
         self.assertRaises(GroupSourceError, res.node_groups, "example1")
 
@@ -1419,6 +1424,27 @@ yaml:
         # regroup no matching
         nodeset = NodeSet("example[102-200]", resolver=res)
         self.assertEqual(nodeset.regroup(), "example[102-200]")
+
+    def test_yaml_fromall(self):
+        """test groups special all group"""
+        dname = make_temp_dir()
+        f = make_temp_file("""
+[Main]
+default: yaml
+autodir: %s
+        """ % dname)
+        yamlfile = make_temp_file("""
+yaml:
+    foo: example[1-4,91-100],example90
+    bar: example[5-89]
+    all: example[90-100]
+        """, suffix=".yaml", dir=dname)
+
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet.fromall(resolver=res)
+        self.assertEqual(str(nodeset), "example[90-100]")
+        # regroup uses @all if it is defined
+        self.assertEqual(nodeset.regroup(), "@all")
 
     def test_yaml_invalid_groups_not_dict(self):
         """test groups with an invalid YAML config file (1)"""

@@ -110,9 +110,10 @@ class GroupSource(object):
 
     def resolv_all(self):
         """Return the content of all groups as defined by this GroupSource"""
-        if self.allgroups is None:
+        allgroups = self.allgroups
+        if allgroups is None:
             raise GroupSourceQueryFailed("All groups info not available", self)
-        return self.allgroups
+        return allgroups
 
     def resolv_reverse(self, node):
         """
@@ -144,8 +145,12 @@ class FileGroupSource(GroupSource):
     @property
     def allgroups(self):
         """allgroups property (string)"""
-        # FileGroupSource uses the 'all' group to implement resolv_all
-        return self.groups.get('all')
+        try:
+            # FileGroupSource uses first the 'all' group to implement resolv_all
+            return self.groups['all']
+        except KeyError:
+            # but then falls back to the union of all groups in that source
+            return ','.join(self.groups.values())
 
 
 class UpcallGroupSource(GroupSource):
