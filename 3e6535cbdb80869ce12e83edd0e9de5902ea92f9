@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_c094af46",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-09T07:47:03Z",
+      "side": 1,
+      "message": "Very good idea, I changed for *roles*",
+      "parentUuid": "7ac7a964_60875b62",
+      "range": {
+        "startLine": 233,
+        "startChar": 4,
+        "endLine": 233,
+        "endChar": 11
+      },
+      "revId": "3e6535cbdb80869ce12e83edd0e9de5902ea92f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_807c7774",
         "filename": "doc/sphinx/config.rst",
         "patchSetId": 11
@@ -36,6 +60,24 @@
       "writtenOn": "2015-11-08T22:25:49Z",
       "side": 1,
       "message": "useless here as if no all is defined, it will use the union of all groups.",
+      "revId": "3e6535cbdb80869ce12e83edd0e9de5902ea92f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_e091ab53",
+        "filename": "doc/sphinx/config.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-09T07:47:03Z",
+      "side": 1,
+      "message": "Well this is not true, but that\u0027s bad. I\u0027m gonna push a new patch to fix this before this doc......... thx",
+      "parentUuid": "7ac7a964_807c7774",
       "revId": "3e6535cbdb80869ce12e83edd0e9de5902ea92f9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
