@@ -147,7 +147,6 @@ class FileGroupSource(GroupSource):
         # FileGroupSource uses the 'all' group to implement resolv_all
         return self.groups.get('all')
 
-
 class UpcallGroupSource(GroupSource):
     """
     GroupSource class managing external calls for nodegroup support.
