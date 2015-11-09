@@ -59,7 +59,7 @@ class GroupSourceError(Exception):
         self.group_source = group_source
 
 class GroupSourceNoUpcall(GroupSourceError):
-    """Raised when upcall is not available"""
+    """Raised when upcall or method is not available"""
 
 class GroupSourceQueryFailed(GroupSourceError):
     """Raised when a query failed (eg. no group found)"""
@@ -111,14 +111,14 @@ class GroupSource(object):
     def resolv_all(self):
         """Return the content of all groups as defined by this GroupSource"""
         if self.allgroups is None:
-            raise GroupSourceQueryFailed("All groups info not available", self)
+            raise GroupSourceNoUpcall("All groups info not available", self)
         return self.allgroups
 
     def resolv_reverse(self, node):
         """
         Return the group name matching the provided node.
         """
-        raise GroupSourceQueryFailed("Not implemented", self)
+        raise GroupSourceNoUpcall("Not implemented", self)
 
 
 class FileGroupSource(GroupSource):

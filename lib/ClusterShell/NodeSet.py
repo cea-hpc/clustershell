@@ -890,24 +890,24 @@ class ParsingEngine(object):
         """Get all nodes from group resolver as a list of strings."""
         # namespace is the optional group source
         assert self.group_resolver is not None
-        all = []
+        alln = []
         try:
             # Ask resolver to provide all nodes.
-            all = self.group_resolver.all_nodes(namespace)
+            alln = self.group_resolver.all_nodes(namespace)
         except NodeUtils.GroupSourceNoUpcall:
             try:
                 # As the resolver is not able to provide all nodes directly,
                 # failback to list + map(s) method:
                 for grp in self.grouplist(namespace):
-                    all += self.group_resolver.group_nodes(grp, namespace)
+                    alln += self.group_resolver.group_nodes(grp, namespace)
             except NodeUtils.GroupSourceNoUpcall:
                 # We are not able to find "all" nodes, definitely.
-                raise NodeSetExternalError("Not enough working external " \
-                    "calls (all, or map + list) defined to get all nodes")
+                msg = "Not enough working methods (all or map + list) to " \
+                      "get all nodes"
+                raise NodeSetExternalError(msg)
         except NodeUtils.GroupSourceQueryFailed, exc:
-            raise NodeSetExternalError("Unable to get all nodes due to the " \
-                "following external failure:\n\t%s" % exc)
-        return all
+            raise NodeSetExternalError("Failed to get all nodes: %s" % exc)
+        return alln
 
     def _next_op(self, pat):
         """Opcode parsing subroutine."""
@@ -1316,8 +1316,12 @@ class NodeSet(NodeSetBase):
                     yield grp
         else:
             # find node groups using resolver
-            for group in self._resolver.node_groups(node, namespace):
-                yield group
+            try:
+                for group in self._resolver.node_groups(node, namespace):
+                    yield group
+            except NodeUtils.GroupSourceQueryFailed, exc:
+                msg = "Group source query failed: %s" % exc
+                raise NodeSetExternalError(msg)
 
     def _groups2(self, groupsource=None, autostep=None):
         """Find node groups this nodeset belongs to. [private]"""
