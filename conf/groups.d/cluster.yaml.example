@@ -17,29 +17,32 @@
 #
 # Break and adapt to fit your own needs. Use nodeset CLI to test config.
 
-# Group source cluster:
-# define groups @cluster:adm, @cluster:io, etc.
-cluster:
+# Group source roles:
+# define groups @roles:adm, @roles:io, etc.
+roles:
     adm: 'example0'
     io: '@racks:rack2,example2'
     compute: '@racks:rack[3-4]'
     gpu: '@racks:rack4'
-    all: '@adm,@io,@compute'
+    # the 'all' special group is only needed if we don't want all nodes from
+    # this group source included, here we don't want example0 for clush -a
+    all: '@io,@compute'
 
 # Group source racks:
-# define groups @racks:rack[1-4] (ranges work for groups too!) and @racks:all
+# define groups @racks:rack[1-4], @racks:old and @racks:new
 racks:
     rack1: 'example[0,2]'
     rack2: 'example[4-5]'
     rack3: 'example[32-159]'
     rack4: 'example[156-159]'
-    # other groups in same source may be referenced without the "source:" prefix
-    all: '@rack[1-4]'
+    # groups from same source may be referenced without the "source:" prefix
+    # and yes, ranges work for groups too!
+    old: '@rack[1,3]'
+    new: '@rack[2,4]'
 
 # Group source cpu:
 # define groups @cpu:ivy, @cpu:hsw and @cpu:all
 cpu:
     ivy: 'example[32-63]'
     # groups from other sources must be prefixed with "source:"
-    hsw: '@cluster:compute!@ivy'
-    all: '@ivy,@hsw'
+    hsw: '@roles:compute!@ivy'
