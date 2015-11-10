@@ -206,6 +206,24 @@
       "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_8409e497",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-10T14:16:41Z",
+      "side": 1,
+      "message": "Agreed. And I just noticed that the \"new\" resolv_reverse() also raises QueryFailed for \"not implemented\" instead of NoUpcall. I will see if I can add some tests too...",
+      "parentUuid": "7ac7a964_44aa6c71",
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
