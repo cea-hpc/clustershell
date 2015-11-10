@@ -152,6 +152,24 @@
       "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_a4b420f3",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-10T14:03:43Z",
+      "side": 1,
+      "message": "actually there is a side effect to this. If there is specific \u0027all\u0027 upcall with a bug (i.e: bad bash command), this will SILENTLY fallback to list+map which could work and return an different result from what \u0027all\u0027 should have returned.",
+      "parentUuid": "7ac7a964_645e88eb",
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
