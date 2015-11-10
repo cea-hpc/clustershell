@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_e44a9826",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 901,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-10T13:53:35Z",
+      "side": 1,
+      "message": "FileGroupSource always supports map+list as it is based on a dict",
+      "parentUuid": "7ac7a964_220003aa",
+      "range": {
+        "startLine": 900,
+        "startChar": 50,
+        "endLine": 901,
+        "endChar": 41
+      },
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_422c1f4b",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_44526cde",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 904,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-10T13:53:35Z",
+      "side": 1,
+      "message": "Thinking twice, yes. It\u0027s actually not required for current available GroupSources, but if somebody wants to implement its own GroupSource, he could raise either GroupSourceNoUpcall or GroupSourceQueryFailed (both exceptions derive from GroupSourceError). That makes the code more generic.",
+      "parentUuid": "7ac7a964_422c1f4b",
+      "range": {
+        "startLine": 904,
+        "startChar": 40,
+        "endLine": 904,
+        "endChar": 48
+      },
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_62311ba2",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 3
@@ -59,6 +107,24 @@
       "writtenOn": "2015-11-10T11:08:17Z",
       "side": 1,
       "message": "why did you drop the GroupSourceQueryFailed except? It seems to me we still need to transform it into a NodeSetExternalError?",
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_645e88eb",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-10T13:53:35Z",
+      "side": 1,
+      "message": "The reason was I merged with GroupSourceError for \"all\" + no way to raise QueryFailed for list+map, but I revised this in my next patch to, for example, to support QueryFailed in from list or map.",
+      "parentUuid": "7ac7a964_62311ba2",
       "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
