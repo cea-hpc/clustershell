@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_47827153",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-10T05:19:23Z",
+      "side": 1,
+      "message": "That\u0027s the problem with properties, just accessing them can be expensive. But anyway, n/m, original code restored ;-)",
+      "parentUuid": "7ac7a964_20f9e34d",
+      "revId": "f5297d6e57c0d0009be1691ffcf3eab0c349cb0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_00fce73d",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-09T09:20:36Z",
       "side": 1,
       "message": "this fallback mechanism is generic and handled by NodeSet.allnodes(). It should not be managed by each different group source. I see no reason why we could not have a common code for that.",
+      "revId": "f5297d6e57c0d0009be1691ffcf3eab0c349cb0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_67876d62",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-11-10T05:19:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_00fce73d",
       "revId": "f5297d6e57c0d0009be1691ffcf3eab0c349cb0a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
