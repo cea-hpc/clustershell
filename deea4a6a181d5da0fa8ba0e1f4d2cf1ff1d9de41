@@ -188,6 +188,24 @@
       "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_44aa6c71",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-10T14:13:12Z",
+      "side": 1,
+      "message": "my proposal: use NoUpcall to fix this quickly and we will change this name later.",
+      "parentUuid": "7ac7a964_c49e7c56",
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
