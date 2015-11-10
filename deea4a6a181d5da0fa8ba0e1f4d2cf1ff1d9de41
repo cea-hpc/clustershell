@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_220003aa",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 901,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-10T11:08:17Z",
+      "side": 1,
+      "message": "i do not understand why",
+      "range": {
+        "startLine": 900,
+        "startChar": 50,
+        "endLine": 901,
+        "endChar": 41
+      },
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_422c1f4b",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 904,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-10T11:08:17Z",
+      "side": 1,
+      "message": "should this also be replaced by GroupSourceError?",
+      "range": {
+        "startLine": 904,
+        "startChar": 40,
+        "endLine": 904,
+        "endChar": 48
+      },
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_62311ba2",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-10T11:08:17Z",
+      "side": 1,
+      "message": "why did you drop the GroupSourceQueryFailed except? It seems to me we still need to transform it into a NodeSetExternalError?",
+      "revId": "deea4a6a181d5da0fa8ba0e1f4d2cf1ff1d9de41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
