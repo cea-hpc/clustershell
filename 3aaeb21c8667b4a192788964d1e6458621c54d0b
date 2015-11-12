@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_61f90f4d",
+        "filename": "index.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-12T16:00:12Z",
+      "side": 0,
+      "message": "it could be nice to have the file available for download on Github. At the end I would like SF to be useless.",
+      "range": {
+        "startLine": 36,
+        "startChar": 48,
+        "endLine": 36,
+        "endChar": 97
+      },
+      "revId": "3aaeb21c8667b4a192788964d1e6458621c54d0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
