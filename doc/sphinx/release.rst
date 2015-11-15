@@ -230,6 +230,6 @@ PIP user installation support
 ClusterShell 1.7 is now fully compatible with PIP and supports user
 configuration files::
 
-    $ pip --user clustershell
+    $ pip install --user clustershell
 
 Please see :ref:`install-pip-user`.
