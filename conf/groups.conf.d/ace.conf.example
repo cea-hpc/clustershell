@@ -1,0 +1,18 @@
+# Additional ClusterShell group source config file
+#
+# Please see `man 5 groups.conf` for further details.
+#
+# This config file provided as an example of group sources for Cray
+# Advanced Cluster Engine (ACE) system management software.
+#
+
+# ACE @type -> host(s)
+#
+# example:
+#   $ nodeset -f @ace:compute
+#   prod-[0001-0144]
+#
+[ace]
+map:  ace servers | awk '/$GROUP/ {gsub("*",""); print $11}'
+all:  ace servers | awk '!/Type/ && $11 != "-" {gsub("*",""); print $11}'
+list: ace servers | awk '!/Type/ && $11 != "-" {print $2}'

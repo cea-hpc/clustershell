@@ -16,6 +16,6 @@ reverse: sinfo -h -N -o "%R" -n $NODE
 [slurmstate]
 map: if [ "$GROUP" == "broken" ]; then sinfo -h -o "%N" -t down,drained; else sinfo -h -o "%N" -t $GROUP; fi
 all: sinfo -h -o "%N"
-list: sinfo -h -o "%T"
+list: sinfo -h -o "%T" | tr -d '~#$*'
 reverse: sinfo -h -N -o "%T" -n $NODE
 cache_time: 300
