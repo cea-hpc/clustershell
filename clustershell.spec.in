@@ -7,8 +7,8 @@ Summary:       Python framework for efficient cluster administration
 
 Group:         System Environment/Base
 License:       CeCILL-C
-URL:           http://clustershell.sourceforge.net/
-Source0:       http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+URL:           http://cea-hpc.github.io/clustershell/
+Source0:       https://github.com/cea-hpc/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch:     noarch
 BuildRequires: python-devel python-setuptools
@@ -32,7 +32,7 @@ Syntax highlighting in the VIM editor for ClusterShell configuration files.
 
 
 %prep
-%setup -q
+%setup -qn %{name}-%{version}
 
 %build
 %{__python} setup.py build
