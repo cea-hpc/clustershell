@@ -626,7 +626,11 @@ def bind_stdin(worker, display):
     # Launch a dedicated thread to read stdin in blocking mode. Indeed stdin
     # can be a file, so we cannot use a WorkerSimple here as polling on file
     # may result in different behaviors depending on selected engine.
-    threading.Thread(None, _stdin_thread_start, args=(port, display)).start()
+    stdin_thread = threading.Thread(None, _stdin_thread_start, args=(port, display))
+    # setDaemon because we're sometimes left with data that has been read and
+    # ssh connection already closed.
+    stdin_thread.setDaemon(True)
+    stdin_thread.start()
 
 def run_command(task, cmd, ns, timeout, display, remote):
     """
