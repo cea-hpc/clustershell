@@ -597,10 +597,11 @@ def ttyloop(task, nodeset, timeout, display, remote):
 def _stdin_thread_start(stdin_port, display):
     """Standard input reader thread entry point."""
     try:
-        # Note: read length should be larger and a multiple of 4096 for best
-        # performance to avoid excessive unreg/register of writer fd in
-        # engine; however, it shouldn't be too large.
-        bufsize = 4096 * 8
+        # Note: read length should be as large as possible for performance
+        # yet not too large to not introduce artificial latency.
+        # 64k seems to be perfect with an openssh backend (they issue 64k
+        # reads) ; could consider making it an option for e.g. gsissh.
+        bufsize = 64 * 1024
         # thread loop: blocking read stdin + send messages to specified
         #              port object
         buf = sys.stdin.read(bufsize)
