@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_b94a7b81",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-11-30T08:33:50Z",
+      "side": 1,
+      "message": "useless, this is already the default value of -n",
+      "range": {
+        "startLine": 35,
+        "startChar": 9,
+        "endLine": 35,
+        "endChar": 29
+      },
+      "revId": "a29ccb85c95d77bedb38ce95bf2bee3c56fccb32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
