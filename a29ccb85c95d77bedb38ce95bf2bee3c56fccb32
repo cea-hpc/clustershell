@@ -22,6 +22,30 @@
       "revId": "a29ccb85c95d77bedb38ce95bf2bee3c56fccb32",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0e595bfe",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-12-01T05:03:45Z",
+      "side": 1,
+      "message": "Ok right thx - done (The Fedora doc page I followed recommend this for GitHub this but it seems useless indeed)",
+      "parentUuid": "5ac4a560_b94a7b81",
+      "range": {
+        "startLine": 35,
+        "startChar": 9,
+        "endLine": 35,
+        "endChar": 29
+      },
+      "revId": "a29ccb85c95d77bedb38ce95bf2bee3c56fccb32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
