@@ -171,28 +171,29 @@ change::
 
 The ``-O, --output-format`` option can be used to format output results of
 most *nodeset* commands. The string passed to this option is used as a base
-format pattern applied to each result. The default format string is *"%s"*.
-Formatting is performed using the Python builtin string formatting operator,
-so you must use one format operator of the right type (*%s* is guaranteed to
-work in all cases). A simple example when using the fold command is shown
-below::
-
-    $ nodeset --output-format='%s-ipmi' -f node1 node2 node3
-    node[1-3]-ipmi
-
-Another output formatting example when using the expand command::
+format pattern applied to each node or each result (depending on the command
+and other options requested). The default format string is *"%s"*.  Formatting
+is performed using the Python builtin string formatting operator, so you must
+use one format operator of the right type (*%s* is guaranteed to work in all
+cases). Here is an output formatting example when using the expand command::
 
     $ nodeset --output-format='%s-ipmi' -e node[1-2]x[1-2]
     node1x1-ipmi node1x2-ipmi node2x1-ipmi node2x2-ipmi
 
-Output formatting and separator may be combined when using the expand
-command::
+Output formatting and separator combined can be useful when using the expand
+command, as shown here::
 
     $ nodeset -O '%s-ipmi' -S '\n' -e node[1-2]x[1-2]
     node1x1-ipmi
     node1x2-ipmi
     node2x1-ipmi
     node2x2-ipmi
+
+When using the output formatting option along with the folding command, the
+format is applied to each node but the result is still folded::
+
+    $ nodeset -O '%s-ipmi' -f mgmt1 mgmt2 login[1-4]
+    login[1-4]-ipmi,mgmt[1-2]-ipmi
 
 
 .. _nodeset-stepping:

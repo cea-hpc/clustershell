@@ -295,7 +295,14 @@ def nodeset():
     if options.expand:
         xsubres = lambda x: separator.join((fmt % s for s in x.striter()))
     elif options.fold:
-        xsubres = lambda x: fmt % x
+        # Special case when folding using NodeSet and format is set (#277)
+        if class_set is NodeSet and fmt != '%s':
+            # Create a new set after format has been applied to each node
+            xset = class_set._fromlist1((fmt % xnodestr for xnodestr in xset),
+                                        autostep=xset.autostep)
+            xsubres = lambda x: x
+        else:
+            xsubres = lambda x: fmt % x
     elif options.regroup:
         xsubres = lambda x: fmt % x.regroup(options.groupsource,
                                             noprefix=options.groupbase)
