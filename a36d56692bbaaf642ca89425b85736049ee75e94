@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_2df4535a",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-12-02T22:15:10Z",
+      "side": 1,
+      "message": "please add comment for compat\nie: (for compat with Python \u003c 2.6)\n\nit is easier to track code that will need to be change (soon)",
+      "revId": "a36d56692bbaaf642ca89425b85736049ee75e94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4de98f7f",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 632,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2015-12-02T22:15:10Z",
+      "side": 1,
+      "message": "I find this weird that clush creates \"daemon\" thread. It looks like a hack to fix this bug that way. Just hoping this will not introduce side effect in the future...",
+      "revId": "a36d56692bbaaf642ca89425b85736049ee75e94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
