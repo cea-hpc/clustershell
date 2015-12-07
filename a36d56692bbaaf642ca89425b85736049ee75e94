@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e3a33e9c",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2015-12-07T09:28:56Z",
+      "side": 1,
+      "message": "We need a proper greppable token for this... I actually did look for examples in the code (because of sthiell\u0027s comment on the github issue) but it\u0027s all over the place at the moment and I can\u0027t see it as actually helping track code that needs to be changed.\n\nI think we\u0027re going to need a python3-pylint anyway so it will probably not make much difference in the long run, but done anyway.",
+      "parentUuid": "5ac4a560_2df4535a",
+      "revId": "a36d56692bbaaf642ca89425b85736049ee75e94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4de98f7f",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 3
