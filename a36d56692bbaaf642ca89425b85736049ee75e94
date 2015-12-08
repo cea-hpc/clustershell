@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_5a4ccc70",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2015-12-08T22:28:56Z",
+      "side": 1,
+      "message": "Sometimes I put py2.5+ or py2.6+ but that\u0027s fine as is... thanks!",
+      "parentUuid": "5ac4a560_e3a33e9c",
+      "revId": "a36d56692bbaaf642ca89425b85736049ee75e94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4de98f7f",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 3
