@@ -35,7 +35,7 @@ ClusterShell Task module.
 
 Simple example of use:
 
->>> from ClusterShell.Task import task_self
+>>> from ClusterShell.Task import task_self, NodeSet
 >>>  
 >>> # get task associated with calling thread
 ... task = task_self()
@@ -45,11 +45,11 @@ Simple example of use:
 <ClusterShell.Worker.Ssh.WorkerSsh object at 0x7f41da71b890>
 >>> 
 >>> # run task in calling thread
-... task.resume()
+... task.run()
 >>> 
 >>> # get results
-... for buf, nodelist in task.iter_buffers():
-...     print NodeSet.fromlist(nodelist), buf
+... for output, nodelist in task.iter_buffers():
+...     print '%s: %s' % (NodeSet.fromlist(nodelist), output)
 ... 
 
 """
