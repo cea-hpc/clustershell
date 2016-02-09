@@ -10,13 +10,18 @@ node groups, at the command line level. As it is very user-friendly and
 efficient, the *nodeset* command can quickly improve traditional cluster
 shell scripts. It is also full-featured as it provides most of the
 :class:`.NodeSet` and :class:`.RangeSet` class methods (see also
-:ref:`class-NodeSet`, and :ref:`class-RangeSet`). Most of the examples in this
-section are using simple indexed node sets, however, *nodeset* supports
-multidimensional node sets, like *dc[1-2]n[1-99]*, introduced in version 1.7
-(see :ref:`class-RangeSetND` for more info).
+:ref:`class-NodeSet`, and :ref:`class-RangeSet`).
 
-This section will guide you through the basics and also advanced features of
-*nodeset*.
+
+The *nodeset* command supports RFC 1123 (which defines naming standards for
+host names) except that a node name can't be entirely numeric.
+
+Most of the examples in this section are using simple indexed node sets,
+however, *nodeset* supports multidimensional node sets, like *dc[1-2]n[1-99]*,
+introduced in version 1.7 (see :ref:`class-RangeSetND` for more info).
+
+This section will guide you through the basics and also more advanced features
+of *nodeset*.
 
 Usage basics
 ^^^^^^^^^^^^

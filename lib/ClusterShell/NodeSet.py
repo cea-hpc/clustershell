@@ -1005,10 +1005,6 @@ class ParsingEngine(object):
 
                     pfxlen, sfxlen = len(pfx), len(sfx)
 
-                    # pfx + sfx cannot be empty
-                    if pfxlen + sfxlen == 0:
-                        raise NodeSetParseError(nsstr, "empty node name")
-
                     if sfxlen > 0:
                         # amending trailing digits generates /steps
                         sfx, rng = self._amend_trailing_digits(sfx, rng)
@@ -1016,10 +1012,14 @@ class ParsingEngine(object):
                     if pfxlen > 0:
                         # this method supports /steps
                         pfx, rng = self._amend_leading_digits(pfx, rng)
+                        if pfx:
+                            # scan any nonempty pfx as a single node (no bracket)
+                            pfx, pfxrvec = self._scan_string_single(pfx, autostep)
+                            rsets += pfxrvec
 
-                        # scan pfx as a single node (no bracket)
-                        pfx, pfxrvec = self._scan_string_single(pfx, autostep)
-                        rsets += pfxrvec
+                    # pfx + sfx cannot be empty
+                    if len(pfx) + len(sfx) == 0:
+                        raise NodeSetParseError(nsstr, "fully numeric nodeset")
 
                     # readahead for sanity check
                     bracket_idx = sfx.find(self.BRACKET_OPEN,

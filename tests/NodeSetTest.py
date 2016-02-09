@@ -364,6 +364,26 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "x[010-011]y[010-011]z[010-011]-ipmi")
         self.assertEqual(len(nodeset), 2*2*2)
 
+        # #284 - hostname labels starting with digits (RFC 1123)
+        nodeset = NodeSet("0[3-9/2]abc")
+        self.assertEqual(str(nodeset), "[03,05,07,09]abc")
+        nodeset = NodeSet("0[3-9]abc")
+        self.assertEqual(str(nodeset), "[03-09]abc")
+        nodeset = NodeSet("[3,5,7,9]0abc")
+        self.assertEqual(str(nodeset), "[30,50,70,90]abc")
+        nodeset = NodeSet("[3-9]0abc")
+        self.assertEqual(str(nodeset), "[30,40,50,60,70,80,90]abc")
+        nodeset = NodeSet("3abc0[1]0")
+        self.assertEqual(str(nodeset), "3abc010")
+        nodeset = NodeSet("3abc16[1-4]56d")
+        self.assertEqual(str(nodeset), "3abc[16156,16256,16356,16456]d")
+        nodeset = NodeSet("0[3,6,9]1abc16[1-4]56d")
+        self.assertEqual(str(nodeset), "[031,061,091]abc[16156,16256,16356,16456]d")
+        nodeset = NodeSet("0123[0-100]L6")
+        self.assertEqual(str(nodeset), "[01230-123100]L6")
+        nodeset = NodeSet("0123[000-100]L6")
+        self.assertEqual(str(nodeset), "[0123000-0123100]L6")
+
     def testCommaSeparated(self):
         """test NodeSet comma separated to ranges (folding)"""
         nodeset = NodeSet("cluster115,cluster116,cluster117,cluster130,"
