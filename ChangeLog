@@ -1,3 +1,8 @@
+2016-02-09 S. Thiell <sthiell@stanford.edu>
+
+	* NodeSet.py: fix parser issue when brackets were used with nodeset
+	starting with a digit (ticket #284).
+
 2015-11-30 S. Thiell <sthiell@stanford.edu>
 
 	* CLI/Nodeset.py: fix --output-format / -O when folding (-f) by applying

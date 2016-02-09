@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2012-2015)
+# Copyright CEA/DAM/DIF (2012-2016)
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
@@ -195,8 +195,11 @@ class RangeSet(set):
                     ends = end
                 stop = int(ends)
             except ValueError:
-                raise RangeSetParseError(subrange,
-                        "cannot convert string to integer")
+                if len(subrange) == 0:
+                    msg = "empty range"
+                else:
+                    msg = "cannot convert string to integer"
+                raise RangeSetParseError(subrange, msg)
 
             # check preconditions
             if stop > 1e100 or start > stop or step < 1:

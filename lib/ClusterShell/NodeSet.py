@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2007-2015)
+# Copyright CEA/DAM/DIF (2007-2016)
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #  Contributor: Aurelien DEGREMONT <aurelien.degremont@cea.fr>
 #
@@ -1005,10 +1005,6 @@ class ParsingEngine(object):
 
                     pfxlen, sfxlen = len(pfx), len(sfx)
 
-                    # pfx + sfx cannot be empty
-                    if pfxlen + sfxlen == 0:
-                        raise NodeSetParseError(nsstr, "empty node name")
-
                     if sfxlen > 0:
                         # amending trailing digits generates /steps
                         sfx, rng = self._amend_trailing_digits(sfx, rng)
@@ -1016,10 +1012,10 @@ class ParsingEngine(object):
                     if pfxlen > 0:
                         # this method supports /steps
                         pfx, rng = self._amend_leading_digits(pfx, rng)
-
-                        # scan pfx as a single node (no bracket)
-                        pfx, pfxrvec = self._scan_string_single(pfx, autostep)
-                        rsets += pfxrvec
+                        if pfx:
+                            # scan any nonempty pfx as a single node (no bracket)
+                            pfx, pfxrvec = self._scan_string_single(pfx, autostep)
+                            rsets += pfxrvec
 
                     # readahead for sanity check
                     bracket_idx = sfx.find(self.BRACKET_OPEN,
@@ -1031,14 +1027,19 @@ class ParsingEngine(object):
                         raise NodeSetParseError(sfx, "empty node name before")
 
                     if len(sfx) > 0 and sfx[0] == '[':
-                        raise NodeSetParseError(sfx,
-                                                "illegal reopening bracket")
+                        msg = "illegal reopening bracket"
+                        raise NodeSetParseError(sfx, msg)
 
                     newpat += "%s%%s" % pfx
                     try:
                         rsets.append(RangeSet(rng, autostep))
                     except RangeSetParseError, ex:
                         raise NodeSetParseRangeError(ex)
+
+                    # the following test forbids fully numeric nodeset
+                    if len(pfx) + len(sfx) == 0:
+                        msg = "fully numeric nodeset"
+                        raise NodeSetParseError(nsstr, msg)
 
                 # Check if we have a next op-separated node or pattern
                 op_idx, next_op_code = self._next_op(sfx)
