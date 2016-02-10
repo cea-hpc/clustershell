@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8b0b1f29",
+        "filename": "doc/txt/nodeset.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-10T08:51:48Z",
+      "side": 1,
+      "message": "do not change version in this patch",
+      "range": {
+        "startLine": 12,
+        "startChar": 13,
+        "endLine": 12,
+        "endChar": 15
+      },
+      "revId": "5357ebc5010af6798000eb90566d0cf8a8fcf1b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
