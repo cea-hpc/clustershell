@@ -217,14 +217,14 @@ class NodeSetBase(object):
 
     def nsiter(self):
         """Object-based NodeSet iterator on single nodes."""
-        for pat, ivec, pad, autostep in self._iter():
+        for pat, ivec, pads, autostep in self._iter():
             nodeset = self.__class__()
             if ivec is not None:
                 if len(ivec) == 1:
-                    nodeset._add_new(pat, \
-                                     RangeSet.fromone(ivec[0], pad[0] or 0))
+                    pad = pads[0] or 0
+                    nodeset._add_new(pat, RangeSet.fromone(ivec[0], pad))
                 else:
-                    nodeset._add_new(pat, RangeSetND([ivec], None, autostep))
+                    nodeset._add_new(pat, RangeSetND([ivec], pads, autostep))
             else:
                 nodeset._add_new(pat, None)
             yield nodeset

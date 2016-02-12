@@ -32,6 +32,12 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t([], "]o[o]: bar\n", outfmt % "]o[o]")
         self._clubak_t([], "foo:\n", "---------------\nfoo\n---------------\n\n")
         self._clubak_t([], "foo: \n", "---------------\nfoo\n---------------\n \n")
+        # nD
+        self._clubak_t([], "n1c1: bar\n", outfmt % "n1c1")
+        # Ticket #286
+        self._clubak_t([], "n1c01: bar\n", outfmt % "n1c01")
+        self._clubak_t([], "n01c01: bar\n", outfmt % "n01c01")
+        self._clubak_t([], "n001c01: bar\nn001c02: bar\n", outfmt % "n001c01" + outfmt % "n001c02")
 
     def test_001_verbosity(self):
         """test clubak (-q/-v/-d)"""
@@ -58,6 +64,12 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t(["-b"], "]o[o]: bar\n", outfmt % "]o[o]")
         self._clubak_t(["-b"], "foo:\n", "---------------\nfoo\n---------------\n\n")
         self._clubak_t(["-b"], "foo: \n", "---------------\nfoo\n---------------\n \n")
+        # nD
+        self._clubak_t(["-b"], "n1c1: bar\n", outfmt % "n1c1")
+        # Ticket #286
+        self._clubak_t(["-b"], "n1c01: bar\n", outfmt % "n1c01")
+        self._clubak_t(["-b"], "n001c01: bar\n", outfmt % "n001c01")
+        self._clubak_t(["-b"], "n001c01: bar\nn001c02: bar\n", outfmt % "n001c[01-02] (2)")
 
     def test_003_L(self):
         """test clubak (line mode -L)"""
@@ -65,6 +77,8 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t(["-L", "-S", ": "], "foo: bar\n", "foo: bar\n")
         self._clubak_t(["-bL"], "foo: bar\n", "foo:  bar\n")
         self._clubak_t(["-bL", "-S", ": "], "foo: bar\n", "foo: bar\n")
+        # nD
+        self._clubak_t(["-bL", "-S", ": "], "n1c01: bar\n", "n1c01: bar\n")
 
     def test_004_N(self):
         """test clubak (no header -N)"""

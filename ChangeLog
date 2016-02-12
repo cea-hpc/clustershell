@@ -1,3 +1,8 @@
+2016-02-12 S. Thiell <sthiell@stanford.edu>
+
+	* RangeSet.py and NodeSet.py: fix bad 0-padding handling by RangeSetND or
+	NodeSet objects in nD (ticket #286).
+
 2016-02-09 S. Thiell <sthiell@stanford.edu>
 
 	* NodeSet.py: fix parser issue when brackets were used with nodeset
