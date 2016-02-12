@@ -2520,3 +2520,14 @@ class NodeSetTest(unittest.TestCase):
         self._assertNode(nodeset, "node1")
         # not sure about that, can it work if PYTHONIOENCODING is set?
         self.assertRaises(UnicodeEncodeError, NodeSet, u"\u0ad0[000-042]")
+
+    def test_nd_fold_padding(self):
+        """test NodeSet nD heuristic folding with padding"""
+        # Ticket #286 - not broken in 1.7
+        n1 = NodeSet("n1c01,n1c02,n1c03,n1c04,n1c05,n1c06,n1c07,n1c08,n1c09,n2c01,n2c02,n2c03,n2c04,n2c05,n2c06,n2c07,n2c08,n2c09,n3c01,n3c02,n3c03,n3c04,n3c05,n3c06,n3c07,n3c08,n3c09,n4c01,n4c02,n4c03,n4c04,n4c05,n4c06,n4c07")
+        self.assertEqual(str(n1), "n[1-3]c[01-09],n4c[01-07]")
+        self.assertEqual(len(n1), 34)
+        # Ticket #286 - broken in 1.7 - trigger RangeSetND._fold_multivariate_expand full expand
+        n1 = NodeSet("n1c01,n1c02,n1c03,n1c04,n1c05,n1c06,n1c07,n1c08,n1c09,n2c01,n2c02,n2c03,n2c04,n2c05,n2c06,n2c07,n2c08,n2c09,n3c01,n3c02,n3c03,n3c04,n3c05,n3c06,n3c07,n3c08,n3c09,n4c01,n4c02,n4c03,n4c04,n4c05,n4c06,n4c07,n4c08,n4c09")
+        self.assertEqual(str(n1), "n[1-4]c[01-09]")
+        self.assertEqual(len(n1), 36)

@@ -942,10 +942,9 @@ class RangeSetND(object):
 
     def pads(self):
         """Get a tuple of padding length info for each dimension."""
-        try:
-            return tuple(rg.padding for rg in self._veclist[0])
-        except IndexError:
-            return ()
+        # return a tuple of max padding length for each axis
+        pad_veclist = ((rg.padding for rg in vec) for vec in self._veclist)
+        return tuple(max(pads) for pads in zip(*pad_veclist))
 
     def get_autostep(self):
         """Get autostep value (property)"""
@@ -1157,7 +1156,9 @@ class RangeSetND(object):
         # Simple heuristic that makes us faster
         if len(self._veclist) * (len(self._veclist) - 1) / 2 > max_length * 10:
             # *** nD full expand is preferred ***
-            self._veclist = [[RangeSet.fromone(i) for i in tvec] \
+            pads = self.pads()
+            self._veclist = [[RangeSet.fromone(i, pad=pads[axis])
+                              for axis, i in enumerate(tvec)]
                              for tvec in set(self._iter())]
             return
 

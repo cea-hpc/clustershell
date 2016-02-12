@@ -459,6 +459,18 @@ class RangeSetNDTest(unittest.TestCase):
         self.assertEqual(str(rn1), "02-06; 006-009,411\n01-02; 003-004\n")
         self.assertEqual(len(rn1), 29)
         self.assertEqual(rn1.pads(), (2, 3))
+        # Note: padding mismatch is NOT supported by ClusterShell
+        # We just track any regressions here (MAY CHANGE!)
+        rn1 = RangeSetND([['01-02', '003'], ['01-02', '0101'], ['02-06', '006-009,411']])
+        # here 0101 padding is changed to 101
+        self.assertEqual(str(rn1), '02-06; 006-009,411\n01-02; 003,101\n')
+        self.assertEqual(len(rn1), 29)
+        self.assertEqual(rn1.pads(), (2, 3))
+        rn1 = RangeSetND([['01-02', '0003'], ['01-02', '004'], ['02-06', '006-009,411']])
+        # here 004 padding is changed to 0004
+        self.assertEqual(str(rn1), '02-06; 006-009,411\n01-02; 0003-0004\n')
+        self.assertEqual(len(rn1), 29)
+        self.assertEqual(rn1.pads(), (2, 4)) # pads() returns max padding length by axis
 
     def test_mutability_1(self):
         rs0 = RangeSet("2-5")
