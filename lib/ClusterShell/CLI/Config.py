@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010-2015)
+# Copyright CEA/DAM/DIF (2010-2016)
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
@@ -64,7 +64,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
                      "color": THREE_CHOICES[-1], # auto
                      "verbosity": "%d" % VERB_STD,
                      "node_count": "yes",
-                     "fd_max": "16384"}
+                     "fd_max": "8192"}
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
