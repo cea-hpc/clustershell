@@ -10,6 +10,7 @@ import os.path
 import shutil
 import sys
 import tempfile
+from textwrap import dedent
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -79,19 +80,17 @@ class CLIClushConfigTest(unittest.TestCase):
         """test CLI.Config.ClushConfig (default)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-[Main]
-fanout: 42
-connect_timeout: 14
-command_timeout: 0
-history_size: 100
-color: auto
-verbosity: 1
-#ssh_user: root
-#ssh_path: /usr/bin/ssh
-#ssh_options: -oStrictHostKeyChecking=no
-""")
-
+        f.write(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            verbosity: 1
+            #ssh_user: root
+            #ssh_path: /usr/bin/ssh
+            #ssh_options: -oStrictHostKeyChecking=no"""))
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -216,17 +215,16 @@ ssh_options: -oStrictHostKeyChecking=no
         soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
         hard2 = min(32768, hard)
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-[Main]
-fanout: 42
-connect_timeout: 14
-command_timeout: 0
-history_size: 100
-color: auto
-fd_max: %d
-verbosity: 1
-""" % hard2)
-
+        f.write(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            fd_max: %d
+            verbosity: 1
+            """ % hard2))
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -246,24 +244,55 @@ verbosity: 1
         soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
         self.assertEqual(soft, hard2)
         f.close()
-       
+
+    def testClushConfigSetRlimitValueError(self):
+        """test CLI.Config.ClushConfig (setrlimit ValueError)"""
+        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+        f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
+        f.write(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            # Use wrong fd_max value to generate ValueError
+            fd_max: -1
+            verbosity: 1"""))
+        f.flush()
+        parser = OptionParser("dummy")
+        parser.install_config_options()
+        parser.install_display_options(verbose_options=True)
+        parser.install_connector_options()
+        options, _ = parser.parse_args([])
+        config = ClushConfig(options, filename=f.name)
+        f.close()
+        display = Display(options, config)
+
+        msg_printed = False
+        def mock_vprint(level, message):
+            global msg_printed
+            if message.startswith('WARNING: Failed to raise max open files'):
+                msg_printed = True
+
+        display.vprint = mock_vprint
+        set_fdlimit(config.fd_max, display)
+
+        soft2, _ = resource.getrlimit(resource.RLIMIT_NOFILE)
+        self.assertEqual(soft, soft2)
+
     def testClushConfigDefaultWithOptions(self):
         """test CLI.Config.ClushConfig (default with options)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-[Main]
-fanout: 42
-connect_timeout: 14
-command_timeout: 0
-history_size: 100
-color: auto
-verbosity: 1
-#ssh_user: root
-#ssh_path: /usr/bin/ssh
-#ssh_options: -oStrictHostKeyChecking=no
-""")
-
+        f.write(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            verbosity: 1"""))
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()

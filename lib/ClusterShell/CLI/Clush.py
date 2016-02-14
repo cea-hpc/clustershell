@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2007-2015)
+# Copyright CEA/DAM/DIF (2007-2016)
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
@@ -721,13 +721,18 @@ def set_fdlimit(fd_max, display):
     """Make open file descriptors soft limit the max."""
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
     if hard < fd_max:
-        display.vprint(VERB_DEBUG, "Warning: Consider increasing max open " \
-            "files hard limit (%d)" % hard)
+        msgfmt = 'Warning: fd_max set to %d but max open files hard limit is %d'
+        display.vprint(VERB_DEBUG, msgfmt % (fd_max, hard))
     rlim_max = min(hard, fd_max)
     if soft != rlim_max:
-        display.vprint(VERB_DEBUG, "Modifying max open files soft limit: " \
-            "%d -> %d" % (soft, rlim_max))
-        resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
+        msgfmt = 'Trying to raise max open files soft limit from %d to %d'
+        display.vprint(VERB_DEBUG, msgfmt % (soft, rlim_max))
+        try:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
+        except (ValueError, resource.error), exc:
+            # Most probably the requested limit exceeds the system imposed limit
+            msgfmt = 'WARNING: Failed to raise max open files limit to %d (%s)'
+            display.vprint(VERB_STD, msgfmt % (rlim_max, exc))
 
 def clush_exit(status, task=None):
     """Exit script, flushing stdio buffers and stopping ClusterShell task."""
