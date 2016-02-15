@@ -116,10 +116,8 @@ class MetaWorkerEventHandler(EventHandler):
         """
         self.logger.debug("MetaWorkerEventHandler: ev_close")
         self.metaworker._check_fini()
-        ##print >>sys.stderr, "ev_close?"
         #self._completed += 1
         #if self._completed >= self.grpcount:
-        #    #print >>sys.stderr, "ev_close!"
         #    metaworker = self.metaworker
         #    metaworker.eh.ev_close(metaworker)
 

@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2009-2014)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2009-2016)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -35,7 +35,7 @@ Engine Factory to select the best working event engine for the current
 version of Python and Operating System.
 """
 
-import sys
+import logging
 
 from ClusterShell.Engine.Engine import EngineNotSupportedError
 
@@ -44,14 +44,15 @@ from ClusterShell.Engine.EPoll import EngineEPoll
 from ClusterShell.Engine.Poll import EnginePoll
 from ClusterShell.Engine.Select import EngineSelect
 
+
 class PreferredEngine(object):
     """
     Preferred Engine selection metaclass (DP Abstract Factory).
     """
 
-    engines = { EngineEPoll.identifier: EngineEPoll,
-                EnginePoll.identifier: EnginePoll,
-                EngineSelect.identifier: EngineSelect }
+    engines = {EngineEPoll.identifier: EngineEPoll,
+               EnginePoll.identifier: EnginePoll,
+               EngineSelect.identifier: EngineSelect}
 
     def __new__(cls, hint, info):
         """
@@ -59,7 +60,7 @@ class PreferredEngine(object):
         """
         if not hint or hint == 'auto':
             # in order or preference
-            for engine_class in [ EngineEPoll, EnginePoll, EngineSelect ]:
+            for engine_class in [EngineEPoll, EnginePoll, EngineSelect]:
                 try:
                     return engine_class(info)
                 except EngineNotSupportedError:
@@ -77,6 +78,7 @@ class PreferredEngine(object):
                         if len(engines) == 0:
                             raise
                     tryengine = engines.popitem()[1]
-            except KeyError, exc:
-                print >> sys.stderr, "Invalid engine identifier", exc
+            except KeyError:
+                msg = "Invalid engine identifier: %s" % hint
+                logging.getLogger(__name__).error(msg)
                 raise
