@@ -1,4 +1,5 @@
-# Copyright CEA/DAM/DIF (2010-2015)
+#
+# Copyright CEA/DAM/DIF (2010-2016)
 #  Contributors:
 #   Stephane THIELL <sthiell@stanford.edu>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
@@ -42,9 +43,9 @@ group sources are: files, jobs scheduler, custom scripts, etc.).
 """
 
 import glob
+import logging
 import os
 import shlex
-import sys
 import time
 
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
@@ -160,8 +161,9 @@ class UpcallGroupSource(GroupSource):
                  list_upcall=None, reverse_upcall=None, cfgdir=None,
                  cache_time=None):
         GroupSource.__init__(self, name)
-        self.verbosity = 0
+        self.verbosity = 0 # deprecated
         self.cfgdir = cfgdir
+        self.logger = logging.getLogger(__name__)
 
         # Supported external upcalls
         self.upcalls = {}
@@ -191,25 +193,19 @@ class UpcallGroupSource(GroupSource):
             'reverse': {}
         }
 
-    def _verbose_print(self, msg):
-        """Print msg depending on the verbosity level."""
-        if self.verbosity > 0:
-            print >> sys.stderr, "%s<%s> %s" % \
-                (self.__class__.__name__, self.name, msg)
-
     def _upcall_read(self, cmdtpl, args=dict()):
         """
         Invoke the specified upcall command, raise an Exception if
         something goes wrong and return the command output otherwise.
         """
         cmdline = Template(self.upcalls[cmdtpl]).safe_substitute(args)
-        self._verbose_print("EXEC '%s'" % cmdline)
+        self.logger.debug("EXEC '%s'", cmdline)
         proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir)
         output = proc.communicate()[0].strip()
-        self._verbose_print("READ '%s'" % output)
+        self.logger.debug("READ '%s'", output)
         if proc.returncode != 0:
-            self._verbose_print("ERROR '%s' returned %d" % (cmdline, \
-                proc.returncode))
+            self.logger.debug("ERROR '%s' returned %d", cmdline,
+                              proc.returncode)
             raise GroupSourceQueryFailed(cmdline, self)
         return output
 
@@ -226,7 +222,7 @@ class UpcallGroupSource(GroupSource):
 
         # Purge expired data from cache
         if key in cache and cache[key][1] < time.time():
-            self._verbose_print("PURGE EXPIRED (%d)'%s'" % (cache[key][1], key))
+            self.logger.debug("PURGE EXPIRED (%d)'%s'", cache[key][1], key)
             del cache[key]
 
         # Fetch the data if unknown of just purged
@@ -377,7 +373,7 @@ class GroupResolver(object):
             self._sources[default_source.name] = default_source
 
     def set_verbosity(self, value):
-        """Set debugging verbosity value. """
+        """Set debugging verbosity value (DEPRECATED: use logging.DEBUG)."""
         for source in self._sources.itervalues():
             source.verbosity = value
 

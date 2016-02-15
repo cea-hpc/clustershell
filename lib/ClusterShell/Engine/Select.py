@@ -1,9 +1,9 @@
 #
-# Copyright CEA/DAM/DIF (2009-2015)
+# Copyright CEA/DAM/DIF (2009-2016)
 #  Contributors:
 #   Henri DOREAU <henri.doreau@cea.fr>
 #   Aurelien DEGREMONT <aurelien.degremont@cea.fr>
-#   Stephane THIELL <stephane.thiell@cea.fr>
+#   Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -135,7 +135,8 @@ class EngineSelect(Engine):
                 if ex_errno == errno.EINTR:
                     continue
                 elif ex_errno in [errno.EINVAL, errno.EBADF, errno.ENOMEM]:
-                    print >> sys.stderr, "EngineSelect: %s" % ex_strerror
+                    msg = "Increase RLIMIT_NOFILE?"
+                    logging.getLogger(__name__).error(msg)
                 raise
 
             # iterate over fd on which events occured
@@ -188,6 +189,5 @@ class EngineSelect(Engine):
             # process clients timeout
             self.fire_timers()
 
-        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" % \
-                (self.evlooprefcnt, self.reg_clifds, len(self.timerq)))
-
+        self._debug("LOOP EXIT evlooprefcnt=%d (reg_clifds=%s) (timers=%d)" %
+                    (self.evlooprefcnt, self.reg_clifds, len(self.timerq)))
