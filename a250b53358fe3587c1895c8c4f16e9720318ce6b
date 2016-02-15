@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da86d52c_4f570103",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 735,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-15T18:53:06Z",
+      "side": 1,
+      "message": "With the current code, it prints a warning message (not a debug one, VERB_STD) and continues the execution. Do you think it\u0027s better to abort here? Because, if fd_max \u003e hard ulimit, we don\u0027t abort (I cannot changed that, as it\u0027s very common). But also I\u0027m not coherent as it\u0027s not the same level of warning... hmmm what do you think is the best?",
+      "parentUuid": "fa81d914_5c0ba18d",
+      "revId": "a250b53358fe3587c1895c8c4f16e9720318ce6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_7cfce572",
         "filename": "tests/CLIConfigTest.py",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2016-02-15T09:52:03Z",
       "side": 1,
       "message": "are the commented lines useful?",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 93,
+        "endChar": 52
+      },
+      "revId": "a250b53358fe3587c1895c8c4f16e9720318ce6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_4f20e19b",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-15T18:53:06Z",
+      "side": 1,
+      "message": "Just to check if commented lines work? :) I removed some of them in next tests I guess",
+      "parentUuid": "fa81d914_7cfce572",
       "range": {
         "startLine": 91,
         "startChar": 12,
