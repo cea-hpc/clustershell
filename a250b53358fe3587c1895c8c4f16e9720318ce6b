@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_5c0ba18d",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 735,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-15T09:52:03Z",
+      "side": 1,
+      "message": "that means fd_max setting will be ignored, as execution will continue?\nShould we return an error instead of simply displaying a warning here?",
+      "revId": "a250b53358fe3587c1895c8c4f16e9720318ce6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7cfce572",
+        "filename": "tests/CLIConfigTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-15T09:52:03Z",
+      "side": 1,
+      "message": "are the commented lines useful?",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 93,
+        "endChar": 52
+      },
+      "revId": "a250b53358fe3587c1895c8c4f16e9720318ce6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
