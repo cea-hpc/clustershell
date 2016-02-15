@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2007-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2007-2016)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -37,8 +37,8 @@ The poll() system call is available on Linux and BSD.
 """
 
 import errno
+import logging
 import select
-import sys
 import time
 
 from ClusterShell.Engine.Engine import Engine, E_READ, E_WRITE
@@ -86,9 +86,9 @@ class EnginePoll(Engine):
     def _modify_specific(self, fd, event, setvalue):
         """
         Engine-specific modifications after a interesting event change for
-        a file descriptor. Called automatically by Engine register/unregister and
-        set_events().  For the poll() engine, it reg/unreg or modifies the event mask
-        associated to a file descriptor.
+        a file descriptor. Called automatically by Engine register/unregister
+        and set_events().  For the poll() engine, it reg/unreg or modifies the
+        event mask associated to a file descriptor.
         """
         self._debug("MODSPEC fd=%d event=%x setvalue=%d" % (fd, event,
                                                             setvalue))
@@ -128,8 +128,8 @@ class EnginePoll(Engine):
                 if ex_errno == errno.EINTR:
                     continue
                 elif ex_errno == errno.EINVAL:
-                    print >> sys.stderr, \
-                            "EnginePoll: please increase RLIMIT_NOFILE"
+                    msg = "Increase RLIMIT_NOFILE?"
+                    logging.getLogger(__name__).error(msg)
                 raise
 
             for fd, event in evlist:
@@ -152,7 +152,8 @@ class EnginePoll(Engine):
                 if event & select.POLLERR:
                     self._debug("POLLERR %s" % client)
                     assert fdev & E_WRITE
-                    self._debug("POLLERR: remove_stream sname %s fdev 0x%x" % (sname, fdev))
+                    self._debug("POLLERR: remove_stream sname %s fdev 0x%x"
+                                % (sname, fdev))
                     self.remove_stream(client, stream)
                     self._current_stream = None
                     continue
@@ -173,16 +174,16 @@ class EnginePoll(Engine):
                 # or check for end of stream (do not handle both at the same
                 # time because handle_read() may perform a partial read)
                 elif event & select.POLLHUP:
-                    self._debug("POLLHUP fd=%d %s (%s)" % (fd,
-                        client.__class__.__name__, client.streams))
+                    self._debug("POLLHUP fd=%d %s (%s)" %
+                                (fd, client.__class__.__name__, client.streams))
                     self.remove_stream(client, stream)
                     self._current_stream = None
                     continue
 
                 # check for writing
                 if event & select.POLLOUT:
-                    self._debug("POLLOUT fd=%d %s (%s)" % (fd,
-                        client.__class__.__name__, client.streams))
+                    self._debug("POLLOUT fd=%d %s (%s)" %
+                                (fd, client.__class__.__name__, client.streams))
                     assert fdev == E_WRITE
                     assert stream.events & fdev
                     self.modify(client, sname, 0, fdev)
