@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2007-2014)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2007-2016)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -39,7 +39,6 @@ ClusterShell worker for executing commands with LLNL pdsh.
 import errno
 import os
 import shlex
-import sys
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClientError
@@ -141,8 +140,7 @@ class PdshClient(ExecClient):
                 #     0             1      2    3     4    5    6    7
                 # pdcp@cors113: cors115: fatal: /var/cache/shine/...
                 #     0             1      2                   3...
-
-                words  = line.split()
+                words = line.split()
                 # Set return code for nodename of worker
                 if self.MODE == 'pdsh':
                     if len(words) == 4 and words[2] == "command" and \
@@ -157,8 +155,7 @@ class PdshClient(ExecClient):
                     self.worker._on_node_rc(words[1][:-1], errno.ENOENT)
 
             except Exception, exc:
-                print >> sys.stderr, exc
-                raise EngineClientError()
+                raise EngineClientError("Pdsh parser error: %s" % exc)
         else:
             # split pdsh reply "nodename: msg"
             nodename, msg = line.split(': ', 1)

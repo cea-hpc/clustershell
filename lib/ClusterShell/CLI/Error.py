@@ -48,9 +48,11 @@ from ClusterShell.NodeUtils import GroupSourceNoUpcall
 from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
 from ClusterShell.NodeSet import RangeSetParseError
 from ClusterShell.Topology import TopologyError
+from ClusterShell.Worker.EngineClient import EngineClientError
 from ClusterShell.Worker.Worker import WorkerError
 
 GENERIC_ERRORS = (EngineNotSupportedError,
+                  EngineClientError,
                   NodeSetExternalError,
                   NodeSetParseError,
                   RangeSetParseError,
@@ -69,19 +71,21 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
     try:
         raise excobj
     except EngineNotSupportedError, exc:
-        print >> sys.stderr, "%s: I/O events engine '%s' not supported on " \
-            "this host" % (prog, exc.engineid)
+        msgfmt = "%s: I/O events engine '%s' not supported on this host"
+        print >> sys.stderr, msgfmt % (prog, exc.engineid)
+    except EngineClientError, exc:
+        print >> sys.stderr, "%s: EngineClientError: %s" % (prog, exc)
     except NodeSetExternalError, exc:
         print >> sys.stderr, "%s: External error:" % prog, exc
     except (NodeSetParseError, RangeSetParseError), exc:
         print >> sys.stderr, "%s: Parse error:" % prog, exc
     except GroupResolverIllegalCharError, exc:
-        print >> sys.stderr, "%s: Illegal group character: \"%s\"" % (prog, exc)
+        print >> sys.stderr, '%s: Illegal group character: "%s"' % (prog, exc)
     except GroupResolverSourceError, exc:
-        print >> sys.stderr, "%s: Unknown group source: \"%s\"" % (prog, exc)
+        print >> sys.stderr, '%s: Unknown group source: "%s"' % (prog, exc)
     except GroupSourceNoUpcall, exc:
-        print >> sys.stderr, "%s: No %s upcall defined for group " \
-            "source \"%s\"" % (prog, exc, exc.group_source.name)
+        msgfmt = '%s: No %s upcall defined for group source "%s"'
+        print >> sys.stderr, msgfmt % (prog, exc, exc.group_source.name)
     except GroupSourceError, exc:
         print >> sys.stderr, "%s: Group error:" % prog, exc
     except TopologyError, exc:

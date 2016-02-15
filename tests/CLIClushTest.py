@@ -24,6 +24,8 @@ from ClusterShell.CLI.Clush import main
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_cleanup
 
+from ClusterShell.Worker.EngineClient import EngineClientNotSupportedError
+
 
 class CLIClushTest_A(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py"""
@@ -457,6 +459,26 @@ class CLIClushTest_A(unittest.TestCase):
                       re.compile(r'%s: foo\nclush: 0/1\r.*'
                                  % HOSTNAME))
 
+    def test_032_worker_pdsh(self):
+        """test clush (worker pdsh)"""
+        # Warning: same as: echo -n | clush --worker=pdsh when launched from
+        # jenkins (not a tty), so we need --nostdin as pdsh worker doesn't
+        # support write
+        self._clush_t(["-w", HOSTNAME, "--worker=pdsh", "--nostdin",
+                       "echo foo"],
+                      None, "%s: foo\n" % HOSTNAME, 0)
+        # write not supported by pdsh worker
+        self.assertRaises(EngineClientNotSupportedError, self._clush_t,
+                          ["-w", HOSTNAME, "-R", "pdsh", "cat"], "bar", None, 1)
+
+    def test_033_worker_pdsh_tty(self):
+        """test clush (worker pdsh) [tty]"""
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self._clush_t(["-w", HOSTNAME, "--worker=pdsh", "echo foo"],
+                          None, "%s: foo\n" % HOSTNAME, 0)
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
