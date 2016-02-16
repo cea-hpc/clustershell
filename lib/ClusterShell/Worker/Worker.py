@@ -659,3 +659,32 @@ class WorkerSimple(StreamWorker):
     def error(self):
         """Read worker error buffer."""
         return self.read(sname='stderr')
+
+    def _on_start(self, key):
+        """Called on command start."""
+        if not self.started:
+            self.started = True
+            if self.eh:
+                self.eh.ev_start(self)
+
+        if self.eh:
+            self.eh.ev_pickup(self)
+
+    def _on_rc(self, key, rc):
+        """Command return code received."""
+        self.current_rc = rc
+
+        self.task._rc_set(self, key, rc)
+
+        if self.eh:
+            self.eh.ev_hup(self)
+
+    def _on_written(self, key, bytes_count, sname):
+        """Notification of bytes written."""
+        # set node and stream name (compat only)
+        self.current_sname = sname
+
+        # generate event - for ev_written, also check for new signature (1.7)
+        # NOTE: add DeprecationWarning in 1.8 for old ev_written signature
+        if self.eh and len(inspect.getargspec(self.eh.ev_written)[0]) == 5:
+            self.eh.ev_written(self, key, sname, bytes_count)

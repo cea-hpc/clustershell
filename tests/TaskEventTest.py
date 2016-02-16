@@ -150,6 +150,54 @@ class TaskEventTest(unittest.TestCase):
 
         eh.do_asserts_timeout()
 
+    def test_popen_specific_behaviour(self):
+        """test current_node is None for WorkerPopen events"""
+
+        class WorkerPopenEH(TestHandler):
+            def __init__(self, testcase):
+                TestHandler.__init__(self)
+                self.testcase = testcase
+
+            def ev_start(self, worker):
+                TestHandler.ev_start(self, worker)
+                self.testcase.assertEqual(worker.current_node, None)
+
+            def ev_read(self, worker):
+                TestHandler.ev_read(self, worker)
+                self.testcase.assertEqual(worker.current_node, None)
+
+            def ev_error(self, worker):
+                TestHandler.ev_error(self, worker)
+                self.testcase.assertEqual(worker.current_node, None)
+
+            def ev_written(self, worker, node, sname, size):
+                TestHandler.ev_written(self, worker, node, sname, size)
+                self.testcase.assertEqual(worker.current_node, None)
+
+            def ev_pickup(self, worker):
+                TestHandler.ev_pickup(self, worker)
+                self.testcase.assertEqual(worker.current_node, None)
+
+            def ev_hup(self, worker):
+                TestHandler.ev_hup(self, worker)
+                self.testcase.assertEqual(worker.current_node, None)
+
+            def ev_close(self, worker):
+                TestHandler.ev_close(self, worker)
+                self.testcase.assertEqual(worker.current_node, None)
+
+        task = task_self()
+        eh = WorkerPopenEH(self)
+
+        worker = task.shell("cat", handler=eh)
+        content = "abcdefghijklmnopqrstuvwxyz\n"
+        worker.write(content)
+        worker.set_write_eof()
+
+        self.assertNotEqual(worker, None)
+        task.run()
+        eh.do_asserts_read_write_notimeout()
+
     class TInFlyAdder(EventHandler):
         """Test handler that schedules new commands in-fly"""
         def ev_read(self, worker):
