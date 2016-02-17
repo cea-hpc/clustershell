@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "da86d52c_be50ad5f",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 735,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-17T03:17:05Z",
+      "side": 1,
+      "message": "So something like that will happen:\n\n $ ulimit -n 13\n $ ./clush.py  -w localhost uptime\n ERROR: [Errno 24] Too many open files\n ERROR: current `nofile\u0027 limits: soft\u003d13 hard\u003d13\n\nThe limit will most probably be reached in fastsubprocess.py, if I remove the exception handler, I got this:\n\n  File \"clustershell/lib/ClusterShell/Worker/fastsubprocess.py\", line 249, in _get_handles\n    errread, errwrite \u003d os.pipe()\nOSError: [Errno 24] Too many open files\n\nI don\u0027t think that it is VERY important to display the warning, I mean, most users won\u0027t notice it. But thinking about it, I guess -d may be too low level, and VERB_STD is probably too much (and would be annoying!). So what about setting both messages at VERB_VERB level, so that we only get a warning when using clush -v in case of (1) fd_max is greater than ulimit -Hn and/or (2) system limit is reached and setrlimit didn\u0027t work. I will change the patch that way for now, but feel free to comment!!!",
+      "parentUuid": "da86d52c_1d2c634a",
+      "revId": "a250b53358fe3587c1895c8c4f16e9720318ce6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_7cfce572",
         "filename": "tests/CLIConfigTest.py",
         "patchSetId": 2
