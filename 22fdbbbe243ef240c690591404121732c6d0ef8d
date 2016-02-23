@@ -34,6 +34,42 @@
       "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_9ada19e8",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-23T22:01:42Z",
+      "side": 1,
+      "message": "Maybe the good fix is to unify the API between workers. I\u0027m advocating in this direction for a while. Things are better in 1.7, thanks to StreamWorker, but this is not enough.",
+      "parentUuid": "5a72e520_9ad059f9",
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_fa4a2dab",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-23T22:01:42Z",
+      "side": 1,
+      "message": "MilkCheck and others use this trick for a while, but there is no \"good\" way to make this difference nicely in the API, even if things could be really close :\n\nHave a look :\nhttps://github.com/cea-hpc/milkcheck/blob/master/lib/MilkCheck/UI/Cli.py#L305",
+      "parentUuid": "5a72e520_7a5d5de9",
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
