@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_7a5d5de9",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-23T18:56:18Z",
+      "side": 1,
+      "message": "Ahh, I see now! Worker and StreamWorker are setting current_node to self.key, but not WorkerSimple. And that is used to check if that\u0027s a local/distant worker. That\u0027s not a very good solution... but I understand the patch.\n\nDid you think of calling Worker._on_start(self, None) in that case, as a workaround.\n\nWe would have to discuss of a better solution I guess...",
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
