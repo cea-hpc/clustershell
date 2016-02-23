@@ -16,6 +16,24 @@
       "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_9ad059f9",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-23T20:39:51Z",
+      "side": 1,
+      "message": "I mean, a better solution for the long-term, not for this patch (that I will probably accept :). I will have a closer look tonight.",
+      "parentUuid": "5a72e520_7a5d5de9",
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
