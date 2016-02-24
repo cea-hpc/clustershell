@@ -224,6 +224,30 @@
       "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_07efadb1",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-24T17:12:07Z",
+      "side": 1,
+      "message": "But I agreed with you that this patch is not really good. I do not like it, but we need to restore the 1.6 behaviour quickly.\n\nAfter that, we can find of better way to clean this, for 1.8+",
+      "parentUuid": "5a72e520_67e781e5",
+      "range": {
+        "startLine": 684,
+        "startChar": 8,
+        "endLine": 690,
+        "endChar": 61
+      },
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
