@@ -248,6 +248,30 @@
       "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_a753396b",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-24T17:42:03Z",
+      "side": 1,
+      "message": "Exactly, we\u0027re on the same page!",
+      "parentUuid": "5a72e520_07efadb1",
+      "range": {
+        "startLine": 684,
+        "startChar": 8,
+        "endLine": 690,
+        "endChar": 61
+      },
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
