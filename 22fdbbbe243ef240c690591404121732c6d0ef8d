@@ -70,6 +70,70 @@
       "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_ae6cf637",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-24T06:37:07Z",
+      "side": 1,
+      "message": "I guess as a workaround for 1.7.1, I would prefer calls to each super method with key\u003dNone, to avoid duplicating most of the code and thus it will be clear that key is None in that case. Let me know if you agree or if I missed anythine. eg.\n\nStreamWorker._on_start(self, None)",
+      "parentUuid": "5a72e520_fa4a2dab",
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_ce693227",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-24T06:37:07Z",
+      "side": 1,
+      "message": "StreamWorker._on_rc(self, None, rc)",
+      "range": {
+        "startLine": 675,
+        "startChar": 8,
+        "endLine": 680,
+        "endChar": 32
+      },
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_ee76ee05",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-24T06:37:07Z",
+      "side": 1,
+      "message": "StreamWorker._on_written(self, None, bytes_count, sname)",
+      "range": {
+        "startLine": 684,
+        "startChar": 8,
+        "endLine": 690,
+        "endChar": 61
+      },
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
