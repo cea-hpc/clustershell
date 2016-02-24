@@ -200,6 +200,30 @@
       "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_67e781e5",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-24T17:03:07Z",
+      "side": 1,
+      "message": "Alright, I\u0027m not so good at reviewing :)\nI\u0027m ok with this patch then, thanks!",
+      "parentUuid": "5a72e520_b11ffb08",
+      "range": {
+        "startLine": 684,
+        "startChar": 8,
+        "endLine": 690,
+        "endChar": 61
+      },
+      "revId": "22fdbbbe243ef240c690591404121732c6d0ef8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
