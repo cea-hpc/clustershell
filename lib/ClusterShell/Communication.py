@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010-2015)
+# Copyright CEA/DAM/DIF (2010-2016)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
@@ -56,6 +56,7 @@ top of a communication channel.
 import cPickle
 import base64
 import logging
+import os
 import xml.sax
 
 from xml.sax.handler import ContentHandler
@@ -69,7 +70,11 @@ from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
 
 
+# XML character encoding
 ENCODING = 'utf-8'
+
+# See Message.data_encode()
+DEFAULT_B64_LINE_LENGTH = 65536
 
 
 class MessageProcessingError(Exception):
@@ -225,6 +230,7 @@ class Channel(EventHandler):
             self._close()
             return
         except MessageProcessingError, ex:
+            self.logger.error("MessageProcessingError: %s", ex)
             if self.error_response:
                 self.send(ErrorMessage(str(ex)))
             self._close()
@@ -268,13 +274,25 @@ class Message(object):
 
     def data_encode(self, inst):
         """serialize an instance and store the result"""
-        self.data = base64.encodestring(cPickle.dumps(inst))
+        # Base64 transfer encoding for MIME mandates a fixed line length
+        # of 76 characters, which is way too small for our per-line ev_read
+        # mechanism. So use b64encode() here instead of encodestring().
+        encoded = base64.b64encode(cPickle.dumps(inst))
+
+        # We now follow relaxed RFC-4648 for base64, but we still add some
+        # newlines to very long lines to avoid memory pressure (eg. --rcopy).
+        # In RFC-4648, CRLF characters constitute "non-alphabet characters"
+        # and are ignored.
+        line_length = int(os.environ.get('CLUSTERSHELL_GW_B64_LINE_LENGTH',
+                                         DEFAULT_B64_LINE_LENGTH))
+        self.data = '\n'.join(encoded[pos:pos+line_length]
+                              for pos in xrange(0, len(encoded), line_length))
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
         # if self.data is None then an exception is raised here
         try:
-            return cPickle.loads(base64.decodestring(self.data))
+            return cPickle.loads(base64.b64decode(self.data))
         except (EOFError, TypeError):
             # raised by cPickle.loads() if self.data is not valid
             raise MessageProcessingError('Message %s has an invalid payload'

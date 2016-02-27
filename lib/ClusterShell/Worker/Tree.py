@@ -1,5 +1,5 @@
 #
-# Copyright CEA/DAM/DIF (2011-2015)
+# Copyright CEA/DAM/DIF (2011-2016)
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
@@ -164,9 +164,10 @@ class WorkerTree(DistantWorker):
 
         # build gateway invocation command
         invoke_gw_args = []
-        for envname in ('PYTHONPATH', \
-                        'CLUSTERSHELL_GW_LOG_DIR', \
-                        'CLUSTERSHELL_GW_LOG_LEVEL'):
+        for envname in ('PYTHONPATH',
+                        'CLUSTERSHELL_GW_LOG_DIR',
+                        'CLUSTERSHELL_GW_LOG_LEVEL',
+                        'CLUSTERSHELL_GW_B64_LINE_LENGTH'):
             envval = os.getenv(envname)
             if envval:
                 invoke_gw_args.append("%s=%s" % (envname, envval))
