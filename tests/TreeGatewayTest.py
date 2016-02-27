@@ -314,7 +314,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         """test gateway channel message badly encoded payload"""
         self._check_channel_err(
             '<message msgid="14" type="CFG" gateway="n1">bar</message>',
-            'Incorrect padding')
+            'Message CFG has an invalid payload')
 
     def test_channel_basic_abort(self):
         """test gateway channel aborted while opened"""
