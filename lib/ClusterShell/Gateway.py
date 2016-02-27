@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010-2015)
+# Copyright CEA/DAM/DIF (2010-2016)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
@@ -71,18 +71,26 @@ def gateway_excepthook(exc_type, exc_value, tb):
 
 class WorkerTreeResponder(EventHandler):
     """Gateway WorkerTree handler"""
+
     def __init__(self, task, gwchan, srcwkr):
         EventHandler.__init__(self)
         self.gwchan = gwchan    # gateway channel
         self.srcwkr = srcwkr    # id of distant parent WorkerTree
         self.worker = None      # local WorkerTree instance
-        # For messages grooming
-        qdelay = task.info("grooming_delay")
-        self.timer = task.timer(qdelay, self, qdelay, autoclose=True)
+        self.retcodes = {}      # self-managed retcodes
         self.logger = logging.getLogger(__name__)
-        self.logger.debug("WorkerTreeResponder: initialized")
-        # self-managed retcodes
-        self.retcodes = {}
+
+        # Grooming initialization
+        self.timer = None
+        qdelay = task.info("grooming_delay")
+        if qdelay > 1.0e-3:
+            # Enable messages and rc grooming - enable msgtree (#181)
+            task.set_default("stdout_msgtree", True)
+            task.set_default("stderr_msgtree", True)
+            # create auto-closing timer object for grooming
+            self.timer = task.timer(qdelay, self, qdelay, autoclose=True)
+
+        self.logger.debug("WorkerTreeResponder initialized grooming=%f", qdelay)
 
     def ev_start(self, worker):
         self.logger.debug("WorkerTreeResponder: ev_start")
@@ -96,14 +104,14 @@ class WorkerTreeResponder(EventHandler):
 
         # check for grooming opportunities for stdout/stderr
         for msg_elem, nodes in self.worker.iter_errors():
-            logger.debug("iter(stderr): %s: %d bytes" % \
-                (nodes, len(msg_elem.message())))
-            self.gwchan.send(StdErrMessage(nodes, msg_elem.message(), \
+            logger.debug("iter(stderr): %s: %d bytes", nodes,
+                         len(msg_elem.message()))
+            self.gwchan.send(StdErrMessage(nodes, msg_elem.message(),
                                            self.srcwkr))
         for msg_elem, nodes in self.worker.iter_buffers():
-            logger.debug("iter(stdout): %s: %d bytes" % \
-                (nodes, len(msg_elem.message())))
-            self.gwchan.send(StdOutMessage(nodes, msg_elem.message(), \
+            logger.debug("iter(stdout): %s: %d bytes", nodes,
+                         len(msg_elem.message()))
+            self.gwchan.send(StdOutMessage(nodes, msg_elem.message(),
                                            self.srcwkr))
         # empty internal MsgTree buffers
         self.worker.flush_buffers()
@@ -113,39 +121,58 @@ class WorkerTreeResponder(EventHandler):
         # retcodes to parent node, instead of doing it at ev_hup (no msg
         # aggregation) or at ev_close (no parent node live updates)
         for rc, nodes in self.retcodes.iteritems():
-            self.logger.debug("iter(rc): %s: rc=%d" % (nodes, rc))
+            self.logger.debug("iter(rc): %s: rc=%d", nodes, rc)
             self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
         self.retcodes.clear()
 
+    def ev_read(self, worker):
+        """message received on stdout"""
+        if self.timer is None:
+            self.gwchan.send(StdOutMessage(worker.current_node,
+                                           worker.current_msg,
+                                           self.srcwkr))
+
     def ev_error(self, worker):
-        self.logger.debug("WorkerTreeResponder: ev_error %s" % \
-            worker.current_errmsg)
+        """message received on stderr"""
+        self.logger.debug("WorkerTreeResponder: ev_error %s %s",
+                          worker.current_node,
+                          worker.current_errmsg)
+        if self.timer is None:
+            self.gwchan.send(StdErrMessage(worker.current_node,
+                                           worker.current_errmsg,
+                                           self.srcwkr))
 
     def ev_timeout(self, worker):
         """Received timeout event: some nodes did timeout"""
-        self.gwchan.send(TimeoutMessage( \
-            NodeSet._fromlist1(worker.iter_keys_timeout()), self.srcwkr))
+        msg = TimeoutMessage(NodeSet._fromlist1(worker.iter_keys_timeout()),
+                             self.srcwkr)
+        self.gwchan.send(msg)
 
     def ev_hup(self, worker):
         """Received end of command from one node"""
-        if worker.current_rc in self.retcodes:
-            self.retcodes[worker.current_rc].add(worker.current_node)
+        if self.timer is None:
+            self.gwchan.send(RetcodeMessage(worker.current_node,
+                                            worker.current_rc,
+                                            self.srcwkr))
         else:
-            self.retcodes[worker.current_rc] = NodeSet(worker.current_node)
+            # retcode grooming
+            if worker.current_rc in self.retcodes:
+                self.retcodes[worker.current_rc].add(worker.current_node)
+            else:
+                self.retcodes[worker.current_rc] = NodeSet(worker.current_node)
 
     def ev_close(self, worker):
         """End of CTL responder"""
         self.logger.debug("WorkerTreeResponder: ev_close")
-        # finalize grooming
-        self.ev_timer(None)
-        self.timer.invalidate()
+        if self.timer is not None:
+            # finalize grooming
+            self.ev_timer(None)
+            self.timer.invalidate()
 
 
 class GatewayChannel(Channel):
     """high level logic for gateways"""
     def __init__(self, task):
-        """
-        """
         Channel.__init__(self, error_response=True)
         self.task = task
         self.nodename = None
@@ -222,7 +249,7 @@ class GatewayChannel(Channel):
         # topology
         task_self().topology = self.topology = msg.data_decode()
         self.logger.debug('decoded propagation tree')
-        self.logger.debug('\n%s' % self.topology)
+        self.logger.debug('\n%s', self.topology)
         self.setup = True
         self._ack(msg)
 
@@ -273,7 +300,7 @@ class GatewayChannel(Channel):
                 self._ack(msg)
             elif msg.action == 'write':
                 data = msg.data_decode()
-                self.logger.debug('GatewayChannel write: %d bytes', \
+                self.logger.debug('GatewayChannel write: %d bytes',
                                   len(data['buf']))
                 self.propagation.write(data['buf'])
                 self._ack(msg)
@@ -314,7 +341,7 @@ def gateway_main():
     sys.excepthook = gateway_excepthook
 
     logger.debug('Starting gateway on %s', host)
-    logger.debug("environ=%s" % os.environ)
+    logger.debug("environ=%s", os.environ)
 
 
     set_nonblock_flag(sys.stdin.fileno())
@@ -323,9 +350,9 @@ def gateway_main():
 
     task = task_self()
 
-    # Pre-enable MsgTree buffering on gateway (FIXME)
-    task.set_default("stdout_msgtree", True)
-    task.set_default("stderr_msgtree", True)
+    # Disable MsgTree buffering, it is enabled later when needed
+    task.set_default("stdout_msgtree", False)
+    task.set_default("stderr_msgtree", False)
 
     if sys.stdin.isatty():
         logger.critical('Gateway failure: sys.stdin.isatty() is True')
@@ -345,10 +372,10 @@ def gateway_main():
     except EngineAbortException, exc:
         logger.debug('EngineAbortException')
     except IOError, exc:
-        logger.debug('Broken pipe (%s)' % exc)
+        logger.debug('Broken pipe (%s)', exc)
         raise
     except Exception, exc:
-        logger.exception('Gateway failure: %s' % exc)
+        logger.exception('Gateway failure: %s', exc)
     logger.debug('-------- The End --------')
 
 if __name__ == '__main__':
