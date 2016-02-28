@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_fcf85ac6",
+        "filename": "lib/ClusterShell/Engine/Factory.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-28T20:14:16Z",
+      "side": 1,
+      "message": "is not use below",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 82,
+        "endChar": 19
+      },
+      "revId": "ed98a9443ce278cd8af65d3243759791e647b63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_3c03d2b9",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-28T20:14:16Z",
+      "side": 1,
+      "message": "useless to keep this method.\nJust use a local attribute like self.logger like Gateway class.",
+      "revId": "ed98a9443ce278cd8af65d3243759791e647b63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
