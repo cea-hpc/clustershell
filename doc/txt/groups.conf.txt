@@ -7,9 +7,9 @@ Configuration file for ClusterShell node groups
 -----------------------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2015-11-06
+:Date:   2016-02-28
 :Copyright: CeCILL-C V1
-:Version: 1.7
+:Version: 1.7.1
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 

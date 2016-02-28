@@ -7,9 +7,9 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2015-11-01
+:Date:   2016-02-28
 :Copyright: CeCILL-C V1
-:Version: 1.7
+:Version: 1.7.1
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
