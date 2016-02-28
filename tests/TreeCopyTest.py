@@ -12,7 +12,7 @@ from ClusterShell.Topology import TopologyGraph
 import ClusterShell.Task
 from ClusterShell.Worker.Tree import WorkerTree
 
-from TLib import HOSTNAME, make_temp_file
+from TLib import HOSTNAME, make_temp_dir, make_temp_file
 
 # live logging with nosetests --nologcapture
 logging.basicConfig(level=logging.DEBUG)
@@ -23,12 +23,17 @@ class TestWorkerTree(WorkerTree):
 
     TEST_INST = None
 
-    def _copy_remote(self, source, dest, targets, gateway, timeout):
+    def _copy_remote(self, source, dest, targets, gateway, timeout, reverse):
         """run a remote copy in tree mode (using gateway)"""
-        self.TEST_INST.assertEqual(source, self.TEST_INST.tfile.name)
-        # check that dest is our tfile.name dirname
-        self.TEST_INST.assertEqual(dest, dirname(self.TEST_INST.tfile.name))
-        self.TEST_INST.assertEqual(targets, NodeSet("n60"))
+        if reverse:
+            self.TEST_INST.assertEqual(source, self.TEST_INST.tfile.name)
+            self.TEST_INST.assertEqual(dest, self.TEST_INST.tdir)
+            self.TEST_INST.assertEqual(targets, NodeSet("n60"))
+        else:
+            self.TEST_INST.assertEqual(source, self.TEST_INST.tfile.name)
+            # check that dest is our tfile.name dirname
+            self.TEST_INST.assertEqual(dest, dirname(self.TEST_INST.tfile.name))
+            self.TEST_INST.assertEqual(targets, NodeSet("n60"))
         self.TEST_INST.test_ok = True
 
     def write(self, buf):
@@ -66,6 +71,15 @@ class TreeCopyTestTest(unittest.TestCase):
         task_self().copy(self.tfile.name,
                          join(dirname(self.tfile.name), ''),
                          "n60")
+        task_self().resume()
+        self.assertTrue(self.test_ok)
+
+    def test_rcopy(self):
+        """test file rcopy setup in tree mode (1 gateway)"""
+        self.test_ok = False
+        self.tfile = make_temp_file("dummy-src")
+        self.tdir = make_temp_dir()
+        task_self().rcopy(self.tfile.name, self.tdir, "n60")
         task_self().resume()
         self.assertTrue(self.test_ok)
 

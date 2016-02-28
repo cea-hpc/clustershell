@@ -640,11 +640,6 @@ def run_command(task, cmd, ns, timeout, display, remote):
     """
     task.set_default("USER_running", True)
 
-    if display.verbosity >= VERB_VERB and task.topology:
-        print Display.COLOR_RESULT_FMT % '-' * 15
-        print Display.COLOR_RESULT_FMT % task.topology,
-        print Display.COLOR_RESULT_FMT % '-' * 15
-
     if (display.gather or display.line_mode) and ns is not None:
         if display.gather and display.line_mode:
             handler = LiveGatherOutputHandler(display, ns)
@@ -675,11 +670,6 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
 
-    if display.verbosity >= VERB_VERB and task.topology:
-        print Display.COLOR_RESULT_FMT % '-' * 15
-        print Display.COLOR_RESULT_FMT % task.topology,
-        print Display.COLOR_RESULT_FMT % '-' * 15
-
     copyhandler = CopyOutputHandler(display)
     if display.verbosity in (VERB_STD, VERB_VERB):
         copyhandler.runtimer_init(task, len(ns) * len(sources))
@@ -687,8 +677,8 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
     # Sources check
     for source in sources:
         if not exists(source):
-            display.vprint_err(VERB_QUIET, "ERROR: file \"%s\" not found" % \
-                                           source)
+            display.vprint_err(VERB_QUIET,
+                               'ERROR: file "%s" not found' % source)
             clush_exit(1, task)
         task.copy(source, dest, ns, handler=copyhandler, timeout=timeout,
                   preserve=preserve_flag)
@@ -701,12 +691,12 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
 
     # Sanity checks
     if not exists(dest):
-        display.vprint_err(VERB_QUIET, "ERROR: directory \"%s\" not found" % \
-                                       dest)
+        display.vprint_err(VERB_QUIET,
+                           'ERROR: directory "%s" not found' % dest)
         clush_exit(1, task)
     if not isdir(dest):
-        display.vprint_err(VERB_QUIET, \
-            "ERROR: destination \"%s\" is not a directory" % dest)
+        display.vprint_err(VERB_QUIET,
+                           'ERROR: destination "%s" is not a directory' % dest)
         clush_exit(1, task)
 
     copyhandler = CopyOutputHandler(display, True)
@@ -714,7 +704,7 @@ def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
         copyhandler.runtimer_init(task, len(ns) * len(sources))
     for source in sources:
         task.rcopy(source, dest, ns, handler=copyhandler, timeout=timeout,
-                   preserve=preserve_flag)
+                   stderr=True, preserve=preserve_flag)
     task.resume()
 
 def set_fdlimit(fd_max, display):
@@ -977,9 +967,12 @@ def main():
 
     if options.grooming_delay:
         if config.verbosity >= VERB_VERB:
-            print Display.COLOR_RESULT_FMT % ("Grooming delay: %f" % \
-                                              options.grooming_delay)
+            print Display.COLOR_RESULT_FMT % ("Grooming delay: %f"
+                                              % options.grooming_delay)
         task.set_info("grooming_delay", options.grooming_delay)
+    elif options.rcopy:
+        # By default, --rcopy should inhibit grooming
+        task.set_info("grooming_delay", 0)
 
     if config.ssh_user:
         task.set_info("ssh_user", config.ssh_user)
@@ -1043,6 +1036,10 @@ def main():
                                                 config.command_timeout,
                                                 op))
     if not task.default("USER_interactive"):
+        if display.verbosity >= VERB_VERB and task.topology:
+            print Display.COLOR_RESULT_FMT % '-' * 15
+            print Display.COLOR_RESULT_FMT % task.topology,
+            print Display.COLOR_RESULT_FMT % '-' * 15
         if options.copy:
             run_copy(task, args, options.dest_path, nodeset_base, timeout,
                      options.preserve_flag, display)
