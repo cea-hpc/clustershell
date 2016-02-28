@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010-2015)
+# Copyright CEA/DAM/DIF (2010-2016)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
@@ -263,7 +263,7 @@ class PropagationChannel(Channel):
 
     def recv(self, msg):
         """process incoming messages"""
-        self.logger.debug("[DBG] rcvd from: %s", msg)
+        self.logger.debug("recv: %s", msg)
         if msg.type == EndMessage.ident:
             #??#self.ptree.notify_close()
             self.logger.debug("got EndMessage; closing")
@@ -344,7 +344,6 @@ class PropagationChannel(Channel):
 
     def recv_ctl(self, msg):
         """handle incoming messages for state 'control'"""
-        self.logger.debug("recv_ctl")
         if msg.type == 'ACK':
             self.logger.debug("got ack (%s)", msg.type)
             # check if ack matches write history msgid to generate ev_written
@@ -361,7 +360,8 @@ class PropagationChannel(Channel):
                 if metaworker.eh:
                     nodeset = NodeSet(msg.nodes)
                     decoded = msg.data_decode() + '\n'
-                    self.logger.debug("StdOutMessage: \"%s\"", decoded)
+                    # this is way too verbose for --rcopy
+                    #self.logger.debug("StdOutMessage: \"%s\"", decoded)
                     for line in decoded.splitlines():
                         for node in nodeset:
                             metaworker._on_remote_node_msgline(node,
