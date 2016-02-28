@@ -1302,7 +1302,8 @@ class Task(object):
         # create gateway channel if needed
         if gateway not in self.gateways:
             chan = PropagationChannel(self, gateway)
-            logging.getLogger(__name__).info("pchannel: creating new channel")
+            logger = logging.getLogger(__name__)
+            logger.info("pchannel: creating new channel %s", chan)
             # invoke gateway
             timeout = None # FIXME: handle timeout for gateway channels
             wrkcls = self.default('distant_worker')
@@ -1328,19 +1329,19 @@ class Task(object):
         Lookup by gateway, decref associated metaworker set and release
         channel worker if needed.
         """
-        logging.getLogger(__name__).info("pchannel_release %s %s", gateway,
-                                         metaworker)
+        logger = logging.getLogger(__name__)
+        logger.debug("pchannel_release %s %s", gateway, metaworker)
 
         if gateway not in self.gateways:
-            logging.getLogger(__name__).error("pchannel_release: no pchannel"
-                                              "found for gateway %s",
-                                              gateway)
+            logger.error("pchannel_release: no pchannel found for gateway %s",
+                         gateway)
         else:
             # TODO: delay gateway closing when other gateways are running
             chanworker, metaworkers = self.gateways[gateway]
             metaworkers.remove(metaworker)
             if len(metaworkers) == 0:
-                logging.getLogger(__name__).info("worker finishing")
+                logger.info("pchannel_release: destroying channel %s",
+                            chanworker.eh)
                 chanworker.abort()
                 # delete gateway reference
                 del self.gateways[gateway]

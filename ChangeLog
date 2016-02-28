@@ -1,3 +1,7 @@
+2016-02-28 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.7.1 released.
+
 2016-02-27 S. Thiell <sthiell@stanford.edu>
 
 	* Worker/Tree.py: implement tree mode reverse copy using tar commands to

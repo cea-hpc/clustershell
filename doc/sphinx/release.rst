@@ -3,6 +3,21 @@
 Release Notes
 =============
 
+Version 1.7.1
+-------------
+
+This minor version contains a few bug fixes, mostly related to
+:ref:`guide-NodeSet`.
+
+This version also contains bug fixes and performance improvements in tree
+propagation mode.
+
+For more details, please have a look at `GitHub Issues for 1.7.1 milestone`_.
+
+ClusterShell 1.7.1 is compatible with Python 2.4 up to Python 2.7 (for
+example: from RedHat EL5 to EL7). Upgrades from versions 1.6 or 1.7 are
+supported.
+
 Version 1.7
 -----------
 
@@ -25,7 +40,7 @@ Maintenance release
 
 Version 1.7 and possible future minor versions 1.7.x are compatible with
 Python 2.4 up to Python 2.7 (for example: from RedHat EL5 to EL7). Upgrade
-from version 1.6 to 1.7 should be painless and are fully supported.
+from version 1.6 to 1.7 should be painless and is fully supported.
 
 The next major version of ClusterShell will require at least Python 2.6. We
 will also soon start working on Python 3 support.
@@ -233,3 +248,5 @@ configuration files::
     $ pip install --user clustershell
 
 Please see :ref:`install-pip-user`.
+
+.. _GitHub Issues for 1.7.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.1+

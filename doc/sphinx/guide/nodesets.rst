@@ -1,3 +1,5 @@
+.. _guide-NodeSet:
+
 Node sets handling
 ==================
 

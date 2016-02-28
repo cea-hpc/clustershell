@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2008-2015)
+# Copyright CEA/DAM/DIF (2008-2016)
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
@@ -49,7 +49,7 @@ else:
     # User, in-prefix config install (rpmbuild or pip as user)
     CFGDIR = 'etc/clustershell'
 
-VERSION='1.7'
+VERSION='1.7.1'
 
 setup(name='ClusterShell',
       version=VERSION,
