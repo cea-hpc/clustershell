@@ -1,5 +1,8 @@
 2016-02-27 S. Thiell <sthiell@stanford.edu>
 
+	* Worker/Tree.py: implement tree mode reverse copy using tar commands to
+	fix clush --rcopy (ticket #290).
+
 	* Communication.py: remove 76-char base64 encoding fixed length
 	restriction for tree XML payload communication. The default max length is
 	now 64K, which gives good results. The environment variable
