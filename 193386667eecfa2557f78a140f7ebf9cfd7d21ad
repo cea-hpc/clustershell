@@ -22,6 +22,30 @@
       "revId": "193386667eecfa2557f78a140f7ebf9cfd7d21ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_b099a370",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-29T17:58:56Z",
+      "side": 1,
+      "message": "Oops!",
+      "parentUuid": "5a72e520_3f76643f",
+      "range": {
+        "startLine": 347,
+        "startChar": 26,
+        "endLine": 347,
+        "endChar": 34
+      },
+      "revId": "193386667eecfa2557f78a140f7ebf9cfd7d21ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
