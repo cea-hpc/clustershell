@@ -16,6 +16,24 @@
       "revId": "7947a969ccbb6b2ed723dd1dea9e03e975dd2f9d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_cbed8e8d",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1305,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-02-29T23:10:41Z",
+      "side": 1,
+      "message": "Yeah, I know it\u0027s weird, but it\u0027s on purpose. I didn\u0027t have the opportunity to push them in previous patch.",
+      "parentUuid": "5a72e520_4bc19e2d",
+      "revId": "7947a969ccbb6b2ed723dd1dea9e03e975dd2f9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
