@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_4bc19e2d",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1305,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-02-29T22:14:08Z",
+      "side": 1,
+      "message": "not a big deal but I\u0027m surprise to see these changes in this patch. Was this intended?",
+      "revId": "7947a969ccbb6b2ed723dd1dea9e03e975dd2f9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
