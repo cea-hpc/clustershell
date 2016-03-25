@@ -301,10 +301,10 @@ class YAMLGroupLoader(object):
             try:
                 import yaml
                 sources = yaml.load(yamlfile)
-            except ImportError, exc:
+            except ImportError as exc:
                 msg = "Disable autodir or install PyYAML!"
                 raise GroupResolverConfigError("%s (%s)" % (str(exc), msg))
-            except yaml.YAMLError, exc:
+            except yaml.YAMLError as exc:
                 raise GroupResolverConfigError("%s: %s" % (self.filename, exc))
         finally:
             yamlfile.close()
@@ -618,7 +618,7 @@ class GroupResolverConfig(GroupResolver):
                                                           list_upcall,
                                                           reverse_upcall,
                                                           cfgdir, ctime))
-        except (NoSectionError, NoOptionError, ValueError), exc:
+        except (NoSectionError, NoOptionError, ValueError) as exc:
             raise GroupResolverConfigError(str(exc))
 
     def _sources_from_yaml(self, filepath):
