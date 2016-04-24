@@ -732,8 +732,12 @@ def clush_exit(status, task=None):
         task.join()
         sys.exit(status)
     else:
+        # Best effort cleanup if no task is set
         for stream in [sys.stdout, sys.stderr]:
-            stream.flush()
+            try:
+                stream.flush()
+            except IOError:
+                pass
         # Use os._exit to avoid threads cleanup
         os._exit(status)
 
