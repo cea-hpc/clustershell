@@ -922,9 +922,6 @@ class ParsingEngine(object):
 
     def _scan_string_single(self, nsstr, autostep):
         """Single node scan, returns (pat, list of rangesets)"""
-        if len(nsstr) == 0:
-            raise NodeSetParseError(nsstr, "empty node name")
-
         # single node parsing
         pfx_nd = [mobj.groups() for mobj in self.base_node_re.finditer(nsstr)]
         pfx_nd = pfx_nd[:-1]
@@ -964,7 +961,7 @@ class ParsingEngine(object):
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
         next_op_code = 'update'
-        while nsstr is not None:
+        while nsstr:
             # Ignore whitespace(s) for convenience
             nsstr = nsstr.lstrip()
 
@@ -1059,11 +1056,6 @@ class ParsingEngine(object):
                     sfx, sfxrvec = self._scan_string_single(sfx, autostep)
                     newpat += sfx
                     rsets += sfxrvec
-
-                # pfx + sfx cannot be empty
-                if len(newpat) == 0:
-                    raise NodeSetParseError(nsstr, "empty node name")
-
             else:
                 # In this case, either there is no comma and no bracket,
                 # or the bracket is after the comma, then just return

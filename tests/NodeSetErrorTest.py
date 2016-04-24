@@ -33,7 +33,6 @@ class NodeSetErrorTest(unittest.TestCase):
 
     def testBadRangeUsages(self):
         """test NodeSet parse errors in range"""
-        self._testNS("", NodeSetParseError)
         self._testNS("nova[]", NodeSetParseRangeError)
         self._testNS("nova[-]", NodeSetParseRangeError)
         self._testNS("nova[A]", NodeSetParseRangeError)
@@ -185,3 +184,8 @@ class NodeSetErrorTest(unittest.TestCase):
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
         n1.fold_axis = RangeSet("0-1") # ok
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+
+    def test_fromlist1(self):
+        """test _fromlist1 private constructor errors"""
+        self.assertRaises(NodeSetParseError, NodeSet._fromlist1, ["foo", "", "bar"])
+        self.assertRaises(NodeSetParseError, NodeSet._fromlist1, ["foo", "42", "bar"])
