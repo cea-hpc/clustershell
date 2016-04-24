@@ -65,4 +65,3 @@ if sys.version_info >= (2, 6, 0):
         def tearDown(self):
             DEFAULTS.engine = self.engine_id_save
             task_terminate()
-

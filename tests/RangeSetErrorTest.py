@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell.NodeSet.RangeSet error handling test suite
-# Written by S. Thiell 2008-09-28
+# Written by S. Thiell
 
 
 """Unit test for RangeSet errors"""
@@ -27,7 +27,6 @@ class RangeSetErrorTest(unittest.TestCase):
         except:
             raise
         self.assert_(0, "error not detected/no exception raised")
-            
 
     def testBadUsages(self):
         """test parse errors"""
@@ -45,10 +44,3 @@ class RangeSetErrorTest(unittest.TestCase):
         self._testRS("4-2/-2", RangeSetParseError)
         self._testRS("004-002", RangeSetParseError)
         self._testRS("3-59/2,102a", RangeSetParseError)
-
-
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetErrorTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)

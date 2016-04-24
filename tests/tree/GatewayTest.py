@@ -42,7 +42,7 @@ class DirectHandler(EventHandler):
 
 class GatewayTest(unittest.TestCase):
     """TestCase for ClusterShell.Gateway module."""
-    
+
     def testCompletePropagation(self):
         """test a complete command propagation trip"""
         #
@@ -107,11 +107,3 @@ class GatewayTest(unittest.TestCase):
         self.assertEquals(str(res), str(dst))
         print "Complete propagation time: %fs for %d nodes" % \
                 (max(times) - min(times), len(dst))
-
-def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(GatewayTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-if __name__ == '__main__':
-    main()
-

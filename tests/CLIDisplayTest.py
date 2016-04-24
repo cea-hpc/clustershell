@@ -22,7 +22,6 @@ from ClusterShell.NodeSet import NodeSet, set_std_group_resolver
 from ClusterShell.NodeUtils import GroupResolverConfig
 
 
-
 def makeTestFile(text):
     """Create a temporary file with the provided text."""
     f = tempfile.NamedTemporaryFile()

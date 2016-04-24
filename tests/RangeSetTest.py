@@ -253,14 +253,14 @@ class RangeSetTest(unittest.TestCase):
         r1.difference_update(r2)
         self.assertEqual(str(r1), "16-34/2")
         self.assertEqual(len(r1), 10)
-        
+
         # case 3 diff right
         r1 = RangeSet("4-34/2", autostep=3)
         r2 = RangeSet("28-52/2", autostep=3)
         r1.difference_update(r2)
         self.assertEqual(str(r1), "4-26/2")
         self.assertEqual(len(r1), 12)
-        
+
         # case 4 diff with ranges split
         r1 = RangeSet("4-34/2", autostep=3)
         r2 = RangeSet("12-18/2", autostep=3)
@@ -662,7 +662,7 @@ class RangeSetTest(unittest.TestCase):
         r1.clear()
         self.assertEqual(len(r1), 0)
         self.assertEqual(str(r1), "")
-    
+
     def testConstructorIterate(self):
         """test RangeSet(iterable) constructor"""
         # from list
@@ -1037,7 +1037,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "112,114-117,119,121,130,132,134,136,138-141,144,147-148")
         r1.autostep = 5
         self.assertEqual(str(r1), "112,114-117,119,121,130-138/2,139-141,144,147-148")
-        
+
         r1 = RangeSet("1,3-4,6,8")
         self.assertEqual(str(r1), "1,3-4,6,8")
         r1 = RangeSet("1,3-4,6,8", autostep=4)
@@ -1094,9 +1094,3 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r0.dim(), 0)
         r1 = RangeSet("1-10,15-20")
         self.assertEqual(r1.dim(), 1)
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(RangeSetTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-        

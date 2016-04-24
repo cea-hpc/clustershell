@@ -150,7 +150,7 @@ ssh_options: -oStrictHostKeyChecking=no
         self.assertEqual(config.ssh_path, "/usr/bin/ssh")
         self.assertEqual(config.ssh_options, "-oStrictHostKeyChecking=no")
         f.close()
-        
+
     def testClushConfigError(self):
         """test CLI.Config.ClushConfig (error)"""
 

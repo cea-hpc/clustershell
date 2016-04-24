@@ -144,4 +144,3 @@ class TaskMsgTreeTest(unittest.TestCase):
         # only stderr should have been buffered at task level
         self.assertEqual(len(list(task.iter_buffers())), 0)
         self.assertEqual(len(list(task.iter_errors())), 1)
-

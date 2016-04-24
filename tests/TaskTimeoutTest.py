@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # ClusterShell (local) test suite
-# Written by S. Thiell 2009-02-09
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task/Worker timeout support"""
 
 import copy
+import socket
 import sys
+import thread
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -16,13 +18,9 @@ import ClusterShell
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 
-import socket
-
-import thread
-
 
 class TaskTimeoutTest(unittest.TestCase):
-            
+
     def testWorkersTimeoutBuffers(self):
         """test worker buffers with timeout"""
         task = task_self()
@@ -40,11 +38,3 @@ here...""")
             self.assertEqual(buf, """some buffer
 here...""")
         self.assertEqual(test, 0, "task.iter_buffers() did not work")
-
-    
-    
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskTimeoutTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-

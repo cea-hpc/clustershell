@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
-# Written by S. Thiell 2009-12-19
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell inter-Task msg"""
@@ -23,7 +23,7 @@ class TaskPortTest(unittest.TestCase):
 
     def testPortMsg1(self):
         """test port msg from main thread to task"""
-        
+
         TaskPortTest.got_msg = False
 
         # create task in new thread
@@ -47,7 +47,7 @@ class TaskPortTest(unittest.TestCase):
 
     def testPortRemove(self):
         """test port remove [private as of 1.2]"""
-        
+
         task = Task()
 
         class PortHandler(EventHandler):
@@ -58,9 +58,3 @@ class TaskPortTest(unittest.TestCase):
         task.resume()
         task._remove_port(port)
         task_wait()
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskPortTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-

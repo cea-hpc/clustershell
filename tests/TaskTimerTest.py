@@ -86,7 +86,7 @@ class TaskTimerTest(unittest.TestCase):
     class TRepeaterTimerChecker(EventHandler):
         def __init__(self):
             self.count = 0
-            
+
         def ev_timer(self, timer):
             self.count += 1
             timer.set_nextfire(0.2)
@@ -281,7 +281,7 @@ class TaskTimerTest(unittest.TestCase):
         task.resume()
         # test timer did fire one time
         self.assertEqual(test_eh.timer_count, 5)
-    
+
     class TEventHandlerTimerOtherInvalidate(EventHandler):
         """timer operations event handler simulator"""
         def __init__(self, test):
@@ -415,7 +415,7 @@ class TaskTimerTest(unittest.TestCase):
         # run task
         task.resume()
         self.assertEqual(test_handler.count, 0)
-    
+
     def testAutocloseWithTwoTimers(self):
         """test timer autoclose (two timers)"""
         task = task_self()

@@ -264,7 +264,7 @@ class CommunicationTest(unittest.TestCase):
 
         fin = open(ftest.name)
         fout = open('/dev/null', 'w')
-        
+
         chan = _TestingChannel()
         worker = WorkerSimple(fin, fout, None, None, handler=chan)
 
@@ -307,12 +307,3 @@ class CommunicationTest(unittest.TestCase):
         """test printing messages"""
         msg = gen_cfg()
         self.assertEquals(str(msg), 'Message CFG (msgid: 0, type: CFG)')
-
-def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(CommunicationTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-if __name__ == '__main__':
-    #cProfile.run('main()')
-    main()
-

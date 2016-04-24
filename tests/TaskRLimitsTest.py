@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell task resource consumption/limits test suite
-# Written by S. Thiell 2010-10-19
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell Task (resource limits)"""
@@ -86,8 +86,3 @@ class TaskRLimitsTest(unittest.TestCase):
     def testRemotePdshStderr(self):
         """test resource usage with WorkerPdsh(stderr=True)"""
         self._testRemotePdsh(True)
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskRLimitsTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-

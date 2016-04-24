@@ -440,4 +440,3 @@ class TopologyTest(unittest.TestCase):
         g = TopologyGraph()
         # XXX: Actually if g is not empty other things will be printed out...
         self.assertEquals(str(g), '<TopologyGraph>\n')
-

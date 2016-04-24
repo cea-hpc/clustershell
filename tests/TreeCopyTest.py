@@ -82,4 +82,3 @@ class TreeCopyTestTest(unittest.TestCase):
         task_self().rcopy(self.tfile.name, self.tdir, "n60")
         task_self().resume()
         self.assertTrue(self.test_ok)
-

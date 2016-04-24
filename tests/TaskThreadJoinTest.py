@@ -121,4 +121,3 @@ class TaskThreadJoinTest(unittest.TestCase):
         time.sleep(1) # for pretty display, because unhandled exception
                       # traceback may be sent to stderr after the join()
         self.assertFalse(task.running())
-

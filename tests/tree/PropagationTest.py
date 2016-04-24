@@ -26,8 +26,6 @@ from ClusterShell.Task import task_self
 from TLib import load_cfg, my_node
 
 
-
-
 class PropagationTest(unittest.TestCase):
     def setUp(self):
         """generate a sample topology tree"""
@@ -223,13 +221,3 @@ class PropagationTest(unittest.TestCase):
             print '-' * 15
             print buf
             print ''
-
-
-def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(PropagationTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-if __name__ == '__main__':
-    #cProfile.run('main()')
-    main()
-

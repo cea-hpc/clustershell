@@ -85,7 +85,7 @@ class MsgTreeTest(unittest.TestCase):
             cnt += 1
         self.assertEqual(cnt, 5)
         self.assertEqual(len(list(iter(tree.items()))), 5)
-            
+
         # test walk() iterator (iterate by msg and give the list of
         # associated keys)
         cnt = 0
@@ -288,4 +288,3 @@ class MsgTreeTest(unittest.TestCase):
                          [(['item1'], 'message0\nmessage3\nmessage5'),
                           (['item3'], 'message2'),
                           (['item2'], 'message6')])
-

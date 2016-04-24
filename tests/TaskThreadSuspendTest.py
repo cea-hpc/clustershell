@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
-# Written by S. Thiell 2010-01-16
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell in multithreaded environments"""
@@ -75,9 +75,3 @@ class TaskThreadSuspendTest(unittest.TestCase):
         time.sleep(1)
         task_wait()
         self.assert_(self.resumed or suspended == False)
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TaskThreadSuspendTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-

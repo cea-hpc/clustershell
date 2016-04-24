@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
-# Written by S. Thiell 2010-02-19
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell common library misusages"""
@@ -51,9 +51,3 @@ class MisusageTest(unittest.TestCase):
         worker = task.shell("/bin/echo itsme")
         self.assertRaises(WorkerError, task.schedule, worker)
         task.abort()
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(MisusageTest)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-

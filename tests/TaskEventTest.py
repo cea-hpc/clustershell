@@ -6,7 +6,9 @@
 """Unit test for ClusterShell Task (event-based mode)"""
 
 import copy
+import socket
 import sys
+import thread
 import unittest
 
 sys.path.insert(0, '../lib')
@@ -16,9 +18,6 @@ import ClusterShell
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Event import EventHandler
-
-import socket
-import thread
 
 
 class TestHandler(EventHandler):
