@@ -25,6 +25,14 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(list(nodeset), [nodename])
         self.assertEqual(len(nodeset), 1)
 
+    def testEmptyNode(self):
+        """test NodeSet with empty node"""
+        # empty strings and any strip()able chars are OK
+        for arg in (None, " ", "\n", "\t", " " * 100):
+            nodeset = NodeSet(arg)
+            self.assertEqual(str(nodeset), "")
+            self.assertEqual(len(nodeset), 0)
+
     def testUnnumberedNode(self):
         """test NodeSet with unnumbered node"""
         nodeset = NodeSet("cws-machin")
@@ -441,6 +449,10 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet string-based NodeSet.update() from empty nodeset"""
         nodeset = NodeSet()
         self.assertEqual(str(nodeset), "")
+        nodeset.update("")
+        self.assertEqual(str(nodeset), "")
+        nodeset.update("  ")
+        self.assertEqual(str(nodeset), "")
         nodeset.update("cluster115")
         self.assertEqual(str(nodeset), "cluster115")
         nodeset.update("cluster118")
@@ -751,6 +763,10 @@ class NodeSetTest(unittest.TestCase):
         # result
         self.assertEqual(str(inodeset), "green,red[342-403]")
         self.assertEqual(len(inodeset), 63)
+
+        inodeset = nodeset.difference("")
+        self.assertEqual(str(inodeset), str(nodeset))
+        self.assertEqual(inodeset, nodeset)
 
     def testDifferenceUpdate(self):
         """test NodeSet.difference_update()"""

@@ -29,6 +29,7 @@ class CLINodesetTest(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py"""
 
     def _battery_count(self, args):
+        self._nodeset_t(args + ["--count", ""], None, "0\n")
         self._nodeset_t(args + ["--count", "foo"], None, "1\n")
         self._nodeset_t(args + ["--count", "foo", "bar"], None, "2\n")
         self._nodeset_t(args + ["--count", "foo", "foo"], None, "1\n")
@@ -44,6 +45,7 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(args + ["--count", "foo[395-442]", "foo", "foo[0-200,245-394]"], None, "400\n")
         self._nodeset_t(args + ["--count", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], None, "400\n")
         # from stdin
+        self._nodeset_t(args + ["--count"], "\n", "0\n")
         self._nodeset_t(args + ["--count"], "foo\n", "1\n")
         self._nodeset_t(args + ["--count"], "foo\nbar\n", "2\n")
         self._nodeset_t(args + ["--count"], "foo\nfoo\n", "1\n")
@@ -97,6 +99,7 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--count", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], "foo[395-442]\n", "0\n")
 
     def _battery_fold(self, args):
+        self._nodeset_t(args + ["--fold", ""], None, "\n")
         self._nodeset_t(args + ["--fold", "foo"], None, "foo\n")
         self._nodeset_t(args + ["--fold", "foo", "bar"], None, "bar,foo\n")
         self._nodeset_t(args + ["--fold", "foo", "foo"], None, "foo\n")
@@ -112,6 +115,7 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(args + ["--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], None, "foo,foo[0-200,245-442]\n")
         self._nodeset_t(args + ["--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], None, "bar[3,24],foo[1-200,245-442]\n")
         # stdin
+        self._nodeset_t(args + ["--fold"], "\n", "\n")
         self._nodeset_t(args + ["--fold"], "foo\n", "foo\n")
         self._nodeset_t(args + ["--fold"], "foo\nbar\n", "bar,foo\n")
         self._nodeset_t(args + ["--fold"], "foo\nfoo\n", "foo\n")
@@ -159,6 +163,7 @@ class CLINodesetTest(CLINodesetTestBase):
 
     def test_006_expand(self):
         """test nodeset --expand"""
+        self._nodeset_t(["--expand", ""], None, "\n")
         self._nodeset_t(["--expand", "foo"], None, "foo\n")
         self._nodeset_t(["--expand", "foo", "bar"], None, "bar foo\n")
         self._nodeset_t(["--expand", "foo", "foo"], None, "foo\n")
@@ -170,6 +175,7 @@ class CLINodesetTest(CLINodesetTestBase):
 
     def test_007_expand_stdin(self):
         """test nodeset --expand (stdin)"""
+        self._nodeset_t(["--expand"], "\n", "\n")
         self._nodeset_t(["--expand"], "foo\n", "foo\n")
         self._nodeset_t(["--expand"], "foo\nbar\n", "bar foo\n")
         self._nodeset_t(["--expand"], "foo\nfoo\n", "foo\n")
