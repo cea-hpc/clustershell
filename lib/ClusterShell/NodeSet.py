@@ -964,7 +964,7 @@ class ParsingEngine(object):
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
         next_op_code = 'update'
-        while nsstr is not None:
+        while nsstr:
             # Ignore whitespace(s) for convenience
             nsstr = nsstr.lstrip()
 

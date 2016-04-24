@@ -33,7 +33,6 @@ class NodeSetErrorTest(unittest.TestCase):
 
     def testBadRangeUsages(self):
         """test NodeSet parse errors in range"""
-        self._testNS("", NodeSetParseError)
         self._testNS("nova[]", NodeSetParseRangeError)
         self._testNS("nova[-]", NodeSetParseRangeError)
         self._testNS("nova[A]", NodeSetParseRangeError)
