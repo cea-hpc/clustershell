@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_656387dd",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1065,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-04-25T09:12:10Z",
+      "side": 1,
+      "message": "Is this still covered by tests? Is this still possible now?",
+      "revId": "66d32492e274d8e7def11c01cd581351b051151c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_85644be5",
+        "filename": "tests/NodeSetTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-04-25T09:12:10Z",
+      "side": 1,
+      "message": "space missing around operator",
+      "range": {
+        "startLine": 31,
+        "startChar": 46,
+        "endLine": 31,
+        "endChar": 47
+      },
+      "revId": "66d32492e274d8e7def11c01cd581351b051151c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
