@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_45d3d104",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-04-29T08:25:00Z",
+      "side": 1,
+      "message": "looks overkill.\nreally not sure we should have test for internal private function.",
+      "range": {
+        "startLine": 188,
+        "startChar": 4,
+        "endLine": 191,
+        "endChar": 86
+      },
+      "revId": "6d1746fdb467ada21f5445298c1943ddf7f76f0d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
