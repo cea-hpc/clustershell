@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4a79a0c7",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 926,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-04-29T02:39:19Z",
+      "side": 1,
+      "message": "not really need anymore, the only case is if an empty nodename is passed through private constructor _fromlist1() - in that case, the next exception (parse error) will be raised. As it\u0027s a private constructor, I guess that\u0027s ok so I\u0027m removing it and added tests to fix behavior in tests.",
+      "parentUuid": "baa041b7_bbebee77",
+      "range": {
+        "startLine": 926,
+        "startChar": 12,
+        "endLine": 926,
+        "endChar": 61
+      },
+      "revId": "66d32492e274d8e7def11c01cd581351b051151c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_656387dd",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 2
@@ -54,6 +78,24 @@
       "side": 1,
       "message": "It is not! I will double-check that we can safely remove it.",
       "parentUuid": "baa041b7_656387dd",
+      "revId": "66d32492e274d8e7def11c01cd581351b051151c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6a7104e0",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1065,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-04-29T02:39:19Z",
+      "side": 1,
+      "message": "removing it - cannot happen since a similar test, len(pfx) + len(sfx) \u003d\u003d 0 is checked above, and an exception is raised in that case (\"fully numeric nodeset\")",
+      "parentUuid": "baa041b7_dbe8f27e",
       "revId": "66d32492e274d8e7def11c01cd581351b051151c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
