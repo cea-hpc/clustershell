@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Stephane Thiell <sthiell@stanford.edu>
+# Copyright 2015-2016 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -63,8 +63,9 @@ def _load_workerclass(workername):
     """
     modname = "ClusterShell.Worker.%s" % workername.capitalize()
 
-    # Import module if not yet loaded
-    if modname.lower() not in [mod.lower() for mod in sys.modules]:
+    # Do not iterate over sys.modules but use .keys() to avoid RuntimeError
+    if modname.lower() not in [mod.lower() for mod in sys.modules.keys()]:
+        # Import module if not yet loaded
         __import__(modname)
 
     # Get the class pointer
@@ -80,8 +81,7 @@ def _distant_workerclass(defaults):
 
 def config_paths(config_name):
     """Return default path list for a ClusterShell config file name."""
-    return [# system-wide config file
-            '/etc/clustershell/%s' % config_name,
+    return ['/etc/clustershell/%s' % config_name, # system-wide config file
             # default pip --user config file
             os.path.expanduser('~/.local/etc/clustershell/%s' % config_name),
             # per-user config (top override)
