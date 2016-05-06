@@ -87,7 +87,8 @@ class MetaWorkerEventHandler(EventHandler):
         metaworker = self.metaworker
         metaworker.current_node = node
         metaworker.current_sname = sname
-        metaworker.eh.ev_written(metaworker, node, sname, size)
+        if metaworker.eh:
+            metaworker.eh.ev_written(metaworker, node, sname, size)
 
     def ev_hup(self, worker):
         """

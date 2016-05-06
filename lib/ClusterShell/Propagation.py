@@ -357,28 +357,19 @@ class PropagationChannel(Channel):
         elif isinstance(msg, RoutedMessageBase):
             metaworker = self.workers[msg.srcid]
             if msg.type == StdOutMessage.ident:
-                if metaworker.eh:
-                    nodeset = NodeSet(msg.nodes)
-                    decoded = msg.data_decode() + '\n'
-                    # this is way too verbose for --rcopy
-                    #self.logger.debug("StdOutMessage: \"%s\"", decoded)
-                    for line in decoded.splitlines():
-                        for node in nodeset:
-                            metaworker._on_remote_node_msgline(node,
-                                                               line,
-                                                               'stdout',
-                                                               self.gateway)
+                nodeset = NodeSet(msg.nodes)
+                decoded = msg.data_decode() + '\n'
+                for line in decoded.splitlines():
+                    for node in nodeset:
+                        metaworker._on_remote_node_msgline(node, line, 'stdout',
+                                                           self.gateway)
             elif msg.type == StdErrMessage.ident:
-                if metaworker.eh:
-                    nodeset = NodeSet(msg.nodes)
-                    decoded = msg.data_decode() + '\n'
-                    self.logger.debug("StdErrMessage: \"%s\"", decoded)
-                    for line in decoded.splitlines():
-                        for node in nodeset:
-                            metaworker._on_remote_node_msgline(node,
-                                                               line,
-                                                               'stderr',
-                                                               self.gateway)
+                nodeset = NodeSet(msg.nodes)
+                decoded = msg.data_decode() + '\n'
+                for line in decoded.splitlines():
+                    for node in nodeset:
+                        metaworker._on_remote_node_msgline(node, line, 'stderr',
+                                                           self.gateway)
             elif msg.type == RetcodeMessage.ident:
                 rc = msg.retcode
                 for node in NodeSet(msg.nodes):
