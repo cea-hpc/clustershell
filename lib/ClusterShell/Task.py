@@ -655,8 +655,8 @@ class Task(object):
         self._engine.add(port)
 
     @tasksyncmethod()
-    def _remove_port(self, port):
-        """Remove a port from Engine (private method)."""
+    def remove_port(self, port):
+        """Close and remove a port from task previously created with port()."""
         self._engine.remove(port)
 
     def port(self, handler=None, autoclose=False):
