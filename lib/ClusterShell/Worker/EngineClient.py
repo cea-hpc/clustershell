@@ -478,12 +478,11 @@ class EnginePort(EngineClient):
                                                     id(self), fd_in, fd_out)
 
     def _start(self):
+        """Start port."""
         return self
 
     def _close(self, abort, timeout):
-        """
-        Close port pipes.
-        """
+        """Close port."""
         if not self._msgq.empty():
             # purge msgq
             try:
@@ -513,7 +512,15 @@ class EnginePort(EngineClient):
         """
         Port message send method that will wait for acknowledgement
         unless the send_once parameter if set.
+
+        May be called from another thread. Will generate ev_msg() on
+        Port event handler (in Port task/thread).
+
+        Return False if the message cannot be sent (eg. port closed).
         """
+        if self._msgq is None: # called after port closed?
+            return False
+
         pmsg = EnginePort._Msg(send_msg, not send_once)
         self._msgq.put(pmsg, block=True, timeout=None)
         try:
@@ -525,6 +532,8 @@ class EnginePort(EngineClient):
 
     def msg_send(self, send_msg):
         """
-        Port message send-once method (no acknowledgement).
+        Port message send-once method (no acknowledgement). See msg().
+
+        Return False if the message cannot be sent (eg. port closed).
         """
-        self.msg(send_msg, send_once=True)
+        return self.msg(send_msg, send_once=True)
