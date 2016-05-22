@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # StreamWorker test suite
 
+import logging
 import os
 import unittest
 
@@ -200,3 +201,100 @@ class StreamTest(unittest.TestCase):
         self.assertRaises(OSError, os.close, rfd1)
         os.close(wfd1)
 
+    def test_006_worker_abort_on_written(self):
+        """test StreamWorker abort on ev_written"""
+
+        # This test creates a writable StreamWorker that will abort after the
+        # first write, to check whether ev_written is generated in the right
+        # place.
+
+        class TestH(EventHandler):
+            def __init__(self, testcase, rfd):
+                self.testcase = testcase
+                self.rfd = rfd
+                self.check_written = 0
+
+            def ev_written(self, worker, node, sname, size):
+                self.check_written += 1
+                self.testcase.assertEqual(os.read(self.rfd, 1024), "initial")
+                worker.abort()
+
+        rfd, wfd = os.pipe()
+
+        hdlr = TestH(self, rfd)
+        worker = StreamWorker(handler=hdlr)
+
+        worker.set_writer("test", wfd) # closefd=True
+        worker.write("initial", "test")
+
+        self.run_worker(worker)
+        self.assertEqual(hdlr.check_written, 1)
+        os.close(rfd)
+
+    def test_007_worker_abort_on_written_eof(self):
+        """test StreamWorker abort on ev_written (with EOF)"""
+
+        # This test is similar to previous test test_006 but does
+        # write() + set_write_eof().
+
+        class TestH(EventHandler):
+            def __init__(self, testcase, rfd):
+                self.testcase = testcase
+                self.rfd = rfd
+                self.check_written = 0
+
+            def ev_written(self, worker, node, sname, size):
+                self.check_written += 1
+                self.testcase.assertEqual(os.read(self.rfd, 1024), "initial")
+                worker.abort()
+
+        rfd, wfd = os.pipe()
+
+        hdlr = TestH(self, rfd)
+        worker = StreamWorker(handler=hdlr)
+
+        worker.set_writer("test", wfd) # closefd=True
+        worker.write("initial", "test")
+        worker.set_write_eof()
+
+        self.run_worker(worker)
+        self.assertEqual(hdlr.check_written, 1)
+        os.close(rfd)
+
+    def test_008_broken_pipe_on_write(self):
+        """test StreamWorker with broken pipe on write()"""
+
+        # This test creates a writable StreamWorker that will close the read
+        # side of the pipe just after the first write to generate a broken
+        # pipe error.
+
+        class TestH(EventHandler):
+            def __init__(self, testcase, rfd):
+                self.testcase = testcase
+                self.rfd = rfd
+                self.check_hup = 0
+                self.check_written = 0
+
+            def ev_hup(self, worker):
+                self.check_hup += 1
+
+            def ev_written(self, worker, node, sname, size):
+                self.check_written += 1
+                self.testcase.assertEqual(os.read(self.rfd, 1024), "initial")
+                # close reader, that will stop the StreamWorker
+                os.close(self.rfd)
+                # The following write call used to raise broken pipe before
+                # version 1.7.2.
+                worker.write("final")
+
+        rfd, wfd = os.pipe()
+
+        hdlr = TestH(self, rfd)
+        worker = StreamWorker(handler=hdlr)
+
+        worker.set_writer("test", wfd) # closefd=True
+        worker.write("initial", "test")
+
+        self.run_worker(worker)
+        self.assertEqual(hdlr.check_hup, 1)
+        self.assertEqual(hdlr.check_written, 1)

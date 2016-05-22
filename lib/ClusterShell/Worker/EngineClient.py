@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2009-2014)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2009-2016)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -41,6 +41,7 @@ and stderr, or even more...)
 """
 
 import errno
+import logging
 import os
 import Queue
 import thread
@@ -49,6 +50,9 @@ from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
     set_nonblock_flag
 
 from ClusterShell.Engine.Engine import EngineBaseTimer, E_READ, E_WRITE
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class EngineClientException(Exception):
@@ -319,20 +323,27 @@ class EngineClient(EngineBaseTimer):
             try:
                 wcnt = os.write(wfile.fd, wfile.wbuf)
             except OSError, exc:
-                if (exc.errno == errno.EAGAIN):
+                if exc.errno == errno.EAGAIN:
+                    # _handle_write() is not only called by the engine but also
+                    # by _write(), so this is legit: we just try again later
                     self._set_writing(sname)
+                    return
+                if exc.errno == errno.EPIPE:
+                    # broken pipe: log warning message and do NOT retry
+                    LOGGER.warning('%s: %s', self, exc)
                     return
                 raise
             if wcnt > 0:
-                self.worker._on_written(self.key, wcnt, sname)
                 # dequeue written buffer
                 wfile.wbuf = wfile.wbuf[wcnt:]
                 # check for possible ending
                 if wfile.eof and not wfile.wbuf:
+                    self.worker._on_written(self.key, wcnt, sname)
                     # remove stream from engine (not directly)
                     self._engine.remove_stream(self, wfile)
                 else:
                     self._set_writing(sname)
+                    self.worker._on_written(self.key, wcnt, sname)
 
     def _exec_nonblock(self, commandlist, shell=False, env=None):
         """

@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2007-2015)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2007-2016)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -44,12 +44,16 @@ import sys
 import time
 import traceback
 
+
+LOGGER = logging.getLogger(__name__)
+
 # Engine client fd I/O event interest bits
 E_READ = 0x1
 E_WRITE = 0x2
 
 # Define epsilon value for time float arithmetic operations
 EPSILON = 1.0e-3
+
 
 class EngineException(Exception):
     """
@@ -219,9 +223,8 @@ class _EngineTimerQ:
                 # Just print a debug message that could help detect issues
                 # coming from a long-running timer handler.
                 if self.fire_date < time_current:
-                    logging.getLogger(__name__).debug(
-                        "Warning: passed interval time for %r (long running "
-                        "event handler?)", self.client)
+                    LOGGER.debug("Warning: passed interval time for %r "
+                                 "(long running event handler?)", self.client)
 
         def disarm(self):
             client = self.client
@@ -421,8 +424,8 @@ class Engine:
             if client._reg_epoch < self._current_loopcnt:
                 return client, stream
             else:
-                self._debug("ENGINE _fd2client: ignoring just re-used FD %d" \
-                            % stream.fd)
+                LOGGER.debug("_fd2client: ignoring just re-used FD %d",
+                             stream.fd)
         return (None, None)
 
     def add(self, client):
@@ -472,10 +475,18 @@ class Engine:
         needed read flush as needed. If no more retainable stream
         remains for this client, this method automatically removes the
         entire client from engine.
+
+        This function does nothing if the stream is not registered.
         """
+        if stream.fd not in self.reg_clifds:
+            LOGGER.debug("remove_stream: %s not registered", stream)
+            return
+
         self.unregister_stream(client, stream)
+
         # _close_stream() will flush pending read buffers so may generate events
         client._close_stream(stream.name)
+
         # client may have been removed by previous events, if not check whether
         # some retained streams still remain
         if client in self._clients and not client.streams.retained():
@@ -596,8 +607,7 @@ class Engine:
             (stream.new_events, stream.events, client, stream.name))
 
         if not client.registered:
-            logging.getLogger(__name__).debug( \
-                "set_events: client %s not registered" % self)
+            LOGGER.debug("set_events: client %s not registered", self)
             return
 
         chgbits = stream.new_events ^ stream.events
@@ -705,7 +715,7 @@ class Engine:
                     # BaseException. For now, print a backtrace in debug to
                     # help detect the problem.
                     tbexc = traceback.format_exception(exc_t, exc_val, exc_tb)
-                    logging.getLogger(__name__).debug(''.join(tbexc))
+                    LOGGER.debug(''.join(tbexc))
                     raise
                 raise
         finally:
@@ -747,6 +757,6 @@ class Engine:
         return not self.running and self._exited
 
     def _debug(self, s):
-        """library engine debugging hook"""
-        #logging.getLogger(__name__).debug(s)
+        """library engine verbose debugging hook"""
+        #LOGGER.debug(s)
         pass
