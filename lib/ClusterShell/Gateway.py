@@ -166,7 +166,10 @@ class WorkerTreeResponder(EventHandler):
         self.logger.debug("WorkerTreeResponder: ev_close")
         if self.timer is not None:
             # finalize grooming
-            self.ev_timer(None)
+            try:
+                self.ev_timer(None)
+            except IOError, exc:
+                self.logger.exception(exc)
             self.timer.invalidate()
 
 

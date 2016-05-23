@@ -473,9 +473,11 @@ class WorkerTree(DistantWorker):
         if gateway:
             targets = self.gwtargets[gateway]
             if not targets:
+                # no more active targets for this gateway
                 self.logger.debug("WorkerTree._check_fini %s call pchannel_"
                                   "release for gw %s", self, gateway)
                 self.task._pchannel_release(gateway, self)
+                del self.gwtargets[gateway]
 
     def write(self, buf):
         """Write to worker clients."""
@@ -486,7 +488,9 @@ class WorkerTree(DistantWorker):
                 worker.write(buf)
             except OSError, exc:
                 osexc = exc
+
         for gateway, targets in self.gwtargets.items():
+            assert len(targets) > 0
             self.task._pchannel(gateway, self).write(nodes=targets,
                                                      buf=buf,
                                                      worker=self)
@@ -502,6 +506,7 @@ class WorkerTree(DistantWorker):
         for worker in self.workers:
             worker.set_write_eof()
         for gateway, targets in self.gwtargets.items():
+            assert len(targets) > 0
             self.task._pchannel(gateway, self).set_write_eof(nodes=targets,
                                                              worker=self)
 
