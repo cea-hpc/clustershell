@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ea0a3f1f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-06-01T15:21:06Z",
+      "side": 1,
+      "message": "Yes, but for me it does also fix the broken pipe error when copying files using gw (I guess :). Did you try it and got a broken pipe error?",
+      "parentUuid": "baa041b7_c77f7413",
+      "revId": "9f59b95b3e96c724e029c167061e716ba9a79346",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_88507f33",
         "filename": "lib/ClusterShell/Gateway.py",
         "patchSetId": 1
