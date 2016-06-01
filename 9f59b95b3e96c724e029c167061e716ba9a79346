@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8abdf303",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-06-01T15:39:05Z",
+      "side": 1,
+      "message": "Ok I will do more tests. To fix the broken pipe issue in tree mode you need both patches (196+this one). This one (the tree one) is a nasty one, gateways were re-initialized even if not needed. But I don\u0027t remember exactly all the details now :p",
+      "parentUuid": "baa041b7_0a1fa35b",
+      "revId": "9f59b95b3e96c724e029c167061e716ba9a79346",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_88507f33",
         "filename": "lib/ClusterShell/Gateway.py",
         "patchSetId": 1
