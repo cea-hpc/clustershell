@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_27d98057",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-01T13:38:57Z",
+      "side": 1,
+      "message": "This cleaning is may be useful, I cannot say, but I\u0027m sure this does not close #308. This patch does not solve the Broken Pipe error when copying files using gateways",
+      "revId": "9f59b95b3e96c724e029c167061e716ba9a79346",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_88507f33",
         "filename": "lib/ClusterShell/Gateway.py",
         "patchSetId": 1
@@ -13,6 +30,30 @@
       "writtenOn": "2016-05-23T07:06:37Z",
       "side": 1,
       "message": "actually I don\u0027t think I need that anymore, this was used during my initial tests...",
+      "range": {
+        "startLine": 169,
+        "startChar": 12,
+        "endLine": 172,
+        "endChar": 42
+      },
+      "revId": "9f59b95b3e96c724e029c167061e716ba9a79346",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c723f454",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-01T13:38:57Z",
+      "side": 1,
+      "message": "If you say so... :)",
+      "parentUuid": "baa041b7_88507f33",
       "range": {
         "startLine": 169,
         "startChar": 12,
