@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0781dcfa",
+        "filename": "tests/StreamWorkerTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-01T13:55:57Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "c3ef63e8b55215d4cdb1e6c22ea558cc8965c7db",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
