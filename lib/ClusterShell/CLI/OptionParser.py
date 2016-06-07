@@ -128,6 +128,9 @@ class OptionParser(optparse.OptionParser):
                           default=None, metavar='FILE',
                           help="topology configuration file to use for tree "
                                "mode")
+        optgrp.add_option("--pick", action="store", dest="pick",
+                          metavar="N", type="int",
+                          help="pick N node(s) at random in nodeset")
         self.add_option_group(optgrp)
 
     def install_display_options(self,
@@ -335,4 +338,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("--axis", action="store", dest="axis",
                           metavar="RANGESET", help="fold along these axis only "
                                                    "(axis 1..n for nD nodeset)")
+        optgrp.add_option("--pick", action="store", dest="pick",
+                          metavar="N", type="int",
+                          help="pick N node(s) at random in nodeset")
         self.add_option_group(optgrp)
