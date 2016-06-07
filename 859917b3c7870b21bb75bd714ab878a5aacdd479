@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0ba433b7",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2016-06-07T10:49:02Z",
+      "side": 1,
+      "message": "Ok. Had to cast in random.sample because it does not behave with strings, but changeing type in option works better",
+      "parentUuid": "baa041b7_8b4e0339",
+      "revId": "859917b3c7870b21bb75bd714ab878a5aacdd479",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6bc29f86",
         "filename": "lib/ClusterShell/CLI/OptionParser.py",
         "patchSetId": 1
