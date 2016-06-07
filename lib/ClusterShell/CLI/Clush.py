@@ -53,6 +53,7 @@ import sys
 import signal
 import time
 import threading
+import random
 
 from ClusterShell.Defaults import DEFAULTS, _load_workerclass
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
@@ -890,6 +891,13 @@ def main():
     nodeset_base.difference_update(nodeset_exclude)
     if len(nodeset_base) < 1:
         parser.error('No node to run on.')
+
+    if options.pick and options.pick < len(nodeset_base):
+        keep = random.sample(nodeset_base, options.pick)
+        nodeset_base.intersection_update(','.join(keep))
+        if config.verbosity >= VERB_VERB:
+            print Display.COLOR_RESULT_FMT % \
+                ("Picked random nodes: %s" % nodeset_base)
 
     # Set open files limit.
     set_fdlimit(config.fd_max, display)

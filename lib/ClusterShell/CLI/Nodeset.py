@@ -42,6 +42,7 @@ and RangeSet classes.
 import logging
 import math
 import sys
+import random
 
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
@@ -289,6 +290,10 @@ def nodeset():
         else:
             # negative axis index (only single number supported)
             xset.fold_axis = [int(options.axis)]
+
+    if options.pick and options.pick < len(xset):
+        keep = random.sample(xset, options.pick)
+        xset.intersection_update(','.join(keep))
 
     fmt = options.output_format # default to '%s'
 
