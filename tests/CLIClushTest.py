@@ -480,6 +480,15 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    def test_034_pick(self):
+        """test clush --pick"""
+        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--pick", "1",
+                      "echo foo"], None,
+                      re.compile(r"^(localhost|%s): foo\n$" % HOSTNAME))
+        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--pick", "2",
+                      "echo foo"], None,
+                      re.compile(r"^((localhost|%s): foo\n){2}$" % HOSTNAME))
+
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
