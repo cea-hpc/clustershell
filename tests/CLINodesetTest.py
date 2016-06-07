@@ -536,6 +536,15 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--axis=2","-f"], '\n'.join(ndnodes) + '\n',
                          ','.join(exp_result) + '\n')
 
+    def test_025_pick(self):
+        """test nodeset --pick"""
+        for num in range(1, 100):
+            self._nodeset_t(["--count", "--pick", str(num), "foo[1-100]"],
+                            None, "%s\n" % num)
+            self._nodeset_t(["--count", "--pick", str(num), "-R", "1-100"],
+                            None, "%s\n" % num)
+
+
 
 class CLINodesetGroupResolverTest1(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
