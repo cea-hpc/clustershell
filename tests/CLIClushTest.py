@@ -512,7 +512,7 @@ class CLIClushTest_B_StdinFailure(unittest.TestCase):
         CLI_main(self, main, [ 'clush' ] + args, stdin, expected_stdout,
                  expected_rc, expected_stderr)
 
-    def test_022_broken_stdin(self):
+    def test_035_broken_stdin(self):
         """test clush with broken stdin"""
         self._clush_t(["-w", HOSTNAME, "-v", "sleep 1"], None,
                        "stdin: [Errno 22] Invalid argument\n", 0, "")

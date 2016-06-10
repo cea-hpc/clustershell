@@ -563,7 +563,7 @@ list: echo foo bar moo
     def tearDown(self):
         set_std_group_resolver(None)
 
-    def test_022_list(self):
+    def test_026_list(self):
         """test nodeset --list"""
         self._nodeset_t(["--list"], None, "@bar\n@foo\n@moo\n")
         self._nodeset_t(["-ll"], None, "@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
@@ -582,7 +582,7 @@ list: echo foo bar moo
         self._nodeset_t(["-l", "-X example3"], None, "@moo\n@bar\n@foo\n") # no -a, xor from nothing
         self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", "@moo\n@bar\n@foo\n")
 
-    def test_023_list_all(self):
+    def test_027_list_all(self):
         """test nodeset --list-all"""
         self._nodeset_t(["--list-all"], None, "@bar\n@foo\n@moo\n")
         self._nodeset_t(["-L"], None, "@bar\n@foo\n@moo\n")
@@ -613,7 +613,7 @@ list: echo baz qux norf
     def tearDown(self):
         set_std_group_resolver(None)
 
-    def test_024_groups(self):
+    def test_028_groups(self):
         self._nodeset_t(["--split=2","-r", "unknown2", "unknown3"], None, "unknown2\nunknown3\n")
         self._nodeset_t(["-f", "-a"], None, "example[1-100]\n")
         self._nodeset_t(["-f", "@moo"], None, "example[1-100]\n")
@@ -626,55 +626,55 @@ list: echo baz qux norf
     # We need to split following unit tests in order to reset group
     # source in setUp/tearDown...
 
-    def test_025_groups(self):
+    def test_029_groups(self):
         self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, "100\n")
 
-    def test_026_groups(self):
+    def test_030_groups(self):
         self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
 
-    def test_027_groups(self):
+    def test_031_groups(self):
         self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
 
-    def test_028_groups(self):
+    def test_032_groups(self):
         self._nodeset_t(["-s", "test", "--groupsources"], None, "test (default)\nother\n")
 
-    def test_029_groups(self):
+    def test_033_groups(self):
         self._nodeset_t(["-s", "test", "-q", "--groupsources"], None, "test\nother\n")
 
-    def test_030_groups(self):
+    def test_034_groups(self):
         self._nodeset_t(["-f", "-a", "-"], "example101\n", "example[1-101]\n")
         self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", "example[1-102]\n")
 
     # Check default group source switching...
 
-    def test_031_groups(self):
+    def test_035_groups(self):
         self._nodeset_t(["-s", "other", "-c", "-a", "-d"], None, "460\n")
         self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, "100\n")
 
-    def test_032_groups(self):
+    def test_036_groups(self):
         self._nodeset_t(["-s", "other", "-r", "-a"], None, "@other:baz\n")
         self._nodeset_t(["-s", "test", "-r", "-a"], None, "@test:bar\n")
 
-    def test_033_groups(self):
+    def test_037_groups(self):
         self._nodeset_t(["-s", "other", "-G", "-r", "-a"], None, "@baz\n")
         self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, "@bar\n")
 
-    def test_034_groups(self):
+    def test_038_groups(self):
         self._nodeset_t(["--groupsources"], None, "test (default)\nother\n")
 
-    def test_035_groups(self):
+    def test_039_groups(self):
         self._nodeset_t(["-s", "other", "--groupsources"], None, "other (default)\ntest\n")
 
-    def test_036_groups(self):
+    def test_040_groups(self):
         self._nodeset_t(["--groupsources"], None, "test (default)\nother\n")
 
-    def test_037_groups_output_format(self):
+    def test_041_groups_output_format(self):
         self._nodeset_t(["-r", "-O", "{%s}", "-a"], None, "{@bar}\n")
 
-    def test_038_groups_output_format(self):
+    def test_042_groups_output_format(self):
         self._nodeset_t(["-O", "{%s}", "-s", "other", "-r", "-a"], None, "{@other:baz}\n")
 
-    def test_039_list_all(self):
+    def test_043_list_all(self):
         """test nodeset --list-all (multi sources)"""
         self._nodeset_t(["--list-all"], None,
                         "@bar\n@foo\n@moo\n@other:baz\n@other:norf\n@other:qux\n")
@@ -717,7 +717,7 @@ map: echo pdu-[0-3]-[1-2]
     def tearDown(self):
         set_std_group_resolver(None)
 
-    def test_040_list_all(self):
+    def test_044_list_all(self):
         """test nodeset --list-all (w/ missing list upcall)"""
         self._nodeset_t(["--list-all"], None,
                         "@bar\n@foo\n@moo\n@other:baz\n@other:norf\n@other:qux\n", 0,
@@ -731,7 +731,7 @@ map: echo pdu-[0-3]-[1-2]
                         "@other:baz nova[030-489] 460\n@other:norf nova[030-489] 460\n@other:qux nova[030-489] 460\n", 0,
                         "Warning: No list upcall defined for group source pdu\n")
 
-    def test_041_list_failure(self):
+    def test_045_list_failure(self):
         """test nodeset --list -s source w/ missing list upcall"""
         self._nodeset_t(["--list", "-s", "pdu"], None, "", 1,
                         'No list upcall defined for group source "pdu"\n')
