@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a012ef56",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-10T14:19:16Z",
+      "side": 1,
+      "message": "for now yes, just keep one option, with argument. In the future, we will use optional argument to implement the simpler version.",
+      "range": {
+        "startLine": 13,
+        "startChar": 52,
+        "endLine": 13,
+        "endChar": 72
+      },
+      "revId": "32760e9b84b37185535d0b333cb8420a1f9f0ea6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c00cd33d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-10T14:19:16Z",
+      "side": 1,
+      "message": "If you makes few call to random objects, just use import random. If you are using random.something in a lot of places in the code, use from random import something.\n\nIf you update this patch, drop this line as it is ok for me the way you did it (regarding import)",
+      "revId": "32760e9b84b37185535d0b333cb8420a1f9f0ea6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
