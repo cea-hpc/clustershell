@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e0cfd727",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 900,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-06-10T16:36:11Z",
+      "side": 1,
+      "message": "split in two lines to avoid \\, eg.\n\n  msg \u003d \"Picked ...\" % nodeset_base\n  print ...",
+      "range": {
+        "startLine": 899,
+        "startChar": 12,
+        "endLine": 900,
+        "endChar": 58
+      },
+      "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
