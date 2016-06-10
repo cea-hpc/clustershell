@@ -39,6 +39,29 @@
       "revId": "32760e9b84b37185535d0b333cb8420a1f9f0ea6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c0f613f9",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-06-10T15:14:16Z",
+      "side": 1,
+      "message": "for clush it could be nice to add a logging line when verbose option is used, so that the user can see which nodes have been selected for remote execution, a bit like in tree mode, -v shows you the topology, what do you think?",
+      "range": {
+        "startLine": 896,
+        "startChar": 8,
+        "endLine": 896,
+        "endChar": 58
+      },
+      "revId": "32760e9b84b37185535d0b333cb8420a1f9f0ea6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
