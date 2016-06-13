@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6c574027",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 897,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-13T12:08:06Z",
+      "side": 1,
+      "message": "Before posting this comment, I also benchmark\u0027d it myself, and I found my proposal faster.\n\nAfter looking at this more carefully, nsiter() is slow (because creating 2 python objects per element is expansive). But parsing str is also slow.\nHowever, if we pick few elements, we will parse few strings, and this will be quick, but, if we use nsiter(), we will create lots of object, whatever the number of elements we pick.\n\nAs I think people will tend to use a small number for pick, we will stick to your proposal, even if this is not very clean. But please add a comment stating that cast to str + parse, for few number is faster than nsiter().",
+      "parentUuid": "baa041b7_8c504460",
+      "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e0cfd727",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 5
