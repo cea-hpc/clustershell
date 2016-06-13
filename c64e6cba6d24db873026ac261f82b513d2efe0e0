@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8c504460",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 897,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2016-06-13T11:19:28Z",
+      "side": 1,
+      "message": "I think we need the intersection to keep options like autostep, fold_axis, etc.\nUsing list(n.nsiter()) avoids an extra cast to string though so happy to change that, but I don\u0027t see any way around the intersection unless these attributes get copied to sub-nodesets when using nsiter() (they are not)\n\nHmm. nodeset_base.clear() followed by nodeset_base.add(NodeSet.fromlist(keep)), or iterate on list with nodeset_base.add one element at a time?\n\n. . . [half an hour later]\nBenched various options, using nsiter seems very slow on large-ish nodesets; my original implem is 10x faster if nodeset_base has 1000 elements and sample is small (\u003c10); converting to string seems costly if sample grows big (roughly same performance with nsiter and string with nodeset of size 1000 and sample 800)\n\nThe final intersect or clear/add doesn\u0027t seem to matter either way.\n\nI\u0027d be in favor of keeping my naive cast unless we can use another kind of iter or \"fix\" nsiter (can\u0027t see how, we need to create as many new nodesets as there are elements in the list), as scaling in nodeset size seems more important than sample size to me.\n\nAt this rate it would probably be faster to just reimplement sample() at the NodeSet level using low level _iter() but I\u0027m not sure the performance difference matters that much - string approach is 1.25ms per run at nodeset 1000 and sample 10 (0.25ms at sample 1), your call on what is acceptable.\n\nIf you want to play with it (just substracting time needed to import the modules and generate the initial nodeset):\n timeit.timeit(\"from ClusterShell.NodeSet import NodeSet; import random; n\u003dNodeSet(\u0027foo[1-1000]\u0027); k \u003d random.sample(n, 10); n.intersection_update(\u0027,\u0027.join(k))\", number\u003d1000)",
+      "parentUuid": "baa041b7_4c47dc4b",
+      "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e0cfd727",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 5
