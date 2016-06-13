@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_4c47dc4b",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 897,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-13T10:04:30Z",
+      "side": 1,
+      "message": "this is suboptimal. You are casting all nodeset items to str, then, reparsing all of them and doing an intersection of those elements with the nodeset they came from.\n\n keep \u003d random.sample(list(nodeset_base.nsiter()), option.pick)\n nodeset_base \u003d NodeSet.fromlist(keep)",
+      "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e0cfd727",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 5
@@ -18,6 +35,46 @@
         "startChar": 12,
         "endLine": 900,
         "endChar": 58
+      },
+      "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_acf8a8c5",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 541,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-13T10:04:30Z",
+      "side": 1,
+      "message": "space missing after comma",
+      "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8cf5e4cc",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-06-13T10:04:30Z",
+      "side": 1,
+      "message": "str(num) is better",
+      "range": {
+        "startLine": 542,
+        "startChar": 50,
+        "endLine": 542,
+        "endChar": 60
       },
       "revId": "c64e6cba6d24db873026ac261f82b513d2efe0e0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
