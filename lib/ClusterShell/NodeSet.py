@@ -1246,10 +1246,16 @@ class NodeSet(NodeSetBase):
         """Class method that returns a new NodeSet with all nodes from optional
         groupsource."""
         inst = NodeSet(autostep=autostep, resolver=resolver)
-        if not inst._resolver:
-            raise NodeSetExternalError("No node group resolver")
-        # Fill this nodeset with all nodes found by resolver
-        inst.updaten(inst._parser.all_nodes(groupsource))
+        try:
+            if not inst._resolver:
+                raise NodeSetExternalError("Group resolver is not defined")
+            else:
+                # fill this nodeset with all nodes found by resolver
+                inst.updaten(inst._parser.all_nodes(groupsource))
+        except NodeUtils.GroupResolverError, exc:
+            errmsg = "Group source error (%s: %s)" % (exc.__class__.__name__,
+                                                      exc)
+            raise NodeSetExternalError(errmsg)
         return inst
 
     def __getstate__(self):
