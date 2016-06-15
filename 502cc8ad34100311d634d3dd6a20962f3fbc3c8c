@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8fff0caa",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-06-15T15:15:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_39572ecc",
+      "range": {
+        "startLine": 1249,
+        "startChar": 7,
+        "endLine": 1258,
+        "endChar": 42
+      },
+      "revId": "502cc8ad34100311d634d3dd6a20962f3fbc3c8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_195c6aec",
         "filename": "tests/NodeSetGroupTest.py",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2016-06-15T08:03:32Z",
       "side": 1,
       "message": "seems to fit on one line?",
+      "revId": "502cc8ad34100311d634d3dd6a20962f3fbc3c8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f2ba834",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-06-15T15:15:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_195c6aec",
       "revId": "502cc8ad34100311d634d3dd6a20962f3fbc3c8c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
