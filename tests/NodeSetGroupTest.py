@@ -192,6 +192,11 @@ class NodeSetGroupTest(unittest.TestCase):
         self.assertRaises(NodeSetExternalError, NodeSet.fromall,
                           resolver=RESOLVER_NOGROUP)
 
+        # Also test with a nonfunctional resolver (#263)
+        res = GroupResolver()
+        self.assertRaises(NodeSetExternalError, NodeSet.fromall,
+                          resolver=res)
+
     def testGroupsNoResolver(self):
         """test NodeSet.groups() with no resolver"""
         nodeset = NodeSet("foo", resolver=RESOLVER_NOGROUP)

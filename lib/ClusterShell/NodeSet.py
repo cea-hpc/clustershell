@@ -1246,11 +1246,16 @@ class NodeSet(NodeSetBase):
         """Class method that returns a new NodeSet with all nodes from optional
         groupsource."""
         inst = NodeSet(autostep=autostep, resolver=resolver)
-        if not inst._resolver:
-            raise NodeSetExternalError("No node group resolver")
-        # Fill this nodeset with all nodes found by resolver
-        inst.updaten(inst._parser.all_nodes(groupsource))
-        return inst
+        errmsg = "Group resolver not defined"
+        try:
+            if inst._resolver:
+                # fill this nodeset with all nodes found by resolver
+                inst.updaten(inst._parser.all_nodes(groupsource))
+                return inst
+        except NodeUtils.GroupResolverError, exc:
+            errmsg = "Group source error (%s: %s)" % (exc.__class__.__name__,
+                                                      exc)
+        raise NodeSetExternalError(errmsg)
 
     def __getstate__(self):
         """Called when pickling: remove references to group resolver."""
