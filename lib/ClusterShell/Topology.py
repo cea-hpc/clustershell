@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright CEA/DAM/DIF (2010-2015)
+# Copyright CEA/DAM/DIF (2010-2016)
 #  Contributor: Henri DOREAU <henri.doreau@cea.fr>
 #  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
@@ -220,6 +220,15 @@ class TopologyTree(object):
                 return group
         raise TopologyError('TopologyNodeGroup not found for node %s' % node)
 
+    def inner_node_count(self):
+        """helper to get inner node count (root and gateway nodes)"""
+        return sum(len(group.nodeset) for group in self.groups
+                                      if group.children_len() > 0)
+
+    def leaf_node_count(self):
+        """helper to get leaf node count"""
+        return sum(len(group.nodeset) for group in self.groups
+                                      if group.children_len() == 0)
 
 class TopologyRoute(object):
     """A single route between two nodesets"""

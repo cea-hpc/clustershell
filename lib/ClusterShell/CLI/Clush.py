@@ -974,15 +974,19 @@ def main():
             clush_exit(1, task)
 
     if options.topofile or task._default_tree_is_enabled():
-        if config.verbosity >= VERB_VERB:
-            print Display.COLOR_RESULT_FMT % "TREE MODE enabled"
         if options.topofile:
             task.load_topology(options.topofile)
+        if config.verbosity >= VERB_VERB:
+            roots = len(task.topology.root.nodeset)
+            gws = task.topology.inner_node_count() - roots
+            msg = "enabling tree topology (%d gateways)" % gws
+            print >> sys.stderr, "clush: %s" % msg
 
     if options.grooming_delay:
         if config.verbosity >= VERB_VERB:
-            print Display.COLOR_RESULT_FMT % ("Grooming delay: %f"
-                                              % options.grooming_delay)
+            msg = Display.COLOR_RESULT_FMT % ("Grooming delay: %f" %
+                                              options.grooming_delay)
+            print >> sys.stderr, msg
         task.set_info("grooming_delay", options.grooming_delay)
     elif options.rcopy:
         # By default, --rcopy should inhibit grooming
@@ -1050,7 +1054,7 @@ def main():
                                                 config.command_timeout,
                                                 op))
     if not task.default("USER_interactive"):
-        if display.verbosity >= VERB_VERB and task.topology:
+        if display.verbosity >= VERB_DEBUG and task.topology:
             print Display.COLOR_RESULT_FMT % '-' * 15
             print Display.COLOR_RESULT_FMT % task.topology,
             print Display.COLOR_RESULT_FMT % '-' * 15

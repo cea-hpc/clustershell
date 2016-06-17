@@ -156,7 +156,8 @@ This file defines the following topology graph::
 
 
 At runtime, ClusterShell will pick an initial propagation tree from this
-topology graph definition.
+topology graph definition and the current root node. Multiple admin/root
+nodes may be defined in the file.
 
 .. note:: The algorithm used in Tree mode does not rely on gateway system
    hostnames anymore. In topology.conf, just use the hosts or aliases needed
@@ -173,7 +174,7 @@ file is present. When the configuration file
 target nodes that are defined there. The topology file path can be changed
 using the ``--topology`` command line option.
 
-.. note:: If using ``clush -v`` (verbose option), clush will display an ASCII
+.. note:: If using ``clush -d`` (debug option), clush will display an ASCII
    representation of the initial propagation tree used. This is useful when
    working on Tree mode configuration.
 
