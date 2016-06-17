@@ -190,7 +190,10 @@ class TopologyTest(unittest.TestCase):
 
         ns_all = NodeSet('admin2,nodes[2-3,20-29]')
         ns_tree = NodeSet()
-        for nodegroup in parser.tree('admin2'):
+        tree = parser.tree('admin2')
+        self.assertEqual(tree.inner_node_count(), 3)
+        self.assertEqual(tree.leaf_node_count(), 10)
+        for nodegroup in tree:
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
@@ -304,7 +307,10 @@ class TopologyTest(unittest.TestCase):
 
         ns_all = NodeSet('admin,proxy,STA[0-1],STB[0-3],nodes[0-10]')
         ns_tree = NodeSet()
-        for nodegroup in parser.tree('admin'):
+        tree = parser.tree('admin')
+        self.assertEqual(tree.inner_node_count(), 8)
+        self.assertEqual(tree.leaf_node_count(), 11)
+        for nodegroup in tree:
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
@@ -325,7 +331,10 @@ class TopologyTest(unittest.TestCase):
 
         ns_all = NodeSet('admin,nodes[0-159]')
         ns_tree = NodeSet()
-        for nodegroup in parser.tree('admin'):
+        tree = parser.tree('admin')
+        self.assertEqual(tree.inner_node_count(), 151)
+        self.assertEqual(tree.leaf_node_count(), 10)
+        for nodegroup in tree:
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
@@ -343,7 +352,10 @@ class TopologyTest(unittest.TestCase):
 
         ns_all = NodeSet('admin,ST[0-4],STA[0-49],nodes[0-10000]')
         ns_tree = NodeSet()
-        for nodegroup in parser.tree('admin'):
+        tree = parser.tree('admin')
+        self.assertEqual(tree.inner_node_count(), 56)
+        self.assertEqual(tree.leaf_node_count(), 10001)
+        for nodegroup in tree:
            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
