@@ -7,9 +7,9 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2016-02-28
+:Date:   2016-06-16
 :Copyright: CeCILL-C V1
-:Version: 1.7.1
+:Version: 1.7.2
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -75,6 +75,7 @@ OPTIONS
     --split=MAXSPLIT    split result into a number of subsets
     --contiguous        split result into contiguous subsets (ie. for nodeset, subsets will contain nodes with same pattern name and a contiguous range of indexes, like foobar[1-100]; for rangeset, subsets with consists in contiguous index ranges)"""
     --axis=RANGESET     for nD nodesets, fold along provided axis only. Axis are indexed from 1 to n and can be specified here either using the rangeset syntax, eg. '1', '1-2', '1,3', or by a single negative number meaning that the indice is counted from the end. Because some nodesets may have several different dimensions, axis indices are silently truncated to fall in the allowed range.
+    --pick=N            pick N node(s) at random in nodeset
 
 
 For a short explanation of these options, see ``-h, --help``.

@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH NODESET 1 "2016-02-28" "1.7.1" "ClusterShell User Manual"
+.TH NODESET 1 "2016-06-16" "1.7.2" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -137,6 +137,9 @@ split result into contiguous subsets (ie. for nodeset, subsets will contain node
 .TP
 .BI \-\-axis\fB= RANGESET
 for nD nodesets, fold along provided axis only. Axis are indexed from 1 to n and can be specified here either using the rangeset syntax, eg. \(aq1\(aq, \(aq1\-2\(aq, \(aq1,3\(aq, or by a single negative number meaning that the indice is counted from the end. Because some nodesets may have several different dimensions, axis indices are silently truncated to fall in the allowed range.
+.TP
+.BI \-\-pick\fB= N
+pick N node(s) at random in nodeset
 .UNINDENT
 .UNINDENT
 .UNINDENT

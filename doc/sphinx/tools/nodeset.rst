@@ -422,9 +422,10 @@ patterns" (inherited from :class:`.NodeSet` extended pattern feature, see
 Special operations
 ^^^^^^^^^^^^^^^^^^
 
-Three special operations are currently available: node set slicing, splitting
-on a predefined node count and splitting non-contiguous subsets. There are all
-explained below.
+A few special operations are currently available: node set slicing, splitting
+on a predefined node count, splitting non-contiguous subsets, choosing fold
+axis (for multidimensional node sets) and picking N nodes randomly. There are
+all explained below.
 
 Slicing
 """""""
@@ -565,6 +566,18 @@ useful to fold along the last axis whatever number of dimensions used::
 
     $ nodeset --axis=-1 -f comp-[1-2]-[1-36],login-[1-2]
     comp-1-[1-36],comp-2-[1-36],login-[1-2]
+
+
+Picking N node(s) at random
+"""""""""""""""""""""""""""
+
+Use ``--pick`` with a maximum number of nodes you wish to pick randomly from
+the resulting node set (or from the resulting range set with ``-R``)::
+
+    $ nodeset --pick=1 -f node11 node12 node13
+    node12
+    $ nodeset --pick=2 -f node11 node12 node13
+    node[11,13]
 
 
 .. _nodeset-groups:

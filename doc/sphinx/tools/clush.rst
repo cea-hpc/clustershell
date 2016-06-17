@@ -77,14 +77,24 @@ For example::
 Selecting all nodes
 """""""""""""""""""
 
-Finally, a special option ``-a`` (without argument) can be used to select
-**all** nodes, in the sense of ClusterShell node groups (see
+The special option ``-a`` (without argument) can be used to select **all**
+nodes, in the sense of ClusterShell node groups (see
 :ref:`node groups configuration <groups-config>` for more details on special
 **all** external shell command upcall).  If not properly configured, the
 ``-a`` option may lead to a runtime error like::
 
     clush: External error: Not enough working external calls (all, or map +
     list) defined to get all node
+
+Picking node(s) at random
+"""""""""""""""""""""""""
+
+Use ``--pick`` with a maximum number of nodes you wish to pick randomly from
+the targeted node set. *clush* will then run only on selected node(s). The
+following example will run a script on a single random node picked from the
+``@compute`` group::
+
+    $ clush -w @compute --pick=1 ./nonreg-single-client-fs-io.sh
 
 Host files
 """"""""""
