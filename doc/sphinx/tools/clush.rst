@@ -86,6 +86,8 @@ nodes, in the sense of ClusterShell node groups (see
     clush: External error: Not enough working external calls (all, or map +
     list) defined to get all node
 
+.. _clush-pick:
+
 Picking node(s) at random
 """""""""""""""""""""""""
 

@@ -3,6 +3,27 @@
 Release Notes
 =============
 
+Version 1.7.2
+-------------
+
+This minor version fixes a defect in :ref:`tree mode <clush-tree>` that led
+to broken pipe errors or unwanted backtraces.
+
+The :class:`.NodeSet` class now supports the empty string as input. In
+practice, you may now safely reuse the output of a
+:ref:`nodeset <nodeset-tool>` command as input argument for another
+:ref:`nodeset <nodeset-tool>` command, even if the result is an empty string.
+
+A new option ``--pick`` is available for :ref:`clush <clush-pick>` and
+:ref:`nodeset <nodeset-pick>` to pick N node(s) at random from the resulting
+node set.
+
+For more details, please have a look at `GitHub Issues for 1.7.2 milestone`_.
+
+ClusterShell 1.7.2 is compatible with Python 2.4 up to Python 2.7 (for
+example: from RedHat EL5 to EL7). Upgrades from versions 1.6 or 1.7 are
+supported.
+
 Version 1.7.1
 -------------
 
@@ -249,4 +270,5 @@ configuration files::
 
 Please see :ref:`install-pip-user`.
 
-.. _GitHub Issues for 1.7.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.1+
+.. _GitHub Issues for 1.7.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.1
+.. _GitHub Issues for 1.7.2 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.2
