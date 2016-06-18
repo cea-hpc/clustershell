@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2016-06-16
+:Date:   2016-06-18
 :Copyright: CeCILL-C V1
 :Version: 1.7.2
 :Manual section: 1
@@ -182,6 +182,7 @@ Connection options:
                       limit time for command to run on the node
   -R WORKER, --worker=WORKER
                       worker name to use for connection (``exec``, ``ssh``, ``rsh``, ``pdsh``), default is ``ssh``
+  --remote=REMOTE     whether to enable remote execution: in tree mode, 'yes' forces connections to the leaf nodes for execution, 'no' establishes connections up to the leaf parent nodes for execution (default is 'yes') 
 
 For a short explanation of these options, see ``-h, --help``.
 

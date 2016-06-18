@@ -567,6 +567,7 @@ useful to fold along the last axis whatever number of dimensions used::
     $ nodeset --axis=-1 -f comp-[1-2]-[1-36],login-[1-2]
     comp-1-[1-36],comp-2-[1-36],login-[1-2]
 
+.. _nodeset-pick:
 
 Picking N node(s) at random
 """""""""""""""""""""""""""

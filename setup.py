@@ -49,7 +49,7 @@ else:
     # User, in-prefix config install (rpmbuild or pip as user)
     CFGDIR = 'etc/clustershell'
 
-VERSION='1.7.1'
+VERSION='1.7.2'
 
 setup(name='ClusterShell',
       version=VERSION,
@@ -71,7 +71,7 @@ setup(name='ClusterShell',
                'scripts/clush',
                'scripts/nodeset'],
       author='Stephane Thiell',
-      author_email='stephane.thiell@cea.fr',
+      author_email='sthiell@stanford.edu',
       license='CeCILL-C (French equivalent to LGPLv2+)',
       url='http://clustershell.sourceforge.net/',
       download_url='http://sourceforge.net/projects/clustershell/files/'
