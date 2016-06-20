@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f98894c8",
+        "filename": "doc/sphinx/tools/nodeset.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2016-06-20T11:03:50Z",
+      "side": 1,
+      "message": "They are all explained below ?",
+      "revId": "d2ffcb2aa828cfb00f45a33f3daef4fb85df132b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
