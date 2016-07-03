@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
-# Written by S. Thiell 2010-02-03
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell MsgTree Class"""
@@ -182,12 +182,36 @@ class MsgTreeTest(unittest.TestCase):
         """test MsgTree scalability"""
         # build tree...
         tree = MsgTree()
-        for i in xrange(0, 10000):
+        for i in range(10000):
             tree.add("node%d" % i, "message%d" % i)
         self.assertEqual(len(tree), 10000)
         cnt = 0
         for msg, keys in tree.walk():
             cnt += 1
+        self.assertEqual(cnt, 10000)
+
+        tree = MsgTree()
+        for i in range(10000):
+            tree.add("nodeX", "message%d" % i)
+        self.assertEqual(len(tree), 1)
+        cnt = 0
+        for msg, keys in tree.walk():
+            testlines = str(msg) # calls MsgTreeElem.__iter__()
+            self.assertEqual(len(testlines.splitlines()), 10000)
+            cnt += 1
+        self.assertEqual(cnt, 1)
+
+        tree = MsgTree()
+        for j in range(100):
+            for i in range(1000):
+                tree.add("node%d" % j, "message%d" % i)
+        self.assertEqual(len(tree), 100)
+        cnt = 0
+        for msg, keys in tree.walk():
+            testlines = str(msg) # calls MsgTreeElem.__iter__()
+            self.assertEqual(len(testlines.splitlines()), 1000)
+            cnt += 1
+        self.assertEqual(cnt, 1)
 
     def test_007_shift_mode(self):
         """test MsgTree in shift mode"""
