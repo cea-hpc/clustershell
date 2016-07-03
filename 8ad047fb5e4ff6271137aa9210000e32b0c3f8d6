@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a3998070",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-07-03T19:06:00Z",
+      "side": 1,
+      "message": "(by the way, i\u0027m not sure ternary operator makes code easier to read)",
+      "revId": "8ad047fb5e4ff6271137aa9210000e32b0c3f8d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e38f8821",
+        "filename": "tests/MsgTreeTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-07-03T19:06:00Z",
+      "side": 1,
+      "message": "comment line to explain which pattern is benchmarked here",
+      "revId": "8ad047fb5e4ff6271137aa9210000e32b0c3f8d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c392444b",
+        "filename": "tests/MsgTreeTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-07-03T19:06:00Z",
+      "side": 1,
+      "message": "same here",
+      "revId": "8ad047fb5e4ff6271137aa9210000e32b0c3f8d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
