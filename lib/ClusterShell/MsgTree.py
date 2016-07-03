@@ -1,6 +1,6 @@
 #
-# Copyright CEA/DAM/DIF (2007-2014)
-#  Contributor: Stephane THIELL <stephane.thiell@cea.fr>
+# Copyright CEA/DAM/DIF (2007-2016)
+#  Contributor: Stephane THIELL <sthiell@stanford.edu>
 #
 # This file is part of the ClusterShell library.
 #
@@ -70,7 +70,7 @@ class MsgTreeElem(object):
         # content
         self.msgline = msgline
         self.keys = None
-   
+
     def __len__(self):
         """Length of whole message string."""
         return len(str(self))
@@ -92,7 +92,7 @@ class MsgTreeElem(object):
             shifting = self.keys
             self.keys = None
         else:
-            shifting = set([ key ])
+            shifting = set([key])
             if self.keys:
                 self.keys.difference_update(shifting)
 
@@ -107,7 +107,7 @@ class MsgTreeElem(object):
         """Shift one of our key to specified target element (trace
         mode: keep backtrace of keys)."""
         if not target_elem.keys:
-            target_elem.keys = set([ key ])
+            target_elem.keys = set([key])
         else:
             target_elem.keys.add(key)
         return target_elem
@@ -116,24 +116,18 @@ class MsgTreeElem(object):
         return list(self.lines())[i]
 
     def __iter__(self):
-        """Iterate over message lines starting from this tree element."""
-        # no msgline in root element
-        if self.msgline is None:
-            return
-        # trace the message path
-        path = [self.msgline]
-        parent = self.parent
-        while parent.msgline is not None:
-            path.append(parent.msgline)
-            parent = parent.parent
-        # rewind path
-        while path:
-            yield path.pop()
+        """Iterate over message lines up to this element."""
+        bottomtop = []
+        if self.msgline is not None:
+            bottomtop.append(self.msgline)
+            parent = self.parent
+            while parent.msgline is not None:
+                bottomtop.append(parent.msgline)
+                parent = parent.parent
+        return reversed(bottomtop)
 
     def lines(self):
-        """
-        Get the whole message lines iterator from this tree element.
-        """
+        """Get an iterator over all message lines up to this element."""
         return iter(self)
 
     splitlines = lines
@@ -153,15 +147,20 @@ class MsgTreeElem(object):
         optional associated source key. Called by MsgTree.add().
         Return corresponding MsgTreeElem (possibly newly created).
         """
+        # get/create child element
+        elem = self.children.get(msgline)
+        if elem is None:
+            elem = self.__class__(msgline, self,
+                                  self._shift == self._shift_trace)
+            self.children[msgline] = elem
+
+        # if no key is given, MsgTree is in MODE_DEFER
+        # shift down the given key otherwise
+        # Note: replace with ternary operator in py2.5+
         if key is None:
-            # No key association, MsgTree is in MODE_DEFER
-            return self.children.setdefault(msgline, \
-                self.__class__(msgline, self, self._shift == self._shift_trace))
+            return elem
         else:
-            # key given: get/create new child element and shift down the key
-            return self._shift(key, self.children.setdefault(msgline, \
-                self.__class__(msgline, self,
-                               self._shift == self._shift_trace)))
+            return self._shift(key, elem)
 
 
 class MsgTree(object):
@@ -177,7 +176,7 @@ class MsgTree(object):
 
     def __init__(self, mode=MODE_DEFER):
         """MsgTree initializer
-        
+
         The `mode' parameter should be set to one of the following constant:
 
         MODE_DEFER: all messages are processed immediately, saving memory from
@@ -249,11 +248,11 @@ class MsgTree(object):
         return self._keys.iterkeys()
 
     __iter__ = keys
-    
+
     def messages(self, match=None):
         """Return an iterator over MsgTree's messages."""
         return imap(itemgetter(0), self.walk(match))
-    
+
     def items(self, match=None, mapper=None):
         """
         Return (key, message) for each key of the MsgTree.
@@ -271,14 +270,14 @@ class MsgTree(object):
         """
         depth = 0
         # stack of (element, depth) tuples used to walk the tree
-        estack = [ (self._root, depth) ]
+        estack = [(self._root, depth)]
 
         while estack:
             elem, edepth = estack.pop()
             if len(elem.children) > 0:
                 estack += [(v, edepth + 1) for v in elem.children.values()]
             depth = max(depth, edepth)
-        
+
         return depth
 
     def walk(self, match=None, mapper=None):
@@ -291,7 +290,7 @@ class MsgTree(object):
         if self.mode == MODE_DEFER:
             self._update_keys()
         # stack of elements used to walk the tree (depth-first)
-        estack = [ self._root ]
+        estack = [self._root]
         while estack:
             elem = estack.pop()
             children = elem.children
@@ -313,7 +312,7 @@ class MsgTree(object):
         assert self.mode == MODE_TRACE, \
             "walk_trace() is only callable in trace mode"
         # stack of (element, depth) tuples used to walk the tree
-        estack = [ (self._root, 0) ]
+        estack = [(self._root, 0)]
         while estack:
             elem, edepth = estack.pop()
             children = elem.children
@@ -335,7 +334,7 @@ class MsgTree(object):
         """
         # do not walk tree in MODE_DEFER as no key is associated
         if self.mode != MODE_DEFER:
-            estack = [ self._root ]
+            estack = [self._root]
             # walk the tree to keep only matching keys
             while estack:
                 elem = estack.pop()

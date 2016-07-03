@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ClusterShell test suite
-# Written by S. Thiell 2010-02-03
+# Written by S. Thiell
 
 
 """Unit test for ClusterShell MsgTree Class"""
@@ -180,14 +180,40 @@ class MsgTreeTest(unittest.TestCase):
 
     def test_006_scalability(self):
         """test MsgTree scalability"""
-        # build tree...
+        # test tree of 10k nodes with a single different line each
         tree = MsgTree()
-        for i in xrange(0, 10000):
+        for i in range(10000):
             tree.add("node%d" % i, "message%d" % i)
         self.assertEqual(len(tree), 10000)
         cnt = 0
         for msg, keys in tree.walk():
             cnt += 1
+        self.assertEqual(cnt, 10000)
+
+        # test tree of 1 node with 10k lines
+        tree = MsgTree()
+        for i in range(10000):
+            tree.add("nodeX", "message%d" % i)
+        self.assertEqual(len(tree), 1)
+        cnt = 0
+        for msg, keys in tree.walk():
+            testlines = str(msg) # test MsgTreeElem.__iter__()
+            self.assertEqual(len(testlines.splitlines()), 10000)
+            cnt += 1
+        self.assertEqual(cnt, 1)
+
+        # test tree of 100 nodes with the same 1000 message lines each
+        tree = MsgTree()
+        for j in range(100):
+            for i in range(1000):
+                tree.add("node%d" % j, "message%d" % i)
+        self.assertEqual(len(tree), 100)
+        cnt = 0
+        for msg, keys in tree.walk():
+            testlines = str(msg) # test MsgTreeElem.__iter__()
+            self.assertEqual(len(testlines.splitlines()), 1000)
+            cnt += 1
+        self.assertEqual(cnt, 1)
 
     def test_007_shift_mode(self):
         """test MsgTree in shift mode"""
