@@ -1,5 +1,14 @@
+2016-06-18 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.7.2 released.
+
+2016-06-07 D. Martinet  <dominique.martinet@cea.fr>
+
+	* Clush/Nodeset: add --pick N option (ticket #311).
+
 2016-05-22 S. Thiell <sthiell@stanford.edu>
 
+	* Tree.py: fix the tracking of gateway active targets (ticket #308).
 	* EngineClient.py: handle broken pipe on write() (ticket #196).
 
 2016-04-24 S. Thiell <sthiell@stanford.edu>

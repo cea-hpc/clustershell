@@ -27,7 +27,7 @@ operating systems:
 
 * GNU/Linux RedHat EL5 or CentOS 5.x (Python 2.4), EL6 (Python 2.6) and EL7
   (Python 2.7)
-* GNU/Linux Fedora 11 to 22 (Python 2.6 - 2.7),
+* GNU/Linux Fedora 22 to 24 (Python 2.6 - 2.7),
 * GNU/Linux Debian (wheezy and above)
 * Mac OS X 10.5.8 or more
 
@@ -45,26 +45,26 @@ Debian and Arch Linux.
 Fedora
 ^^^^^^
 
-At the time of writing, ClusterShell |version| is available on Fedora 22
+At the time of writing, ClusterShell |version| is available on Fedora 24
 (releases being maintained by the Fedora Project).
 
 Install ClusterShell from *Fedora Updates*
 """"""""""""""""""""""""""""""""""""""""""
 
 ClusterShell is part of Fedora, so it is really easy to install it with
-``yum``, although you have to keep the Fedora *updates* default repository.
-The following command checks whether the packages are available on a Fedora
-machine::
+``dnf`` or ``yum``, although you have to keep the Fedora *updates* default
+repository. The following command checks whether the packages are available
+on a Fedora machine::
 
-    $ yum list \*clustershell
-    Loaded plugins: presto, priorities, refresh-packagekit
+    $ dnf list \*clustershell
     Available Packages
-    clustershell.noarch                        1.5.1-1.fc15                  updates
-    vim-clustershell.noarch                    1.5.1-1.fc15                  updates
+    clustershell.noarch                     1.7.2-1.fc24                updates
+    vim-clustershell.noarch                 1.7.2-1.fc24                updates
+
 
 Then, install ClusterShell (library and tools) with the following command::
 
-    $ yum install clustershell vim-clustershell
+    $ dnf install clustershell vim-clustershell
 
 Please note that optional (but recommended) ``vim-clustershell`` package will
 install VIM syntax files for ClusterShell configuration files like
@@ -74,16 +74,16 @@ Install ClusterShell from Fedora Updates Testing
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 Recent releases of ClusterShell are first available through the `Test
-Updates`_ ``yum`` repository of Fedora, then it is later pushed to the stable
-*updates* repository. The following ``yum`` command will also checks for
+Updates`_ repository of Fedora, then it is later pushed to the stable
+*updates* repository. The following ``dnf`` command will also checks for
 packages availability in the *updates-testing* repository::
 
-    $ yum list \*clustershell --enablerepo=updates-testing
+    $ dnf list \*clustershell --enablerepo=updates-testing
 
 To install, also add the ``--enablerepo=updates-testing`` option, for
 instance::
 
-    $ yum install clustershell vim-clustershell --enablerepo=updates-testing
+    $ dnf install clustershell vim-clustershell --enablerepo=updates-testing
 
 Red Hat Enterprise Linux (and CentOS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -98,7 +98,10 @@ Install ClusterShell from EPEL
 """"""""""""""""""""""""""""""
 
 First you have to enable the ``yum`` EPEL repository. We recommend to download
-and install the EPEL repository RPM package.
+and install the `EPEL`_ repository RPM package. On CentOS, this can be easily
+done using the following command::
+
+    $ yum --enablerepo=extras install epel-release
 
 Then, the ClusterShell installation procedure is quite the same of the Fedora
 *Updates* one, for instance::
