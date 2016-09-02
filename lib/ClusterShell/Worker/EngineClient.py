@@ -241,6 +241,12 @@ class EngineClient(EngineBaseTimer):
         # streams associated with this client
         self.streams = EngineClientStreamDict()
 
+    def __repr__(self):
+        # added repr(self.key)
+        return '<%s.%s instance at 0x%x key %r>' % (self.__module__,
+                                                    self.__class__.__name__,
+                                                    id(self), self.key)
+
     def _fire(self):
         """
         Fire timeout timer.
@@ -330,7 +336,7 @@ class EngineClient(EngineBaseTimer):
                     return
                 if exc.errno == errno.EPIPE:
                     # broken pipe: log warning message and do NOT retry
-                    LOGGER.warning('%s: %s', self, exc)
+                    LOGGER.warning('%r: %s', self, exc)
                     return
                 raise
             if wcnt > 0:
