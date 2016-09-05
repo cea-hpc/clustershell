@@ -16,6 +16,24 @@
       "revId": "6ef6d907f338518e4cb55ce079aa0f043aacaec9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_389a61c6",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-09-05T16:54:37Z",
+      "side": 1,
+      "message": "Correct. Maybe I can improve the docstring a little bit :)",
+      "parentUuid": "baa041b7_1fc66649",
+      "revId": "6ef6d907f338518e4cb55ce079aa0f043aacaec9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
