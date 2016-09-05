@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1fc66649",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-09-05T09:06:56Z",
+      "side": 1,
+      "message": "this is just adding self.key compared to standard repr() method. Correct?",
+      "revId": "6ef6d907f338518e4cb55ce079aa0f043aacaec9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
