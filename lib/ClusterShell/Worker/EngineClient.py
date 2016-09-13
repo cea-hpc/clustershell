@@ -418,6 +418,11 @@ class EngineClient(EngineBaseTimer):
 
     def _set_write_eof(self, sname):
         """Set EOF on specific writable stream."""
+        if sname not in self.streams:
+            LOGGER.debug("stream %s was already closed on client %s, skipping",
+                         sname, self.key)
+            return
+
         wfile = self.streams[sname]
         wfile.eof = True
         if self._engine and wfile.fd and not wfile.wbuf:
