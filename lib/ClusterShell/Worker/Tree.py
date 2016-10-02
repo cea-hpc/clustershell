@@ -313,11 +313,12 @@ class WorkerTree(DistantWorker):
                 tar.add(self.source, arcname=arcname)
                 tar.close()
                 tmptar.flush()
-                # read generated tar file and send to worker
+                # read generated tar file
                 tmptar.seek(0)
                 rbuf = tmptar.read(32768)
+                # send tar data to remote targets only
                 while len(rbuf) > 0:
-                    self.write(rbuf)
+                    self._write_remote(rbuf)
                     rbuf = tmptar.read(32768)
             except OSError, exc:
                 raise WorkerError(exc)
@@ -479,6 +480,14 @@ class WorkerTree(DistantWorker):
                 self.task._pchannel_release(gateway, self)
                 del self.gwtargets[gateway]
 
+    def _write_remote(self, buf):
+        """Write buf to remote clients only."""
+        for gateway, targets in self.gwtargets.items():
+            assert len(targets) > 0
+            self.task._pchannel(gateway, self).write(nodes=targets,
+                                                     buf=buf,
+                                                     worker=self)
+
     def write(self, buf):
         """Write to worker clients."""
         osexc = None
@@ -489,11 +498,8 @@ class WorkerTree(DistantWorker):
             except OSError, exc:
                 osexc = exc
 
-        for gateway, targets in self.gwtargets.items():
-            assert len(targets) > 0
-            self.task._pchannel(gateway, self).write(nodes=targets,
-                                                     buf=buf,
-                                                     worker=self)
+        self._write_remote(buf)
+
         if osexc:
             raise osexc
 
