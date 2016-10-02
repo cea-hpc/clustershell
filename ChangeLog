@@ -1,3 +1,7 @@
+2016-10-04 S. Thiell <sthiell@stanford.edu>
+
+	* setup.py: remove scripts/*; use console_scripts instead.
+
 2016-10-02 S. Thiell <sthiell@stanford.edu>
 
 	* Tree.py: in copy mode, do not send tar data to local targets, but only
