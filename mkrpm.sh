@@ -52,7 +52,6 @@ install -d $TMPDIR/lib/ClusterShell || exit 1
 install -d $TMPDIR/lib/ClusterShell/CLI
 install -d $TMPDIR/lib/ClusterShell/Engine
 install -d $TMPDIR/lib/ClusterShell/Worker
-install -d $TMPDIR/scripts
 install -d $TMPDIR/conf
 install -d $TMPDIR/conf/groups.conf.d
 install -d $TMPDIR/conf/groups.d
@@ -75,9 +74,6 @@ install -p -m 0644 lib/ClusterShell/*.py $TMPDIR/lib/ClusterShell
 install -p -m 0644 lib/ClusterShell/CLI/*.py $TMPDIR/lib/ClusterShell/CLI/
 install -p -m 0644 lib/ClusterShell/Engine/*.py $TMPDIR/lib/ClusterShell/Engine/
 install -p -m 0644 lib/ClusterShell/Worker/*.py $TMPDIR/lib/ClusterShell/Worker/
-install -p -m 0755 scripts/clubak.py $TMPDIR/scripts/
-install -p -m 0755 scripts/clush.py $TMPDIR/scripts/
-install -p -m 0755 scripts/nodeset.py $TMPDIR/scripts/
 install -p -m 0644 conf/clush.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf $TMPDIR/conf/
 install -p -m 0644 conf/groups.conf.d/README $TMPDIR/conf/groups.conf.d/
