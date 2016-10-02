@@ -346,7 +346,7 @@ class CLIClushTest_A(unittest.TestCase):
         kth = KillerThread()
         args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b",
                 "echo start; sleep 10"]
-        process = Popen(["../scripts/clush.py"] + args, stderr=PIPE,
+        process = Popen(["./clush.py"] + args, stderr=PIPE,
                         stdout=PIPE, bufsize=0)
         kth.pidkill = process.pid
         kth.start()

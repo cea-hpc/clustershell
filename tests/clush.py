@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-clush command-line tool
+clush command-line tool (for test only)
 """
 
 from ClusterShell.CLI.Clush import main

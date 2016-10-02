@@ -1,3 +1,11 @@
+2016-10-01 S. Thiell <sthiell@stanford.edu>
+
+	* setup.py: remove scripts/*; use console_scripts instead.
+
+2016-06-18 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.7.2 released.
+
 2016-05-22 S. Thiell <sthiell@stanford.edu>
 
 	* EngineClient.py: handle broken pipe on write() (ticket #196).
