@@ -89,6 +89,7 @@ install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim $TMPDIR/doc/extras/v
 install -p -m 0644 doc/extras/vim/syntax/clushconf.vim $TMPDIR/doc/extras/vim/syntax/
 install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim $TMPDIR/doc/extras/vim/syntax/
 install -p -m 0644 doc/man/man1/clubak.1 $TMPDIR/doc/man/man1/
+install -p -m 0644 doc/man/man1/cluset.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man1/clush.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man1/nodeset.1 $TMPDIR/doc/man/man1/
 install -p -m 0644 doc/man/man5/clush.conf.5 $TMPDIR/doc/man/man5/

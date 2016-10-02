@@ -1,5 +1,8 @@
 2016-10-04 S. Thiell <sthiell@stanford.edu>
 
+	* cluset: add cluset script with doc to avoid a conflict with xCAT's
+	nodeset command (ticket #300).
+
 	* setup.py: remove scripts/*; use console_scripts instead.
 
 2016-10-02 S. Thiell <sthiell@stanford.edu>
