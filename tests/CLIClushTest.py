@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# scripts/clush.py tool test suite
+# ClusterShell.CLI.Clush test suite
 # Written by S. Thiell
 
 
@@ -346,8 +346,8 @@ class CLIClushTest_A(unittest.TestCase):
         kth = KillerThread()
         args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b",
                 "echo start; sleep 10"]
-        process = Popen(["../scripts/clush.py"] + args, stderr=PIPE,
-                        stdout=PIPE, bufsize=0)
+        process = Popen(["../lib/ClusterShell/CLI/Clush.py"] + args,
+                        stderr=PIPE, stdout=PIPE, bufsize=0)
         kth.pidkill = process.pid
         kth.start()
         stderr = process.communicate()[1]

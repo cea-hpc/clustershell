@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# scripts/clubak.py tool test suite
+# ClusterShell.CLI.Clubak test suite
 # Written by S. Thiell
 
 

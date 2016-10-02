@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# scripts/nodeset.py tool test suite
+# ClusterShell.CLI.Nodeset test suite
 # Written by S. Thiell
 
 
