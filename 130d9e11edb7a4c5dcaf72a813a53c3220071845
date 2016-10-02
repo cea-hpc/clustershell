@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8c279a62",
+        "filename": "doc/sphinx/install.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-02T04:04:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_eed08f55",
+      "range": {
+        "startLine": 67,
+        "startChar": 6,
+        "endLine": 67,
+        "endChar": 9
+      },
+      "revId": "130d9e11edb7a4c5dcaf72a813a53c3220071845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ced38b5e",
         "filename": "doc/sphinx/install.rst",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6c21f64c",
+        "filename": "doc/sphinx/install.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-02T04:04:15Z",
+      "side": 1,
+      "message": "Done (and tested)",
+      "parentUuid": "baa041b7_ced38b5e",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 9
+      },
+      "revId": "130d9e11edb7a4c5dcaf72a813a53c3220071845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_aeca879f",
         "filename": "doc/sphinx/install.rst",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-07-04T08:17:19Z",
       "side": 1,
       "message": "and here",
+      "range": {
+        "startLine": 86,
+        "startChar": 6,
+        "endLine": 86,
+        "endChar": 9
+      },
+      "revId": "130d9e11edb7a4c5dcaf72a813a53c3220071845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c1e320d",
+        "filename": "doc/sphinx/install.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-02T04:04:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_aeca879f",
       "range": {
         "startLine": 86,
         "startChar": 6,
