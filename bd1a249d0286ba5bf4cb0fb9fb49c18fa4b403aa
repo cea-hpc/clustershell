@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_42495930",
+        "filename": "ChangeLog",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-03T12:52:14Z",
+      "side": 1,
+      "message": "watchout for conflict with other commits :)",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 26
+      },
+      "revId": "bd1a249d0286ba5bf4cb0fb9fb49c18fa4b403aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
