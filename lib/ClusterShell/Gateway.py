@@ -48,7 +48,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, _getshorthostname
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Worker.fastsubprocess import set_nonblock_flag
-from ClusterShell.Worker.Worker import StreamWorker
+from ClusterShell.Worker.Worker import StreamWorker, FANOUT_UNLIMITED
 from ClusterShell.Worker.Tree import WorkerTree
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
     ControlMessage, ACKMessage, ErrorMessage, StartMessage, EndMessage, \
@@ -360,6 +360,9 @@ def gateway_main():
 
     gateway = GatewayChannel(task)
     worker = StreamWorker(handler=gateway)
+    # Define worker.fanout to not rely on the engine's fanout, and use
+    # the value -1 to always allow registration
+    worker.fanout = FANOUT_UNLIMITED
     worker.set_reader(gateway.SNAME_READER, sys.stdin)
     worker.set_writer(gateway.SNAME_WRITER, sys.stdout, retain=False)
     # must stay disabled for now (see #274)

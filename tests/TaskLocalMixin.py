@@ -21,6 +21,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
 from ClusterShell.Worker.Worker import WorkerBadArgumentError
+from ClusterShell.Worker.Worker import FANOUT_UNLIMITED
 
 # private import
 from ClusterShell.Engine.Engine import E_READ, E_WRITE
@@ -763,7 +764,7 @@ class TaskLocalMixin(object):
         task = task_self()
         self.assert_(task != None)
         # init worker
-        worker = task.shell("/bin/echo -n okay")
+        worker = task.shell("echo -n okay")
         self.assert_(worker != None)
         # run task
         task.resume()
@@ -771,14 +772,13 @@ class TaskLocalMixin(object):
 
     def testLocalFanout(self):
         task = task_self()
-        self.assert_(task != None)
         fanout = task.info("fanout")
         try:
             task.set_info("fanout", 3)
 
             # Test #1: simple
             for i in range(0, 10):
-                worker = task.shell("/bin/echo test %d" % i)
+                worker = task.shell("echo test %d" % i)
                 self.assert_(worker != None)
             task.resume()
 
@@ -791,6 +791,55 @@ class TaskLocalMixin(object):
                 worker = task.shell("sleep 0.5")
                 self.assert_(worker != None)
             task.resume()
+        finally:
+            # restore original fanout value
+            task.set_info("fanout", fanout)
+
+    def testLocalWorkerFanout(self):
+
+        TEST_FANOUT = 3
+
+        class TestRunCountChecker(EventHandler):
+            def __init__(self):
+                self.workers = []
+                self.max_run_cnt = 0
+            def ev_read(self, worker):
+                run_cnt = sum(e.registered for w in self.workers
+                              for e in w._engine_clients())
+                self.max_run_cnt = max(self.max_run_cnt, run_cnt)
+
+        task = task_self()
+        fanout = task.info("fanout")
+        try:
+            task.set_info("fanout", TEST_FANOUT)
+
+            # TEST 1 - default worker fanout
+            eh = TestRunCountChecker()
+            eh.workers = [task.shell("echo test %d" % i, handler=eh)
+                          for i in range(10)]
+            task.resume()
+            # Engine fanout should be enforced
+            self.assertTrue(eh.max_run_cnt <= TEST_FANOUT)
+
+            # TEST 2 - create workers using worker.fanout
+            eh = TestRunCountChecker()
+            for i in range(10):
+                w = task.shell("echo test %d" % i, handler=eh)
+                w.fanout = 1
+                eh.workers.append(w)
+            task.resume()
+            # max_run_cnt should reach the total number of workers
+            self.assertEqual(eh.max_run_cnt, 10)
+
+            # TEST 3 - create workers using unlimited fanout
+            eh = TestRunCountChecker()
+            for i in range(10):
+                w = task.shell("echo test %d" % i, handler=eh)
+                w.fanout = FANOUT_UNLIMITED
+                eh.workers.append(w)
+            task.resume()
+            # max_run_cnt should reach the total number of workers
+            self.assertEqual(eh.max_run_cnt, 10)
         finally:
             # restore original fanout value
             task.set_info("fanout", fanout)
