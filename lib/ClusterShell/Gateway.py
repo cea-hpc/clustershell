@@ -360,6 +360,9 @@ def gateway_main():
 
     gateway = GatewayChannel(task)
     worker = StreamWorker(handler=gateway)
+    # Define worker.fanout to not rely on the engine's fanout, and use
+    # the value -1 to always allow registration
+    worker.fanout = -1
     worker.set_reader(gateway.SNAME_READER, sys.stdin)
     worker.set_writer(gateway.SNAME_WRITER, sys.stdout, retain=False)
     # must stay disabled for now (see #274)

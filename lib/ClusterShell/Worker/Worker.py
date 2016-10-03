@@ -102,6 +102,8 @@ class Worker(object):
         """Initializer. Should be called from derived classes."""
         # Associated EventHandler object
         self.eh = handler           #: associated :class:`.EventHandler`
+        # Worker fanout
+        self.fanout = None          #: engine fanout override
         # Parent task (once bound)
         self.task = None            #: worker's task when scheduled or None
         self.started = False        #: set to True when worker has started
