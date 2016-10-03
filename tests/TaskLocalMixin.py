@@ -19,8 +19,10 @@ from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
+from ClusterShell.Worker.Exec import ExecWorker
 from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
 from ClusterShell.Worker.Worker import WorkerBadArgumentError
+from ClusterShell.Worker.Worker import FANOUT_UNLIMITED
 
 # private import
 from ClusterShell.Engine.Engine import E_READ, E_WRITE
@@ -38,6 +40,14 @@ def _test_print_debug(task, s):
 class TaskLocalMixin(object):
     """Mixin test case class: should be overrided and used in multiple
     inheritance with unittest.TestCase"""
+
+    def setUp(self):
+        # save original fanout value
+        self.fanout_orig = task_self().info("fanout")
+
+    def tearDown(self):
+        # restore original fanout value
+        task_self().set_info("fanout", self.fanout_orig)
 
     def testSimpleCommand(self):
         task = task_self()
@@ -763,7 +773,7 @@ class TaskLocalMixin(object):
         task = task_self()
         self.assert_(task != None)
         # init worker
-        worker = task.shell("/bin/echo -n okay")
+        worker = task.shell("echo -n okay")
         self.assert_(worker != None)
         # run task
         task.resume()
@@ -771,29 +781,104 @@ class TaskLocalMixin(object):
 
     def testLocalFanout(self):
         task = task_self()
-        self.assert_(task != None)
-        fanout = task.info("fanout")
-        try:
-            task.set_info("fanout", 3)
+        task.set_info("fanout", 3)
 
-            # Test #1: simple
-            for i in range(0, 10):
-                worker = task.shell("/bin/echo test %d" % i)
-                self.assert_(worker != None)
-            task.resume()
+        # Test #1: simple
+        for i in range(0, 10):
+            worker = task.shell("echo test %d" % i)
+            self.assert_(worker != None)
+        task.resume()
 
-            # Test #2: fanout change during run
-            class TestFanoutChanger(EventHandler):
-                def ev_timer(self, timer):
-                    task_self().set_info("fanout", 1)
-            timer = task.timer(2.0, handler=TestFanoutChanger())
-            for i in range(0, 10):
-                worker = task.shell("sleep 0.5")
-                self.assert_(worker != None)
-            task.resume()
-        finally:
-            # restore original fanout value
-            task.set_info("fanout", fanout)
+        # Test #2: fanout change during run
+        class TestFanoutChanger(EventHandler):
+            def ev_timer(self, timer):
+                task_self().set_info("fanout", 1)
+        timer = task.timer(2.0, handler=TestFanoutChanger())
+        for i in range(0, 10):
+            worker = task.shell("sleep 0.5")
+            self.assert_(worker != None)
+        task.resume()
+
+    def testLocalWorkerFanout(self):
+
+        class TestRunCountChecker(EventHandler):
+
+            def __init__(self):
+                self.workers = []
+                self.max_run_cnt = 0
+
+            def ev_start(self, worker):
+                self.workers.append(worker)
+
+            def ev_read(self, worker):
+                run_cnt = sum(e.registered for w in self.workers
+                              for e in w._engine_clients())
+                self.max_run_cnt = max(self.max_run_cnt, run_cnt)
+
+        task = task_self()
+
+        TEST_FANOUT = 3
+        task.set_info("fanout", TEST_FANOUT)
+
+        # TEST 1 - default worker fanout
+        eh = TestRunCountChecker()
+        for i in range(10):
+            task.shell("echo foo", handler=eh)
+        task.resume()
+        # Engine fanout should be enforced
+        self.assertTrue(eh.max_run_cnt <= TEST_FANOUT)
+
+        # TEST 1bis - default worker fanout with ExecWorker
+        eh = TestRunCountChecker()
+        worker = ExecWorker(nodes='foo[0-9]', handler=eh, command='echo bar')
+        task.schedule(worker)
+        task.resume()
+        # Engine fanout should be enforced
+        self.assertTrue(eh.max_run_cnt <= TEST_FANOUT)
+
+        # TEST 2 - create n x workers using worker.fanout
+        eh = TestRunCountChecker()
+        for i in range(10):
+            task.shell("echo foo", handler=eh)._fanout = 1
+        task.resume()
+        # max_run_cnt should reach the total number of workers
+        self.assertEqual(eh.max_run_cnt, 10)
+
+        # TEST 2bis - create ExecWorker with multiple clients [larger fanout]
+        eh = TestRunCountChecker()
+        worker = ExecWorker(nodes='foo[0-9]', handler=eh, command='echo bar')
+        worker._fanout = 5
+        task.schedule(worker)
+        task.resume()
+        # max_run_cnt should reach worker._fanout
+        self.assertEqual(eh.max_run_cnt, 5)
+
+        # TEST 2ter - create ExecWorker with multiple clients [smaller fanout]
+        eh = TestRunCountChecker()
+        worker = ExecWorker(nodes='foo[0-9]', handler=eh, command='echo bar')
+        worker._fanout = 1
+        task.schedule(worker)
+        task.resume()
+        # max_run_cnt should reach worker._fanout
+        self.assertEqual(eh.max_run_cnt, 1)
+
+        # TEST 4 - create workers using unlimited fanout
+        eh = TestRunCountChecker()
+        for i in range(10):
+            w = task.shell("echo foo", handler=eh)
+            w._fanout = FANOUT_UNLIMITED
+        task.resume()
+        # max_run_cnt should reach the total number of workers
+        self.assertEqual(eh.max_run_cnt, 10)
+
+        # TEST 4bis - create ExecWorker with unlimited fanout
+        eh = TestRunCountChecker()
+        worker = ExecWorker(nodes='foo[0-9]', handler=eh, command='echo bar')
+        worker._fanout = FANOUT_UNLIMITED
+        task.schedule(worker)
+        task.resume()
+        # max_run_cnt should reach the total number of clients (10)
+        self.assertEqual(eh.max_run_cnt, 10)
 
     def testPopenBadArgumentOption(self):
 	    # Check code < 1.4 compatibility
