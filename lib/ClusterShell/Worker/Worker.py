@@ -43,6 +43,13 @@ from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 
 
+#: Unlimited fanout
+FANOUT_UNLIMITED = -1
+
+#: Use the default Task fanout
+FANOUT_DEFAULT = None
+
+
 class WorkerException(Exception):
     """Generic worker exception."""
 
@@ -101,18 +108,20 @@ class Worker(object):
     def __init__(self, handler):
         """Initializer. Should be called from derived classes."""
         # Associated EventHandler object
-        self.eh = handler           #: associated :class:`.EventHandler`
+        self.eh = handler            #: associated :class:`.EventHandler`
+        # Worker fanout
+        self.fanout = FANOUT_DEFAULT #: per-worker fanout override
         # Parent task (once bound)
-        self.task = None            #: worker's task when scheduled or None
-        self.started = False        #: set to True when worker has started
+        self.task = None             #: worker's task when scheduled or None
+        self.started = False         #: set to True when worker has started
         self.metaworker = None
         self.metarefcnt = 0
         # current_x public variables (updated at each event accordingly)
-        self.current_node = None    #: set to node in event handler
-        self.current_msg = None     #: set to stdout message in event handler
-        self.current_errmsg = None  #: set to stderr message in event handler
-        self.current_rc = 0         #: set to return code in event handler
-        self.current_sname = None   #: set to stream name in event handler
+        self.current_node = None     #: set to node in event handler
+        self.current_msg = None      #: set to stdout message in event handler
+        self.current_errmsg = None   #: set to stderr message in event handler
+        self.current_rc = 0          #: set to return code in event handler
+        self.current_sname = None    #: set to stream name in event handler
 
     def _set_task(self, task):
         """Bind worker to task. Called by task.schedule()."""

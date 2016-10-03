@@ -74,6 +74,7 @@ from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.Worker.EngineClient import EnginePort
 from ClusterShell.Worker.Popen import WorkerPopen
 from ClusterShell.Worker.Tree import WorkerTree
+from ClusterShell.Worker.Worker import FANOUT_UNLIMITED
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
@@ -1309,6 +1310,9 @@ class Task(object):
             wrkcls = self.default('distant_worker')
             chanworker = wrkcls(gateway, command=metaworker.invoke_gateway,
                                 handler=chan, stderr=True, timeout=timeout)
+            # define worker.fanout to not rely on the engine's fanout, and use
+            # the value -1 to always allow registration of gateways
+            chanworker.fanout = FANOUT_UNLIMITED
             # change default stream names to avoid internal task buffering
             # and conform with channel stream names
             chanworker.SNAME_STDIN = chan.SNAME_WRITER

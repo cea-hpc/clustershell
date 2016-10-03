@@ -377,8 +377,9 @@ class Engine:
         self._clients = set()
         self._ports = set()
 
-        # keep track of the number of registered clients (delayable only)
-        self.reg_clients = 0
+        # keep track of the number of registered clients per worker
+        # (this does not include ports)
+        self._reg_stats = {}
 
         # keep track of registered file descriptors in a dict where keys
         # are fileno and values are (EngineClient, EngineClientStream) tuples
@@ -428,6 +429,26 @@ class Engine:
                              stream.fd)
         return (None, None)
 
+    def _can_register(self, client):
+        assert not client.registered
+
+        if not client.delayable or client.worker.fanout == -1:
+            return True
+        elif client.worker.fanout is None:
+            return self._reg_stats.get('default', 0) < self.info['fanout']
+        else:
+            worker = client.worker
+            return self._reg_stats.get(worker, 0) < worker.fanout
+
+    def _update_reg_stats(self, client, offset):
+        if client.worker.fanout is None:
+            key = 'default'
+        else:
+            key = client.worker
+
+        self._reg_stats.setdefault(key, 0)
+        self._reg_stats[key] += offset
+
     def add(self, client):
         """Add a client to engine."""
         # bind to engine
@@ -442,10 +463,7 @@ class Engine:
 
         if self.running:
             # in-fly add if running
-            if not client.delayable:
-                self.register(client)
-            elif self.info["fanout"] > self.reg_clients:
-                self.register(client._start())
+            self.register(client._start())
 
     def _remove(self, client, abort, did_timeout=False):
         """Remove a client from engine (subroutine)."""
@@ -467,7 +485,7 @@ class Engine:
         else:
             self._ports.remove(client)
         self._remove(client, abort, did_timeout)
-        self.start_all()
+        self.start_clients()
 
     def remove_stream(self, client, stream):
         """
@@ -522,7 +540,7 @@ class Engine:
         client._reg_epoch = self._current_loopcnt
 
         if client.delayable:
-            self.reg_clients += 1
+            self._update_reg_stats(client, 1)
 
         # set interest event bits...
         for streams, ievent in ((client.streams.active_readers, E_READ),
@@ -575,7 +593,7 @@ class Engine:
 
         client.registered = False
         if client.delayable:
-            self.reg_clients -= 1
+            self._update_reg_stats(client, -1)
 
     def modify(self, client, sname, setmask, clearmask):
         """Modify the next loop interest events bitset for a client stream."""
@@ -661,24 +679,24 @@ class Engine:
                 self._debug("START PORT %s" % port)
                 self.register(port)
 
-    def start_all(self):
-        """
-        Start and register all other possible clients, in respect of task
-        fanout.
-        """
-        # Get current fanout value
-        fanout = self.info["fanout"]
-        assert fanout > 0
-        if fanout <= self.reg_clients:
-            return
-
-        # Register regular engine clients within the fanout limit
+    def start_clients(self):
+        """Start and register regular engine clients in respect of fanout."""
         for client in self._clients:
             if not client.registered:
-                self._debug("START CLIENT %s" % client.__class__.__name__)
-                self.register(client._start())
-                if fanout <= self.reg_clients:
-                    break
+                if self._can_register(client):
+                    self._debug("START CLIENT %s" % client.__class__.__name__)
+                    self.register(client._start())
+
+        """
+        from itertools import groupby
+        for worker, clients in groupby(self.clients, attrgetter('worker')):
+            if worker.fanout is not None and worker.fanout >= 0:
+                if reg_stats.get(worker) < worker.fanout:
+            if worker in reg_stats
+            if worker.fanout > 0 and reg_stats.get(worker) < worker.fanout:
+                for client in clients:
+                if not client.registered and 
+        """
 
     def run(self, timeout):
         """Run engine in calling thread."""
@@ -695,7 +713,7 @@ class Engine:
                 # peek in ports for early pending messages
                 self.snoop_ports()
                 # start all other clients
-                self.start_all()
+                self.start_clients()
                 # run loop until all clients and timers are removed
                 self.runloop(timeout)
             except EngineTimeoutException:
