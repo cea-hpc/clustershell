@@ -41,6 +41,7 @@ import warnings
 
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
+from ClusterShell.Engine.Engine import FANOUT_UNLIMITED, FANOUT_DEFAULT
 
 
 class WorkerException(Exception):
@@ -101,18 +102,27 @@ class Worker(object):
     def __init__(self, handler):
         """Initializer. Should be called from derived classes."""
         # Associated EventHandler object
-        self.eh = handler           #: associated :class:`.EventHandler`
+        self.eh = handler            #: associated :class:`.EventHandler`
+
+        #: Per Worker fanout value (positive integer).
+        #: Default is FANOUT_DEFAULT to use the fanout set at the Task level.
+        #: Change to FANOUT_UNLIMITED to always schedule this worker.
+        #: NOTE: the fanout value must be set before the Worker starts and
+        #: cannot currently be changed afterwards.
+        self.fanout = FANOUT_DEFAULT
+
         # Parent task (once bound)
-        self.task = None            #: worker's task when scheduled or None
-        self.started = False        #: set to True when worker has started
+        self.task = None             #: worker's task when scheduled or None
+        self.started = False         #: set to True when worker has started
         self.metaworker = None
         self.metarefcnt = 0
+
         # current_x public variables (updated at each event accordingly)
-        self.current_node = None    #: set to node in event handler
-        self.current_msg = None     #: set to stdout message in event handler
-        self.current_errmsg = None  #: set to stderr message in event handler
-        self.current_rc = 0         #: set to return code in event handler
-        self.current_sname = None   #: set to stream name in event handler
+        self.current_node = None     #: set to node in event handler
+        self.current_msg = None      #: set to stdout message in event handler
+        self.current_errmsg = None   #: set to stderr message in event handler
+        self.current_rc = 0          #: set to return code in event handler
+        self.current_sname = None    #: set to stream name in event handler
 
     def _set_task(self, task):
         """Bind worker to task. Called by task.schedule()."""
