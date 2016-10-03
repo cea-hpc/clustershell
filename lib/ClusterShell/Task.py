@@ -1309,6 +1309,9 @@ class Task(object):
             wrkcls = self.default('distant_worker')
             chanworker = wrkcls(gateway, command=metaworker.invoke_gateway,
                                 handler=chan, stderr=True, timeout=timeout)
+            # define worker.fanout to not rely on the engine's fanout, and use
+            # the value -1 to always allow registration of gateways
+            chanworker.fanout = -1
             # change default stream names to avoid internal task buffering
             # and conform with channel stream names
             chanworker.SNAME_STDIN = chan.SNAME_WRITER

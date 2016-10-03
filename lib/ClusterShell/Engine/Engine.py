@@ -377,8 +377,9 @@ class Engine:
         self._clients = set()
         self._ports = set()
 
-        # keep track of the number of registered clients (delayable only)
-        self.reg_clients = 0
+        # keep track of the number of registered clients allowed by engine
+        # this does not include ports
+        self.reg_allow_cnt = 0
 
         # keep track of registered file descriptors in a dict where keys
         # are fileno and values are (EngineClient, EngineClientStream) tuples
@@ -444,8 +445,13 @@ class Engine:
             # in-fly add if running
             if not client.delayable:
                 self.register(client)
-            elif self.info["fanout"] > self.reg_clients:
-                self.register(client._start())
+            else:
+                # worker._fanout_allow() returns True, False or None
+                # if None, we rely on engine's fanout
+                allow = client.worker._fanout_allow()
+                if allow or (allow is None and
+                             self.reg_allow_cnt < self.info["fanout"]):
+                    self.register(client._start(), allow)
 
     def _remove(self, client, abort, did_timeout=False):
         """Remove a client from engine (subroutine)."""
@@ -467,7 +473,7 @@ class Engine:
         else:
             self._ports.remove(client)
         self._remove(client, abort, did_timeout)
-        self.start_all()
+        self.start_clients()
 
     def remove_stream(self, client, stream):
         """
@@ -506,7 +512,7 @@ class Engine:
                 client = clients.pop()
                 self._remove(client, True, did_timeout)
 
-    def register(self, client):
+    def register(self, client, worker_allow=None):
         """
         Register an engine client. Subclasses that override this method
         should call base class method.
@@ -519,10 +525,12 @@ class Engine:
                  client.autoclose))
 
         client.registered = True
+        client._reg_allow = worker_allow
         client._reg_epoch = self._current_loopcnt
 
-        if client.delayable:
-            self.reg_clients += 1
+        # delayable client allowed to run by engine
+        if client.delayable and worker_allow is None:
+            self.reg_allow_cnt += 1
 
         # set interest event bits...
         for streams, ievent in ((client.streams.active_readers, E_READ),
@@ -574,8 +582,8 @@ class Engine:
                         self.evlooprefcnt -= 1
 
         client.registered = False
-        if client.delayable:
-            self.reg_clients -= 1
+        if client.delayable and client._reg_allow is None:
+            self.reg_allow_cnt -= 1
 
     def modify(self, client, sname, setmask, clearmask):
         """Modify the next loop interest events bitset for a client stream."""
@@ -661,7 +669,7 @@ class Engine:
                 self._debug("START PORT %s" % port)
                 self.register(port)
 
-    def start_all(self):
+    def start_clients(self):
         """
         Start and register all other possible clients, in respect of task
         fanout.
@@ -669,16 +677,17 @@ class Engine:
         # Get current fanout value
         fanout = self.info["fanout"]
         assert fanout > 0
-        if fanout <= self.reg_clients:
-            return
 
         # Register regular engine clients within the fanout limit
         for client in self._clients:
             if not client.registered:
-                self._debug("START CLIENT %s" % client.__class__.__name__)
-                self.register(client._start())
-                if fanout <= self.reg_clients:
-                    break
+                # worker._fanout_allow() returns True, False or None
+                # if None, we rely on engine's fanout
+                allow = client.worker._fanout_allow()
+                if allow or (allow is None and
+                             self.reg_allow_cnt < fanout):
+                    self._debug("START CLIENT %s" % client.__class__.__name__)
+                    self.register(client._start(), allow)
 
     def run(self, timeout):
         """Run engine in calling thread."""
@@ -695,7 +704,7 @@ class Engine:
                 # peek in ports for early pending messages
                 self.snoop_ports()
                 # start all other clients
-                self.start_all()
+                self.start_clients()
                 # run loop until all clients and timers are removed
                 self.runloop(timeout)
             except EngineTimeoutException:

@@ -102,6 +102,8 @@ class Worker(object):
         """Initializer. Should be called from derived classes."""
         # Associated EventHandler object
         self.eh = handler           #: associated :class:`.EventHandler`
+        # Worker fanout
+        self.fanout = None          #: engine fanout override or None
         # Parent task (once bound)
         self.task = None            #: worker's task when scheduled or None
         self.started = False        #: set to True when worker has started
@@ -129,6 +131,19 @@ class Worker(object):
     def _engine_clients(self):
         """Return a list of underlying engine clients."""
         raise NotImplementedError("Derived classes must implement.")
+
+    def _fanout_allow(self):
+        """Helper method used for Worker's fanout check.
+
+        Returns True to allow immediate scheduling of one client, False to
+        deny scheduling, None if undefined (Engine fanout will apply)
+        """
+        if self.fanout is None:
+            return None
+        elif self.fanout == -1:
+            return True
+        cnt = len([c for c in self._engine_clients() if c.registered])
+        return cnt < self.fanout
 
     # Event generators
 

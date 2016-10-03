@@ -224,6 +224,9 @@ class EngineClient(EngineBaseTimer):
 
         EngineBaseTimer.__init__(self, timeout, -1, autoclose)
 
+        self._reg_allow = None              # who allowed client registration?
+                                            # - True if Worker
+                                            # - None if Engine
         self._reg_epoch = 0                 # registration generation number
 
         # read-only public
