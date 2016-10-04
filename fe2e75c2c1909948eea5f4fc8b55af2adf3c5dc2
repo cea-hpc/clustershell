@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_fdea4ed7",
+        "filename": "ChangeLog",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-04T05:57:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_42c27986",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 26
+      },
+      "revId": "fe2e75c2c1909948eea5f4fc8b55af2adf3c5dc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_02e1112a",
         "filename": "lib/ClusterShell/Worker/Tree.py",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-03T12:49:24Z",
       "side": 1,
       "message": "could be put on one line",
+      "range": {
+        "startLine": 487,
+        "startChar": 53,
+        "endLine": 488,
+        "endChar": 61
+      },
+      "revId": "fe2e75c2c1909948eea5f4fc8b55af2adf3c5dc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d3ff79ff",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-04T05:57:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_02e1112a",
       "range": {
         "startLine": 487,
         "startChar": 53,
