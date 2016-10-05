@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_751d2e0e",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "elif",
+      "range": {
+        "startLine": 437,
+        "startChar": 8,
+        "endLine": 438,
+        "endChar": 14
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_726ae41b",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 2
@@ -41,6 +64,161 @@
         "startChar": 54,
         "endLine": 442,
         "endChar": 56
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b535f645",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "_start() for port seems harmless as it is a no-op.\n\nso, it seems it makes sense to test client.delayable also in can_register(), and this could simplify code here",
+      "range": {
+        "startLine": 467,
+        "startChar": 11,
+        "endLine": 468,
+        "endChar": 37
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b599766f",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "elif",
+      "range": {
+        "startLine": 469,
+        "startChar": 14,
+        "endLine": 470,
+        "endChar": 18
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d5abda6f",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "please use constant for readability ie: REGISTER/UNREGISTER",
+      "range": {
+        "startLine": 548,
+        "startChar": 43,
+        "endLine": 548,
+        "endChar": 44
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b5b056dd",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 601,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "idem",
+      "range": {
+        "startLine": 601,
+        "startChar": 43,
+        "endLine": 601,
+        "endChar": 45
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_75f52e81",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "useless",
+      "range": {
+        "startLine": 692,
+        "startChar": 5,
+        "endLine": 694,
+        "endChar": 25
+      },
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7523ee05",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 718,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "it seems start_clients() and start_ports() will be very similar at the end and could be factorized. At the end, thanks to this patch, self._ports is closed to be merged into _clients (except for few cases like snoop)",
+      "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_75ce4e5b",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-05T08:54:10Z",
+      "side": 1,
+      "message": "use a constant for that (better for doc too)",
+      "range": {
+        "startLine": 365,
+        "startChar": 20,
+        "endLine": 365,
+        "endChar": 22
       },
       "revId": "06950368bc7c5115ab84b7e3abd541d53e05d72c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
