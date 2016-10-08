@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_24a1acf7",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-08T07:41:41Z",
+      "side": 1,
+      "message": "As this wo\u0027nt be a public feature, make it private, it will be simpler when we will probably have to create a method to update it in the future",
+      "revId": "5e5e35954d01911245ffe3abe017f253fded6952",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c4ac40ef",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-08T07:41:41Z",
+      "side": 1,
+      "message": "this looks racy, why not use ev_pickup/ev_hup ?",
+      "range": {
+        "startLine": 364,
+        "startChar": 16,
+        "endLine": 364,
+        "endChar": 23
+      },
+      "revId": "5e5e35954d01911245ffe3abe017f253fded6952",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04a6a80e",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-08T07:41:41Z",
+      "side": 1,
+      "message": "do not use WorkerSsh for those simple test. Use ExecWorker and use a much larger nodeset (10 nodes). This will be easily doable thanks to this worker. Do not know if this belongs to Distant or Local tests :)",
+      "range": {
+        "startLine": 377,
+        "startChar": 30,
+        "endLine": 377,
+        "endChar": 40
+      },
+      "revId": "5e5e35954d01911245ffe3abe017f253fded6952",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_84b2b847",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-08T07:41:41Z",
+      "side": 1,
+      "message": "worker list could be computed using ev_start(self, worker), doesn\u0027t it?",
+      "range": {
+        "startLine": 386,
+        "startChar": 12,
+        "endLine": 386,
+        "endChar": 37
+      },
+      "revId": "5e5e35954d01911245ffe3abe017f253fded6952",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a4b5bc32",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-08T07:41:41Z",
+      "side": 1,
+      "message": "test should not handle this themselves. Use backup the value in setUp(), restore it in tearDown().",
+      "range": {
+        "startLine": 401,
+        "startChar": 12,
+        "endLine": 401,
+        "endChar": 43
+      },
+      "revId": "5e5e35954d01911245ffe3abe017f253fded6952",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_64821454",
+        "filename": "tests/TaskLocalMixin.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 824,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-08T07:41:41Z",
+      "side": 1,
+      "message": "test #2 and # does not test much as they are using WorkerPopen... maybe ExecWorker is more appropriate?",
+      "revId": "5e5e35954d01911245ffe3abe017f253fded6952",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
