@@ -22,6 +22,30 @@
       "revId": "fb158b61eb72aa909e122b30726b37faeafeaec6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_64ffb401",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-08T04:18:49Z",
+      "side": 1,
+      "message": "Indeed!",
+      "parentUuid": "baa041b7_a1c48e5f",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 3
+      },
+      "revId": "fb158b61eb72aa909e122b30726b37faeafeaec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
