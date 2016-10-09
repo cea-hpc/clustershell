@@ -1,7 +1,7 @@
 # fastsubprocess - POSIX relaxed revision of subprocess.py
 # Based on Python 2.6.4 subprocess.py
 # This is a performance oriented version of subprocess module.
-# Modified by Stephane Thiell <stephane.thiell@cea.fr>
+# Modified by Stephane Thiell
 # Changes:
 #   * removed Windows specific code parts
 #   * removed pipe for transferring possible exec failure from child to

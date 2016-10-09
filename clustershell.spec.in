@@ -6,7 +6,7 @@ Release:       1%{?dist}
 Summary:       Python framework for efficient cluster administration
 
 Group:         System Environment/Base
-License:       CeCILL-C
+License:       LGPLv2+
 URL:           http://cea-hpc.github.io/clustershell/
 Source0:       https://github.com/cea-hpc/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -68,7 +68,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README.md ChangeLog Licence_CeCILL-C_V1-en.txt Licence_CeCILL-C_V1-fr.txt
+%doc ChangeLog COPYING.LGPLv2.1 README.md
 %doc doc/examples
 %doc doc/sphinx
 %{_mandir}/man1/clubak.1*
