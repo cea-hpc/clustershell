@@ -34,13 +34,12 @@ operating systems:
 Distribution
 ------------
 
-ClusterShell is an open-source project distributed under the CeCILL-C flavor
-of the `CeCILL license family`_, which is in conformance with the French law
-and fully compatible with the GNU LGPL (Lesser GPL) license, which means that
-many possibilities are offered to the end user. Also, as a software library,
-ClusterShell has to remain easily available to everyone. Hopefully, packages
-are currently maintained in Fedora Linux, RHEL (through EPEL repositories),
-Debian and Arch Linux.
+ClusterShell is an open-source project distributed under the GNU Lesser General
+Public License version or later (`LGPL v2.1+`_), which means that many
+possibilities are offered to the end user. Also, as a software library,
+ClusterShell should remain easily available to everyone. Hopefully, packages are
+currently available for Fedora Linux, RHEL (through EPEL repositories), Debian
+and Arch Linux.
 
 Fedora
 ^^^^^^
@@ -187,6 +186,6 @@ the latest development version from the repository::
 .. [#] pip is a tool for installing and managing Python packages, such as
    those found in the Python Package Index
 
-.. _CeCILL license family: http://www.cecill.info/index.en.html
+.. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _Test Updates: http://fedoraproject.org/wiki/QA/Updates_Testing
 .. _EPEL: http://fedoraproject.org/wiki/EPEL

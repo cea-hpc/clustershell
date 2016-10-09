@@ -18,7 +18,7 @@ of the library features.
 Requirements (v1.7)
 -------------------
 
- * GNU/Linux, *BSD, Mac OS X
+ * GNU/Linux, BSD, Mac OS X
  * OpenSSH (ssh/scp) or rsh
  * Python 2.x (x >= 4)
  * PyYAML (optional)
@@ -26,8 +26,8 @@ Requirements (v1.7)
 License
 -------
 
-ClusterShell is distributed under the CeCILL-C license, a French transposition
-of the GNU LGPL, and is fully LGPL-compatible (see Licence_CeCILL-C_V1-en.txt).
+ClusterShell is distributed under the GNU Lesser General Public License version
+2.1 or later (LGPL v2.1+). Read the file `COPYING.LGPLv2.1` for details.
 
 Documentation
 -------------
