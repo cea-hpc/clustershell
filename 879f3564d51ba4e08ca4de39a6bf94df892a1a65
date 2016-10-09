@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_92b55633",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-09T18:13:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_32a0caf3",
+      "range": {
+        "startLine": 394,
+        "startChar": 14,
+        "endLine": 394,
+        "endChar": 20
+      },
+      "revId": "879f3564d51ba4e08ca4de39a6bf94df892a1a65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_12a146f7",
         "filename": "tests/TaskDistantMixin.py",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_72b2d24a",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-09T18:13:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_12a146f7",
+      "range": {
+        "startLine": 613,
+        "startChar": 0,
+        "endLine": 613,
+        "endChar": 1
+      },
+      "revId": "879f3564d51ba4e08ca4de39a6bf94df892a1a65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f2a5c202",
         "filename": "tests/TaskLocalMixin.py",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2016-10-09T17:29:33Z",
       "side": 1,
       "message": "does not sound very english... saved_fanout? orig_fanout?",
+      "range": {
+        "startLine": 45,
+        "startChar": 13,
+        "endLine": 45,
+        "endChar": 24
+      },
+      "revId": "879f3564d51ba4e08ca4de39a6bf94df892a1a65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_52822e53",
+        "filename": "tests/TaskLocalMixin.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-09T18:13:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_f2a5c202",
       "range": {
         "startLine": 45,
         "startChar": 13,
