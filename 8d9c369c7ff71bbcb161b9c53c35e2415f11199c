@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_eee2739f",
+        "filename": "lib/ClusterShell/Worker/Ssh.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-13T07:16:00Z",
+      "side": 1,
+      "message": "?\n\nI do not want to delay this patch further. This could be removed in a following patch",
+      "revId": "8d9c369c7ff71bbcb161b9c53c35e2415f11199c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
