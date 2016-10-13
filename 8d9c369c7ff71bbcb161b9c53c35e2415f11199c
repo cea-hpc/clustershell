@@ -16,6 +16,24 @@
       "revId": "8d9c369c7ff71bbcb161b9c53c35e2415f11199c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eef9534f",
+        "filename": "lib/ClusterShell/Worker/Ssh.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-13T07:28:34Z",
+      "side": 1,
+      "message": "Wow, good catch. damn. Better do that the right way, I will rebase :)",
+      "parentUuid": "baa041b7_eee2739f",
+      "revId": "8d9c369c7ff71bbcb161b9c53c35e2415f11199c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
