@@ -166,20 +166,17 @@ class Defaults(object):
                              "command_timeout" : ConfigParser.getfloat}
 
     #
-    # List of info keys whose values can safely be propagated in tree mode
+    # Black list of info keys whose values cannot safely be propagated
+    # in tree mode
     #
-    _TASK_INFO_PKEYS = ['debug',
-                        'fanout',
-                        'grooming_delay',
-                        'connect_timeout',
-                        'command_timeout']
+    _TASK_INFO_PKEYS_BL = ['engine', 'print_debug']
 
     def __init__(self, filenames):
         """Initialize Defaults from config filenames"""
 
         self._task_default = self._TASK_DEFAULT.copy()
         self._task_info = self._TASK_INFO.copy()
-        self._task_info_pkeys = list(self._TASK_INFO_PKEYS)
+        self._task_info_pkeys_bl = list(self._TASK_INFO_PKEYS_BL)
 
         config = ConfigParser()
         parsed = config.read(filenames)
@@ -215,7 +212,7 @@ class Defaults(object):
 
     def __setattr__(self, name, value):
         """Defaults attribute assignment"""
-        if name in ('_task_default', '_task_info', '_task_info_pkeys'):
+        if name in ('_task_default', '_task_info', '_task_info_pkeys_bl'):
             object.__setattr__(self, name, value)
         elif name in self._task_default:
             self._task_default[name] = value
