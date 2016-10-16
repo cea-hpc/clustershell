@@ -1,3 +1,8 @@
+2016-11-06 S. Thiell <sthiell@stanford.edu>
+
+	* cluset: add cluset command with doc to avoid a conflict with xCAT's
+	nodeset command (ticket #300).
+
 2016-10-12 All contributors
 
 	* Change license from "CeCILL-C V1" to "LGPL v2.1 or later".
