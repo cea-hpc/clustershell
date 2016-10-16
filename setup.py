@@ -32,6 +32,9 @@ else:
 
 VERSION = '1.7.2'
 
+# Dependencies (for pip install)
+REQUIRES = ['PyYAML']
+
 setup(name='ClusterShell',
       version=VERSION,
       package_dir={'': 'lib'},
@@ -72,9 +75,13 @@ setup(name='ClusterShell',
           "Operating System :: POSIX :: BSD",
           "Operating System :: POSIX :: Linux",
           "Programming Language :: Python",
+          "Programming Language :: Python :: 2.4",
+          "Programming Language :: Python :: 2.5",
+          "Programming Language :: Python :: 2.6",
+          "Programming Language :: Python :: 2.7",
           "Topic :: Software Development :: Libraries :: Python Modules",
           "Topic :: System :: Clustering",
           "Topic :: System :: Distributed Computing"
-      ]
+      ],
+      install_requires=REQUIRES,
      )
-
