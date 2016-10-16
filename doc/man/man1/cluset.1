@@ -1,8 +1,8 @@
 .\" Man page generated from reStructuredText.
 .
-.TH NODESET 1 "2016-10-12" "1.7.2" "ClusterShell User Manual"
+.TH CLUSET 1 "2016-11-06" "1.7.2" "ClusterShell User Manual"
 .SH NAME
-nodeset \- compute advanced nodeset operations
+cluset \- compute advanced cluster node set operations
 .
 .nr rst2man-indent-level 0
 .
@@ -33,19 +33,19 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .SH SYNOPSIS
 .INDENT 0.0
 .INDENT 3.5
-\fBnodeset\fP [OPTIONS] [COMMAND] [nodeset1 [OPERATION] nodeset2|...]
+\fBcluset\fP [OPTIONS] [COMMAND] [nodeset1 [OPERATION] nodeset2|...]
 .UNINDENT
 .UNINDENT
 .SH DESCRIPTION
 .sp
-Note: \fBnodeset\fP and \fBcluset\fP are the same command.
+Note: \fBcluset\fP and \fBnodeset\fP are the same command.
 .sp
-\fBnodeset\fP is an utility command provided with the ClusterShell library which
+\fBcluset\fP is an utility command provided with the ClusterShell library which
 implements some features of ClusterShell\(aqs NodeSet and RangeSet Python classes.
 It provides easy manipulation of 1D or nD\-indexed cluster nodes and node
 groups and supports RFC 1123 (except that a node name can\(aqt be entirely numeric).
 .sp
-Also, \fBnodeset\fP is automatically bound to the library node group resolution
+Also, \fBcluset\fP is automatically bound to the library node group resolution
 mechanism. Thus, it is especially useful to enhance cluster aware
 administration shell scripts.
 .SH OPTIONS
@@ -90,13 +90,13 @@ list all active group sources (see \fBgroups.conf\fP(5))
 .INDENT 7.0
 .TP
 .BI \-x \ SUB_NODES\fP,\fB \ \-\-exclude\fB= SUB_NODES
-exclude specified nodeset
+exclude specified set
 .TP
 .BI \-i \ AND_NODES\fP,\fB \ \-\-intersection\fB= AND_NODES
-calculate nodesets intersection
+calculate sets intersection
 .TP
 .BI \-X \ XOR_NODES\fP,\fB \ \-\-xor\fB= XOR_NODES
-calculate symmetric difference between nodesets
+calculate symmetric difference between sets
 .UNINDENT
 .TP
 .B Options:
@@ -153,7 +153,7 @@ If a single hyphen\-minus (\-) is given as a nodeset, it will be read from
 standard input.
 .SH EXTENDED PATTERNS
 .sp
-The \fBnodeset\fP command benefits from ClusterShell NodeSet basic
+The \fBcluset\fP command benefits from ClusterShell NodeSet basic
 arithmetic addition. This feature extends recognized string patterns by
 supporting operators matching all Operations seen previously. String
 patterns are read from left to right, by proceeding any character
@@ -183,7 +183,7 @@ does not interpret them literally.
 .B Examples of use of extended patterns
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[0\-7],node[8\-10]
+.B $ cluset \-f node[0\-7],node[8\-10]
 .UNINDENT
 .nf
 node[0\-10]
@@ -191,7 +191,7 @@ node[0\-10]
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[0\-10]!node[8\-10]
+.B $ cluset \-f node[0\-10]!node[8\-10]
 .UNINDENT
 .nf
 node[0\-7]
@@ -199,7 +199,7 @@ node[0\-7]
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[0\-10]&node[5\-13]
+.B $ cluset \-f node[0\-10]&node[5\-13]
 .UNINDENT
 .nf
 node[5\-10]
@@ -207,7 +207,7 @@ node[5\-10]
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[0\-10]^node[5\-13]
+.B $ cluset \-f node[0\-10]^node[5\-13]
 .UNINDENT
 .nf
 node[0\-4,11\-13]
@@ -217,7 +217,7 @@ node[0\-4,11\-13]
 .B Example of advanced usage
 .INDENT 7.0
 .TP
-.B $ nodeset \-f @gpu^@slurm:bigmem!@chassis[1\-9/2]
+.B $ cluset \-f @gpu^@slurm:bigmem!@chassis[1\-9/2]
 .UNINDENT
 .sp
 This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
@@ -228,14 +228,14 @@ The \fB@*\fP and \fB@SOURCE:*\fP special notations may be used in extended patte
 .INDENT 3.5
 .INDENT 0.0
 .TP
-.B $ nodeset [\-s SOURCE] \-a \-f
+.B $ cluset [\-s SOURCE] \-a \-f
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .UNINDENT
 .SH EXIT STATUS
 .sp
-An exit status of zero indicates success of the \fBnodeset\fP command. A non\-zero
+An exit status of zero indicates success of the \fBcluset\fP command. A non\-zero
 exit status indicates failure.
 .SH EXAMPLES
 .INDENT 0.0
@@ -243,7 +243,7 @@ exit status indicates failure.
 .B Getting the node count
 .INDENT 7.0
 .TP
-.B $ nodeset \-c node[0\-7,32\-159]
+.B $ cluset \-c node[0\-7,32\-159]
 .UNINDENT
 .nf
 136
@@ -251,7 +251,7 @@ exit status indicates failure.
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-c node[0\-7,32\-159] node[160\-163]
+.B $ cluset \-c node[0\-7,32\-159] node[160\-163]
 .UNINDENT
 .nf
 140
@@ -259,7 +259,7 @@ exit status indicates failure.
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-c dc[1\-2]n[100\-199]
+.B $ cluset \-c dc[1\-2]n[100\-199]
 .UNINDENT
 .nf
 200
@@ -267,7 +267,7 @@ exit status indicates failure.
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-c @login
+.B $ cluset \-c @login
 .UNINDENT
 .nf
 4
@@ -277,7 +277,7 @@ exit status indicates failure.
 .B Folding nodesets
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[0\-7,32\-159] node[160\-163]
+.B $ cluset \-f node[0\-7,32\-159] node[160\-163]
 .UNINDENT
 .nf
 node[0\-7,32\-163]
@@ -285,7 +285,7 @@ node[0\-7,32\-163]
 .sp
 .INDENT 7.0
 .TP
-.B $ echo node3 node6 node1 node2 node7 node5 | nodeset \-f
+.B $ echo node3 node6 node1 node2 node7 node5 | cluset \-f
 .UNINDENT
 .nf
 node[1\-3,5\-7]
@@ -293,7 +293,7 @@ node[1\-3,5\-7]
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-f dc1n2 dc2n2 dc1n1 dc2n1
+.B $ cluset \-f dc1n2 dc2n2 dc1n1 dc2n1
 .UNINDENT
 .nf
 dc[1\-2]n[1\-2]
@@ -301,7 +301,7 @@ dc[1\-2]n[1\-2]
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-\-axis=1 \-f dc1n2 dc2n2 dc1n1 dc2n1
+.B $ cluset \-\-axis=1 \-f dc1n2 dc2n2 dc1n1 dc2n1
 .UNINDENT
 .nf
 dc[1\-2]n1,dc[1\-2]n2
@@ -311,7 +311,7 @@ dc[1\-2]n1,dc[1\-2]n2
 .B Expanding nodesets
 .INDENT 7.0
 .TP
-.B $ nodeset \-e node[160\-163]
+.B $ cluset \-e node[160\-163]
 .UNINDENT
 .nf
 node160 node161 node162 node163
@@ -319,7 +319,7 @@ node160 node161 node162 node163
 .sp
 .INDENT 7.0
 .TP
-.B $ echo \(aqdc[1\-2]n[2\-6/2]\(aq | nodeset \-e
+.B $ echo \(aqdc[1\-2]n[2\-6/2]\(aq | cluset \-e
 .UNINDENT
 .nf
 dc1n2 dc1n4 dc1n6 dc2n2 dc2n4 dc2n6
@@ -329,7 +329,7 @@ dc1n2 dc1n4 dc1n6 dc2n2 dc2n4 dc2n6
 .B Excluding nodes from nodeset
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[32\-159] \-x node33
+.B $ cluset \-f node[32\-159] \-x node33
 .UNINDENT
 .nf
 node[32,34\-159]
@@ -339,7 +339,7 @@ node[32,34\-159]
 .B Computing nodesets intersection
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[32\-159] \-i node[0\-7,20\-21,32,156\-159]
+.B $ cluset \-f node[32\-159] \-i node[0\-7,20\-21,32,156\-159]
 .UNINDENT
 .nf
 node[32,156\-159]
@@ -349,7 +349,7 @@ node[32,156\-159]
 .B Computing nodesets symmetric difference (xor)
 .INDENT 7.0
 .TP
-.B $ nodeset \-f node[33\-159] \-\-xor node[32\-33,156\-159]
+.B $ cluset \-f node[33\-159] \-\-xor node[32\-33,156\-159]
 .UNINDENT
 .nf
 node[32,34\-155]
@@ -359,7 +359,7 @@ node[32,34\-155]
 .B Splitting nodes into several nodesets (expanding results)
 .INDENT 7.0
 .TP
-.B $ nodeset \-\-split=3 \-e node[1\-9]
+.B $ cluset \-\-split=3 \-e node[1\-9]
 .UNINDENT
 .nf
 node1 node2 node3
@@ -371,7 +371,7 @@ node7 node8 node9
 .B Splitting non\-contiguous nodesets (folding results)
 .INDENT 7.0
 .TP
-.B $ nodeset \-\-contiguous \-f node2 node3 node4 node8 node9
+.B $ cluset \-\-contiguous \-f node2 node3 node4 node8 node9
 .UNINDENT
 .nf
 node[2\-4]
@@ -380,7 +380,7 @@ node[8\-9]
 .sp
 .INDENT 7.0
 .TP
-.B $ nodeset \-\-contiguous \-f dc[1,3]n[1\-2,4\-5]
+.B $ cluset \-\-contiguous \-f dc[1,3]n[1\-2,4\-5]
 .UNINDENT
 .nf
 dc1n[1\-2]
@@ -392,35 +392,11 @@ dc3n[4\-5]
 .UNINDENT
 .SH HISTORY
 .sp
-Command syntax has been changed since \fBnodeset\fP command available with ClusterShell v1.1. Operations, like \fI\-\-intersection\fP or \fI\-x\fP, are now specified between nodesets in the command line.
-.INDENT 0.0
-.TP
-.B ClusterShell v1.1:
-.INDENT 7.0
-.TP
-.B $ nodeset \-f \-x node[3,5\-6,9] node[1\-9]
-.UNINDENT
-.nf
-node[1\-2,4,7\-8]
-.fi
-.sp
-.TP
-.B ClusterShell v1.2+:
-.INDENT 7.0
-.TP
-.B $ nodeset \-f node[1\-9] \-x node[3,5\-6,9]
-.UNINDENT
-.nf
-node[1\-2,4,7\-8]
-.fi
-.sp
-.UNINDENT
-.sp
 \fBcluset\fP was added in 1.7.3 to avoid a conflict with xCAT\(aqs \fBnodeset\fP
 command and also to conform with ClusterShell\(aqs "clu*" command nomenclature.
 .SH SEE ALSO
 .sp
-\fBcluset\fP(1), \fBclush\fP(1), \fBclubak\fP(1), \fBgroups.conf\fP(5).
+\fBnodeset\fP(1), \fBclush\fP(1), \fBclubak\fP(1), \fBgroups.conf\fP(5).
 .SH BUG REPORTS
 .INDENT 0.0
 .TP
