@@ -50,6 +50,7 @@ setup(name='ClusterShell',
                     'conf/groups.d/README'])],
       entry_points={'console_scripts':
                     ['clubak=ClusterShell.CLI.Clubak:main',
+                     'cluset=ClusterShell.CLI.Nodeset:main',
                      'clush=ClusterShell.CLI.Clush:main',
                      'nodeset=ClusterShell.CLI.Nodeset:main'],
                    },
