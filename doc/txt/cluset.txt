@@ -1,13 +1,13 @@
-=========
- nodeset
-=========
+========
+ cluset
+========
 
------------------------------------
-compute advanced nodeset operations
------------------------------------
+--------------------------------------------
+compute advanced cluster node set operations
+--------------------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2016-10-12
+:Date:   2016-11-06
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.7.2
 :Manual section: 1
@@ -17,19 +17,19 @@ compute advanced nodeset operations
 SYNOPSIS
 ========
 
- ``nodeset`` [OPTIONS] [COMMAND] [nodeset1 [OPERATION] nodeset2|...]
+ ``cluset`` [OPTIONS] [COMMAND] [nodeset1 [OPERATION] nodeset2|...]
 
 
 DESCRIPTION
 ===========
-Note: ``nodeset`` and ``cluset`` are the same command.
+Note: ``cluset`` and ``nodeset`` are the same command.
 
-``nodeset`` is an utility command provided with the ClusterShell library which
+``cluset`` is an utility command provided with the ClusterShell library which
 implements some features of ClusterShell's NodeSet and RangeSet Python classes.
 It provides easy manipulation of 1D or nD-indexed cluster nodes and node
 groups and supports RFC 1123 (except that a node name can't be entirely numeric).
 
-Also, ``nodeset`` is automatically bound to the library node group resolution
+Also, ``cluset`` is automatically bound to the library node group resolution
 mechanism. Thus, it is especially useful to enhance cluster aware
 administration shell scripts.
 
@@ -52,11 +52,11 @@ OPTIONS
 
   Operations:
     -x SUB_NODES, --exclude=SUB_NODES
-                        exclude specified nodeset
+                        exclude specified set
     -i AND_NODES, --intersection=AND_NODES
-                        calculate nodesets intersection
+                        calculate sets intersection
     -X XOR_NODES, --xor=XOR_NODES
-                        calculate symmetric difference between nodesets
+                        calculate symmetric difference between sets
 
   Options:
     -a, --all           call external node groups support to display all nodes
@@ -88,7 +88,7 @@ standard input.
 EXTENDED PATTERNS
 =================
 
-The ``nodeset`` command benefits from ClusterShell NodeSet basic
+The ``cluset`` command benefits from ClusterShell NodeSet basic
 arithmetic addition. This feature extends recognized string patterns by
 supporting operators matching all Operations seen previously. String
 patterns are read from left to right, by proceeding any character
@@ -109,117 +109,117 @@ Supported character operators
     does not interpret them literally.
 
 Examples of use of extended patterns
-  :$ nodeset -f node[0-7],node[8-10]:
+  :$ cluset -f node[0-7],node[8-10]:
 
   | node[0-10]
   
-  :$ nodeset -f node[0-10]\!node[8-10]:
+  :$ cluset -f node[0-10]\!node[8-10]:
   
   | node[0-7]
   
-  :$ nodeset -f node[0-10]\&node[5-13]:
+  :$ cluset -f node[0-10]\&node[5-13]:
   
   | node[5-10]
     
-  :$ nodeset -f node[0-10]^node[5-13]:
-  
+  :$ cluset -f node[0-10]^node[5-13]:
+ 
   | node[0-4,11-13]
 
 Example of advanced usage
-  :$ nodeset -f @gpu^@slurm\:bigmem!@chassis[1-9/2]:
+  :$ cluset -f @gpu^@slurm\:bigmem!@chassis[1-9/2]:
 
   This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
 
 "All nodes" extension (v1.7+)
   The ``@*`` and ``@SOURCE:*`` special notations may be used in extended patterns to represent all nodes (in SOURCE) according to the *all* external shell command (see ``groups.conf``\(5)) and are equivalent to:
 
-    :$ nodeset [-s SOURCE] -a -f:
+    :$ cluset [-s SOURCE] -a -f:
 
 
 
 EXIT STATUS
 ===========
 
-An exit status of zero indicates success of the ``nodeset`` command. A non-zero
+An exit status of zero indicates success of the ``cluset`` command. A non-zero
 exit status indicates failure.
 
 EXAMPLES
 ===========
 
 Getting the node count
-  :$ nodeset -c node[0-7,32-159]:
+  :$ cluset -c node[0-7,32-159]:
   
   | 136
   
-  :$ nodeset -c node[0-7,32-159] node[160-163]:
+  :$ cluset -c node[0-7,32-159] node[160-163]:
   
   | 140
   
-  :$ nodeset -c dc[1-2]n[100-199]:
+  :$ cluset -c dc[1-2]n[100-199]:
   
   | 200
   
-  :$ nodeset -c @login:
+  :$ cluset -c @login:
   
   | 4
 
 Folding nodesets
-  :$ nodeset -f node[0-7,32-159] node[160-163]:
+  :$ cluset -f node[0-7,32-159] node[160-163]:
   
   | node[0-7,32-163]
 
-  :$ echo node3 node6 node1 node2 node7 node5 | nodeset -f:
+  :$ echo node3 node6 node1 node2 node7 node5 | cluset -f:
   
   | node[1-3,5-7]
 
-  :$ nodeset -f dc1n2 dc2n2 dc1n1 dc2n1:
+  :$ cluset -f dc1n2 dc2n2 dc1n1 dc2n1:
   
   | dc[1-2]n[1-2]
 
-  :$ nodeset --axis=1 -f dc1n2 dc2n2 dc1n1 dc2n1:
+  :$ cluset --axis=1 -f dc1n2 dc2n2 dc1n1 dc2n1:
   
   | dc[1-2]n1,dc[1-2]n2
 
 
 
 Expanding nodesets
-  :$ nodeset -e node[160-163]:
+  :$ cluset -e node[160-163]:
 
   | node160 node161 node162 node163
 
-  :$ echo 'dc[1-2]n[2-6/2]' | nodeset -e:
+  :$ echo 'dc[1-2]n[2-6/2]' | cluset -e:
 
   | dc1n2 dc1n4 dc1n6 dc2n2 dc2n4 dc2n6
 
 Excluding nodes from nodeset
-  :$ nodeset -f node[32-159] -x node33:
+  :$ cluset -f node[32-159] -x node33:
 
   | node[32,34-159]
 
 Computing nodesets intersection
-  :$ nodeset -f node[32-159] -i node[0-7,20-21,32,156-159]:
+  :$ cluset -f node[32-159] -i node[0-7,20-21,32,156-159]:
 
   | node[32,156-159]
 
 Computing nodesets symmetric difference (xor)
-  :$ nodeset -f node[33-159] --xor node[32-33,156-159]:
+  :$ cluset -f node[33-159] --xor node[32-33,156-159]:
 
   | node[32,34-155]
 
 Splitting nodes into several nodesets (expanding results)
-  :$ nodeset --split=3 -e node[1-9]:
+  :$ cluset --split=3 -e node[1-9]:
 
   | node1 node2 node3
   | node4 node5 node6
   | node7 node8 node9
 
 Splitting non-contiguous nodesets (folding results)
-  :$ nodeset --contiguous -f node2 node3 node4 node8 node9:
+  :$ cluset --contiguous -f node2 node3 node4 node8 node9:
 
   | node[2-4]
   | node[8-9]
 
-  :$ nodeset --contiguous -f dc[1,3]n[1-2,4-5]:
+  :$ cluset --contiguous -f dc[1,3]n[1-2,4-5]:
 
   | dc1n[1-2]
   | dc1n[4-5]
@@ -230,25 +230,13 @@ Splitting non-contiguous nodesets (folding results)
 HISTORY
 =======
 
-Command syntax has been changed since ``nodeset`` command available with ClusterShell v1.1. Operations, like *--intersection* or *-x*, are now specified between nodesets in the command line.
-
-ClusterShell v1.1:
-    :$ nodeset -f -x node[3,5-6,9] node[1-9]:
-
-    | node[1-2,4,7-8]
-
-ClusterShell v1.2+:
-    :$ nodeset -f node[1-9] -x node[3,5-6,9]:
-
-    | node[1-2,4,7-8]
-
 ``cluset`` was added in 1.7.3 to avoid a conflict with xCAT's ``nodeset``
 command and also to conform with ClusterShell's "clu*" command nomenclature.
 
 SEE ALSO
 ========
 
-``cluset``\(1), ``clush``\(1), ``clubak``\(1), ``groups.conf``\(5).
+``nodeset``\(1), ``clush``\(1), ``clubak``\(1), ``groups.conf``\(5).
 
 BUG REPORTS
 ===========
