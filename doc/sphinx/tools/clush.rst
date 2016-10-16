@@ -20,7 +20,7 @@ Some features of *clush* command line tool are:
   + **tree mode**: commands propagated to the targets through a tree of
     pre-configured gateways; gateways are then using a sliding window of local
     or *ssh(1)* commands to reach the targets (if the target count per gateway
-    is greater than the fanout value)
+    is greater than the :ref:`fanout <clush-tree-fanout>` value)
 
 * smart display of command results (integrated output gathering, sorting by
   node, nodeset or node groups)
@@ -92,7 +92,7 @@ Picking node(s) at random
 """""""""""""""""""""""""
 
 Use ``--pick`` with a maximum number of nodes you wish to pick randomly from
-the targeted node set. *clush* will then run only on selected node(s). The
+the targeted node set. **clush** will then run only on selected node(s). The
 following example will run a script on a single random node picked from the
 ``@compute`` group::
 
@@ -131,6 +131,30 @@ enabling a hierarchical command propagation scheme.
 The Tree mode of ClusterShell has been the subject of `this paper`_ presented
 at the Ottawa Linux Symposium Conference in 2012 and at the PyHPC 2013
 workshop in Denver, USA.
+
+.. highlight:: text
+
+The diagram below illustrates the hierarchical command propagation principle
+with a head node, gateways (GW) and target nodes::
+
+                           .-----------.
+                           | Head node |
+                           '-----------'
+                                /|\
+                  .------------' | '--.-----------.
+                 /               |     \           \
+            .-----.           .-----.   \          .-----.
+            | GW1 |           | GW2 |    \         | GW3 |
+            '-----'           '-----'     \        '-----'
+              /|\               /|\        \          |\
+           .-' | '-.         .-' | '-.      \         | '---.
+          /    |    \       /    |    \      \        |      \
+       .---. .---. .---. .---. .---. .---.  .---.   .---.   .-----.
+       '---' '---' '---' '---' '---' '---'  '---'   '---'   | GW4 |
+                     target nodes                           '-----'
+                                                               |
+                                                              ...
+
 
 The Tree mode is implemented at the library level, so that all applications
 using ClusterShell may benefits from it. However, this section describes how
@@ -190,10 +214,15 @@ using the ``--topology`` command line option.
    representation of the initial propagation tree used. This is useful when
    working on Tree mode configuration.
 
+Enabling tree mode should be as much transparent as possible to the end user.
+Most **clush** options, including options defined in
+:ref:`clush.conf <clush-config>` or specified using ``-O`` or ``-o`` (ssh
+options) are propagated to the gateways and taken into account there.
+
 .. _clush-tree-options:
 
-More Tree command line options
-""""""""""""""""""""""""""""""
+Tree mode specific options
+""""""""""""""""""""""""""
 
 The ``--remote=yes|no`` command line option controls the remote execution
 behavior:
@@ -218,6 +247,28 @@ delay (float, in seconds). This feature allows gateways to aggregate responses
 received within a certain timeframe before transmitting them back to the root
 node in a batch fashion. This contributes to reducing the load on the root
 node by delegating the first steps of this CPU intensive task to the gateways.
+
+.. _clush-tree-fanout:
+
+Fanout considerations
+"""""""""""""""""""""
+
+ClusterShell uses a "sliding window" or  *fanout* of processes to avoid too
+many concurrent connections and to conserve resources on the initiating hosts.
+
+The ``--fanout`` (or ``-f``) option of **clush** allows the user to change the
+default *fanout* value defined in :ref:`clush.conf <clush-config>` or in the
+:ref:`library defaults <defaults-config>` if not specified.
+
+In tree mode, the same *fanout* value is used on the head node and on each
+gateway. That is, if the *fanout* is **16**, each gateway will initate up to
+**16** connections to their target nodes.
+
+.. note:: This is likely to **change** in the future, as it makes the *fanout*
+   behaviour different if you are using the tree mode or not. For example,
+   some administrators are using a *fanout* value of 1 to "sequentialize" a
+   command on the cluster. In tree mode, please note that in that case, each
+   gateway will be able to run a command at the same time.
 
 Debugging Tree mode
 """""""""""""""""""
