@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH.CONF 5 "2016-10-12" "1.7.2" "ClusterShell User Manual"
+.TH CLUSH.CONF 5 "2016-10-20" "1.7.2" "ClusterShell User Manual"
 .SH NAME
 clush.conf \- Configuration file for clush
 .
@@ -64,7 +64,12 @@ Configuration parameters of the \fBMain\fP section are described below.
 .INDENT 0.0
 .TP
 .B fanout
-Size of the sliding window of ssh connectors.
+Size of the sliding window (fanout) of active commands for \fBclush\fP\&. This
+\fIfanout\fP is used to avoid too many concurrent connections and to conserve
+resources on the initiating hosts. In tree mode, the same \fIfanout\fP value is
+used on the head node and on each gateway (the \fIfanout\fP value is propagated).
+That is, if the \fIfanout\fP is \fB16\fP on the head node, each gateway will
+initate up to \fB16\fP connections to their target nodes at the same time.
 .TP
 .B connect_timeout
 Timeout in seconds to allow a connection to establish. This parameter is

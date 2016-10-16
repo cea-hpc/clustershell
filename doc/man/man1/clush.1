@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2016-10-12" "1.7.2" "ClusterShell User Manual"
+.TH CLUSH 1 "2016-10-20" "1.7.2" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -260,7 +260,7 @@ preserve modification times and modes
 .INDENT 7.0
 .TP
 .BI \-f \ FANOUT\fP,\fB \ \-\-fanout\fB= FANOUT
-use a specified maximum fanout size (ie. do not execute more than FANOUT commands at the same time, useful to limit resource usage)
+do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same \fIfanout\fP value is used on the head node and on each gateway (the \fIfanout\fP value is propagated). That is, if the \fIfanout\fP is \fB16\fP, each gateway will initate up to \fB16\fP connections to their target nodes at the same time. Default \fIfanout\fP value is defined in \fBclush.conf\fP(5).
 .TP
 .BI \-l \ USER\fP,\fB \ \-\-user\fB= USER
 execute remote command as user

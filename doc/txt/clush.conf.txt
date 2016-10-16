@@ -7,7 +7,7 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2016-10-12
+:Date:   2016-10-20
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.7.2
 :Manual section: 5
@@ -39,7 +39,12 @@ Main
 Configuration parameters of the ``Main`` section are described below.
 
 fanout
-  Size of the sliding window of ssh connectors.
+  Size of the sliding window (fanout) of active commands for ``clush``. This
+  `fanout` is used to avoid too many concurrent connections and to conserve
+  resources on the initiating hosts. In tree mode, the same `fanout` value is
+  used on the head node and on each gateway (the `fanout` value is propagated).
+  That is, if the `fanout` is **16** on the head node, each gateway will
+  initate up to **16** connections to their target nodes at the same time.
 connect_timeout
   Timeout in seconds to allow a connection to establish. This parameter is
   passed to ssh. If set to *0*, no timeout occurs.

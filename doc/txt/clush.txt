@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2016-10-12
+:Date:   2016-10-20
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.7.2
 :Manual section: 1
@@ -171,7 +171,7 @@ File copying:
 
 Connection options:
   -f FANOUT, --fanout=FANOUT
-                      use a specified maximum fanout size (ie. do not execute more than FANOUT commands at the same time, useful to limit resource usage)
+                      do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same *fanout* value is used on the head node and on each gateway (the *fanout* value is propagated). That is, if the *fanout* is **16**, each gateway will initate up to **16** connections to their target nodes at the same time. Default *fanout* value is defined in ``clush.conf``\(5).
   -l USER, --user=USER
                       execute remote command as user
   -o OPTIONS, --options=OPTIONS
