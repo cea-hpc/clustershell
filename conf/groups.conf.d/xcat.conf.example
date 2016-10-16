@@ -1,0 +1,12 @@
+# Additional ClusterShell group source config file
+#
+# Please see `man 5 groups.conf` for further details.
+#
+
+# xCAT static node group binding
+# http://xcat-docs.readthedocs.io/en/stable/guides/admin-guides/basic_concepts/xcat_object/group.html
+#
+[xcat]
+map: lsdef -t group -i members $GROUP | awk -F= '/members=/{ print $2 }'
+all: lsdef -t group | cut -d' ' -f1
+list: lsdef -t group | cut -d' ' -f1
