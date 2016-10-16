@@ -1,3 +1,8 @@
+2016-12-20 S. Thiell <sthiell@stanford.edu>
+
+	* conf/groups.conf.d: add an external group source example file for xCAT
+	static groups (xcat.conf.example).
+
 2016-12-18 S. Thiell <sthiell@stanford.edu>
 
 	* Clush.py: fix sorting issue with clush -L (ticket #326).

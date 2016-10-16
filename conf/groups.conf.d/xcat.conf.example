@@ -1,0 +1,17 @@
+# Additional ClusterShell group source config file
+#
+# Please see `man 5 groups.conf` for further details.
+#
+
+# xCAT static node group binding
+#
+[xcat]
+
+# this will list the nodes in the specified node group
+map: nodels $GROUP
+
+# as an example here, we use a group named 'server' containing all servers
+all: nodels server
+
+# list all groups
+list: lsdef -t group | cut -d' ' -f1
