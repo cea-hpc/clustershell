@@ -168,11 +168,21 @@ class Defaults(object):
     #
     # List of info keys whose values can safely be propagated in tree mode
     #
-    _TASK_INFO_PKEYS = ['debug',
+    _TASK_INFO_PKEYS = ['command_timeout',
+                        'connect_timeout',
+                        'debug',
                         'fanout',
                         'grooming_delay',
-                        'connect_timeout',
-                        'command_timeout']
+                        'rcp_options',
+                        'rcp_path',
+                        'rsh_options',
+                        'rsh_path',
+                        'rsh_user',
+                        'scp_options'
+                        'scp_path',
+                        'scp_user',
+                        'ssh_options',
+                        'ssh_user']
 
     def __init__(self, filenames):
         """Initialize Defaults from config filenames"""

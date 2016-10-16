@@ -281,12 +281,13 @@ class PropagationChannel(Channel):
         ctl.target = nodes
 
         # copy only subset of task info dict
-        info = dict((k, self.task._info[k]) for k in DEFAULTS._task_info_pkeys)
+        info = dict((k, self.task._info[k]) for k in DEFAULTS._task_info_pkeys
+                     if k in self.task._info)
 
         ctl_data = {
             'cmd': command,
             'invoke_gateway': gw_invoke_cmd, # XXX
-            'taskinfo': info, #self.task._info,
+            'taskinfo': info,
             'stderr': stderr,
             'timeout': timeout,
             'remote': remote,
