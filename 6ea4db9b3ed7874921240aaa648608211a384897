@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b4d4ad46",
+        "filename": "doc/sphinx/tools/clush.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-17T08:06:12Z",
+      "side": 1,
+      "message": "something similar should be set in man page too.",
+      "range": {
+        "startLine": 263,
+        "startChar": 0,
+        "endLine": 265,
+        "endChar": 41
+      },
+      "revId": "6ea4db9b3ed7874921240aaa648608211a384897",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
