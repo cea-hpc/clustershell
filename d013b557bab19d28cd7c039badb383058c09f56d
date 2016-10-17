@@ -22,6 +22,30 @@
       "revId": "d013b557bab19d28cd7c039badb383058c09f56d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_40ad9c82",
+        "filename": "conf/groups.conf.d/xcat.conf.example",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-17T17:52:35Z",
+      "side": 1,
+      "message": "It\u0027s a bug, I will fix it",
+      "parentUuid": "baa041b7_14e59936",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 35
+      },
+      "revId": "d013b557bab19d28cd7c039badb383058c09f56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
