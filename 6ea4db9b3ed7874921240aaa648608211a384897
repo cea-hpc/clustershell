@@ -22,6 +22,30 @@
       "revId": "6ea4db9b3ed7874921240aaa648608211a384897",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2dcba11f",
+        "filename": "doc/sphinx/tools/clush.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-21T04:54:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b4d4ad46",
+      "range": {
+        "startLine": 263,
+        "startChar": 0,
+        "endLine": 265,
+        "endChar": 41
+      },
+      "revId": "6ea4db9b3ed7874921240aaa648608211a384897",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
