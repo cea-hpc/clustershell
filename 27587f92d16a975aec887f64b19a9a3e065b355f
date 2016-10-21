@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9ec1b131",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-21T14:00:44Z",
+      "side": 1,
+      "message": "WorkerPdsh options are missing.\n\nIt could be painful to maintain all worker specific options in this file. And this does not support custom workers also.",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
