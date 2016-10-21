@@ -22,6 +22,30 @@
       "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f98217c6",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-21T17:46:44Z",
+      "side": 1,
+      "message": "maybe I can use a blacklist instead of a whitelist?",
+      "parentUuid": "baa041b7_9ec1b131",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
