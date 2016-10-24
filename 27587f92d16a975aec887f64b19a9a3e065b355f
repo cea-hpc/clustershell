@@ -46,6 +46,30 @@
       "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c16cf908",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-24T08:24:20Z",
+      "side": 1,
+      "message": "Do not see how you can manage this. Task keys are virtually infinite. Users can put whatever they want in it.",
+      "parentUuid": "baa041b7_f98217c6",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
