@@ -70,6 +70,30 @@
       "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1f4eb16e",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-10-25T14:46:09Z",
+      "side": 1,
+      "message": "ok for pdsh, sorry I missed that.\n\nBut  I mean, why do we have this list right now? it\u0027s just to remove a few entries that we don\u0027t want to be propagated.\n\nFor example, here is a full task.info:\n\nDEBUG:ClusterShell.Propagation:task info\u003d{\u0027grooming_delay\u0027: 0.25, \u0027command_timeout\u0027: 0.0, \u0027fanout\u0027: 64, \u0027debug\u0027: True, \u0027engine\u0027: \u0027epoll\u0027, \u0027connect_timeout\u0027: 15.0, \u0027print_debug\u0027: \u003cfunction _task_print_debug at 0x26e71b8\u003e}\n\nWe don\u0027t want `engine` and `print_debug` to be propagated.\n\nall stuffs could go through, if we implement a blacklist instead of a (long) whitelist, even user stuffs (maybe that could be useful to them). I say it\u0027s a new feature even! :D\n\nThoughts?",
+      "parentUuid": "baa041b7_c16cf908",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
