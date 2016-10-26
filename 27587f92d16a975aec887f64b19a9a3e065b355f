@@ -94,6 +94,30 @@
       "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8b2603cc",
+        "filename": "lib/ClusterShell/Defaults.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-10-26T11:05:02Z",
+      "side": 1,
+      "message": "This sounds right. It seems a good idea to just blacklist print_debug and engine and copy all the other stuff.",
+      "parentUuid": "baa041b7_1f4eb16e",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "27587f92d16a975aec887f64b19a9a3e065b355f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
