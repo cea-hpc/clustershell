@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1ce9f8b7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-11-02T16:29:29Z",
+      "side": 1,
+      "message": "script: ?",
+      "revId": "cc315953c07b56633b8dcef9d330ce19a0eda80b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3ce4bcde",
+        "filename": "doc/txt/cluset.txt",
+        "patchSetId": 7
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-11-02T16:29:29Z",
+      "side": 1,
+      "message": "not sure this is relevant",
+      "range": {
+        "startLine": 233,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 21
+      },
+      "revId": "cc315953c07b56633b8dcef9d330ce19a0eda80b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
