@@ -62,6 +62,8 @@ class ExecTest(unittest.TestCase):
         """test ExecWorker with unknown placeholder pattern"""
         self.assertRaises(WorkerError, self.execw,
                           nodes="localhost", handler=None, command="echo %x")
+        self.assertRaises(WorkerError, self.execw,
+                          nodes="localhost", handler=None, command="echo %")
 
     def test_rank_placeholder(self):
         """test ExecWorker with several nodes and %n (rank)"""
