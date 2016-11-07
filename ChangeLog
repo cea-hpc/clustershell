@@ -1,3 +1,7 @@
+2016-11-06 S. Thiell <sthiell@stanford.edu>
+
+	* Clush.py: fix sorting issue with clush -L (ticket #326).
+
 2016-10-12 All contributors
 
 	* Change license from "CeCILL-C V1" to "LGPL v2.1 or later".

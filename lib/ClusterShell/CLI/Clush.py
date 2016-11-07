@@ -204,7 +204,7 @@ class CopyOutputHandler(DirectProgressOutputHandler):
             self.update_prompt(worker)
 
 class GatherOutputHandler(OutputHandler):
-    """Gathered output event handler class."""
+    """Gathered output event handler class (clush -b)."""
 
     def __init__(self, display):
         OutputHandler.__init__(self)
@@ -266,8 +266,31 @@ class GatherOutputHandler(OutputHandler):
             self._display.vprint_err(verbexit, "clush: %s: command timeout" % \
                 NodeSet._fromlist1(worker.iter_keys_timeout()))
 
+class SortedOutputHandler(GatherOutputHandler):
+    """Sorted by node output event handler class (clush -L)."""
+
+    def ev_close(self, worker):
+        # Overrides GatherOutputHandler.ev_close()
+        self._runtimer_finalize(worker)
+
+        # Display command output, try to order buffers by rc
+        for _rc, nodelist in sorted(worker.iter_retcodes()):
+            for node in nodelist:
+                # NOTE: msg should be a MsgTreeElem as Display will iterate
+                # over it to display multiple lines. As worker.node_buffer()
+                # returns either a string or None if there is no output, it
+                # cannot be used here. We use worker.iter_node_buffers() with
+                # a single node as match_keys instead.
+                for node, msg in worker.iter_node_buffers(match_keys=(node,)):
+                    self._display.print_gather(node, msg)
+
+        self._close_common(worker)
+
+        # Notify main thread to update its prompt
+        self.update_prompt(worker)
+
 class LiveGatherOutputHandler(GatherOutputHandler):
-    """Live line-gathered output event handler class."""
+    """Live line-gathered output event handler class (-bL)."""
 
     def __init__(self, display, nodes):
         assert nodes is not None, "cannot gather local command"
@@ -632,6 +655,8 @@ def run_command(task, cmd, ns, timeout, display, remote):
     if (display.gather or display.line_mode) and ns is not None:
         if display.gather and display.line_mode:
             handler = LiveGatherOutputHandler(display, ns)
+        elif not display.gather and display.line_mode:
+            handler = SortedOutputHandler(display)
         else:
             handler = GatherOutputHandler(display)
 

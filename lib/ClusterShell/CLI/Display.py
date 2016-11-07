@@ -227,25 +227,13 @@ class Display(object):
         """Display a MsgTree buffer by line with prefixed header."""
         out = self.out
         if self.label:
-            if self.gather:
-                header = self.color_stdout_fmt % \
-                            ("%s: " % self._format_nodeset(nodeset))
-                for line in msg:
-                    out.write("%s%s\n" % (header, line))
-            else:
-                for node in nodeset:
-                    header = self.color_stdout_fmt % \
-                                ("%s: " % self._format_nodeset(node))
-                    for line in msg:
-                        out.write("%s%s\n" % (header, line))
+            header = self.color_stdout_fmt % \
+                        ("%s: " % self._format_nodeset(nodeset))
+            for line in msg:
+                out.write("%s%s\n" % (header, line))
         else:
-            if self.gather:
-                for line in msg:
-                    out.write(line + '\n')
-            else:
-                for node in nodeset:
-                    for line in msg:
-                        out.write(line + '\n')
+            for line in msg:
+                out.write(line + '\n')
 
     def vprint(self, level, message):
         """Utility method to print a message if verbose level is high
