@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f648a45e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-11-07T04:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1ce9f8b7",
+      "revId": "cc315953c07b56633b8dcef9d330ce19a0eda80b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3ce4bcde",
         "filename": "doc/txt/cluset.txt",
         "patchSetId": 7
@@ -54,6 +72,30 @@
       "side": 1,
       "message": "Oh yeah, maybe we can remove this now :)",
       "parentUuid": "baa041b7_3ce4bcde",
+      "range": {
+        "startLine": 233,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 21
+      },
+      "revId": "cc315953c07b56633b8dcef9d330ce19a0eda80b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b698dccd",
+        "filename": "doc/txt/cluset.txt",
+        "patchSetId": 7
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-11-07T04:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7c01246d",
       "range": {
         "startLine": 233,
         "startChar": 0,
