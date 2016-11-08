@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8e593938",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-11-08T10:38:37Z",
+      "side": 1,
+      "message": "Actually that was not my point, but your correction is correct anyway :)\n\nMy point was:\n\n script: add cluset command\n\nor\n \n command: add cluset\n\nor \n\n CLI: add cluset command",
+      "parentUuid": "baa041b7_f648a45e",
+      "revId": "cc315953c07b56633b8dcef9d330ce19a0eda80b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3ce4bcde",
         "filename": "doc/txt/cluset.txt",
         "patchSetId": 7
