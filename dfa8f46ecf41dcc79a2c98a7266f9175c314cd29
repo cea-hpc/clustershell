@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_f22442b0",
+        "filename": "ChangeLog",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-12-01T09:09:14Z",
+      "side": 1,
+      "message": "there is probably plenty of things missing in Changelog for 1.7.3",
+      "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_ef169b54",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-12-01T09:09:14Z",
+      "side": 1,
+      "message": "if you\u0027re fixing clush behaviour here, documentation does not say output is ordered by retcodes, only by nodes.",
+      "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_6f03ab10",
+        "filename": "lib/ClusterShell/CLI/Display.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2016-12-01T09:09:14Z",
+      "side": 1,
+      "message": "I do not understand why self.gather is now useless here. Could you explain?",
+      "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
