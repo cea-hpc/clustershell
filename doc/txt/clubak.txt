@@ -23,7 +23,7 @@ DESCRIPTION
 ===========
 ``clubak`` formats text from standard input containing lines of the form
 "`node:output`".  It is fully backward compatible with ``dshbak``\(1) but
-provides additonal features. For instance, ``clubak`` always displays
+provides additional features. For instance, ``clubak`` always displays
 its results sorted by node/nodeset.
 
 You do not need to use ``clubak`` when using ``clush``\(1) as all output
