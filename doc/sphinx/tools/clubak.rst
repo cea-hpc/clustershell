@@ -36,7 +36,7 @@ Or with ``-L`` display option to disable header block::
 
 Indeed, *clubak* formats text from standard input containing lines of the form
 *node: output*.  It is fully backward compatible with *dshbak(1)* available
-with *pdsh* but provides additonal features. For instance, *clubak* always
+with *pdsh* but provides additional features. For instance, *clubak* always
 displays its results sorted by node/nodeset.
 
 But you do not need to execute *clubak* when using *clush* as all output
