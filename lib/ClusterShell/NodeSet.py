@@ -634,7 +634,7 @@ class NodeSetBase(object):
 
     def difference_update(self, other, strict=False):
         """
-        ``s.difference_update(t)`` remove from s all the elements found in t.
+        ``s.difference_update(t)`` removes from s all the elements found in t.
 
         :raises KeyError: an element cannot be removed (only if strict is
             True)
@@ -1483,7 +1483,7 @@ class NodeSet(NodeSetBase):
 
     def difference_update(self, other, strict=False):
         """
-        s.difference_update(t) remove from s all the elements
+        s.difference_update(t) removes from s all the elements
         found in t. If strict is True, raise KeyError if an
         element in t cannot be removed from s.
         """
