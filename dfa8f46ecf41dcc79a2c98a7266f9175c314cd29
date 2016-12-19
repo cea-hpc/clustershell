@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_3b4bb75b",
+        "filename": "ChangeLog",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-12-19T04:51:03Z",
+      "side": 1,
+      "message": "Could be worse actually. I see one possible miss for commit de1a8b50fe990dccb24598203f2c545d4d69d35d \u0027tree options not being propagated\u0027, but I can add a changelog entry for it in the 1.7.3 release commit.",
+      "parentUuid": "7aaa499b_f22442b0",
+      "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_ef169b54",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_7b681fbb",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-12-19T04:51:03Z",
+      "side": 1,
+      "message": "I will improve the doc then, I am happy with the current behaviour :)",
+      "parentUuid": "7aaa499b_ef169b54",
+      "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_6f03ab10",
         "filename": "lib/ClusterShell/CLI/Display.py",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2016-12-01T09:09:14Z",
       "side": 1,
       "message": "I do not understand why self.gather is now useless here. Could you explain?",
+      "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_5b6563df",
+        "filename": "lib/ClusterShell/CLI/Display.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2016-12-19T04:51:03Z",
+      "side": 1,
+      "message": "_print_lines() is called when we are in line-mode (-L), gathering enabled or not.\n\nIf gather is set (-bL), GatherOutputHandler is used and the proper nodeset is passed as argument, like:\n\n  self._display.print_gather(nodeset, buf)\n\nIf gather is not set (only -L), the  nodeset argument will consist in a single node because it\u0027ll be called by SortedOutputHandler. That way, we avoid a late \"for node in nodeset\" loop that break things.\n\nI will add some comments.",
+      "parentUuid": "7aaa499b_6f03ab10",
       "revId": "dfa8f46ecf41dcc79a2c98a7266f9175c314cd29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
