@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2016-10-20" "1.7.2" "ClusterShell User Manual"
+.TH CLUSH 1 "2016-12-18" "1.7.2" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -211,7 +211,7 @@ output more messages for debugging purpose
 do not display group source prefix
 .TP
 .B \-L
-disable header block and order output by nodes; additionally, when used in conjunction with \-b/\-B, it will enable "life gathering" of results by line mode, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
+disable header block and order output by nodes; if \-b/\-B is not specified, \fBclush\fP will wait for all commands to finish and then display aggregated output of commands with same return codes, ordered by node name; alternatively, when used in conjunction with \-b/\-B (eg. \-bL), \fBclush\fP will enable a "life gathering" of results by line, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
 .TP
 .B \-N
 disable labeling of command line
@@ -220,7 +220,7 @@ disable labeling of command line
 show progress during command execution; if writing is performed to standard input, the live progress indicator will display the global bandwidth of data written to the target nodes
 .TP
 .B \-b\fP,\fB  \-\-dshbak
-display gathered results in a dshbak\-like way
+display gathered results in a dshbak\-like way (note: it will only try to aggregate the output of commands with same return codes)
 .TP
 .B \-B
 like \-b but including standard error
