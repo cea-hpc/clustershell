@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2016-10-20
+:Date:   2016-12-18
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.7.2
 :Manual section: 1
@@ -151,10 +151,10 @@ Output behaviour:
   -v, --verbose       be verbose, print informative messages
   -d, --debug         output more messages for debugging purpose
   -G, --groupbase     do not display group source prefix
-  -L                  disable header block and order output by nodes; additionally, when used in conjunction with -b/-B, it will enable "life gathering" of results by line mode, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
+  -L                  disable header block and order output by nodes; if -b/-B is not specified, ``clush`` will wait for all commands to finish and then display aggregated output of commands with same return codes, ordered by node name; alternatively, when used in conjunction with -b/-B (eg. -bL), ``clush`` will enable a "life gathering" of results by line, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
   -N                  disable labeling of command line
   -P, --progress      show progress during command execution; if writing is performed to standard input, the live progress indicator will display the global bandwidth of data written to the target nodes
-  -b, --dshbak        display gathered results in a dshbak-like way
+  -b, --dshbak        display gathered results in a dshbak-like way (note: it will only try to aggregate the output of commands with same return codes)
   -B                  like -b but including standard error
   -r, --regroup       fold nodeset using node groups
   -S                  return the largest of command return codes

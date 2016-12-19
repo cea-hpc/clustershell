@@ -302,6 +302,9 @@ completion while displaying a :ref:`progress indicator <clush-progress>` and
 then displays gathered output results. If standard output is redirected to a
 file, *clush* detects it and disable any progress indicator.
 
+.. warning:: *clush*  will only consolidate identical command outputs if the
+   command return codes are also the same.
+
 The following is a simple example of *clush* command used to execute ``uname
 -r`` on *node40*, *node41* and *node42*, wait for their completion and finally
 display digested output results::
