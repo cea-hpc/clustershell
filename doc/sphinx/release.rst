@@ -3,6 +3,39 @@
 Release Notes
 =============
 
+Version 1.7.3
+-------------
+
+This minor update contains a few bug fixes and some interesting performance
+improvements. This is also the first release published under the
+GNU Lesser General Public License, version 2.1 or more (`LGPL v2.1+`_).
+Previous releases were published under the `CeCILL-C V1`_.
+
+Quite a bit of work has been done on the *fanout* of processes that the library
+uses to execute commands. We implemenented a basic per-worker *fanout* to fix
+the broken behaviour in tree mode. Thanks to this, it is now possible to use
+fanout=1 with gateways. The :ref:`documentation <clush-tree-fanout>` has also
+been clarified.
+
+An issue that led to broken pipe errors but also affected performance has been
+fixed in :ref:`tree mode <clush-tree>` when copying files.
+
+An issue with ref:`clush-tool` -L where nodes weren't always properly sorted
+has been fixed.
+
+The performance of :class:`.MsgTree`, the class used by the library to
+aggregate identical command outputs, has been improved. We have seen up to 75%
+speed improvement in some cases.
+
+Finally, a :ref:`cluset <cluset-tool>` command has been added to avoid a
+conflict with `xCAT`_ nodeset command. Is the same as :ref:`nodeset-tool`.
+
+For more details, please have a look at `GitHub Issues for 1.7.3 milestone`_.
+
+ClusterShell 1.7.3 is compatible with Python 2.4 up to Python 2.7 (for
+example: from RedHat EL5 to EL7). Upgrades from versions 1.6 or 1.7 are
+supported.
+
 Version 1.7.2
 -------------
 
@@ -272,3 +305,7 @@ Please see :ref:`install-pip-user`.
 
 .. _GitHub Issues for 1.7.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.1
 .. _GitHub Issues for 1.7.2 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.2
+.. _GitHub Issues for 1.7.3 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.3
+.. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
+.. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
+.. _xCAT: https://xcat.org/

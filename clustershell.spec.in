@@ -105,6 +105,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Tue Dec 20 2016 Stephane Thiell <sthiell@stanford.edu> 1.7.3-1
+- update to 1.7.3
+
 * Sat Jun 18 2016 Stephane Thiell <sthiell@stanford.edu> 1.7.2-1
 - update to 1.7.2
 

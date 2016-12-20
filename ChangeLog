@@ -1,5 +1,7 @@
 2016-12-20 S. Thiell <sthiell@stanford.edu>
 
+	* Version 1.7.3 released.
+
 	* conf/groups.conf.d: add an external group source example file for xCAT
 	static groups (xcat.conf.example).
 
