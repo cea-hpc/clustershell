@@ -1,5 +1,7 @@
 2016-12-20 S. Thiell <sthiell@stanford.edu>
 
+	* Version 1.7.3 released.
+
 	* conf/groups.conf.d: add an external group source example file for xCAT
 	static groups (xcat.conf.example).
 
@@ -24,6 +26,9 @@
 
 	* Tree.py: in copy mode, do not send tar data to local targets, but only
 	remote ones; this does fix broken pipe errors (ticket #319).
+
+	* Engine.py: implement basic per worker fanout (private), allowing the use
+	of fanout=1 in tree mode (ticket #322).
 
 2016-06-18 S. Thiell <sthiell@stanford.edu>
 

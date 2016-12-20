@@ -34,8 +34,8 @@ Please see first:
   - ClusterShell.Task
 """
 
-__version__ = '1.7.2'
+__version__ = '1.7.3'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
-__date__    = '2016/06/18'
+__date__    = '2016/12/20'
 __author__  = 'Stephane Thiell <sthiell@stanford.edu>'
 __url__     = 'http://clustershell.readthedocs.org/'
