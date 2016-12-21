@@ -99,7 +99,7 @@ class ExecClient(EngineClient):
         cmd, cmd_env = self._build_cmd()
 
         # If command line is string, we need to interpret it as a shell command
-        shell = type(cmd) is str
+        shell = isinstance(cmd, str)
 
         task = self.worker.task
         if task.info("debug", False):

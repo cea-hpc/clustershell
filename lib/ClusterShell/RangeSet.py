@@ -283,7 +283,7 @@ class RangeSet(set):
             elif hasattr(self, '_ranges'):
                 # v2 - CSv1.4-1.5
                 self_ranges = getattr(self, '_ranges')
-                if self_ranges and type(self_ranges[0][0]) is not slice:
+                if self_ranges and not isinstance(self_ranges[0][0], slice):
                     # workaround for object pickled from Python < 2.5
                     setattr(self, '_ranges', [(slice(start, stop, step), pad) \
                         for (start, stop, step), pad in self_ranges])
@@ -709,7 +709,7 @@ class RangeSet(set):
             # keep padding unless it has not been defined yet
             if self.padding is None and iterable.padding is not None:
                 self.padding = iterable.padding
-        assert type(iterable) is not str
+        assert not isinstance(iterable, str)
         set.update(self, iterable)
 
     def updaten(self, rangesets):
@@ -812,7 +812,7 @@ class RangeSetND(object):
             return
         for rgvec in args:
             if rgvec:
-                if type(rgvec[0]) is str:
+                if isinstance(rgvec[0], str):
                     self._veclist.append([RangeSet(rg, autostep=autostep) \
                                           for rg in rgvec])
                 elif isinstance(rgvec[0], RangeSet):

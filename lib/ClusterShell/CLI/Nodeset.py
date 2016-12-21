@@ -212,7 +212,7 @@ def nodeset():
 
     # Do not use autostep for computation when a percentage or the special
     # value 'auto' is specified. Real autostep value is set post-process.
-    if type(autostep) is float or autostep == 'auto':
+    if isinstance(autostep, float) or autostep == 'auto':
         autostep = None
 
     # Instantiate RangeSet or NodeSet object
@@ -265,7 +265,7 @@ def nodeset():
         # Simple implementation of --autostep=auto
         # if we have at least 3 nodes, all index should be foldable as a-b/n
         xset.autostep = max(3, len(xset))
-    elif type(options.autostep) is float:
+    elif isinstance(options.autostep, float):
         # at least % of nodes should be foldable as a-b/n
         autofactor = float(options.autostep)
         xset.autostep = int(math.ceil(float(len(xset)) * autofactor))
