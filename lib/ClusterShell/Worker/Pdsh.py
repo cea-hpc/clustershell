@@ -173,6 +173,13 @@ class PdcpClient(CopyClient, PdshClient):
 
     MODE = 'pdcp'
 
+    def __init__(self, node, source, dest, worker, stderr, timeout, autoclose,
+                 preserve, reverse, rank=None):
+        CopyClient.__init__(self, node, source, dest, worker, stderr, timeout, autoclose,
+                            preserve, reverse, rank)
+        PdshClient.__init__(self, node, None, worker, stderr, timeout,
+                            autoclose, rank)
+
     def _build_cmd(self):
 
         cmd_l = []
