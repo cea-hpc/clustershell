@@ -729,7 +729,7 @@ class RangeSetTest(unittest.TestCase):
         rgs = RangeSet.fromlist([ "011", "003", "005-008", "001", "004" ])
         cnt = 0
         for rg in rgs:
-            self.assertTrue(type(rg) is int)
+            self.assertTrue(isinstance(rg, int))
             self.assertEqual(rg, matches[cnt])
             cnt += 1
         self.assertEqual(cnt, len(matches))
@@ -747,7 +747,7 @@ class RangeSetTest(unittest.TestCase):
         rgs = RangeSet.fromlist([ "011", "003", "005-008", "001", "004" ])
         cnt = 0
         for rg in rgs.striter():
-            self.assertTrue(type(rg) is str)
+            self.assertTrue(isinstance(rg, str))
             self.assertEqual(rg, "%0*d" % (3, matches[cnt]))
             cnt += 1
         self.assertEqual(cnt, len(matches))
