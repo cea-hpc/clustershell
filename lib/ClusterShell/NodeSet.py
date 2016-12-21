@@ -352,7 +352,7 @@ class NodeSetBase(object):
                 status = rangeset.issuperset(erangeset)
             else:
                 # might be an unnumbered node (key in dict but no value)
-                status = self._patterns.has_key(pat)
+                status = pat in self._patterns
             if not status:
                 break
         return status
@@ -655,7 +655,7 @@ class NodeSetBase(object):
                     purge_patterns.append(pat)
             else:
                 # unnumbered node exclusion
-                if self._patterns.has_key(pat):
+                if pat in self._patterns:
                     purge_patterns.append(pat)
                 elif strict:
                     raise KeyError, pat
@@ -714,7 +714,7 @@ class NodeSetBase(object):
             if brangeset:
                 rangeset.symmetric_difference_update(brangeset)
             else:
-                if other._patterns.has_key(pat):
+                if pat in other._patterns:
                     purge_patterns.append(pat)
 
         # iterate over other's rangesets
