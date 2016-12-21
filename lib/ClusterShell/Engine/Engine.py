@@ -85,7 +85,7 @@ class EngineNotSupportedError(EngineException):
         self.engineid = engineid
 
 
-class EngineBaseTimer:
+class EngineBaseTimer(object):
     """
     Abstract class for ClusterShell's engine timer. Such a timer
     requires a relative fire time (delay) in seconds (as float), and
@@ -181,9 +181,9 @@ class EngineTimer(EngineBaseTimer):
     def _fire(self):
         self.eh.ev_timer(self)
 
-class _EngineTimerQ:
+class _EngineTimerQ(object):
 
-    class _EngineTimerCase:
+    class _EngineTimerCase(object):
         """
         Helper class that allows comparisons of fire times, to be easily used
         in an heapq.
@@ -347,7 +347,7 @@ class _EngineTimerQ:
         self.armed_count = 0
 
 
-class Engine:
+class Engine(object):
     """
     Base class for ClusterShell Engines.
 

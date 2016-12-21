@@ -103,7 +103,7 @@ class ExecClient(EngineClient):
 
         task = self.worker.task
         if task.info("debug", False):
-            name = str(self.__class__).upper().split('.')[-1]
+            name = self.__class__.__name__.upper().split('.')[-1]
             if shell:
                 task.info("print_debug")(task, "%s: %s" % (name, cmd))
             else:

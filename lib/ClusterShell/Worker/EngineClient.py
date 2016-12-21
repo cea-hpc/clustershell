@@ -428,7 +428,7 @@ class EnginePort(EngineClient):
     reliably between tasks.
     """
 
-    class _Msg:
+    class _Msg(object):
         """Private class representing a port message.
 
         A port message may be any Python object.
