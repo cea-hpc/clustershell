@@ -17,7 +17,7 @@ from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self
 
 
-class CheckNodesResult:
+class CheckNodesResult(object):
     """Our result class"""
     def __init__(self):
         """Initialize result class"""
