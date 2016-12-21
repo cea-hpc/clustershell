@@ -334,8 +334,8 @@ class NodeSetBase(object):
         # check that the other argument to a binary operation is also
         # a NodeSet, raising a TypeError otherwise.
         if not isinstance(other, NodeSetBase):
-            raise TypeError, \
-                "Binary operation only permitted between NodeSetBase"
+            raise TypeError("Binary operation only permitted between "
+                            "NodeSetBase")
 
     def issubset(self, other):
         """Report whether another nodeset contains this nodeset."""
@@ -399,8 +399,8 @@ class NodeSetBase(object):
         elif index.step < 0:
             # We support negative step slicing with no start/stop, ie. r[::-n].
             if index.start is not None or index.stop is not None:
-                raise IndexError, \
-                    "illegal start and stop when negative step is used"
+                raise IndexError("illegal start and stop when negative step "
+                                 "is used")
             # As RangeSet elements are ordered internally, adjust sl_start
             # to fake backward stepping in case of negative slice step.
             stepmod = (length + -index.step - 1) % -index.step
@@ -411,7 +411,7 @@ class NodeSetBase(object):
             sl_step = index.step
         if not isinstance(sl_start, int) or not isinstance(sl_stop, int) \
             or not isinstance(sl_step, int):
-            raise TypeError, "slice indices must be integers"
+            raise TypeError("slice indices must be integers")
         return sl_start, sl_stop, sl_step
 
     def __getitem__(self, index):
@@ -456,7 +456,7 @@ class NodeSetBase(object):
                 if index >= -length:
                     index = length + index # - -index
                 else:
-                    raise IndexError, "%d out of range" % index
+                    raise IndexError("%d out of range" % index)
             length = 0
             for pat, rangeset in sorted(self._patterns.iteritems()):
                 if rangeset:
@@ -474,9 +474,9 @@ class NodeSetBase(object):
                     if index == length:
                         return pat
                 length += cnt
-            raise IndexError, "%d out of range" % index
+            raise IndexError("%d out of range" % index)
         else:
-            raise TypeError, "NodeSet indices must be integers"
+            raise TypeError("NodeSet indices must be integers")
 
     def _add_new(self, pat, rangeset):
         """Add nodes from a (pat, rangeset) tuple.
@@ -658,7 +658,7 @@ class NodeSetBase(object):
                 if self._patterns.has_key(pat):
                     purge_patterns.append(pat)
                 elif strict:
-                    raise KeyError, pat
+                    raise KeyError(pat)
 
         for pat in purge_patterns:
             del self._patterns[pat]

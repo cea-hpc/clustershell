@@ -275,7 +275,7 @@ class _EngineTimerQ:
             return
 
         if self.armed_count <= 0:
-            raise ValueError, "Engine client timer not found in timer queue"
+            raise ValueError("Engine client timer not found in timer queue")
 
         client._timercase.disarm()
         self.armed_count -= 1
