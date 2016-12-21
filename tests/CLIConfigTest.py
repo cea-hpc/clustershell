@@ -195,7 +195,7 @@ ssh_options: -oStrictHostKeyChecking=no
             pass
         try:
             f = config.fanout
-        except ClushConfigError, e:
+        except ClushConfigError as e:
             self.assertEqual(str(e)[0:20], "(Config Main.fanout)")
 
         try:

@@ -199,7 +199,7 @@ class GatewayChannel(Channel):
             else:
                 self.logger.error('unexpected message: %s', str(msg))
                 raise MessageProcessingError('unexpected message: %s' % msg)
-        except MessageProcessingError, ex:
+        except MessageProcessingError as ex:
             self.logger.error('on recv(): %s', str(ex))
             self.send(ErrorMessage(str(ex)))
             self._close()
@@ -208,7 +208,7 @@ class GatewayChannel(Channel):
             # gateway task abort: don't handle like other exceptions
             raise
 
-        except Exception, ex:
+        except Exception as ex:
             self.logger.exception('on recv(): %s', str(ex))
             self.send(ErrorMessage(str(ex)))
             self._close()
@@ -360,12 +360,12 @@ def gateway_main():
     try:
         task.resume()
         logger.debug('Task performed')
-    except EngineAbortException, exc:
+    except EngineAbortException as exc:
         logger.debug('EngineAbortException')
-    except IOError, exc:
+    except IOError as exc:
         logger.debug('Broken pipe (%s)', exc)
         raise
-    except Exception, exc:
+    except Exception as exc:
         logger.exception('Gateway failure: %s', exc)
     logger.debug('-------- The End --------')
 

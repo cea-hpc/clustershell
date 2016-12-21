@@ -29,7 +29,7 @@ if __name__ == '__main__':
     test = None
     try:
         opts, args = getopt.getopt(sys.argv[1:], "ht:r:m:", ["help", "test=", "rc=", "timeout="])
-    except getopt.error, msg:
+    except getopt.error as msg:
         print msg
         print "Try `python %s -h' for more information." % sys.argv[0]
         sys.exit(2)

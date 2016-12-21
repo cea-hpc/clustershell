@@ -76,7 +76,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     try:
         try:
             main()
-        except SystemExit, exc:
+        except SystemExit as exc:
             rc = int(str(exc))
     finally:
         sys.stdout = saved_stdout

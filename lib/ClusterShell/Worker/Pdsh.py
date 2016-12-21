@@ -141,7 +141,7 @@ class PdshClient(ExecClient):
                     self._closed_nodes.add(words[1][:-1])
                     self.worker._on_node_rc(words[1][:-1], errno.ENOENT)
 
-            except Exception, exc:
+            except Exception as exc:
                 raise EngineClientError("Pdsh parser error: %s" % exc)
         else:
             # split pdsh reply "nodename: msg"

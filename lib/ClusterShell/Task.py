@@ -751,7 +751,7 @@ class Task(object):
                 self._run(self.timeout)
             except EngineTimeoutException:
                 raise TimeoutError()
-            except EngineAbortException, exc:
+            except EngineAbortException as exc:
                 self._terminate(exc.kill)
             except EngineAlreadyRunningError:
                 raise AlreadyRunningError("task engine is already running")

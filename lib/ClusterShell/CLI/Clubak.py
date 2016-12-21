@@ -141,7 +141,7 @@ def clubak():
             else:
                 for node in keyset:
                     tree.add(node, content)
-        except ValueError, ex:
+        except ValueError as ex:
             raise ValueError("%s (\"%s\")" % (ex, linestripped))
 
     if fast_mode:
@@ -160,16 +160,16 @@ def clubak():
                     (bool(options.line_mode), bool(disp.gather), tree._depth())
         display(tree, disp, disp.gather or disp.regroup, \
                 options.trace_mode, enable_nodeset_key is not False)
-    except ValueError, exc:
+    except ValueError as exc:
         parser.error("option mismatch (%s)" % exc)
 
 def main():
     """main script function"""
     try:
         clubak()
-    except GENERIC_ERRORS, ex:
+    except GENERIC_ERRORS as ex:
         sys.exit(handle_generic_error(ex))
-    except ValueError, ex:
+    except ValueError as ex:
         print >> sys.stderr, "%s:" % sys.argv[0], ex
         sys.exit(1)
 

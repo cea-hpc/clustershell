@@ -56,7 +56,7 @@ def _replace_cmd(pattern, node, rank):
         delimiter = '%'
     try:
         cmd = Replacer(pattern).substitute(variables)
-    except (KeyError, ValueError), error:
+    except (KeyError, ValueError) as error:
         msg = "%s is not a valid pattern, use '%%%%' to escape '%%'" % error
         raise WorkerError(msg)
     return cmd

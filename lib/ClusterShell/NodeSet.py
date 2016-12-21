@@ -257,7 +257,7 @@ class NodeSetBase(object):
                 # set of user-provided fold axis (support negative numbers)
                 fold_axis = [int(x) % dimcnt for x in self.fold_axis
                              if -dimcnt <= int(x) < dimcnt]
-        except (TypeError, ValueError), exc:
+        except (TypeError, ValueError) as exc:
             raise NodeSetParseError("fold_axis=%s" % self.fold_axis, exc)
 
         for rgvec in rset.vectors():
@@ -786,7 +786,7 @@ class ParsingEngine(object):
         if isinstance(nsobj, basestring):
             try:
                 return self.parse_string(str(nsobj), autostep)
-            except (NodeUtils.GroupSourceQueryFailed, RuntimeError), exc:
+            except (NodeUtils.GroupSourceQueryFailed, RuntimeError) as exc:
                 raise NodeSetParseError(nsobj, str(exc))
 
         raise TypeError("Unsupported NodeSet input %s" % type(nsobj))
@@ -892,7 +892,7 @@ class ParsingEngine(object):
                 msg = "Not enough working methods (all or map + list) to " \
                       "get all nodes"
                 raise NodeSetExternalError(msg)
-        except NodeUtils.GroupSourceQueryFailed, exc:
+        except NodeUtils.GroupSourceQueryFailed as exc:
             raise NodeSetExternalError("Failed to get all nodes: %s" % exc)
         return alln
 
@@ -1017,7 +1017,7 @@ class ParsingEngine(object):
                     newpat += "%s%%s" % pfx
                     try:
                         rsets.append(RangeSet(rng, autostep))
-                    except RangeSetParseError, ex:
+                    except RangeSetParseError as ex:
                         raise NodeSetParseRangeError(ex)
 
                     # the following test forbids fully numeric nodeset
@@ -1239,7 +1239,7 @@ class NodeSet(NodeSetBase):
             else:
                 # fill this nodeset with all nodes found by resolver
                 inst.updaten(inst._parser.all_nodes(groupsource))
-        except NodeUtils.GroupResolverError, exc:
+        except NodeUtils.GroupResolverError as exc:
             errmsg = "Group source error (%s: %s)" % (exc.__class__.__name__,
                                                       exc)
             raise NodeSetExternalError(errmsg)
@@ -1305,7 +1305,7 @@ class NodeSet(NodeSetBase):
             try:
                 for group in self._resolver.node_groups(node, namespace):
                     yield group
-            except NodeUtils.GroupSourceQueryFailed, exc:
+            except NodeUtils.GroupSourceQueryFailed as exc:
                 msg = "Group source query failed: %s" % exc
                 raise NodeSetExternalError(msg)
 
@@ -1338,7 +1338,7 @@ class NodeSet(NodeSetBase):
                     nodelist = self._resolver.group_nodes(grp, groupsource)
                     allgroups[grp] = NodeSet(",".join(nodelist),
                                              resolver=self._resolver)
-            except NodeUtils.GroupSourceQueryFailed, exc:
+            except NodeUtils.GroupSourceQueryFailed as exc:
                 # External result inconsistency
                 raise NodeSetExternalError("Unable to map a group " \
                         "previously listed\n\tFailed command: %s" % exc)

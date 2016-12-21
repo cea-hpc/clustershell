@@ -95,7 +95,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
             for cfgopt in options.option:
                 optkey, optvalue = cfgopt.split('=', 1)
                 self._set_main(optkey, optvalue)
-        except ValueError, exc:
+        except ValueError as exc:
             raise ClushConfigError("Main", cfgopt, "invalid -O/--option value")
 
     def _set_main(self, option, value):
@@ -107,7 +107,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         try:
             return getattr(ConfigParser.ConfigParser, 'get%s' % xtype)(self, \
                 section, option)
-        except (ConfigParser.Error, TypeError, ValueError), exc:
+        except (ConfigParser.Error, TypeError, ValueError) as exc:
             raise ClushConfigError(section, option, exc)
 
     def getboolean(self, section, option):

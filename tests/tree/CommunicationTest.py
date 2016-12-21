@@ -186,7 +186,7 @@ class CommunicationTest(unittest.TestCase):
 
             try:
                 parser.feed(msg_xml)
-            except MessageProcessingError, m:
+            except MessageProcessingError as m:
                 # actually this is Ok, we want this exception to be raised
                 pass
             else:

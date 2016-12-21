@@ -480,7 +480,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
             if task.default("USER_interactive"):
                 continue
             return
-        except KeyboardInterrupt, kbe:
+        except KeyboardInterrupt as kbe:
             # Caught SIGINT here (main thread) but the signal will also reach
             # subprocesses (that will most likely kill them)
             if display.gather:
@@ -621,7 +621,7 @@ def _stdin_thread_start(stdin_port, display):
             # send message to specified port object (with ack)
             stdin_port.msg(buf)
             buf = sys.stdin.read(bufsize)
-    except IOError, ex:
+    except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
     stdin_port.msg(None)
@@ -733,7 +733,7 @@ def set_fdlimit(fd_max, display):
         display.vprint(VERB_DEBUG, msgfmt % (soft, rlim_max))
         try:
             resource.setrlimit(resource.RLIMIT_NOFILE, (rlim_max, hard))
-        except (ValueError, resource.error), exc:
+        except (ValueError, resource.error) as exc:
             # Most probably the requested limit exceeds the system imposed limit
             msgfmt = 'Warning: Failed to set max open files limit to %d (%s)'
             display.vprint_err(VERB_VERB, msgfmt % (rlim_max, exc))
@@ -762,10 +762,10 @@ def clush_excepthook(extype, exp, traceback):
     sys.excepthook and task.excepthook."""
     try:
         raise exp
-    except ClushConfigError, econf:
+    except ClushConfigError as econf:
         print >> sys.stderr, "ERROR: %s" % econf
         clush_exit(1)
-    except KeyboardInterrupt, kbe:
+    except KeyboardInterrupt as kbe:
         uncomp_nodes = getattr(kbe, 'uncompleted_nodes', None)
         if uncomp_nodes:
             print >> sys.stderr, \
@@ -773,13 +773,13 @@ def clush_excepthook(extype, exp, traceback):
         else:
             print >> sys.stderr, "Keyboard interrupt."
         clush_exit(128 + signal.SIGINT)
-    except OSError, exp:
+    except OSError as exp:
         print >> sys.stderr, "ERROR: %s" % exp
         if exp.errno == errno.EMFILE:
             print >> sys.stderr, "ERROR: current `nofile' limits: " \
                 "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
         clush_exit(1)
-    except GENERIC_ERRORS, exc:
+    except GENERIC_ERRORS as exc:
         clush_exit(handle_generic_error(exc))
 
     # Error not handled
@@ -822,7 +822,7 @@ def main():
     try:
         # Create and configure display object.
         display = Display(options, config, color)
-    except ValueError, exc:
+    except ValueError as exc:
         parser.error("option mismatch (%s)" % exc)
 
     if options.groupsource:
@@ -858,7 +858,7 @@ def main():
                                "Using nodeset %s from hostfile %s"
                                % (fnodeset, opt_hostfile))
             wnodelist.append(fnodeset)
-        except IOError, exc:
+        except IOError as exc:
             # re-raise as OSError to be properly handled
             errno, strerror = exc.args
             raise OSError(errno, strerror, exc.filename)

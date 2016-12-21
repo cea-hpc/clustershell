@@ -117,11 +117,11 @@ class EngineSelect(Engine):
                     # no timeout specified, do not supply the timeout argument
                     r_ready, w_ready, x_ready = \
                         select.select(self._fds_r, self._fds_w, [])
-            except select.error, (ex_errno, ex_strerror):
+            except select.error as ex:
                 # might get interrupted by a signal
-                if ex_errno == errno.EINTR:
+                if ex.args[0] == errno.EINTR:
                     continue
-                elif ex_errno in [errno.EINVAL, errno.EBADF, errno.ENOMEM]:
+                elif ex.args[0] in (errno.EINVAL, errno.EBADF, errno.ENOMEM):
                     msg = "Increase RLIMIT_NOFILE?"
                     logging.getLogger(__name__).error(msg)
                 raise

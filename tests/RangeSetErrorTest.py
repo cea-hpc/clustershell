@@ -21,7 +21,7 @@ class RangeSetErrorTest(unittest.TestCase):
         try:
             rset = RangeSet(r)
             print rset
-        except RangeSetParseError, e:
+        except RangeSetParseError as e:
             self.assertEqual(RangeSetParseError, exc)
             return
         except:

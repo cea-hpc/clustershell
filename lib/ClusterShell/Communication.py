@@ -212,14 +212,14 @@ class Channel(EventHandler):
         raw = worker.current_msg
         try:
             self._parser.feed(raw + '\n')
-        except SAXParseException, ex:
+        except SAXParseException as ex:
             self.logger.error("SAXParseException: %s: %s", ex.getMessage(), raw)
             # Warning: do not send malformed raw message back
             if self.error_response:
                 self.send(ErrorMessage('Parse error: %s' % ex.getMessage()))
             self._close()
             return
-        except MessageProcessingError, ex:
+        except MessageProcessingError as ex:
             self.logger.error("MessageProcessingError: %s", ex)
             if self.error_response:
                 self.send(ErrorMessage(str(ex)))

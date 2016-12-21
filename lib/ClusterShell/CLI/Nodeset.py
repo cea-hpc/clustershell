@@ -139,7 +139,7 @@ def command_list(options, xset, group_resolver):
     for source in sources:
         try:
             print_source_groups(source, list_level, xset, options)
-        except GroupSourceNoUpcall, exc:
+        except GroupSourceNoUpcall as exc:
             if not options.listall:
                 raise
             # missing list upcall is not fatal with -L
@@ -321,13 +321,13 @@ def main():
     """main script function"""
     try:
         nodeset()
-    except (AssertionError, IndexError, ValueError), ex:
+    except (AssertionError, IndexError, ValueError) as ex:
         print >> sys.stderr, "ERROR:", ex
         sys.exit(1)
     except SyntaxError:
         print >> sys.stderr, "ERROR: invalid separator"
         sys.exit(1)
-    except GENERIC_ERRORS, ex:
+    except GENERIC_ERRORS as ex:
         sys.exit(handle_generic_error(ex))
 
     sys.exit(0)

@@ -748,7 +748,7 @@ class Engine(object):
         for port in ports:
             try:
                 port._handle_read('in')
-            except (IOError, OSError), ex:
+            except (IOError, OSError) as ex:
                 if ex.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
                     # no pending message
                     return

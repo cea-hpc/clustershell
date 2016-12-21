@@ -24,7 +24,7 @@ class NodeSetErrorTest(unittest.TestCase):
         try:
             nodeset = NodeSet(pattern)
             print nodeset
-        except NodeSetParseError, e:
+        except NodeSetParseError as e:
             self.assertEqual(e.__class__, expected_exc)
             return
         except:

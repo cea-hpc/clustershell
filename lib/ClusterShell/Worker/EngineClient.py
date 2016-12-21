@@ -316,7 +316,7 @@ class EngineClient(EngineBaseTimer):
         elif len(wfile.wbuf) > 0:
             try:
                 wcnt = os.write(wfile.fd, wfile.wbuf)
-            except OSError, exc:
+            except OSError as exc:
                 if exc.errno == errno.EAGAIN:
                     # _handle_write() is not only called by the engine but also
                     # by _write(), so this is legit: we just try again later

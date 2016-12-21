@@ -111,11 +111,11 @@ class EnginePoll(Engine):
                 self._current_loopcnt += 1
                 evlist = self.polling.poll(timeo * 1000.0 + 1.0)
 
-            except select.error, (ex_errno, ex_strerror):
+            except select.error as ex:
                 # might get interrupted by a signal
-                if ex_errno == errno.EINTR:
+                if ex.args[0] == errno.EINTR:
                     continue
-                elif ex_errno == errno.EINVAL:
+                elif ex.args[0] == errno.EINVAL:
                     msg = "Increase RLIMIT_NOFILE?"
                     logging.getLogger(__name__).error(msg)
                 raise

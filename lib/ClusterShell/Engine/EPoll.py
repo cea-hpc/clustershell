@@ -116,7 +116,7 @@ class EngineEPoll(Engine):
                 self._current_loopcnt += 1
                 evlist = self.epolling.poll(timeo + 0.001)
 
-            except IOError, ex:
+            except IOError as ex:
                 # might get interrupted by a signal
                 if ex.errno == errno.EINTR:
                     continue

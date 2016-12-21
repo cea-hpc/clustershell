@@ -309,7 +309,7 @@ class WorkerTree(DistantWorker):
                 while len(rbuf) > 0:
                     self._write_remote(rbuf)
                     rbuf = tmptar.read(32768)
-            except OSError, exc:
+            except OSError as exc:
                 raise WorkerError(exc)
 
     def _distribute(self, fanout, dst_nodeset):
@@ -411,7 +411,7 @@ class WorkerTree(DistantWorker):
                                           node, len(tmptar.getmembers()),
                                           self.dest)
                         tmptar.extractall(path=self.dest)
-                    except IOError, ex:
+                    except IOError as ex:
                         self._on_remote_node_msgline(node, ex, 'stderr',
                                                      gateway)
                 # note: try-except-finally not supported before python 2.5
@@ -483,7 +483,7 @@ class WorkerTree(DistantWorker):
         for worker in self.workers:
             try:
                 worker.write(buf)
-            except OSError, exc:
+            except OSError as exc:
                 osexc = exc
 
         self._write_remote(buf)
