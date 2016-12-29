@@ -457,8 +457,8 @@ class RangeSet(set):
         elif isinstance(index, int):
             return self._sorted()[index]
         else:
-            raise TypeError, \
-                "%s indices must be integers" % self.__class__.__name__
+            raise TypeError(
+                "%s indices must be integers" % self.__class__.__name__)
 
     def split(self, nbr):
         """
@@ -647,7 +647,7 @@ class RangeSet(set):
         """Check that the other argument to a binary operation is also  a set,
         raising a TypeError otherwise."""
         if not isinstance(other, set):
-            raise TypeError, "Binary operation only permitted between sets"
+            raise TypeError("Binary operation only permitted between sets")
 
     # In-place union, intersection, differences.
     # Subtle:  The xyz_update() functions deliberately return None,
@@ -982,7 +982,7 @@ class RangeSetND(object):
                 if index >= -length:
                     index = length + index
                 else:
-                    raise IndexError, "%d out of range" % index
+                    raise IndexError("%d out of range" % index)
             length = 0
             for rgvec in self._veclist:
                 cnt = reduce(mul, [len(rg) for rg in rgvec])
@@ -993,10 +993,10 @@ class RangeSetND(object):
                         if index == length:
                             return ivec
                         length += 1
-            raise IndexError, "%d out of range" % index
+            raise IndexError("%d out of range" % index)
         else:
-            raise TypeError, \
-                "%s indices must be integers" % self.__class__.__name__
+            raise TypeError(
+                "%s indices must be integers" % self.__class__.__name__)
 
     @precond_fold()
     def contiguous(self):
@@ -1070,8 +1070,8 @@ class RangeSetND(object):
         """Check that the other argument to a binary operation is also a
         RangeSetND, raising a TypeError otherwise."""
         if not isinstance(other, RangeSetND):
-            raise TypeError, \
-                "Binary operation only permitted between RangeSetND"
+            raise TypeError(
+                "Binary operation only permitted between RangeSetND")
 
     def _sort(self):
         """N-dimensional sorting."""
