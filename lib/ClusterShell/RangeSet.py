@@ -27,19 +27,7 @@ extended to support cluster ranges-like format and stepping support ("0-8/2").
 """
 
 from operator import mul
-
-try:
-    from itertools import product
-except:
-    # itertools.product : new in Python 2.6
-    def product(*args, **kwds):
-        """Cartesian product of input iterables."""
-        pools = map(tuple, args) * kwds.get('repeat', 1)
-        result = [[]]
-        for pool in pools:
-            result = [x+[y] for x in result for y in pool]
-        for prod in result:
-            yield tuple(prod)
+from itertools import product
 
 __all__ = ['RangeSetException',
            'RangeSetParseError',
@@ -108,11 +96,6 @@ class RangeSet(set):
     Set API.
     """
     _VERSION = 3    # serial version number
-
-    # define __new__() to workaround built-in set subclassing with Python 2.4
-    def __new__(cls, pattern=None, autostep=None):
-        """Object constructor"""
-        return set.__new__(cls)
 
     def __init__(self, pattern=None, autostep=None):
         """Initialize RangeSet object.
