@@ -235,8 +235,17 @@ class WorkerTree(DistantWorker):
                               basename(normpath(self.source))
                     destdir = dirname(self.dest)
                 else:
-                    arcname = basename(normpath(self.source))
-                    destdir = os.path.normpath(self.dest)
+                    # source is a directory: if dest has a trailing slash
+                    # like in /tmp/ then arcname is basename(source)
+                    # but if dest is /tmp/newname (without leading slash) then
+                    # arcname becomes newname.
+                    if self.dest[-1] == '/':
+                        arcname = basename(self.source)
+                    else:
+                        arcname = basename(self.dest)
+                    # dirname has not the same behavior when a leading slash is
+                    # present, and we want that.
+                    destdir = dirname(self.dest)
                 self.logger.debug("copy arcname=%s destdir=%s", arcname,
                                   destdir)
 
