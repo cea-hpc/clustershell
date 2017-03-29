@@ -146,21 +146,19 @@ class RangeSet(set):
 
         for subrange in subranges:
             if subrange.find('/') < 0:
-                step = 1
+                step = None
                 baserange = subrange
             else:
                 baserange, step = subrange.split('/', 1)
-
-            try:
-                step = int(step)
-            except ValueError:
-                raise RangeSetParseError(subrange,
-                        "cannot convert string to integer")
+                try:
+                    step = int(step)
+                except ValueError:
+                    raise RangeSetParseError(subrange,
+                                             "cannot convert string to integer")
 
             if baserange.find('-') < 0:
-                if step != 1:
-                    raise RangeSetParseError(subrange,
-                            "invalid step usage")
+                if step is not None:
+                    raise RangeSetParseError(subrange, "invalid step usage")
                 begin = end = baserange
             else:
                 begin, end = baserange.split('-', 1)
@@ -189,12 +187,17 @@ class RangeSet(set):
                     msg = "cannot convert string to integer"
                 raise RangeSetParseError(subrange, msg)
 
-            # check preconditions
-            if stop > 1e100 or start > stop or step < 1:
-                raise RangeSetParseError(subrange,
-                                         "invalid values in range")
+            if start < stop:
+                step = step or 1
+                stop += 1
+            else:
+                step = step or -1
+                stop -= 1
 
-            self.add_range(start, stop + 1, step, pad)
+            try:
+                self.add_range(start, stop, step, pad)
+            except RangeSetException as exp:
+                raise RangeSetParseError(subrange, str(exp))
 
     @classmethod
     def fromlist(cls, rnglist, autostep=None):
@@ -490,10 +493,12 @@ class RangeSet(set):
         Like the Python built-in function *range()*, the last element
         is the largest start + i * step less than stop.
         """
-        assert start < stop, "please provide ordered node index ranges"
-        assert step > 0
         assert pad >= 0
-        assert stop - start < 1e9, "range too large"
+        assert abs(stop - start) < 1e9, "range too large"
+
+        # check preconditions
+        if stop > 1e100 or start == stop:
+            raise RangeSetException("invalid values in range")
 
         if pad > 0 and self.padding is None:
             self.padding = pad
