@@ -13,7 +13,7 @@ import unittest
 
 sys.path.insert(0, '../lib')
 
-from ClusterShell.RangeSet import RangeSet
+from ClusterShell.RangeSet import RangeSet, RangeSetException
 
 
 class RangeSetTest(unittest.TestCase):
@@ -877,7 +877,25 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 34)
         self.assertEqual(str(r1), "1-29,30-60/10,103")
         # Zero
-        self.assertRaises(AssertionError, r1.add_range, 103, 103)
+        self.assertRaises(RangeSetException, r1.add_range, 103, 103)
+
+        # Decreasing values
+        r1 = RangeSet()
+        r1.add_range(5, 1, -1)
+        self.assertEqual(len(r1), 4)
+        self.assertEqual(str(r1), "2-5")
+        r1.add_range(20, 10, -2)
+        self.assertEqual(len(r1), 9)
+        self.assertEqual(str(r1), "2-5,12,14,16,18,20")
+        r1 = RangeSet("50-40")
+        self.assertEqual(len(r1), 11)
+        self.assertEqual(str(r1), "40-50")
+        r1 = RangeSet("50-40/-2", autostep=3)
+        self.assertEqual(len(r1), 6)
+        self.assertEqual(str(r1), "40-50/2")
+        r1 = RangeSet("004-002")
+        self.assertEqual(len(r1), 3)
+        self.assertEqual(str(r1), "002-004")
 
     def testSlices(self):
         """test RangeSet.slices()"""
