@@ -39,8 +39,4 @@ class RangeSetErrorTest(unittest.TestCase):
         self._testRS("-3/2", RangeSetParseError)
         self._testRS("-/2", RangeSetParseError)
         self._testRS("4-a/2", RangeSetParseError)
-        self._testRS("4-3/2", RangeSetParseError)
-        self._testRS("4-5/-2", RangeSetParseError)
-        self._testRS("4-2/-2", RangeSetParseError)
-        self._testRS("004-002", RangeSetParseError)
         self._testRS("3-59/2,102a", RangeSetParseError)
