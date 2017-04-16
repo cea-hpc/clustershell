@@ -768,7 +768,7 @@ class ParsingEngine(object):
         Initialize Parsing Engine.
         """
         self.group_resolver = group_resolver
-        self.base_node_re = re.compile("(\D*)(\d*)")
+        self.base_node_re = re.compile("([^1-9]*)(\d*)")
 
     def parse(self, nsobj, autostep):
         """
