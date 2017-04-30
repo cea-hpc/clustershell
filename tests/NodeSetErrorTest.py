@@ -87,8 +87,6 @@ class NodeSetErrorTest(unittest.TestCase):
         """test NodeSet other parse errors"""
         self._testNS("nova[3-59/2,102", NodeSetParseError)
         self._testNS("nova3,nova4,,nova6", NodeSetParseError)
-        self._testNS("nova3,nova4,5,nova6", NodeSetParseError)
-        self._testNS("nova3,nova4,[5-8],nova6", NodeSetParseError)
         self._testNS("nova6,", NodeSetParseError)
         self._testNS("nova6[", NodeSetParseError)
         self._testNS("nova6]", NodeSetParseError)
@@ -109,11 +107,6 @@ class NodeSetErrorTest(unittest.TestCase):
         self._testNS("x[1-30]p4-9]", NodeSetParseError)
         self._testNS("xazer][1-30]p[4-9]", NodeSetParseError)
         self._testNS("xa[[zer[1-30]p[4-9]", NodeSetParseRangeError)
-        # entirely numeric hostnames are not allowed
-        self._testNS("[0-10]", NodeSetParseError)
-        self._testNS("0[0-10]", NodeSetParseError)
-        self._testNS("[0-10]0", NodeSetParseError)
-        self._testNS("0[0-10]0", NodeSetParseError)
 
     def testTypeSanityCheck(self):
         """test NodeSet input type sanity check"""

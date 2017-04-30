@@ -915,10 +915,6 @@ class ParsingEngine(object):
         if not pfx_nd:
             raise NodeSetParseError(nsstr, "parse error")
 
-        # pfx+sfx cannot be empty
-        if len(pfx_nd) == 1 and len(pfx_nd[0][0]) == 0:
-            raise NodeSetParseError(nsstr, "empty node name")
-
         pat = ""
         rangesets = []
         for pfx, idx in pfx_nd:
@@ -1019,11 +1015,6 @@ class ParsingEngine(object):
                         rsets.append(RangeSet(rng, autostep))
                     except RangeSetParseError as ex:
                         raise NodeSetParseRangeError(ex)
-
-                    # the following test forbids fully numeric nodeset
-                    if len(pfx) + len(sfx) == 0:
-                        msg = "fully numeric nodeset"
-                        raise NodeSetParseError(nsstr, msg)
 
                 # Check if we have a next op-separated node or pattern
                 op_idx, next_op_code = self._next_op(sfx)

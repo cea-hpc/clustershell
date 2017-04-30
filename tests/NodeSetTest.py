@@ -2554,3 +2554,15 @@ class NodeSetTest(unittest.TestCase):
         n1 = NodeSet("n1c01,n1c02,n1c03,n1c04,n1c05,n1c06,n1c07,n1c08,n1c09,n2c01,n2c02,n2c03,n2c04,n2c05,n2c06,n2c07,n2c08,n2c09,n3c01,n3c02,n3c03,n3c04,n3c05,n3c06,n3c07,n3c08,n3c09,n4c01,n4c02,n4c03,n4c04,n4c05,n4c06,n4c07,n4c08,n4c09")
         self.assertEqual(str(n1), "n[1-4]c[01-09]")
         self.assertEqual(len(n1), 36)
+
+    def test_fully_numeric(self):
+        # supported from 1.8 (#338)
+        n1 = NodeSet("[0-10]")
+        self.assertEqual(str(n1), "[0-10]")
+        self.assertEqual(len(n1), 11)
+        n1 = NodeSet("3,5,[7-10,40]")
+        self.assertEqual(str(n1), "[3,5,7-10,40]")
+        self.assertEqual(len(n1), 7)
+        n1 = NodeSet("0[7-9,10]")
+        self.assertEqual(str(n1), "[07-10]")
+        self.assertEqual(len(n1), 4)
