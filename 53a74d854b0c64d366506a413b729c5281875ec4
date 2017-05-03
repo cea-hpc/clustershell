@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e53b6df8_5965be7b",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-03T07:24:19Z",
+      "side": 0,
+      "message": "could have been nice to move the used-to-be-unsupported test cases into the supported ones (NodeSetTest.py)",
+      "revId": "53a74d854b0c64d366506a413b729c5281875ec4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
