@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47103ccc_0c37e6bf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-04T10:38:07Z",
+      "side": 1,
+      "message": "Example ?",
+      "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6527fed_fb621c96",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-04T10:38:07Z",
+      "side": 1,
+      "message": "Closes #338 ?",
+      "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1633880_0fe0b4e6",
+        "filename": "tests/NodeSetTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2582,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-04T10:38:07Z",
+      "side": 1,
+      "message": "could fit in 80 char if there is fewer elements",
+      "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
