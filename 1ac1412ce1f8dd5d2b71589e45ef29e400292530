@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c7ce2a8f_7a4bec7b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-06T23:17:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47103ccc_0c37e6bf",
+      "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a6527fed_fb621c96",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "0533f311_a7038864",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-06T23:17:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a6527fed_fb621c96",
+      "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f1633880_0fe0b4e6",
         "filename": "tests/NodeSetTest.py",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2017-05-04T10:38:07Z",
       "side": 1,
       "message": "could fit in 80 char if there is fewer elements",
+      "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6421ab91_732a4274",
+        "filename": "tests/NodeSetTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2582,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-06T23:17:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f1633880_0fe0b4e6",
       "revId": "1ac1412ce1f8dd5d2b71589e45ef29e400292530",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
