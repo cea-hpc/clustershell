@@ -20,7 +20,6 @@ class RangeSetErrorTest(unittest.TestCase):
     def _testRS(self, r, exc):
         try:
             rset = RangeSet(r)
-            print rset
         except RangeSetParseError as e:
             self.assertEqual(RangeSetParseError, exc)
             return
