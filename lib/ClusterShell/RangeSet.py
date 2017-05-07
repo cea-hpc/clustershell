@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2012-2016 CEA/DAM
 # Copyright (C) 2012-2016 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -26,20 +26,8 @@ Instances of RangeSet provide similar operations than the builtin set type,
 extended to support cluster ranges-like format and stepping support ("0-8/2").
 """
 
+from itertools import product
 from operator import mul
-
-try:
-    from itertools import product
-except:
-    # itertools.product : new in Python 2.6
-    def product(*args, **kwds):
-        """Cartesian product of input iterables."""
-        pools = map(tuple, args) * kwds.get('repeat', 1)
-        result = [[]]
-        for pool in pools:
-            result = [x+[y] for x in result for y in pool]
-        for prod in result:
-            yield tuple(prod)
 
 __all__ = ['RangeSetException',
            'RangeSetParseError',
@@ -108,11 +96,6 @@ class RangeSet(set):
     Set API.
     """
     _VERSION = 3    # serial version number
-
-    # define __new__() to workaround built-in set subclassing with Python 2.4
-    def __new__(cls, pattern=None, autostep=None):
-        """Object constructor"""
-        return set.__new__(cls)
 
     def __init__(self, pattern=None, autostep=None):
         """Initialize RangeSet object.
@@ -475,7 +458,7 @@ class RangeSet(set):
         assert(nbr > 0)
 
         # We put the same number of element in each sub-nodeset.
-        slice_size = len(self) / nbr
+        slice_size = len(self) // int(nbr)
         left = len(self) % nbr
 
         begin = 0
@@ -531,14 +514,6 @@ class RangeSet(set):
     # NotImplemented instead of raising TypeError (albeit that *why* it
     # raises TypeError as-is is also a bit subtle).
 
-    def _wrap_set_op(self, fun, arg):
-        """Wrap built-in set operations for RangeSet to workaround built-in set
-        base class issues (RangeSet.__new/init__ not called)"""
-        result = fun(self, arg)
-        result._autostep = self._autostep
-        result.padding = self.padding
-        return result
-
     def __or__(self, other):
         """Return the union of two RangeSets as a new RangeSet.
 
@@ -553,7 +528,9 @@ class RangeSet(set):
 
         (I.e. all elements that are in either set.)
         """
-        return self._wrap_set_op(set.union, other)
+        self_copy = self.copy()
+        self_copy.update(other)
+        return self_copy
 
     def __and__(self, other):
         """Return the intersection of two RangeSets as a new RangeSet.
@@ -569,7 +546,9 @@ class RangeSet(set):
 
         (I.e. all elements that are in both sets.)
         """
-        return self._wrap_set_op(set.intersection, other)
+        self_copy = self.copy()
+        self_copy.intersection_update(other)
+        return self_copy
 
     def __xor__(self, other):
         """Return the symmetric difference of two RangeSets as a new RangeSet.
@@ -582,10 +561,12 @@ class RangeSet(set):
 
     def symmetric_difference(self, other):
         """Return the symmetric difference of two RangeSets as a new RangeSet.
-        
+
         (ie. all elements that are in exactly one of the sets.)
         """
-        return self._wrap_set_op(set.symmetric_difference, other)
+        self_copy = self.copy()
+        self_copy.symmetric_difference_update(other)
+        return self_copy
 
     def __sub__(self, other):
         """Return the difference of two RangeSets as a new RangeSet.
@@ -601,7 +582,9 @@ class RangeSet(set):
 
         (I.e. all elements that are in this set and not in the other.)
         """
-        return self._wrap_set_op(set.difference, other)
+        self_copy = self.copy()
+        self_copy.difference_update(other)
+        return self_copy
 
     # Membership test
 
