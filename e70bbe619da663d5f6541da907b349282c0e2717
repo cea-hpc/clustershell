@@ -16,6 +16,24 @@
       "revId": "e70bbe619da663d5f6541da907b349282c0e2717",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "879a4deb_1c1c5bee",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-12T05:36:30Z",
+      "side": 1,
+      "message": "how?",
+      "parentUuid": "8bee7543_af108f19",
+      "revId": "e70bbe619da663d5f6541da907b349282c0e2717",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
