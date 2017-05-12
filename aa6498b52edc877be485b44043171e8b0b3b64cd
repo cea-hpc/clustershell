@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "895ddeb5_351fde1a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-12T07:47:08Z",
+      "side": 1,
+      "message": "Ref to ticket (#239) ?",
+      "revId": "aa6498b52edc877be485b44043171e8b0b3b64cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74f19da9_994665c9",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-12T07:47:08Z",
+      "side": 1,
+      "message": "(python3) not fan of mixing patches but I think it could be good to add :\n\n  from functools import reduce",
+      "revId": "aa6498b52edc877be485b44043171e8b0b3b64cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0be7a909_1d8d023a",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 856,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-12T07:47:08Z",
+      "side": 1,
+      "message": "(python3) rename to __bool__ and add __nonzero__ \u003d\u003d __bool__",
+      "revId": "aa6498b52edc877be485b44043171e8b0b3b64cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
