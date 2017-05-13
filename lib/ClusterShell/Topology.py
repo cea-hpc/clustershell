@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -37,7 +37,11 @@ second_level_gateways[0-100]: nodes[0-2000]
 ...
 """
 
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    # Python 2 compat
+    import ConfigParser as configparser
 
 from ClusterShell.NodeSet import NodeSet
 
@@ -403,7 +407,7 @@ class TopologyGraph(object):
 
         self._root = root
 
-class TopologyParser(ConfigParser.ConfigParser):
+class TopologyParser(configparser.ConfigParser):
     """This class offers a way to interpret network topologies supplied under
     the form :
 
@@ -412,7 +416,7 @@ class TopologyParser(ConfigParser.ConfigParser):
     """
     def __init__(self, filename=None):
         """instance wide variables initialization"""
-        ConfigParser.ConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         self.optionxform = str # case sensitive parser
 
         self._topology = {}
@@ -433,7 +437,7 @@ class TopologyParser(ConfigParser.ConfigParser):
             else:
                 # compat routes section [deprecated since v1.7]
                 self._topology = self.items("Main")
-        except ConfigParser.Error:
+        except configparser.Error:
             raise TopologyError(
                 'Invalid configuration file: %s' % filename)
         self._build_graph()
