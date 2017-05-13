@@ -109,7 +109,7 @@ class TaskLocalMixin(object):
         # run task
         task.resume()
         self.assertEqual(worker.retcode(), 0)
-        self.assertEqual(len(worker.read()), 699999)
+        self.assertEqual(len(worker.read()), 700000)
 
     # task configuration
     def testTaskInfo(self):
