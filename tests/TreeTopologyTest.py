@@ -22,15 +22,6 @@ from ClusterShell.Topology import *
 from ClusterShell.NodeSet import NodeSet
 
 
-def chrono(func):
-    def timing(*args):
-        start = time.time()
-        res = func(*args)
-        print "execution time: %f s" % (time.time() - start)
-        return res
-    return timing
-
-
 class TopologyTest(unittest.TestCase):
 
     def testInvalidConfigurationFile(self):
@@ -397,7 +388,6 @@ class TopologyTest(unittest.TestCase):
         # ---------------------------
         display_ref = 'n0\n|- n1\n|  `- n[10-49]\n`- n2\n   `- n[50-89]\n'
         display = str(tree)
-        print "\n%s" % display
         self.assertEquals(display, display_ref)
 
         self.assertEquals(str(TopologyTree()), '<TopologyTree instance (empty)>')
