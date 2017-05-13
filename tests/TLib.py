@@ -1,8 +1,7 @@
 
 """Unit test small library"""
 
-__all__ = ['HOSTNAME', 'load_cfg', 'chrono', 'make_temp_filename',
-           'make_temp_file', 'make_temp_dir', 'CLI_main']
+from __future__ import print_function
 
 import os
 import socket
@@ -12,6 +11,10 @@ import time
 
 from ConfigParser import ConfigParser
 from StringIO import StringIO
+
+
+__all__ = ['HOSTNAME', 'load_cfg', 'chrono', 'make_temp_filename',
+           'make_temp_file', 'make_temp_dir', 'CLI_main']
 
 # Get machine short hostname
 HOSTNAME = socket.gethostname().split('.', 1)[0]
@@ -30,7 +33,7 @@ def chrono(func):
     def timing(*args):
         start = time.time()
         res = func(*args)
-        print "execution time: %f s" % (time.time() - start)
+        print("execution time: %f s" % (time.time() - start))
         return res
     return timing
 
