@@ -1,9 +1,6 @@
 
 """Unit test small library"""
 
-__all__ = ['HOSTNAME', 'load_cfg', 'chrono', 'make_temp_filename',
-           'make_temp_file', 'make_temp_dir', 'CLI_main']
-
 import os
 import socket
 import sys
@@ -12,6 +9,10 @@ import time
 
 from ConfigParser import ConfigParser
 from StringIO import StringIO
+
+
+__all__ = ['HOSTNAME', 'load_cfg', 'make_temp_filename', 'make_temp_file',
+           'make_temp_dir', 'CLI_main']
 
 # Get machine short hostname
 HOSTNAME = socket.gethostname().split('.', 1)[0]
@@ -24,15 +25,6 @@ def load_cfg(name):
         os.path.expanduser('~/.clustershell/tests/%s' % name),
         '/etc/clustershell/tests/%s' % name])
     return cfgparser
-
-def chrono(func):
-    """chrono decorator"""
-    def timing(*args):
-        start = time.time()
-        res = func(*args)
-        print "execution time: %f s" % (time.time() - start)
-        return res
-    return timing
 
 #
 # Temp files and directories

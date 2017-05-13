@@ -103,13 +103,12 @@ class TaskLocalMixin(object):
         task = task_self()
 
         # init worker
-        worker = task.shell("python test_command.py --test huge --rc 0")
-        self.assert_(worker != None)
+        worker = task.shell("for i in {1..100000}; do echo -n ' huge! '; done")
 
         # run task
         task.resume()
         self.assertEqual(worker.retcode(), 0)
-        self.assertEqual(len(worker.read()), 699999)
+        self.assertEqual(len(worker.read()), 700000)
 
     # task configuration
     def testTaskInfo(self):
