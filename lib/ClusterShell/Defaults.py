@@ -27,7 +27,12 @@ from __future__ import print_function
 
 # Imported early
 # Should not import any other ClusterShell modules when loaded
-from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+try:
+    from configparser import ConfigParser, NoOptionError, NoSectionError
+except ImportError:
+    # Python 2 compat
+    from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+
 import os
 import sys
 
