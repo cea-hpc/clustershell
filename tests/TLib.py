@@ -7,7 +7,11 @@ import sys
 import tempfile
 import time
 
-from ConfigParser import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
 from StringIO import StringIO
 
 
@@ -20,7 +24,7 @@ HOSTNAME = socket.gethostname().split('.', 1)[0]
 
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
-    cfgparser = ConfigParser()
+    cfgparser = configparser.ConfigParser()
     cfgparser.read([ \
         os.path.expanduser('~/.clustershell/tests/%s' % name),
         '/etc/clustershell/tests/%s' % name])
