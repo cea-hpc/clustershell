@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2016 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -29,13 +29,18 @@ to external node groups sources in separate namespaces (example of
 group sources are: files, jobs scheduler, custom scripts, etc.).
 """
 
+try:
+    from configparser import ConfigParser, NoOptionError, NoSectionError
+except ImportError:
+    # Python 2 compat
+    from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+
 import glob
 import logging
 import os
 import shlex
 import time
 
-from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from string import Template
 from subprocess import Popen, PIPE
 
@@ -589,16 +594,16 @@ class GroupResolverConfig(GroupResolver):
                 for srcname in section.split(','):
                     if srcname != self.SECTION_MAIN:
                         # only map is a mandatory upcall
-                        map_upcall = cfg.get(section, 'map', True)
+                        map_upcall = cfg.get(section, 'map', raw=True)
                         all_upcall = list_upcall = reverse_upcall = ctime = None
                         if cfg.has_option(section, 'all'):
-                            all_upcall = cfg.get(section, 'all', True)
+                            all_upcall = cfg.get(section, 'all', raw=True)
                         if cfg.has_option(section, 'list'):
-                            list_upcall = cfg.get(section, 'list', True)
+                            list_upcall = cfg.get(section, 'list', raw=True)
                         if cfg.has_option(section, 'reverse'):
-                            reverse_upcall = cfg.get(section, 'reverse', True)
+                            reverse_upcall = cfg.get(section, 'reverse', raw=True)
                         if cfg.has_option(section, 'cache_time'):
-                            ctime = float(cfg.get(section, 'cache_time', True))
+                            ctime = float(cfg.get(section, 'cache_time', raw=True))
                         # add new group source
                         self.add_source(UpcallGroupSource(srcname, map_upcall,
                                                           all_upcall,
