@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2010-2012 CEA/DAM
+# Copyright (C) 2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -24,6 +25,8 @@ format dsh/pdsh-like output for humans and more
 For help, type::
     $ clubak --help
 """
+
+from __future__ import print_function
 
 from itertools import imap
 import sys
@@ -120,7 +123,7 @@ def clubak():
         try:
             linestripped = line.rstrip('\r\n')
             if options.verbose or options.debug:
-                print "INPUT %s" % linestripped
+                print("INPUT %s" % linestripped)
             key, content = linestripped.split(options.separator, 1)
             key = key.strip()
             if not key:
@@ -155,9 +158,9 @@ def clubak():
         disp = Display(options)
         if options.debug:
             std_group_resolver().set_verbosity(1)
-            print >> sys.stderr, \
-                "clubak: line_mode=%s gather=%s tree_depth=%d" % \
-                    (bool(options.line_mode), bool(disp.gather), tree._depth())
+            print("clubak: line_mode=%s gather=%s tree_depth=%d"
+                  % (bool(options.line_mode), bool(disp.gather), tree._depth()),
+                  file=sys.stderr)
         display(tree, disp, disp.gather or disp.regroup, \
                 options.trace_mode, enable_nodeset_key is not False)
     except ValueError as exc:
@@ -170,7 +173,7 @@ def main():
     except GENERIC_ERRORS as ex:
         sys.exit(handle_generic_error(ex))
     except ValueError as ex:
-        print >> sys.stderr, "%s:" % sys.argv[0], ex
+        print("%s:" % sys.argv[0], ex, file=sys.stderr)
         sys.exit(1)
 
     sys.exit(0)

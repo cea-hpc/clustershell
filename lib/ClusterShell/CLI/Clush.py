@@ -32,6 +32,8 @@ When no command are specified, clush runs interactively.
 
 """
 
+from __future__ import print_function
+
 import errno
 import logging
 import os
@@ -474,7 +476,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
             finally:
                 signal.signal(signal.SIGUSR1, signal.SIG_IGN)
         except EOFError:
-            print
+            print()
             return
         except UpdatePromptException:
             if task.default("USER_interactive"):
@@ -763,21 +765,21 @@ def clush_excepthook(extype, exp, traceback):
     try:
         raise exp
     except ClushConfigError as econf:
-        print >> sys.stderr, "ERROR: %s" % econf
+        print("ERROR: %s" % econf, file=sys.stderr)
         clush_exit(1)
     except KeyboardInterrupt as kbe:
         uncomp_nodes = getattr(kbe, 'uncompleted_nodes', None)
         if uncomp_nodes:
-            print >> sys.stderr, \
-                "Keyboard interrupt (%s did not complete)." % uncomp_nodes
+            print("Keyboard interrupt (%s did not complete)." % uncomp_nodes,
+                  file=sys.stderr)
         else:
-            print >> sys.stderr, "Keyboard interrupt."
+            print("Keyboard interrupt.", file=sys.stderr)
         clush_exit(128 + signal.SIGINT)
     except OSError as exp:
-        print >> sys.stderr, "ERROR: %s" % exp
+        print("ERROR: %s" % exp, file=sys.stderr)
         if exp.errno == errno.EMFILE:
-            print >> sys.stderr, "ERROR: current `nofile' limits: " \
-                "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
+            print("ERROR: current `nofile' limits: soft=%d hard=%d"
+                  % resource.getrlimit(resource.RLIMIT_NOFILE), file=sys.stderr)
         clush_exit(1)
     except GENERIC_ERRORS as exc:
         clush_exit(handle_generic_error(exc))
@@ -912,7 +914,7 @@ def main():
         nodeset_base.intersection_update(','.join(keep))
         if config.verbosity >= VERB_VERB:
             msg = "Picked random nodes: %s" % nodeset_base
-            print Display.COLOR_RESULT_FMT % msg
+            print(Display.COLOR_RESULT_FMT % msg)
 
     # Set open files limit.
     set_fdlimit(config.fd_max, display)
@@ -993,13 +995,13 @@ def main():
             roots = len(task.topology.root.nodeset)
             gws = task.topology.inner_node_count() - roots
             msg = "enabling tree topology (%d gateways)" % gws
-            print >> sys.stderr, "clush: %s" % msg
+            print("clush: %s" % msg, file=sys.stderr)
 
     if options.grooming_delay:
         if config.verbosity >= VERB_VERB:
             msg = Display.COLOR_RESULT_FMT % ("Grooming delay: %f" %
                                               options.grooming_delay)
-            print >> sys.stderr, msg
+            print(msg, file=sys.stderr)
         task.set_info("grooming_delay", options.grooming_delay)
     elif options.rcopy:
         # By default, --rcopy should inhibit grooming
@@ -1068,9 +1070,9 @@ def main():
                                                 op))
     if not task.default("USER_interactive"):
         if display.verbosity >= VERB_DEBUG and task.topology:
-            print Display.COLOR_RESULT_FMT % '-' * 15
-            print Display.COLOR_RESULT_FMT % task.topology,
-            print Display.COLOR_RESULT_FMT % '-' * 15
+            print(Display.COLOR_RESULT_FMT % '-' * 15)
+            print(Display.COLOR_RESULT_FMT % task.topology, end='')
+            print(Display.COLOR_RESULT_FMT % '-' * 15)
         if options.copy:
             run_copy(task, args, options.dest_path, nodeset_base, timeout,
                      options.preserve_flag, display)

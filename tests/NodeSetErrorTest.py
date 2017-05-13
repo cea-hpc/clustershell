@@ -23,7 +23,6 @@ class NodeSetErrorTest(unittest.TestCase):
     def _testNS(self, pattern, expected_exc):
         try:
             nodeset = NodeSet(pattern)
-            print nodeset
         except NodeSetParseError as e:
             self.assertEqual(e.__class__, expected_exc)
             return

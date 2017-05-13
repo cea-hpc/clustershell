@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -23,6 +23,8 @@ ClusterShell Defaults module.
 Manage library defaults.
 """
 
+from __future__ import print_function
+
 # Imported early
 # Should not import any other ClusterShell modules when loaded
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
@@ -41,7 +43,7 @@ CFG_SECTION_TASK_INFO = 'task.info'
 #
 def _task_print_debug(task, line):
     """Default task debug printing function."""
-    print line
+    print(line)
 
 def _load_workerclass(workername):
     """
