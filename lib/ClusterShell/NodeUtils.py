@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2016 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -29,13 +29,18 @@ to external node groups sources in separate namespaces (example of
 group sources are: files, jobs scheduler, custom scripts, etc.).
 """
 
+try:
+    from configparser import ConfigParser, NoOptionError, NoSectionError
+except ImportError:
+    # Python 2 compat
+    from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+
 import glob
 import logging
 import os
 import shlex
 import time
 
-from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from string import Template
 from subprocess import Popen, PIPE
 
