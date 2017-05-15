@@ -220,8 +220,20 @@ class OptionParser(optparse.OptionParser):
                           help=optparse.SUPPRESS_HELP, type="float")
         optgrp.add_option("-l", "--user", action="store", type="safestring",
                           dest="user", help="execute remote command as user")
-        optgrp.add_option("-o", "--options", action="store", dest="options",
-                          help="can be used to give ssh options")
+        optgrp.add_option("-o", "--options", action="store", dest="ssh_options",
+                          help="set ssh options")
+        optgrp.add_option("--ssh_options", action="store",
+                          dest="ssh_options", help="set ssh " \
+                          "options, same as --options")
+        optgrp.add_option("--ssh_path", action="store",
+                          dest="ssh_path", help="set path to ssh, " \
+                          "can be used to prepend sshpass")
+        optgrp.add_option("--scp_options", action="store",
+                          dest="scp_options", help="set scp options", \
+                          type="float")
+        optgrp.add_option("--scp_path", action="store",
+                          dest="scp_path", help="set path to scp, " \
+                          "can be used to prepend sshpass")
         optgrp.add_option("-t", "--connect_timeout", action="store",
                           dest="connect_timeout",
                           help="limit time to connect to a node", type="float")
