@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86330257_84105a76",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-15T16:56:41Z",
+      "side": 1,
+      "message": "btw, alphabetic order of stdlib imports is recommended by the flake8 tool",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 10
+      },
+      "revId": "bc43312e48c28e3837e795cc44084db6323568ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
