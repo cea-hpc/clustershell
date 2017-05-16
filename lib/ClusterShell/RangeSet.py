@@ -277,6 +277,10 @@ class RangeSet(set):
             delattr(self, '_ranges')
             delattr(self, '_length')
 
+        # add padding if unpickling old instances
+        if not hasattr(self, 'padding'):
+            setattr(self, 'padding', None)
+
     def _strslices(self):
         """Stringify slices list (x-y/step format)"""
         pad = self.padding or 0
@@ -479,8 +483,10 @@ class RangeSet(set):
         assert pad >= 0
         assert stop - start < 1e9, "range too large"
 
-        if pad > 0 and self.padding is None:
+        # inherit padding info only if currently not defined
+        if pad is not None and pad > 0 and self.padding is None:
             self.padding = pad
+
         set.update(self, range(start, stop, step))
 
     def copy(self):
@@ -637,7 +643,7 @@ class RangeSet(set):
     # Subtle:  The xyz_update() functions deliberately return None,
     # as do all mutating operations on built-in container types.
     # The __xyz__ spellings have to return self, though.
-    
+
     def __ior__(self, other):
         """Update a RangeSet with the union of itself and another."""
         self._binary_sanity_check(other)
@@ -669,7 +675,7 @@ class RangeSet(set):
         """Update a RangeSet with the symmetric difference of itself and
         another."""
         set.symmetric_difference_update(self, other)
-        
+
     def __isub__(self, other):
         """Remove all elements of another set from this RangeSet."""
         self._binary_sanity_check(other)
@@ -678,7 +684,7 @@ class RangeSet(set):
 
     def difference_update(self, other, strict=False):
         """Remove all elements of another set from this RangeSet.
-        
+
         If strict is True, raise KeyError if an element cannot be removed.
         (strict is a RangeSet addition)"""
         if strict and other not in self:
@@ -719,9 +725,11 @@ class RangeSet(set):
         """Add an element to a RangeSet.
         This has no effect if the element is already present.
         """
-        set.add(self, int(element))
-        if pad > 0 and self.padding is None:
+        # inherit padding info only if currently not defined
+        if pad is not None and pad > 0 and self.padding is None:
             self.padding = pad
+
+        set.add(self, int(element))
 
     def remove(self, element):
         """Remove an element from a RangeSet; it must be a member.
@@ -917,7 +925,7 @@ class RangeSetND(object):
     def pads(self):
         """Get a tuple of padding length info for each dimension."""
         # return a tuple of max padding length for each axis
-        pad_veclist = ((rg.padding for rg in vec) for vec in self._veclist)
+        pad_veclist = ((rg.padding or 0 for rg in vec) for vec in self._veclist)
         return tuple(max(pads) for pads in zip(*pad_veclist))
 
     def get_autostep(self):
