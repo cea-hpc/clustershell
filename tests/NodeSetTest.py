@@ -1640,6 +1640,16 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodeset[1], "blue7")
         self.assertEqual(nodeset[-1], "yellow4")
 
+    def test_unpickle_v1_7_3_py27(self):
+        """test NodeSet unpickling (against v1.7.3/py27)"""
+        nodeset = pickle.loads(binascii.a2b_base64("Y2NvcHlfcmVnCl9yZWNvbnN0cnVjdG9yCnAwCihjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApwMQpjX19idWlsdGluX18Kb2JqZWN0CnAyCk50cDMKUnA0CihkcDUKUydmb2xkX2F4aXMnCnA2Ck5zUydfbGVuZ3RoJwpwNwpJMApzUydfcGF0dGVybnMnCnA4CihkcDkKUydmb28lcycKcDEwCmNDbHVzdGVyU2hlbGwuUmFuZ2VTZXQKUmFuZ2VTZXQKcDExCihTJzEsNC01MCw4MC0xMDAnCnAxMgp0cDEzClJwMTQKKGRwMTUKUydwYWRkaW5nJwpwMTYKTnNTJ19hdXRvc3RlcCcKcDE3CkYxZSsxMDAKc1MnX3ZlcnNpb24nCnAxOApJMwpzYnNTJ2JhciVzJwpwMTkKZzExCihTJzA1MC0xNTAsNTAyLTU5OScKcDIwCnRwMjEKUnAyMgooZHAyMwpnMTYKSTMKc2cxNwpGMWUrMTAwCnNnMTgKSTMKc2Jzc2cxNwpOc2cxOApJMgpzYi4="))
+        self.assertEqual(nodeset, NodeSet("foo[1,4-50,80-100],bar[050-150,502-599]"))
+        self.assertEqual(str(nodeset), "bar[050-150,502-599],foo[1,4-50,80-100]")
+        self.assertEqual(len(nodeset), 268)
+        self.assertEqual(nodeset[0], "bar050")
+        self.assertEqual(nodeset[1], "bar051")
+        self.assertEqual(nodeset[-1], "foo100")
+
     def test_pickle_current(self):
         """test NodeSet pickling (current version)"""
         dump = pickle.dumps(NodeSet("foo[1-100]"))
@@ -1698,6 +1708,18 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(nodeset[0], "bar")
         self.assertEqual(nodeset[1], "foo1")
         self.assertEqual(nodeset[-1], "foo101bar4")
+
+    def test_nd_unpickle_v1_7_3_py27(self):
+        """test NodeSet nD unpickling (against v1.7.3/py27)"""
+        # TEST FROM v1.7.3: NodeSet("foo[1-100]bar[00001-00010]")
+        nodeset = pickle.loads(binascii.a2b_base64("Y2NvcHlfcmVnCl9yZWNvbnN0cnVjdG9yCnAwCihjQ2x1c3RlclNoZWxsLk5vZGVTZXQKTm9kZVNldApwMQpjX19idWlsdGluX18Kb2JqZWN0CnAyCk50cDMKUnA0CihkcDUKUydmb2xkX2F4aXMnCnA2Ck5zUydfbGVuZ3RoJwpwNwpJMApzUydfcGF0dGVybnMnCnA4CihkcDkKUydmb28lc2JhciVzJwpwMTAKZzAKKGNDbHVzdGVyU2hlbGwuUmFuZ2VTZXQKUmFuZ2VTZXRORApwMTEKZzIKTnRwMTIKUnAxMwooZHAxNApTJ19tdWx0aXZhcl9oaW50JwpwMTUKSTAwCnNTJ192ZWNsaXN0JwpwMTYKKGxwMTcKKGxwMTgKY0NsdXN0ZXJTaGVsbC5SYW5nZVNldApSYW5nZVNldApwMTkKKFMnMS0xMDAnCnAyMAp0cDIxClJwMjIKKGRwMjMKUydwYWRkaW5nJwpwMjQKTnNTJ19hdXRvc3RlcCcKcDI1CkYxZSsxMDAKc1MnX3ZlcnNpb24nCnAyNgpJMwpzYmFnMTkKKFMnMDAwMDEtMDAwMTAnCnAyNwp0cDI4ClJwMjkKKGRwMzAKZzI0Ckk1CnNnMjUKRjFlKzEwMApzZzI2CkkzCnNiYWFzZzI1CkYxZSsxMDAKc1MnX2RpcnR5JwpwMzEKSTAwCnNic3NnMjUKTnNnMjYKSTIKc2Iu"))
+
+        self.assertEqual(str(nodeset), str(NodeSet("foo[1-100]bar[00001-00010]")))
+        self.assertEqual(nodeset, NodeSet("foo[1-100]bar[00001-00010]"))
+        self.assertEqual(len(nodeset), 1000)
+        self.assertEqual(nodeset[0], "foo1bar00001")
+        self.assertEqual(nodeset[1], "foo1bar00002")
+        self.assertEqual(nodeset[-1], "foo100bar00010")
 
     def test_nd_pickle_current(self):
         """test NodeSet nD pickling (current version)"""
