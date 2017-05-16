@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "daf978ed_1b907069",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T13:14:25Z",
+      "side": 1,
+      "message": "separate patch or merge with pickle padding fix ? :)",
+      "revId": "ca36a1c9f9d640b4092751124bde77925a396829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "185e5365_c82117a0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T13:14:25Z",
+      "side": 1,
+      "message": "we can get rid of all xrange() quite simply. Please put this in a dedicated patch",
+      "revId": "ca36a1c9f9d640b4092751124bde77925a396829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52c69bf8_d8b1eff3",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T13:14:25Z",
+      "side": 1,
+      "message": "could you move this fix in the configparser patch ?",
+      "revId": "ca36a1c9f9d640b4092751124bde77925a396829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
