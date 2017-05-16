@@ -16,6 +16,24 @@
       "revId": "543d0f9a5a855bb07c6c4575a2a055452ae4da04",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7592ec7b_d6254119",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-16T18:23:40Z",
+      "side": 1,
+      "message": "Oh yeah, thanks done. Might be related to http://bugs.python.org/issue14388 but it is not resolved. Found similar issues on the web. Just adding the explicit keyword raw seems to fix it.",
+      "parentUuid": "c7282f6f_0f906ac5",
+      "revId": "543d0f9a5a855bb07c6c4575a2a055452ae4da04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
