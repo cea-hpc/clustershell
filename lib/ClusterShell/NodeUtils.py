@@ -328,7 +328,7 @@ class YAMLGroupLoader(object):
     def __iter__(self):
         """Iterate over GroupSource objects."""
         # safe as long as self.sources is set at init (once)
-        return self.sources.itervalues()
+        return iter(self.sources.values())
 
     def groups(self, sourcename):
         """
@@ -366,7 +366,7 @@ class GroupResolver(object):
 
     def set_verbosity(self, value):
         """Set debugging verbosity value (DEPRECATED: use logging.DEBUG)."""
-        for source in self._sources.itervalues():
+        for source in self._sources.values():
             source.verbosity = value
 
     def add_source(self, group_source):
@@ -594,16 +594,16 @@ class GroupResolverConfig(GroupResolver):
                 for srcname in section.split(','):
                     if srcname != self.SECTION_MAIN:
                         # only map is a mandatory upcall
-                        map_upcall = cfg.get(section, 'map', True)
+                        map_upcall = cfg.get(section, 'map', raw=True)
                         all_upcall = list_upcall = reverse_upcall = ctime = None
                         if cfg.has_option(section, 'all'):
-                            all_upcall = cfg.get(section, 'all', True)
+                            all_upcall = cfg.get(section, 'all', raw=True)
                         if cfg.has_option(section, 'list'):
-                            list_upcall = cfg.get(section, 'list', True)
+                            list_upcall = cfg.get(section, 'list', raw=True)
                         if cfg.has_option(section, 'reverse'):
-                            reverse_upcall = cfg.get(section, 'reverse', True)
+                            reverse_upcall = cfg.get(section, 'reverse', raw=True)
                         if cfg.has_option(section, 'cache_time'):
-                            ctime = float(cfg.get(section, 'cache_time', True))
+                            ctime = float(cfg.get(section, 'cache_time', raw=True))
                         # add new group source
                         self.add_source(UpcallGroupSource(srcname, map_upcall,
                                                           all_upcall,
