@@ -57,7 +57,8 @@ class SshClient(ExecClient):
             cmd_l += [os.path.expanduser(opt) for opt in shlex.split(options)]
 
         # Hardwired options (overridable by ssh_options)
-        cmd_l += [  "-a", "-x"  ]
+        # note: you should use only long-format options here
+        cmd_l += ["-oForwardAgent=no", "-oForwardX11=no"]
 
         if user:
             cmd_l.append("-l")
@@ -105,7 +106,7 @@ class ScpClient(CopyClient):
             # use expanduser() for options like '-i ~/.ssh/my_id_rsa'
             cmd_l += [os.path.expanduser(opt) for opt in shlex.split(options)]
 
-        # Hardwired options (overridable by ssh_options)
+        # Hardwired options
         if self.isdir:
             cmd_l.append("-r")
 
