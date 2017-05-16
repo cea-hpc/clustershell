@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7282f6f_0f906ac5",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T13:01:41Z",
+      "side": 1,
+      "message": "need to fix raw\u003dTrue her e? (not sure I really understood why, but anyway it won\u0027t harm)",
+      "revId": "543d0f9a5a855bb07c6c4575a2a055452ae4da04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
