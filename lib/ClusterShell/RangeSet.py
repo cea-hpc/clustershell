@@ -277,6 +277,10 @@ class RangeSet(set):
             delattr(self, '_ranges')
             delattr(self, '_length')
 
+        # add padding if unpickling old instances
+        if not hasattr(self, 'padding'):
+            setattr(self, 'padding', None)
+
     def _strslices(self):
         """Stringify slices list (x-y/step format)"""
         pad = self.padding or 0
@@ -637,7 +641,7 @@ class RangeSet(set):
     # Subtle:  The xyz_update() functions deliberately return None,
     # as do all mutating operations on built-in container types.
     # The __xyz__ spellings have to return self, though.
-    
+
     def __ior__(self, other):
         """Update a RangeSet with the union of itself and another."""
         self._binary_sanity_check(other)
