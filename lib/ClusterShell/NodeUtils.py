@@ -328,7 +328,7 @@ class YAMLGroupLoader(object):
     def __iter__(self):
         """Iterate over GroupSource objects."""
         # safe as long as self.sources is set at init (once)
-        return self.sources.itervalues()
+        return iter(self.sources.values())
 
     def groups(self, sourcename):
         """
@@ -366,7 +366,7 @@ class GroupResolver(object):
 
     def set_verbosity(self, value):
         """Set debugging verbosity value (DEPRECATED: use logging.DEBUG)."""
-        for source in self._sources.itervalues():
+        for source in self._sources.values():
             source.verbosity = value
 
     def add_source(self, group_source):
