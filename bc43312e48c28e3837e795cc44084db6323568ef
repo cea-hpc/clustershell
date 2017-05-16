@@ -22,6 +22,64 @@
       "revId": "bc43312e48c28e3837e795cc44084db6323568ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a01d7674_4db37c7d",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T11:50:26Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "86330257_84105a76",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 10
+      },
+      "revId": "bc43312e48c28e3837e795cc44084db6323568ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3893d764_c1afaf4c",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T11:50:26Z",
+      "side": 1,
+      "message": "not needed anymore :)",
+      "revId": "bc43312e48c28e3837e795cc44084db6323568ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "487d2edf_f9cebd99",
+        "filename": "tests/TLib.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-16T11:50:26Z",
+      "side": 1,
+      "message": "I did not find a place where this is used?",
+      "revId": "bc43312e48c28e3837e795cc44084db6323568ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
