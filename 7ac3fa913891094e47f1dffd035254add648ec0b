@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e27c5911_7bc9a180",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T08:24:34Z",
+      "side": 1,
+      "message": "Actually, it could be better to reopen #337 for an official Python 3 support and tag these patch with this ticket.\n\n#239 is very close to be closed",
+      "range": {
+        "startLine": 7,
+        "startChar": 47,
+        "endLine": 7,
+        "endChar": 51
+      },
+      "revId": "7ac3fa913891094e47f1dffd035254add648ec0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
