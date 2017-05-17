@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c72e403c_c52aae12",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:47:58Z",
+      "side": 1,
+      "message": "Add pad fix here",
+      "revId": "61681e764f4b384e8273f5b5dd6295d1f92a3721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0288bd68_1d276299",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 676,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:47:58Z",
+      "side": 1,
+      "message": "useless whitespaces",
+      "revId": "61681e764f4b384e8273f5b5dd6295d1f92a3721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96967588_059658f8",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:47:58Z",
+      "side": 1,
+      "message": "useless whitespaces",
+      "revId": "61681e764f4b384e8273f5b5dd6295d1f92a3721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfc54f2e_d709d464",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:47:58Z",
+      "side": 1,
+      "message": "add pad fix here",
+      "revId": "61681e764f4b384e8273f5b5dd6295d1f92a3721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5691da22_d68659cc",
+        "filename": "lib/ClusterShell/RangeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 924,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:47:58Z",
+      "side": 1,
+      "message": "and fix here too",
+      "revId": "61681e764f4b384e8273f5b5dd6295d1f92a3721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
