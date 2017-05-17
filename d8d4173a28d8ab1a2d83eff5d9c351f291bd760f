@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d37ce561_38328332",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 604,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:44:46Z",
+      "side": 1,
+      "message": "80 char limit",
+      "revId": "d8d4173a28d8ab1a2d83eff5d9c351f291bd760f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3af74c3a_e12ebe8a",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 606,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-17T07:44:46Z",
+      "side": 1,
+      "message": "80 char limit",
+      "revId": "d8d4173a28d8ab1a2d83eff5d9c351f291bd760f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
