@@ -276,7 +276,7 @@ class Message(object):
         line_length = int(os.environ.get('CLUSTERSHELL_GW_B64_LINE_LENGTH',
                                          DEFAULT_B64_LINE_LENGTH))
         self.data = '\n'.join(encoded[pos:pos+line_length]
-                              for pos in xrange(0, len(encoded), line_length))
+                              for pos in range(0, len(encoded), line_length))
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
