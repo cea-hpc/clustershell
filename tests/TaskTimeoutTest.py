@@ -26,7 +26,7 @@ class TaskTimeoutTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
 
-        worker = task.shell("python test_command.py --timeout=10", timeout=4)
+        worker = task.shell('echo some buffer; echo here...; sleep 10', timeout=4)
         self.assert_(worker != None)
 
         task.resume()

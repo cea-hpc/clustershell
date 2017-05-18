@@ -119,14 +119,14 @@ class TaskEventTest(unittest.TestCase):
 
         eh = TestHandler()
         # init worker
-        worker = task.shell("./test_command.py --test=cmp_out", handler=eh)
+        worker = task.shell("echo abcdefghijklmnopqrstuvwxyz", handler=eh)
         # run task
         task.resume()
         eh.do_asserts_read_notimeout()
         eh.reset_asserts()
         # re-test
         # init worker
-        worker = task.shell("./test_command.py --test=cmp_out", handler=eh)
+        worker = task.shell("echo abcdefghijklmnopqrstuvwxyz", handler=eh)
         # run task
         task.resume()
         eh.do_asserts_read_notimeout()
