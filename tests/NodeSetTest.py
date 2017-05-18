@@ -521,17 +521,17 @@ class NodeSetTest(unittest.TestCase):
         # more
         original = NodeSet("cluster0")
         nodeset = original.copy()
-        for i in xrange(1, 3000):
+        for i in range(1, 3000):
             nodeset = nodeset | NodeSet("cluster%d" % i)
         self.assertEqual(len(nodeset), 3000)
         self.assertEqual(str(nodeset), "cluster[0-2999]")
         self.assertEqual(len(original), 1)
         self.assertEqual(str(original), "cluster0")
         nodeset2 = original.copy()
-        for i in xrange(1, 3000):
+        for i in range(1, 3000):
             nodeset2 |= NodeSet("cluster%d" % i)
         self.assertEqual(nodeset, nodeset2)
-        for i in xrange(3000, 5000):
+        for i in range(3000, 5000):
             nodeset2 |= NodeSet("cluster%d" % i)
         self.assertEqual(len(nodeset2), 5000)
         self.assertEqual(str(nodeset2), "cluster[0-4999]")

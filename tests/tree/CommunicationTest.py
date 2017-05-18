@@ -220,7 +220,7 @@ class CommunicationTest(unittest.TestCase):
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         ftest.write('<channel>\n')
         for mtype, count in spec.iteritems():
-            for i in xrange(count):
+            for i in range(count):
                 sample = gen_map[mtype]()
                 sample.msgid = i
                 ftest.write(sample.xml() + '\n')
@@ -252,7 +252,7 @@ class CommunicationTest(unittest.TestCase):
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         ftest.write('<channel>\n')
         for mtype, count in spec.iteritems():
-            for i in xrange(count):
+            for i in range(count):
                 sample = gen_map[mtype]()
                 sample.msgid = i
                 ftest.write(sample.xml() + '\n')

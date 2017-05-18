@@ -32,7 +32,7 @@ class TaskRLimitsTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(2000):
+        for i in range(2000):
             worker = task.shell("/bin/hostname", stderr=stderr)
             self.assert_(worker != None)
         # run task
@@ -50,7 +50,7 @@ class TaskRLimitsTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(400):
+        for i in range(400):
             worker = task.shell("/bin/hostname", nodes=HOSTNAME,
                                 stderr=stderr)
             self.assert_(worker != None)
@@ -69,7 +69,7 @@ class TaskRLimitsTest(unittest.TestCase):
         task = task_self()
         self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(200):
+        for i in range(200):
             worker = WorkerPdsh(HOSTNAME, handler=None,
                                 timeout=0,
                                 command="/bin/hostname",
