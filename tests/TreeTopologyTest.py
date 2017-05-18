@@ -313,7 +313,7 @@ class TopologyTest(unittest.TestCase):
         tmpfile.write('admin: nodes[0-9]\n')
 
         levels = 15 # how deep do you want the tree to be?
-        for i in xrange(0, levels*10, 10):
+        for i in range(0, levels*10, 10):
             line = 'nodes[%d-%d]: nodes[%d-%d]\n' % (i, i+9, i+10, i+19)
             tmpfile.write(line)
         tmpfile.flush()
