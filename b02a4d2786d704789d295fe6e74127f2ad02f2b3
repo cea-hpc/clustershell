@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8a3fa39d_a504f169",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-19T04:39:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9832f15_01b1c6e8",
+      "range": {
+        "startLine": 12,
+        "startChar": 18,
+        "endLine": 12,
+        "endChar": 23
+      },
+      "revId": "b02a4d2786d704789d295fe6e74127f2ad02f2b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f2f19d8_ffee5cb1",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-19T00:34:55Z",
       "side": 1,
       "message": "not needed",
+      "range": {
+        "startLine": 909,
+        "startChar": 41,
+        "endLine": 909,
+        "endChar": 43
+      },
+      "revId": "b02a4d2786d704789d295fe6e74127f2ad02f2b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0fc71030_6953bdba",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 909,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-19T04:39:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f2f19d8_ffee5cb1",
       "range": {
         "startLine": 909,
         "startChar": 41,
