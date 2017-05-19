@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -38,12 +38,18 @@ import errno
 import logging
 import os
 from os.path import abspath, dirname, exists, isdir, join
+import random
 import resource
-import sys
 import signal
+import sys
 import time
 import threading
-import random
+
+# Python 3 compatibility
+try:
+    raw_input
+except NameError:
+    raw_input = input
 
 from ClusterShell.Defaults import DEFAULTS, _load_workerclass
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
@@ -471,8 +477,8 @@ def ttyloop(task, nodeset, timeout, display, remote):
             else:
                 prompt = ""
             try:
-                cmd = raw_input(prompt)
-                assert cmd is not None, "Result of raw_input() is None!"
+                cmd = input(prompt)
+                assert cmd is not None, "Result of input() is None!"
             finally:
                 signal.signal(signal.SIGUSR1, signal.SIG_IGN)
         except EOFError:
@@ -616,13 +622,18 @@ def _stdin_thread_start(stdin_port, display):
         # 64k seems to be perfect with an openssh backend (they issue 64k
         # reads) ; could consider making it an option for e.g. gsissh.
         bufsize = 64 * 1024
+        # Python 3 support
+        if hasattr(sys.stdin, 'buffer'):
+            stdin = sys.stdin.buffer
+        else:
+            stdin = sys.stdin
         # thread loop: blocking read stdin + send messages to specified
         #              port object
-        buf = sys.stdin.read(bufsize)
+        buf = stdin.read(bufsize)
         while buf:
             # send message to specified port object (with ack)
             stdin_port.msg(buf)
-            buf = sys.stdin.read(bufsize)
+            buf = stdin.read(bufsize)
     except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF

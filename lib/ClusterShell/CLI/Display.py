@@ -22,6 +22,8 @@
 CLI results display class
 """
 
+from __future__ import print_function
+
 import difflib
 import sys
 
@@ -91,8 +93,16 @@ class Display(object):
 
         self._color = color
 
-        self.out = sys.stdout
-        self.err = sys.stderr
+        if hasattr(sys.stdout, 'buffer'):
+            self.out = sys.stdout.buffer
+        else:
+            self.out = sys.stdout
+
+        if hasattr(sys.stderr, 'buffer'):
+            self.err = sys.stderr.buffer
+        else:
+            self.err = sys.stderr
+
         if self._color:
             self.color_stdout_fmt = self.COLOR_STDOUT_FMT
             self.color_stderr_fmt = self.COLOR_STDERR_FMT
@@ -160,17 +170,17 @@ class Display(object):
         """Display a line with optional label."""
         if self.label:
             prefix = self.color_stdout_fmt % ("%s: " % nodeset)
-            self.out.write("%s%s\n" % (prefix, line))
+            self.out.write(prefix.encode('utf-8') + line + b'\n')
         else:
-            self.out.write("%s\n" % line)
+            self.out.write(line + b'\n')
 
     def print_line_error(self, nodeset, line):
         """Display an error line with optional label."""
         if self.label:
             prefix = self.color_stderr_fmt % ("%s: " % nodeset)
-            self.err.write("%s%s\n" % (prefix, line))
+            self.err.write(prefix.encode('utf-8') + line + b'\n')
         else:
-            self.err.write("%s\n" % line)
+            self.err.write(line + b'\n')
 
     def print_gather(self, nodeset, obj):
         """Generic method for displaying nodeset/content according to current
@@ -230,20 +240,20 @@ class Display(object):
             header = self.color_stdout_fmt % \
                         ("%s: " % self._format_nodeset(nodeset))
             for line in msg:
-                out.write("%s%s\n" % (header, line))
+                out.write(header.encode('utf-8') + line + b'\n')
         else:
             for line in msg:
-                out.write(line + '\n')
+                out.write(line + b'\n')
 
     def vprint(self, level, message):
         """Utility method to print a message if verbose level is high
         enough."""
         if self.verbosity >= level:
-            print message
+            print(message)
 
     def vprint_err(self, level, message):
         """Utility method to print a message on stderr if verbose level
         is high enough."""
         if self.verbosity >= level:
-            print >> sys.stderr, message
+            print(message, file=sys.stderr)
 
