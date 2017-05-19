@@ -28,8 +28,8 @@ efficient, in term of algorithm and memory consumption, especially when
 remote messages are the same.
 """
 
-from itertools import ifilterfalse, imap
-from operator import itemgetter
+from itertools import ifilterfalse
+
 
 # MsgTree behavior modes
 MODE_DEFER = 0
@@ -225,7 +225,7 @@ class MsgTree(object):
 
     def _update_keys(self):
         """Update keys associated to tree elements (MODE_DEFER)."""
-        for key, e_msg in self._keys.iteritems():
+        for key, e_msg in self._keys.items():
             assert key is not None and e_msg is not None
             e_msg._add_key(key)
         # MODE_DEFER is no longer valid as keys are now assigned to MsgTreeElems
@@ -233,13 +233,13 @@ class MsgTree(object):
 
     def keys(self):
         """Return an iterator over MsgTree's keys."""
-        return self._keys.iterkeys()
+        return iter(self._keys.keys())
 
     __iter__ = keys
 
     def messages(self, match=None):
         """Return an iterator over MsgTree's messages."""
-        return imap(itemgetter(0), self.walk(match))
+        return (item[0] for item in self.walk(match))
 
     def items(self, match=None, mapper=None):
         """
@@ -247,7 +247,7 @@ class MsgTree(object):
         """
         if mapper is None:
             mapper = lambda k: k
-        for key, elem in self._keys.iteritems():
+        for key, elem in self._keys.items():
             if match is None or match(key):
                 yield mapper(key), elem
 
@@ -285,9 +285,13 @@ class MsgTree(object):
             if len(children) > 0:
                 estack += children.values()
             if elem.keys: # has some keys
-                mkeys = filter(match, elem.keys)
+                mkeys = list(filter(match, elem.keys))
                 if len(mkeys):
-                    yield elem, map(mapper, mkeys)
+                    if mapper is not None:
+                        keys = [mapper(key) for key in mkeys]
+                    else:
+                        keys = mkeys
+                    yield elem, keys
 
     def walk_trace(self, match=None, mapper=None):
         """
@@ -308,9 +312,13 @@ class MsgTree(object):
             if nchildren > 0:
                 estack += [(v, edepth + 1) for v in children.values()]
             if elem.keys:
-                mkeys = filter(match, elem.keys)
+                mkeys = list(filter(match, elem.keys))
                 if len(mkeys):
-                    yield elem.msgline, map(mapper, mkeys), edepth, nchildren
+                    if mapper is not None:
+                        keys = [mapper(key) for key in mkeys]
+                    else:
+                        keys = mkeys
+                    yield elem.msgline, keys, edepth, nchildren
 
     def remove(self, match=None):
         """
@@ -332,5 +340,5 @@ class MsgTree(object):
                     elem.keys = set(ifilterfalse(match, elem.keys))
 
         # remove key(s) from known keys dict
-        for key in filter(match, self._keys.keys()):
+        for key in list(filter(match, self._keys.keys())):
             del self._keys[key]

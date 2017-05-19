@@ -252,11 +252,14 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
         self.assertEqual(tree._depth(), 2)
         self.assertEqual(len(list(tree.walk())), 4)
-        self.assertEqual(list(tree.walk_trace()), \
-            [('message0', ['item1'], 1, 0),
-             ('message2', ['item2', 'item3'], 1, 1),
-             ('message4', ['item2', 'item3'], 2, 0),
-             ('message3', ['item4'], 1, 0)])
+        # /!\ results are not sorted
+        result = [(m, sorted(k), d, c) for m, k, d, c
+                  in sorted(list(tree.walk_trace()))]
+        self.assertEqual(result,
+                         [('message0', ['item1'], 1, 0),
+                          ('message2', ['item2', 'item3'], 1, 1),
+                          ('message3', ['item4'], 1, 0),
+                          ('message4', ['item2', 'item3'], 2, 0)])
 
     def test_009_defer_to_shift_mode(self):
         """test MsgTree defer to shift mode"""
@@ -272,7 +275,7 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(tree["item1"], "message0\nmessage3")
         self.assertEqual(tree.mode, MODE_DEFER)
         # calling walk with call _update_keys() and change to MODE_SHIFT
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
                          [(['item1'], 'message0\nmessage3'),
                           (['item2'], 'message1\nmessage4'),
                           (['item3'], 'message2')])
@@ -281,7 +284,8 @@ class MsgTreeTest(unittest.TestCase):
         tree.add("item1", "message5")
         tree.add("item2", "message6")
         self.assertEqual(tree["item1"], "message0\nmessage3\nmessage5")
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+        # /!\ results are not sorted
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
                          [(['item1'], 'message0\nmessage3\nmessage5'),
                           (['item2'], 'message1\nmessage4\nmessage6'),
                           (['item3'], 'message2')])
@@ -301,7 +305,7 @@ class MsgTreeTest(unittest.TestCase):
         self.assertEqual(tree["item1"], "message0\nmessage3")
         self.assertRaises(KeyError, tree.__getitem__, "item2")
         # calling walk with call _update_keys() and change to MODE_SHIFT
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
                          [(['item1'], 'message0\nmessage3'),
                           (['item3'], 'message2')])
         self.assertEqual(tree.mode, MODE_SHIFT)
@@ -310,7 +314,8 @@ class MsgTreeTest(unittest.TestCase):
         tree.add("item2", "message6")
         self.assertEqual(tree["item1"], "message0\nmessage3\nmessage5")
         self.assertEqual(tree["item2"], "message6")
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
+        # /!\ results are not sorted
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
                          [(['item1'], 'message0\nmessage3\nmessage5'),
-                          (['item3'], 'message2'),
-                          (['item2'], 'message6')])
+                          (['item2'], 'message6'),
+                          (['item3'], 'message2')])

@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -42,7 +42,6 @@ Simple example of use:
 
 """
 
-from itertools import imap
 import logging
 from operator import itemgetter
 import os
@@ -51,6 +50,11 @@ import sys
 import threading
 from time import sleep
 import traceback
+
+try:
+    basestring
+except NameError:  # Python 3 compat
+    basestring = str
 
 from ClusterShell.Defaults import config_paths, DEFAULTS
 from ClusterShell.Defaults import _local_workerclass, _distant_workerclass
@@ -1049,7 +1053,7 @@ class Task(object):
 
     def _call_tree_matcher(self, tree_match_func, match_keys=None, worker=None):
         """Call identified tree matcher (items, walk) method with options."""
-        if isinstance(match_keys, basestring): # change to str for Python 3
+        if isinstance(match_keys, basestring):  # change to str for Python 3
             raise TypeError("Sequence of keys/nodes expected for 'match_keys'.")
         # filter by worker and optionally by matching keys
         if worker and match_keys is None:
@@ -1071,7 +1075,7 @@ class Task(object):
         """
         Return an iterator over return codes for the given key.
         """
-        for (w, k), rc in self._d_source_rc.iteritems():
+        for (w, k), rc in self._d_source_rc.items():
             if k == key:
                 yield rc
 
@@ -1082,13 +1086,13 @@ class Task(object):
         """
         if match_keys:
             # Use the items iterator for the underlying dict.
-            for rc, src in self._d_rc_sources.iteritems():
+            for rc, src in self._d_rc_sources.items():
                 keys = [t[1] for t in src if t[0] is worker and \
                                              t[1] in match_keys]
                 if len(keys) > 0:
                     yield rc, keys
         else:
-            for rc, src in self._d_rc_sources.iteritems():
+            for rc, src in self._d_rc_sources.items():
                 keys = [t[1] for t in src if t[0] is worker]
                 if len(keys) > 0:
                     yield rc, keys
@@ -1097,7 +1101,7 @@ class Task(object):
         """
         Return an iterator over key, rc for a specific worker.
         """
-        for rc, src in self._d_rc_sources.iteritems():
+        for rc, src in self._d_rc_sources.items():
             for w, k in src:
                 if w is worker:
                     yield k, rc
@@ -1145,7 +1149,7 @@ class Task(object):
         """
         msgtree = self._msgtree('stdout')
         select_key = lambda k: k[1] == key
-        return "".join(imap(str, msgtree.messages(select_key)))
+        return "".join(str(msg) for msg in msgtree.messages(select_key))
 
     node_buffer = key_buffer
 
@@ -1158,7 +1162,7 @@ class Task(object):
         """
         errtree = self._msgtree('stderr')
         select_key = lambda k: k[1] == key
-        return "".join(imap(str, errtree.messages(select_key)))
+        return "".join(str(msg) for msg in errtree.messages(select_key))
 
     node_error = key_error
 
@@ -1240,11 +1244,11 @@ class Task(object):
         """
         if match_keys:
             # Use the items iterator for the underlying dict.
-            for rc, src in self._d_rc_sources.iteritems():
+            for rc, src in self._d_rc_sources.items():
                 keys = [t[1] for t in src if t[1] in match_keys]
                 yield rc, keys
         else:
-            for rc, src in self._d_rc_sources.iteritems():
+            for rc, src in self._d_rc_sources.items():
                 yield rc, [t[1] for t in src]
 
     def num_timeout(self):
@@ -1289,7 +1293,7 @@ class Task(object):
             tasks = Task._tasks.copy()
         finally:
             Task._task_lock.release()
-        for thread, task in tasks.iteritems():
+        for thread, task in tasks.items():
             if thread != from_thread:
                 task.join()
 
@@ -1399,7 +1403,7 @@ def task_cleanup():
         # missed the engine notification window (it was just exiting, which is
         # quite a common case if we didn't task_join() previously), or we may
         # have lost some task's dispatcher port messages.
-        for task in tasks.itervalues():
+        for task in tasks.values():
             task.abort(kill=True)
         # also, for other task than self, task.abort() is async and performed
         # through an EngineAbortException, so tell the Python scheduler to give
