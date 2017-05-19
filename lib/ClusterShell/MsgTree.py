@@ -28,7 +28,11 @@ efficient, in term of algorithm and memory consumption, especially when
 remote messages are the same.
 """
 
-from itertools import ifilterfalse, imap
+from itertools import ifilterfalse
+try:
+    from itertools import imap as map
+except ImportError:  # Python 3 compat
+    pass
 from operator import itemgetter
 
 # MsgTree behavior modes
@@ -225,7 +229,7 @@ class MsgTree(object):
 
     def _update_keys(self):
         """Update keys associated to tree elements (MODE_DEFER)."""
-        for key, e_msg in self._keys.iteritems():
+        for key, e_msg in self._keys.items():
             assert key is not None and e_msg is not None
             e_msg._add_key(key)
         # MODE_DEFER is no longer valid as keys are now assigned to MsgTreeElems
@@ -233,13 +237,13 @@ class MsgTree(object):
 
     def keys(self):
         """Return an iterator over MsgTree's keys."""
-        return self._keys.iterkeys()
+        return self._keys.keys()
 
     __iter__ = keys
 
     def messages(self, match=None):
         """Return an iterator over MsgTree's messages."""
-        return imap(itemgetter(0), self.walk(match))
+        return map(itemgetter(0), self.walk(match))
 
     def items(self, match=None, mapper=None):
         """
@@ -247,7 +251,7 @@ class MsgTree(object):
         """
         if mapper is None:
             mapper = lambda k: k
-        for key, elem in self._keys.iteritems():
+        for key, elem in self._keys.items():
             if match is None or match(key):
                 yield mapper(key), elem
 
@@ -287,7 +291,11 @@ class MsgTree(object):
             if elem.keys: # has some keys
                 mkeys = filter(match, elem.keys)
                 if len(mkeys):
-                    yield elem, map(mapper, mkeys)
+                    if mapper is not None:
+                        keys = [mapper(key) for key in mkeys]
+                    else:
+                        keys = mkeys
+                    yield elem, keys
 
     def walk_trace(self, match=None, mapper=None):
         """
@@ -310,7 +318,11 @@ class MsgTree(object):
             if elem.keys:
                 mkeys = filter(match, elem.keys)
                 if len(mkeys):
-                    yield elem.msgline, map(mapper, mkeys), edepth, nchildren
+                    if mapper is not None:
+                        keys = [mapper(key) for key in mkeys]
+                    else:
+                        keys = mkeys
+                    yield elem.msgline, keys, edepth, nchildren
 
     def remove(self, match=None):
         """

@@ -28,7 +28,11 @@ For help, type::
 
 from __future__ import print_function
 
-from itertools import imap
+try:
+    from itertools import imap as map
+except ImportError:  # Python 3 compat
+    pass
+
 import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
@@ -73,7 +77,7 @@ def display(tree, disp, gather, trace_mode, enable_nodeset_key):
                 if enable_nodeset_key:
                     # lambda to create a NodeSet from keys returned by walk()
                     ns_getter = lambda x: NodeSet.fromlist(x[1])
-                    for nodeset in sorted(imap(ns_getter, tree.walk()),
+                    for nodeset in sorted(map(ns_getter, tree.walk()),
                                           cmp=nodeset_cmp):
                         disp.print_gather(nodeset, tree[nodeset[0]])
                 else:
