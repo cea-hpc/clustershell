@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -43,7 +43,12 @@ Subclassing the Channel class allows implementing whatever logic you want on the
 top of a communication channel.
 """
 
-import cPickle
+# Python 3 compatibility
+try:
+    import _pickle as cPickle
+except ImportError:
+    import cPickle
+
 import base64
 import logging
 import os
@@ -54,7 +59,7 @@ from xml.sax.saxutils import XMLGenerator
 from xml.sax import SAXParseException
 
 from collections import deque
-from cStringIO import StringIO
+from io import StringIO
 
 from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
@@ -302,7 +307,7 @@ class Message(object):
 
     def selfbuild(self, attributes):
         """self construction from a table of attributes"""
-        for k, fmt in self.attr.iteritems():
+        for k, fmt in self.attr.items():
             try:
                 setattr(self, k, fmt(attributes[k]))
             except KeyError:
