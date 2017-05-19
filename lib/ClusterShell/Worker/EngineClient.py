@@ -79,8 +79,8 @@ class EngineClientStream(object):
         """
         self.name = name
         self.fd = None
-        self.rbuf = ""
-        self.wbuf = ""
+        self.rbuf = bytes()
+        self.wbuf = bytes()
         self.eof = False
         self.evmask = evmask
         self.events = 0
@@ -386,10 +386,10 @@ class EngineClient(EngineBaseTimer):
 
         buf = rfile.rbuf + readbuf
         lines = buf.splitlines(True)
-        rfile.rbuf = ""
+        rfile.rbuf = bytes()
         for line in lines:
-            if line.endswith('\n'):
-                if line.endswith('\r\n'):
+            if line.endswith(b'\n'):
+                if line.endswith(b'\r\n'):
                     yield line[:-2] # trim CRLF
                 else:
                     # trim LF
@@ -540,7 +540,7 @@ class EnginePort(EngineClient):
         pmsg = EnginePort._Msg(send_msg, not send_once)
         self._msgq.put(pmsg, block=True, timeout=None)
         try:
-            ret = os.write(self.streams['out'].fd, "M")
+            ret = os.write(self.streams['out'].fd, b'M')
         except OSError:
             raise
         pmsg.sync()
