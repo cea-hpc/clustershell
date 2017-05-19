@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2009-2016 CEA/DAM
-# Copyright (C) 2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -31,8 +31,17 @@ and stderr, or even more...)
 import errno
 import logging
 import os
-import Queue
-import thread
+
+# Python 3 compatibility
+try:
+    import queue as Queue
+except ImportError:
+    import Queue
+
+try:
+    import _thread
+except ImportError:
+    import thread as _thread
 
 from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
     set_nonblock_flag
@@ -73,8 +82,8 @@ class EngineClientStream(object):
         """
         self.name = name
         self.fd = None
-        self.rbuf = ""
-        self.wbuf = ""
+        self.rbuf = bytes()
+        self.wbuf = bytes()
         self.eof = False
         self.evmask = evmask
         self.events = 0
@@ -380,10 +389,10 @@ class EngineClient(EngineBaseTimer):
 
         buf = rfile.rbuf + readbuf
         lines = buf.splitlines(True)
-        rfile.rbuf = ""
+        rfile.rbuf = bytes()
         for line in lines:
-            if line.endswith('\n'):
-                if line.endswith('\r\n'):
+            if line.endswith(b'\n'):
+                if line.endswith(b'\r\n'):
                     yield line[:-2] # trim CRLF
                 else:
                     # trim LF
@@ -437,7 +446,7 @@ class EnginePort(EngineClient):
         def __init__(self, user_msg, sync):
             self._user_msg = user_msg
             self._sync_msg = sync
-            self.reply_lock = thread.allocate_lock()
+            self.reply_lock = _thread.allocate_lock()
             self.reply_lock.acquire()
 
         def get(self):
@@ -534,7 +543,7 @@ class EnginePort(EngineClient):
         pmsg = EnginePort._Msg(send_msg, not send_once)
         self._msgq.put(pmsg, block=True, timeout=None)
         try:
-            ret = os.write(self.streams['out'].fd, "M")
+            ret = os.write(self.streams['out'].fd, b'M')
         except OSError:
             raise
         pmsg.sync()
