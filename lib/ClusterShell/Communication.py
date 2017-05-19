@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -43,7 +43,11 @@ Subclassing the Channel class allows implementing whatever logic you want on the
 top of a communication channel.
 """
 
-import cPickle
+try:
+    import _pickle as cPickle
+except ImportError:  # Python 2 compat
+    import cPickle
+
 import base64
 import logging
 import os
@@ -54,7 +58,12 @@ from xml.sax.saxutils import XMLGenerator
 from xml.sax import SAXParseException
 
 from collections import deque
-from cStringIO import StringIO
+
+try:
+    # Use cStringIO by default as it is faster
+    from cStringIO import StringIO as BytesIO
+except ImportError:  # Python 3 compat
+    from io import BytesIO
 
 from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
@@ -302,7 +311,7 @@ class Message(object):
 
     def selfbuild(self, attributes):
         """self construction from a table of attributes"""
-        for k, fmt in self.attr.iteritems():
+        for k, fmt in self.attr.items():
             try:
                 setattr(self, k, fmt(attributes[k]))
             except KeyError:
@@ -317,7 +326,7 @@ class Message(object):
 
     def xml(self):
         """generate XML version of a configuration message"""
-        out = StringIO()
+        out = BytesIO()
         generator = XMLGenerator(out, encoding=ENCODING)
 
         # "stringify" entries for XML conversion
