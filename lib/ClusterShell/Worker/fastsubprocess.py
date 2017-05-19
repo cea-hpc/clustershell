@@ -29,11 +29,17 @@ descriptors
 Faster revision of subprocess-like module.
 """
 
-import sys
-import os
-import types
 import gc
+import os
 import signal
+import sys
+import types
+
+# Python 3 compatibility
+try:
+    basestring
+except NameError:
+    basestring = str
 
 # Exception classes used by this module.
 class CalledProcessError(Exception):
@@ -63,7 +69,7 @@ _active = []
 
 def _cleanup():
     for inst in _active[:]:
-        if inst._internal_poll(_deadstate=sys.maxint) >= 0:
+        if inst._internal_poll(_deadstate=sys.maxsize) >= 0:
             try:
                 _active.remove(inst)
             except ValueError:
@@ -121,7 +127,7 @@ class Popen(object):
         _cleanup()
 
         self._child_created = False
-        if not isinstance(bufsize, (int, long)):
+        if not isinstance(bufsize, int):
             raise TypeError("bufsize must be an integer")
 
         self.pid = None
@@ -175,7 +181,7 @@ class Popen(object):
             # We didn't get to successfully create a child process.
             return
         # In case the child hasn't been waited on, check if it's done.
-        self._internal_poll(_deadstate=sys.maxint)
+        self._internal_poll(_deadstate=sys.maxsize)
         if self.returncode is None and _active is not None:
             # Child is still running, keep us alive until we can wait on it.
             _active.append(self)
@@ -267,7 +273,7 @@ class Popen(object):
                        errread, errwrite):
         """Execute program (POSIX version)"""
 
-        if isinstance(args, types.StringTypes):
+        if isinstance(args, basestring):
             args = [args]
         else:
             args = list(args)
