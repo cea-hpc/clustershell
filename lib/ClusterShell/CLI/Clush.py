@@ -798,7 +798,7 @@ def main():
 
     parser = OptionParser(usage)
 
-    parser.add_option("--nostdin", action="store_true", dest="nostdin",
+    parser.add_option("-n", "--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
 
     parser.install_config_options('clush.conf(5)')
