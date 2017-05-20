@@ -499,6 +499,10 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-w", "cs[01-03]", "--worker=exec", "-L", cmd], None,
                       'cs01: bar\ncs02: foo\ncs03: bar\n', 0)
 
+    def test_035_nostdin(self):
+        """test clush (nostdin)"""
+        self._clush_t(["--nostdin", "-w", HOSTNAME, "cat"], "dummy", "")
+
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
 

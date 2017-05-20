@@ -1031,6 +1031,9 @@ def main():
     # Enable stdout/stderr separation
     task.set_default("stderr", not options.gatherall)
 
+    # Prevent reading from stdin?
+    task.set_default("stdin", not options.nostdin)
+
     # Disable MsgTree buffering if not gathering outputs
     task.set_default("stdout_msgtree", display.gather or display.line_mode)
 

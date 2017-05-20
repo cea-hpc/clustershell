@@ -96,6 +96,7 @@ class Defaults(object):
     are initialized (like Task):
 
     * stderr (boolean; default is ``False``)
+    * stdin (boolean; default is ``True``)
     * stdout_msgtree (boolean; default is ``True``)
     * stderr_msgtree (boolean; default is ``True``)
     * engine (string; default is ``'auto'``)
@@ -133,6 +134,7 @@ class Defaults(object):
     # Default values for task "default" sync dict
     #
     _TASK_DEFAULT = {"stderr"             : False,
+                     "stdin"              : True,
                      "stdout_msgtree"     : True,
                      "stderr_msgtree"     : True,
                      "engine"             : 'auto',
@@ -145,6 +147,7 @@ class Defaults(object):
     # Datatype converters for task_default
     #
     _TASK_DEFAULT_CONVERTERS = {"stderr"             : ConfigParser.getboolean,
+                                "stdin"              : ConfigParser.getboolean,
                                 "stdout_msgtree"     : ConfigParser.getboolean,
                                 "stderr_msgtree"     : ConfigParser.getboolean,
                                 "engine"             : ConfigParser.get,

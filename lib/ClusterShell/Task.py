@@ -444,6 +444,8 @@ class Task(object):
           - "stderr": Boolean value indicating whether to enable
             stdout/stderr separation when using task.shell(), if not
             specified explicitly (default: False).
+          - "stdin": Boolean value indicating whether to enable stdin when
+            using task.shell(), if not explicitly specified (default: True)
           - "stdout_msgtree": Whether to instantiate standard output
             MsgTree for automatic internal gathering of result messages
             coming from Workers (default: True).
@@ -537,17 +539,19 @@ class Task(object):
             aborted as soon as all other non-autoclosing task objects (workers,
             ports, timers) have finished -- default is False
           - stderr: separate stdout/stderr if set to True -- default is False.
+          - stdin: enable stdin if set to True or prevent its use otherwise --
+            default is True.
 
         Local usage::
             task.shell(command [, key=key] [, handler=handler]
                   [, timeout=secs] [, autoclose=enable_autoclose]
-                  [, stderr=enable_stderr])
+                  [, stderr=enable_stderr][, stdin=enable_stdin]))
 
         Distant usage::
             task.shell(command, nodes=nodeset [, handler=handler]
                   [, timeout=secs], [, autoclose=enable_autoclose]
                   [, tree=None|False|True] [, remote=False|True]
-                  [, stderr=enable_stderr])
+                  [, stderr=enable_stderr][, stdin=enable_stdin]))
 
         Example:
 
@@ -560,6 +564,7 @@ class Task(object):
         timeo = kwargs.get("timeout", None)
         autoclose = kwargs.get("autoclose", False)
         stderr = kwargs.get("stderr", self.default("stderr"))
+        stdin = kwargs.get("stdin", self.default("stdin"))
         remote = kwargs.get("remote", True)
 
         if kwargs.get("nodes", None):
@@ -591,6 +596,10 @@ class Task(object):
             worker = WorkerPopen(command, key=kwargs.get("key", None),
                                  handler=handler, stderr=stderr,
                                  timeout=timeo, autoclose=autoclose)
+
+        if not stdin:
+            # prevent reading from stdin
+            worker.set_write_eof()
 
         # schedule worker for execution in this task
         self.schedule(worker)
