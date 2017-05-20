@@ -358,13 +358,14 @@ these criteria:
 Standard input bindings
 """""""""""""""""""""""
 
-Unless option ``--nostdin`` is specified, *clush* detects when its standard
-input is connected to a terminal (as determined by *isatty(3)*). If actually
-connected to a terminal, *clush* listens to standard input when commands are
-running, waiting for an Enter key press. Doing so will display the status of
-current nodes. If standard input is not connected to a terminal, and unless
-option ``--nostdin`` is specified, *clush* binds the standard input of the
-remote commands to its own standard input, allowing scripting methods like::
+Unless the option ``--nostdin`` (or ``-n``) is specified, *clush* detects when
+its standard input is connected to a terminal (as determined by *isatty(3)*).
+If actually connected to a terminal, *clush* listens to standard input when
+commands are running, waiting for an Enter key press. Doing so will display the
+status of current nodes. If standard input is not connected to a terminal, and
+unless the option ``--nostdin`` (or ``-n``) is specified, *clush* binds the
+standard input of the remote commands to its own standard input, allowing
+scripting methods like::
 
     $ echo foo | clush -w node[40-42] -b cat
     ---------------
@@ -379,6 +380,12 @@ Another stdin-bound *clush* usage example::
     node[11-14] (4)
     ---------------
     /etc/yum.repos.d/cobbler-config.repo
+
+.. note:: To disable any standard input binding, use ``--nostdin`` (or ``-n``)
+   in the same way you would use ``ssh -n``, which is often used in scripts or
+   when run in the background.  If this option is set, EOF is sent at first
+   read, like if stdin was actually connected to /dev/null.
+
 
 .. _clush-progress:
 

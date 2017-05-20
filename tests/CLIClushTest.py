@@ -501,6 +501,7 @@ class CLIClushTest_A(unittest.TestCase):
 
     def test_035_nostdin(self):
         """test clush (nostdin)"""
+        self._clush_t(["-n", "-w", HOSTNAME, "cat"], "dummy", "")
         self._clush_t(["--nostdin", "-w", HOSTNAME, "cat"], "dummy", "")
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):

@@ -1,3 +1,7 @@
+2017-06-27 S. Thiell <sthiell@stanford.edu>
+
+	* CLI/Clush.py: add -n as an alias of --nostdin (#333).
+
 2017-04-29 S. Thiell <sthiell@stanford.edu>
 
 	* NodeSet.py: allow fully numeric node names (ticket #338).
