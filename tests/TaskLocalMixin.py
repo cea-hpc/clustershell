@@ -1087,3 +1087,11 @@ class TaskLocalMixin(object):
         finally:
             # restore original fanout value
             task.set_info("fanout", fanout)
+
+    def test_shell_nostdin(self):
+        # this shouldn't block if we do prevent the use of stdin
+        task = task_self()
+        task.shell("cat", stdin=False)
+        task.resume()
+        # same thing with run()
+        task.run("cat", stdin=False)
