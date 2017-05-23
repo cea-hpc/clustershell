@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "387a8ce9_3b425e5f",
+        "filename": "lib/ClusterShell/Communication.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T15:11:31Z",
+      "side": 1,
+      "message": "Python doc says that io.StringIO has poor performances in Py2.6\n\nStick to try: from cStringIO import StringIO except import io.StringIO ? # for Python 2.6 compat",
+      "revId": "f01ab102bda52d776ab77855c27c9110a43c204e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
