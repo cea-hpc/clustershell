@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87f47f23_53aaef8e",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:47:25Z",
+      "side": 1,
+      "message": "This is Python 2 compat :)",
+      "revId": "a158b9cd4243d9e1a0689c248c05813d316e75cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66824cb2_117a33e4",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:47:25Z",
+      "side": 1,
+      "message": "This is Python 3 compatibility",
+      "revId": "a158b9cd4243d9e1a0689c248c05813d316e75cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7121465f_ed4f2d6e",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1051,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:47:25Z",
+      "side": 1,
+      "message": "keep the comment. basestring is Py2 only and should disappera when Py2 support will be dropped",
+      "revId": "a158b9cd4243d9e1a0689c248c05813d316e75cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
