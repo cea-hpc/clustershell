@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c92a1172_876d6fe4",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:25:03Z",
+      "side": 1,
+      "message": "Python3 doc says the behaviour did not change (I tried and its true!). There is something to analyze here because this change is not required.\nhttps://docs.python.org/3/library/functions.html#filter\n\n $ python3\n Python 3.4.1 (default, Nov  3 2014, 14:38:10) \n [GCC 4.9.1 20140930 (Red Hat 4.9.1-11)] on linux\n Type \"help\", \"copyright\", \"credits\" or \"license\" for more information.\n \u003e\u003e\u003e list(filter(None, [1, 2, 3]))\n [1, 2, 3]",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f421b7b6_52ecc04c",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:25:03Z",
+      "side": 1,
+      "message": "idem, useless change",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c39c77c_3ec63711",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:25:03Z",
+      "side": 1,
+      "message": "idem, useless change",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b55795ad_6bea7157",
+        "filename": "tests/MsgTreeTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:25:03Z",
+      "side": 1,
+      "message": "did not really understand why we need to sort this now...",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
