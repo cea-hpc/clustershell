@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "573eec1f_ed2dc010",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T15:27:18Z",
+      "side": 1,
+      "message": "that\u0027s wrong. input() is not the same in python2. You should keep raw_input() here as you add the raw_input trick at the beginning of the file.",
+      "revId": "be1cfd0d391118628f16732d6c937dca8c8a333d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
