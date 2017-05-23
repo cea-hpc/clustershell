@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a5115ef_670aac85",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:43:19Z",
+      "side": 1,
+      "message": "better to do the opposite. Py3 is the default. Import is doing the magic for Py2.\n\n try:\n  import queue\n except ImportError:\n  import Queue as queue\n\nand rename in the only 2 places in the code where Queue is used",
+      "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbdf164a_338c3eb3",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:43:19Z",
+      "side": 1,
+      "message": "use \u0027import threading\u0027 instead (see below)",
+      "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd8de8fa_2e7dda03",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-23T14:43:19Z",
+      "side": 1,
+      "message": "According to threading.py in Py2, threading.Lock is an alias for thread.allocate_lock\nPlease use:\n\n  self.reply_lock \u003d threading.Lock()\n\nNo need to change reply_lock code as it is the same object but threading is Py3 compatible\n\nTask.py is already using threading.Lock() :)",
+      "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
