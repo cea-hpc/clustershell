@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d580f748_658f8be2",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-27T14:13:48Z",
+      "side": 1,
+      "message": "I agree for filter this change doesn\u0027t seem to be needed. I actually started to fix map below and blindly did the same thing for filter.",
+      "parentUuid": "c92a1172_876d6fe4",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f421b7b6_52ecc04c",
         "filename": "lib/ClusterShell/MsgTree.py",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "cd1b7e0a_505eab20",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-27T14:13:48Z",
+      "side": 1,
+      "message": "not for map, apparently:\n\n  $ python3\n  Python 3.4.5 (default, Nov  9 2016, 16:24:59) \n  [GCC 4.8.5 20150623 (Red Hat 4.8.5-11)] on linux\n  Type \"help\", \"copyright\", \"credits\" or \"license\" for more information.\n  \u003e\u003e\u003e list(map(None, [1,2,3]))\n  Traceback (most recent call last):\n    File \"\u003cstdin\u003e\", line 1, in \u003cmodule\u003e\n  TypeError: \u0027NoneType\u0027 object is not callable",
+      "parentUuid": "f421b7b6_52ecc04c",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c39c77c_3ec63711",
         "filename": "lib/ClusterShell/MsgTree.py",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2017-05-23T14:25:03Z",
       "side": 1,
       "message": "idem, useless change",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "917734f3_30dcc911",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-27T14:13:48Z",
+      "side": 1,
+      "message": "ok, will fix, that\u0027s good news actually. thx!!",
+      "parentUuid": "2c39c77c_3ec63711",
       "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
