@@ -16,6 +16,24 @@
       "revId": "f01ab102bda52d776ab77855c27c9110a43c204e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aaf47e31_726a50bb",
+        "filename": "lib/ClusterShell/Communication.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-27T14:02:28Z",
+      "side": 1,
+      "message": "Ah! Anyway I just noticed that io.StringIO doesn\u0027t work, I need to use BytesIO instead. I compared BytesIO to cStringIO and BytesIO is 10% slower when using Python 2.7.5.",
+      "parentUuid": "387a8ce9_3b425e5f",
+      "revId": "f01ab102bda52d776ab77855c27c9110a43c204e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
