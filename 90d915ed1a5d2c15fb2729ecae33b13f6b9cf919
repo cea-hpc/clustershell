@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a7cac0a1_c9d1f057",
+        "filename": "lib/ClusterShell/CLI/Clubak.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-31T21:45:46Z",
+      "side": 1,
+      "message": "I\u0027m wondering if we can have the butter and the butter money using a comprehension list\n\n (ns_getter(item) for item in tree.walk())\n\nWe will have an iterator and it is compatible in all Python version",
+      "range": {
+        "startLine": 80,
+        "startChar": 42,
+        "endLine": 80,
+        "endChar": 69
+      },
+      "revId": "90d915ed1a5d2c15fb2729ecae33b13f6b9cf919",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7034db47_dfece8b8",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-05-31T21:45:46Z",
+      "side": 1,
+      "message": "return (item[0] for item in self.walk(match))",
+      "revId": "90d915ed1a5d2c15fb2729ecae33b13f6b9cf919",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
