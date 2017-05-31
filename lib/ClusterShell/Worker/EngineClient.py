@@ -31,7 +31,13 @@ and stderr, or even more...)
 import errno
 import logging
 import os
-import Queue
+
+try:
+    import queue
+except ImportError:
+    # Python 2 compatibility
+    import Queue as queue
+
 import threading
 
 from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
@@ -465,7 +471,7 @@ class EnginePort(EngineClient):
         self.delayable = False
 
         # Port messages queue
-        self._msgq = Queue.Queue(self.task.default("port_qlimit"))
+        self._msgq = queue.Queue(self.task.default("port_qlimit"))
 
         # Request pipe
         (readfd, writefd) = os.pipe()
@@ -501,7 +507,7 @@ class EnginePort(EngineClient):
                     if self.task.info("debug", False):
                         self.task.info("print_debug")(self.task,
                             "EnginePort: dropped msg: %s" % str(pmsg.get()))
-            except Queue.Empty:
+            except queue.Empty:
                 pass
         self._msgq = None
         del self.streams['out']
