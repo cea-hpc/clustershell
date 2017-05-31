@@ -8,7 +8,6 @@
 import copy
 import socket
 import sys
-import thread
 import unittest
 
 sys.path.insert(0, '../lib')

@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2009-2016 CEA/DAM
-# Copyright (C) 2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -32,7 +32,7 @@ import errno
 import logging
 import os
 import Queue
-import thread
+import threading
 
 from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
     set_nonblock_flag
@@ -437,7 +437,7 @@ class EnginePort(EngineClient):
         def __init__(self, user_msg, sync):
             self._user_msg = user_msg
             self._sync_msg = sync
-            self.reply_lock = thread.allocate_lock()
+            self.reply_lock = threading.Lock()
             self.reply_lock.acquire()
 
         def get(self):

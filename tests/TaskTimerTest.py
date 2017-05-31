@@ -6,7 +6,7 @@
 """Unit test for ClusterShell Task's timer"""
 
 import copy
-import thread
+import threading
 from time import sleep, time
 import sys
 import unittest
@@ -519,6 +519,7 @@ class TaskTimerTest(unittest.TestCase):
     def testTimerAddFromAnotherThread(self):
         """test timer creation from another thread"""
         task = task_self()
-        thread.start_new_thread(TaskTimerTest._thread_timer_create_func, (self, task))
+        threading.Thread(None, self._thread_timer_create_func,
+                         args=(task,)).start()
         task.resume()
         task_wait()
