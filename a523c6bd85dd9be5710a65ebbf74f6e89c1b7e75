@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "ac124972_eae71072",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-31T21:41:41Z",
+      "side": 1,
+      "message": "Ahhh.... I just found out why I did that:\n\n      if len(mkeys):\n  TypeError: object of type \u0027filter\u0027 has no len()",
+      "parentUuid": "d580f748_658f8be2",
+      "revId": "a523c6bd85dd9be5710a65ebbf74f6e89c1b7e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f421b7b6_52ecc04c",
         "filename": "lib/ClusterShell/MsgTree.py",
         "patchSetId": 1
