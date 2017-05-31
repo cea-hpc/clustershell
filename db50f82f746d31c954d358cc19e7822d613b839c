@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3bc75f52_4db07ca1",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-31T15:09:07Z",
+      "side": 1,
+      "message": "will do in a new change",
+      "parentUuid": "4a5115ef_670aac85",
+      "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cbdf164a_338c3eb3",
         "filename": "lib/ClusterShell/Worker/EngineClient.py",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "67eeec34_29c963ab",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-31T15:09:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cbdf164a_338c3eb3",
+      "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bd8de8fa_2e7dda03",
         "filename": "lib/ClusterShell/Worker/EngineClient.py",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2017-05-23T14:43:19Z",
       "side": 1,
       "message": "According to threading.py in Py2, threading.Lock is an alias for thread.allocate_lock\nPlease use:\n\n  self.reply_lock \u003d threading.Lock()\n\nNo need to change reply_lock code as it is the same object but threading is Py3 compatible\n\nTask.py is already using threading.Lock() :)",
+      "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93089a96_98bbe8ff",
+        "filename": "lib/ClusterShell/Worker/EngineClient.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-05-31T15:09:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd8de8fa_2e7dda03",
       "revId": "db50f82f746d31c954d358cc19e7822d613b839c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
