@@ -39,6 +39,52 @@
       "revId": "90d915ed1a5d2c15fb2729ecae33b13f6b9cf919",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "603d1f00_b9a14757",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1157,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-06-01T14:25:10Z",
+      "side": 1,
+      "message": "list comprehension?",
+      "range": {
+        "startLine": 1157,
+        "startChar": 23,
+        "endLine": 1157,
+        "endChar": 27
+      },
+      "revId": "90d915ed1a5d2c15fb2729ecae33b13f6b9cf919",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a2b1b2f0_6f5e619a",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1170,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-06-01T14:25:10Z",
+      "side": 1,
+      "message": "list compr",
+      "range": {
+        "startLine": 1170,
+        "startChar": 23,
+        "endLine": 1170,
+        "endChar": 26
+      },
+      "revId": "90d915ed1a5d2c15fb2729ecae33b13f6b9cf919",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
