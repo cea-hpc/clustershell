@@ -12,7 +12,7 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
-from StringIO import StringIO
+from io import BytesIO
 
 
 __all__ = ['HOSTNAME', 'load_cfg', 'make_temp_filename', 'make_temp_file',
@@ -65,9 +65,9 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     saved_stdout = sys.stdout
     saved_stderr = sys.stderr
     if stdin is not None:
-        sys.stdin = StringIO(stdin)
-    sys.stdout = out = StringIO()
-    sys.stderr = err = StringIO()
+        sys.stdin = BytesIO(stdin)
+    sys.stdout = out = BytesIO()
+    sys.stderr = err = BytesIO()
     sys.argv = args
     try:
         try:

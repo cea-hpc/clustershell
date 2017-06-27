@@ -9,7 +9,7 @@ import os
 import sys
 import tempfile
 import unittest
-from StringIO import StringIO
+from io import BytesIO
 
 sys.path.insert(0, '../lib')
 
@@ -50,8 +50,8 @@ class CLIDisplayTest(unittest.TestCase):
                 options.whencolor = whencolor
                 disp = Display(options)
                 # inhibit output
-                disp.out = StringIO()
-                disp.err = StringIO()
+                disp.out = BytesIO()
+                disp.err = BytesIO()
                 # test print_* methods...
                 disp.print_line(ns, "foo bar")
                 disp.print_line_error(ns, "foo bar")
@@ -89,8 +89,8 @@ list: echo all
 
             disp = Display(options, color=False)
             self.assertEqual(disp.regroup, True)
-            disp.out = StringIO()
-            disp.err = StringIO()
+            disp.out = BytesIO()
+            disp.err = BytesIO()
             self.assertEqual(disp.line_mode, False)
 
             ns = NodeSet("hostfoo")

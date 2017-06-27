@@ -58,7 +58,12 @@ from xml.sax.saxutils import XMLGenerator
 from xml.sax import SAXParseException
 
 from collections import deque
-from cStringIO import StringIO
+
+try:
+    # Use cStringIO by default as it is faster
+    from cStringIO import StringIO as BytesIO
+except ImportError:  # Python 3 compat
+    from io import BytesIO
 
 from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
@@ -306,7 +311,7 @@ class Message(object):
 
     def selfbuild(self, attributes):
         """self construction from a table of attributes"""
-        for k, fmt in self.attr.iteritems():
+        for k, fmt in self.attr.items():
             try:
                 setattr(self, k, fmt(attributes[k]))
             except KeyError:
@@ -321,7 +326,7 @@ class Message(object):
 
     def xml(self):
         """generate XML version of a configuration message"""
-        out = StringIO()
+        out = BytesIO()
         generator = XMLGenerator(out, encoding=ENCODING)
 
         # "stringify" entries for XML conversion
