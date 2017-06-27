@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -28,7 +28,10 @@ efficient, in term of algorithm and memory consumption, especially when
 remote messages are the same.
 """
 
-from itertools import ifilterfalse
+try:
+    from itertools import filterfalse
+except ImportError:  # Python 2 compat
+    from itertools import ifilterfalse as filterfalse
 
 
 # MsgTree behavior modes
@@ -337,7 +340,7 @@ class MsgTree(object):
                 if len(elem.children) > 0:
                     estack += elem.children.values()
                 if elem.keys: # has some keys
-                    elem.keys = set(ifilterfalse(match, elem.keys))
+                    elem.keys = set(filterfalse(match, elem.keys))
 
         # remove key(s) from known keys dict
         for key in list(filter(match, self._keys.keys())):
