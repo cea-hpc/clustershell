@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba8fa2db_bfdd7f6b",
+        "filename": "doc/sphinx/tools/clush.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-06-28T06:16:02Z",
+      "side": 1,
+      "message": "as if stdin were",
+      "range": {
+        "startLine": 387,
+        "startChar": 9,
+        "endLine": 387,
+        "endChar": 26
+      },
+      "revId": "e28ffb664dfe808bcfa784e3933be6ee765f631d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
