@@ -51,7 +51,8 @@ from ClusterShell.CLI.Display import Display
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
-from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp, human_bi_bytes_unit
+from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmpkey
+from ClusterShell.CLI.Utils import human_bi_bytes_unit
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
@@ -231,10 +232,10 @@ class GatherOutputHandler(OutputHandler):
         cleaned = False
         for _rc, nodelist in sorted(worker.iter_retcodes()):
             ns_remain = NodeSet._fromlist1(nodelist)
-            # Then order by node/nodeset (see bufnodeset_cmp)
+            # Then order by node/nodeset (see nodeset_cmpkey)
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
-                                       cmp=bufnodeset_cmp):
+                                       key=bufnodeset_cmpkey):
                 if not cleaned:
                     # clean runtimer line before printing first result
                     self._runtimer_clean()
@@ -327,7 +328,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
             self._runtimer_clean()
             nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
             for buf, nodeset in sorted(map(nodesetify, mtree.walk()),
-                                       cmp=bufnodeset_cmp):
+                                       key=bufnodeset_cmpkey):
                 self._display.print_gather(nodeset, buf)
             self._runtimer_set_dirty()
 
@@ -338,7 +339,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
         for mtree in self._mtreeq:
             nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
             for buf, nodeset in sorted(map(nodesetify, mtree.walk()),
-                                       cmp=bufnodeset_cmp):
+                                       key=bufnodeset_cmpkey):
                 self._display.print_gather(nodeset, buf)
 
         self._close_common(worker)
@@ -503,7 +504,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 # Display command output, but cannot order buffers by rc
                 nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
                 for buf, nodeset in sorted(map(nodesetify, task.iter_buffers()),
-                                           cmp=bufnodeset_cmp):
+                                           key=bufnodeset_cmpkey):
                     if not print_warn:
                         print_warn = True
                         display.vprint_err(VERB_STD, \

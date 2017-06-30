@@ -499,10 +499,30 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-w", "cs[01-03]", "--worker=exec", "-L", cmd], None,
                       'cs01: bar\ncs02: foo\ncs03: bar\n', 0)
 
-    def test_035_nostdin(self):
+    def test_036_sorted_gather(self):
+        """test clush (CLI.Utils.bufnodeset_cmpkey)"""
+        # test 1st sort criteria: largest nodeset first
+        cmd = 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]]; then ' \
+              'echo foo; else echo bar; fi'
+
+        self._clush_t(["-w", "cs[01-03]", "--worker=exec", "-b", cmd], None,
+                      '---------------\ncs[01,03] (2)\n---------------\nbar\n'
+                      '---------------\ncs02\n---------------\nfoo\n', 0)
+
+        # test 2nd sort criteria: smaller node index first
+        cmd = 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]]; then ' \
+              'echo bar; else echo foo; fi'
+
+        self._clush_t(["-w", "cs[01-04]", "--worker=exec", "-b", cmd], None,
+                      '---------------\ncs[01,03] (2)\n---------------\nfoo\n'
+                      '---------------\ncs[02,04] (2)\n---------------\nbar\n',
+                      0)
+
+    def test_037_nostdin(self):
         """test clush (nostdin)"""
         self._clush_t(["-n", "-w", HOSTNAME, "cat"], "dummy", "")
         self._clush_t(["--nostdin", "-w", HOSTNAME, "cat"], "dummy", "")
+
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
