@@ -36,7 +36,7 @@ from ClusterShell.NodeSet import NodeSetParseError, std_group_resolver
 from ClusterShell.CLI.Display import Display, THREE_CHOICES
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
-from ClusterShell.CLI.Utils import NodeSet, nodeset_cmp
+from ClusterShell.CLI.Utils import NodeSet, nodeset_cmpkey
 
 
 def display_tree(tree, disp, out):
@@ -73,7 +73,7 @@ def display(tree, disp, gather, trace_mode, enable_nodeset_key):
                     # lambda to create a NodeSet from keys returned by walk()
                     ns_getter = lambda x: NodeSet.fromlist(x[1])
                     for nodeset in sorted((ns_getter(item) for item in tree.walk()),
-                                          cmp=nodeset_cmp):
+                                          key=nodeset_cmpkey):
                         disp.print_gather(nodeset, tree[nodeset[0]])
                 else:
                     for msg, key in tree.walk():
@@ -149,7 +149,7 @@ def clubak():
     if fast_mode:
         # Messages per node have been aggregated, now add to tree one
         # full msg per node
-        for key, wholemsg in preload_msgs.iteritems():
+        for key, wholemsg in preload_msgs.items():
             tree.add(key, '\n'.join(wholemsg))
 
     # Display results
