@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ac049107_049c4018",
+        "filename": "lib/ClusterShell/CLI/Clubak.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-15T19:24:52Z",
+      "side": 1,
+      "message": "Removed change",
+      "parentUuid": "3cddd48f_c0fefcbd",
+      "revId": "fd7ca498e45c4ffdee4c0da65a7e62b1990ba04c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6b1c69c8_1a97b23b",
         "filename": "lib/ClusterShell/CLI/Utils.py",
         "patchSetId": 1
