@@ -379,11 +379,11 @@ class RunTimer(EventHandler):
             bandwidth = self.bytes_written/(time.time() - self.start_time)
             wrbwinfo = " write: %s/s" % human_bi_bytes_unit(bandwidth)
 
-        gws = self.task.gateways.keys()
+        gws = list(self.task.gateways.keys())
         if gws:
             # tree mode
             act_targets = NodeSet()
-            for gw, (chan, metaworkers) in self.task.gateways.iteritems():
+            for gw, (chan, metaworkers) in self.task.gateways.items():
                 act_targets.updaten(mw.gwtargets[gw] for mw in metaworkers)
             cnt = len(act_targets) + len(self.task._engine.clients()) - len(gws)
             gwinfo = ' gw %d' % len(gws)
@@ -550,7 +550,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 pending = ""
             display.vprint_err(VERB_QUIET,
                                "clush: interrupt (^C to abort task)")
-            gws = task.gateways.keys()
+            gws = list(task.gateways.keys())
             if not gws:
                 display.vprint_err(VERB_QUIET,
                                    "clush: in progress(%d): %s%s"
@@ -561,7 +561,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                                    "clush: [tree] open gateways(%d): %s"
                                    % (len(ns_reg), ns_reg, pending,
                                       len(gws), NodeSet._fromlist1(gws)))
-            for gw, (chan, metaworkers) in task.gateways.iteritems():
+            for gw, (chan, metaworkers) in task.gateways.items():
                 act_targets = NodeSet.fromlist(mw.gwtargets[gw]
                                                for mw in metaworkers)
                 if act_targets:

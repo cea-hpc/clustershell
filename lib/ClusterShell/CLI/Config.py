@@ -65,7 +65,7 @@ class ClushConfig(configparser.ConfigParser, object):
         configparser.ConfigParser.__init__(self)
         # create Main section with default values
         self.add_section("Main")
-        for key, value in ClushConfig.main_defaults.iteritems():
+        for key, value in ClushConfig.main_defaults.items():
             self.set("Main", key, value)
         # config files override defaults values
         if filename:

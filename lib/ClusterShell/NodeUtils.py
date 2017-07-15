@@ -99,7 +99,7 @@ class GroupSource(object):
 
     def resolv_list(self):
         """Return a list of all group names for this group source"""
-        return self.groups.keys()
+        return list(self.groups.keys())
 
     def resolv_all(self):
         """Return the content of all groups as defined by this GroupSource"""

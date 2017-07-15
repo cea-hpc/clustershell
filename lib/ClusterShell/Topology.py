@@ -361,7 +361,7 @@ class TopologyGraph(object):
         """printable representation of the graph"""
         res = '<TopologyGraph>\n'
         res += '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in \
-            self._nodegroups.iteritems()])
+            self._nodegroups.items()])
         return res
 
     def _routes_to_tng(self):
@@ -381,10 +381,10 @@ class TopologyGraph(object):
                 self._nodegroups[str(leaf)] = TopologyNodeGroup(leaf)
 
         # add the parent <--> children relationships
-        for group in self._nodegroups.itervalues():
+        for group in self._nodegroups.values():
             dst_ns = self._routing.connected(group.nodeset)
             if dst_ns is not None:
-                for child in self._nodegroups.itervalues():
+                for child in self._nodegroups.values():
                     if child.nodeset in dst_ns:
                         group.add_child(child)
 
