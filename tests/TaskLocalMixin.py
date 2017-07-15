@@ -502,7 +502,7 @@ class TaskLocalMixin(object):
             def ev_start(self, worker):
                 if len(streams) == 2:
                     for streamd in streams:
-                        for name, stream in streamd.iteritems():
+                        for name, stream in streamd.items():
                             self.test.assertTrue(name in ['stdin', 'stdout', 'stderr'])
                             if name == 'stdin':
                                 self.test.assertTrue(stream.writable())
