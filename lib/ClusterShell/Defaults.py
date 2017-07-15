@@ -58,8 +58,8 @@ def _load_workerclass(workername):
     """
     modname = "ClusterShell.Worker.%s" % workername.capitalize()
 
-    # Do not iterate over sys.modules but use .keys() to avoid RuntimeError
-    if modname.lower() not in [mod.lower() for mod in sys.modules.keys()]:
+    # Iterate over a copy of sys.modules' keys to avoid RuntimeError
+    if modname.lower() not in [mod.lower() for mod in list(sys.modules)]:
         # Import module if not yet loaded
         __import__(modname)
 

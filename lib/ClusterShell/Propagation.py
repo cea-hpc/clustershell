@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -82,7 +82,7 @@ class PropagationTreeRouter(object):
                 stack += curr.children()
 
         # reverse table (it was crafted backward)
-        self.table = dict((v, k) for k, v in self.table.iteritems())
+        self.table = dict((v, k) for k, v in self.table.items())
 
     def dispatch(self, dst):
         """dispatch nodes from a target nodeset to the directly
@@ -101,7 +101,7 @@ class PropagationTreeRouter(object):
         #    yield nexthop, nexthop
 
         # Check for remote targets, that require a gateway to be reached
-        for network in self.table.iterkeys():
+        for network in self.table:
             dst_inter = network & dst
             dst.difference_update(dst_inter)
             for host in dst_inter.nsiter():
@@ -134,7 +134,7 @@ class PropagationTreeRouter(object):
         # node[10-19] | gateway[1-2]
         #            ...
         # ---------
-        for network, nexthops in self.table.iteritems():
+        for network, nexthops in self.table.items():
             # destination contained in current network
             if dst in network:
                 res = self._best_next_hop(nexthops)

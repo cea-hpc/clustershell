@@ -219,7 +219,7 @@ class CommunicationTest(unittest.TestCase):
         ftest = tempfile.NamedTemporaryFile()
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         ftest.write('<channel>\n')
-        for mtype, count in spec.iteritems():
+        for mtype, count in spec.items():
             for i in range(count):
                 sample = gen_map[mtype]()
                 sample.msgid = i
@@ -251,7 +251,7 @@ class CommunicationTest(unittest.TestCase):
         ftest = tempfile.NamedTemporaryFile()
         ftest.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         ftest.write('<channel>\n')
-        for mtype, count in spec.iteritems():
+        for mtype, count in spec.items():
             for i in range(count):
                 sample = gen_map[mtype]()
                 sample.msgid = i

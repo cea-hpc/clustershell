@@ -253,7 +253,7 @@ class WorkerTree(DistantWorker):
         next_hops = self._distribute(self.task.info("fanout"), nodes.copy())
         self.logger.debug("next_hops=%s"
                           % [(str(n), str(v)) for n, v in next_hops.items()])
-        for gw, targets in next_hops.iteritems():
+        for gw, targets in next_hops.items():
             if gw == targets:
                 self.logger.debug('task.shell cmd=%s source=%s nodes=%s '
                                   'timeout=%s remote=%s', self.command,
@@ -405,7 +405,7 @@ class WorkerTree(DistantWorker):
 
         # finalize rcopy: extract tar data
         if self.source and self.reverse:
-            for node, buf in self._rcopy_bufs.iteritems():
+            for node, buf in self._rcopy_bufs.items():
                 tarfileobj = self._rcopy_tars[node]
                 if len(buf) > 0:
                     self.logger.debug("flushing node %s buf %d bytes", node,

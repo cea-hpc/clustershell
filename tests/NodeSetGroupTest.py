@@ -950,7 +950,7 @@ list: echo deep
                           '@rack-x2', '@rack-x2y1', '@rack-x2y2', '@rack-y1',
                           '@rack-y2'])
         testns = NodeSet()
-        for gnodes, inodes in nodeset.groups().itervalues():
+        for gnodes, inodes in nodeset.groups().values():
             testns.update(inodes)
         self.assertEqual(testns, nodeset)
 
@@ -1100,7 +1100,7 @@ class NodeSetGroup2GSTest(unittest.TestCase):
         nodeset = NodeSet("montana[32-37,42-55]")
         self.assertEqual(sorted(nodeset.groups().keys()), ['@all', '@chassis1', '@chassis10', '@chassis11', '@chassis12', '@chassis2', '@chassis3', '@chassis6', '@chassis7', '@chassis8', '@chassis9', '@compute'])
         testns = NodeSet()
-        for gnodes, inodes in nodeset.groups().itervalues():
+        for gnodes, inodes in nodeset.groups().values():
             testns.update(inodes)
         self.assertEqual(testns, nodeset)
 

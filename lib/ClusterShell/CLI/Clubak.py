@@ -149,7 +149,7 @@ def clubak():
     if fast_mode:
         # Messages per node have been aggregated, now add to tree one
         # full msg per node
-        for key, wholemsg in preload_msgs.iteritems():
+        for key, wholemsg in preload_msgs.items():
             tree.add(key, '\n'.join(wholemsg))
 
     # Display results

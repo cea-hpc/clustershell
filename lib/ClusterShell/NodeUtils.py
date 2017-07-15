@@ -99,7 +99,7 @@ class GroupSource(object):
 
     def resolv_list(self):
         """Return a list of all group names for this group source"""
-        return self.groups.keys()
+        return list(self.groups)
 
     def resolv_all(self):
         """Return the content of all groups as defined by this GroupSource"""
@@ -375,7 +375,7 @@ class GroupResolver(object):
 
     def sources(self):
         """Get the list of all resolver source names. """
-        srcs = list(self._sources.keys())
+        srcs = list(self._sources)
         if srcs and srcs[0] is not self._default_source:
             srcs.remove(self._default_source.name)
             srcs.insert(0, self._default_source.name)

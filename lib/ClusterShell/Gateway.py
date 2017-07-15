@@ -108,7 +108,7 @@ class WorkerTreeResponder(EventHandler):
         # specifically manage retcodes to periodically return latest
         # retcodes to parent node, instead of doing it at ev_hup (no msg
         # aggregation) or at ev_close (no parent node live updates)
-        for rc, nodes in self.retcodes.iteritems():
+        for rc, nodes in self.retcodes.items():
             self.logger.debug("iter(rc): %s: rc=%d", nodes, rc)
             self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
         self.retcodes.clear()
