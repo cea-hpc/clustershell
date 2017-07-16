@@ -33,6 +33,8 @@ try:
 except ImportError:  # Python 2 compat
     from itertools import ifilterfalse as filterfalse
 
+import sys
+
 
 # MsgTree behavior modes
 MODE_DEFER = 0
@@ -45,7 +47,7 @@ class MsgTreeElem(object):
     Class representing an element of the MsgTree and its associated
     message. Object of this class are returned by the various MsgTree
     methods like messages() or walk(). The object can then be used as
-    an iterator over the message lines or casted into a string.
+    an iterator over the message lines or casted into a bytes buffer.
     """
     def __init__(self, msgline=None, parent=None, trace=False):
         """
@@ -63,12 +65,12 @@ class MsgTreeElem(object):
         self.keys = None
 
     def __len__(self):
-        """Length of whole message string."""
-        return len(str(self))
+        """Length of whole message buffer."""
+        return len(bytes(self))
 
     def __eq__(self, other):
-        """Comparison method compares whole message strings."""
-        return str(self) == str(other)
+        """Comparison method compares whole message buffers."""
+        return bytes(self) == bytes(other)
 
     def _add_key(self, key):
         """Add a key to this tree element."""
@@ -125,12 +127,24 @@ class MsgTreeElem(object):
 
     def message(self):
         """
-        Get the whole message buffer from this tree element.
+        Get the whole message buffer (from this tree element) as bytes.
         """
-        # concat buffers
-        return '\n'.join(self.lines())
+        return b'\n'.join(self.lines())
 
-    __str__ = message
+    __bytes__ = message
+
+    def __str__(self):
+        """
+        Get the whole message buffer (from this tree element) as a string.
+
+        DEPRECATED: use message() or cast to bytes instead.
+        """
+        if sys.version_info >= (3, 0):
+            raise TypeError('cannot get string from %s, use bytes instead' %
+                            self.__class__.__name__)
+        else:
+            # in Python 2, str and bytes are actually the same type
+            return self.message()
 
     def append(self, msgline, key=None):
         """
@@ -214,8 +228,10 @@ class MsgTree(object):
 
     def add(self, key, msgline):
         """
-        Add a message line associated with the given key to the MsgTree.
+        Add a message line (bytes) associated with the given key to the MsgTree.
         """
+        assert isinstance(msgline, bytes)
+
         # try to get current element in MsgTree for the given key,
         # defaulting to the root element
         e_msg = self._keys.get(key, self._root)
