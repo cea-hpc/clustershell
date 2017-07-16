@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -38,16 +38,22 @@ import errno
 import logging
 import os
 from os.path import abspath, dirname, exists, isdir, join
+import random
 import resource
-import sys
 import signal
+import sys
 import time
 import threading
-import random
+
+# Python 3 compatibility
+try:
+    raw_input
+except NameError:
+    raw_input = input
 
 from ClusterShell.Defaults import DEFAULTS, _load_workerclass
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
-from ClusterShell.CLI.Display import Display
+from ClusterShell.CLI.Display import Display, sys_stdin
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
@@ -619,11 +625,11 @@ def _stdin_thread_start(stdin_port, display):
         bufsize = 64 * 1024
         # thread loop: blocking read stdin + send messages to specified
         #              port object
-        buf = sys.stdin.read(bufsize)
+        buf = sys_stdin().read(bufsize)  # use buffer in Python 3
         while buf:
             # send message to specified port object (with ack)
             stdin_port.msg(buf)
-            buf = sys.stdin.read(bufsize)
+            buf = sys_stdin().read(bufsize)
     except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
