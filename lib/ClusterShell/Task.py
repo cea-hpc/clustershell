@@ -42,6 +42,7 @@ Simple example of use:
 
 """
 
+from __future__ import print_function
 import logging
 from operator import itemgetter
 import os
@@ -354,7 +355,7 @@ class Task(object):
         raised and uncaught on Task thread, excepthook is called, which
         is default_excepthook by default. Once excepthook overriden,
         you can still call default_excepthook if needed."""
-        print >> sys.stderr, 'Exception in thread %s:' % self.thread
+        print('Exception in thread %s:' % self.thread, file=sys.stderr)
         traceback.print_exception(exc_type, exc_value, tb, file=sys.stderr)
 
     _excepthook = default_excepthook

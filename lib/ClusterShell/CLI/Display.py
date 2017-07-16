@@ -22,6 +22,8 @@
 CLI results display class
 """
 
+from __future__ import print_function
+
 import difflib
 import sys
 
@@ -239,11 +241,11 @@ class Display(object):
         """Utility method to print a message if verbose level is high
         enough."""
         if self.verbosity >= level:
-            print message
+            print(message)
 
     def vprint_err(self, level, message):
         """Utility method to print a message on stderr if verbose level
         is high enough."""
         if self.verbosity >= level:
-            print >> sys.stderr, message
+            print(message, file=sys.stderr)
 
