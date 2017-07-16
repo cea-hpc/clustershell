@@ -21,6 +21,22 @@ __all__ = ['HOSTNAME', 'load_cfg', 'make_temp_filename', 'make_temp_file',
 # Get machine short hostname
 HOSTNAME = socket.gethostname().split('.', 1)[0]
 
+class TBytesIO(BytesIO):
+    """Standard stream of in memory bytes for testing purpose."""
+
+    def __init__(self, initial_bytes=None):
+        if initial_bytes and type(initial_bytes) is not bytes:
+            initial_bytes = initial_bytes.encode('ascii')
+        BytesIO.__init__(self, initial_bytes)
+
+    def write(self, b):
+        if type(b) is bytes:
+            BytesIO.write(self, b)
+        else:
+            BytesIO.write(self, b.encode('ascii'))
+
+    def isatty(self):
+        return False
 
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
@@ -41,6 +57,7 @@ def make_temp_filename(suffix=''):
 
 def make_temp_file(text, suffix='', dir=None):
     """Create a temporary file with the provided text."""
+    assert type(text) is bytes
     tmp = tempfile.NamedTemporaryFile(prefix='cs-test-',
                                       suffix=suffix, dir=dir)
     tmp.write(text)
@@ -61,13 +78,19 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     """Generic CLI main() direct calling function that allows code coverage
     checks."""
     rc = -1
+
     saved_stdin = sys.stdin
     saved_stdout = sys.stdout
     saved_stderr = sys.stderr
+
+    # Mock standard streams using BytesIO
+    # Note: ClusterShell always sends bytes and will only make use of
+    # sys.stdout.buffer when defined.
     if stdin is not None:
-        sys.stdin = BytesIO(stdin)
-    sys.stdout = out = BytesIO()
-    sys.stderr = err = BytesIO()
+        sys.stdin = TBytesIO(stdin)
+    sys.stdout = out = TBytesIO()
+    sys.stderr = err = TBytesIO()
+
     sys.argv = args
     try:
         try:
@@ -78,6 +101,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         sys.stdout = saved_stdout
         sys.stderr = saved_stderr
         sys.stdin = saved_stdin
+
     if expected_stdout is not None:
         # expected_stdout might be a compiled regexp or a string
         try:
@@ -97,7 +121,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         except AttributeError:
             # check the end as stderr messages are often prefixed with argv[0]
             test.assertTrue(err.getvalue().endswith(expected_stderr),
-                            err.getvalue() + " != " + expected_stderr)
+                            err.getvalue() + b' != ' + expected_stderr)
     if expected_rc is not None:
         test.assertEqual(rc, expected_rc, "rc=%d err=%s" % (rc, err.getvalue()))
     err.close()
