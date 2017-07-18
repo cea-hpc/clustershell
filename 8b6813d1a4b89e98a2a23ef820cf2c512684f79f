@@ -22,6 +22,30 @@
       "revId": "8b6813d1a4b89e98a2a23ef820cf2c512684f79f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ad27f05a_6cc0c922",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-18T15:57:02Z",
+      "side": 1,
+      "message": "OK to get rid of it for now",
+      "parentUuid": "674fd4a8_1ca17a36",
+      "range": {
+        "startLine": 233,
+        "startChar": 8,
+        "endLine": 233,
+        "endChar": 41
+      },
+      "revId": "8b6813d1a4b89e98a2a23ef820cf2c512684f79f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
