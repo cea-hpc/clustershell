@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "283e234f_fbb86984",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-18T08:58:24Z",
+      "side": 1,
+      "message": "nice to have such tests but now they depends on your system. I can\u0027t run them elsewhere, on my own system by example. All previous tests were system independent (using HOSTNAME)",
+      "range": {
+        "startLine": 508,
+        "startChar": 30,
+        "endLine": 508,
+        "endChar": 39
+      },
+      "revId": "f35ad7060be446ee54a2f417fe12f32928e65b01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
