@@ -46,6 +46,30 @@
       "revId": "f35ad7060be446ee54a2f417fe12f32928e65b01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53202d7d_3e4b9156",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-18T13:15:44Z",
+      "side": 1,
+      "message": "Ah sorry! I missed the --worker\u003dexec, my bad!",
+      "parentUuid": "d6e3ac26_c5ceaff8",
+      "range": {
+        "startLine": 508,
+        "startChar": 30,
+        "endLine": 508,
+        "endChar": 39
+      },
+      "revId": "f35ad7060be446ee54a2f417fe12f32928e65b01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
