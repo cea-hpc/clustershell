@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "674fd4a8_1ca17a36",
+        "filename": "lib/ClusterShell/MsgTree.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-18T14:35:43Z",
+      "side": 1,
+      "message": "my only concern is this assertion, this might be too much. Also in python 2, this won\u0027t work for basestring I think... so maybe it\u0027s better to remove it for now to not break old codes.",
+      "range": {
+        "startLine": 233,
+        "startChar": 8,
+        "endLine": 233,
+        "endChar": 41
+      },
+      "revId": "8b6813d1a4b89e98a2a23ef820cf2c512684f79f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
