@@ -93,6 +93,30 @@
       "revId": "8b6813d1a4b89e98a2a23ef820cf2c512684f79f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ec3654a_bf86e48c",
+        "filename": "tests/MsgTreeTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-19T05:48:12Z",
+      "side": 1,
+      "message": "BUT... it doesn\u0027t work with Python 2 (even 2.7, weird)\n\n  TypeError: str() takes at most 1 argument (2 given)\n\nI\u0027m gonna change utf-8 to ascii though.",
+      "parentUuid": "3c00f9b7_92ad9af1",
+      "range": {
+        "startLine": 186,
+        "startChar": 34,
+        "endLine": 186,
+        "endChar": 71
+      },
+      "revId": "8b6813d1a4b89e98a2a23ef820cf2c512684f79f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
