@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8806477_1d4f4977",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-20T20:21:24Z",
+      "side": 1,
+      "message": "there\u0027s also keys() here",
+      "revId": "a8710ec1a9244f7698686f0035e6bed0f937fa2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3109d4b5_277ed6b2",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-20T20:21:24Z",
+      "side": 1,
+      "message": "remove keys() and back on 1 line?",
+      "revId": "a8710ec1a9244f7698686f0035e6bed0f937fa2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
