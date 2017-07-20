@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6518f08_b7de960a",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-20T08:54:27Z",
+      "side": 1,
+      "message": "if we only use sorted(), only __lt__ is required. This could simplify this code.\n\nheapq seems to only need __lt__()",
+      "revId": "4e4934f45cacc1635a3471ef774657984964ef3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c41a2db1_d9230947",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-20T08:54:27Z",
+      "side": 1,
+      "message": "code would be less confusing is we have methods like armed() or enabled() instead of testing fire_delay against EPSILON",
+      "revId": "4e4934f45cacc1635a3471ef774657984964ef3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
