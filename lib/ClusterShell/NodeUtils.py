@@ -288,8 +288,7 @@ class YAMLGroupLoader(object):
 
     def _load(self):
         """Load or reload YAML group file to create GroupSource objects."""
-        yamlfile = open(self.filename) # later use: with open(filepath) as yfile
-        try:
+        with open(self.filename) as yamlfile:
             try:
                 import yaml
                 sources = yaml.load(yamlfile)
@@ -298,8 +297,6 @@ class YAMLGroupLoader(object):
                 raise GroupResolverConfigError("%s (%s)" % (str(exc), msg))
             except yaml.YAMLError as exc:
                 raise GroupResolverConfigError("%s: %s" % (self.filename, exc))
-        finally:
-            yamlfile.close()
 
         # NOTE: change to isinstance(sources, collections.Mapping) with py2.6+
         if not isinstance(sources, dict):
