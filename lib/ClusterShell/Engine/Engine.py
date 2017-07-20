@@ -98,7 +98,14 @@ class EngineBaseTimer(object):
         """
         Create a base timer.
         """
-        self.fire_delay = fire_delay
+        # fire_delay is used for comparison between timers and MUST NOT be
+        # None in Python 3 as comparison with float is not possible and could
+        # lead to confusion anyway. If None is passed, fire_delay is now set
+        # to -1 to avoid the timer to be armed in _EngineTimerQ.schedule().
+        if fire_delay is None:
+            self.fire_delay = -1.0
+        else:
+            self.fire_delay = fire_delay
         self.interval = interval
         self.autoclose = autoclose
         self._engine = None
@@ -195,7 +202,29 @@ class _EngineTimerQ(object):
             assert self.client.fire_delay > -EPSILON
             self.fire_date = self.client.fire_delay + time.time()
 
+        # Define the six rich comparison operators
+        # NOTE: we could use functools.total_ordering in Python 2.7+
+
+        def __lt__(self, other):
+            return self.fire_date < other.fire_date
+
+        def __le__(self, other):
+            return self.fire_date <= other.fire_date
+
+        def __gt__(self, other):
+            return self.fire_date > other.fire_date
+
+        def __ge__(self, other):
+            return self.fire_date >= other.fire_date
+
+        def __eq__(self, other):
+            return self.fire_date == other.fire_date
+
+        def __ne__(self, other):
+            return self.fire_date != other.fire_date
+
         def __cmp__(self, other):
+            # DEPRECATED: no longer used in Python 3
             return cmp(self.fire_date, other.fire_date)
 
         def arm(self, client):
