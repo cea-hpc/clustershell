@@ -307,9 +307,8 @@ class WorkerTree(DistantWorker):
             try:
                 # create temporary tar file with all source files
                 tmptar = tempfile.TemporaryFile()
-                tar = tarfile.open(fileobj=tmptar, mode='w:')
-                tar.add(self.source, arcname=arcname)
-                tar.close()
+                with tarfile.open(fileobj=tmptar, mode='w:') as tar:
+                    tar.add(self.source, arcname=arcname)
                 tmptar.flush()
                 # read generated tar file
                 tmptar.seek(0)
@@ -413,8 +412,7 @@ class WorkerTree(DistantWorker):
                     tarfileobj.write(buf)
                 tarfileobj.flush()
                 tarfileobj.seek(0)
-                try:
-                    tmptar = tarfile.open(fileobj=tarfileobj)
+                with tarfile.open(fileobj=tarfileobj) as tmptar:
                     try:
                         self.logger.debug("%s extracting %d members in dest %s",
                                           node, len(tmptar.getmembers()),
@@ -423,9 +421,6 @@ class WorkerTree(DistantWorker):
                     except IOError as ex:
                         self._on_remote_node_msgline(node, ex, 'stderr',
                                                      gateway)
-                # note: try-except-finally not supported before python 2.5
-                finally:
-                    tmptar.close()
             self._rcopy_bufs = {}
             self._rcopy_tars = {}
 

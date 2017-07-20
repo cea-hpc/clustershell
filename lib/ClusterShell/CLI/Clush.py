@@ -853,10 +853,9 @@ def main():
     for opt_hostfile in options.hostfile:
         try:
             fnodeset = NodeSet()
-            hostfile = open(opt_hostfile)
-            for line in hostfile.read().splitlines():
-                fnodeset.updaten(nodes for nodes in line.split())
-            hostfile.close()
+            with open(opt_hostfile) as hostfile:
+                for line in hostfile.read().splitlines():
+                    fnodeset.updaten(nodes for nodes in line.split())
             display.vprint_err(VERB_DEBUG,
                                "Using nodeset %s from hostfile %s"
                                % (fnodeset, opt_hostfile))
