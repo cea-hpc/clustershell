@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c4487d82_5a40a9b1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-20T17:27:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "584db0cc_027206fa",
+      "range": {
+        "startLine": 10,
+        "startChar": 31,
+        "endLine": 10,
+        "endChar": 34
+      },
+      "revId": "07a4faf1870ab254a1d29f2c351d5ecf7fb8fbd9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c5802dff_16a0353a",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2017-07-20T08:02:24Z",
       "side": 1,
       "message": "keys() could be avoided :\n\n gwcnt \u003d len(self.task.gateways)\n if gwcnt:",
+      "revId": "07a4faf1870ab254a1d29f2c351d5ecf7fb8fbd9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73b91866_ad281f6d",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-20T17:27:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5802dff_16a0353a",
       "revId": "07a4faf1870ab254a1d29f2c351d5ecf7fb8fbd9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "0383a21a_f8cffb8f",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-20T17:27:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c1c29c8_b291a935",
+      "range": {
+        "startLine": 388,
+        "startChar": 72,
+        "endLine": 388,
+        "endChar": 79
+      },
+      "revId": "07a4faf1870ab254a1d29f2c351d5ecf7fb8fbd9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cf2c7e51_e623540b",
         "filename": "lib/ClusterShell/Propagation.py",
         "patchSetId": 1
@@ -76,6 +142,24 @@
       "writtenOn": "2017-07-20T08:02:24Z",
       "side": 1,
       "message": "\"for network in self.table\" will have the optimal behavior for Py2 and Py3",
+      "revId": "07a4faf1870ab254a1d29f2c351d5ecf7fb8fbd9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3ad45d5_2c242a82",
+        "filename": "lib/ClusterShell/Propagation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-20T17:27:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf2c7e51_e623540b",
       "revId": "07a4faf1870ab254a1d29f2c351d5ecf7fb8fbd9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
