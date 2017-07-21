@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1c43c4d9_1d45b5fe",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-21T15:11:07Z",
+      "side": 1,
+      "message": "It is currently used by CS itself by all workers with timeout\u003dNone (then this parameter is passed to each EngineClient (which are all EngineBaseTimer too).\n\nThe culprit:\nhttps://github.com/cea-hpc/clustershell/blob/master/lib/ClusterShell/Task.py#L568\n\nI would be ok to support None and -1 in the workers and add a check there instead, but at the end, it is still safer to put a test somewhere",
+      "parentUuid": "6c62e162_7383b5af",
+      "revId": "943fb755d8e21731148b296cbde967c2a272b270",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f4b382a_c8b58f5a",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 2
