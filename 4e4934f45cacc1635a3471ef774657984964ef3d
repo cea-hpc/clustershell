@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "752d4071_06674150",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-21T06:35:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd1a6e0a_6dd9af99",
+      "revId": "4e4934f45cacc1635a3471ef774657984964ef3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c41a2db1_d9230947",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 1
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "good point",
       "parentUuid": "c41a2db1_d9230947",
+      "revId": "4e4934f45cacc1635a3471ef774657984964ef3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "837d3468_1d6cdebc",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-21T06:35:20Z",
+      "side": 1,
+      "message": "I started doing some changes but heh, as often, actually I will do this improvement later. It is not so straightforward as a timer can have an interval \u003e 0 and can be enabled with fire_delay\u003d-1. It\u0027s definitively doable though but carefully.\n\nMaybe by adding enabled_firsttime () and enabled_repeater() that could actually work.\n\narmed() is already defined and this is not the same concept.",
+      "parentUuid": "6c72e88e_b5fdeccc",
       "revId": "4e4934f45cacc1635a3471ef774657984964ef3d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
