@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "ff8016df_8aac008b",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T15:19:12Z",
+      "side": 1,
+      "message": "OK. Let\u0027s this like this.  We can always change support for fire_handle\u003dNone in the future.\nAt least, this is 100% backward compatible.",
+      "parentUuid": "1c43c4d9_1d45b5fe",
+      "revId": "943fb755d8e21731148b296cbde967c2a272b270",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f4b382a_c8b58f5a",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 2
