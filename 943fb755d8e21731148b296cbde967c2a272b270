@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c62e162_7383b5af",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T12:47:43Z",
+      "side": 1,
+      "message": "Was this ever supported? I did not find a place in the code where fire_delay was set to None.",
+      "revId": "943fb755d8e21731148b296cbde967c2a272b270",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f4b382a_c8b58f5a",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T12:47:43Z",
+      "side": 1,
+      "message": "drop this line, prefer keeping comment and code together",
+      "revId": "943fb755d8e21731148b296cbde967c2a272b270",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "525659dc_b2a66ab7",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T12:47:43Z",
+      "side": 1,
+      "message": "may be add a reminder to add total_ordering when support for Py2.6 will be dropped",
+      "revId": "943fb755d8e21731148b296cbde967c2a272b270",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
