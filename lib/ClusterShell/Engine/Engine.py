@@ -190,10 +190,9 @@ class _EngineTimerQ(object):
         """
         def __init__(self, client):
             self.client = client
-            self.client._timercase = self
-            # arm timer (first time)
+            self.fire_date = None
             assert self.client.fire_delay > -EPSILON
-            self.fire_date = self.client.fire_delay + time.time()
+            self.arm(client)
 
         def __cmp__(self, other):
             return cmp(self.fire_date, other.fire_date)
@@ -243,16 +242,19 @@ class _EngineTimerQ(object):
         """
         return self.armed_count
 
+    def _schedule(self, client, timercase):
+        heapq.heappush(self.timers, timercase)
+        self.armed_count += 1
+        if not client.autoclose:
+            self._engine.evlooprefcnt += 1
+
     def schedule(self, client):
         """
         Insert and arm a client's timer.
         """
         # arm only if fire is set
         if client.fire_delay > -EPSILON:
-            heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
-            self.armed_count += 1
-            if not client.autoclose:
-                self._engine.evlooprefcnt += 1
+            self._schedule(client, _EngineTimerQ._EngineTimerCase(client))
 
     def reschedule(self, client):
         """
@@ -274,8 +276,7 @@ class _EngineTimerQ(object):
             client.interval = -1.0
             return
 
-        if self.armed_count <= 0:
-            raise ValueError("Engine client timer not found in timer queue")
+        assert self.armed_count > 0, "Engine client timer not found in timer queue"
 
         client._timercase.disarm()
         self.armed_count -= 1
@@ -310,20 +311,23 @@ class _EngineTimerQ(object):
                 continue
 
             # Disarm timer
-            client = timercase.disarm()
+            client = timercase.client
+            self.invalidate(client)
 
             # Fire timer
-            client.fire_delay = -1.0
+            client.fire_delay = -1.0  # XXX: Factorize with invalidate()
+
+            # Users can:
+            #   A - invalidate the timer
+            #   B - fire with new params
+            #   C - do nothing
             client._fire()
 
             # Rearm it if needed - Note: fire=0 is valid, interval=0 is not
+            # XXX: close to be factorized with schedule()
             if client.fire_delay >= -EPSILON or client.interval > EPSILON:
                 timercase.arm(client)
-                heapq.heappush(self.timers, timercase)
-            else:
-                self.armed_count -= 1
-                if not client.autoclose:
-                    self._engine.evlooprefcnt -= 1
+                self._schedule(client, timercase)
 
     def nextfire_delay(self):
         """
@@ -342,9 +346,8 @@ class _EngineTimerQ(object):
         for timer in self.timers:
             if timer.armed():
                 timer.client.invalidate()
-
         self.timers = []
-        self.armed_count = 0
+        assert self.armed_count == 0
 
 
 class Engine(object):
