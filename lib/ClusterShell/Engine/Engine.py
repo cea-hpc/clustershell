@@ -126,6 +126,8 @@ class EngineBaseTimer(object):
         Invalidates a timer object, stopping it from ever firing again.
         """
         if self._engine:
+            self.fire_delay = -1.0
+            self.interval = -1.0
             self._engine.timerq.invalidate(self)
             self._engine = None
 
@@ -158,9 +160,10 @@ class EngineBaseTimer(object):
         if not self.is_valid():
             raise EngineIllegalOperationError("Operation on invalid timer.")
 
+        self._engine.timerq.invalidate(self)
         self.fire_delay = fire_delay
         self.interval = interval
-        self._engine.timerq.reschedule(self)
+        self._engine.timerq.schedule(self)
 
     def _fire(self):
         raise NotImplementedError("Derived classes must implement.")
@@ -198,9 +201,9 @@ class _EngineTimerQ(object):
         def __init__(self, client):
             self.client = client
             self.client._timercase = self
-            # arm timer (first time)
+            self.fire_date = None
+            self.armed = False
             assert self.client.fire_delay > -EPSILON
-            self.fire_date = self.client.fire_delay + time.time()
 
         def __lt__(self, other):
             # NOTE: add @total_ordering decorator in Python 2.7+
@@ -210,15 +213,13 @@ class _EngineTimerQ(object):
             # DEPRECATED: no longer used in Python 3
             return cmp(self.fire_date, other.fire_date)
 
-        def arm(self, client):
-            assert client is not None
-            self.client = client
-            self.client._timercase = self
+        def arm(self):
+            self.armed = True
             # setup next firing date
             time_current = time.time()
-            if self.client.fire_delay > -EPSILON:
+            if self.fire_date is None:
                 self.fire_date = self.client.fire_delay + time_current
-            else:
+            elif self.client.interval > EPSILON:
                 interval = float(self.client.interval)
                 assert interval > 0
                 # Keep it simple: increase fire_date by interval even if
@@ -230,15 +231,6 @@ class _EngineTimerQ(object):
                 if self.fire_date < time_current:
                     LOGGER.debug("Warning: passed interval time for %r "
                                  "(long running event handler?)", self.client)
-
-        def disarm(self):
-            client = self.client
-            client._timercase = None
-            self.client = None
-            return client
-
-        def armed(self):
-            return self.client is not None
 
 
     def __init__(self, engine):
@@ -255,50 +247,36 @@ class _EngineTimerQ(object):
         """
         return self.armed_count
 
-    def schedule(self, client):
+    def schedule(self, client, timercase=None):
         """
         Insert and arm a client's timer.
         """
-        # arm only if fire is set
+        # arm only if fire was set at least once
         if client.fire_delay > -EPSILON:
-            heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
+            timercase = timercase or _EngineTimerQ._EngineTimerCase(client)
+            timercase.arm()
+            heapq.heappush(self.timers, timercase)
             self.armed_count += 1
             if not client.autoclose:
                 self._engine.evlooprefcnt += 1
-
-    def reschedule(self, client):
-        """
-        Re-insert client's timer.
-        """
-        if client._timercase:
-            self.invalidate(client)
-            self._dequeue_disarmed()
-            self.schedule(client)
 
     def invalidate(self, client):
         """
         Invalidate client's timer. Current implementation doesn't really remove
         the timer, but simply flags it as disarmed.
         """
-        if not client._timercase:
-            # if timer is being fire, invalidate its values
-            client.fire_delay = -1.0
-            client.interval = -1.0
-            return
-
-        if self.armed_count <= 0:
-            raise ValueError("Engine client timer not found in timer queue")
-
-        client._timercase.disarm()
-        self.armed_count -= 1
-        if not client.autoclose:
-            self._engine.evlooprefcnt -= 1
+        if client._timercase and client._timercase.armed:
+            assert self.armed_count > 0
+            client._timercase.armed = False
+            self.armed_count -= 1
+            if not client.autoclose:
+                self._engine.evlooprefcnt -= 1
 
     def _dequeue_disarmed(self):
         """
         Dequeue disarmed timers (sort of garbage collection).
         """
-        while len(self.timers) > 0 and not self.timers[0].armed():
+        while len(self.timers) > 0 and not self.timers[0].armed:
             heapq.heappop(self.timers)
 
     def fire_expired(self):
@@ -318,24 +296,19 @@ class _EngineTimerQ(object):
         for timercase in expired_timercases:
             # Be careful to recheck and skip any disarmed timers (eg. timer
             # could be invalidated from another timer's event handler)
-            if not timercase.armed():
+            if not timercase.armed:
                 continue
 
             # Disarm timer
-            client = timercase.disarm()
+            client = timercase.client
+            self.invalidate(client)
 
             # Fire timer
-            client.fire_delay = -1.0
             client._fire()
 
-            # Rearm it if needed - Note: fire=0 is valid, interval=0 is not
-            if client.fire_delay >= -EPSILON or client.interval > EPSILON:
-                timercase.arm(client)
-                heapq.heappush(self.timers, timercase)
-            else:
-                self.armed_count -= 1
-                if not client.autoclose:
-                    self._engine.evlooprefcnt -= 1
+            # Reschedule if this is a repeat-style timer
+            if client.interval > EPSILON:
+                self.schedule(client, timercase)
 
     def nextfire_delay(self):
         """
@@ -344,19 +317,19 @@ class _EngineTimerQ(object):
         self._dequeue_disarmed()
         if len(self.timers) > 0:
             return max(0., self.timers[0].fire_date - time.time())
-
-        return -1
+        else:
+            return -1
 
     def clear(self):
         """
         Stop and clear all timers.
         """
         for timer in self.timers:
-            if timer.armed():
+            if timer.armed:
                 timer.client.invalidate()
-
-        self.timers = []
-        self.armed_count = 0
+        self._dequeue_disarmed()
+        assert not self.timers
+        assert self.armed_count == 0
 
 
 class Engine(object):
