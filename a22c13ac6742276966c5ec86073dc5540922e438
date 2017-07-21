@@ -1,0 +1,181 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "202ab8b7_4fb06232",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "docstring fits on one-line",
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60880f50_1deef120",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "looking at the code, I understood timer is armed by default.\nSo this should be:\n\n self.client \u003d None\n assert client.fire_delay \u003e -EPSILON\n self.arm(client)",
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24c15968_914bdf65",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "as this method is the opposite of schedule(), it makes sense to name it cancel(). This would make the code easier to understand",
+      "range": {
+        "startLine": 291,
+        "startChar": 8,
+        "endLine": 291,
+        "endChar": 18
+      },
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c7e096e_26d8750d",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "you need to have an equivalent method when you are changing fire_delay like here",
+      "range": {
+        "startLine": 298,
+        "startChar": 19,
+        "endLine": 298,
+        "endChar": 29
+      },
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dbaa01b_34f0dc71",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "It seems to me we do not need to reset interval. fire_delay is enough",
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb40ddd5_f4120b14",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "I spent a long time reading this code to understanding it, in order to review this patch correctly.\nI realized this code is very similar to invalidate().\n\nCould this be replaced by invalidate() + _fire() + schedule_if_needed ?",
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27a36cfc_b9df80dd",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "you need to have an equivalent method when you are changing fire_delay like here. \nMhh... if you update invalidate() to not reset interval, this IS invalidate()",
+      "range": {
+        "startLine": 341,
+        "startChar": 19,
+        "endLine": 341,
+        "endChar": 36
+      },
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65ff686d_04c68d81",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "fire_enabled() tests strictly greater, but your original test was testing greater or equal",
+      "range": {
+        "startLine": 345,
+        "startChar": 15,
+        "endLine": 345,
+        "endChar": 36
+      },
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a0b05f9_37ec0e25",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-21T13:53:58Z",
+      "side": 1,
+      "message": "invalidate() is already decreasing armed_count. This should be useless. An assert could be enough if your not confident.",
+      "revId": "a22c13ac6742276966c5ec86073dc5540922e438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
