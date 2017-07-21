@@ -487,6 +487,27 @@ class TaskTimerTest(unittest.TestCase):
         # registered, so timer firing will be skipped and runloop will exit.
         self.assertEqual(teh.count, 2)
 
+    def test_interval(self):
+        """timer with interval honors their timings"""
+        class TimerCount(EventHandler):
+            def __init__(self):
+                self.count = 0
+
+            def ev_timer(self, timer):
+                self.count += 1
+                sleep(0.2)
+                if self.count == 3:
+                    timer.invalidate()
+
+        task = task_self()
+        handler = TimerCount()
+        task.timer(0.5, interval=0.2, handler=handler)
+        t1 = time()
+        task.run()
+        self.assertEqual(handler.count, 3)
+        self.assertTrue(time() - t1 < 1.2, "%.2f above 1.2" % (time() - t1))
+
+
     def testMultipleAddSameTimerPrivate(self):
         """test multiple add() of same timer [private]"""
         task = task_self()
