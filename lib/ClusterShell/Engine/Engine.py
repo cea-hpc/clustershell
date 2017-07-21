@@ -121,6 +121,18 @@ class EngineBaseTimer(object):
 
         self._engine = engine
 
+    def fire_enabled(self):
+        """
+        Is the `fire_delay` value valid to fire timer? (boolean)
+        """
+        return self.fire_delay > -EPSILON
+
+    def repeater_enabled(self):
+        """
+        Is the `interval` value valid to fire at repeating interval? (boolean)
+        """
+        return self.interval > EPSILON
+
     def invalidate(self):
         """
         Invalidates a timer object, stopping it from ever firing again.
@@ -199,7 +211,7 @@ class _EngineTimerQ(object):
             self.client = client
             self.client._timercase = self
             # arm timer (first time)
-            assert self.client.fire_delay > -EPSILON
+            assert self.client.fire_enabled()
             self.fire_date = self.client.fire_delay + time.time()
 
         # __lt__() is required for object comparison (eg. heapq) in Python 3
@@ -217,11 +229,11 @@ class _EngineTimerQ(object):
             self.client._timercase = self
             # setup next firing date
             time_current = time.time()
-            if self.client.fire_delay > -EPSILON:
+            if self.client.fire_enabled():
                 self.fire_date = self.client.fire_delay + time_current
             else:
                 interval = float(self.client.interval)
-                assert interval > 0
+                assert interval > 0  # not called if !repeater_enabled()
                 # Keep it simple: increase fire_date by interval even if
                 # fire_date stays in the past, as in that case it's going to
                 # fire again at next runloop anyway.
@@ -261,7 +273,7 @@ class _EngineTimerQ(object):
         Insert and arm a client's timer.
         """
         # arm only if fire is set
-        if client.fire_delay > -EPSILON:
+        if client.fire_enabled():
             heapq.heappush(self.timers, _EngineTimerQ._EngineTimerCase(client))
             self.armed_count += 1
             if not client.autoclose:
@@ -330,7 +342,7 @@ class _EngineTimerQ(object):
             client._fire()
 
             # Rearm it if needed - Note: fire=0 is valid, interval=0 is not
-            if client.fire_delay >= -EPSILON or client.interval > EPSILON:
+            if client.fire_enabled() or client.repeater_enabled():
                 timercase.arm(client)
                 heapq.heappush(self.timers, timercase)
             else:
