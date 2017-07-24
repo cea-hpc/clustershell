@@ -5,6 +5,7 @@
 
 """Unit test for CLI/Clush.py"""
 
+import codecs
 import errno
 import os
 import pwd
@@ -219,7 +220,7 @@ class CLIClushTest_A(unittest.TestCase):
                       % (HOSTNAME, HOSTNAME))
         # write binary to stdin
         self._clush_t(["-w", HOSTNAME, "gzip -d"], \
-            "1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000".decode("hex"),
+            codecs.decode(b'1f8b0800869a744f00034bcbcf57484a2ce2020027b4dd1308000000', 'hex'),
             "%s: foo bar\n" % HOSTNAME)
 
     def test_015_stderr(self):
