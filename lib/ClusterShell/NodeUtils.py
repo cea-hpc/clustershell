@@ -194,6 +194,8 @@ class UpcallGroupSource(GroupSource):
         self.logger.debug("EXEC '%s'", cmdline)
         proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir)
         output = proc.communicate()[0].strip()
+        if not isinstance(output, str):
+            output = output.decode('utf-8')  # Python 3 only
         self.logger.debug("READ '%s'", output)
         if proc.returncode != 0:
             self.logger.debug("ERROR '%s' returned %d", cmdline,
