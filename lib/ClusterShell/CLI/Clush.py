@@ -910,7 +910,7 @@ def main():
     if options.pick and options.pick < len(nodeset_base):
         # convert to string for sample as nsiter() is slower for big
         # nodesets; and we assume options.pick will remain small-ish
-        keep = random.sample(nodeset_base, options.pick)
+        keep = random.sample(list(nodeset_base), options.pick)
         nodeset_base.intersection_update(','.join(keep))
         if config.verbosity >= VERB_VERB:
             msg = "Picked random nodes: %s" % nodeset_base
