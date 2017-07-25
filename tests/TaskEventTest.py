@@ -83,13 +83,13 @@ class TestHandler(EventHandler):
 
     def ev_read(self, worker):
         self.did_read = True
-        assert worker.current_msg == "abcdefghijklmnopqrstuvwxyz"
-        assert worker.current_errmsg != "abcdefghijklmnopqrstuvwxyz"
+        assert worker.current_msg == b"abcdefghijklmnopqrstuvwxyz"
+        assert worker.current_errmsg != b"abcdefghijklmnopqrstuvwxyz"
 
     def ev_error(self, worker):
         self.did_readerr = True
-        assert worker.current_errmsg == "errerrerrerrerrerrerrerr"
-        assert worker.current_msg != "errerrerrerrerrerrerrerr"
+        assert worker.current_errmsg == b"errerrerrerrerrerrerrerr"
+        assert worker.current_msg != b"errerrerrerrerrerrerrerr"
 
     def ev_written(self, worker, node, sname, size):
         self.cnt_written += 1
@@ -101,7 +101,7 @@ class TestHandler(EventHandler):
     def ev_close(self, worker):
         self.did_close = True
         if worker.read():
-            assert worker.read().startswith("abcdefghijklmnopqrstuvwxyz")
+            assert worker.read().startswith(b"abcdefghijklmnopqrstuvwxyz")
 
     def ev_timeout(self, worker):
         self.did_timeout = True
@@ -188,7 +188,7 @@ class TaskEventTest(unittest.TestCase):
         eh = WorkerPopenEH(self)
 
         worker = task.shell("cat", handler=eh)
-        content = "abcdefghijklmnopqrstuvwxyz\n"
+        content = b"abcdefghijklmnopqrstuvwxyz\n"
         worker.write(content)
         worker.set_write_eof()
 
@@ -217,9 +217,9 @@ class TaskEventTest(unittest.TestCase):
     class TWriteOnStart(EventHandler):
         def ev_start(self, worker):
             assert worker.task.running()
-            worker.write("foo bar\n")
+            worker.write(b"foo bar\n")
         def ev_read(self, worker):
-            assert worker.current_msg == "foo bar"
+            assert worker.current_msg == b"foo bar"
             worker.abort()
 
     def testWriteOnStartEvent(self):
@@ -238,7 +238,7 @@ class TaskEventTest(unittest.TestCase):
             for i in range(10):
                 worker = task.shell("echo ok; sleep 1", handler=eh)
                 self.assert_(worker is not None)
-                worker.write("OK\n")
+                worker.write(b"OK\n")
             task.resume()
         finally:
             task.set_info("fanout", fanout)
@@ -287,7 +287,7 @@ class TaskEventTest(unittest.TestCase):
         eh = TestHandler()
 
         worker = task.shell("cat", handler=eh)
-        content = "abcdefghijklmnopqrstuvwxyz\n"
+        content = b"abcdefghijklmnopqrstuvwxyz\n"
         worker.write(content)
         worker.set_write_eof()
 
