@@ -31,7 +31,7 @@ class TaskThreadSuspendTest(unittest.TestCase):
         task2.resume()
         w = task.shell("sleep 1 && echo thr0", key=0)
         task.resume()
-        self.assertEqual(task.key_buffer(0), "thr0")
+        self.assertEqual(task.key_buffer(0), b"thr0")
         self.assertEqual(w.read(), "thr0")
 
         assert task2 != task
@@ -45,7 +45,7 @@ class TaskThreadSuspendTest(unittest.TestCase):
         task2.resume()
 
         task_wait()
-        self.assertEqual(task2.key_buffer(1), "suspend_test")
+        self.assertEqual(task2.key_buffer(1), b"suspend_test")
 
     def _thread_delayed_unsuspend_func(self, task):
         """thread used to unsuspend task during task_wait()"""

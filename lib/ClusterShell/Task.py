@@ -1050,7 +1050,7 @@ class Task(object):
         msg = self._msgtree(sname).get((worker, node))
         if msg is None:
             return None
-        return str(msg)
+        return bytes(msg)
 
     def _call_tree_matcher(self, tree_match_func, match_keys=None, worker=None):
         """Call identified tree matcher (items, walk) method with options."""
@@ -1150,7 +1150,7 @@ class Task(object):
         """
         msgtree = self._msgtree('stdout')
         select_key = lambda k: k[1] == key
-        return "".join(str(msg) for msg in msgtree.messages(select_key))
+        return b''.join(bytes(msg) for msg in msgtree.messages(select_key))
 
     node_buffer = key_buffer
 
@@ -1163,7 +1163,7 @@ class Task(object):
         """
         errtree = self._msgtree('stderr')
         select_key = lambda k: k[1] == key
-        return "".join(str(msg) for msg in errtree.messages(select_key))
+        return b''.join(bytes(msg) for msg in errtree.messages(select_key))
 
     node_error = key_error
 
