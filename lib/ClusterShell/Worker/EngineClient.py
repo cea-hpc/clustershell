@@ -169,7 +169,7 @@ class EngineClientStreamDict(dict):
 
     def readers(self):
         """Get an iterator on all streams setup as readable."""
-        return (s for s in self.values() if s.evmask & E_READ)
+        return (s for s in list(self.values()) if s.evmask & E_READ)
 
     def active_writers(self):
         """Get an iterator on writable streams (with fd set)."""
@@ -177,7 +177,7 @@ class EngineClientStreamDict(dict):
 
     def writers(self):
         """Get an iterator on all streams setup as writable."""
-        return (s for s in self.values() if s.evmask & E_WRITE)
+        return (s for s in list(self.values()) if s.evmask & E_WRITE)
 
     def retained(self):
         """Check whether this set of streams is retained.
