@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "eedff61d_36282fe3",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-25T23:26:58Z",
+      "side": 1,
+      "message": "this is optional right?",
+      "range": {
+        "startLine": 129,
+        "startChar": 12,
+        "endLine": 130,
+        "endChar": 32
+      },
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "be800e0c_6eb3601e",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 3
@@ -25,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "df4b92e2_1055b3c0",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-25T23:26:58Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "be800e0c_6eb3601e",
+      "range": {
+        "startLine": 205,
+        "startChar": 17,
+        "endLine": 205,
+        "endChar": 22
+      },
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0cdfbbf5_ec8c7ea6",
         "filename": "lib/ClusterShell/Engine/Engine.py",
         "patchSetId": 3
@@ -36,6 +83,24 @@
       "writtenOn": "2017-07-25T19:45:20Z",
       "side": 1,
       "message": "comparison methods could be removed if we push a tuple (fire_date, timercase) in the heap queue instead of just a timercase. A tuple starting with a float offers for free a sortable feature. I got a patch for that.",
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4c0adef_c4cb31a9",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-25T23:26:58Z",
+      "side": 1,
+      "message": "but the second parameter of the tuple also needs to be sortable in that case no?",
+      "parentUuid": "0cdfbbf5_ec8c7ea6",
       "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -79,6 +144,70 @@
       "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a6ce529_f16d1b9b",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-25T23:26:58Z",
+      "side": 1,
+      "message": "I agree, it would be good to remove it",
+      "parentUuid": "652ff705_d39bb143",
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb720c7c_8a199d38",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-25T23:26:58Z",
+      "side": 1,
+      "message": "Looking at this, I\u0027m wondering if this is a good practice to keep _EngineTimerCase as an internal _EngineTimerQ class anymore. Maybe it would make sense to put it at the module level. It is an internal class already used by client and now also here, a public method of _EngineTimerQ.",
+      "range": {
+        "startLine": 250,
+        "startChar": 31,
+        "endLine": 250,
+        "endChar": 40
+      },
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "45e67fff_b4f28704",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-25T23:26:58Z",
+      "side": 1,
+      "message": "I\u0027m not particularly fond of this, this could be nice for debugging, but the current code is simpler no?",
+      "range": {
+        "startLine": 330,
+        "startChar": 8,
+        "endLine": 332,
+        "endChar": 36
+      },
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
