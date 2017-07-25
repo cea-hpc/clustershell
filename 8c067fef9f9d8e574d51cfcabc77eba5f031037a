@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be800e0c_6eb3601e",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-25T19:45:20Z",
+      "side": 1,
+      "message": "will probably rename it \u0027valid\u0027 as this is the flag stating if this case is still valid or if it should be garbage collected",
+      "range": {
+        "startLine": 205,
+        "startChar": 17,
+        "endLine": 205,
+        "endChar": 22
+      },
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cdfbbf5_ec8c7ea6",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-25T19:45:20Z",
+      "side": 1,
+      "message": "comparison methods could be removed if we push a tuple (fire_date, timercase) in the heap queue instead of just a timercase. A tuple starting with a float offers for free a sortable feature. I got a patch for that.",
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b431a3de_c8a7be26",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-25T19:45:20Z",
+      "side": 1,
+      "message": "no more really \"armed\". Just used to compute next fire_date. Could be renamed",
+      "range": {
+        "startLine": 216,
+        "startChar": 12,
+        "endLine": 216,
+        "endChar": 15
+      },
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "652ff705_d39bb143",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-25T19:45:20Z",
+      "side": 1,
+      "message": "used only for debugging. Could be removed or replace by a for on self.timers.\nNo need to keep armed_count manually. Error prone and code is more complex.",
+      "revId": "8c067fef9f9d8e574d51cfcabc77eba5f031037a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
