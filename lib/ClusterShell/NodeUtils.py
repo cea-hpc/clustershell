@@ -212,6 +212,8 @@ class UpcallGroupSource(GroupSource):
         if not self.upcalls.get(upcall):
             raise GroupSourceNoUpcall(upcall, self)
 
+        key = str(key)  # cast key to string as it must be hashable
+
         # Purge expired data from cache
         if key in cache and cache[key][1] < time.time():
             self.logger.debug("PURGE EXPIRED (%d)'%s'", cache[key][1], key)
