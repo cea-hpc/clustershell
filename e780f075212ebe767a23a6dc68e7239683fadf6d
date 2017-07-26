@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0a3f5e5d_12554dda",
+        "filename": "lib/ClusterShell/CLI/Display.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1c013f7_a2458b50",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "89c3de57_377b7659",
         "filename": "lib/ClusterShell/CLI/Display.py",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2017-07-25T08:09:22Z",
       "side": 1,
       "message": "return getattr(sys.stdout, \u0027buffer\u0027, sys.stdout)",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7e173e6_40956ba8",
+        "filename": "lib/ClusterShell/CLI/Display.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89c3de57_377b7659",
       "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "2ea7ca08_068c2bb3",
+        "filename": "lib/ClusterShell/CLI/Display.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "Done - thx -  grrr that I didn\u0027t do it myself :)",
+      "parentUuid": "4a28224c_c7b1a3fd",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c5996d71_167a5ac6",
         "filename": "tests/TLib.py",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2017-07-25T08:09:22Z",
       "side": 1,
       "message": "BytesIO.__init__(self, None) is probably supported.\nuse:\n\n if initial_bytes and type(initial_bytes) is not bytes:\n   initial_bytes \u003d initial_bytes.encore(\u0027ascii\u0027)\n BytesIO.__init__(self, initial_bytes)",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2edd1191_992bf988",
+        "filename": "tests/TLib.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "Done - thx!",
+      "parentUuid": "c5996d71_167a5ac6",
       "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "d1a17520_aaafe9d4",
+        "filename": "tests/TLib.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "ack :)",
+      "parentUuid": "b0fdba70_0b21dd98",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "93a010a8_162fe047",
         "filename": "tests/TLib.py",
         "patchSetId": 1
@@ -104,6 +194,24 @@
     },
     {
       "key": {
+        "uuid": "78f229dd_f7ab5bf9",
+        "filename": "tests/TLib.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "no, forgot to remove it",
+      "parentUuid": "93a010a8_162fe047",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a2c1205e_6ffdda89",
         "filename": "tests/TLib.py",
         "patchSetId": 1
@@ -115,6 +223,24 @@
       "writtenOn": "2017-07-25T08:09:22Z",
       "side": 1,
       "message": "remove",
+      "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8668cfc6_3e84e12c",
+        "filename": "tests/TLib.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-26T05:53:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2c1205e_6ffdda89",
       "revId": "e780f075212ebe767a23a6dc68e7239683fadf6d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
