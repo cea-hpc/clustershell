@@ -580,7 +580,7 @@ class GroupResolverConfig(GroupResolver):
                                                                      'default'))
         # pick random default source if not provided by config
         if not self.default_source_name and self._sources:
-            self.default_source_name = self._sources.keys()[0]
+            self.default_source_name = list(self._sources)[0]
 
     def _sources_from_cfg(self, cfg, cfgdir):
         """
