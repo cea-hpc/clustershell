@@ -1389,10 +1389,8 @@ class NodeSet(NodeSetBase):
         rest = NodeSet(self, resolver=RESOLVER_NOGROUP)
         regrouped = NodeSet(resolver=RESOLVER_NOGROUP)
 
-        bigalpha = lambda x, y: cmp(y[0], x[0]) or cmp(x[1], y[1])
-
         # Build regrouped NodeSet by selecting largest groups first.
-        for _, grp in sorted(fulls, cmp=bigalpha):
+        for _, grp in sorted(fulls, key=lambda x: (-x[0], x[1])):
             if not overlap and groups[grp][1] not in rest:
                 continue
             if groupsource and not noprefix:
