@@ -88,7 +88,7 @@ Interactive session
   Single-character interactive commands are:
     clush> ?
       show current nodeset
-    clush> =<NODESET>
+    clush> @<NODESET>
       set current nodeset
     clush> +<NODESET>
       add nodes to current nodeset
