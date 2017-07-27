@@ -284,7 +284,7 @@ def nodeset():
     if options.pick and options.pick < len(xset):
         # convert to string for sample as nsiter() is slower for big
         # nodesets; and we assume options.pick will remain small-ish
-        keep = random.sample(xset, options.pick)
+        keep = random.sample(list(xset), options.pick)
         # explicit class_set creation and str() convertion for RangeSet
         keep = class_set(','.join([str(x) for x in keep]))
         xset.intersection_update(keep)
