@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5c5c6c45_1633cdf3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-27T15:45:26Z",
+      "side": 1,
+      "message": "this patch should be advertised as a bugfix for CS (we need a test for that) having as side effect to fix a Py3-compat issue :).\nSo, not really related to #337",
+      "range": {
+        "startLine": 7,
+        "startChar": 50,
+        "endLine": 7,
+        "endChar": 56
+      },
+      "revId": "01fb820bb69e123138d1a484e2853015635b5676",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "22225fa5_45fd969a",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 1
