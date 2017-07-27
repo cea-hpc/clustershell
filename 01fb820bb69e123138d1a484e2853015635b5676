@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22225fa5_45fd969a",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-27T10:31:36Z",
+      "side": 1,
+      "message": "as you said in your commit message, this is only for resolv_reverse(). So it is better to cast here",
+      "range": {
+        "startLine": 258,
+        "startChar": 69,
+        "endLine": 258,
+        "endChar": 73
+      },
+      "revId": "01fb820bb69e123138d1a484e2853015635b5676",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
