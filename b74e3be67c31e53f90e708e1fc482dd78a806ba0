@@ -70,6 +70,30 @@
       "revId": "b74e3be67c31e53f90e708e1fc482dd78a806ba0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0894d92f_aee7b3b1",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-27T20:47:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c47b727_6823064e",
+      "range": {
+        "startLine": 198,
+        "startChar": 36,
+        "endLine": 198,
+        "endChar": 41
+      },
+      "revId": "b74e3be67c31e53f90e708e1fc482dd78a806ba0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
