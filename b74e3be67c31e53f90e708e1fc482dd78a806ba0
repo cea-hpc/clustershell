@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7be8ed98_c0eb60d0",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-27T15:31:41Z",
+      "side": 1,
+      "message": "this is still weird to me.\nHow do you know that upcall output is utf-8 encoded?",
+      "range": {
+        "startLine": 198,
+        "startChar": 36,
+        "endLine": 198,
+        "endChar": 41
+      },
+      "revId": "b74e3be67c31e53f90e708e1fc482dd78a806ba0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
