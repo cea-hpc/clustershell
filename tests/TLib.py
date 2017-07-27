@@ -12,7 +12,7 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
-from io import BytesIO
+from io import BytesIO, StringIO
 
 
 __all__ = ['HOSTNAME', 'load_cfg', 'make_temp_filename', 'make_temp_file',
@@ -83,11 +83,20 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     saved_stdout = sys.stdout
     saved_stderr = sys.stderr
 
-    # Mock standard streams using BytesIO
-    # Note: ClusterShell always sends bytes and will only make use of
-    # sys.stdout.buffer when defined.
+    # Capture standard streams
+
+    # Input: if defined, stdin may either be a buffer or a string (with an
+    # encoding).
     if stdin is not None:
-        sys.stdin = TBytesIO(stdin)
+        if type(stdin) is bytes:  # also works for str in Python 2
+            sys.stdin = TBytesIO(stdin)
+        else:
+            # If stdin is a string in Python 3, use StringIO as sys.stdin
+            # should be read in text mode for some tests.
+            sys.stdin = StringIO(stdin)
+
+    # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr() and when
+    # print() is used, TBytesIO does a conversion to ascii.
     sys.stdout = out = TBytesIO()
     sys.stderr = err = TBytesIO()
 
