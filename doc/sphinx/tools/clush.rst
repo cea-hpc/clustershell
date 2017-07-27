@@ -440,6 +440,8 @@ executed). These single-character interactive commands are detailed below:
 +------------------------------+-----------------------------------------------+
 | ``clush> -<NODESET>``        | remove nodes from current nodeset             |
 +------------------------------+-----------------------------------------------+
+| ``clush> @<NODESET>``        | set current nodeset                           |
++------------------------------+-----------------------------------------------+
 | ``clush> !<COMMAND>``        | execute ``<COMMAND>`` on the local system     |
 +------------------------------+-----------------------------------------------+
 | ``clush> =``                 | toggle the ouput format (gathered or standard |
