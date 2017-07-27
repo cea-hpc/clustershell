@@ -46,7 +46,7 @@ def process_stdin(xsetop, xsetcls, autostep):
     """Process standard input and operate on xset."""
     # Build temporary set (stdin accumulator)
     tmpset = xsetcls(autostep=autostep)
-    for line in sys.stdin.readlines():
+    for line in sys.stdin:  # read lines of text stream (not bytes)
         # Support multi-lines and multi-nodesets per line
         line = line[0:line.find('#')].strip()
         for elem in line.split():
