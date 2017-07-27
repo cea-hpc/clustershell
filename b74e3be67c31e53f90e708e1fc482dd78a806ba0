@@ -46,6 +46,30 @@
       "revId": "b74e3be67c31e53f90e708e1fc482dd78a806ba0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c47b727_6823064e",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-07-27T20:17:33Z",
+      "side": 1,
+      "message": "in fact It was more a dumb question, regarding those encodings. It is still weird to me to force this here and there.\n\nHowever, I find a better solution.\n\nPopen with universal_newlines\u003dTrue returns outputs in text mode, with python2.6, 2.7 and 3+.\n\nYou just need to add this option and you will be sure to get a str object. With Python3, getpreferredencodings() will be automatically handled for you",
+      "parentUuid": "d1da2adf_e0ff86cd",
+      "range": {
+        "startLine": 198,
+        "startChar": 36,
+        "endLine": 198,
+        "endChar": 41
+      },
+      "revId": "b74e3be67c31e53f90e708e1fc482dd78a806ba0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
