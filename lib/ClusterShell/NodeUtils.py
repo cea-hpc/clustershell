@@ -254,8 +254,10 @@ class UpcallGroupSource(GroupSource):
         Return the group name matching the provided node, using the
         cached value if available.
         """
-        return self._upcall_cache('reverse', self._cache['reverse'], node,
-                                  NODE=node)
+        # Cast node to string as cache key must be hashable
+        node_str = str(node)
+        return self._upcall_cache('reverse', self._cache['reverse'], node_str,
+                                  NODE=node_str)
 
 
 class YAMLGroupLoader(object):
