@@ -16,6 +16,24 @@
       "revId": "392cd1144dfb29f594a861e5a66a9d9797692f91",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f37d240_e4919579",
+        "filename": "tests/TLib.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-07-28T15:00:53Z",
+      "side": 1,
+      "message": "So if you take the tests for Clubak https://review.gerrithub.io/#/c/371421/1/tests/CLIClubakTest.py\nwe use bytes as stdin, same with clush (patch to come)\n\nbut with nodeset (in this same patch), we use text encoded strings",
+      "parentUuid": "4e590717_91a1ca74",
+      "revId": "392cd1144dfb29f594a861e5a66a9d9797692f91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
