@@ -1196,7 +1196,11 @@ class StaticGroupSource(UpcallGroupSource):
         list_upcall = None
         if 'list' in data:
             list_upcall = 'fake_list'
-        UpcallGroupSource.__init__(self, name, "fake_map", all_upcall, list_upcall)
+        reverse_upcall = None
+        if 'reverse' in data:
+            reverse_upcall = 'fake_reverse'
+        UpcallGroupSource.__init__(self, name, "fake_map", all_upcall,
+                                   list_upcall, reverse_upcall)
         self._data = data
 
     def _upcall_read(self, cmdtpl, args=dict()):
@@ -1226,7 +1230,7 @@ class GroupSourceCacheTest(unittest.TestCase):
         self.assertEqual(len(source._cache['map']), 0)
 
     def test_expired_cache(self):
-        """test UpcallGroupSource cache entries expired according to config"""
+        """test UpcallGroupSource expired cache entries"""
         # create custom resolver with default source
         source = StaticGroupSource('cache', {'map': {'a': 'foo1', 'b': 'foo2'} })
         source.cache_time = 0.2
@@ -1235,6 +1239,8 @@ class GroupSourceCacheTest(unittest.TestCase):
         # Populate map cache
         self.assertEqual("foo1", str(NodeSet("@a", resolver=res)))
         self.assertEqual("foo2", str(NodeSet("@b", resolver=res)))
+        # Query one more time to check that cache key is unique
+        self.assertEqual("foo2", str(NodeSet("@b", resolver=res)))
         self.assertEqual(len(source._cache['map']), 2)
 
         # Be sure 0.2 cache time is expired (especially for old Python version)
@@ -1242,6 +1248,30 @@ class GroupSourceCacheTest(unittest.TestCase):
 
         source._data['map']['a'] = 'something_else'
         self.assertEqual('something_else', str(NodeSet("@a", resolver=res)))
+        self.assertEqual(len(source._cache['map']), 2)
+
+    def test_expired_cache_reverse(self):
+        """test UpcallGroupSource expired cache entries (reverse)"""
+        source = StaticGroupSource('cache',
+                                   {'map': {'a': 'foo1', 'b': 'foo2'},
+                                    'reverse': {'foo1': 'a', 'foo2': 'b'} })
+        source.cache_time = 0.2
+        res = GroupResolver(source)
+
+        # Populate reverse cache
+        self.assertEqual("@a", str(NodeSet("foo1", resolver=res).regroup()))
+        self.assertEqual("@b", str(NodeSet("foo2", resolver=res).regroup()))
+        # Query one more time to check that cache key is unique
+        self.assertEqual("@b", str(NodeSet("foo2", resolver=res).regroup()))
+        self.assertEqual(len(source._cache['reverse']), 2)
+
+        # Be sure 0.2 cache time is expired (especially for old Python version)
+        time.sleep(0.25)
+
+        source._data['map']['c'] = 'foo1'
+        source._data['reverse']['foo1'] = 'c'
+        self.assertEqual('@c', NodeSet("foo1", resolver=res).regroup())
+        self.assertEqual(len(source._cache['reverse']), 2)
 
     def test_config_cache_time(self):
         """test group config cache_time options"""

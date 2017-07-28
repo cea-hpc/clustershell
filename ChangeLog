@@ -1,3 +1,7 @@
+2017-07-27 S. Thiell <sthiell@stanford.edu>
+
+	* NodeUtils.py: fix external reverse node group upcall caching issue.
+
 2017-06-27 S. Thiell <sthiell@stanford.edu>
 
 	* CLI/Clush.py: add -n as an alias of --nostdin (#333).
