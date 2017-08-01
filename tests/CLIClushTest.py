@@ -226,7 +226,7 @@ class CLIClushTest_A(unittest.TestCase):
 
     def test_013_stdin(self):
         """test clush (stdin)"""
-        self._clush_t(["-w", HOSTNAME, "sleep 1 && cat"], "ok", self.output_ok)
+        self._clush_t(["-w", HOSTNAME, "sleep 1 && cat"], b"ok", self.output_ok)
 
         s = "%s: ok\n%s: ok\n" % (HOSTNAME, HOSTNAME)
         self._clush_t(["-w", HOSTNAME, "cat"], b"ok\nok", s.encode())

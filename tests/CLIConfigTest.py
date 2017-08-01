@@ -32,7 +32,7 @@ class CLIClushConfigTest(unittest.TestCase):
         """test CLI.Config.ClushConfig (empty)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("\n")
+        f.write(b"\n")
 
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -40,7 +40,6 @@ class CLIClushConfigTest(unittest.TestCase):
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[-1])
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.fanout, 64)
@@ -56,7 +55,7 @@ class CLIClushConfigTest(unittest.TestCase):
         """test CLI.Config.ClushConfig (almost empty)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("[Main]\n")
+        f.write("[Main]\n".encode())
 
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -64,7 +63,6 @@ class CLIClushConfigTest(unittest.TestCase):
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[-1])
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.node_count, True)
@@ -90,7 +88,7 @@ class CLIClushConfigTest(unittest.TestCase):
             verbosity: 1
             #ssh_user: root
             #ssh_path: /usr/bin/ssh
-            #ssh_options: -oStrictHostKeyChecking=no"""))
+            #ssh_options: -oStrictHostKeyChecking=no""").encode())
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -98,9 +96,7 @@ class CLIClushConfigTest(unittest.TestCase):
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         display = Display(options, config)
-        self.assert_(display != None)
         display.vprint(VERB_STD, "test")
         display.vprint(VERB_DEBUG, "shouldn't see this")
         self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
@@ -118,19 +114,19 @@ class CLIClushConfigTest(unittest.TestCase):
         """test CLI.Config.ClushConfig (full)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-[Main]
-fanout: 42
-connect_timeout: 14
-command_timeout: 0
-history_size: 100
-color: auto
-node_count: yes
-verbosity: 1
-ssh_user: root
-ssh_path: /usr/bin/ssh
-ssh_options: -oStrictHostKeyChecking=no
-""")
+        f.write(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            node_count: yes
+            verbosity: 1
+            ssh_user: root
+            ssh_path: /usr/bin/ssh
+            ssh_options: -oStrictHostKeyChecking=no
+            """).encode())
 
         f.flush()
         parser = OptionParser("dummy")
@@ -139,7 +135,6 @@ ssh_options: -oStrictHostKeyChecking=no
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.node_count, True)
@@ -155,19 +150,19 @@ ssh_options: -oStrictHostKeyChecking=no
         """test CLI.Config.ClushConfig (error)"""
 
         f = tempfile.NamedTemporaryFile(prefix='testclushconfig')
-        f.write("""
-[Main]
-fanout: 3.2
-connect_timeout: foo
-command_timeout: bar
-history_size: 100
-color: maybe
-node_count: 3
-verbosity: bar
-ssh_user: root
-ssh_path: /usr/bin/ssh
-ssh_options: -oStrictHostKeyChecking=no
-""")
+        f.write(dedent("""
+            [Main]
+            fanout: 3.2
+            connect_timeout: foo
+            command_timeout: bar
+            history_size: 100
+            color: maybe
+            node_count: 3
+            verbosity: bar
+            ssh_user: root
+            ssh_path: /usr/bin/ssh
+            ssh_options: -oStrictHostKeyChecking=no
+            """).encode())
 
         f.flush()
         parser = OptionParser("dummy")
@@ -176,7 +171,6 @@ ssh_options: -oStrictHostKeyChecking=no
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         try:
             c = config.color
             self.fail("Exception ClushConfigError not raised (color)")
@@ -224,7 +218,7 @@ ssh_options: -oStrictHostKeyChecking=no
             color: auto
             fd_max: %d
             verbosity: 1
-            """ % hard2))
+            """ % hard2).encode())
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -232,9 +226,7 @@ ssh_options: -oStrictHostKeyChecking=no
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         display = Display(options, config)
-        self.assert_(display != None)
 
         # force a lower soft limit
         resource.setrlimit(resource.RLIMIT_NOFILE, (hard2/2, hard))
@@ -258,7 +250,7 @@ ssh_options: -oStrictHostKeyChecking=no
             color: auto
             # Use wrong fd_max value to generate ValueError
             fd_max: -1
-            verbosity: 1"""))
+            verbosity: 1""").encode())
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -292,7 +284,7 @@ ssh_options: -oStrictHostKeyChecking=no
             command_timeout: 0
             history_size: 100
             color: auto
-            verbosity: 1"""))
+            verbosity: 1""").encode())
         f.flush()
         parser = OptionParser("dummy")
         parser.install_config_options()
@@ -303,9 +295,7 @@ ssh_options: -oStrictHostKeyChecking=no
                                         "always", "-d", "-v", "-q", "-o",
                                         "-oSomething"])
         config = ClushConfig(options, filename=f.name)
-        self.assert_(config != None)
         display = Display(options, config)
-        self.assert_(display != None)
         display.vprint(VERB_STD, "test")
         display.vprint(VERB_DEBUG, "test")
         self.assertEqual(config.color, WHENCOLOR_CHOICES[1])
@@ -328,7 +318,6 @@ ssh_options: -oStrictHostKeyChecking=no
         parser.install_connector_options()
         options, _ = parser.parse_args([])
         config = ClushConfig(options)
-        self.assert_(config != None)
 
     def testClushConfigUserOverride(self):
         """test CLI.Config.ClushConfig (XDG_CONFIG_HOME user config)"""
@@ -351,18 +340,18 @@ ssh_options: -oStrictHostKeyChecking=no
             usercfgdir = os.path.join(dname, 'clustershell')
             os.mkdir(usercfgdir)
             cfgfile = open(os.path.join(usercfgdir, 'clush.conf'), 'w')
-            cfgfile.write("""
-[Main]
-fanout: 42
-connect_timeout: 14
-command_timeout: 0
-history_size: 100
-color: never
-verbosity: 2
-ssh_user: trump
-ssh_path: ~/bin/ssh
-ssh_options: -oSomeDummyUserOption=yes
-""")
+            cfgfile.write(dedent("""
+                [Main]
+                fanout: 42
+                connect_timeout: 14
+                command_timeout: 0
+                history_size: 100
+                color: never
+                verbosity: 2
+                ssh_user: trump
+                ssh_path: ~/bin/ssh
+                ssh_options: -oSomeDummyUserOption=yes
+                """))
 
             cfgfile.flush()
             parser = OptionParser("dummy")
