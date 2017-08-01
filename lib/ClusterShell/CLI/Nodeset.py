@@ -102,7 +102,8 @@ def print_source_groups(source, level, xset, opts):
         # groups() method.
         # Note: stdin support is enabled when '-' is found.
         groups = xset.groups(source, opts.groupbase)
-        for group, (gnodes, inodes) in groups.items():
+        # sort by group name
+        for group, (gnodes, inodes) in sorted(groups.items()):
             if level == 1:
                 print(group)
             elif level == 2:

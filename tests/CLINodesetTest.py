@@ -574,19 +574,19 @@ class CLINodesetGroupResolverTest1(CLINodesetTestBase):
         self._nodeset_t(["--list"], None, b"@bar\n@foo\n@moo\n")
         self._nodeset_t(["-ll"], None, b"@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
         self._nodeset_t(["-lll"], None, b"@bar example[1-100] 100\n@foo example[1-100] 100\n@moo example[1-100] 100\n")
-        self._nodeset_t(["-l", "example[4,95]", "example5"], None, b"@moo\n@bar\n@foo\n")
-        self._nodeset_t(["-ll", "example[4,95]", "example5"], None, b"@moo example[4-5,95]\n@bar example[4-5,95]\n@foo example[4-5,95]\n")
-        self._nodeset_t(["-lll", "example[4,95]", "example5"], None, b"@moo example[4-5,95] 3/100\n@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n")
+        self._nodeset_t(["-l", "example[4,95]", "example5"], None, b"@bar\n@foo\n@moo\n")
+        self._nodeset_t(["-ll", "example[4,95]", "example5"], None, b"@bar example[4-5,95]\n@foo example[4-5,95]\n@moo example[4-5,95]\n")
+        self._nodeset_t(["-lll", "example[4,95]", "example5"], None, b"@bar example[4-5,95] 3/100\n@foo example[4-5,95] 3/100\n@moo example[4-5,95] 3/100\n")
         # test empty result
         self._nodeset_t(["-l", "foo[3-70]", "bar6"], None, b"")
         # more arg-mixed tests
-        self._nodeset_t(["-a", "-l"], None, b"@moo\n@bar\n@foo\n")
+        self._nodeset_t(["-a", "-l"], None, b"@bar\n@foo\n@moo\n")
         self._nodeset_t(["-a", "-l", "-x example[1-100]"], None, b"")
-        self._nodeset_t(["-a", "-l", "-x example[1-40]"], None, b"@moo\n@bar\n@foo\n")
+        self._nodeset_t(["-a", "-l", "-x example[1-40]"], None, b"@bar\n@foo\n@moo\n")
         self._nodeset_t(["-l", "-x example3"], None, b"") # no -a, remove from nothing
         self._nodeset_t(["-l", "-i example3"], None, b"") # no -a, intersect from nothing
-        self._nodeset_t(["-l", "-X example3"], None, b"@moo\n@bar\n@foo\n") # no -a, xor from nothing
-        self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", b"@moo\n@bar\n@foo\n")
+        self._nodeset_t(["-l", "-X example3"], None, b"@bar\n@foo\n@moo\n") # no -a, xor from nothing
+        self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", b"@bar\n@foo\n@moo\n")
 
     def test_023_list_all(self):
         """test nodeset --list-all"""
