@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0bf94be2_f503d284",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-01T07:51:32Z",
+      "side": 1,
+      "message": "tests: fix some CLI tests for Python 3 (#337)",
+      "revId": "ed0d312fa0e1e57dc1d9a57b80aa2e038bb3eba5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
