@@ -32,7 +32,7 @@ class TaskThreadSuspendTest(unittest.TestCase):
         w = task.shell("sleep 1 && echo thr0", key=0)
         task.resume()
         self.assertEqual(task.key_buffer(0), b"thr0")
-        self.assertEqual(w.read(), "thr0")
+        self.assertEqual(w.read(), b"thr0")
 
         assert task2 != task
         task2.suspend()

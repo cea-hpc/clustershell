@@ -5,6 +5,7 @@
 
 """Unit test for CLI/Clubak.py"""
 
+import re
 from textwrap import dedent
 import unittest
 
@@ -125,7 +126,8 @@ class CLIClubakTest(unittest.TestCase):
                               foo1:abc
                               """).encode()
         self._clubak_t(["--tree", "-L"], stdin_buf,
-                       b"foo[1-2]:\nbar\nfoo2:\n  m00\n  bla\nfoo1:\n  moo\n  bla\n  abc\n")
+                       re.compile(br"(foo\[1-2\]:\nbar\nfoo2:\n  m00\n  bla\nfoo1:\n  moo\n  bla\n  abc\n"
+                                  br"|foo\[1-2\]:\nbar\nfoo1:\n  moo\n  bla\n  abc\nfoo2:\n  m00\n)"))
         # check conflicting options
         self._clubak_t(["--tree", "--fast"], stdin_buf, b'', 2,
                        b"error: incompatible tree options\n")
