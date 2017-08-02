@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ClusterShell.NodeSet test suite
 # Written by S. Thiell (first version in 2007)
 
@@ -71,7 +72,7 @@ class NodeSetTest(unittest.TestCase):
 
     def testFromListConstructor(self):
         """test NodeSet.fromlist() constructor"""
-        nodeset = NodeSet.fromlist([ "cluster33" ])
+        nodeset = NodeSet.fromlist(["cluster33"])
         self._assertNode(nodeset, "cluster33")
         nodeset = NodeSet.fromlist(["cluster0", "cluster1", "cluster2",
                                     "cluster5", "cluster8", "cluster4",
@@ -140,7 +141,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(list(nodeset), ["cluster0", "cluster1", "cluster2",
                                          "cluster3", "cluster4", "cluster5",
                                          "cluster6", "cluster7", "cluster8",
-                                         "cluster9", "cluster10" ])
+                                         "cluster9", "cluster10"])
         self.assertEqual(len(nodeset), 11)
 
     def testSingle(self):
@@ -222,7 +223,7 @@ class NodeSetTest(unittest.TestCase):
                          ["cluster0001-ipmi", "cluster0002-ipmi",
                           "cluster1555-ipmi", "cluster1556-ipmi",
                           "cluster1557-ipmi", "cluster1558-ipmi",
-                          "cluster1559-ipmi" ])
+                          "cluster1559-ipmi"])
 
     def testVeryBigRange(self):
         """test NodeSet iterations with big range size"""
@@ -555,11 +556,11 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet union | operator using several prefixes"""
         nodeset = NodeSet("cluster3")
         self.assertEqual(str(nodeset), "cluster3")
-        n_test1 = nodeset |  NodeSet("cluster5") 
+        n_test1 = nodeset |  NodeSet("cluster5")
         self.assertEqual(str(n_test1), "cluster[3,5]")
-        n_test2 = n_test1 | NodeSet("tiger5") 
+        n_test2 = n_test1 | NodeSet("tiger5")
         self.assertEqual(str(n_test2), "cluster[3,5],tiger5")
-        n_test1 = n_test2 | NodeSet("tiger7") 
+        n_test1 = n_test2 | NodeSet("tiger7")
         self.assertEqual(str(n_test1), "cluster[3,5],tiger[5,7]")
         n_test2 = n_test1 | NodeSet("tiger6")
         self.assertEqual(str(n_test2), "cluster[3,5],tiger[5-7]")
@@ -1221,7 +1222,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertTrue(nodeset > NodeSet("tronic[0100-0200]"))
         self.assertTrue(nodeset > NodeSet("lounge[36-400/2]"))
         self.assertTrue(nodeset.issuperset(NodeSet("lounge[36-400/2],"
-                                                "tronic[0100-660]")))
+                                                   "tronic[0100-660]")))
         self.assertTrue(nodeset > NodeSet("lounge[36-400/2],tronic[0100-660]"))
 
     def test_issubset(self):
@@ -1388,7 +1389,7 @@ class NodeSetTest(unittest.TestCase):
     def testExpandFunction(self):
         """test NodeSet expand() utility function"""
         self.assertEqual(expand("purple[1-3]"),
-                         [ "purple1", "purple2", "purple3" ])
+                         ["purple1", "purple2", "purple3"])
 
     def testFoldFunction(self):
         """test NodeSet fold() utility function"""
@@ -2563,8 +2564,13 @@ class NodeSetTest(unittest.TestCase):
         """test NodeSet with unicode string"""
         nodeset = NodeSet(u"node1")
         self._assertNode(nodeset, "node1")
-        # not sure about that, can it work if PYTHONIOENCODING is set?
-        self.assertRaises(UnicodeEncodeError, NodeSet, u"\u0ad0[000-042]")
+        if sys.version_info < (3, 0, 0):
+            # unicode cannot work in Python 2 as we use str() internally
+            self.assertRaises(UnicodeEncodeError, NodeSet, u"\u0ad0[000-042]")
+        else:
+            # unicode is supported in Python 3
+            self.assertEqual(str(NodeSet(u"\u0ad0[000-042]")), u"\u0ad0[000-042]")
+            self.assertEqual(str(NodeSet(u"\u0ad0[000-042]")), "ૐ[000-042]")
 
     def test_nd_fold_padding(self):
         """test NodeSet nD heuristic folding with padding"""
