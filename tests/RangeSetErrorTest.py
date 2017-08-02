@@ -25,7 +25,7 @@ class RangeSetErrorTest(unittest.TestCase):
             return
         except:
             raise
-        self.assert_(0, "error not detected/no exception raised")
+        self.assertTrue(False, "error not detected/no exception raised")
 
     def testBadUsages(self):
         """test parse errors"""

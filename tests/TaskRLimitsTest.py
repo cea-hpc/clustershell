@@ -30,11 +30,9 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def _testPopen(self, stderr):
         task = task_self()
-        self.assert_(task != None)
         task.set_info("fanout", 10)
         for i in range(2000):
             worker = task.shell("/bin/hostname", stderr=stderr)
-            self.assert_(worker != None)
         # run task
         task.resume()
 
@@ -48,12 +46,10 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def _testRemote(self, stderr):
         task = task_self()
-        self.assert_(task != None)
         task.set_info("fanout", 10)
         for i in range(400):
             worker = task.shell("/bin/hostname", nodes=HOSTNAME,
                                 stderr=stderr)
-            self.assert_(worker != None)
         # run task
         task.resume()
 
@@ -67,14 +63,12 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def _testRemotePdsh(self, stderr):
         task = task_self()
-        self.assert_(task != None)
         task.set_info("fanout", 10)
         for i in range(200):
             worker = WorkerPdsh(HOSTNAME, handler=None,
                                 timeout=0,
                                 command="/bin/hostname",
                                 stderr=stderr)
-            self.assert_(worker != None)
             task.schedule(worker)
         # run task
         task.resume()

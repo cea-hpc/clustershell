@@ -44,7 +44,7 @@ class TaskPortTest(unittest.TestCase):
         # send msg from main thread
         port.msg("toto")
         task_wait()
-        self.assert_(TaskPortTest.got_msg)
+        self.assertTrue(TaskPortTest.got_msg)
 
     def testPortRemove(self):
         """test remove_port()"""

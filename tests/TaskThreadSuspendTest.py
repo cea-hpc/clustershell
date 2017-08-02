@@ -75,4 +75,4 @@ class TaskThreadSuspendTest(unittest.TestCase):
 
         time.sleep(1)
         task_wait()
-        self.assert_(self.resumed or suspended == False)
+        self.assertTrue(self.resumed or suspended == False)

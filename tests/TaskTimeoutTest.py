@@ -23,10 +23,8 @@ class TaskTimeoutTest(unittest.TestCase):
     def testWorkersTimeoutBuffers(self):
         """test worker buffers with timeout"""
         task = task_self()
-        self.assert_(task != None)
 
         worker = task.shell('echo some buffer; echo here...; sleep 10', timeout=4)
-        self.assert_(worker != None)
 
         task.resume()
         self.assertEqual(worker.read(), b"""some buffer

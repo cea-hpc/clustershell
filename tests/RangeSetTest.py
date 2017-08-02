@@ -315,33 +315,33 @@ class RangeSetTest(unittest.TestCase):
         """test RangeSet.__contains__()"""
         r1 = RangeSet("1-100,102,105-242,800")
         self.assertEqual(len(r1), 240)
-        self.assert_(99 in r1)
-        self.assert_("99" in r1)
-        self.assert_("099" in r1)
+        self.assertTrue(99 in r1)
+        self.assertTrue("99" in r1)
+        self.assertTrue("099" in r1)
         self.assertRaises(TypeError, r1.__contains__, object())
-        self.assert_(101 not in r1)
+        self.assertTrue(101 not in r1)
         self.assertEqual(len(r1), 240)
         r2 = RangeSet("1-100/3,40-60/3", autostep=3)
         self.assertEqual(len(r2), 34)
-        self.assert_(1 in r2)
-        self.assert_(4 in r2)
-        self.assert_(2 not in r2)
-        self.assert_(3 not in r2)
-        self.assert_(40 in r2)
-        self.assert_(101 not in r2)
+        self.assertTrue(1 in r2)
+        self.assertTrue(4 in r2)
+        self.assertTrue(2 not in r2)
+        self.assertTrue(3 not in r2)
+        self.assertTrue(40 in r2)
+        self.assertTrue(101 not in r2)
         r3 = RangeSet("0003-0143,0360-1000")
-        self.assert_(360 in r3)
-        self.assert_("360" in r3)
-        self.assert_("0360" in r3)
+        self.assertTrue(360 in r3)
+        self.assertTrue("360" in r3)
+        self.assertTrue("0360" in r3)
         r4 = RangeSet("00-02")
-        self.assert_("00" in r4)
-        self.assert_(0 in r4)
-        self.assert_("0" in r4)
-        self.assert_("01" in r4)
-        self.assert_(1 in r4)
-        self.assert_("1" in r4)
-        self.assert_("02" in r4)
-        self.assert_(not "03" in r4)
+        self.assertTrue("00" in r4)
+        self.assertTrue(0 in r4)
+        self.assertTrue("0" in r4)
+        self.assertTrue("01" in r4)
+        self.assertTrue(1 in r4)
+        self.assertTrue("1" in r4)
+        self.assertTrue("02" in r4)
+        self.assertFalse("03" in r4)
         #
         r1 = RangeSet("115-117,130,132,166-170,4780-4999")
         self.assertEqual(len(r1), 230)
@@ -776,25 +776,25 @@ class RangeSetTest(unittest.TestCase):
             rg3 = rg1 & rg2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for &")
+        self.assertTrue(good_error, "TypeError not raised for &")
         good_error = False
         try:
             rg3 = rg1 | rg2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for |")
+        self.assertTrue(good_error, "TypeError not raised for |")
         good_error = False
         try:
             rg3 = rg1 - rg2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for -")
+        self.assertTrue(good_error, "TypeError not raised for -")
         good_error = False
         try:
             rg3 = rg1 ^ rg2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for ^")
+        self.assertTrue(good_error, "TypeError not raised for ^")
 
     def testIsSubSetError(self):
         """test RangeSet.issubset() error"""

@@ -28,7 +28,7 @@ class NodeSetErrorTest(unittest.TestCase):
             return
         except:
             raise
-        self.assert_(0, "error not detected/no exception raised [pattern=%s]" % pattern)
+        self.assertTrue(False, "error not detected/no exception raised [pattern=%s]" % pattern)
 
     def testBadRangeUsages(self):
         """test NodeSet parse errors in range"""

@@ -237,7 +237,7 @@ class TaskEventTest(unittest.TestCase):
             eh = AbortOnReadHandler()
             for i in range(10):
                 worker = task.shell("echo ok; sleep 1", handler=eh)
-                self.assert_(worker is not None)
+                self.assertTrue(worker is not None)
                 worker.write(b"OK\n")
             task.resume()
         finally:
