@@ -659,8 +659,8 @@ class NodeSetGroupTest(unittest.TestCase):
             """).encode('ascii'))
         res = GroupResolverConfig(f.name)
         self.assertEqual(len(res.sources()), 2)
-        self.assert_('local' in res.sources())
-        self.assert_('other' in res.sources())
+        self.assertTrue('local' in res.sources())
+        self.assertTrue('other' in res.sources())
 
     def testConfigCrossRefs(self):
         """test groups config with cross references"""

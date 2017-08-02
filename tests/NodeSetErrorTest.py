@@ -21,14 +21,7 @@ from ClusterShell.NodeSet import NodeSetParseRangeError
 class NodeSetErrorTest(unittest.TestCase):
 
     def _testNS(self, pattern, expected_exc):
-        try:
-            nodeset = NodeSet(pattern)
-        except NodeSetParseError as e:
-            self.assertEqual(e.__class__, expected_exc)
-            return
-        except:
-            raise
-        self.assert_(0, "error not detected/no exception raised [pattern=%s]" % pattern)
+        self.assertRaises(expected_exc, NodeSet, pattern)
 
     def testBadRangeUsages(self):
         """test NodeSet parse errors in range"""

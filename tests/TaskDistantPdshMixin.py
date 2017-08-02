@@ -113,8 +113,9 @@ class TaskDistantPdshMixin(object):
                                 handler=None, timeout=10, preserve=True)
             self._task.schedule(worker)
             self._task.resume()
-            self.assert_(os.path.exists(os.path.join(dtmp_dst, \
-                os.path.basename(dtmp_src), "lev1_a", "lev2")))
+            self.assertTrue(os.path.exists(os.path.join(dtmp_dst,
+                                                        os.path.basename(dtmp_src),
+                                                        "lev1_a", "lev2")))
         finally:
             shutil.rmtree(dtmp_dst, ignore_errors=True)
             shutil.rmtree(dtmp_src, ignore_errors=True)
@@ -305,7 +306,7 @@ class TaskDistantPdshMixin(object):
             cnt -= 1
             self.assertEqual(rc, 3)
             self.assertEqual(len(keys), 1)
-            self.assert_(keys[0] == HOSTNAME)
+            self.assertEqual(keys[0], HOSTNAME)
 
         self.assertEqual(cnt, 1)
 
@@ -313,7 +314,7 @@ class TaskDistantPdshMixin(object):
             cnt -= 1
             self.assertEqual(rc, 3)
             self.assertEqual(len(keys), 1)
-            self.assert_(keys[0] == HOSTNAME)
+            self.assertEqual(keys[0], HOSTNAME)
 
         self.assertEqual(cnt, 0)
 
@@ -385,7 +386,6 @@ class TaskDistantPdshMixin(object):
         worker = WorkerPdsh(HOSTNAME, command="sleep 10", handler=None,
                             timeout=None)
         self._task.schedule(worker)
-        self.assert_(worker != None)
         self._task.resume()
         # restore original command_timeout (0)
         self.assertEqual(command_timeout_orig, 0)
@@ -451,7 +451,7 @@ class TaskDistantPdshMixin(object):
             self._task.resume()
             self.assertEqual(worker.source, "/etc/hosts")
             self.assertEqual(worker.dest, dest)
-            self.assert_(os.path.exists(os.path.join(dest, "hosts.%s" % HOSTNAME)))
+            self.assertTrue(os.path.exists(os.path.join(dest, "hosts.%s" % HOSTNAME)))
         finally:
             shutil.rmtree(dest, ignore_errors=True)
 

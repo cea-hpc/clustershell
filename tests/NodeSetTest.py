@@ -1057,9 +1057,9 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet()
         nodeset.add("green[3,5-46],black64,orange[045-148]")
         self.assertEqual(len(nodeset), 148)
-        self.assert_("green5" in nodeset)
-        self.assert_("black64" in nodeset)
-        self.assert_("orange046" in nodeset)
+        self.assertTrue("green5" in nodeset)
+        self.assertTrue("black64" in nodeset)
+        self.assertTrue("orange046" in nodeset)
 
     def testAddAdjust(self):
         """test NodeSet adjusting add()"""
@@ -1090,7 +1090,7 @@ class NodeSetTest(unittest.TestCase):
         nodeset.update("milou36")
         self.assertEqual(len(nodeset), 1)
         self.assertRaises(KeyError, nodeset.remove, "tintin23")
-        self.assert_("milou36" in nodeset)
+        self.assertTrue("milou36" in nodeset)
         nodeset.remove("milou36")
         self.assertEqual(len(nodeset), 0)
         nodeset.update("milou[36-60,76,95],haddock[1-12],tournesol")
@@ -1117,7 +1117,7 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("haddock[16-3045]")
         self.assertEqual(len(nodeset), 3030)
         self.assertRaises(KeyError, nodeset.remove, "haddock15")
-        self.assert_("haddock16" in nodeset)
+        self.assertTrue("haddock16" in nodeset)
         self.assertEqual(len(nodeset), 3030)
         nodeset.remove("haddock[16,18-3044]")
         self.assertEqual(len(nodeset), 2)
@@ -1184,68 +1184,68 @@ class NodeSetTest(unittest.TestCase):
         self.assertTrue(NodeSet("white030") in nodeset)
         # case: nodeset without padding info is compared to a
         # padding-initialized range
-        self.assert_(NodeSet("white113") in nodeset)
-        self.assert_(NodeSet("white[001,113]") in nodeset)
-        self.assert_(NodeSet("gene0113") in NodeSet("gene[001,030,113]"))
-        self.assert_(NodeSet("gene0113") in NodeSet("gene[0001,0030,0113]"))
-        self.assert_(NodeSet("gene0113") in NodeSet("gene[098-113]"))
-        self.assert_(NodeSet("gene0113") in NodeSet("gene[0098-0113]"))
+        self.assertTrue(NodeSet("white113") in nodeset)
+        self.assertTrue(NodeSet("white[001,113]") in nodeset)
+        self.assertTrue(NodeSet("gene0113") in NodeSet("gene[001,030,113]"))
+        self.assertTrue(NodeSet("gene0113") in NodeSet("gene[0001,0030,0113]"))
+        self.assertTrue(NodeSet("gene0113") in NodeSet("gene[098-113]"))
+        self.assertTrue(NodeSet("gene0113") in NodeSet("gene[0098-0113]"))
         # case: len(str(ielem)) >= rgpad
         nodeset = NodeSet("white[001,099]")
         nodeset.add("white100")
         nodeset.add("white1000")
-        self.assert_(NodeSet("white1000") in nodeset)
+        self.assertTrue(NodeSet("white1000") in nodeset)
 
     def test_issuperset(self):
         """test NodeSet issuperset()"""
         nodeset = NodeSet("tronic[0036-1630]")
         self.assertEqual(len(nodeset), 1595)
-        self.assert_(nodeset.issuperset("tronic[0036-1630]"))
-        self.assert_(nodeset.issuperset("tronic[0140-0200]"))
-        self.assert_(nodeset.issuperset(NodeSet("tronic[0140-0200]")))
-        self.assert_(nodeset.issuperset("tronic0070"))
-        self.assert_(not nodeset.issuperset("tronic0034"))
+        self.assertTrue(nodeset.issuperset("tronic[0036-1630]"))
+        self.assertTrue(nodeset.issuperset("tronic[0140-0200]"))
+        self.assertTrue(nodeset.issuperset(NodeSet("tronic[0140-0200]")))
+        self.assertTrue(nodeset.issuperset("tronic0070"))
+        self.assertFalse(nodeset.issuperset("tronic0034"))
         # check padding issue - since 1.6 padding is ignored in this case
-        self.assert_(nodeset.issuperset("tronic36"))
-        self.assert_(nodeset.issuperset("tronic[36-40]"))
-        self.assert_(nodeset.issuperset(NodeSet("tronic[36-40]")))
+        self.assertTrue(nodeset.issuperset("tronic36"))
+        self.assertTrue(nodeset.issuperset("tronic[36-40]"))
+        self.assertTrue(nodeset.issuperset(NodeSet("tronic[36-40]")))
         # check gt
-        self.assert_(nodeset > NodeSet("tronic[0100-0200]"))
-        self.assert_(not nodeset > NodeSet("tronic[0036-1630]"))
-        self.assert_(not nodeset > NodeSet("tronic[0036-1631]"))
-        self.assert_(nodeset >= NodeSet("tronic[0100-0200]"))
-        self.assert_(nodeset >= NodeSet("tronic[0036-1630]"))
-        self.assert_(not nodeset >= NodeSet("tronic[0036-1631]"))
+        self.assertTrue(nodeset > NodeSet("tronic[0100-0200]"))
+        self.assertFalse(nodeset > NodeSet("tronic[0036-1630]"))
+        self.assertFalse(nodeset > NodeSet("tronic[0036-1631]"))
+        self.assertTrue(nodeset >= NodeSet("tronic[0100-0200]"))
+        self.assertTrue(nodeset >= NodeSet("tronic[0036-1630]"))
+        self.assertFalse(nodeset >= NodeSet("tronic[0036-1631]"))
         # multiple patterns case
         nodeset = NodeSet("tronic[0036-1630],lounge[20-660/2]")
-        self.assert_(nodeset > NodeSet("tronic[0100-0200]"))
-        self.assert_(nodeset > NodeSet("lounge[36-400/2]"))
-        self.assert_(nodeset.issuperset(NodeSet("lounge[36-400/2],"
+        self.assertTrue(nodeset > NodeSet("tronic[0100-0200]"))
+        self.assertTrue(nodeset > NodeSet("lounge[36-400/2]"))
+        self.assertTrue(nodeset.issuperset(NodeSet("lounge[36-400/2],"
                                                 "tronic[0100-660]")))
-        self.assert_(nodeset > NodeSet("lounge[36-400/2],tronic[0100-660]"))
+        self.assertTrue(nodeset > NodeSet("lounge[36-400/2],tronic[0100-660]"))
 
     def test_issubset(self):
         """test NodeSet issubset()"""
         nodeset = NodeSet("artcore[3-999]")
         self.assertEqual(len(nodeset), 997)
-        self.assert_(nodeset.issubset("artcore[3-999]"))
-        self.assert_(nodeset.issubset("artcore[1-1000]"))
-        self.assert_(not nodeset.issubset("artcore[350-427]"))
+        self.assertTrue(nodeset.issubset("artcore[3-999]"))
+        self.assertTrue(nodeset.issubset("artcore[1-1000]"))
+        self.assertFalse(nodeset.issubset("artcore[350-427]"))
         # check lt
-        self.assert_(nodeset < NodeSet("artcore[2-32000]"))
-        self.assert_(nodeset < NodeSet("artcore[2-32000],lounge[35-65/2]"))
-        self.assert_(not nodeset < NodeSet("artcore[3-999]"))
-        self.assert_(not nodeset < NodeSet("artcore[3-980]"))
-        self.assert_(not nodeset < NodeSet("artcore[2-998]"))
-        self.assert_(nodeset <= NodeSet("artcore[2-32000]"))
-        self.assert_(nodeset <= NodeSet("artcore[2-32000],lounge[35-65/2]"))
-        self.assert_(nodeset <= NodeSet("artcore[3-999]"))
-        self.assert_(not nodeset <= NodeSet("artcore[3-980]"))
-        self.assert_(not nodeset <= NodeSet("artcore[2-998]"))
+        self.assertTrue(nodeset < NodeSet("artcore[2-32000]"))
+        self.assertTrue(nodeset < NodeSet("artcore[2-32000],lounge[35-65/2]"))
+        self.assertFalse(nodeset < NodeSet("artcore[3-999]"))
+        self.assertFalse(nodeset < NodeSet("artcore[3-980]"))
+        self.assertFalse(nodeset < NodeSet("artcore[2-998]"))
+        self.assertTrue(nodeset <= NodeSet("artcore[2-32000]"))
+        self.assertTrue(nodeset <= NodeSet("artcore[2-32000],lounge[35-65/2]"))
+        self.assertTrue(nodeset <= NodeSet("artcore[3-999]"))
+        self.assertFalse(nodeset <= NodeSet("artcore[3-980]"))
+        self.assertFalse(nodeset <= NodeSet("artcore[2-998]"))
         self.assertEqual(len(nodeset), 997)
         # check padding issue - since 1.6 padding is ignored in this case
-        self.assert_(nodeset.issubset("artcore[0001-1000]"))
-        self.assert_(not nodeset.issubset("artcore030"))
+        self.assertTrue(nodeset.issubset("artcore[0001-1000]"))
+        self.assertFalse(nodeset.issubset("artcore030"))
         # multiple patterns case
         nodeset = NodeSet("tronic[0036-1630],lounge[20-660/2]")
         self.assertTrue(nodeset
@@ -1359,25 +1359,25 @@ class NodeSetTest(unittest.TestCase):
             ns3 = ns1 & ns2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for &")
+        self.assertTrue(good_error, "TypeError not raised for &")
         good_error = False
         try:
             ns3 = ns1 | ns2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for |")
+        self.assertTrue(good_error, "TypeError not raised for |")
         good_error = False
         try:
             ns3 = ns1 - ns2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for -")
+        self.assertTrue(good_error, "TypeError not raised for -")
         good_error = False
         try:
             ns3 = ns1 ^ ns2
         except TypeError:
             good_error = True
-        self.assert_(good_error, "TypeError not raised for ^")
+        self.assertTrue(good_error, "TypeError not raised for ^")
 
     def testIsSubSetError(self):
         """test NodeSet issubset type error"""

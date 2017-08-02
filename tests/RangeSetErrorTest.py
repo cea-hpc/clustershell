@@ -17,15 +17,8 @@ from ClusterShell.NodeSet import RangeSetParseError
 
 class RangeSetErrorTest(unittest.TestCase):
 
-    def _testRS(self, r, exc):
-        try:
-            rset = RangeSet(r)
-        except RangeSetParseError as e:
-            self.assertEqual(RangeSetParseError, exc)
-            return
-        except:
-            raise
-        self.assert_(0, "error not detected/no exception raised")
+    def _testRS(self, pattern, expected_exc):
+        self.assertRaises(expected_exc, RangeSet, pattern)
 
     def testBadUsages(self):
         """test parse errors"""
