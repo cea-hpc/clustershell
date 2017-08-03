@@ -1025,6 +1025,8 @@ class Task(object):
         Add a worker return code (rc) that is coming from a node of a
         worker instance.
         """
+        assert rc is not None
+
         source = (worker, node)
 
         # store rc by source
@@ -1186,7 +1188,7 @@ class Task(object):
         Get max return code encountered during last run
             or None in the following cases:
                 - all commands timed out,
-                - no command was executed.
+                - no command-based worker was executed.
 
         How retcodes work
         =================
@@ -1233,7 +1235,8 @@ class Task(object):
 
     def iter_retcodes(self, match_keys=None):
         """
-        Iterate over return codes, returns a tuple (rc, keys).
+        Iterate over return codes of command-based workers, returns a
+        tuple (rc, keys).
 
         Optional parameter match_keys add filtering on these keys.
 

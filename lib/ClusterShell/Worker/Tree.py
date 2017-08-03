@@ -83,7 +83,7 @@ class MetaWorkerEventHandler(EventHandler):
         """
         Called to indicate that a worker's connection has been closed.
         """
-        self.metaworker._on_node_rc(worker.current_node, worker.current_rc)
+        self.metaworker._on_node_close(worker.current_node, worker.current_rc)
 
     def ev_timeout(self, worker):
         """
@@ -397,10 +397,10 @@ class WorkerTree(DistantWorker):
         # keep trailing encoded chars for next time
         self._rcopy_bufs[node] = encoded[encoded_sz:]
 
-    def _on_remote_node_rc(self, node, rc, gateway):
-        """remote rc received"""
-        DistantWorker._on_node_rc(self, node, rc)
-        self.logger.debug("_on_remote_node_rc %s %s via gw %s", node,
+    def _on_remote_node_close(self, node, rc, gateway):
+        """remote node closing with return code"""
+        DistantWorker._on_node_close(self, node, rc)
+        self.logger.debug("_on_remote_node_close %s %s via gw %s", node,
                           self._close_count, gateway)
 
         # finalize rcopy: extract tar data
@@ -442,9 +442,10 @@ class WorkerTree(DistantWorker):
         self.gwtargets[gateway].remove(node)
         self._check_fini(gateway)
 
-    def _on_node_rc(self, node, rc):
-        DistantWorker._on_node_rc(self, node, rc)
-        self.logger.debug("_on_node_rc %s %s (%s)", node, rc, self._close_count)
+    def _on_node_close(self, node, rc):
+        DistantWorker._on_node_close(self, node, rc)
+        self.logger.debug("_on_node_close %s %s (%s)", node, rc,
+                          self._close_count)
         self._close_count += 1
 
     def _on_node_timeout(self, node):
