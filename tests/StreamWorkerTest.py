@@ -5,6 +5,7 @@ import os
 import unittest
 
 from ClusterShell.Worker.Worker import StreamWorker, WorkerError
+from ClusterShell.Worker.Exec import ExecWorker
 from ClusterShell.Task import task_self
 from ClusterShell.Event import EventHandler
 
@@ -130,6 +131,7 @@ class StreamTest(unittest.TestCase):
         # check pickup/hup
         self.assertEqual(hdlr.hup_count, 1)
         self.assertEqual(hdlr.pickup_count, 1)
+        self.assertTrue(task_self().max_retcode() is None)
 
     def test_004_timeout_on_open_stream(self):
         """test StreamWorker with timeout set on open stream"""
@@ -297,3 +299,37 @@ class StreamTest(unittest.TestCase):
         self.run_worker(worker)
         self.assertEqual(hdlr.check_hup, 1)
         self.assertEqual(hdlr.check_written, 1)
+
+    def test_009_mixed_worker_retcodes(self):
+        """test StreamWorker retcode handling"""
+        # This test case failed with CS <= 1.7.3
+        # Conditions: task.max_retcode() set during runtime (not None)
+        # and then a StreamWorker closing, thus calling Task._set_rc(rc=None)
+        # To reproduce, we start a StreamWorker on first read of a ExecWorker.
+
+        class TestH(EventHandler):
+            def __init__(self, worker2):
+                self.worker2 = worker2
+
+            def ev_read(self, worker):
+                worker.task.schedule(self.worker2)
+
+        worker2 = StreamWorker(handler=None)
+        worker1 = ExecWorker(nodes='localhost', handler=TestH(worker2),
+                             command="echo ok")
+
+        # Create pipe stream
+        rfd1, wfd1 = os.pipe()
+        worker2.set_reader("pipe1", rfd1, closefd=False)
+        # Write some chars without line break (worst case)
+        os.write(wfd1, b"Some data")
+        os.close(wfd1)
+
+        # Need to enable pipe1_msgtree
+        task_self().set_default("pipe1_msgtree", True)
+        self.run_worker(worker1)
+
+        self.assertEqual(worker1.node_buffer('localhost'), b"ok")
+        self.assertEqual(worker1.node_retcode('localhost'), 0)
+        self.assertEqual(worker2.read(sname="pipe1"), b"Some data")
+        self.assertEqual(task_self().max_retcode(), 0)

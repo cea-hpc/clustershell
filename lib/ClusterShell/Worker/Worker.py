@@ -147,7 +147,10 @@ class Worker(object):
         self.current_node = key
         self.current_rc = rc
 
-        self.task._rc_set(self, key, rc)
+        # rc may be None here for example when called from StreamClient
+        # Only update task if rc is not None.
+        if rc is not None:
+            self.task._rc_set(self, key, rc)
 
         if self.eh:
             self.eh.ev_hup(self)
@@ -672,7 +675,10 @@ class WorkerSimple(StreamWorker):
         """Command return code received."""
         self.current_rc = rc
 
-        self.task._rc_set(self, key, rc)
+        # rc may be None here for example when called from StreamClient
+        # Only update task if rc is not None.
+        if rc is not None:
+            self.task._rc_set(self, key, rc)
 
         if self.eh:
             self.eh.ev_hup(self)

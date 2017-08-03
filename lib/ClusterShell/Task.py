@@ -1025,6 +1025,8 @@ class Task(object):
         Add a worker return code (rc) that is coming from a node of a
         worker instance.
         """
+        assert rc is not None, "Internal error (rc is None)"
+
         source = (worker, node)
 
         # store rc by source
