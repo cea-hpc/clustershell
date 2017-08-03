@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e583673_6caec592",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T06:59:07Z",
+      "side": 1,
+      "message": "this looks like assertRaises ?",
+      "revId": "f7fd1f79d6b45d51254d73e08033bc9893f11dc6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "306990bf_5a54ed68",
+        "filename": "tests/NodeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T06:59:07Z",
+      "side": 1,
+      "message": ":)\n\n self.fail(\"error ...\")",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 30
+      },
+      "revId": "f7fd1f79d6b45d51254d73e08033bc9893f11dc6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5b9a2d4_b4b89f6d",
+        "filename": "tests/RangeSetErrorTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T06:59:07Z",
+      "side": 1,
+      "message": "same comment than for _testNS",
+      "revId": "f7fd1f79d6b45d51254d73e08033bc9893f11dc6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
