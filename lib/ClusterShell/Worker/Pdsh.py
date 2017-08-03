@@ -103,7 +103,7 @@ class PdshClient(ExecClient):
                 self.worker._on_node_timeout(node)
         else:
             for node in (self.key - self._closed_nodes):
-                self.worker._on_node_rc(node, 0)
+                self.worker._on_node_close(node, 0)
 
         self.worker._check_fini()
 
@@ -137,11 +137,11 @@ class PdshClient(ExecClient):
                          words[7].isdigit():
                         nodename = words[1][:-1].decode()
                         self._closed_nodes.add(nodename)
-                        self.worker._on_node_rc(nodename, int(words[7]))
+                        self.worker._on_node_close(nodename, int(words[7]))
                 elif self.MODE == 'pdcp':
                     nodename = words[1][:-1].decode()
                     self._closed_nodes.add(nodename)
-                    self.worker._on_node_rc(nodename, errno.ENOENT)
+                    self.worker._on_node_close(nodename, errno.ENOENT)
 
             except Exception as exc:
                 raise EngineClientError("Pdsh parser error: %s" % exc)

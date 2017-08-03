@@ -362,7 +362,7 @@ class PropagationChannel(Channel):
             elif msg.type == RetcodeMessage.ident:
                 rc = msg.retcode
                 for node in NodeSet(msg.nodes):
-                    metaworker._on_remote_node_rc(node, rc, self.gateway)
+                    metaworker._on_remote_node_close(node, rc, self.gateway)
             elif msg.type == TimeoutMessage.ident:
                 self.logger.debug("TimeoutMessage for %s", msg.nodes)
                 for node in NodeSet(msg.nodes):
