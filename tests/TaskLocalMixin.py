@@ -20,7 +20,7 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Exec import ExecWorker
-from ClusterShell.Worker.Worker import WorkerSimple, WorkerError
+from ClusterShell.Worker.Worker import StreamWorker, WorkerSimple, WorkerError
 from ClusterShell.Worker.Worker import WorkerBadArgumentError
 from ClusterShell.Worker.Worker import FANOUT_UNLIMITED
 
@@ -1035,3 +1035,39 @@ class TaskLocalMixin(object):
         task.resume()
         # same thing with run()
         task.run("cat", stdin=False)
+
+    def test_mixed_worker_retcodes(self):
+        """test Task retcode handling with mixed workers"""
+
+        # This test case failed with CS <= 1.7.3
+        # Conditions: task.max_retcode() set during runtime (not None)
+        # and then a StreamWorker closing, thus calling Task._set_rc(rc=None)
+        # To reproduce, we start a StreamWorker on first read of a ExecWorker.
+
+        class TestH(EventHandler):
+            def __init__(self, worker2):
+                self.worker2 = worker2
+
+            def ev_read(self, worker):
+                worker.task.schedule(self.worker2)
+
+        worker2 = StreamWorker(handler=None)
+        worker1 = ExecWorker(nodes='localhost', handler=TestH(worker2),
+                             command="echo ok")
+
+        # Create pipe stream
+        rfd1, wfd1 = os.pipe()
+        worker2.set_reader("pipe1", rfd1, closefd=False)
+        os.write(wfd1, b"test\n")
+        os.close(wfd1)
+
+        # Enable pipe1_msgtree
+        task_self().set_default("pipe1_msgtree", True)
+
+        task_self().schedule(worker1)
+        task_self().run()
+
+        self.assertEqual(worker1.node_buffer('localhost'), b"ok")
+        self.assertEqual(worker1.node_retcode('localhost'), 0)
+        self.assertEqual(worker2.read(sname="pipe1"), b"test")
+        self.assertEqual(task_self().max_retcode(), 0)

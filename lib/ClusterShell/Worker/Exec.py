@@ -129,13 +129,13 @@ class ExecClient(EngineClient):
         self.streams.clear()
 
         if prc >= 0:
-            self._on_nodeset_rc(self.key, prc)
+            self._on_nodeset_close(self.key, prc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
             self.worker._on_node_timeout(self.key)
         elif not abort:
             # if process was signaled, return 128 + signum (bash-like)
-            self._on_nodeset_rc(self.key, 128 + -prc)
+            self._on_nodeset_close(self.key, 128 + -prc)
 
         self.worker._check_fini()
 
@@ -147,13 +147,13 @@ class ExecClient(EngineClient):
         else:
             self.worker._on_start(nodes)
 
-    def _on_nodeset_rc(self, nodes, rc):
+    def _on_nodeset_close(self, nodes, rc):
         """local wrapper over _on_node_rc that can also handle nodeset"""
         if isinstance(nodes, NodeSet):
             for node in nodes:
-                self.worker._on_node_rc(node, rc)
+                self.worker._on_node_close(node, rc)
         else:
-            self.worker._on_node_rc(nodes, rc)
+            self.worker._on_node_close(nodes, rc)
 
     def _on_nodeset_msgline(self, nodes, msg, sname):
         """local wrapper over _on_node_msgline that can also handle nodeset"""

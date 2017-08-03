@@ -130,6 +130,7 @@ class StreamTest(unittest.TestCase):
         # check pickup/hup
         self.assertEqual(hdlr.hup_count, 1)
         self.assertEqual(hdlr.pickup_count, 1)
+        self.assertTrue(task_self().max_retcode() is None)
 
     def test_004_timeout_on_open_stream(self):
         """test StreamWorker with timeout set on open stream"""

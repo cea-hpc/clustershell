@@ -142,12 +142,15 @@ class Worker(object):
         if self.eh:
             self.eh.ev_pickup(self)
 
-    def _on_rc(self, key, rc):
-        """Command return code received."""
+    def _on_close(self, key, rc=None):
+        """Called to generate events when the Worker is closing."""
         self.current_node = key
         self.current_rc = rc
 
-        self.task._rc_set(self, key, rc)
+        # rc may be None here for example when called from StreamClient
+        # Only update task if rc is not None.
+        if rc is not None:
+            self.task._rc_set(self, key, rc)
 
         if self.eh:
             self.eh.ev_hup(self)
@@ -243,9 +246,9 @@ class DistantWorker(Worker):
             if handler is not None:
                 handler.ev_read(self)
 
-    def _on_node_rc(self, node, rc):
+    def _on_node_close(self, node, rc):
         """Command return code received."""
-        Worker._on_rc(self, node, rc)
+        Worker._on_close(self, node, rc)
 
     def _on_node_timeout(self, node):
         """Update on node timeout."""
@@ -409,8 +412,9 @@ class StreamClient(EngineClient):
         if timeout:
             assert abort, "abort flag not set on timeout"
             self.worker._on_timeout(self.key)
+
         # return code not available
-        self.worker._on_rc(self.key, None)
+        self.worker._on_close(self.key)
 
         if self.worker.eh:
             self.worker.eh.ev_close(self.worker)
@@ -668,11 +672,14 @@ class WorkerSimple(StreamWorker):
         if self.eh:
             self.eh.ev_pickup(self)
 
-    def _on_rc(self, key, rc):
-        """Command return code received."""
+    def _on_close(self, key, rc=None):
+        """Called to generate events when the Worker is closing."""
         self.current_rc = rc
 
-        self.task._rc_set(self, key, rc)
+        # rc may be None here for example when called from StreamClient
+        # Only update task if rc is not None.
+        if rc is not None:
+            self.task._rc_set(self, key, rc)
 
         if self.eh:
             self.eh.ev_hup(self)
