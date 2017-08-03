@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e22c0d35_44cd4f9d",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1028,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T07:56:12Z",
+      "side": 1,
+      "message": "not very useful message compared to \"assertion failed: rc is not None\" ^^\n\nI think we just do not need a text message here. assert is enough",
+      "range": {
+        "startLine": 1028,
+        "startChar": 29,
+        "endLine": 1028,
+        "endChar": 60
+      },
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21abd141_98766e42",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1039,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T07:56:12Z",
+      "side": 1,
+      "message": "I\u0027m afraid of side effect of skipping this for rc\u003dNone, when all of this could have been fix with\n\n if self._max_rc is None or (rc is not None and rc \u003e self._max_rc):\n   self._max_rc \u003d rc",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dda51ed_fbee168d",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T07:56:12Z",
+      "side": 1,
+      "message": "I think we need to change its name as it is now not intended to be called only when a return code is received\n\n def _on_end(self, key, rc\u003dNone):",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f0742bd_7557b867",
+        "filename": "tests/StreamWorkerTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-03T07:56:12Z",
+      "side": 1,
+      "message": "this is more a test for Task rather than StreamWorker ?",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
