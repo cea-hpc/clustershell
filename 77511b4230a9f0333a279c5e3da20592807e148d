@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5739c867_e7a22e63",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1028,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-04T17:39:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e22c0d35_44cd4f9d",
+      "range": {
+        "startLine": 1028,
+        "startChar": 29,
+        "endLine": 1028,
+        "endChar": 60
+      },
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21abd141_98766e42",
         "filename": "lib/ClusterShell/Task.py",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2017-08-03T07:56:12Z",
       "side": 1,
       "message": "I\u0027m afraid of side effect of skipping this for rc\u003dNone, when all of this could have been fix with\n\n if self._max_rc is None or (rc is not None and rc \u003e self._max_rc):\n   self._max_rc \u003d rc",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fab59a25_c9281549",
+        "filename": "lib/ClusterShell/Task.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1039,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-04T17:39:41Z",
+      "side": 1,
+      "message": "That\u0027s no enough I think. We shouldn\u0027t add None in _d_source_rc nor _d_rc_sources, that is why we shouldn\u0027t call this method at all.",
+      "parentUuid": "21abd141_98766e42",
       "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -59,6 +101,47 @@
     },
     {
       "key": {
+        "uuid": "1873786c_afd54c99",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-04T17:39:41Z",
+      "side": 1,
+      "message": "excellent idea to avoid confusion!!\n\nI propose to use _on_close(self, key, rc\u003dNone) rather than _on_end(), let me know what you think",
+      "parentUuid": "4dda51ed_fbee168d",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ec3ba9c_0a578006",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-04T17:39:41Z",
+      "side": 1,
+      "message": "btw we still have this code  in WorkerSimple that is almost the same as in Worker methods... but not setting current_node.\n\nOne day we should fix this, but not in this patch of course... maybe the fix will be to remove WorkerSimple, I don\u0027t remember exactly what we said about that right now :)",
+      "range": {
+        "startLine": 674,
+        "startChar": 4,
+        "endLine": 689,
+        "endChar": 34
+      },
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f0742bd_7557b867",
         "filename": "tests/StreamWorkerTest.py",
         "patchSetId": 1
@@ -70,6 +153,24 @@
       "writtenOn": "2017-08-03T07:56:12Z",
       "side": 1,
       "message": "this is more a test for Task rather than StreamWorker ?",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f773857_7ae8a89b",
+        "filename": "tests/StreamWorkerTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-04T17:39:41Z",
+      "side": 1,
+      "message": "I first wrote the test without the need of ExecWorker that I added later...  ExecWorker is actually needed to reproduce the error... so yes, I can move this test to Task tests!\n\nDone",
+      "parentUuid": "8f0742bd_7557b867",
       "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
