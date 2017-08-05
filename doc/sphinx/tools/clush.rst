@@ -270,6 +270,21 @@ gateway. That is, if the *fanout* is **16**, each gateway will initate up to
    command on the cluster. In tree mode, please note that in that case, each
    gateway will be able to run a command at the same time.
 
+Remote Python executable
+""""""""""""""""""""""""
+
+You must use the same major version of Python on the gateways and the root
+node. By default, the same python executable name than the one used on the
+root node will be used to launch the gateways, that is, `python` or `python3`
+(using relative path for added flexibility). You may override the selection
+of the remote Python interpreter by defining the following environment
+variable::
+
+    $ export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=/path/to/python3
+
+.. note:: It is highly recommended to have the same Python interpeter
+   installed on all gateways and the root node.
+
 Debugging Tree mode
 """""""""""""""""""
 

@@ -27,6 +27,7 @@ import base64
 import logging
 import os
 from os.path import basename, dirname, isfile, normpath
+import sys
 import tarfile
 import tempfile
 
@@ -175,7 +176,15 @@ class WorkerTree(DistantWorker):
             envval = os.getenv(envname)
             if envval:
                 invoke_gw_args.append("%s=%s" % (envname, envval))
-        invoke_gw_args.append("python -m ClusterShell/Gateway -Bu")
+
+        # It is critical to launch a remote Python executable with the same
+        # major version (ie. python or python3) as we use the (default) pickle
+        # protocol and for example, version 3+ (Python 3 with bytes
+        # support) cannot be unpickled by Python 2.
+        python_executable = os.getenv('CLUSTERSHELL_GW_PYTHON_EXECUTABLE',
+                                      basename(sys.executable or 'python'))
+        invoke_gw_args.append(python_executable)
+        invoke_gw_args.extend(['-m', 'ClusterShell.Gateway', '-Bu'])
         self.invoke_gateway = ' '.join(invoke_gw_args)
 
         self.topology = kwargs.get('topology')
