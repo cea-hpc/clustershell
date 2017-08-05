@@ -5,9 +5,7 @@
 
 """Unit test for Topology"""
 
-import copy
 import sys
-import time
 import unittest
 import tempfile
 
@@ -169,13 +167,13 @@ class TopologyTest(unittest.TestCase):
         # is a valid topology!!
         # ----------
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('[routes]\n')
-        tmpfile.write('admin0: nodes[0-1]\n')
-        #tmpfile.write('admin1: nodes[0-1]\n')
-        tmpfile.write('admin2: nodes[2-3]\n')
-        #tmpfile.write('admin3: nodes[2-3]\n')
-        tmpfile.write('nodes[0-1]: nodes[10-19]\n')
-        tmpfile.write('nodes[2-3]: nodes[20-29]\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'admin0: nodes[0-1]\n')
+        #tmpfile.write(b'admin1: nodes[0-1]\n')
+        tmpfile.write(b'admin2: nodes[2-3]\n')
+        #tmpfile.write(b'admin3: nodes[2-3]\n')
+        tmpfile.write(b'nodes[0-1]: nodes[10-19]\n')
+        tmpfile.write(b'nodes[2-3]: nodes[20-29]\n')
         tmpfile.flush()
         parser = TopologyParser(tmpfile.name)
 
@@ -185,7 +183,7 @@ class TopologyTest(unittest.TestCase):
         self.assertEqual(tree.inner_node_count(), 3)
         self.assertEqual(tree.leaf_node_count(), 10)
         for nodegroup in tree:
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testTopologyGraphBigGroups(self):
@@ -204,14 +202,15 @@ class TopologyTest(unittest.TestCase):
     def testNodeString(self):
         """test loading a linear string topology"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('[routes]\n')
+        tmpfile.write(b'[routes]\n')
 
         # TODO : increase the size
         ns = NodeSet('node[0-10]')
 
         prev = 'admin'
         for n in ns:
-            tmpfile.write('%s: %s\n' % (prev, str(n)))
+            line = '%s: %s\n' % (prev, str(n))
+            tmpfile.write(line.encode())
             prev = n
         tmpfile.flush()
         parser = TopologyParser(tmpfile.name)
@@ -227,11 +226,11 @@ class TopologyTest(unittest.TestCase):
     def testConfigurationParser(self):
         """test configuration parsing"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[routes]\n')
-        tmpfile.write('admin: nodes[0-1]\n')
-        tmpfile.write('nodes[0-1]: nodes[2-5]\n')
-        tmpfile.write('nodes[4-5]: nodes[6-9]\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'admin: nodes[0-1]\n')
+        tmpfile.write(b'nodes[0-1]: nodes[2-5]\n')
+        tmpfile.write(b'nodes[4-5]: nodes[6-9]\n')
         tmpfile.flush()
         parser = TopologyParser(tmpfile.name)
 
@@ -239,17 +238,17 @@ class TopologyTest(unittest.TestCase):
         ns_all = NodeSet('admin,nodes[0-9]')
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testConfigurationParserCompatMain(self):
         """test configuration parsing (Main section compat)"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[Main]\n')
-        tmpfile.write('admin: nodes[0-1]\n')
-        tmpfile.write('nodes[0-1]: nodes[2-5]\n')
-        tmpfile.write('nodes[4-5]: nodes[6-9]\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[Main]\n')
+        tmpfile.write(b'admin: nodes[0-1]\n')
+        tmpfile.write(b'nodes[0-1]: nodes[2-5]\n')
+        tmpfile.write(b'nodes[4-5]: nodes[6-9]\n')
         tmpfile.flush()
         parser = TopologyParser(tmpfile.name)
 
@@ -257,17 +256,17 @@ class TopologyTest(unittest.TestCase):
         ns_all = NodeSet('admin,nodes[0-9]')
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testConfigurationShortSyntax(self):
         """test short topology specification syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[routes]\n')
-        tmpfile.write('admin: nodes[0-9]\n')
-        tmpfile.write('nodes[0-3,5]: nodes[10-19]\n')
-        tmpfile.write('nodes[4,6-9]: nodes[30-39]\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'admin: nodes[0-9]\n')
+        tmpfile.write(b'nodes[0-3,5]: nodes[10-19]\n')
+        tmpfile.write(b'nodes[4,6-9]: nodes[30-39]\n')
         tmpfile.flush()
         parser = TopologyParser()
         parser.load(tmpfile.name)
@@ -275,22 +274,22 @@ class TopologyTest(unittest.TestCase):
         ns_all = NodeSet('admin,nodes[0-19,30-39]')
         ns_tree = NodeSet()
         for nodegroup in parser.tree('admin'):
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testConfigurationLongSyntax(self):
         """test detailed topology description syntax"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[routes]\n')
-        tmpfile.write('admin: proxy\n')
-        tmpfile.write('proxy: STA[0-1]\n')
-        tmpfile.write('STA0: STB[0-1]\n')
-        tmpfile.write('STB0: nodes[0-2]\n')
-        tmpfile.write('STB1: nodes[3-5]\n')
-        tmpfile.write('STA1: STB[2-3]\n')
-        tmpfile.write('STB2: nodes[6-7]\n')
-        tmpfile.write('STB3: nodes[8-10]\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'admin: proxy\n')
+        tmpfile.write(b'proxy: STA[0-1]\n')
+        tmpfile.write(b'STA0: STB[0-1]\n')
+        tmpfile.write(b'STB0: nodes[0-2]\n')
+        tmpfile.write(b'STB1: nodes[3-5]\n')
+        tmpfile.write(b'STA1: STB[2-3]\n')
+        tmpfile.write(b'STB2: nodes[6-7]\n')
+        tmpfile.write(b'STB3: nodes[8-10]\n')
 
         tmpfile.flush()
         parser = TopologyParser()
@@ -302,20 +301,20 @@ class TopologyTest(unittest.TestCase):
         self.assertEqual(tree.inner_node_count(), 8)
         self.assertEqual(tree.leaf_node_count(), 11)
         for nodegroup in tree:
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testConfigurationParserDeepTree(self):
         """test a configuration that generates a deep tree"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[routes]\n')
-        tmpfile.write('admin: nodes[0-9]\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'admin: nodes[0-9]\n')
 
         levels = 15 # how deep do you want the tree to be?
         for i in range(0, levels*10, 10):
             line = 'nodes[%d-%d]: nodes[%d-%d]\n' % (i, i+9, i+10, i+19)
-            tmpfile.write(line)
+            tmpfile.write(line.encode())
         tmpfile.flush()
         parser = TopologyParser()
         parser.load(tmpfile.name)
@@ -326,17 +325,17 @@ class TopologyTest(unittest.TestCase):
         self.assertEqual(tree.inner_node_count(), 151)
         self.assertEqual(tree.leaf_node_count(), 10)
         for nodegroup in tree:
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testConfigurationParserBigTree(self):
         """test configuration parser against big propagation tree"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[routes]\n')
-        tmpfile.write('admin: ST[0-4]\n')
-        tmpfile.write('ST[0-4]: STA[0-49]\n')
-        tmpfile.write('STA[0-49]: nodes[0-10000]\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'admin: ST[0-4]\n')
+        tmpfile.write(b'ST[0-4]: STA[0-49]\n')
+        tmpfile.write(b'STA[0-49]: nodes[0-10000]\n')
         tmpfile.flush()
         parser = TopologyParser()
         parser.load(tmpfile.name)
@@ -347,18 +346,18 @@ class TopologyTest(unittest.TestCase):
         self.assertEqual(tree.inner_node_count(), 56)
         self.assertEqual(tree.leaf_node_count(), 10001)
         for nodegroup in tree:
-           ns_tree.add(nodegroup.nodeset)
+            ns_tree.add(nodegroup.nodeset)
         self.assertEqual(str(ns_all), str(ns_tree))
 
     def testConfigurationParserConvergentPaths(self):
         """convergent paths detection"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('# this is a comment\n')
-        tmpfile.write('[routes]\n')
-        tmpfile.write('fortoy32: fortoy[33-34]\n')
-        tmpfile.write('fortoy33: fortoy35\n')
-        tmpfile.write('fortoy34: fortoy36\n')
-        tmpfile.write('fortoy[35-36]: fortoy37\n')
+        tmpfile.write(b'# this is a comment\n')
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'fortoy32: fortoy[33-34]\n')
+        tmpfile.write(b'fortoy33: fortoy35\n')
+        tmpfile.write(b'fortoy34: fortoy36\n')
+        tmpfile.write(b'fortoy[35-36]: fortoy37\n')
 
         tmpfile.flush()
         parser = TopologyParser()
@@ -367,11 +366,10 @@ class TopologyTest(unittest.TestCase):
     def testPrintingTree(self):
         """test printing tree"""
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write('[routes]\n')
-        tmpfile.write('n0: n[1-2]\n')
-        tmpfile.write('n1: n[10-49]\n')
-        tmpfile.write('n2: n[50-89]\n')
-
+        tmpfile.write(b'[routes]\n')
+        tmpfile.write(b'n0: n[1-2]\n')
+        tmpfile.write(b'n1: n[10-49]\n')
+        tmpfile.write(b'n2: n[50-89]\n')
         tmpfile.flush()
         parser = TopologyParser()
         parser.load(tmpfile.name)
@@ -386,9 +384,10 @@ class TopologyTest(unittest.TestCase):
         # |_ n2
         #    |_ n[50-89]
         # ---------------------------
-        display_ref = 'n0\n|- n1\n|  `- n[10-49]\n`- n2\n   `- n[50-89]\n'
+        display_ref1 = 'n0\n|- n1\n|  `- n[10-49]\n`- n2\n   `- n[50-89]\n'
+        display_ref2 = 'n0\n|- n2\n|  `- n[50-89]\n`- n1\n   `- n[10-49]\n'
         display = str(tree)
-        self.assertEquals(display, display_ref)
+        self.assertTrue(display == display_ref1 or display == display_ref2)
 
         self.assertEquals(str(TopologyTree()), '<TopologyTree instance (empty)>')
 

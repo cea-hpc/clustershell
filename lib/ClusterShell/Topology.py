@@ -51,6 +51,7 @@ class TopologyError(Exception):
     errors
     """
 
+
 class TopologyNodeGroup(object):
     """Base element for in-memory representation of the propagation tree.
     Contains a nodeset, with parent-children relationships with other
@@ -148,8 +149,8 @@ class TopologyNodeGroup(object):
             return len(self._children_ns)
 
     def _is_last(self):
-        """used to display the subtree: we won't prefix the line the same way if
-        the current instance is the last child of the children list of its
+        """used to display the subtree: we won't prefix the line the same way
+        if the current instance is the last child of the children list of its
         parent.
         """
         return self.parent._children[-1::][0] == self
@@ -157,6 +158,7 @@ class TopologyNodeGroup(object):
     def __str__(self):
         """printable representation of the nodegroup"""
         return '<TopologyNodeGroup (%s)>' % str(self.nodeset)
+
 
 class TopologyTree(object):
     """represent a simplified network topology as a tree of machines to use to
@@ -168,7 +170,7 @@ class TopologyTree(object):
             """we do simply manage a stack with the remaining nodes"""
             self._stack = [tree.root]
 
-        def next(self):
+        def __next__(self):  # Python 3
             """return the next node in the stack or raise a StopIteration
             exception if the stack is empty
             """
@@ -178,6 +180,8 @@ class TopologyTree(object):
                 return node
             else:
                 raise StopIteration()
+
+        next = __next__  # Python 2
 
     def __init__(self):
         """initialize a new TopologyTree instance."""
@@ -215,12 +219,13 @@ class TopologyTree(object):
     def inner_node_count(self):
         """helper to get inner node count (root and gateway nodes)"""
         return sum(len(group.nodeset) for group in self.groups
-                                      if group.children_len() > 0)
+                   if group.children_len() > 0)
 
     def leaf_node_count(self):
         """helper to get leaf node count"""
         return sum(len(group.nodeset) for group in self.groups
-                                      if group.children_len() == 0)
+                   if group.children_len() == 0)
+
 
 class TopologyRoute(object):
     """A single route between two nodesets"""
@@ -247,6 +252,7 @@ class TopologyRoute(object):
     def __str__(self):
         """printable representation"""
         return '%s -> %s' % (str(self.src), str(self.dst))
+
 
 class TopologyRoutingTable(object):
     """This class provides a convenient way to store and manage topology
@@ -277,11 +283,12 @@ class TopologyRoutingTable(object):
     def connected(self, src_ns):
         """find out and return the aggregation of directly connected children
         from src_ns.
-        Argument src_ns is expected to be a NodeSet instance. Result is returned
-        as a NodeSet instance
+        Argument src_ns is expected to be a NodeSet instance. Result is
+        returned as a NodeSet instance
         """
-        next_hop = NodeSet.fromlist([dst for dst in \
-            [route.dest(src_ns) for route in self._routes] if dst is not None])
+        next_hop = NodeSet.fromlist(dst for dst in [route.dest(src_ns)
+                                                    for route in self._routes]
+                                    if dst is not None)
         if len(next_hop) == 0:
             return None
         return next_hop
@@ -318,9 +325,10 @@ class TopologyRoutingTable(object):
                 return True
             # two different nodegroups cannot point to the same one
             if len(route.dst & known_route.dst) != 0 \
-                and route.src != known_route.src:
+               and route.src != known_route.src:
                 return True
         return False
+
 
 class TopologyGraph(object):
     """represent a complete network topology by storing every "can reach"
@@ -360,8 +368,8 @@ class TopologyGraph(object):
     def __str__(self):
         """printable representation of the graph"""
         res = '<TopologyGraph>\n'
-        res += '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in \
-            self._nodegroups.items()])
+        res += '\n'.join(['%s: %s' % (str(k), str(v))
+                          for k, v in self._nodegroups.items()])
         return res
 
     def _routes_to_tng(self):
@@ -407,6 +415,7 @@ class TopologyGraph(object):
 
         self._root = root
 
+
 class TopologyParser(configparser.ConfigParser):
     """This class offers a way to interpret network topologies supplied under
     the form :
@@ -417,7 +426,7 @@ class TopologyParser(configparser.ConfigParser):
     def __init__(self, filename=None):
         """instance wide variables initialization"""
         configparser.ConfigParser.__init__(self)
-        self.optionxform = str # case sensitive parser
+        self.optionxform = str  # case sensitive parser
 
         self._topology = {}
         self.graph = None
@@ -459,4 +468,3 @@ class TopologyParser(configparser.ConfigParser):
         if self._tree is None or force_rebuild:
             self._tree = self.graph.to_tree(root)
         return self._tree
-
