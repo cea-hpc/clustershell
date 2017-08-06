@@ -1305,10 +1305,12 @@ class Task(object):
         """Get propagation channel for gateway (create one if needed).
 
         Use self.gateways dictionary that allows lookup like:
-            gateway => (worker channel, set of metaworkers)
+            gateway (string) => (worker channel, set of metaworkers)
         """
+        gwstr = str(gateway)
+
         # create gateway channel if needed
-        if gateway not in self.gateways:
+        if gwstr not in self.gateways:
             chan = PropagationChannel(self, gateway)
             logger = logging.getLogger(__name__)
             logger.info("pchannel: creating new channel %s", chan)
@@ -1328,10 +1330,10 @@ class Task(object):
             chanworker.SNAME_STDERR = chan.SNAME_ERROR
             self.schedule(chanworker)
             # update gateways dict
-            self.gateways[gateway] = (chanworker, set([metaworker]))
+            self.gateways[gwstr] = (chanworker, set([metaworker]))
         else:
             # TODO: assert chanworker is running (need Worker.running())
-            chanworker, metaworkers = self.gateways[gateway]
+            chanworker, metaworkers = self.gateways[gwstr]
             metaworkers.add(metaworker)
         return chanworker.eh
 
@@ -1344,19 +1346,21 @@ class Task(object):
         logger = logging.getLogger(__name__)
         logger.debug("pchannel_release %s %s", gateway, metaworker)
 
-        if gateway not in self.gateways:
+        gwstr = str(gateway)
+
+        if gwstr not in self.gateways:
             logger.error("pchannel_release: no pchannel found for gateway %s",
-                         gateway)
+                         gwstr)
         else:
             # TODO: delay gateway closing when other gateways are running
-            chanworker, metaworkers = self.gateways[gateway]
+            chanworker, metaworkers = self.gateways[gwstr]
             metaworkers.remove(metaworker)
             if len(metaworkers) == 0:
                 logger.info("pchannel_release: destroying channel %s",
                             chanworker.eh)
                 chanworker.abort()
                 # delete gateway reference
-                del self.gateways[gateway]
+                del self.gateways[gwstr]
 
 
 def task_self(defaults=None):

@@ -66,23 +66,24 @@ class PropagationTreeRouter(object):
         destination nodes and the values are the next hop gateways to
         use to reach these nodes.
         """
-        self.table = {}
         try:
             root_group = topology.find_nodegroup(root)
         except TopologyError:
             msgfmt = "Invalid root or gateway node: %s"
             raise RouteResolvingError(msgfmt % root)
 
+        gw_to_dest = {}
         for group in root_group.children():
-            self.table[group.nodeset] = NodeSet()
+            nsstr = str(group.nodeset)
+            gw_to_dest[nsstr] = NodeSet()
             stack = [group]
             while len(stack) > 0:
                 curr = stack.pop()
-                self.table[group.nodeset].add(curr.children_ns())
+                gw_to_dest[nsstr].update(curr.children_ns())
                 stack += curr.children()
 
         # reverse table (it was crafted backward)
-        self.table = dict((v, k) for k, v in self.table.items())
+        self.table = tuple((v, NodeSet(k)) for k, v in gw_to_dest.items())
 
     def dispatch(self, dst):
         """dispatch nodes from a target nodeset to the directly
@@ -101,7 +102,7 @@ class PropagationTreeRouter(object):
         #    yield nexthop, nexthop
 
         # Check for remote targets, that require a gateway to be reached
-        for network in self.table:
+        for network, _ in self.table:
             dst_inter = network & dst
             dst.difference_update(dst_inter)
             for host in dst_inter.nsiter():
@@ -134,7 +135,7 @@ class PropagationTreeRouter(object):
         # node[10-19] | gateway[1-2]
         #            ...
         # ---------
-        for network, nexthops in self.table.items():
+        for network, nexthops in self.table:
             # destination contained in current network
             if dst in network:
                 res = self._best_next_hop(nexthops)
