@@ -66,7 +66,7 @@ class TreeCopyTestTest(unittest.TestCase):
     def test_copy(self):
         """test file copy setup in tree mode (1 gateway)"""
         self.test_ok = False
-        self.tfile = make_temp_file("dummy")
+        self.tfile = make_temp_file(b"dummy")
         # add leading '/' like clush so that WorkerTree knows it's a dir
         task_self().copy(self.tfile.name,
                          join(dirname(self.tfile.name), ''),
@@ -77,7 +77,7 @@ class TreeCopyTestTest(unittest.TestCase):
     def test_rcopy(self):
         """test file rcopy setup in tree mode (1 gateway)"""
         self.test_ok = False
-        self.tfile = make_temp_file("dummy-src")
+        self.tfile = make_temp_file(b"dummy-src")
         self.tdir = make_temp_dir()
         task_self().rcopy(self.tfile.name, self.tdir, "n60")
         task_self().resume()
