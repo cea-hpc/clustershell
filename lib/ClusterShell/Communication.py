@@ -49,6 +49,7 @@ except ImportError:  # Python 2 compat
     import cPickle
 
 import base64
+import binascii
 import logging
 import os
 import xml.sax
@@ -113,10 +114,9 @@ class XMLReader(ContentHandler):
             self.msg_queue.appendleft(EndMessage())
 
     def characters(self, content):
-        """read content characters"""
+        """read content characters (always decoded string)"""
         if self._draft is not None:
-            content = content.decode(ENCODING)
-            self._draft.data_update(content)
+            self._draft.data_update(content.encode(ENCODING))
 
     def msg_available(self):
         """return whether a message is available for delivery or not"""
@@ -220,7 +220,7 @@ class Channel(EventHandler):
         """channel has data to read"""
         raw = worker.current_msg
         try:
-            self._parser.feed(raw + '\n')
+            self._parser.feed(raw + b'\n')
         except SAXParseException as ex:
             self.logger.error("SAXParseException: %s: %s", ex.getMessage(), raw)
             # Warning: do not send malformed raw message back
@@ -245,7 +245,7 @@ class Channel(EventHandler):
         """write an outgoing message as its XML representation"""
         #self.logger.debug('SENDING to worker %s: "%s"', id(self.worker),
         #                  msg.xml())
-        self.worker.write(msg.xml() + '\n', sname=self.SNAME_WRITER)
+        self.worker.write(msg.xml() + b'\n', sname=self.SNAME_WRITER)
 
     def start(self):
         """initialization logic"""
@@ -284,15 +284,17 @@ class Message(object):
         # and are ignored.
         line_length = int(os.environ.get('CLUSTERSHELL_GW_B64_LINE_LENGTH',
                                          DEFAULT_B64_LINE_LENGTH))
-        self.data = '\n'.join(encoded[pos:pos+line_length]
-                              for pos in range(0, len(encoded), line_length))
+        self.data = b'\n'.join(encoded[pos:pos+line_length]
+                               for pos in range(0, len(encoded), line_length))
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
+        # NOTE: name is confusing, data_decode() returns pickle-decoded bytes
+        #       (encoded string) and not (decoded) string...
         # if self.data is None then an exception is raised here
         try:
             return cPickle.loads(base64.b64decode(self.data))
-        except (EOFError, TypeError):
+        except (EOFError, TypeError, cPickle.UnpicklingError, binascii.Error):
             # raised by cPickle.loads() if self.data is not valid
             raise MessageProcessingError('Message %s has an invalid payload'
                                          % self.ident)
@@ -301,7 +303,7 @@ class Message(object):
         """append data to the instance (used for deserialization)"""
         if self.has_payload:
             if self.data is None:
-                self.data = raw # first encoded packet
+                self.data = raw  # first encoded packet
             else:
                 self.data += raw
         else:
