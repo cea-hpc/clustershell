@@ -199,7 +199,7 @@ class WorkerTree(DistantWorker):
 
         self.metahandler = MetaWorkerEventHandler(self)
 
-        # gateway -> active targets selection
+        # gateway (string) -> active targets selection
         self.gwtargets = {}
 
     def _set_task(self, task):
@@ -260,9 +260,9 @@ class WorkerTree(DistantWorker):
 
         # And launch stuffs
         next_hops = self._distribute(self.task.info("fanout"), nodes.copy())
-        self.logger.debug("next_hops=%s"
-                          % [(str(n), str(v)) for n, v in next_hops.items()])
-        for gw, targets in next_hops.items():
+        self.logger.debug("next_hops=%s" % [(str(n), str(v))
+                                            for n, v in next_hops])
+        for gw, targets in next_hops:
             if gw == targets:
                 self.logger.debug('task.shell cmd=%s source=%s nodes=%s '
                                   'timeout=%s remote=%s', self.command,
@@ -332,15 +332,13 @@ class WorkerTree(DistantWorker):
 
     def _distribute(self, fanout, dst_nodeset):
         """distribute target nodes between next hop gateways"""
-        distribution = {}
         self.router.fanout = fanout
 
+        distribution = {}
         for gw, dstset in self.router.dispatch(dst_nodeset):
-            if gw in distribution:
-                distribution[gw].add(dstset)
-            else:
-                distribution[gw] = dstset
-        return distribution
+            distribution.setdefault(str(gw), NodeSet()).add(dstset)
+
+        return tuple((NodeSet(k), v) for k, v in distribution.items())
 
     def _copy_remote(self, source, dest, targets, gateway, timeout, reverse):
         """run a remote copy in tree mode (using gateway)"""
@@ -349,7 +347,7 @@ class WorkerTree(DistantWorker):
 
         self._target_count += len(targets)
 
-        self.gwtargets[gateway] = targets.copy()
+        self.gwtargets[str(gateway)] = targets.copy()
 
         # tar commands are built here and launched on targets
         if reverse:
@@ -375,7 +373,7 @@ class WorkerTree(DistantWorker):
 
         self._target_count += len(targets)
 
-        self.gwtargets[gateway] = targets.copy()
+        self.gwtargets[str(gateway)] = targets.copy()
 
         pchan = self.task._pchannel(gateway, self)
         pchan.shell(nodes=targets, command=cmd, worker=self, timeout=timeout,
@@ -438,7 +436,7 @@ class WorkerTree(DistantWorker):
             self._rcopy_bufs = {}
             self._rcopy_tars = {}
 
-        self.gwtargets[gateway].remove(node)
+        self.gwtargets[str(gateway)].remove(node)
         self._close_count += 1
         self._check_fini(gateway)
 
@@ -448,7 +446,7 @@ class WorkerTree(DistantWorker):
         self.logger.debug("_on_remote_node_timeout %s via gw %s", node, gateway)
         self._close_count += 1
         self._has_timeout = True
-        self.gwtargets[gateway].remove(node)
+        self.gwtargets[str(gateway)].remove(node)
         self._check_fini(gateway)
 
     def _on_node_close(self, node, rc):
@@ -480,13 +478,13 @@ class WorkerTree(DistantWorker):
 
         # check completion of targets per gateway
         if gateway:
-            targets = self.gwtargets[gateway]
+            targets = self.gwtargets[str(gateway)]
             if not targets:
                 # no more active targets for this gateway
                 self.logger.debug("WorkerTree._check_fini %s call pchannel_"
                                   "release for gw %s", self, gateway)
                 self.task._pchannel_release(gateway, self)
-                del self.gwtargets[gateway]
+                del self.gwtargets[str(gateway)]
 
     def _write_remote(self, buf):
         """Write buf to remote clients only."""
