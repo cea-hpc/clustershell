@@ -345,14 +345,16 @@ class PropagationChannel(Channel):
             metaworker = self.workers[msg.srcid]
             if msg.type == StdOutMessage.ident:
                 nodeset = NodeSet(msg.nodes)
-                decoded = msg.data_decode() + '\n'
+                # msg.data_decode()'s name is a bit confusing, but returns
+                # pickle-decoded bytes (encoded string) and not string...
+                decoded = msg.data_decode() + b'\n'
                 for line in decoded.splitlines():
                     for node in nodeset:
                         metaworker._on_remote_node_msgline(node, line, 'stdout',
                                                            self.gateway)
             elif msg.type == StdErrMessage.ident:
                 nodeset = NodeSet(msg.nodes)
-                decoded = msg.data_decode() + '\n'
+                decoded = msg.data_decode() + b'\n'
                 for line in decoded.splitlines():
                     for node in nodeset:
                         metaworker._on_remote_node_msgline(node, line, 'stderr',
