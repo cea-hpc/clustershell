@@ -16,6 +16,24 @@
       "revId": "86c6d178f994318aac5de75717ba61fc16fb2466",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "058a10a5_6175664d",
+        "filename": "lib/ClusterShell/Communication.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-07T14:57:36Z",
+      "side": 1,
+      "message": "Yeah good catch! this one is interesting :)\n\nI tried to understand why we had decode() here but I couldn\u0027t find the reason!!\n\nencode() is required in Python 3 because characters() always return str (not bytes) in Python 3, so .encode() is needed to convert to bytes.\n\nIn Python 2, characters() returns unicode strings, and so .encode() makes also sense to convert unicode -\u003e str (py2).\n\nunicode.decode() seems to return the same unicode string, so I believe it did nothing at all. Adding encode() doesn\u0027t seem to be an issue.",
+      "parentUuid": "965a897a_9648ea61",
+      "revId": "86c6d178f994318aac5de75717ba61fc16fb2466",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
