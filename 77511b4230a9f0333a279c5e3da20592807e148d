@@ -119,6 +119,24 @@
     },
     {
       "key": {
+        "uuid": "e0f94075_5e30d4d2",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-07T07:41:33Z",
+      "side": 1,
+      "message": "It is just that when using \u0027start\u0027 event, I tend to expect \u0027end\u0027 event. When using \u0027close\u0027, I expect \u0027open\u0027.\nThis sounds less surprising for users.",
+      "parentUuid": "1873786c_afd54c99",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3ec3ba9c_0a578006",
         "filename": "lib/ClusterShell/Worker/Worker.py",
         "patchSetId": 1
@@ -130,6 +148,30 @@
       "writtenOn": "2017-08-04T17:39:41Z",
       "side": 1,
       "message": "btw we still have this code  in WorkerSimple that is almost the same as in Worker methods... but not setting current_node.\n\nOne day we should fix this, but not in this patch of course... maybe the fix will be to remove WorkerSimple, I don\u0027t remember exactly what we said about that right now :)",
+      "range": {
+        "startLine": 674,
+        "startChar": 4,
+        "endLine": 689,
+        "endChar": 34
+      },
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3b15916d_8b6d1cf1",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-07T07:41:33Z",
+      "side": 1,
+      "message": "WorkerSimple could get away as soon as we drop WorkerPopen. And this is not so easy :)",
+      "parentUuid": "3ec3ba9c_0a578006",
       "range": {
         "startLine": 674,
         "startChar": 4,
