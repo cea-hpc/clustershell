@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1693720_682a73f5",
+        "filename": "lib/ClusterShell/Propagation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-07T08:19:32Z",
+      "side": 1,
+      "message": "this looks like this dict is also not needed.\ndict value is a new NodeSet for each iteration. So we never reuse the previous value of gw_to_dest[nsstr] (if it ever happens!)\n\nIt looks like you just need to build a list of tuples (or there is a bug in this for-loop)\n\nOr you just keep the last occurrence of nsstr you see from root_group.children()?\n\nMhhh.. I think we can make something better here",
+      "revId": "524a576004fa79fa943c30b8b4ab679673a17592",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
