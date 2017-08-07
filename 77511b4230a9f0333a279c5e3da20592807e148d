@@ -137,6 +137,24 @@
     },
     {
       "key": {
+        "uuid": "346d93aa_d7870125",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-07T14:46:50Z",
+      "side": 1,
+      "message": "\u0027end\u0027 is a totally new keyword here, and will at least confuse me :)\n\nI agree that current names of the events could be better, eg. start/stop, begin/end or open/close would be more coherent choices. But in CS, it\u0027s start/close.\n\nAdditionally _on methods are here to raise ev_ events, and it\u0027s better if that actually matches, hence the _on_close here.\n\nI\u0027m in favor of either renaming the events begin/end or open/close but a file/fd is not always open nor close, so begin/end would probably be a better choice.\n\nI\u0027m ok to rename it end if you insist, it\u0027s only internals, but let me know what you think after my comment.",
+      "parentUuid": "e0f94075_5e30d4d2",
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3ec3ba9c_0a578006",
         "filename": "lib/ClusterShell/Worker/Worker.py",
         "patchSetId": 1
@@ -172,6 +190,30 @@
       "side": 1,
       "message": "WorkerSimple could get away as soon as we drop WorkerPopen. And this is not so easy :)",
       "parentUuid": "3ec3ba9c_0a578006",
+      "range": {
+        "startLine": 674,
+        "startChar": 4,
+        "endLine": 689,
+        "endChar": 34
+      },
+      "revId": "77511b4230a9f0333a279c5e3da20592807e148d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2241a450_6ffc104c",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-07T14:46:50Z",
+      "side": 1,
+      "message": "Yeah.",
+      "parentUuid": "3b15916d_8b6d1cf1",
       "range": {
         "startLine": 674,
         "startChar": 4,
