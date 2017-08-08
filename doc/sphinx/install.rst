@@ -4,32 +4,31 @@ Installation
 ============
 
 ClusterShell is distributed in several packages. On RedHat-like OS, we
-recommend to use the RPM  package (.rpm) distribution.
+recommend to use the RPM package (.rpm) distribution.
 
 As a system software for cluster, ClusterShell is primarily made for
-system-wide installation. However, changes have been made so that's it is now
-easy to install it without root access (see :ref:`install-pip-user`).
+system-wide installation to be used by system administrators. However,
+changes have been made so that it's now easy to install it without
+root access (see :ref:`install-pip-user`).
 
 
 Requirements
 ------------
 
-ClusterShell |version| should work with any Unix [#]_ operating systems which
-provides Python 2.4 to 2.7 (not Python 3.x validated) and OpenSSH or any
-compatible Secure Shell clients.
+ClusterShell should work with any Unix [#]_ operating systems which provides
+Python 2.6 or 2.7 and OpenSSH or any compatible Secure Shell clients.
 
 Furthermore, ClusterShell's engine has been optimized when the ``poll()``
-syscall is available or even better, when the ``epoll_wait()`` syscall (since
-Linux 2.6) is available.
+syscall is available or even better, when the ``epoll_wait()`` syscall is
+available (Linux only).
 
-For instance, ClusterShell |version| is known to work on the following
-operating systems:
+For instance, ClusterShell is known to work on the following operating systems:
 
-* GNU/Linux RedHat EL5 or CentOS 5.x (Python 2.4), EL6 (Python 2.6) and EL7
-  (Python 2.7)
-* GNU/Linux Fedora 22 to 24 (Python 2.6 - 2.7),
-* GNU/Linux Debian (wheezy and above)
-* Mac OS X 10.5.8 or more
+* GNU/Linux RHEL or CentOS 6 (Python 2.6)
+* GNU/Linux RHEL or CentOS 7 (Python 2.7)
+* GNU/Linux Fedora 22 to 26 (Python 2.6 or 2.7)
+* GNU/Linux Debian wheezy and above (Python 2.7)
+* Mac OS X 10.8+ (Python 2.6 or 2.7)
 
 Distribution
 ------------
@@ -44,7 +43,7 @@ and Arch Linux.
 Fedora
 ^^^^^^
 
-At the time of writing, ClusterShell |version| is available on Fedora 24
+At the time of writing, ClusterShell |version| is available on Fedora 26
 (releases being maintained by the Fedora Project).
 
 Install ClusterShell from *Fedora Updates*
@@ -57,9 +56,8 @@ on a Fedora machine::
 
     $ dnf list \*clustershell
     Available Packages
-    clustershell.noarch                     1.7.2-1.fc24                updates
-    vim-clustershell.noarch                 1.7.2-1.fc24                updates
-
+    clustershell.noarch                     1.7.3-2.fc26                fedora
+    vim-clustershell.noarch                 1.7.3-2.fc26                fedora
 
 Then, install ClusterShell (library and tools) with the following command::
 
