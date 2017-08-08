@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f6ec4080_f81fe987",
+        "filename": "lib/ClusterShell/Engine/Engine.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-08T21:54:21Z",
+      "side": 1,
+      "message": "I don\u0027t really remember why I put this. \"except BaseException:\" or \"except:\" both seem to do the same thing. It\u0027s probably related with the inner try/except clause below, however I am not sure how to fix this.\n\nSo I don\u0027t think I\u0027m ready to change this part right now.\n\nPython 3 adds some nice feature to avoid losing traceback info to help debugging (eg. .with_traceback() and raise E() from tb that would be worth investigating!",
+      "range": {
+        "startLine": 727,
+        "startChar": 18,
+        "endLine": 727,
+        "endChar": 69
+      },
+      "revId": "9c71dc85d65a7a12af37344eec1c5f8f59a670b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
