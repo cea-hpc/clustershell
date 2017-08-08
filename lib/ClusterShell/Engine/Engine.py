@@ -711,38 +711,36 @@ class Engine(object):
         if self.running:
             raise EngineAlreadyRunningError()
 
-        # note: try-except-finally not supported before python 2.5
         try:
             self.running = True
+            # start port clients
+            self.start_ports()
+            # peek in ports for early pending messages
+            self.snoop_ports()
+            # start all other clients
+            self.start_clients()
+            # run loop until all clients and timers are removed
+            self.runloop(timeout)
+        except EngineTimeoutException:
+            self.clear(did_timeout=True)
+            raise
+        except: # MUST use BaseException as soon as possible (py2.5+)
+            # The game is over.
+            exc_t, exc_val, exc_tb = sys.exc_info()
             try:
-                # start port clients
-                self.start_ports()
-                # peek in ports for early pending messages
-                self.snoop_ports()
-                # start all other clients
-                self.start_clients()
-                # run loop until all clients and timers are removed
-                self.runloop(timeout)
-            except EngineTimeoutException:
-                self.clear(did_timeout=True)
+                # Close Engine clients
+                self.clear()
+            except:
+                # self.clear() may still generate termination events that
+                # may raises exceptions, overriding the other one above.
+                # In the future, we should block new user events to avoid
+                # that. Also, such cases could be better handled with
+                # BaseException. For now, print a backtrace in debug to
+                # help detect the problem.
+                tbexc = traceback.format_exception(exc_t, exc_val, exc_tb)
+                LOGGER.debug(''.join(tbexc))
                 raise
-            except: # MUST use BaseException as soon as possible (py2.5+)
-                # The game is over.
-                exc_t, exc_val, exc_tb = sys.exc_info()
-                try:
-                    # Close Engine clients
-                    self.clear()
-                except:
-                    # self.clear() may still generate termination events that
-                    # may raises exceptions, overriding the other one above.
-                    # In the future, we should block new user events to avoid
-                    # that. Also, such cases could be better handled with
-                    # BaseException. For now, print a backtrace in debug to
-                    # help detect the problem.
-                    tbexc = traceback.format_exception(exc_t, exc_val, exc_tb)
-                    LOGGER.debug(''.join(tbexc))
-                    raise
-                raise
+            raise
         finally:
             # cleanup
             self.timerq.clear()

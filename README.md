@@ -1,5 +1,5 @@
-ClusterShell 1.7 Python Library and Tools
-=========================================
+ClusterShell Python Library and Tools
+=====================================
 
 ClusterShell is an event-driven open source Python library, designed to run
 local or distant commands in parallel on server farms or on large Linux
@@ -15,12 +15,12 @@ developers. It also provides clush, clubak and nodeset, three convenient
 command-line tools that allow traditional shell scripts to benefit from some
 of the library features.
 
-Requirements (v1.7)
--------------------
+Requirements
+------------
 
  * GNU/Linux, BSD, Mac OS X
  * OpenSSH (ssh/scp) or rsh
- * Python 2.x (x >= 4)
+ * Python 2.x (x >= 6)
  * PyYAML (optional)
 
 License

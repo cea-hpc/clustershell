@@ -420,17 +420,14 @@ class WorkerTree(DistantWorker):
                     tarfileobj.write(buf)
                 tarfileobj.flush()
                 tarfileobj.seek(0)
+                tmptar = tarfile.open(fileobj=tarfileobj)
                 try:
-                    tmptar = tarfile.open(fileobj=tarfileobj)
-                    try:
-                        self.logger.debug("%s extracting %d members in dest %s",
-                                          node, len(tmptar.getmembers()),
-                                          self.dest)
-                        tmptar.extractall(path=self.dest)
-                    except IOError as ex:
-                        self._on_remote_node_msgline(node, ex, 'stderr',
-                                                     gateway)
-                # note: try-except-finally not supported before python 2.5
+                    self.logger.debug("%s extracting %d members in dest %s",
+                                      node, len(tmptar.getmembers()),
+                                      self.dest)
+                    tmptar.extractall(path=self.dest)
+                except IOError as ex:
+                    self._on_remote_node_msgline(node, ex, 'stderr', gateway)
                 finally:
                     tmptar.close()
             self._rcopy_bufs = {}
