@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'clustershell'
-copyright = u'2016, Stephane Thiell'
+copyright = u'2017, Stephane Thiell'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
