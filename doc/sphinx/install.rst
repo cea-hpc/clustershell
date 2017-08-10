@@ -16,7 +16,7 @@ Requirements
 ------------
 
 ClusterShell should work with any Unix [#]_ operating systems which provides
-Python 2.6 or 2.7 and OpenSSH or any compatible Secure Shell clients.
+Python 2.6, 2.7 or 3.x and OpenSSH or any compatible Secure Shell clients.
 
 Furthermore, ClusterShell's engine has been optimized when the ``poll()``
 syscall is available or even better, when the ``epoll_wait()`` syscall is
@@ -88,7 +88,7 @@ Red Hat Enterprise Linux (and CentOS)
 ClusterShell packages are maintained on Extra Packages for Enterprise Linux
 `EPEL`_ for Red Hat Enterprise Linux (RHEL) and its compatible spinoffs such
 as CentOS. At the time of writing, ClusterShell |version| is available on
-EPEL 5, 6 and 7.
+EPEL 6 and 7.
 
 
 Install ClusterShell from EPEL
