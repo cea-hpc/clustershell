@@ -1071,3 +1071,13 @@ class TaskLocalMixin(object):
         self.assertEqual(worker1.node_retcode('localhost'), 0)
         self.assertEqual(worker2.read(sname="pipe1"), b"test")
         self.assertEqual(task_self().max_retcode(), 0)
+
+    def testWorkerPopenKeyCompat(self):
+        """test WorkerPopen.key attribute (compat with 1.6)"""
+        # Was broken in 1.7 to 1.7.3 after StreamWorker changes
+        task = task_self()
+        worker = task.shell("echo ok", key="ok")
+        self.assertEqual(worker.key, "ok")
+        worker = WorkerPopen("echo foo", key="foo")
+        self.assertEqual(worker.key, "foo")
+        task.run()

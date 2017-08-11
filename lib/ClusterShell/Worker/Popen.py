@@ -105,6 +105,7 @@ class WorkerPopen(WorkerSimple):
         if not self.command:
             raise ValueError("missing command parameter in WorkerPopen "
                              "constructor")
+        self.key = key
 
     def retcode(self):
         """Return return code or None if command is still in progress."""
