@@ -293,6 +293,12 @@ class NodeSetGroupTest(unittest.TestCase):
         nodeset = NodeSet("example[102-200]", resolver=res)
         self.assertEqual(nodeset.regroup(), "example[102-200]")
 
+        # test default_source_name property
+        self.assertEqual(res.default_source_name, "local")
+        res = GroupResolverConfig(f.name)
+        # check added with lazy init
+        self.assertEqual(res.default_source_name, "local")
+
     def testConfigWrongSyntax(self):
         """test wrong groups config syntax"""
         f = make_temp_file(dedent("""
@@ -304,7 +310,9 @@ class NodeSetGroupTest(unittest.TestCase):
             [local]
             something: echo example[1-100]
             """).encode('ascii'))
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def testConfigBasicLocalVerbose(self):
         """test groups with a basic local config file (verbose)"""
@@ -398,7 +406,9 @@ class NodeSetGroupTest(unittest.TestCase):
             list: echo foo
             #reverse:
             """).encode('ascii'))
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def testConfigQueryFailed(self):
         """test groups with config and failed query"""
@@ -511,8 +521,10 @@ class NodeSetGroupTest(unittest.TestCase):
             list: echo foo
             #reverse: echo foo
             """).encode('ascii'))
+
         # map is a mandatory upcall, an exception should be raised early
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def testConfigWithEmptyList(self):
         """test groups with list upcall returning nothing"""
@@ -819,7 +831,8 @@ class NodeSetGroupTest(unittest.TestCase):
             #reverse:
             """).encode('ascii'), suffix=".conf", dir=dname)
         try:
-            self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+            resolver = GroupResolverConfig(f.name)
+            self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             f3.close()
             f2.close()
@@ -866,7 +879,8 @@ class NodeSetGroupTest(unittest.TestCase):
             groupsdir: %s
             """ % fdummy.name).encode('ascii'))
         try:
-            self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+            resolver = GroupResolverConfig(f.name)
+            self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             fdummy.close()
             f.close()
@@ -1279,6 +1293,7 @@ class GroupSourceCacheTest(unittest.TestCase):
             map: echo foo1
             """).encode('ascii'))
         res = GroupResolverConfig(f.name)
+        dummy = res.group_nodes('dummy')  # init res to access res._sources
         self.assertEqual(res._sources['local'].cache_time, 0.2)
         self.assertEqual("foo1", str(NodeSet("@local:foo", resolver=res)))
 
@@ -1515,7 +1530,8 @@ class GroupResolverYAMLTest(unittest.TestCase):
 yaml: bar
         """, suffix=".yaml", dir=dname)
 
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def test_yaml_invalid_root_dict(self):
         """test groups with an invalid YAML config file (2)"""
@@ -1531,7 +1547,8 @@ yaml: bar
 - The Man Who Wasn't There
         """, suffix=".yaml", dir=dname)
 
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def test_yaml_invalid_not_yaml(self):
         """test groups with an invalid YAML config file (3)"""
@@ -1548,7 +1565,8 @@ two: deux
 three: trois
         """, suffix=".yaml", dir=dname)
 
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def test_wrong_autodir(self):
         """test wrong autodir (doesn't exist)"""
@@ -1557,9 +1575,11 @@ three: trois
                 autodir: /i/do/not/=exist=
                 default: local
                 """).encode('ascii'))
+
         # absent autodir itself doesn't raise any exception, but default
         # pointing to nothing does...
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def test_wrong_autodir_is_file(self):
         """test wrong autodir (is a file)"""
@@ -1572,4 +1592,6 @@ three: trois
             [local]
             map: node
             """ % fe.name).encode('ascii'))
-        self.assertRaises(GroupResolverConfigError, GroupResolverConfig, f.name)
+
+        resolver = GroupResolverConfig(f.name)
+        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
