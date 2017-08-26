@@ -35,6 +35,7 @@ except ImportError:
     # Python 2 compat
     from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 
+from functools import wraps
 import glob
 import logging
 import os
@@ -488,12 +489,20 @@ class GroupResolverConfig(GroupResolver):
     """
     SECTION_MAIN = 'Main'
 
-    def __init__(self, filenames, illegal_chars=None):
+    def __init__(self, filenames, illegal_chars=None, preload=True):
         """
         Initialize GroupResolverConfig from filenames. Only the first
         accessible config filename is loaded.
+
+        'preload' is a boolean to control when the configuration is
+        loaded. The default is True and will load the configuration
+        when the object is created. Change to False to load the
+        configuration only when needed (lazy).
         """
         GroupResolver.__init__(self, illegal_chars=illegal_chars)
+
+        self.cfg_dirname = None
+        self.loaded = False
 
         # support single or multiple config filenames
         self.config = ConfigParser()
@@ -503,7 +512,10 @@ class GroupResolverConfig(GroupResolver):
         # continue with an empty self._sources
         if parsed:
             # for proper $CFGDIR selection, take last parsed configfile only
-            self._parse_config(os.path.dirname(parsed[-1]))
+            self.cfg_dirname = os.path.dirname(parsed[-1])
+            if preload:
+                self._parse_config(self.cfg_dirname)
+                self.loaded = True
 
     def _parse_config(self, cfg_dirname):
         """parse config using relative dir cfg_dirname"""
@@ -619,3 +631,32 @@ class GroupResolverConfig(GroupResolver):
         """Load source(s) from YAML file."""
         for source in YAMLGroupLoader(filepath):
             self.add_source(source)
+
+    def loadcfg(func):
+        @wraps(func)
+        def wrapper(self, *args):
+            if not self.loaded and self.cfg_dirname:
+                self._parse_config(self.cfg_dirname)
+                self.loaded = True
+            return func(self, *args)
+        return wrapper
+
+    @loadcfg
+    def _source(self, namespace):
+        """Helper method that returns the source by namespace name."""
+        return GroupResolver._source(self, namespace)
+
+    @loadcfg
+    def sources(self):
+        """Get the list of all resolver source names. """
+        return GroupResolver.sources(self)
+
+    @loadcfg
+    def _get_default_source_name(self):
+        """Get default source name of resolver."""
+        return GroupResolver._get_default_source_name(self)
+
+    @loadcfg
+    def _set_default_source_name(self, sourcename):
+        """Set default source of resolver (by name)."""
+        GroupResolver._set_default_source_name(self, sourcename)

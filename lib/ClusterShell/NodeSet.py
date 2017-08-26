@@ -72,7 +72,8 @@ from ClusterShell.RangeSet import RangeSetPaddingError
 DEF_GROUPS_CONFIGS = config_paths('groups.conf')
 ILLEGAL_GROUP_CHARS = set("@,!&^*")
 _DEF_RESOLVER_STD_GROUP = NodeUtils.GroupResolverConfig(DEF_GROUPS_CONFIGS,
-                                                        ILLEGAL_GROUP_CHARS)
+                                                        ILLEGAL_GROUP_CHARS,
+                                                        preload=False)
 # Standard group resolver
 RESOLVER_STD_GROUP = _DEF_RESOLVER_STD_GROUP
 # Special constants for NodeSet's resolver parameter
