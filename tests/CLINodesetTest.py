@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Nodeset test suite
 # Written by S. Thiell
 
-
-"""Unit test for CLI/Nodeset.py"""
+"""Unit test for CLI.Nodeset"""
 
 import random
 from textwrap import dedent

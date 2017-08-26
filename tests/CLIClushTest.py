@@ -1,13 +1,12 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Clush test suite
 # Written by S. Thiell
 
-
-"""Unit test for CLI/Clush.py"""
+"""Unit test for CLI.Clush"""
 
 import codecs
 import errno
 import os
+from os.path import basename
 import pwd
 import re
 import signal
@@ -367,7 +366,8 @@ class CLIClushTest_A(unittest.TestCase):
         kth = KillerThread()
         args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b",
                 "echo start; sleep 10"]
-        process = Popen(["../lib/ClusterShell/CLI/Clush.py"] + args,
+        python_exec = basename(sys.executable or 'python')
+        process = Popen([python_exec, '-m', 'ClusterShell.CLI.Clush'] + args,
                         stderr=PIPE, stdout=PIPE, bufsize=0)
         kth.pidkill = process.pid
         kth.start()

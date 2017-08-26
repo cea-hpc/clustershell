@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
 # Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>

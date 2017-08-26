@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Clubak test suite
 # Written by S. Thiell
 
-
-"""Unit test for CLI/Clubak.py"""
+"""Unit test for CLI.Clubak"""
 
 import re
 from textwrap import dedent

@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # ClusterShell.Defaults test suite
 # Written by S. Thiell
 
-
-"""Unit test for ClusterShell Defaults module"""
+"""Unit test for ClusterShell.Defaults"""
 
 from textwrap import dedent
 import sys

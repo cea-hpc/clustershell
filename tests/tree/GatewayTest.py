@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.Gateway test suite
 # Written by H. Doreau and S. Thiell
-
 
 """Unit test for Gateway"""
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>

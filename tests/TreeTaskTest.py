@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# ClusterShell.Task tree test suite
+"""
+Unit test for ClusterShell.Task in tree mode
+"""
 
 import logging
 import os

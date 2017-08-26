@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-
-
-"""Unit test for ClusterShell Task with all engines (local worker)"""
+"""
+Unit test for ClusterShell Task with all engines (local worker)
+"""
 
 import sys
 import unittest

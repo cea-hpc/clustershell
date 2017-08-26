@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell (distant) test suite
 # Written by S. Thiell
-
 
 """Unit test for ClusterShell Task (distant)"""
 

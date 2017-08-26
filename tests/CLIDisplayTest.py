@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Display test suite
 # Written by S. Thiell
-
 
 """Unit test for CLI.Display"""
 

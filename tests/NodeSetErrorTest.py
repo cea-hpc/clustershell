@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.NodeSet.NodeSet error handling test suite
 # Written by S. Thiell
-
 
 """Unit test for RangeSet errors"""
 

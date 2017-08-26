@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.RangeSet.RangeSetND test suite
 # Written by S. Thiell
-
 
 """Unit test for RangeSetND"""
 
