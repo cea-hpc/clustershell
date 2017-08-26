@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Clush test suite
 # Written by S. Thiell
 
-
-"""Unit test for CLI/Clush.py"""
+"""Unit test for CLI.Clush"""
 
 import codecs
 import errno

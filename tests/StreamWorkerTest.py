@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# StreamWorker test suite
+"""
+Unit test for StreamWorker
+"""
 
 import os
 import unittest

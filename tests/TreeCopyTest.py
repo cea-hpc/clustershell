@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# ClusterShell.Worker.WorkerTree copy test
+"""
+Unit test for ClusterShell.Worker.WorkerTree
+"""
 
 import logging
 import unittest

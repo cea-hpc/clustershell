@@ -1,5 +1,6 @@
-
-"""Unit test small library"""
+"""
+Unit test library
+"""
 
 import os
 import socket

@@ -1,6 +1,7 @@
-#!/usr/bin/env python
 # ClusterShell.Worker.ExecWorker test suite
 # First version by A. Degremont 2014-07-10
+
+"""Unit test for ExecWorker"""
 
 import os
 import unittest

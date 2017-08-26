@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell test suite
 # Written by S. Thiell
-
 
 """Unit test for ClusterShell in multithreaded environments"""
 
