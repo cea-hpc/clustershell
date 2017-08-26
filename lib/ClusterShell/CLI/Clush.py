@@ -795,7 +795,7 @@ def clush_excepthook(extype, exp, traceback):
 
 def main():
     """clush script entry point"""
-    sys.excepthook = clush_excepthook
+    #sys.excepthook = clush_excepthook
 
     #
     # Argument management

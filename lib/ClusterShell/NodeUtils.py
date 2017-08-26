@@ -35,6 +35,7 @@ except ImportError:
     # Python 2 compat
     from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 
+from functools import wraps
 import glob
 import logging
 import os
@@ -43,6 +44,9 @@ import time
 
 from string import Template
 from subprocess import Popen, PIPE
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class GroupSourceError(Exception):
@@ -155,7 +159,6 @@ class UpcallGroupSource(GroupSource):
         GroupSource.__init__(self, name)
         self.verbosity = 0 # deprecated
         self.cfgdir = cfgdir
-        self.logger = logging.getLogger(__name__)
 
         # Supported external upcalls
         self.upcalls = {}
@@ -191,13 +194,13 @@ class UpcallGroupSource(GroupSource):
         something goes wrong and return the command output otherwise.
         """
         cmdline = Template(self.upcalls[cmdtpl]).safe_substitute(args)
-        self.logger.debug("EXEC '%s'", cmdline)
+        LOGGER.debug("EXEC '%s'", cmdline)
         proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir,
                      universal_newlines=True)
         output = proc.communicate()[0].strip()
-        self.logger.debug("READ '%s'", output)
+        LOGGER.debug("READ '%s'", output)
         if proc.returncode != 0:
-            self.logger.debug("ERROR '%s' returned %d", cmdline,
+            LOGGER.debug("ERROR '%s' returned %d", cmdline,
                               proc.returncode)
             raise GroupSourceQueryFailed(cmdline, self)
         return output
@@ -215,7 +218,7 @@ class UpcallGroupSource(GroupSource):
 
         # Purge expired data from cache
         if key in cache and cache[key][1] < time.time():
-            self.logger.debug("PURGE EXPIRED (%d)'%s'", cache[key][1], key)
+            LOGGER.debug("PURGE EXPIRED (%d)'%s'", cache[key][1], key)
             del cache[key]
 
         # Fetch the data if unknown of just purged
@@ -357,18 +360,33 @@ class GroupResolver(object):
     """
 
     def __init__(self, default_source=None, illegal_chars=None):
-        """Initialize GroupResolver object."""
+        """Lazy initialization of a new GroupResolver object."""
         self._sources = {}
         self._default_source = default_source
+        self._initialized = False
         self.illegal_chars = illegal_chars or set()
-        if default_source:
-            self._sources[default_source.name] = default_source
 
+    def _late_init(self):
+        """Override method to initialize object just before it is needed."""
+        if self._default_source:
+            self._sources[self._default_source.name] = self._default_source
+        self._initialized = True  # overriding methods should call super
+
+    def init(func):
+        @wraps(func)
+        def wrapper(self, *args):
+            if not self._initialized:
+                self._late_init()
+            return func(self, *args)
+        return wrapper
+
+    @init
     def set_verbosity(self, value):
         """Set debugging verbosity value (DEPRECATED: use logging.DEBUG)."""
         for source in self._sources.values():
             source.verbosity = value
 
+    @init
     def add_source(self, group_source):
         """Add a GroupSource to this resolver."""
         if group_source.name in self._sources:
@@ -376,6 +394,7 @@ class GroupResolver(object):
                              group_source.name)
         self._sources[group_source.name] = group_source
 
+    @init
     def sources(self):
         """Get the list of all resolver source names. """
         srcs = list(self._sources)
@@ -384,12 +403,14 @@ class GroupResolver(object):
             srcs.insert(0, self._default_source.name)
         return srcs
 
+    @init
     def _get_default_source_name(self):
         """Get default source name of resolver."""
         if self._default_source is None:
             return None
         return self._default_source.name
 
+    @init
     def _set_default_source_name(self, sourcename):
         """Set default source of resolver (by name)."""
         try:
@@ -430,6 +451,7 @@ class GroupResolver(object):
                 result.append(grpstr)
         return result
 
+    @init
     def _source(self, namespace):
         """Helper method that returns the source by namespace name."""
         if not namespace:
@@ -490,14 +512,23 @@ class GroupResolverConfig(GroupResolver):
 
     def __init__(self, filenames, illegal_chars=None):
         """
-        Initialize GroupResolverConfig from filenames. Only the first
-        accessible config filename is loaded.
+        Lazy init GroupResolverConfig object from filenames.
         """
         GroupResolver.__init__(self, illegal_chars=illegal_chars)
 
+        self.filenames = filenames
+        self.config = None
+
+    def _late_init(self):
+        """
+        Initialize object when needed. Only the first accessible config
+        filename is loaded.
+        """
+        GroupResolver._late_init(self)
+
         # support single or multiple config filenames
         self.config = ConfigParser()
-        parsed = self.config.read(filenames)
+        parsed = self.config.read(self.filenames)
 
         # check if at least one parsable config file has been found, otherwise
         # continue with an empty self._sources
@@ -560,7 +591,11 @@ class GroupResolverConfig(GroupResolver):
                                                    " a directory" % autodir)
                 # add auto sources declared in groups.d YAML files
                 for autosfn in sorted(glob.glob('%s/*.yaml' % autodir)):
-                    self._sources_from_yaml(autosfn)
+                    try:
+                        self._sources_from_yaml(autosfn)
+                    except IOError as exc:
+                        LOGGER.warn("Ignored: %s" % exc)
+
         except (NoSectionError, NoOptionError):
             pass
 
