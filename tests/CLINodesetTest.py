@@ -553,7 +553,12 @@ class CLINodesetGroupResolverTest1(CLINodesetTestBase):
 
     def setUp(self):
         # Special tests that require a default group source set
-        f = make_temp_file(dedent("""
+        #
+        # The temporary file needs to be persistent during the tests
+        # because GroupResolverConfig does lazy init, this is why we
+        # use an instance variable self.f
+        #
+        self.f = make_temp_file(dedent("""
             [Main]
             default: local
 
@@ -598,7 +603,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
 
     def setUp(self):
         # Special tests that require a default group source set
-        f = make_temp_file(dedent("""
+        self.f = make_temp_file(dedent("""
             [Main]
             default: test
 
@@ -699,7 +704,7 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
 
     def setUp(self):
         # Special tests that require a default group source set
-        f = make_temp_file(dedent("""
+        self.f = make_temp_file(dedent("""
             [Main]
             default: test
 
@@ -716,7 +721,7 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
             [pdu]
             map: echo pdu-[0-3]-[1-2]
             """).encode())
-        set_std_group_resolver(GroupResolverConfig(f.name))
+        set_std_group_resolver(GroupResolverConfig(self.f.name))
 
     def tearDown(self):
         set_std_group_resolver(None)
