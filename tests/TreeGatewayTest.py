@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# ClusterShell.Gateway test suite
+"""
+Unit test for ClusterShell.Gateway
+"""
 
 import logging
 import os

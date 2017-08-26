@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell propagation test suite
 # Written by H. Doreau
-
 
 """Unit test for Propagation"""
 

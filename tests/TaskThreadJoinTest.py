@@ -1,10 +1,10 @@
-#!/usr/bin/env python
 # ClusterShell test suite
 # Written by S. Thiell 2010-01-16
 
-
-"""Unit test for ClusterShell task's join feature in multithreaded
-environments"""
+"""
+Unit test for ClusterShell task's join feature in multithreaded
+environments
+"""
 
 import sys
 import time

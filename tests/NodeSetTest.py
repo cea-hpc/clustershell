@@ -1,8 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ClusterShell.NodeSet test suite
 # Written by S. Thiell (first version in 2007)
-
 
 """Unit test for NodeSet"""
 

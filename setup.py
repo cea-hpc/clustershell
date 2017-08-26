@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
 # Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
@@ -30,7 +29,7 @@ else:
     # User, in-prefix config install (rpmbuild or pip as user)
     CFGDIR = 'etc/clustershell'
 
-VERSION = '1.7.3'
+VERSION = '1.7.80'
 
 # Dependencies (for pip install)
 REQUIRES = ['PyYAML']

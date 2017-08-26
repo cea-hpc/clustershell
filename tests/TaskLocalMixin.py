@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell (local) test suite
 # Written by S. Thiell
-
 
 """Unit test for ClusterShell Task (local)"""
 

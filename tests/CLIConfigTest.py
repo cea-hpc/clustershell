@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Config test suite
 # Written by S. Thiell
-
 
 """Unit test for CLI.Config"""
 

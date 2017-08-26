@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# ClusterShell.Node* test suite
-
-
-"""Unit test for NodeSet with Group support"""
+"""
+Unit test for NodeSet with Group support
+"""
 
 import copy
 import shutil
