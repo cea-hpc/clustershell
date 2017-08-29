@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f07003b_f21ddd11",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-29T09:25:09Z",
+      "side": 1,
+      "message": "it could be expansize but I\u0027m curious to know when this is starting to be slow... \nWhat is the config size where parsing is so slow?",
+      "revId": "312567ed6c35730baa50cc6170de48d1453cfa80",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6223683_600fad93",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-29T09:25:09Z",
+      "side": 1,
+      "message": "This delays parsing of extra config files and yaml files, but not groups.conf itself, which will be read anyway...",
+      "revId": "312567ed6c35730baa50cc6170de48d1453cfa80",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c02a60a6_4bab3d02",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-29T09:25:09Z",
+      "side": 1,
+      "message": "could be set to True in _parse_config(). Call it \u0027parsed\u0027 ?",
+      "revId": "312567ed6c35730baa50cc6170de48d1453cfa80",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
