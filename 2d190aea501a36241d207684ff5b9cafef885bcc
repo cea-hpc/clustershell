@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf0bf940_85e57918",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-30T10:23:47Z",
+      "side": 1,
+      "message": "(idea) we should start raising a DeprecationWarning for that (another patch, there is ticket tracking deprecation warning)",
+      "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec635103_1a67c144",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-30T10:23:47Z",
+      "side": 1,
+      "message": "(defect) GroupResolverConfig modify this when loading its config file. I think we need init here also\n\nThis should be detected by a simple test loading a GroupResolverConfig and reading resolver.default_source_name before anything else. I noticed this public accessor is never tested by the way.",
+      "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0818ac1_0204f887",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-30T10:23:47Z",
+      "side": 1,
+      "message": "you can keep this on 1 line, it makes the patch smaller",
+      "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
