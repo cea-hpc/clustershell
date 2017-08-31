@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8135f45f_32dc4a66",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-31T05:56:48Z",
+      "side": 1,
+      "message": "yes, definitively (#226)",
+      "parentUuid": "bf0bf940_85e57918",
+      "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ec635103_1a67c144",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 3
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "29129a31_7bfb509b",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-31T05:56:48Z",
+      "side": 1,
+      "message": "Argh indeed, I think I got it now. Thanks!\n\nBoth methods are covered but from internal calls, not directly. I will add a test to cover this case at least.",
+      "parentUuid": "ec635103_1a67c144",
+      "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d0818ac1_0204f887",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 3
@@ -47,6 +83,24 @@
       "writtenOn": "2017-08-30T10:23:47Z",
       "side": 1,
       "message": "you can keep this on 1 line, it makes the patch smaller",
+      "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c478237_c99642aa",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-08-31T05:56:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0818ac1_0204f887",
       "revId": "2d190aea501a36241d207684ff5b9cafef885bcc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
