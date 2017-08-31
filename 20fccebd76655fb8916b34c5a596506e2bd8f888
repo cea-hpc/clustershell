@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc603800_17a16c8e",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-08-31T07:37:38Z",
+      "side": 1,
+      "message": "add blank lines between this second test and the above assert",
+      "revId": "20fccebd76655fb8916b34c5a596506e2bd8f888",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
