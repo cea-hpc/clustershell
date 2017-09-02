@@ -1,18 +1,18 @@
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%global srcname ClusterShell
 
 Name:          clustershell
 Version:       %{version}
 Release:       1%{?dist}
 Summary:       Python framework for efficient cluster administration
 
-Group:         System Environment/Base
 License:       LGPLv2+
 URL:           http://cea-hpc.github.io/clustershell/
-Source0:       https://github.com/cea-hpc/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
-BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+Source0:       https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
 BuildArch:     noarch
-BuildRequires: python-devel python-setuptools
-Requires:      python-setuptools PyYAML
+BuildRequires: python-devel
+BuildRequires: python-setuptools
+Requires:      python-setuptools
+Requires:      PyYAML
 
 %description
 Tools and event-based Python library to execute commands on cluster nodes in
@@ -33,21 +33,16 @@ Syntax highlighting in the VIM editor for ClusterShell configuration files.
 
 
 %prep
-%setup -q
+%setup -q -n %{srcname}-%{version}
 
 %build
 %{__python} setup.py build
 
 %install
-rm -rf %{buildroot}
 # install library (lib), scripts (bin) and config (etc)
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 # move config dir away from default setuptools /usr prefix (if rpm-building as user)
 [ -d %{buildroot}/usr/etc ] && mv %{buildroot}/usr/etc %{buildroot}/%{_sysconfdir}
-
-# old versions of rpm (el5) requires that a file/link exists in buildroot even
-# when ghosted, but it is not installed at the end...
-ln -s conf/groups.d/local.cfg %{buildroot}/%{_sysconfdir}/clustershell/groups
 
 # man pages
 install -d %{buildroot}/%{_mandir}/{man1,man5}
