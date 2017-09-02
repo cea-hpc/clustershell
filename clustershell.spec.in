@@ -1,31 +1,65 @@
+%{!?python2_shortver: %global python2_shortver %(%{__python2} -c 'import sys; print(str(sys.version_info.major) + "." + str(sys.version_info.minor))')}
+%{!?python3_shortver: %global python3_shortver %(%{__python3} -c 'import sys; print(str(sys.version_info.major) + "." + str(sys.version_info.minor))')}
+
+%if 0%{?fedora} >= 22
+%{!?python2_pkgversion: %global python2_pkgversion 2}
+%global python2_pkgprefix python%{python2_pkgversion}
+%else
+%global python2_pkgprefix python
+%endif
+
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+%global python3_pkgprefix python%{python3_pkgversion}
+
 %global srcname ClusterShell
 
 Name:          clustershell
 Version:       %{version}
-Release:       1%{?dist}
+Release:       3%{?dist}
 Summary:       Python framework for efficient cluster administration
 
 License:       LGPLv2+
 URL:           http://cea-hpc.github.io/clustershell/
 Source0:       https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
 BuildArch:     noarch
-BuildRequires: python-devel
-BuildRequires: python-setuptools
-Requires:      python-setuptools
-Requires:      PyYAML
+Requires:      python2-%{name} = %{version}-%{release}
 
 %description
-Tools and event-based Python library to execute commands on cluster nodes in
-parallel depending on selected engine and worker mechanisms. The library
-provides also advanced NodeSet and NodeGroups handling methods to ease and
-improve administration of large compute clusters or server farms. Three
-convenient command line utilities, clush, clubak and nodeset (or cluset) allow
-traditional shell scripts to benefit some useful features offered by the
-library.
+ClusterShell is a set of tools and a Python library to execute commands
+on cluster nodes in parallel depending on selected engine and worker
+mechanisms. Advanced node sets and node groups handling methods are provided
+to ease and improve the daily administration of large compute clusters or
+server farms. Command line utilities like clush, clubak and nodeset (or
+cluset) allow traditional shell scripts to take benefit of the features
+offered by the library.
+
+
+%package -n python2-%{name}
+Summary:       ClusterShell module for Python 2
+BuildRequires: %{python2_pkgprefix}-devel
+BuildRequires: %{python2_pkgprefix}-setuptools
+Requires:      %{python2_pkgprefix}-setuptools
+Requires:      PyYAML
+%{?python_provide:%python_provide python2-%{name}}
+
+%description -n python2-%{name}
+ClusterShell Python 2 module and related command line tools.
+
+
+%package -n %{python3_pkgprefix}-%{name}
+Summary:       ClusterShell module for Python 3
+BuildRequires: %{python3_pkgprefix}-devel
+BuildRequires: %{python3_pkgprefix}-setuptools
+Requires:      %{python3_pkgprefix}-setuptools
+Requires:      %{python3_pkgprefix}-PyYAML
+%{?python_provide:%python_provide %{python3_pkgprefix}-%{srcname}}
+
+%description -n %{python3_pkgprefix}-%{name}
+ClusterShell Python 3 module and related command line tools.
+
 
 %package -n vim-%{name}
 Summary:       VIM files for ClusterShell
-Group:         System Environment/Base
 Requires:      clustershell = %{version}-%{release}, vim-common
 
 %description -n vim-%{name}
@@ -36,11 +70,21 @@ Syntax highlighting in the VIM editor for ClusterShell configuration files.
 %setup -q -n %{srcname}-%{version}
 
 %build
-%{__python} setup.py build
+%{__python3} setup.py build
+%{__python2} setup.py build
 
 %install
 # install library (lib), scripts (bin) and config (etc)
-%{__python} setup.py install -O1 --skip-build --root %{buildroot}
+%{__python3} setup.py install -O1 --skip-build --root %{buildroot}
+
+pushd %{buildroot}%{_bindir}
+for i in clubak cluset clush nodeset; do
+  mv $i $i-%{python3_shortver}
+done
+popd
+
+%{__python2} setup.py install -O1 --skip-build --root %{buildroot}
+
 # move config dir away from default setuptools /usr prefix (if rpm-building as user)
 [ -d %{buildroot}/usr/etc ] && mv %{buildroot}/usr/etc %{buildroot}/%{_sysconfdir}
 
@@ -63,8 +107,23 @@ install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadi
 %clean
 rm -rf %{buildroot}
 
-%files
-%defattr(-,root,root,-)
+%files -n python2-%{name}
+%{_bindir}/clubak
+%{_bindir}/cluset
+%{_bindir}/clush
+%{_bindir}/nodeset
+%{python2_sitelib}/ClusterShell/
+%{python2_sitelib}/ClusterShell-*-py?.?.egg-info
+
+%files -n %{python3_pkgprefix}-%{name}
+%{_bindir}/clubak-%{python3_shortver}
+%{_bindir}/cluset-%{python3_shortver}
+%{_bindir}/clush-%{python3_shortver}
+%{_bindir}/nodeset-%{python3_shortver}
+%{python3_sitelib}/ClusterShell/
+%{python3_sitelib}/ClusterShell-*-py?.?.egg-info
+
+%files -n %{name}
 %doc ChangeLog COPYING.LGPLv2.1 README.md
 %doc doc/examples
 %doc doc/sphinx
@@ -86,12 +145,6 @@ rm -rf %{buildroot}
 %doc %{_sysconfdir}/clustershell/groups.d/README
 %doc %{_sysconfdir}/clustershell/groups.d/*.yaml.example
 %doc %{_sysconfdir}/clustershell/topology.conf.example
-%{python_sitelib}/ClusterShell/
-%{python_sitelib}/ClusterShell-*-py?.?.egg-info
-%{_bindir}/clubak
-%{_bindir}/cluset
-%{_bindir}/clush
-%{_bindir}/nodeset
 
 %files -n vim-%{name}
 %defattr(-,root,root,-)
@@ -100,6 +153,12 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Sat Sep  2 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.81-3
+- use `python2-` prefix in *Requires if available
+
+* Sat Sep  2 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.81-2
+- create separate packages for python2 and python3 modules
+
 * Fri Sep  1 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.81-1
 - update to 1.7.81 (1.8 beta1)
 
