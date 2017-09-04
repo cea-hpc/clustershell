@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ece657e3_28b38e5e",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-04T10:37:35Z",
+      "side": 1,
+      "message": "Seems useless to me. Do you have an example where this is problem?",
+      "revId": "a38a0149ec10300087a7b2ba883fd46e5199f20d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
