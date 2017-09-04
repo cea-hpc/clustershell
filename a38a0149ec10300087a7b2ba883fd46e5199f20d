@@ -16,6 +16,24 @@
       "revId": "a38a0149ec10300087a7b2ba883fd46e5199f20d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9aa31e1e_77e4bda3",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-04T14:24:04Z",
+      "side": 1,
+      "message": "Yep, without this, the directories where we install our files are not  always cleaning properly. See the example on Slack that I posted in a thread.\n\nvim-filesystem is not available on el6 though, so I should probably add a condition there to avoid having to maintain a separate specfile for el6.",
+      "parentUuid": "ece657e3_28b38e5e",
+      "revId": "a38a0149ec10300087a7b2ba883fd46e5199f20d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
