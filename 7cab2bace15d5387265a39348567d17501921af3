@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b18bf623_5c830220",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-04T10:30:49Z",
+      "side": 1,
+      "message": "typo ?",
+      "range": {
+        "startLine": 15,
+        "startChar": 31,
+        "endLine": 15,
+        "endChar": 42
+      },
+      "revId": "7cab2bace15d5387265a39348567d17501921af3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5765cb56_1eed87f0",
+        "filename": "mkrpm.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-04T10:30:49Z",
+      "side": 1,
+      "message": "Modification to support any number of spaces between Version key and value\n\n  sed -e \"s/^Version:\\(\\s\\+\\)%{version}$/Version:\\1${VERS}/\" \u003cclustershell.spec.in \u003eclustershell.spec",
+      "revId": "7cab2bace15d5387265a39348567d17501921af3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
