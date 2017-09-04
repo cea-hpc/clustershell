@@ -15,7 +15,7 @@
 
 Name:          clustershell
 Version:       %{version}
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       Python framework for efficient cluster administration
 
 License:       LGPLv2+
@@ -23,6 +23,9 @@ URL:           http://cea-hpc.github.io/clustershell/
 Source0:       https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
 BuildArch:     noarch
 Requires:      python2-%{name} = %{version}-%{release}
+Requires:      vim-filesystem
+Provides:      vim-clustershell = %{version}-%{release}
+Obsoletes:     vim-clustershell < 1.7.81-4
 
 %description
 ClusterShell is a set of tools and a Python library to execute commands
@@ -56,14 +59,6 @@ Requires:      %{python3_pkgprefix}-PyYAML
 
 %description -n %{python3_pkgprefix}-%{name}
 ClusterShell Python 3 module and related command line tools.
-
-
-%package -n vim-%{name}
-Summary:       VIM files for ClusterShell
-Requires:      clustershell = %{version}-%{release}, vim-common
-
-%description -n vim-%{name}
-Syntax highlighting in the VIM editor for ClusterShell configuration files.
 
 
 %prep
@@ -145,14 +140,16 @@ rm -rf %{buildroot}
 %doc %{_sysconfdir}/clustershell/groups.d/README
 %doc %{_sysconfdir}/clustershell/groups.d/*.yaml.example
 %doc %{_sysconfdir}/clustershell/topology.conf.example
-
-%files -n vim-%{name}
-%defattr(-,root,root,-)
 %{vimdatadir}/ftdetect/clustershell.vim
 %{vimdatadir}/syntax/clushconf.vim
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Sun Sep  3 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.81-4
+- move vim extensions into the clustershell package
+- use Requires: vim-filesystem instead of vim-common
+- define upgrade path for vim-clustershell
+
 * Sat Sep  2 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.81-3
 - use `python2-` prefix in *Requires if available
 
