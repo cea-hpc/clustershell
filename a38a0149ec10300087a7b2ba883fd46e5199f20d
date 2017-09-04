@@ -34,6 +34,24 @@
       "revId": "a38a0149ec10300087a7b2ba883fd46e5199f20d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52d8b2c7_5dd14862",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-04T18:44:54Z",
+      "side": 1,
+      "message": "OK. Looks ok, just add proper if for rhel/fedora releases",
+      "parentUuid": "9aa31e1e_77e4bda3",
+      "revId": "a38a0149ec10300087a7b2ba883fd46e5199f20d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
