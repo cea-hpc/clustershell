@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "10da2d41_28cfa6fb",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-05T03:20:00Z",
+      "side": 1,
+      "message": "after more test, the *build and *install macros don\u0027t work on SUSE, so I will keep it as is...",
+      "parentUuid": "e5d44263_92a0a71c",
+      "revId": "8ab9af18795a62257e3e9f27d740bd9b12b5cb2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ad427a25_fff01800",
         "filename": "clustershell.spec.in",
         "patchSetId": 1
@@ -101,6 +119,24 @@
       "side": 1,
       "message": "tested also and works fine, thanks",
       "parentUuid": "ad427a25_fff01800",
+      "revId": "8ab9af18795a62257e3e9f27d740bd9b12b5cb2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6756280a_72e6c3ed",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-05T03:20:00Z",
+      "side": 1,
+      "message": "same, broken on SUSE",
+      "parentUuid": "b419b05b_85f88097",
       "revId": "8ab9af18795a62257e3e9f27d740bd9b12b5cb2e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
