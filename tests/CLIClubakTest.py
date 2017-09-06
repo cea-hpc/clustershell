@@ -95,11 +95,11 @@ class CLIClubakTest(unittest.TestCase):
 
     def test_004_N(self):
         """test clubak (no header -N)"""
-        self._clubak_t(["-N"], b"foo: bar\n", b"\n bar\n")
+        self._clubak_t(["-N"], b"foo: bar\n", b" bar\n")
         self._clubak_t(["-NL"], b"foo: bar\n", b" bar\n")
-        self._clubak_t(["-N", "-S", ": "], b"foo: bar\n", b"\nbar\n")
-        self._clubak_t(["-bN"], b"foo: bar\n", b"\n bar\n")
-        self._clubak_t(["-bN", "-S", ": "], b"foo: bar\n", b"\nbar\n")
+        self._clubak_t(["-N", "-S", ": "], b"foo: bar\n", b"bar\n")
+        self._clubak_t(["-bN"], b"foo: bar\n", b" bar\n")
+        self._clubak_t(["-bN", "-S", ": "], b"foo: bar\n", b"bar\n")
 
     def test_005_fast(self):
         """test clubak (fast mode --fast)"""

@@ -56,7 +56,7 @@ def display_tree(tree, disp, out):
             if line_mode:
                 out.write(str(nodeset).encode() + b':\n')
             else:
-                out.write(disp.format_header(nodeset, reldepth) + b'\n')
+                out.write(disp.format_header(nodeset, reldepth))
         out.write(b' ' * reldepth + msgline + b'\n')
         togh = nchildren != 1
 

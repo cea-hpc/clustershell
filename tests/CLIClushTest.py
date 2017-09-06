@@ -91,6 +91,10 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-w", HOSTNAME, "--color=never", "echo", "ok"], None,
                       self.output_ok)
 
+        # issue #352
+        self._clush_t(["-N", "-R", "exec", "-w", 'foo[1-2]', "-b",
+                      "echo", "test"], None, b"test\n")
+
     def test_001_display_tty(self):
         """test clush (display options) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)

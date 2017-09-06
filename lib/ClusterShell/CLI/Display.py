@@ -156,17 +156,17 @@ class Display(object):
 
     def format_header(self, nodeset, indent=0):
         """Format nodeset-based header."""
+        if not self.label:
+            return b""
         indstr = " " * indent
         nodecntstr = ""
         if self.verbosity >= VERB_STD and self.node_count and len(nodeset) > 1:
             nodecntstr = " (%d)" % len(nodeset)
-        if not self.label:
-            return b""
         hdr = self.color_stdout_fmt % ("%s%s\n%s%s%s\n%s%s" % \
             (indstr, self.SEP,
              indstr, self._format_nodeset(nodeset), nodecntstr,
              indstr, self.SEP))
-        return hdr.encode('ascii')
+        return hdr.encode('ascii') + b'\n'
 
     def print_line(self, nodeset, line):
         """Display a line with optional label."""
@@ -201,8 +201,7 @@ class Display(object):
 
     def _print_content(self, nodeset, content):
         """Display a dshbak-like header block and content."""
-        self.out.write(self.format_header(nodeset) + b'\n' + bytes(content)
-                       + b'\n')
+        self.out.write(self.format_header(nodeset) + bytes(content) + b'\n')
 
     def _print_diff(self, nodeset, content):
         """Display unified diff between remote gathered outputs."""
