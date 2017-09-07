@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d43b652f_85ef0163",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-07T10:24:14Z",
+      "side": 1,
+      "message": "elif exists in specfiles",
+      "revId": "059548e607eac72e8da5b8507809b73545c686ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa124d6b_c959f9c9",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-07T10:24:14Z",
+      "side": 1,
+      "message": "sure of that?",
+      "revId": "059548e607eac72e8da5b8507809b73545c686ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cdc74a2_149a8f97",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-07T10:24:14Z",
+      "side": 1,
+      "message": "idem?",
+      "revId": "059548e607eac72e8da5b8507809b73545c686ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
