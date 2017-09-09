@@ -6,8 +6,6 @@
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from TLib import HOSTNAME
 from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Popen import WorkerPopen

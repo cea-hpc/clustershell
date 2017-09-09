@@ -1,0 +1,33 @@
+language: python
+python:
+  - '2.6'
+  - '2.7'
+  - '3.4'
+  - '3.5'
+  - '3.6'
+  - nightly
+install:
+  - pip install coverage
+  - pip install .
+before_script:
+  # Allow us to SSH passwordless to localhost
+  - ssh-keygen -f ~/.ssh/id_rsa -N ""
+  - cp ~/.ssh/{id_rsa.pub,authorized_keys}
+  # Avoid ssh "known hosts" warnings
+  - printf '%s\n    %s\n    %s\n' 'Host *' 'StrictHostKeyChecking no' 'LogLevel ERROR' >> ~/.ssh/config
+  # WorkerPdsh
+  - sudo apt-get -y install pdsh
+  - sudo sh -c 'echo ssh > /etc/pdsh/rcmd_default'
+script:
+  - nosetests -v --all-modules --with-coverage --cover-tests --cover-erase --cover-package=ClusterShell tests
+notifications:
+  email:
+    on_success: never
+    on_failure: always
+  slack:
+    secure: R9Hwy5oshH4zIjl03WjaFiUGTvh6A7bfU/RvMjTfofwC9o7Jc5cCC6trr7DK/ryq+LwKInhnuIEFFFWkODw7wk60bJqGrotG7Dfvx+6/GbKEgoM78VEqWPR4ylUMfYLUh3qhGxAd40whxE4RUpQ0x8OdsRxZqT/ZVfzsq+DVtQo=
+matrix:
+  # Allow failed builds against Python nightly
+  allow_failures:
+    - python: nightly
+  fast_finish: true

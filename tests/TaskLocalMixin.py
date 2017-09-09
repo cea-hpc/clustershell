@@ -9,8 +9,6 @@ import signal
 import sys
 import time
 
-sys.path.insert(0, '../lib')
-
 import ClusterShell
 
 from ClusterShell.Defaults import DEFAULTS
@@ -95,7 +93,7 @@ class TaskLocalMixin(object):
         task = task_self()
 
         # init worker
-        worker = task.shell("for i in {1..100000}; do echo -n ' huge! '; done")
+        worker = task.shell("for i in $(seq 1 100000); do echo -n ' huge! '; done")
 
         # run task
         task.resume()

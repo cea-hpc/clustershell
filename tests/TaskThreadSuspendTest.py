@@ -9,8 +9,6 @@ import time
 import threading
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.Task import *
 from ClusterShell.Event import EventHandler
 

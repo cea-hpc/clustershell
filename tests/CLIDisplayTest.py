@@ -9,8 +9,6 @@ import tempfile
 import unittest
 from io import BytesIO
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.CLI.Display import Display, WHENCOLOR_CHOICES, VERB_STD
 from ClusterShell.CLI.OptionParser import OptionParser
 

@@ -7,8 +7,6 @@ from textwrap import dedent
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from TLib import make_temp_file
 
 from ClusterShell.Defaults import Defaults, _task_print_debug

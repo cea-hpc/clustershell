@@ -8,8 +8,6 @@ import subprocess
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from TLib import HOSTNAME
 from ClusterShell.Task import *
 from ClusterShell.Worker.Pdsh import WorkerPdsh

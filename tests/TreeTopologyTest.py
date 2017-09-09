@@ -12,8 +12,6 @@ import tempfile
 #from guppy import hpy
 # ---
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.Topology import *
 from ClusterShell.NodeSet import NodeSet
 
