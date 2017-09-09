@@ -8,8 +8,6 @@ import socket
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 import ClusterShell
 
 from ClusterShell.NodeSet import NodeSet

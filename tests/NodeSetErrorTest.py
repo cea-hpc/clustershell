@@ -6,8 +6,6 @@
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.RangeSet import RangeSet, RangeSetND
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.NodeSet import NodeSetBase

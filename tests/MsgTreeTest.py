@@ -7,8 +7,6 @@ from operator import itemgetter
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.MsgTree import *
 
 

@@ -6,8 +6,6 @@
 import shutil
 import sys
 
-sys.path.insert(0, '../lib')
-
 from TLib import HOSTNAME, make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet

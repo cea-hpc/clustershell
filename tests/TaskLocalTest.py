@@ -5,8 +5,6 @@ Unit test for ClusterShell Task with all engines (local worker)
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Engine.Select import EngineSelect
 from ClusterShell.Engine.Poll import EnginePoll
