@@ -224,7 +224,8 @@ class CLIClushTest_A(unittest.TestCase):
         """test clush (diff w/o output)"""
         rxs = r"^--- %s\n\+\+\+ localhost\n@@ -1(,1)? \+[01],0 @@\n-ok\n$" % HOSTNAME
         self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff",
-                       'echo "${SSH_CLIENT%% *}" | egrep "^(127.0.0.1|::1)$" >/dev/null || echo ok'],
+                       'echo $SSH_CONNECTION | cut -d " " -f 3 |'
+                       'egrep "^(127.0.0.1|::1)$" >/dev/null || echo ok'],
                       None, re.compile(rxs.encode()))
 
     def test_013_stdin(self):
@@ -516,8 +517,8 @@ class CLIClushTest_A(unittest.TestCase):
                       self.output_ok)
 
         # Issue #326
-        cmd = 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]]; then ' \
-              'echo foo; else echo bar; fi'
+        cmd = "bash -c 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]]; then " \
+              "echo foo; else echo bar; fi'"
 
         self._clush_t(["-w", "cs[01-03]", "--worker=exec", "-L", cmd], None,
                       b'cs01: bar\ncs02: foo\ncs03: bar\n', 0)
@@ -525,16 +526,16 @@ class CLIClushTest_A(unittest.TestCase):
     def test_036_sorted_gather(self):
         """test clush (CLI.Utils.bufnodeset_cmpkey)"""
         # test 1st sort criteria: largest nodeset first
-        cmd = 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]]; then ' \
-              'echo foo; else echo bar; fi'
+        cmd = "bash -c 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]];" \
+              "then echo foo; else echo bar; fi'"
 
         self._clush_t(["-w", "cs[01-03]", "--worker=exec", "-b", cmd], None,
                       b'---------------\ncs[01,03] (2)\n---------------\nbar\n'
                       b'---------------\ncs02\n---------------\nfoo\n', 0)
 
         # test 2nd sort criteria: smaller node index first
-        cmd = 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]]; then ' \
-              'echo bar; else echo foo; fi'
+        cmd = "bash -c 's=%h; n=${s//[!0-9]/}; if [[ $(expr $n %% 2) == 0 ]];" \
+              "then echo bar; else echo foo; fi'"
 
         self._clush_t(["-w", "cs[01-04]", "--worker=exec", "-b", cmd], None,
                       b'---------------\ncs[01,03] (2)\n---------------\nfoo\n'

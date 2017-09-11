@@ -617,7 +617,7 @@ class NodeSetGroupTest(unittest.TestCase):
             default: local
 
             [local]
-            map: if [[ $GROUP == "x1y[3-4]" ]]; then exit 1; elif [[ $GROUP == "x1y1" ]]; then echo rack[1-5]z[1-42]; else echo rack[6-10]z[1-42]; fi
+            map: if [ "$GROUP" = "x1y[3-4]" ]; then exit 1; elif [ "$GROUP" = "x1y1" ]; then echo rack[1-5]z[1-42]; else echo rack[6-10]z[1-42]; fi
             #all:
             list: echo x1y1 x1y2 x1y[3-4]
             #reverse:
@@ -688,7 +688,7 @@ class NodeSetGroupTest(unittest.TestCase):
             map: echo "foo: @local:foo" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
 
             [third]
-            map: echo -e "bar: @ref-rel\\nref-rel: @other:foo\\nref-all: @*" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
+            map: printf "bar: @ref-rel\\nref-rel: @other:foo\\nref-all: @*\\n" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
             list: echo bar
             """).encode('ascii'))
         res = GroupResolverConfig(f.name)
