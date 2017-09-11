@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90a05ccc_b25be61b",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-11T19:59:57Z",
+      "side": 1,
+      "message": "sometime bash is just too powerful :)",
+      "revId": "2535c866058bf231392e4a54941c55c91ec1e7f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
