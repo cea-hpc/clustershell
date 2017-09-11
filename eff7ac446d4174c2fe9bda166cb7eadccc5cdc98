@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "970941b7_04ff1b34",
+        "filename": ".travis.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-11T08:35:52Z",
+      "side": 1,
+      "message": "mhhh.. does this able anybody to send message to CS Slack? :)",
+      "revId": "eff7ac446d4174c2fe9bda166cb7eadccc5cdc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
