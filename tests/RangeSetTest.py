@@ -9,8 +9,7 @@ import pickle
 import sys
 import unittest
 
-from ClusterShell.RangeSet import RangeSet
-
+from ClusterShell.RangeSet import RangeSet, RangeSetParseError
 
 class RangeSetTest(unittest.TestCase):
 
@@ -59,6 +58,23 @@ class RangeSetTest(unittest.TestCase):
         self._testRS("1-17/2,33-41/2,2-20/2", "1-18,20,33-41/2", 24)
         self._testRS("1-17/2,33-41/2,2-19/2", "1-18,33-41/2", 23)
         self._testRS("1968-1970,1972,1975,1978-1981,1984-1989", "1968-1970,1972-1978/3,1979-1981,1984-1989", 15)
+
+    def test_bad_syntax(self):
+        """test parse errors"""
+        self.assertRaises(RangeSetParseError, RangeSet, "")
+        self.assertRaises(RangeSetParseError, RangeSet, "-")
+        self.assertRaises(RangeSetParseError, RangeSet, "A")
+        self.assertRaises(RangeSetParseError, RangeSet, "2-5/a")
+        self.assertRaises(RangeSetParseError, RangeSet, "3/2")
+        self.assertRaises(RangeSetParseError, RangeSet, "3-/2")
+        self.assertRaises(RangeSetParseError, RangeSet, "-3/2")
+        self.assertRaises(RangeSetParseError, RangeSet, "-/2")
+        self.assertRaises(RangeSetParseError, RangeSet, "4-a/2")
+        self.assertRaises(RangeSetParseError, RangeSet, "4-3/2")
+        self.assertRaises(RangeSetParseError, RangeSet, "4-5/-2")
+        self.assertRaises(RangeSetParseError, RangeSet, "4-2/-2")
+        self.assertRaises(RangeSetParseError, RangeSet, "004-002")
+        self.assertRaises(RangeSetParseError, RangeSet, "3-59/2,102a")
 
     def testIntersectSimple(self):
         """test RangeSet with simple intersections of ranges"""
