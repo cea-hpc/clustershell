@@ -1,4 +1,0 @@
-This directory contains tests related to the v2 tree propagation feature,
-ie. remote commands execution through gateways organized as a tree.
-
-WARNING: tests/tree/*Test.py are deprecated by tests/Tree*.py
