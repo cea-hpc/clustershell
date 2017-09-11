@@ -16,6 +16,24 @@
       "revId": "eff7ac446d4174c2fe9bda166cb7eadccc5cdc98",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d78e3d2_751ab1c0",
+        "filename": ".travis.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-11T15:07:12Z",
+      "side": 1,
+      "message": "this \"secure\" token contains the source repo (cea-hpc/clustershell) and the slack API token, both are encrypted, so it shouldn\u0027t be possible for any other repo to trigger notifications. It is designed for public config. I don\u0027t know how strong is the encryption though.  https://docs.travis-ci.com/user/notifications/#Configuring-slack-notifications",
+      "parentUuid": "970941b7_04ff1b34",
+      "revId": "eff7ac446d4174c2fe9bda166cb7eadccc5cdc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
