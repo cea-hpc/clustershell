@@ -9,8 +9,6 @@ from time import sleep, time
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from TLib import HOSTNAME
 from ClusterShell.Engine.Engine import EngineTimer, EngineIllegalOperationError
 from ClusterShell.Event import EventHandler

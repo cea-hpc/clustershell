@@ -11,8 +11,6 @@ import tempfile
 from textwrap import dedent
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from TLib import make_temp_dir
 
 from ClusterShell.CLI.Clush import set_fdlimit

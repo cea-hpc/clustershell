@@ -9,8 +9,6 @@ import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.CLI.OptionParser import OptionParser
 
 

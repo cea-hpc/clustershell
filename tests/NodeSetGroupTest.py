@@ -8,8 +8,6 @@ import sys
 from textwrap import dedent
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from TLib import *
 
 # Wildcard import for testing purpose

@@ -6,8 +6,6 @@ import copy
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.NodeSet import RangeSet
 from ClusterShell.NodeSet import RangeSetParseError
 

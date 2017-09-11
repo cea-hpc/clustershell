@@ -10,8 +10,6 @@ import pickle
 import sys
 import unittest
 
-sys.path.insert(0, '../lib')
-
 from ClusterShell.NodeSet import RangeSet, NodeSet, fold, expand
 from ClusterShell.NodeSet import NodeSetBase, AUTOSTEP_DISABLED
 

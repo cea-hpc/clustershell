@@ -9,8 +9,6 @@ import signal
 import sys
 import time
 
-sys.path.insert(0, '../lib')
-
 import ClusterShell
 
 from ClusterShell.Defaults import DEFAULTS
