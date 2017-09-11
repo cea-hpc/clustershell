@@ -123,15 +123,9 @@ class RangeSet(set):
     def _parse(self, pattern):
         """Parse string of comma-separated x-y/step -like ranges"""
         # Comma separated ranges
-        if pattern.find(',') < 0:
-            subranges = [pattern]
-        else:
-            subranges = pattern.split(',')
-
-        for subrange in subranges:
+        for subrange in pattern.split(','):
             if subrange.find('/') < 0:
-                step = 1
-                baserange = subrange
+                baserange, step = subrange, 1
             else:
                 baserange, step = subrange.split('/', 1)
 
@@ -139,12 +133,11 @@ class RangeSet(set):
                 step = int(step)
             except ValueError:
                 raise RangeSetParseError(subrange,
-                        "cannot convert string to integer")
+                                         "cannot convert string to integer")
 
             if baserange.find('-') < 0:
                 if step != 1:
-                    raise RangeSetParseError(subrange,
-                            "invalid step usage")
+                    raise RangeSetParseError(subrange, "invalid step usage")
                 begin = end = baserange
             else:
                 begin, end = baserange.split('-', 1)
@@ -175,8 +168,7 @@ class RangeSet(set):
 
             # check preconditions
             if stop > 1e100 or start > stop or step < 1:
-                raise RangeSetParseError(subrange,
-                                         "invalid values in range")
+                raise RangeSetParseError(subrange, "invalid values in range")
 
             self.add_range(start, stop + 1, step, pad)
 
