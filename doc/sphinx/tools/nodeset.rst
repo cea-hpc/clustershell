@@ -26,7 +26,8 @@ of *nodeset*.
 Usage basics
 ^^^^^^^^^^^^
 
-One exclusive command must be specified to *nodeset*, for example::
+With the exception of ``-l, --list`` and ``-L, --list-all``, an exclusive main
+command option must be specified to *nodeset*, like in the examples below::
 
     $ nodeset --expand node[13-15,17-19]
     node13 node14 node15 node17 node18 node19
@@ -36,12 +37,12 @@ One exclusive command must be specified to *nodeset*, for example::
     node[1-3]-ipmi
 
 
-Commands with inputs
+Main command options
 """"""""""""""""""""
 
-Some *nodeset* commands require input (eg. node names, node sets or node
-groups), and some only give output. The following table shows commands that
-require some input:
+Some *nodeset* command options require input and some only give output. The
+following table shows the main commands that require input to operate on node
+sets or node groups:
 
 +-------------------+--------------------------------------------------------+
 | Command           | Description                                            |
@@ -129,23 +130,61 @@ Most commands described in this section produce output results that may be
 formatted using ``--output-format`` and ``--separator`` which are described in
 :ref:`nodeset-commands-formatting`.
 
-Commands with no input
-""""""""""""""""""""""
+Getting node groups
+"""""""""""""""""""
 
-The following table shows all other commands that are supported by
-*nodeset*. These commands don't support any input (like node sets), but can
-still recognize options as specified below.
+The following table shows other commands that are supported by *nodeset* to
+get configured node groups (with optional input).
 
 +--------------------+-----------------------------------------------------+
-| Command w/o input  | Description                                         |
+| Command            | Description                                         |
 +====================+=====================================================+
-| ``-l, --list``     | List node groups from selected *group source* as    |
-|                    | specified with ``-s`` or ``--groupsource``. If      |
-|                    | not specified, node groups from the default *group  |
-|                    | source* are listed (see :ref:`groups configuration  |
-|                    | <groups-config>` for default *group source*         |
-|                    | configuration).                                     |
+| ``-l, --list``     | By default, list node groups from selected          |
+|                    | *group source* as specified by ``-s`` or            |
+|                    | ``--groupsource``. If ``-s`` is not specified, node |
+|                    | groups from the default *group source* are listed   |
+|                    | (see :ref:`groups configuration <groups-config>`    |
+|                    | for default *group source*  configuration).         |
+|                    | If any nodeset is provided as argument, it will     |
+|                    | find node groups these nodes belongs to             |
+|                    | (individually).
+|                    | Optionally for each group, the fraction of these    |
+|                    | nodes being member of the group may be displayed    |
+|                    | (with ``-ll``), and also member count/total group   |
+|                    | node count (with ``-lll``). If a single             |
+|                    | hyphen-minus (-) is given as a nodeset, it will be  |
+|                    | read from standard input.                           |
+|                    |                                                     |
+|                    | Except for groups in the default *group source*,    |
+|                    | the source name is printed by default, as in        |
+|                    | ``@source:groupname`` (see                          |
+|                    | :ref:`nodeset-groupsexpr`). You can use ``-G`` or   |
+|                    | ``--groupbase`` to hide this group source prefix if |
+|                    | needed, as in ``@groupname``.                       |
+|                    |                                                     |
+|                    | ``-l`` may also be used in conjunction with         |
+|                    | ``-c/-e/-f`` to respectively count, expand or fold  |
+|                    | "group sets" (useful for group set like             |
+|                    | ``@chassis:c[1-4]``).                               |
 +--------------------+-----------------------------------------------------+
+| ``-L, --list-all`` | Similar to ``-l`` but list node groups from all     |
+|                    | group sources.                                      |
+|                    |                                                     |
+|                    | Like ``-l``, it may also be used in conjunction     |
+|                    | with ``-c/-e/-f`` to operate on "group sets".       |
++--------------------+-----------------------------------------------------+
+
+
+Getting node group sources
+""""""""""""""""""""""""""
+
+The following table shows another command option that is supported by
+*nodeset* to list node group sources. While it doesn't support any input
+(like node sets), it can still recognize options as specified below.
+
++--------------------+-----------------------------------------------------+
+| Command            | Description                                         |
++====================+=====================================================+
 | ``--groupsources`` | List all configured *group sources*, one per line,  |
 |                    | as configured in *groups.conf* (see                 |
 |                    | :ref:`groups configuration <groups-config>`).       |
@@ -155,6 +194,7 @@ still recognize options as specified below.
 |                    | avoid reading any configuration files, or to check  |
 |                    | if all work fine when configuring *group sources*.  |
 +--------------------+-----------------------------------------------------+
+
 
 .. _nodeset-commands-formatting:
 

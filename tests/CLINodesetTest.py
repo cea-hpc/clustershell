@@ -11,7 +11,7 @@ from TLib import *
 from ClusterShell.CLI.Nodeset import main
 
 from ClusterShell.NodeUtils import GroupResolverConfig
-from ClusterShell.NodeSet import std_group_resolver, set_std_group_resolver
+from ClusterShell.NodeSet import set_std_group_resolver
 
 
 class CLINodesetTestBase(unittest.TestCase):
@@ -547,7 +547,6 @@ class CLINodesetTest(CLINodesetTestBase):
                             None, str(num).encode() + b'\n')
 
 
-
 class CLINodesetGroupResolverTest1(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
 
@@ -571,8 +570,9 @@ class CLINodesetGroupResolverTest1(CLINodesetTestBase):
 
     def tearDown(self):
         set_std_group_resolver(None)
+        self.f = None  # used to release temp file
 
-    def test_022_list(self):
+    def test_001_list(self):
         """test nodeset --list"""
         self._nodeset_t(["--list"], None, b"@bar\n@foo\n@moo\n")
         self._nodeset_t(["-ll"], None, b"@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
@@ -591,12 +591,56 @@ class CLINodesetGroupResolverTest1(CLINodesetTestBase):
         self._nodeset_t(["-l", "-X example3"], None, b"@bar\n@foo\n@moo\n") # no -a, xor from nothing
         self._nodeset_t(["-l", "-", "-i example3"], "example[3,500]\n", b"@bar\n@foo\n@moo\n")
 
-    def test_023_list_all(self):
+    def test_002_list_all(self):
         """test nodeset --list-all"""
-        self._nodeset_t(["--list-all"], None, b"@bar\n@foo\n@moo\n")
-        self._nodeset_t(["-L"], None, b"@bar\n@foo\n@moo\n")
-        self._nodeset_t(["-LL"], None, b"@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
-        self._nodeset_t(["-LLL"], None, b"@bar example[1-100] 100\n@foo example[1-100] 100\n@moo example[1-100] 100\n")
+        self._nodeset_t(["--list-all"], None,
+                        b"@bar\n@foo\n@moo\n")
+        self._nodeset_t(["-L"], None,
+                        b"@bar\n@foo\n@moo\n")
+        self._nodeset_t(["-LL"], None,
+                        b"@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
+        self._nodeset_t(["-LLL"], None,
+                        b"@bar example[1-100] 100\n@foo example[1-100] 100\n@moo example[1-100] 100\n")
+
+    def test_003_list_count(self):
+        """test nodeset --list --count"""
+        self._nodeset_t(["--list", "--count"], None, b"3\n")
+        self._nodeset_t(["-l", "-c"], None, b"3\n")
+        self._nodeset_t(["-cl"], None, b"3\n")
+
+    def test_004_list_expand(self):
+        """test nodeset --list --expand"""
+        self._nodeset_t(["--list", "--expand"], None, b"@bar @foo @moo\n")
+        self._nodeset_t(["-l", "-e"], None, b"@bar @foo @moo\n")
+        self._nodeset_t(["-el"], None, b"@bar @foo @moo\n")
+
+    def test_005_list_fold(self):
+        """test nodeset --list --fold"""
+        self._nodeset_t(["--list", "--fold"], None, b"@bar,@foo,@moo\n")
+        self._nodeset_t(["-l", "-f"], None, b"@bar,@foo,@moo\n")
+        self._nodeset_t(["-fl"], None, b"@bar,@foo,@moo\n")
+
+    def test_006_list_all_count(self):
+        """test nodeset --list-all --count"""
+        self._nodeset_t(["--list-all", "--count"], None, b"3\n")
+        self._nodeset_t(["-L", "-c"], None, b"3\n")
+        self._nodeset_t(["-cL"], None, b"3\n")
+        self._nodeset_t(["-cLLL"], None, b"3\n")
+
+    def test_007_list_all_expand(self):
+        """test nodeset --list-all --expand"""
+        self._nodeset_t(["--list-all", "--expand"], None, b"@bar @foo @moo\n")
+        self._nodeset_t(["-L", "-e"], None, b"@bar @foo @moo\n")
+        self._nodeset_t(["-eL"], None, b"@bar @foo @moo\n")
+        self._nodeset_t(["-eLLL"], None, b"@bar @foo @moo\n")
+
+    def test_008_list_all_fold(self):
+        """test nodeset --list-all --fold"""
+        self._nodeset_t(["--list-all", "--fold"], None, b"@bar,@foo,@moo\n")
+        self._nodeset_t(["-L", "-f"], None, b"@bar,@foo,@moo\n")
+        self._nodeset_t(["-fL"], None, b"@bar,@foo,@moo\n")
+        self._nodeset_t(["-fLLL"], None, b"@bar,@foo,@moo\n")
+
 
 class CLINodesetGroupResolverTest2(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
@@ -614,15 +658,16 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
 
             [other]
             map: echo nova[030-489]
-            all: echo @baz,@qux,@norf
-            list: echo baz qux norf
+            all: echo @baz,@qux,@norf,@c[1-2]
+            list: echo baz qux norf c1 c2
             """).encode())
         set_std_group_resolver(GroupResolverConfig(self.f.name))
 
     def tearDown(self):
         set_std_group_resolver(None)
+        self.f = None  # used to release temp file
 
-    def test_024_groups(self):
+    def test_001_groups(self):
         self._nodeset_t(["--split=2", "-r", "unknown2", "unknown3"], None, b"unknown2\nunknown3\n")
         self._nodeset_t(["-f", "-a"], None, b"example[1-100]\n")
         self._nodeset_t(["-f", "@moo"], None, b"example[1-100]\n")
@@ -635,66 +680,137 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
     # We need to split following unit tests in order to reset group
     # source in setUp/tearDown...
 
-    def test_025_groups(self):
+    def test_002_groups(self):
         self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, b"100\n")
 
-    def test_026_groups(self):
+    def test_003_groups(self):
         self._nodeset_t(["-s", "test", "-r", "-a"], None, b"@test:bar\n")
 
-    def test_027_groups(self):
+    def test_004_groups(self):
         self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, b"@bar\n")
 
-    def test_028_groups(self):
+    def test_005_groups(self):
         self._nodeset_t(["-s", "test", "--groupsources"], None, b"test (default)\nother\n")
 
-    def test_029_groups(self):
+    def test_006_groups(self):
         self._nodeset_t(["-s", "test", "-q", "--groupsources"], None, b"test\nother\n")
 
-    def test_030_groups(self):
+    def test_007_groups(self):
         self._nodeset_t(["-f", "-a", "-"], "example101\n", b"example[1-101]\n")
         self._nodeset_t(["-f", "-a", "-"], "example102 example101\n", b"example[1-102]\n")
 
     # Check default group source switching...
 
-    def test_031_groups(self):
+    def test_008_groups(self):
         self._nodeset_t(["-s", "other", "-c", "-a", "-d"], None, b"460\n")
         self._nodeset_t(["-s", "test", "-c", "-a", "-d"], None, b"100\n")
 
-    def test_032_groups(self):
+    def test_009_groups(self):
         self._nodeset_t(["-s", "other", "-r", "-a"], None, b"@other:baz\n")
         self._nodeset_t(["-s", "test", "-r", "-a"], None, b"@test:bar\n")
 
-    def test_033_groups(self):
+    def test_010_groups(self):
         self._nodeset_t(["-s", "other", "-G", "-r", "-a"], None, b"@baz\n")
         self._nodeset_t(["-s", "test", "-G", "-r", "-a"], None, b"@bar\n")
 
-    def test_034_groups(self):
+    def test_011_groups(self):
         self._nodeset_t(["--groupsources"], None, b"test (default)\nother\n")
 
-    def test_035_groups(self):
+    def test_012_groups(self):
         self._nodeset_t(["-s", "other", "--groupsources"], None, b"other (default)\ntest\n")
 
-    def test_036_groups(self):
+    def test_013_groups(self):
         self._nodeset_t(["--groupsources"], None, b"test (default)\nother\n")
 
-    def test_037_groups_output_format(self):
+    def test_014_groups_output_format(self):
         self._nodeset_t(["-r", "-O", "{%s}", "-a"], None, b"{@bar}\n")
 
-    def test_038_groups_output_format(self):
+    def test_015_groups_output_format(self):
         self._nodeset_t(["-O", "{%s}", "-s", "other", "-r", "-a"], None, b"{@other:baz}\n")
 
-    def test_039_list_all(self):
+    def test_016_list_all(self):
         """test nodeset --list-all (multi sources)"""
         self._nodeset_t(["--list-all"], None,
-                        b"@bar\n@foo\n@moo\n@other:baz\n@other:norf\n@other:qux\n")
+                        b"@bar\n@foo\n@moo\n@other:baz\n@other:c1\n@other:c2\n@other:norf\n@other:qux\n")
         self._nodeset_t(["--list-all", "-G"], None,
-                        b"@bar\n@foo\n@moo\n@baz\n@norf\n@qux\n")
+                        b"@bar\n@foo\n@moo\n@baz\n@c1\n@c2\n@norf\n@qux\n")
         self._nodeset_t(["-GL"], None,
-                        b"@bar\n@foo\n@moo\n@baz\n@norf\n@qux\n")
+                        b"@bar\n@foo\n@moo\n@baz\n@c1\n@c2\n@norf\n@qux\n")
         self._nodeset_t(["--list-all", "-s", "other"], None,
-                        b"@other:baz\n@other:norf\n@other:qux\n@test:bar\n@test:foo\n@test:moo\n")
+                        b"@other:baz\n@other:c1\n@other:c2\n@other:norf\n@other:qux\n@test:bar\n@test:foo\n@test:moo\n")
         self._nodeset_t(["--list-all", "-G", "-s", "other"], None,
-                        b"@baz\n@norf\n@qux\n@bar\n@foo\n@moo\n") # 'other' source first
+                        b"@baz\n@c1\n@c2\n@norf\n@qux\n@bar\n@foo\n@moo\n") # 'other' source first
+
+    def test_017_list_count(self):
+        """test nodeset --list --count with source (-s)"""
+        self._nodeset_t(["-s", "other", "--list", "--count"], None, b"5\n")
+        self._nodeset_t(["--groupsource=other", "-l", "-c"], None, b"5\n")
+        self._nodeset_t(["-G", "-s", "other", "--list", "-c"], None,
+                        b"5\n")
+        self._nodeset_t(["--groupbase", "-s", "other", "-l", "-c"], None,
+                        b"5\n")
+
+    def test_018_list_expand(self):
+        """test nodeset --list --expand with source (-s)"""
+        self._nodeset_t(["-s", "other", "--list", "--expand"], None,
+                        b"@other:baz @other:c1 @other:c2 @other:norf @other:qux\n")
+        self._nodeset_t(["--groupsource=other", "-el"], None,
+                        b"@other:baz @other:c1 @other:c2 @other:norf @other:qux\n")
+        self._nodeset_t(["-G", "-s", "other", "--list", "-e"], None,
+                        b"@baz @c1 @c2 @norf @qux\n")
+        self._nodeset_t(["--groupbase", "-s", "other", "-l", "-e"], None,
+                        b"@baz @c1 @c2 @norf @qux\n")
+
+    def test_019_list_fold(self):
+        """test nodeset --list --fold with source (-s)"""
+        self._nodeset_t(["-s", "other", "--list", "--fold"], None,
+                        b"@other:baz,@other:c[1-2],@other:norf,@other:qux\n")
+        self._nodeset_t(["--groupsource=other", "-fl"], None,
+                        b"@other:baz,@other:c[1-2],@other:norf,@other:qux\n")
+        self._nodeset_t(["-G", "-s", "other", "--list", "--fold"], None,
+                        b"@baz,@c[1-2],@norf,@qux\n")
+        self._nodeset_t(["--groupbase", "-s", "other", "--list", "--fold"], None,
+                        b"@baz,@c[1-2],@norf,@qux\n")
+
+    def test_020_list_all_count(self):
+        """test nodeset --list-all --count (multi sources)"""
+        self._nodeset_t(["--list-all", "--count"], None, b"8\n")
+        self._nodeset_t(["--list-all", "-G", "-s", "other", "--count"], None, b"8\n")
+
+    def test_021_list_all_expand(self):
+        """test nodeset --list-all --expand (multi sources)"""
+        self._nodeset_t(["--list-all", "--expand"], None,
+                        b"@bar @foo @moo @other:baz @other:c1 @other:c2 @other:norf @other:qux\n")
+        self._nodeset_t(["--list-all", "-G", "-e"], None,
+                        b"@bar @baz @c1 @c2 @foo @moo @norf @qux\n")
+        self._nodeset_t(["--list-all", "--expand", "-s", "other"], None,
+                        b"@other:baz @other:c1 @other:c2 @other:norf @other:qux @test:bar @test:foo @test:moo\n")
+        self._nodeset_t(["--list-all", "--expand", "-G", "-s", "other"], None,
+                        b"@bar @baz @c1 @c2 @foo @moo @norf @qux\n") # sorted
+
+    def test_021_list_all_expand(self):
+        """test nodeset --list-all --expand (multi sources)"""
+        self._nodeset_t(["--list-all", "--expand"], None,
+                        b"@bar @foo @moo @other:baz @other:c1 @other:c2 @other:norf @other:qux\n")
+        self._nodeset_t(["--list-all", "-G", "-e"], None,
+                        b"@bar @baz @c1 @c2 @foo @moo @norf @qux\n")
+        self._nodeset_t(["--list-all", "--expand", "-s", "other"], None,
+                        b"@other:baz @other:c1 @other:c2 @other:norf @other:qux @test:bar @test:foo @test:moo\n")
+        self._nodeset_t(["--list-all", "--expand", "-G", "-s", "other"], None,
+                        b"@bar @baz @c1 @c2 @foo @moo @norf @qux\n") # sorted
+
+    def test_022_list_all_fold(self):
+        """test nodeset --list-all --fold (multi sources)"""
+        self._nodeset_t(["--list-all", "--fold"], None,
+                        b"@bar,@foo,@moo,@other:baz,@other:c[1-2],@other:norf,@other:qux\n")
+        self._nodeset_t(["--list-all", "-G", "-f"], None,
+                        b"@bar,@baz,@c[1-2],@foo,@moo,@norf,@qux\n")
+        self._nodeset_t(["--list-all", "--fold", "-s", "other"], None,
+                        b"@other:baz,@other:c[1-2],@other:norf,@other:qux,@test:bar,@test:foo,@test:moo\n")
+        self._nodeset_t(["--list-all", "--fold", "-G", "-s", "other"], None,
+                        b"@bar,@baz,@c[1-2],@foo,@moo,@norf,@qux\n") # sorted
+
+
 
 class CLINodesetGroupResolverTest3(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver
@@ -725,8 +841,9 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
 
     def tearDown(self):
         set_std_group_resolver(None)
+        self.f = None  # used to release temp file
 
-    def test_040_list_all(self):
+    def test_001_list_all(self):
         """test nodeset --list-all (w/ missing list upcall)"""
         self._nodeset_t(["--list-all"], None,
                         b"@bar\n@foo\n@moo\n@other:baz\n@other:norf\n@other:qux\n", 0,
@@ -739,8 +856,19 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
                         b"@bar example[1-100] 100\n@foo example[1-100] 100\n@moo example[1-100] 100\n"
                         b"@other:baz nova[030-489] 460\n@other:norf nova[030-489] 460\n@other:qux nova[030-489] 460\n", 0,
                         b"Warning: No list upcall defined for group source pdu\n")
+        self._nodeset_t(["--list-all", "-c"], None, b"6\n", 0,
+                        b"Warning: No list upcall defined for group source pdu\n")
+        self._nodeset_t(["--list-all", "-e"], None,
+                        b"@bar @foo @moo @other:baz @other:norf @other:qux\n", 0,
+                        b"Warning: No list upcall defined for group source pdu\n")
+        self._nodeset_t(["--list-all", "-f"], None,
+                        b"@bar,@foo,@moo,@other:baz,@other:norf,@other:qux\n", 0,
+                        b"Warning: No list upcall defined for group source pdu\n")
 
-    def test_041_list_failure(self):
+    def test_002_list_failure(self):
         """test nodeset --list -s source w/ missing list upcall"""
         self._nodeset_t(["--list", "-s", "pdu"], None, b"", 1,
                         b'No list upcall defined for group source "pdu"\n')
+        for cmd in ('count', 'expand', 'fold'):
+            self._nodeset_t(["--list", "--" + cmd, "-s", "pdu"], None, b"", 1,
+                            b'No list upcall defined for group source "pdu"\n')
