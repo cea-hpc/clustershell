@@ -253,8 +253,12 @@ class OptionParser(optparse.OptionParser):
                           default=False, help="fold nodeset(s) (or separate "
                                               "nodes) into one nodeset")
         optgrp.add_option("-l", "--list", action="count", dest="list",
-                          default=False, help="list node groups from one "
-                                              "source (see -s GROUPSOURCE)")
+                          default=False,
+                          help='get node groups from a source (see -s '
+                               'GROUPSOURCE) and optional node sets; list '
+                               'groups by default, but may also be used in '
+                               'conjunction with -c/-e/-f to operate on '
+                               '"group sets"')
         optgrp.add_option("-L", "--list-all", action="count", dest="listall",
                           default=False,
                           help="list node groups from all group sources")
