@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH NODESET 1 "2017-09-01" "1.7.81" "ClusterShell User Manual"
+.TH NODESET 1 "2017-09-17" "1.7.81" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -77,7 +77,10 @@ expand nodeset(s) to separate nodes (see also \-S \fISEPARATOR\fP)
 fold nodeset(s) (or separate nodes) into one nodeset
 .TP
 .B \-l\fP,\fB  \-\-list
-list node groups, list node groups and nodes (\fB\-ll\fP) or list node groups, nodes and node count (\fB\-lll\fP). When no argument is specified at all, this command will list all node group names found in selected group source (see also \-s \fIGROUPSOURCE\fP). If any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually). Optionally for each group, the fraction of these nodes being member of the group may be displayed (with \fB\-ll\fP), and also member count/total group node count (with \fB\-lll\fP). If a single hyphen\-minus (\-) is given as a nodeset, it will be read from standard input.
+list node groups, list node groups and nodes (\fB\-ll\fP) or list node groups, nodes and node count (\fB\-lll\fP). When no argument is specified at all, this command will list all node group names found in selected group source (see also \-s \fIGROUPSOURCE\fP). If any nodeset is specified as argument, this command will find node groups these nodes belongs to (individually). Optionally for each group, the fraction of these nodes being member of the group may be displayed (with \fB\-ll\fP), and also member count/total group node count (with \fB\-lll\fP). If a single hyphen\-minus (\-) is given as a nodeset, it will be read from standard input. \fB\-l\fP may also be used in conjunction with \fB\-c/\-e/\-f\fP to respectively count, expand or fold "group sets" (useful for group set like \fB@chassis:c[1\-4]\fP).
+.TP
+.B \-L\fP,\fB  \-\-list\-all
+list node groups from all group sources. Like \fB\-l\fP, it may also be used in conjunction with \fB\-c/\-e/\-f\fP to operate on "group sets".
 .TP
 .B \-r\fP,\fB  \-\-regroup
 fold nodes using node groups (see \-s \fIGROUPSOURCE\fP)
