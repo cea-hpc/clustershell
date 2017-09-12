@@ -5,7 +5,6 @@ python:
   - '3.4'
   - '3.5'
   - '3.6'
-  - nightly
 install:
   - pip install coverage
   - pip install .
@@ -26,8 +25,3 @@ notifications:
     on_failure: always
   slack:
     secure: R9Hwy5oshH4zIjl03WjaFiUGTvh6A7bfU/RvMjTfofwC9o7Jc5cCC6trr7DK/ryq+LwKInhnuIEFFFWkODw7wk60bJqGrotG7Dfvx+6/GbKEgoM78VEqWPR4ylUMfYLUh3qhGxAd40whxE4RUpQ0x8OdsRxZqT/ZVfzsq+DVtQo=
-matrix:
-  # Allow failed builds against Python nightly
-  allow_failures:
-    - python: nightly
-  fast_finish: true
