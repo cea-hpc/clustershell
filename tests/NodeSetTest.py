@@ -10,8 +10,10 @@ import pickle
 import sys
 import unittest
 
-from ClusterShell.NodeSet import RangeSet, NodeSet, fold, expand
-from ClusterShell.NodeSet import NodeSetBase, AUTOSTEP_DISABLED
+from ClusterShell.NodeSet import RangeSet, RangeSetND, NodeSet, fold, expand
+from ClusterShell.NodeSet import NodeSetBase, AUTOSTEP_DISABLED, \
+                                 NodeSetError, NodeSetParseError, \
+                                 NodeSetParseRangeError
 
 
 class NodeSetTest(unittest.TestCase):
@@ -124,6 +126,136 @@ class NodeSetTest(unittest.TestCase):
         self._assertNode(nodeset, "fe80::5054:ff:feff:6944%eth0")
         nodeset = NodeSet._fromlist1(["fe80::5054:ff:feff:6944%eth0"])
         self._assertNode(nodeset, "fe80::5054:ff:feff:6944%eth0")
+
+    def _assertNS(self, pattern, expected_exc):
+        self.assertRaises(expected_exc, NodeSet, pattern)
+
+    def testBadRangeUsages(self):
+        """test NodeSet parse errors in range"""
+        self._assertNS("nova[]", NodeSetParseRangeError)
+        self._assertNS("nova[-]", NodeSetParseRangeError)
+        self._assertNS("nova[A]", NodeSetParseRangeError)
+        self._assertNS("nova[2-5/a]", NodeSetParseRangeError)
+        self._assertNS("nova[3/2]", NodeSetParseRangeError)
+        self._assertNS("nova[3-/2]", NodeSetParseRangeError)
+        self._assertNS("nova[-3/2]", NodeSetParseRangeError)
+        self._assertNS("nova[-/2]", NodeSetParseRangeError)
+        self._assertNS("nova[4-a/2]", NodeSetParseRangeError)
+        self._assertNS("nova[4-3/2]", NodeSetParseRangeError)
+        self._assertNS("nova[4-5/-2]", NodeSetParseRangeError)
+        self._assertNS("nova[4-2/-2]", NodeSetParseRangeError)
+        self._assertNS("nova[004-002]", NodeSetParseRangeError)
+        self._assertNS("nova[3-59/2,102a]", NodeSetParseRangeError)
+        self._assertNS("nova[3-59/2,,102]", NodeSetParseRangeError)
+        self._assertNS("nova%s" % ("3" * 101), NodeSetParseRangeError)
+        # nD
+        self._assertNS("nova[]p0", NodeSetParseRangeError)
+        self._assertNS("nova[-]p0", NodeSetParseRangeError)
+        self._assertNS("nova[A]p0", NodeSetParseRangeError)
+        self._assertNS("nova[2-5/a]p0", NodeSetParseRangeError)
+        self._assertNS("nova[3/2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[3-/2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[-3/2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[-/2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[4-a/2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[4-3/2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[4-5/-2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[4-2/-2]p0", NodeSetParseRangeError)
+        self._assertNS("nova[004-002]p0", NodeSetParseRangeError)
+        self._assertNS("nova[3-59/2,102a]p0", NodeSetParseRangeError)
+        self._assertNS("nova[3-59/2,,102]p0", NodeSetParseRangeError)
+        self._assertNS("nova%sp0" % ("3" * 101), NodeSetParseRangeError)
+        self._assertNS("x4nova[]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[-]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[A]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[2-5/a]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[3/2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[3-/2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[-3/2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[-/2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[4-a/2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[4-3/2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[4-5/-2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[4-2/-2]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[004-002]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[3-59/2,102a]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova[3-59/2,,102]p0", NodeSetParseRangeError)
+        self._assertNS("x4nova%sp0" % ("3" * 101), NodeSetParseRangeError)
+
+    def testBadUsages(self):
+        """test NodeSet other parse errors"""
+        self._assertNS("nova[3-59/2,102", NodeSetParseError)
+        self._assertNS("nova3,nova4,,nova6", NodeSetParseError)
+        self._assertNS("nova6,", NodeSetParseError)
+        self._assertNS("nova6[", NodeSetParseError)
+        self._assertNS("nova6]", NodeSetParseError)
+        self._assertNS("n6[1-4]]", NodeSetParseError)
+        # reopening bracket: no pfx/sfx between delimited ranges
+        self._assertNS("n[1-4]0[3-4]", NodeSetParseError)
+        self._assertNS("n6[1-4][3-4]", NodeSetParseError)
+        self._assertNS("n6[1-4]56[3-4]", NodeSetParseError)
+        # illegal numerical bracket folding with /step syntax
+        self._assertNS("prod-0[01-06/2]0", NodeSetParseError)
+        self._assertNS("prod-0[1-7/2,9]0", NodeSetParseError)
+        self._assertNS("prod-0[1-5/2,7-9]0", NodeSetParseError)
+        self._assertNS("prod-00[1-6/2]0", NodeSetParseError) # and not NodeSetParseRangeError
+        # nD more
+        self._assertNS("[1-30][4-9]", NodeSetParseError)
+        self._assertNS("[1-30][4-9]p", NodeSetParseError)
+        self._assertNS("x[1-30][4-9]p", NodeSetParseError)
+        self._assertNS("x[1-30]p4-9]", NodeSetParseError)
+        self._assertNS("xazer][1-30]p[4-9]", NodeSetParseError)
+        self._assertNS("xa[[zer[1-30]p[4-9]", NodeSetParseRangeError)
+
+    def testTypeSanityCheck(self):
+        """test NodeSet input type sanity check"""
+        self.assertRaises(TypeError, NodeSet, dict())
+        self.assertRaises(TypeError, NodeSet, list())
+        self.assertRaises(ValueError, NodeSetBase, None, RangeSet("1-10"))
+
+    def testRangeSetEntryMismatch(self):
+        """test NodeSet RangeSet entry mismatch"""
+        nodeset = NodeSet("toto%s")
+        self.assertRaises(NodeSetError, nodeset._add, "toto%%s", RangeSet("5"))
+
+    def test_binary_bad_object_type(self):
+        nodeset = NodeSet("cluster[1-30]c[1-2]")
+        class Dummy: pass
+        dummy = Dummy()
+        self.assertRaises(TypeError, nodeset.add, dummy)
+
+    def test_internal_mismatch(self):
+        nodeset = NodeSet("cluster[1-30]c[1-2]")
+        self.assertTrue("cluster%sc%s" in nodeset._patterns)
+        nodeset._patterns["cluster%sc%s"] = RangeSetND([[1]])
+        self.assertRaises(NodeSetParseError, str, nodeset)
+        nodeset._patterns["cluster%sc%s"] = RangeSetND([[1, 1]])
+        self.assertEqual(str(nodeset), "cluster1c1")
+        nodeset._patterns["cluster%sc%s"] = RangeSetND([[1, 1, 1]])
+        self.assertRaises(NodeSetParseError, str, nodeset)
+
+    def test_empty_operand(self):
+        # right
+        self.assertRaises(NodeSetParseError, NodeSet, "foo!")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo,")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo&")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo^")
+        self.assertRaises(NodeSetParseError, NodeSet, "c[1-30]c[1-2]!")
+
+        # left
+        self.assertRaises(NodeSetParseError, NodeSet, "!foo")
+        self.assertRaises(NodeSetParseError, NodeSet, ",foo")
+        self.assertRaises(NodeSetParseError, NodeSet, "&foo")
+        self.assertRaises(NodeSetParseError, NodeSet, "^foo")
+        self.assertRaises(NodeSetParseError, NodeSet, "!c[1-30]c[1-2]")
+
+        # other
+        self.assertRaises(NodeSetParseError, NodeSet, "!")
+        self.assertRaises(NodeSetParseError, NodeSet, ",")
+        self.assertRaises(NodeSetParseError, NodeSet, "&")
+        self.assertRaises(NodeSetParseError, NodeSet, "^")
+        self.assertRaises(NodeSetParseError, NodeSet, ",,,")
+        self.assertRaises(NodeSetParseError, NodeSet, "foo,,bar")
 
     def testNodeEightPad(self):
         """test NodeSet padding feature"""
@@ -424,6 +556,20 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset), "cluster[113,115-117,130,166-174]")
         nodeset.update("cluster114")
         self.assertEqual(str(nodeset), "cluster[113-117,130,166-174]")
+
+    def test_nd_fold_axis_errors(self):
+        """test NodeSet fold_axis errors"""
+        n1 = NodeSet("a3b2c0,a2b3c1,a2b4c1,a1b2c0,a1b2c1,a3b2c1,a2b5c1")
+        n1.fold_axis = 0
+        self.assertRaises(NodeSetParseError, str, n1)
+        n1.fold_axis = 1
+        self.assertRaises(NodeSetParseError, str, n1)
+        n1.fold_axis = "0-1" # nok
+        self.assertRaises(NodeSetParseError, str, n1)
+        n1.fold_axis = range(2) # ok
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        n1.fold_axis = RangeSet("0-1") # ok
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
 
     def testSimpleNodeSetUpdates(self):
         """test NodeSet simple nodeset-based update()"""
@@ -1013,6 +1159,11 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(nodeset[8:11]), "stone9,water,wood1")
         self.assertEqual(str(nodeset[9:11]), "water,wood1")
         self.assertEqual(str(nodeset[9:12]), "water,wood[1-2]")
+
+    def test_bad_slices(self):
+        nodeset = NodeSet("cluster[1-30]c[1-2]")
+        self.assertRaises(TypeError, nodeset.__getitem__, "zz")
+        self.assertRaises(TypeError, nodeset.__getitem__, slice(1, 'foo'))
 
     def testSplit(self):
         """test NodeSet split()"""
