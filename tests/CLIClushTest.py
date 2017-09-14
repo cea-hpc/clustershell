@@ -35,7 +35,7 @@ class CLIClushTest_A(unittest.TestCase):
         s = "%s: ok\n" % HOSTNAME
         self.output_ok = s.encode()
 
-        s = "\x1b[34m%s: \x1b[0mok\n" % HOSTNAME
+        s = "\x1b[94m%s: \x1b[0mok\n" % HOSTNAME
         self.output_ok_color = s.encode()
 
     def tearDown(self):
