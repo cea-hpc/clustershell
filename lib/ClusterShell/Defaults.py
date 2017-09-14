@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -23,9 +23,16 @@ ClusterShell Defaults module.
 Manage library defaults.
 """
 
+from __future__ import print_function
+
 # Imported early
 # Should not import any other ClusterShell modules when loaded
-from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+try:
+    from configparser import ConfigParser, NoOptionError, NoSectionError
+except ImportError:
+    # Python 2 compat
+    from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+
 import os
 import sys
 
@@ -41,7 +48,7 @@ CFG_SECTION_TASK_INFO = 'task.info'
 #
 def _task_print_debug(task, line):
     """Default task debug printing function."""
-    print line
+    print(line)
 
 def _load_workerclass(workername):
     """
@@ -51,8 +58,8 @@ def _load_workerclass(workername):
     """
     modname = "ClusterShell.Worker.%s" % workername.capitalize()
 
-    # Do not iterate over sys.modules but use .keys() to avoid RuntimeError
-    if modname.lower() not in [mod.lower() for mod in sys.modules.keys()]:
+    # Iterate over a copy of sys.modules' keys to avoid RuntimeError
+    if modname.lower() not in [mod.lower() for mod in list(sys.modules)]:
         # Import module if not yet loaded
         __import__(modname)
 
@@ -89,6 +96,7 @@ class Defaults(object):
     are initialized (like Task):
 
     * stderr (boolean; default is ``False``)
+    * stdin (boolean; default is ``True``)
     * stdout_msgtree (boolean; default is ``True``)
     * stderr_msgtree (boolean; default is ``True``)
     * engine (string; default is ``'auto'``)
@@ -126,6 +134,7 @@ class Defaults(object):
     # Default values for task "default" sync dict
     #
     _TASK_DEFAULT = {"stderr"             : False,
+                     "stdin"              : True,
                      "stdout_msgtree"     : True,
                      "stderr_msgtree"     : True,
                      "engine"             : 'auto',
@@ -138,6 +147,7 @@ class Defaults(object):
     # Datatype converters for task_default
     #
     _TASK_DEFAULT_CONVERTERS = {"stderr"             : ConfigParser.getboolean,
+                                "stdin"              : ConfigParser.getboolean,
                                 "stdout_msgtree"     : ConfigParser.getboolean,
                                 "stderr_msgtree"     : ConfigParser.getboolean,
                                 "engine"             : ConfigParser.get,

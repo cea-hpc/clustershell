@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell task resource consumption/limits test suite
 # Written by S. Thiell
-
 
 """Unit test for ClusterShell Task (resource limits)"""
 
@@ -9,8 +7,6 @@ import resource
 import subprocess
 import sys
 import unittest
-
-sys.path.insert(0, '../lib')
 
 from TLib import HOSTNAME
 from ClusterShell.Task import *
@@ -30,11 +26,9 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def _testPopen(self, stderr):
         task = task_self()
-        self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(2000):
+        for i in range(2000):
             worker = task.shell("/bin/hostname", stderr=stderr)
-            self.assert_(worker != None)
         # run task
         task.resume()
 
@@ -48,12 +42,10 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def _testRemote(self, stderr):
         task = task_self()
-        self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(400):
+        for i in range(400):
             worker = task.shell("/bin/hostname", nodes=HOSTNAME,
                                 stderr=stderr)
-            self.assert_(worker != None)
         # run task
         task.resume()
 
@@ -67,14 +59,12 @@ class TaskRLimitsTest(unittest.TestCase):
 
     def _testRemotePdsh(self, stderr):
         task = task_self()
-        self.assert_(task != None)
         task.set_info("fanout", 10)
-        for i in xrange(200):
+        for i in range(200):
             worker = WorkerPdsh(HOSTNAME, handler=None,
                                 timeout=0,
                                 command="/bin/hostname",
                                 stderr=stderr)
-            self.assert_(worker != None)
             task.schedule(worker)
         # run task
         task.resume()

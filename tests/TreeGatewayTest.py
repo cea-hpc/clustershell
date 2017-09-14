@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# ClusterShell.Gateway test suite
+"""
+Unit test for ClusterShell.Gateway
+"""
 
 import logging
 import os
@@ -50,8 +51,12 @@ class Gateway(object):
         self.task.resume()
 
     def send(self, msg):
-        """send msg to pseudo stdin"""
-        os.write(self.pipe_stdin[1], msg + '\n')
+        """send msg (bytes) to pseudo stdin"""
+        os.write(self.pipe_stdin[1], msg + b'\n')
+
+    def send_str(self, msgstr):
+        """send msg (string) to pseudo stdin"""
+        self.send(msgstr.encode())
 
     def recv(self):
         """recv buf from pseudo stdout (blocking call)"""
@@ -101,11 +106,11 @@ class TreeGatewayBaseTest(unittest.TestCase):
     #
     def channel_send_start(self):
         """send starting channel tag"""
-        self.gateway.send('<channel version="%s">' % __version__)
+        self.gateway.send_str('<channel version="%s">' % __version__)
 
     def channel_send_stop(self):
         """send channel ending tag"""
-        self.gateway.send("</channel>")
+        self.gateway.send_str("</channel>")
 
     def channel_send_cfg(self, gateway):
         """send configuration part of channel"""
@@ -127,6 +132,7 @@ class TreeGatewayBaseTest(unittest.TestCase):
             xml_msg = self.gateway.recv()
             if len(xml_msg) == 0:
                 return None
+            self.assertTrue(type(xml_msg) is bytes)
             self.parser.feed(xml_msg)
 
         return self.xml_reader.pop_msg()
@@ -194,10 +200,15 @@ class TreeGatewayTest(TreeGatewayBaseTest):
             self.assertEqual(self.chan.setup, True)
 
         # send the erroneous message and test gateway reply
-        self.gateway.send(sendmsg)
+        self.gateway.send_str(sendmsg)
         msg = self.recvxml(ErrorMessage)
         self.assertEqual(msg.type, 'ERR')
-        self.assertEqual(msg.reason, errback)
+        try:
+            if not errback.search(msg.reason):
+                self.assertFalse(msg.reason)
+        except AttributeError:
+            # not a regex
+            self.assertEqual(msg.reason, errback)
 
         # gateway should terminate channel session
         if openchan:
@@ -283,14 +294,14 @@ class TreeGatewayTest(TreeGatewayBaseTest):
     def test_channel_err_missingattr(self):
         """test gateway channel message bad attributes"""
         self._check_channel_err(
-            '<message msgid="24" type="RET"></message>',
+            '<message msgid="24" nodes="foo" retcode="4" type="RET"></message>',
             'Invalid "message" attributes: missing key "srcid"')
 
     def test_channel_err_unexpected(self):
         """test gateway channel unexpected message"""
         self._check_channel_err(
             '<message type="ACK" ack="2" msgid="2"></message>',
-            'unexpected message: Message ACK (ack: 2, msgid: 2, type: ACK)')
+            re.compile(r'unexpected message: Message ACK \(.*ack: 2.*\)'))
 
     def test_channel_err_cfg_missing_gw(self):
         """test gateway channel message missing gateway nodename"""
@@ -310,10 +321,18 @@ class TreeGatewayTest(TreeGatewayBaseTest):
             '<message msgid="14" type="ERR" reason="test">FOO</message>',
             'Got unexpected payload for Message ERR', setupchan=True)
 
-    def test_channel_err_badenc_pl(self):
-        """test gateway channel message badly encoded payload"""
+    def test_channel_err_badenc_b2a_pl(self):
+        """test gateway channel message badly encoded payload (base64)"""
+        # Generate TypeError (py2) or binascii.Error (py3)
         self._check_channel_err(
             '<message msgid="14" type="CFG" gateway="n1">bar</message>',
+            'Message CFG has an invalid payload')
+
+    def test_channel_err_badenc_pickle_pl(self):
+        """test gateway channel message badly encoded payload (pickle)"""
+        # Generate pickle error
+        self._check_channel_err(
+            '<message msgid="14" type="CFG" gateway="n1">barm</message>',
             'Message CFG has an invalid payload')
 
     def test_channel_basic_abort(self):
@@ -327,7 +346,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
 
     def _check_channel_ctl_shell(self, command, target, stderr, remote,
                                  reply_msg_class, reply_pattern,
-                                 write_string=None, timeout=-1, replycnt=1,
+                                 write_buf=None, timeout=-1, replycnt=1,
                                  reply_rc=0):
         """helper to check channel shell action"""
         self.channel_send_start()
@@ -359,12 +378,12 @@ class TreeGatewayTest(TreeGatewayBaseTest):
 
         self.recvxml(ACKMessage)
 
-        if write_string:
+        if write_buf:
             ctl = ControlMessage(id(workertree))
             ctl.action = 'write'
             ctl.target = NodeSet(target)
             ctl_data = {
-                'buf': write_string,
+                'buf': write_buf,
             }
             # Send write message
             ctl.data_encode(ctl_data)
@@ -404,49 +423,49 @@ class TreeGatewayTest(TreeGatewayBaseTest):
     def test_channel_ctl_shell_local1(self):
         """test gateway channel shell stdout (stderr=False remote=False)"""
         self._check_channel_ctl_shell("echo ok", "n10", False, False,
-                                      StdOutMessage, "ok")
+                                      StdOutMessage, b"ok")
 
     def test_channel_ctl_shell_local2(self):
         """test gateway channel shell stdout (stderr=True remote=False)"""
         self._check_channel_ctl_shell("echo ok", "n10", True, False,
-                                      StdOutMessage, "ok")
+                                      StdOutMessage, b"ok")
 
     def test_channel_ctl_shell_local3(self):
         """test gateway channel shell stderr (stderr=True remote=False)"""
         self._check_channel_ctl_shell("echo ok >&2", "n10", True, False,
-                                      StdErrMessage, "ok")
+                                      StdErrMessage, b"ok")
 
     def test_channel_ctl_shell_mlocal1(self):
         """test gateway channel shell multi (remote=False)"""
         self._check_channel_ctl_shell("echo ok", "n[10-49]", True, False,
-                                      StdOutMessage, "ok", replycnt=40)
+                                      StdOutMessage, b"ok", replycnt=40)
 
     def test_channel_ctl_shell_mlocal2(self):
         """test gateway channel shell multi stderr (remote=False)"""
         self._check_channel_ctl_shell("echo ok 1>&2", "n[10-49]", True, False,
-                                      StdErrMessage, "ok", replycnt=40)
+                                      StdErrMessage, b"ok", replycnt=40)
 
     def test_channel_ctl_shell_mlocal3(self):
         """test gateway channel shell multi placeholder (remote=False)"""
         self._check_channel_ctl_shell('echo node %h rank %n', "n[10-29]", True,
                                       False, StdOutMessage,
-                                      re.compile(r"node n\d+ rank \d+"),
+                                      re.compile(br"node n\d+ rank \d+"),
                                       replycnt=20)
 
     def test_channel_ctl_shell_remote1(self):
         """test gateway channel shell stdout (stderr=False remote=True)"""
         self._check_channel_ctl_shell("echo ok", "n10", False, True,
                                       StdOutMessage,
-                                      re.compile("(Could not resolve hostname|"
-                                                 "Name or service not known)"),
+                                      re.compile(b"(Could not resolve hostname|"
+                                                 b"Name or service not known)"),
                                       reply_rc=255)
 
     def test_channel_ctl_shell_remote2(self):
         """test gateway channel shell stdout (stderr=True remote=True)"""
         self._check_channel_ctl_shell("echo ok", "n10", True, True,
                                       StdErrMessage,
-                                      re.compile("(Could not resolve hostname|"
-                                                 "Name or service not known)"),
+                                      re.compile(b"(Could not resolve hostname|"
+                                                 b"Name or service not known)"),
                                       reply_rc=255)
 
     def test_channel_ctl_shell_timeo1(self):
@@ -457,14 +476,14 @@ class TreeGatewayTest(TreeGatewayBaseTest):
     def test_channel_ctl_shell_wrloc1(self):
         """test gateway channel write (stderr=False remote=False)"""
         self._check_channel_ctl_shell("cat", "n10", False, False,
-                                      StdOutMessage, "ok", write_string="ok\n")
+                                      StdOutMessage, b"ok", write_buf=b"ok\n")
 
     def test_channel_ctl_shell_wrloc2(self):
         """test gateway channel write (stderr=True remote=False)"""
         self._check_channel_ctl_shell("cat", "n10", True, False,
-                                      StdOutMessage, "ok", write_string="ok\n")
+                                      StdOutMessage, b"ok", write_buf=b"ok\n")
 
     def test_channel_ctl_shell_mwrloc1(self):
         """test gateway channel write multi (remote=False)"""
         self._check_channel_ctl_shell("cat", "n[10-49]", True, False,
-                                      StdOutMessage, "ok", write_string="ok\n")
+                                      StdOutMessage, b"ok", write_buf=b"ok\n")

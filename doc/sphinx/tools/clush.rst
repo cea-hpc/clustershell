@@ -270,6 +270,21 @@ gateway. That is, if the *fanout* is **16**, each gateway will initate up to
    command on the cluster. In tree mode, please note that in that case, each
    gateway will be able to run a command at the same time.
 
+Remote Python executable
+""""""""""""""""""""""""
+
+You must use the same major version of Python on the gateways and the root
+node. By default, the same python executable name than the one used on the
+root node will be used to launch the gateways, that is, `python` or `python3`
+(using relative path for added flexibility). You may override the selection
+of the remote Python interpreter by defining the following environment
+variable::
+
+    $ export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=/path/to/python3
+
+.. note:: It is highly recommended to have the same Python interpeter
+   installed on all gateways and the root node.
+
 Debugging Tree mode
 """""""""""""""""""
 
@@ -358,13 +373,14 @@ these criteria:
 Standard input bindings
 """""""""""""""""""""""
 
-Unless option ``--nostdin`` is specified, *clush* detects when its standard
-input is connected to a terminal (as determined by *isatty(3)*). If actually
-connected to a terminal, *clush* listens to standard input when commands are
-running, waiting for an Enter key press. Doing so will display the status of
-current nodes. If standard input is not connected to a terminal, and unless
-option ``--nostdin`` is specified, *clush* binds the standard input of the
-remote commands to its own standard input, allowing scripting methods like::
+Unless the option ``--nostdin`` (or ``-n``) is specified, *clush* detects when
+its standard input is connected to a terminal (as determined by *isatty(3)*).
+If actually connected to a terminal, *clush* listens to standard input when
+commands are running, waiting for an Enter key press. Doing so will display the
+status of current nodes. If standard input is not connected to a terminal, and
+unless the option ``--nostdin`` (or ``-n``) is specified, *clush* binds the
+standard input of the remote commands to its own standard input, allowing
+scripting methods like::
 
     $ echo foo | clush -w node[40-42] -b cat
     ---------------
@@ -379,6 +395,11 @@ Another stdin-bound *clush* usage example::
     node[11-14] (4)
     ---------------
     /etc/yum.repos.d/cobbler-config.repo
+
+.. note:: Use ``--nostdin`` (or ``-n``) in the same way you would use ``ssh -n``
+   to disable standard input. Indeed, if this option is set, EOF is sent at
+   first read, as if stdin were actually connected to /dev/null.
+
 
 .. _clush-progress:
 
@@ -433,6 +454,8 @@ executed). These single-character interactive commands are detailed below:
 | ``clush> +<NODESET>``        | add nodes to current nodeset                  |
 +------------------------------+-----------------------------------------------+
 | ``clush> -<NODESET>``        | remove nodes from current nodeset             |
++------------------------------+-----------------------------------------------+
+| ``clush> @<NODESET>``        | set current nodeset                           |
 +------------------------------+-----------------------------------------------+
 | ``clush> !<COMMAND>``        | execute ``<COMMAND>`` on the local system     |
 +------------------------------+-----------------------------------------------+

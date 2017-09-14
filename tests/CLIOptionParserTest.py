@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.OptionParser test suite
 # Written by S. Thiell
-
 
 """Unit test for CLI.OptionParser"""
 
@@ -10,8 +8,6 @@ import os
 import sys
 import tempfile
 import unittest
-
-sys.path.insert(0, '../lib')
 
 from ClusterShell.CLI.OptionParser import OptionParser
 

@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -37,7 +36,11 @@ second_level_gateways[0-100]: nodes[0-2000]
 ...
 """
 
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    # Python 2 compat
+    import ConfigParser as configparser
 
 from ClusterShell.NodeSet import NodeSet
 
@@ -46,6 +49,7 @@ class TopologyError(Exception):
     """topology parser error to report invalid configurations or parsing
     errors
     """
+
 
 class TopologyNodeGroup(object):
     """Base element for in-memory representation of the propagation tree.
@@ -144,8 +148,8 @@ class TopologyNodeGroup(object):
             return len(self._children_ns)
 
     def _is_last(self):
-        """used to display the subtree: we won't prefix the line the same way if
-        the current instance is the last child of the children list of its
+        """used to display the subtree: we won't prefix the line the same way
+        if the current instance is the last child of the children list of its
         parent.
         """
         return self.parent._children[-1::][0] == self
@@ -153,6 +157,7 @@ class TopologyNodeGroup(object):
     def __str__(self):
         """printable representation of the nodegroup"""
         return '<TopologyNodeGroup (%s)>' % str(self.nodeset)
+
 
 class TopologyTree(object):
     """represent a simplified network topology as a tree of machines to use to
@@ -164,7 +169,7 @@ class TopologyTree(object):
             """we do simply manage a stack with the remaining nodes"""
             self._stack = [tree.root]
 
-        def next(self):
+        def __next__(self):  # Python 3
             """return the next node in the stack or raise a StopIteration
             exception if the stack is empty
             """
@@ -174,6 +179,8 @@ class TopologyTree(object):
                 return node
             else:
                 raise StopIteration()
+
+        next = __next__  # Python 2
 
     def __init__(self):
         """initialize a new TopologyTree instance."""
@@ -211,12 +218,13 @@ class TopologyTree(object):
     def inner_node_count(self):
         """helper to get inner node count (root and gateway nodes)"""
         return sum(len(group.nodeset) for group in self.groups
-                                      if group.children_len() > 0)
+                   if group.children_len() > 0)
 
     def leaf_node_count(self):
         """helper to get leaf node count"""
         return sum(len(group.nodeset) for group in self.groups
-                                      if group.children_len() == 0)
+                   if group.children_len() == 0)
+
 
 class TopologyRoute(object):
     """A single route between two nodesets"""
@@ -243,6 +251,7 @@ class TopologyRoute(object):
     def __str__(self):
         """printable representation"""
         return '%s -> %s' % (str(self.src), str(self.dst))
+
 
 class TopologyRoutingTable(object):
     """This class provides a convenient way to store and manage topology
@@ -273,11 +282,12 @@ class TopologyRoutingTable(object):
     def connected(self, src_ns):
         """find out and return the aggregation of directly connected children
         from src_ns.
-        Argument src_ns is expected to be a NodeSet instance. Result is returned
-        as a NodeSet instance
+        Argument src_ns is expected to be a NodeSet instance. Result is
+        returned as a NodeSet instance
         """
-        next_hop = NodeSet.fromlist([dst for dst in \
-            [route.dest(src_ns) for route in self._routes] if dst is not None])
+        next_hop = NodeSet.fromlist(dst for dst in [route.dest(src_ns)
+                                                    for route in self._routes]
+                                    if dst is not None)
         if len(next_hop) == 0:
             return None
         return next_hop
@@ -314,9 +324,10 @@ class TopologyRoutingTable(object):
                 return True
             # two different nodegroups cannot point to the same one
             if len(route.dst & known_route.dst) != 0 \
-                and route.src != known_route.src:
+               and route.src != known_route.src:
                 return True
         return False
+
 
 class TopologyGraph(object):
     """represent a complete network topology by storing every "can reach"
@@ -356,8 +367,8 @@ class TopologyGraph(object):
     def __str__(self):
         """printable representation of the graph"""
         res = '<TopologyGraph>\n'
-        res += '\n'.join(['%s: %s' % (str(k), str(v)) for k, v in \
-            self._nodegroups.iteritems()])
+        res += '\n'.join(['%s: %s' % (str(k), str(v))
+                          for k, v in self._nodegroups.items()])
         return res
 
     def _routes_to_tng(self):
@@ -377,10 +388,10 @@ class TopologyGraph(object):
                 self._nodegroups[str(leaf)] = TopologyNodeGroup(leaf)
 
         # add the parent <--> children relationships
-        for group in self._nodegroups.itervalues():
+        for group in self._nodegroups.values():
             dst_ns = self._routing.connected(group.nodeset)
             if dst_ns is not None:
-                for child in self._nodegroups.itervalues():
+                for child in self._nodegroups.values():
                     if child.nodeset in dst_ns:
                         group.add_child(child)
 
@@ -403,7 +414,8 @@ class TopologyGraph(object):
 
         self._root = root
 
-class TopologyParser(ConfigParser.ConfigParser):
+
+class TopologyParser(configparser.ConfigParser):
     """This class offers a way to interpret network topologies supplied under
     the form :
 
@@ -412,8 +424,8 @@ class TopologyParser(ConfigParser.ConfigParser):
     """
     def __init__(self, filename=None):
         """instance wide variables initialization"""
-        ConfigParser.ConfigParser.__init__(self)
-        self.optionxform = str # case sensitive parser
+        configparser.ConfigParser.__init__(self)
+        self.optionxform = str  # case sensitive parser
 
         self._topology = {}
         self.graph = None
@@ -433,7 +445,7 @@ class TopologyParser(ConfigParser.ConfigParser):
             else:
                 # compat routes section [deprecated since v1.7]
                 self._topology = self.items("Main")
-        except ConfigParser.Error:
+        except configparser.Error:
             raise TopologyError(
                 'Invalid configuration file: %s' % filename)
         self._build_graph()
@@ -455,4 +467,3 @@ class TopologyParser(ConfigParser.ConfigParser):
         if self._tree is None or force_rebuild:
             self._tree = self.graph.to_tree(root)
         return self._tree
-

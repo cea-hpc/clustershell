@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2015 CEA/DAM
 #
@@ -22,6 +21,8 @@
 CLI results display class
 """
 
+from __future__ import print_function
+
 import difflib
 import sys
 
@@ -34,6 +35,16 @@ VERB_VERB = 2
 VERB_DEBUG = 3
 THREE_CHOICES = ["never", "always", "auto"]
 WHENCOLOR_CHOICES = THREE_CHOICES   # deprecated; use THREE_CHOICES
+
+# Python 3 compat: wrappers for standard streams
+def sys_stdin():
+    return getattr(sys.stdin, 'buffer', sys.stdin)
+
+def sys_stdout():
+    return getattr(sys.stdout, 'buffer', sys.stdout)
+
+def sys_stderr():
+    return getattr(sys.stderr, 'buffer', sys.stderr)
 
 
 class Display(object):
@@ -90,9 +101,9 @@ class Display(object):
                 color = True
 
         self._color = color
+        self.out = sys_stdout()
+        self.err = sys_stderr()
 
-        self.out = sys.stdout
-        self.err = sys.stderr
         if self._color:
             self.color_stdout_fmt = self.COLOR_STDOUT_FMT
             self.color_stderr_fmt = self.COLOR_STDERR_FMT
@@ -145,32 +156,33 @@ class Display(object):
 
     def format_header(self, nodeset, indent=0):
         """Format nodeset-based header."""
+        if not self.label:
+            return b""
         indstr = " " * indent
         nodecntstr = ""
         if self.verbosity >= VERB_STD and self.node_count and len(nodeset) > 1:
             nodecntstr = " (%d)" % len(nodeset)
-        if not self.label:
-            return ""
-        return self.color_stdout_fmt % ("%s%s\n%s%s%s\n%s%s" % \
+        hdr = self.color_stdout_fmt % ("%s%s\n%s%s%s\n%s%s" % \
             (indstr, self.SEP,
              indstr, self._format_nodeset(nodeset), nodecntstr,
              indstr, self.SEP))
+        return hdr.encode('ascii') + b'\n'
 
     def print_line(self, nodeset, line):
         """Display a line with optional label."""
         if self.label:
             prefix = self.color_stdout_fmt % ("%s: " % nodeset)
-            self.out.write("%s%s\n" % (prefix, line))
+            self.out.write(prefix.encode('ascii') + line + b'\n')
         else:
-            self.out.write("%s\n" % line)
+            self.out.write(line + b'\n')
 
     def print_line_error(self, nodeset, line):
         """Display an error line with optional label."""
         if self.label:
             prefix = self.color_stderr_fmt % ("%s: " % nodeset)
-            self.err.write("%s%s\n" % (prefix, line))
+            self.err.write(prefix.encode('ascii') + line + b'\n')
         else:
-            self.err.write("%s\n" % line)
+            self.err.write(line + b'\n')
 
     def print_gather(self, nodeset, obj):
         """Generic method for displaying nodeset/content according to current
@@ -189,7 +201,7 @@ class Display(object):
 
     def _print_content(self, nodeset, content):
         """Display a dshbak-like header block and content."""
-        self.out.write("%s\n%s\n" % (self.format_header(nodeset), content))
+        self.out.write(self.format_header(nodeset) + bytes(content) + b'\n')
 
     def _print_diff(self, nodeset, content):
         """Display unified diff between remote gathered outputs."""
@@ -205,10 +217,11 @@ class Display(object):
                 if len(nodeset) > 1:
                     nsstr += " (%d)" % len(nodeset)
 
-            udiff = difflib.unified_diff(list(content_ref), list(content), \
-                                         fromfile=nsstr_ref, tofile=nsstr, \
-                                         lineterm='')
-            output = ""
+            alist = [aline.decode('utf-8', 'ignore') for aline in content_ref]
+            blist = [bline.decode('utf-8', 'ignore') for bline in content]
+            udiff = difflib.unified_diff(alist, blist, fromfile=nsstr_ref,
+                                         tofile=nsstr, lineterm='')
+            output = ''
             for line in udiff:
                 if line.startswith('---') or line.startswith('+++'):
                     output += self.color_diffhdr_fmt % line.rstrip()
@@ -221,7 +234,7 @@ class Display(object):
                 else:
                     output += line
                 output += '\n'
-            self.out.write(output)
+            self.out.write(output.encode('ascii'))
 
     def _print_lines(self, nodeset, msg):
         """Display a MsgTree buffer by line with prefixed header."""
@@ -230,20 +243,20 @@ class Display(object):
             header = self.color_stdout_fmt % \
                         ("%s: " % self._format_nodeset(nodeset))
             for line in msg:
-                out.write("%s%s\n" % (header, line))
+                out.write(header.encode('ascii') + line + b'\n')
         else:
             for line in msg:
-                out.write(line + '\n')
+                out.write(line + b'\n')
 
     def vprint(self, level, message):
         """Utility method to print a message if verbose level is high
         enough."""
         if self.verbosity >= level:
-            print message
+            print(message)
 
     def vprint_err(self, level, message):
         """Utility method to print a message on stderr if verbose level
         is high enough."""
         if self.verbosity >= level:
-            print >> sys.stderr, message
+            print(message, file=sys.stderr)
 

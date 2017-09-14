@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -43,8 +42,13 @@ Subclassing the Channel class allows implementing whatever logic you want on the
 top of a communication channel.
 """
 
-import cPickle
+try:
+    import _pickle as cPickle
+except ImportError:  # Python 2 compat
+    import cPickle
+
 import base64
+import binascii
 import logging
 import os
 import xml.sax
@@ -54,7 +58,12 @@ from xml.sax.saxutils import XMLGenerator
 from xml.sax import SAXParseException
 
 from collections import deque
-from cStringIO import StringIO
+
+try:
+    # Use cStringIO by default as it is faster
+    from cStringIO import StringIO as BytesIO
+except ImportError:  # Python 3 compat
+    from io import BytesIO
 
 from ClusterShell import __version__
 from ClusterShell.Event import EventHandler
@@ -104,10 +113,9 @@ class XMLReader(ContentHandler):
             self.msg_queue.appendleft(EndMessage())
 
     def characters(self, content):
-        """read content characters"""
+        """read content characters (always decoded string)"""
         if self._draft is not None:
-            content = content.decode(ENCODING)
-            self._draft.data_update(content)
+            self._draft.data_update(content.encode(ENCODING))
 
     def msg_available(self):
         """return whether a message is available for delivery or not"""
@@ -211,7 +219,7 @@ class Channel(EventHandler):
         """channel has data to read"""
         raw = worker.current_msg
         try:
-            self._parser.feed(raw + '\n')
+            self._parser.feed(raw + b'\n')
         except SAXParseException as ex:
             self.logger.error("SAXParseException: %s: %s", ex.getMessage(), raw)
             # Warning: do not send malformed raw message back
@@ -236,7 +244,7 @@ class Channel(EventHandler):
         """write an outgoing message as its XML representation"""
         #self.logger.debug('SENDING to worker %s: "%s"', id(self.worker),
         #                  msg.xml())
-        self.worker.write(msg.xml() + '\n', sname=self.SNAME_WRITER)
+        self.worker.write(msg.xml() + b'\n', sname=self.SNAME_WRITER)
 
     def start(self):
         """initialization logic"""
@@ -275,15 +283,17 @@ class Message(object):
         # and are ignored.
         line_length = int(os.environ.get('CLUSTERSHELL_GW_B64_LINE_LENGTH',
                                          DEFAULT_B64_LINE_LENGTH))
-        self.data = '\n'.join(encoded[pos:pos+line_length]
-                              for pos in xrange(0, len(encoded), line_length))
+        self.data = b'\n'.join(encoded[pos:pos+line_length]
+                               for pos in range(0, len(encoded), line_length))
 
     def data_decode(self):
         """deserialize a previously encoded instance and return it"""
+        # NOTE: name is confusing, data_decode() returns pickle-decoded bytes
+        #       (encoded string) and not (decoded) string...
         # if self.data is None then an exception is raised here
         try:
             return cPickle.loads(base64.b64decode(self.data))
-        except (EOFError, TypeError):
+        except (EOFError, TypeError, cPickle.UnpicklingError, binascii.Error):
             # raised by cPickle.loads() if self.data is not valid
             raise MessageProcessingError('Message %s has an invalid payload'
                                          % self.ident)
@@ -292,7 +302,7 @@ class Message(object):
         """append data to the instance (used for deserialization)"""
         if self.has_payload:
             if self.data is None:
-                self.data = raw # first encoded packet
+                self.data = raw  # first encoded packet
             else:
                 self.data += raw
         else:
@@ -302,7 +312,7 @@ class Message(object):
 
     def selfbuild(self, attributes):
         """self construction from a table of attributes"""
-        for k, fmt in self.attr.iteritems():
+        for k, fmt in self.attr.items():
             try:
                 setattr(self, k, fmt(attributes[k]))
             except KeyError:
@@ -317,7 +327,7 @@ class Message(object):
 
     def xml(self):
         """generate XML version of a configuration message"""
-        out = StringIO()
+        out = BytesIO()
         generator = XMLGenerator(out, encoding=ENCODING)
 
         # "stringify" entries for XML conversion

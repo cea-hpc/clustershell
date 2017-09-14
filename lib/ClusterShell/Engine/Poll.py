@@ -109,7 +109,12 @@ class EnginePoll(Engine):
                     timeo = timeout
 
                 self._current_loopcnt += 1
-                evlist = self.polling.poll(timeo * 1000.0 + 1.0)
+
+                if timeo < 0:
+                    poll_timeo = -1
+                else:
+                    poll_timeo = timeo * 1000.0
+                evlist = self.polling.poll(poll_timeo)
 
             except select.error as ex:
                 # might get interrupted by a signal

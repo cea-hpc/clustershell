@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -27,10 +26,12 @@ ClusterShell library which implements some features of the NodeSet
 and RangeSet classes.
 """
 
+from __future__ import print_function
+
 import logging
 import math
-import sys
 import random
+import sys
 
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
@@ -44,7 +45,7 @@ def process_stdin(xsetop, xsetcls, autostep):
     """Process standard input and operate on xset."""
     # Build temporary set (stdin accumulator)
     tmpset = xsetcls(autostep=autostep)
-    for line in sys.stdin.readlines():
+    for line in sys.stdin:  # read lines of text stream (not bytes)
         # Support multi-lines and multi-nodesets per line
         line = line[0:line.find('#')].strip()
         for elem in line.split():
@@ -100,14 +101,15 @@ def print_source_groups(source, level, xset, opts):
         # groups() method.
         # Note: stdin support is enabled when '-' is found.
         groups = xset.groups(source, opts.groupbase)
-        for group, (gnodes, inodes) in groups.iteritems():
+        # sort by group name
+        for group, (gnodes, inodes) in sorted(groups.items()):
             if level == 1:
-                print group
+                print(group)
             elif level == 2:
-                print "%s %s" % (group, inodes)
+                print("%s %s" % (group, inodes))
             else:
-                print "%s %s %d/%d" % (group, inodes, len(inodes),
-                                       len(gnodes))
+                print("%s %s %d/%d" % (group, inodes, len(inodes),
+                                       len(gnodes)))
     else:
         # "raw" group list when no argument at all
         for group in grouplist(source):
@@ -116,13 +118,13 @@ def print_source_groups(source, level, xset, opts):
             else:
                 nsgroup = "@%s" % group
             if level == 1:
-                print nsgroup
+                print(nsgroup)
             else:
                 nodes = NodeSet(nsgroup)
                 if level == 2:
-                    print "%s %s" % (nsgroup, nodes)
+                    print("%s %s" % (nsgroup, nodes))
                 else:
-                    print "%s %s %d" % (nsgroup, nodes, len(nodes))
+                    print("%s %s %d" % (nsgroup, nodes, len(nodes)))
 
 def command_list(options, xset, group_resolver):
     """List command handler (-l/-ll/-lll/-L/-LL/-LLL)."""
@@ -144,7 +146,7 @@ def command_list(options, xset, group_resolver):
                 raise
             # missing list upcall is not fatal with -L
             msgfmt = "Warning: No %s upcall defined for group source %s"
-            print >>sys.stderr, msgfmt % (exc, source)
+            print(msgfmt % (exc, source), file=sys.stderr)
 
 def nodeset():
     """script subroutine"""
@@ -189,8 +191,8 @@ def nodeset():
         parser.error("--axis option is only supported when folding nodeset")
 
     if options.groupsource and not options.quiet and class_set == RangeSet:
-        print >> sys.stderr, "WARNING: option group source \"%s\" ignored" \
-                                % options.groupsource
+        print("WARNING: option group source \"%s\" ignored"
+              % options.groupsource, file=sys.stderr)
 
     # We want -s <groupsource> to act as a substition of default groupsource
     # (ie. it's not necessary to prefix group names by this group source).
@@ -204,7 +206,7 @@ def nodeset():
         else:
             dispdefault = " (default)"
         for src in group_resolver.sources():
-            print "%s%s" % (src, dispdefault)
+            print("%s%s" % (src, dispdefault))
             dispdefault = ""
         return
 
@@ -282,7 +284,7 @@ def nodeset():
     if options.pick and options.pick < len(xset):
         # convert to string for sample as nsiter() is slower for big
         # nodesets; and we assume options.pick will remain small-ish
-        keep = random.sample(xset, options.pick)
+        keep = random.sample(list(xset), options.pick)
         # explicit class_set creation and str() convertion for RangeSet
         keep = class_set(','.join([str(x) for x in keep]))
         xset.intersection_update(keep)
@@ -308,24 +310,24 @@ def nodeset():
         xsubres = lambda x: fmt % len(x)
 
     if not xset or options.maxsplit <= 1 and not options.contiguous:
-        print xsubres(xset)
+        print(xsubres(xset))
     else:
         if options.contiguous:
             xiterator = xset.contiguous()
         else:
             xiterator = xset.split(options.maxsplit)
         for xsubset in xiterator:
-            print xsubres(xsubset)
+            print(xsubres(xsubset))
 
 def main():
     """main script function"""
     try:
         nodeset()
     except (AssertionError, IndexError, ValueError) as ex:
-        print >> sys.stderr, "ERROR:", ex
+        print("ERROR: %s" % ex, file=sys.stderr)
         sys.exit(1)
     except SyntaxError:
-        print >> sys.stderr, "ERROR: invalid separator"
+        print("ERROR: invalid separator", file=sys.stderr)
         sys.exit(1)
     except GENERIC_ERRORS as ex:
         sys.exit(handle_generic_error(ex))

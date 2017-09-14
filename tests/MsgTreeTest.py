@@ -1,15 +1,11 @@
-#!/usr/bin/env python
 # ClusterShell test suite
 # Written by S. Thiell
-
 
 """Unit test for ClusterShell MsgTree Class"""
 
 from operator import itemgetter
 import sys
 import unittest
-
-sys.path.insert(0, '../lib')
 
 from ClusterShell.MsgTree import *
 
@@ -21,13 +17,13 @@ class MsgTreeTest(unittest.TestCase):
         tree = MsgTree()
         self.assertEqual(len(tree), 0)
 
-        tree.add("key", "message")
+        tree.add("key", b"message")
         self.assertEqual(len(tree), 1)
 
-        tree.add("key", "message2")
+        tree.add("key", b"message2")
         self.assertEqual(len(tree), 1)
 
-        tree.add("key2", "message3")
+        tree.add("key2", b"message3")
         self.assertEqual(len(tree), 2)
 
     def test_002_elem(self):
@@ -42,14 +38,14 @@ class MsgTreeTest(unittest.TestCase):
         # build tree...
         tree = MsgTree()
         self.assertEqual(len(tree), 0)
-        tree.add(("item1", "key"), "message0")
+        tree.add(("item1", "key"), b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add(("item2", "key"), "message2")
+        tree.add(("item2", "key"), b"message2")
         self.assertEqual(len(tree), 2)
-        tree.add(("item3", "key"), "message3")
+        tree.add(("item3", "key"), b"message3")
         self.assertEqual(len(tree), 3)
-        tree.add(("item4", "key"), "message3")
-        tree.add(("item2", "newkey"), "message4")
+        tree.add(("item4", "key"), b"message3")
+        tree.add(("item2", "newkey"), b"message4")
         self.assertEqual(len(tree), 5)
         self.assertEqual(tree._depth(), 1)
 
@@ -74,8 +70,8 @@ class MsgTreeTest(unittest.TestCase):
         cnt = 0
         for msg in tree.messages():
             cnt += 1
-            self.assertEqual(len(msg), len("message0"))
-            self.assertEqual(msg[0][:-1], "message")
+            self.assertEqual(len(msg), len(b"message0"))
+            self.assertEqual(msg[0][:-1], b"message")
         self.assertEqual(cnt, 4)
         self.assertEqual(len(list(iter(tree.messages()))), 4)
 
@@ -93,7 +89,7 @@ class MsgTreeTest(unittest.TestCase):
         for msg, keys in tree.walk():
             cnt += 1
             if len(keys) == 2:
-                self.assertEqual(msg, "message3")
+                self.assertEqual(msg, b"message3")
                 cnt_2 += 1
         self.assertEqual(cnt, 4)
         self.assertEqual(cnt_2, 1)
@@ -122,7 +118,7 @@ class MsgTreeTest(unittest.TestCase):
         for msg, keys in tree.walk(match=lambda k: k[1] == "newkey",
                                        mapper=itemgetter(0)):
             cnt += 1
-            self.assertEqual(msg, "message4")
+            self.assertEqual(msg, b"message4")
             self.assertEqual(keys[0], "item2")
         self.assertEqual(cnt, 1)
 
@@ -137,19 +133,19 @@ class MsgTreeTest(unittest.TestCase):
         """test MsgTree get and __getitem__"""
         # build tree...
         tree = MsgTree()
-        tree.add("item1", "message0")
+        tree.add("item1", b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add("item2", "message2")
-        tree.add("item3", "message2")
-        tree.add("item4", "message3")
-        tree.add("item2", "message4")
-        tree.add("item3", "message4")
+        tree.add("item2", b"message2")
+        tree.add("item3", b"message2")
+        tree.add("item4", b"message3")
+        tree.add("item2", b"message4")
+        tree.add("item3", b"message4")
         self.assertEqual(len(tree), 4)
-        self.assertEqual(tree["item1"], "message0")
-        self.assertEqual(tree.get("item1"), "message0")
-        self.assertEqual(tree["item2"], "message2\nmessage4")
-        self.assertEqual(tree.get("item2"), "message2\nmessage4")
-        self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
+        self.assertEqual(tree["item1"], b"message0")
+        self.assertEqual(tree.get("item1"), b"message0")
+        self.assertEqual(tree["item2"], b"message2\nmessage4")
+        self.assertEqual(tree.get("item2"), b"message2\nmessage4")
+        self.assertEqual(tree.get("item5", b"default_buf"), b"default_buf")
         self.assertEqual(tree._depth(), 2)
 
     def test_005_remove(self):
@@ -157,19 +153,19 @@ class MsgTreeTest(unittest.TestCase):
         # build tree
         tree = MsgTree()
         self.assertEqual(len(tree), 0)
-        tree.add(("w1", "key1"), "message0")
+        tree.add(("w1", "key1"), b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add(("w1", "key2"), "message0")
+        tree.add(("w1", "key2"), b"message0")
         self.assertEqual(len(tree), 2)
-        tree.add(("w1", "key3"), "message0")
+        tree.add(("w1", "key3"), b"message0")
         self.assertEqual(len(tree), 3)
-        tree.add(("w2", "key4"), "message1")
+        tree.add(("w2", "key4"), b"message1")
         self.assertEqual(len(tree), 4)
         tree.remove(lambda k: k[1] == "key2")
         self.assertEqual(len(tree), 3)
         for msg, keys in tree.walk(match=lambda k: k[0] == "w1",
                                    mapper=itemgetter(1)):
-            self.assertEqual(msg, "message0")
+            self.assertEqual(msg, b"message0")
             self.assertEqual(len(keys), 2)
         tree.remove(lambda k: k[0] == "w1")
         self.assertEqual(len(tree), 1)
@@ -183,7 +179,7 @@ class MsgTreeTest(unittest.TestCase):
         # test tree of 10k nodes with a single different line each
         tree = MsgTree()
         for i in range(10000):
-            tree.add("node%d" % i, "message%d" % i)
+            tree.add("node%d" % i, b"message" + str(i).encode('ascii'))
         self.assertEqual(len(tree), 10000)
         cnt = 0
         for msg, keys in tree.walk():
@@ -193,11 +189,11 @@ class MsgTreeTest(unittest.TestCase):
         # test tree of 1 node with 10k lines
         tree = MsgTree()
         for i in range(10000):
-            tree.add("nodeX", "message%d" % i)
+            tree.add("nodeX", b"message" + str(i).encode('ascii'))
         self.assertEqual(len(tree), 1)
         cnt = 0
         for msg, keys in tree.walk():
-            testlines = str(msg) # test MsgTreeElem.__iter__()
+            testlines = bytes(msg) # test MsgTreeElem.__iter__()
             self.assertEqual(len(testlines.splitlines()), 10000)
             cnt += 1
         self.assertEqual(cnt, 1)
@@ -206,11 +202,11 @@ class MsgTreeTest(unittest.TestCase):
         tree = MsgTree()
         for j in range(100):
             for i in range(1000):
-                tree.add("node%d" % j, "message%d" % i)
+                tree.add("node%d" % j, b"message" + str(i).encode('ascii'))
         self.assertEqual(len(tree), 100)
         cnt = 0
         for msg, keys in tree.walk():
-            testlines = str(msg) # test MsgTreeElem.__iter__()
+            testlines = bytes(msg) # test MsgTreeElem.__iter__()
             self.assertEqual(len(testlines.splitlines()), 1000)
             cnt += 1
         self.assertEqual(cnt, 1)
@@ -218,99 +214,117 @@ class MsgTreeTest(unittest.TestCase):
     def test_007_shift_mode(self):
         """test MsgTree in shift mode"""
         tree = MsgTree(mode=MODE_SHIFT)
-        tree.add("item1", "message0")
+        tree.add("item1", b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add("item2", "message2")
-        tree.add("item3", "message2")
-        tree.add("item4", "message3")
-        tree.add("item2", "message4")
-        tree.add("item3", "message4")
+        tree.add("item2", b"message2")
+        tree.add("item3", b"message2")
+        tree.add("item4", b"message3")
+        tree.add("item2", b"message4")
+        tree.add("item3", b"message4")
         self.assertEqual(len(tree), 4)
-        self.assertEqual(tree["item1"], "message0")
-        self.assertEqual(tree.get("item1"), "message0")
-        self.assertEqual(tree["item2"], "message2\nmessage4")
-        self.assertEqual(tree.get("item2"), "message2\nmessage4")
-        self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
+        self.assertEqual(tree["item1"], b"message0")
+        self.assertEqual(tree.get("item1"), b"message0")
+        self.assertEqual(tree["item2"], b"message2\nmessage4")
+        self.assertEqual(tree.get("item2"), b"message2\nmessage4")
+        self.assertEqual(tree.get("item5", b"default_buf"), b"default_buf")
         self.assertEqual(tree._depth(), 2)
         self.assertEqual(len(list(tree.walk())), 3)
 
     def test_008_trace_mode(self):
         """test MsgTree in trace mode"""
         tree = MsgTree(mode=MODE_TRACE)
-        tree.add("item1", "message0")
+        tree.add("item1", b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add("item2", "message2")
-        tree.add("item3", "message2")
-        tree.add("item4", "message3")
-        tree.add("item2", "message4")
-        tree.add("item3", "message4")
+        tree.add("item2", b"message2")
+        tree.add("item3", b"message2")
+        tree.add("item4", b"message3")
+        tree.add("item2", b"message4")
+        tree.add("item3", b"message4")
         self.assertEqual(len(tree), 4)
-        self.assertEqual(tree["item1"], "message0")
-        self.assertEqual(tree.get("item1"), "message0")
-        self.assertEqual(tree["item2"], "message2\nmessage4")
-        self.assertEqual(tree.get("item2"), "message2\nmessage4")
-        self.assertEqual(tree.get("item5", "default_buf"), "default_buf")
+        self.assertEqual(tree["item1"], b"message0")
+        self.assertEqual(tree.get("item1"), b"message0")
+        self.assertEqual(tree["item2"], b"message2\nmessage4")
+        self.assertEqual(tree.get("item2"), b"message2\nmessage4")
+        self.assertEqual(tree.get("item5", b"default_buf"), b"default_buf")
         self.assertEqual(tree._depth(), 2)
         self.assertEqual(len(list(tree.walk())), 4)
-        self.assertEqual(list(tree.walk_trace()), \
-            [('message0', ['item1'], 1, 0),
-             ('message2', ['item2', 'item3'], 1, 1),
-             ('message4', ['item2', 'item3'], 2, 0),
-             ('message3', ['item4'], 1, 0)])
+        # /!\ results are not sorted
+        result = [(m, sorted(k), d, c) for m, k, d, c
+                  in sorted(list(tree.walk_trace()))]
+        self.assertEqual(result,
+                         [(b'message0', ['item1'], 1, 0),
+                          (b'message2', ['item2', 'item3'], 1, 1),
+                          (b'message3', ['item4'], 1, 0),
+                          (b'message4', ['item2', 'item3'], 2, 0)])
 
     def test_009_defer_to_shift_mode(self):
         """test MsgTree defer to shift mode"""
         tree = MsgTree(mode=MODE_DEFER)
-        tree.add("item1", "message0")
+        tree.add("item1", b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add("item2", "message1")
+        tree.add("item2", b"message1")
         self.assertEqual(len(tree), 2)
-        tree.add("item3", "message2")
+        tree.add("item3", b"message2")
         self.assertEqual(len(tree), 3)
-        tree.add("item2", "message4")
-        tree.add("item1", "message3")
-        self.assertEqual(tree["item1"], "message0\nmessage3")
+        tree.add("item2", b"message4")
+        tree.add("item1", b"message3")
+        self.assertEqual(tree["item1"], b"message0\nmessage3")
         self.assertEqual(tree.mode, MODE_DEFER)
         # calling walk with call _update_keys() and change to MODE_SHIFT
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
-                         [(['item1'], 'message0\nmessage3'),
-                          (['item2'], 'message1\nmessage4'),
-                          (['item3'], 'message2')])
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
+                         [(['item1'], b'message0\nmessage3'),
+                          (['item2'], b'message1\nmessage4'),
+                          (['item3'], b'message2')])
         self.assertEqual(tree.mode, MODE_SHIFT)
         # further tree modifications should be safe...
-        tree.add("item1", "message5")
-        tree.add("item2", "message6")
-        self.assertEqual(tree["item1"], "message0\nmessage3\nmessage5")
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
-                         [(['item1'], 'message0\nmessage3\nmessage5'),
-                          (['item2'], 'message1\nmessage4\nmessage6'),
-                          (['item3'], 'message2')])
+        tree.add("item1", b"message5")
+        tree.add("item2", b"message6")
+        self.assertEqual(tree["item1"], b"message0\nmessage3\nmessage5")
+        # /!\ results are not sorted
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
+                         [(['item1'], b'message0\nmessage3\nmessage5'),
+                          (['item2'], b'message1\nmessage4\nmessage6'),
+                          (['item3'], b'message2')])
 
     def test_010_remove_in_defer_mode(self):
         """test MsgTree remove in defer mode"""
         tree = MsgTree(mode=MODE_DEFER)
-        tree.add("item1", "message0")
+        tree.add("item1", b"message0")
         self.assertEqual(len(tree), 1)
-        tree.add("item2", "message1")
+        tree.add("item2", b"message1")
         self.assertEqual(len(tree), 2)
-        tree.add("item3", "message2")
+        tree.add("item3", b"message2")
         self.assertEqual(len(tree), 3)
-        tree.add("item2", "message4")
-        tree.add("item1", "message3")
+        tree.add("item2", b"message4")
+        tree.add("item1", b"message3")
         tree.remove(lambda k: k == "item2")
-        self.assertEqual(tree["item1"], "message0\nmessage3")
+        self.assertEqual(tree["item1"], b"message0\nmessage3")
         self.assertRaises(KeyError, tree.__getitem__, "item2")
         # calling walk with call _update_keys() and change to MODE_SHIFT
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
-                         [(['item1'], 'message0\nmessage3'),
-                          (['item3'], 'message2')])
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
+                         [(['item1'], b'message0\nmessage3'),
+                          (['item3'], b'message2')])
         self.assertEqual(tree.mode, MODE_SHIFT)
         # further tree modifications should be safe...
-        tree.add("item1", "message5")
-        tree.add("item2", "message6")
-        self.assertEqual(tree["item1"], "message0\nmessage3\nmessage5")
-        self.assertEqual(tree["item2"], "message6")
-        self.assertEqual([(k, e.message()) for e, k in tree.walk()],
-                         [(['item1'], 'message0\nmessage3\nmessage5'),
-                          (['item3'], 'message2'),
-                          (['item2'], 'message6')])
+        tree.add("item1", b"message5")
+        tree.add("item2", b"message6")
+        self.assertEqual(tree["item1"], b"message0\nmessage3\nmessage5")
+        self.assertEqual(tree["item2"], b"message6")
+        # /!\ results are not sorted
+        self.assertEqual(sorted([(k, e.message()) for e, k in tree.walk()]),
+                         [(['item1'], b'message0\nmessage3\nmessage5'),
+                          (['item2'], b'message6'),
+                          (['item3'], b'message2')])
+
+    def test_011_str_compat(self):
+        """test MsgTreeElem.__str__() compatibility"""
+        tree = MsgTree()
+        tree.add("item1", b"message0")
+        elem = tree["item1"]
+        if sys.version_info >= (3, 0):
+            # casting to string is definitively not supported in Python 3,
+            # use bytes() instead.
+            self.assertRaises(TypeError, elem.__str__)
+            self.assertEqual(bytes(elem), b"message0")
+        else:
+            self.assertEqual(str(elem), "message0")

@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2016 CEA/DAM
+# Copyright (C) 2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -22,7 +22,12 @@
 CLI configuration classes
 """
 
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    # Python 2 compat
+    import ConfigParser as configparser
+
 from os.path import expanduser
 
 from ClusterShell.Defaults import config_paths, DEFAULTS
@@ -41,7 +46,7 @@ class ClushConfigError(Exception):
     def __str__(self):
         return "(Config %s.%s): %s" % (self.section, self.option, self.msg)
 
-class ClushConfig(ConfigParser.ConfigParser, object):
+class ClushConfig(configparser.ConfigParser, object):
     """Config class for clush (specialized ConfigParser)"""
 
     main_defaults = {"fanout": "%d" % DEFAULTS.fanout,
@@ -56,10 +61,10 @@ class ClushConfig(ConfigParser.ConfigParser, object):
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
         OptionParser options."""
-        ConfigParser.ConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         # create Main section with default values
         self.add_section("Main")
-        for key, value in ClushConfig.main_defaults.iteritems():
+        for key, value in ClushConfig.main_defaults.items():
             self.set("Main", key, value)
         # config files override defaults values
         if filename:
@@ -105,9 +110,9 @@ class ClushConfig(ConfigParser.ConfigParser, object):
     def _getx(self, xtype, section, option):
         """Return a value of specified type for the named option."""
         try:
-            return getattr(ConfigParser.ConfigParser, 'get%s' % xtype)(self, \
+            return getattr(configparser.ConfigParser, 'get%s' % xtype)(self, \
                 section, option)
-        except (ConfigParser.Error, TypeError, ValueError) as exc:
+        except (configparser.Error, TypeError, ValueError) as exc:
             raise ClushConfigError(section, option, exc)
 
     def getboolean(self, section, option):
@@ -127,7 +132,7 @@ class ClushConfig(ConfigParser.ConfigParser, object):
         not raise an exception if the option doesn't exist."""
         try:
             return self.get(section, option)
-        except ConfigParser.Error:
+        except configparser.Error:
             pass
 
     @property

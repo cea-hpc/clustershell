@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell.CLI.Display test suite
 # Written by S. Thiell
-
 
 """Unit test for CLI.Display"""
 
@@ -9,9 +7,7 @@ import os
 import sys
 import tempfile
 import unittest
-from StringIO import StringIO
-
-sys.path.insert(0, '../lib')
+from io import BytesIO
 
 from ClusterShell.CLI.Display import Display, WHENCOLOR_CHOICES, VERB_STD
 from ClusterShell.CLI.OptionParser import OptionParser
@@ -41,8 +37,8 @@ class CLIDisplayTest(unittest.TestCase):
 
         ns = NodeSet("hostfoo")
         mtree = MsgTree()
-        mtree.add("hostfoo", "message0")
-        mtree.add("hostfoo", "message1")
+        mtree.add("hostfoo", b"message0")
+        mtree.add("hostfoo", b"message1")
 
         for whencolor in WHENCOLOR_CHOICES: # test whencolor switch
             for label in [True, False]:     # test no-label switch
@@ -50,11 +46,11 @@ class CLIDisplayTest(unittest.TestCase):
                 options.whencolor = whencolor
                 disp = Display(options)
                 # inhibit output
-                disp.out = StringIO()
-                disp.err = StringIO()
+                disp.out = BytesIO()
+                disp.err = BytesIO()
                 # test print_* methods...
-                disp.print_line(ns, "foo bar")
-                disp.print_line_error(ns, "foo bar")
+                disp.print_line(ns, b"foo bar")
+                disp.print_line_error(ns, b"foo bar")
                 disp.print_gather(ns, list(mtree.walk())[0][0])
                 # test also string nodeset as parameter
                 disp.print_gather("hostfoo", list(mtree.walk())[0][0])
@@ -68,7 +64,7 @@ class CLIDisplayTest(unittest.TestCase):
 
     def testDisplayRegroup(self):
         """test CLI.Display (regroup)"""
-        f = makeTestFile("""
+        f = makeTestFile(b"""
 # A comment
 
 [Main]
@@ -89,16 +85,16 @@ list: echo all
 
             disp = Display(options, color=False)
             self.assertEqual(disp.regroup, True)
-            disp.out = StringIO()
-            disp.err = StringIO()
+            disp.out = BytesIO()
+            disp.err = BytesIO()
             self.assertEqual(disp.line_mode, False)
 
             ns = NodeSet("hostfoo")
 
             # nodeset.regroup() is performed by print_gather()
-            disp.print_gather(ns, "message0\nmessage1\n")
+            disp.print_gather(ns, b"message0\nmessage1\n")
             self.assertEqual(disp.out.getvalue(),
-                "---------------\n@all\n---------------\nmessage0\nmessage1\n\n")
+                b"---------------\n@all\n---------------\nmessage0\nmessage1\n\n")
         finally:
             set_std_group_resolver(None)
 

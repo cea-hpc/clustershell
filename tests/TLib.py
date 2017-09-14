@@ -1,8 +1,6 @@
-
-"""Unit test small library"""
-
-__all__ = ['HOSTNAME', 'load_cfg', 'chrono', 'make_temp_filename',
-           'make_temp_file', 'make_temp_dir', 'CLI_main']
+"""
+Unit test library
+"""
 
 import os
 import socket
@@ -10,29 +8,44 @@ import sys
 import tempfile
 import time
 
-from ConfigParser import ConfigParser
-from StringIO import StringIO
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
+from io import BytesIO, StringIO
+
+
+__all__ = ['HOSTNAME', 'load_cfg', 'make_temp_filename', 'make_temp_file',
+           'make_temp_dir', 'CLI_main']
 
 # Get machine short hostname
 HOSTNAME = socket.gethostname().split('.', 1)[0]
 
+class TBytesIO(BytesIO):
+    """Standard stream of in memory bytes for testing purpose."""
+
+    def __init__(self, initial_bytes=None):
+        if initial_bytes and type(initial_bytes) is not bytes:
+            initial_bytes = initial_bytes.encode('ascii')
+        BytesIO.__init__(self, initial_bytes)
+
+    def write(self, b):
+        if type(b) is bytes:
+            BytesIO.write(self, b)
+        else:
+            BytesIO.write(self, b.encode('ascii'))
+
+    def isatty(self):
+        return False
 
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
-    cfgparser = ConfigParser()
+    cfgparser = configparser.ConfigParser()
     cfgparser.read([ \
         os.path.expanduser('~/.clustershell/tests/%s' % name),
         '/etc/clustershell/tests/%s' % name])
     return cfgparser
-
-def chrono(func):
-    """chrono decorator"""
-    def timing(*args):
-        start = time.time()
-        res = func(*args)
-        print "execution time: %f s" % (time.time() - start)
-        return res
-    return timing
 
 #
 # Temp files and directories
@@ -45,6 +58,7 @@ def make_temp_filename(suffix=''):
 
 def make_temp_file(text, suffix='', dir=None):
     """Create a temporary file with the provided text."""
+    assert type(text) is bytes
     tmp = tempfile.NamedTemporaryFile(prefix='cs-test-',
                                       suffix=suffix, dir=dir)
     tmp.write(text)
@@ -65,13 +79,28 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     """Generic CLI main() direct calling function that allows code coverage
     checks."""
     rc = -1
+
     saved_stdin = sys.stdin
     saved_stdout = sys.stdout
     saved_stderr = sys.stderr
+
+    # Capture standard streams
+
+    # Input: if defined, stdin may either be a buffer or a string (with an
+    # encoding).
     if stdin is not None:
-        sys.stdin = StringIO(stdin)
-    sys.stdout = out = StringIO()
-    sys.stderr = err = StringIO()
+        if type(stdin) is bytes:  # also works for str in Python 2
+            sys.stdin = TBytesIO(stdin)
+        else:
+            # If stdin is a string in Python 3, use StringIO as sys.stdin
+            # should be read in text mode for some tests.
+            sys.stdin = StringIO(stdin)
+
+    # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr() and when
+    # print() is used, TBytesIO does a conversion to ascii.
+    sys.stdout = out = TBytesIO()
+    sys.stderr = err = TBytesIO()
+
     sys.argv = args
     try:
         try:
@@ -82,6 +111,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         sys.stdout = saved_stdout
         sys.stderr = saved_stderr
         sys.stdin = saved_stdin
+
     if expected_stdout is not None:
         # expected_stdout might be a compiled regexp or a string
         try:
@@ -101,7 +131,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         except AttributeError:
             # check the end as stderr messages are often prefixed with argv[0]
             test.assertTrue(err.getvalue().endswith(expected_stderr),
-                            err.getvalue() + " != " + expected_stderr)
+                            err.getvalue() + b' != ' + expected_stderr)
     if expected_rc is not None:
         test.assertEqual(rc, expected_rc, "rc=%d err=%s" % (rc, err.getvalue()))
     err.close()

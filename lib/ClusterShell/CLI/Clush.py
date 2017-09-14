@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -32,24 +31,33 @@ When no command are specified, clush runs interactively.
 
 """
 
+from __future__ import print_function
+
 import errno
 import logging
 import os
 from os.path import abspath, dirname, exists, isdir, join
+import random
 import resource
-import sys
 import signal
+import sys
 import time
 import threading
-import random
+
+# Python 3 compatibility
+try:
+    raw_input
+except NameError:
+    raw_input = input
 
 from ClusterShell.Defaults import DEFAULTS, _load_workerclass
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
-from ClusterShell.CLI.Display import Display
+from ClusterShell.CLI.Display import Display, sys_stdin
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
-from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmp, human_bi_bytes_unit
+from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmpkey
+from ClusterShell.CLI.Utils import human_bi_bytes_unit
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
@@ -229,10 +237,10 @@ class GatherOutputHandler(OutputHandler):
         cleaned = False
         for _rc, nodelist in sorted(worker.iter_retcodes()):
             ns_remain = NodeSet._fromlist1(nodelist)
-            # Then order by node/nodeset (see bufnodeset_cmp)
+            # Then order by node/nodeset (see nodeset_cmpkey)
             for buf, nodeset in sorted(map(nodesetify,
                                            worker.iter_buffers(nodelist)),
-                                       cmp=bufnodeset_cmp):
+                                       key=bufnodeset_cmpkey):
                 if not cleaned:
                     # clean runtimer line before printing first result
                     self._runtimer_clean()
@@ -325,7 +333,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
             self._runtimer_clean()
             nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
             for buf, nodeset in sorted(map(nodesetify, mtree.walk()),
-                                       cmp=bufnodeset_cmp):
+                                       key=bufnodeset_cmpkey):
                 self._display.print_gather(nodeset, buf)
             self._runtimer_set_dirty()
 
@@ -336,7 +344,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
         for mtree in self._mtreeq:
             nodesetify = lambda v: (v[0], NodeSet.fromlist(v[1]))
             for buf, nodeset in sorted(map(nodesetify, mtree.walk()),
-                                       cmp=bufnodeset_cmp):
+                                       key=bufnodeset_cmpkey):
                 self._display.print_gather(nodeset, buf)
 
         self._close_common(worker)
@@ -376,14 +384,14 @@ class RunTimer(EventHandler):
             bandwidth = self.bytes_written/(time.time() - self.start_time)
             wrbwinfo = " write: %s/s" % human_bi_bytes_unit(bandwidth)
 
-        gws = self.task.gateways.keys()
-        if gws:
+        gwcnt = len(self.task.gateways)
+        if gwcnt:
             # tree mode
             act_targets = NodeSet()
-            for gw, (chan, metaworkers) in self.task.gateways.iteritems():
+            for gw, (chan, metaworkers) in self.task.gateways.items():
                 act_targets.updaten(mw.gwtargets[gw] for mw in metaworkers)
-            cnt = len(act_targets) + len(self.task._engine.clients()) - len(gws)
-            gwinfo = ' gw %d' % len(gws)
+            cnt = len(act_targets) + len(self.task._engine.clients()) - gwcnt
+            gwinfo = ' gw %d' % gwcnt
         else:
             cnt = len(self.task._engine.clients())
             gwinfo = ''
@@ -474,7 +482,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
             finally:
                 signal.signal(signal.SIGUSR1, signal.SIG_IGN)
         except EOFError:
-            print
+            print()
             return
         except UpdatePromptException:
             if task.default("USER_interactive"):
@@ -501,7 +509,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 # Display command output, but cannot order buffers by rc
                 nodesetify = lambda v: (v[0], NodeSet._fromlist1(v[1]))
                 for buf, nodeset in sorted(map(nodesetify, task.iter_buffers()),
-                                           cmp=bufnodeset_cmp):
+                                           key=bufnodeset_cmpkey):
                     if not print_warn:
                         print_warn = True
                         display.vprint_err(VERB_STD, \
@@ -547,7 +555,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 pending = ""
             display.vprint_err(VERB_QUIET,
                                "clush: interrupt (^C to abort task)")
-            gws = task.gateways.keys()
+            gws = list(task.gateways)
             if not gws:
                 display.vprint_err(VERB_QUIET,
                                    "clush: in progress(%d): %s%s"
@@ -558,7 +566,7 @@ def ttyloop(task, nodeset, timeout, display, remote):
                                    "clush: [tree] open gateways(%d): %s"
                                    % (len(ns_reg), ns_reg, pending,
                                       len(gws), NodeSet._fromlist1(gws)))
-            for gw, (chan, metaworkers) in task.gateways.iteritems():
+            for gw, (chan, metaworkers) in task.gateways.items():
                 act_targets = NodeSet.fromlist(mw.gwtargets[gw]
                                                for mw in metaworkers)
                 if act_targets:
@@ -616,11 +624,11 @@ def _stdin_thread_start(stdin_port, display):
         bufsize = 64 * 1024
         # thread loop: blocking read stdin + send messages to specified
         #              port object
-        buf = sys.stdin.read(bufsize)
+        buf = sys_stdin().read(bufsize)  # use buffer in Python 3
         while buf:
             # send message to specified port object (with ack)
             stdin_port.msg(buf)
-            buf = sys.stdin.read(bufsize)
+            buf = sys_stdin().read(bufsize)
     except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
@@ -763,21 +771,21 @@ def clush_excepthook(extype, exp, traceback):
     try:
         raise exp
     except ClushConfigError as econf:
-        print >> sys.stderr, "ERROR: %s" % econf
+        print("ERROR: %s" % econf, file=sys.stderr)
         clush_exit(1)
     except KeyboardInterrupt as kbe:
         uncomp_nodes = getattr(kbe, 'uncompleted_nodes', None)
         if uncomp_nodes:
-            print >> sys.stderr, \
-                "Keyboard interrupt (%s did not complete)." % uncomp_nodes
+            print("Keyboard interrupt (%s did not complete)." % uncomp_nodes,
+                  file=sys.stderr)
         else:
-            print >> sys.stderr, "Keyboard interrupt."
+            print("Keyboard interrupt.", file=sys.stderr)
         clush_exit(128 + signal.SIGINT)
     except OSError as exp:
-        print >> sys.stderr, "ERROR: %s" % exp
+        print("ERROR: %s" % exp, file=sys.stderr)
         if exp.errno == errno.EMFILE:
-            print >> sys.stderr, "ERROR: current `nofile' limits: " \
-                "soft=%d hard=%d" % resource.getrlimit(resource.RLIMIT_NOFILE)
+            print("ERROR: current `nofile' limits: soft=%d hard=%d"
+                  % resource.getrlimit(resource.RLIMIT_NOFILE), file=sys.stderr)
         clush_exit(1)
     except GENERIC_ERRORS as exc:
         clush_exit(handle_generic_error(exc))
@@ -796,7 +804,7 @@ def main():
 
     parser = OptionParser(usage)
 
-    parser.add_option("--nostdin", action="store_true", dest="nostdin",
+    parser.add_option("-n", "--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
 
     parser.install_config_options('clush.conf(5)')
@@ -850,10 +858,9 @@ def main():
     for opt_hostfile in options.hostfile:
         try:
             fnodeset = NodeSet()
-            hostfile = open(opt_hostfile)
-            for line in hostfile.read().splitlines():
-                fnodeset.updaten(nodes for nodes in line.split())
-            hostfile.close()
+            with open(opt_hostfile) as hostfile:
+                for line in hostfile.read().splitlines():
+                    fnodeset.updaten(nodes for nodes in line.split())
             display.vprint_err(VERB_DEBUG,
                                "Using nodeset %s from hostfile %s"
                                % (fnodeset, opt_hostfile))
@@ -908,11 +915,11 @@ def main():
     if options.pick and options.pick < len(nodeset_base):
         # convert to string for sample as nsiter() is slower for big
         # nodesets; and we assume options.pick will remain small-ish
-        keep = random.sample(nodeset_base, options.pick)
+        keep = random.sample(list(nodeset_base), options.pick)
         nodeset_base.intersection_update(','.join(keep))
         if config.verbosity >= VERB_VERB:
             msg = "Picked random nodes: %s" % nodeset_base
-            print Display.COLOR_RESULT_FMT % msg
+            print(Display.COLOR_RESULT_FMT % msg)
 
     # Set open files limit.
     set_fdlimit(config.fd_max, display)
@@ -993,13 +1000,13 @@ def main():
             roots = len(task.topology.root.nodeset)
             gws = task.topology.inner_node_count() - roots
             msg = "enabling tree topology (%d gateways)" % gws
-            print >> sys.stderr, "clush: %s" % msg
+            print("clush: %s" % msg, file=sys.stderr)
 
     if options.grooming_delay:
         if config.verbosity >= VERB_VERB:
             msg = Display.COLOR_RESULT_FMT % ("Grooming delay: %f" %
                                               options.grooming_delay)
-            print >> sys.stderr, msg
+            print(msg, file=sys.stderr)
         task.set_info("grooming_delay", options.grooming_delay)
     elif options.rcopy:
         # By default, --rcopy should inhibit grooming
@@ -1028,6 +1035,9 @@ def main():
 
     # Enable stdout/stderr separation
     task.set_default("stderr", not options.gatherall)
+
+    # Prevent reading from stdin?
+    task.set_default("stdin", not options.nostdin)
 
     # Disable MsgTree buffering if not gathering outputs
     task.set_default("stdout_msgtree", display.gather or display.line_mode)
@@ -1068,9 +1078,9 @@ def main():
                                                 op))
     if not task.default("USER_interactive"):
         if display.verbosity >= VERB_DEBUG and task.topology:
-            print Display.COLOR_RESULT_FMT % '-' * 15
-            print Display.COLOR_RESULT_FMT % task.topology,
-            print Display.COLOR_RESULT_FMT % '-' * 15
+            print(Display.COLOR_RESULT_FMT % '-' * 15)
+            print(Display.COLOR_RESULT_FMT % task.topology, end='')
+            print(Display.COLOR_RESULT_FMT % '-' * 15)
         if options.copy:
             run_copy(task, args, options.dest_path, nodeset_base, timeout,
                      options.preserve_flag, display)

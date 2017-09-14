@@ -79,14 +79,14 @@ class PopenClient(StreamClient):
 
         if prc >= 0: # filter valid rc
             self.rc = prc
-            self.worker._on_rc(self.key, prc)
+            self.worker._on_close(self.key, prc)
         elif timeout:
             assert abort, "abort flag not set on timeout"
             self.worker._on_timeout(self.key)
         elif not abort:
             # if process was signaled, return 128 + signum (bash-like)
             self.rc = 128 + -prc
-            self.worker._on_rc(self.key, self.rc)
+            self.worker._on_close(self.key, self.rc)
 
         if self.worker.eh:
             self.worker.eh.ev_close(self.worker)
@@ -105,6 +105,7 @@ class WorkerPopen(WorkerSimple):
         if not self.command:
             raise ValueError("missing command parameter in WorkerPopen "
                              "constructor")
+        self.key = key
 
     def retcode(self):
         """Return return code or None if command is still in progress."""

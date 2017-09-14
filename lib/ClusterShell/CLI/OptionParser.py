@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2015 CEA/DAM
 #
@@ -106,7 +105,7 @@ class OptionParser(optparse.OptionParser):
                           metavar="GROUP", type="safestring",
                           help="exclude nodes from this group")
         optgrp.add_option("-E", "--engine", action="store", dest="engine",
-                          choices=["auto"] + PreferredEngine.engines.keys(),
+                          choices=["auto"] + list(PreferredEngine.engines),
                           default="auto", help=optparse.SUPPRESS_HELP)
         optgrp.add_option("--hostfile", "--machinefile", action="append",
                           dest="hostfile", default=[], metavar='FILE',

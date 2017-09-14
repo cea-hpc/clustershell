@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -28,8 +28,13 @@ efficient, in term of algorithm and memory consumption, especially when
 remote messages are the same.
 """
 
-from itertools import ifilterfalse, imap
-from operator import itemgetter
+try:
+    from itertools import filterfalse
+except ImportError:  # Python 2 compat
+    from itertools import ifilterfalse as filterfalse
+
+import sys
+
 
 # MsgTree behavior modes
 MODE_DEFER = 0
@@ -42,7 +47,7 @@ class MsgTreeElem(object):
     Class representing an element of the MsgTree and its associated
     message. Object of this class are returned by the various MsgTree
     methods like messages() or walk(). The object can then be used as
-    an iterator over the message lines or casted into a string.
+    an iterator over the message lines or casted into a bytes buffer.
     """
     def __init__(self, msgline=None, parent=None, trace=False):
         """
@@ -60,12 +65,12 @@ class MsgTreeElem(object):
         self.keys = None
 
     def __len__(self):
-        """Length of whole message string."""
-        return len(str(self))
+        """Length of whole message buffer."""
+        return len(bytes(self))
 
     def __eq__(self, other):
-        """Comparison method compares whole message strings."""
-        return str(self) == str(other)
+        """Comparison method compares whole message buffers."""
+        return bytes(self) == bytes(other)
 
     def _add_key(self, key):
         """Add a key to this tree element."""
@@ -122,12 +127,24 @@ class MsgTreeElem(object):
 
     def message(self):
         """
-        Get the whole message buffer from this tree element.
+        Get the whole message buffer (from this tree element) as bytes.
         """
-        # concat buffers
-        return '\n'.join(self.lines())
+        return b'\n'.join(self.lines())
 
-    __str__ = message
+    __bytes__ = message
+
+    def __str__(self):
+        """
+        Get the whole message buffer (from this tree element) as a string.
+
+        DEPRECATED: use message() or cast to bytes instead.
+        """
+        if sys.version_info >= (3, 0):
+            raise TypeError('cannot get string from %s, use bytes instead' %
+                            self.__class__.__name__)
+        else:
+            # in Python 2, str and bytes are actually the same type
+            return self.message()
 
     def append(self, msgline, key=None):
         """
@@ -211,7 +228,8 @@ class MsgTree(object):
 
     def add(self, key, msgline):
         """
-        Add a message line associated with the given key to the MsgTree.
+        Add a message line (in bytes) associated with the given key to the
+        MsgTree.
         """
         # try to get current element in MsgTree for the given key,
         # defaulting to the root element
@@ -225,7 +243,7 @@ class MsgTree(object):
 
     def _update_keys(self):
         """Update keys associated to tree elements (MODE_DEFER)."""
-        for key, e_msg in self._keys.iteritems():
+        for key, e_msg in self._keys.items():
             assert key is not None and e_msg is not None
             e_msg._add_key(key)
         # MODE_DEFER is no longer valid as keys are now assigned to MsgTreeElems
@@ -233,13 +251,13 @@ class MsgTree(object):
 
     def keys(self):
         """Return an iterator over MsgTree's keys."""
-        return self._keys.iterkeys()
+        return iter(self._keys.keys())
 
     __iter__ = keys
 
     def messages(self, match=None):
         """Return an iterator over MsgTree's messages."""
-        return imap(itemgetter(0), self.walk(match))
+        return (item[0] for item in self.walk(match))
 
     def items(self, match=None, mapper=None):
         """
@@ -247,7 +265,7 @@ class MsgTree(object):
         """
         if mapper is None:
             mapper = lambda k: k
-        for key, elem in self._keys.iteritems():
+        for key, elem in self._keys.items():
             if match is None or match(key):
                 yield mapper(key), elem
 
@@ -285,9 +303,13 @@ class MsgTree(object):
             if len(children) > 0:
                 estack += children.values()
             if elem.keys: # has some keys
-                mkeys = filter(match, elem.keys)
+                mkeys = list(filter(match, elem.keys))
                 if len(mkeys):
-                    yield elem, map(mapper, mkeys)
+                    if mapper is not None:
+                        keys = [mapper(key) for key in mkeys]
+                    else:
+                        keys = mkeys
+                    yield elem, keys
 
     def walk_trace(self, match=None, mapper=None):
         """
@@ -308,9 +330,13 @@ class MsgTree(object):
             if nchildren > 0:
                 estack += [(v, edepth + 1) for v in children.values()]
             if elem.keys:
-                mkeys = filter(match, elem.keys)
+                mkeys = list(filter(match, elem.keys))
                 if len(mkeys):
-                    yield elem.msgline, map(mapper, mkeys), edepth, nchildren
+                    if mapper is not None:
+                        keys = [mapper(key) for key in mkeys]
+                    else:
+                        keys = mkeys
+                    yield elem.msgline, keys, edepth, nchildren
 
     def remove(self, match=None):
         """
@@ -329,8 +355,8 @@ class MsgTree(object):
                 if len(elem.children) > 0:
                     estack += elem.children.values()
                 if elem.keys: # has some keys
-                    elem.keys = set(ifilterfalse(match, elem.keys))
+                    elem.keys = set(filterfalse(match, elem.keys))
 
         # remove key(s) from known keys dict
-        for key in filter(match, self._keys.keys()):
+        for key in list(filter(match, self._keys.keys())):
             del self._keys[key]

@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2012-2016 CEA/DAM
 # Copyright (C) 2012-2016 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -26,20 +26,9 @@ Instances of RangeSet provide similar operations than the builtin set type,
 extended to support cluster ranges-like format and stepping support ("0-8/2").
 """
 
+from functools import reduce
+from itertools import product
 from operator import mul
-
-try:
-    from itertools import product
-except:
-    # itertools.product : new in Python 2.6
-    def product(*args, **kwds):
-        """Cartesian product of input iterables."""
-        pools = map(tuple, args) * kwds.get('repeat', 1)
-        result = [[]]
-        for pool in pools:
-            result = [x+[y] for x in result for y in pool]
-        for prod in result:
-            yield tuple(prod)
 
 __all__ = ['RangeSetException',
            'RangeSetParseError',
@@ -109,11 +98,6 @@ class RangeSet(set):
     """
     _VERSION = 3    # serial version number
 
-    # define __new__() to workaround built-in set subclassing with Python 2.4
-    def __new__(cls, pattern=None, autostep=None):
-        """Object constructor"""
-        return set.__new__(cls)
-
     def __init__(self, pattern=None, autostep=None):
         """Initialize RangeSet object.
 
@@ -139,15 +123,9 @@ class RangeSet(set):
     def _parse(self, pattern):
         """Parse string of comma-separated x-y/step -like ranges"""
         # Comma separated ranges
-        if pattern.find(',') < 0:
-            subranges = [pattern]
-        else:
-            subranges = pattern.split(',')
-
-        for subrange in subranges:
+        for subrange in pattern.split(','):
             if subrange.find('/') < 0:
-                step = 1
-                baserange = subrange
+                baserange, step = subrange, 1
             else:
                 baserange, step = subrange.split('/', 1)
 
@@ -155,12 +133,11 @@ class RangeSet(set):
                 step = int(step)
             except ValueError:
                 raise RangeSetParseError(subrange,
-                        "cannot convert string to integer")
+                                         "cannot convert string to integer")
 
             if baserange.find('-') < 0:
                 if step != 1:
-                    raise RangeSetParseError(subrange,
-                            "invalid step usage")
+                    raise RangeSetParseError(subrange, "invalid step usage")
                 begin = end = baserange
             else:
                 begin, end = baserange.split('-', 1)
@@ -191,8 +168,7 @@ class RangeSet(set):
 
             # check preconditions
             if stop > 1e100 or start > stop or step < 1:
-                raise RangeSetParseError(subrange,
-                                         "invalid values in range")
+                raise RangeSetParseError(subrange, "invalid values in range")
 
             self.add_range(start, stop + 1, step, pad)
 
@@ -292,6 +268,10 @@ class RangeSet(set):
                 self.add_range(sli.start, sli.stop, sli.step, pad)
             delattr(self, '_ranges')
             delattr(self, '_length')
+
+        # add padding if unpickling old instances
+        if not hasattr(self, 'padding'):
+            setattr(self, 'padding', None)
 
     def _strslices(self):
         """Stringify slices list (x-y/step format)"""
@@ -475,7 +455,7 @@ class RangeSet(set):
         assert(nbr > 0)
 
         # We put the same number of element in each sub-nodeset.
-        slice_size = len(self) / nbr
+        slice_size = len(self) // int(nbr)
         left = len(self) % nbr
 
         begin = 0
@@ -495,8 +475,10 @@ class RangeSet(set):
         assert pad >= 0
         assert stop - start < 1e9, "range too large"
 
-        if pad > 0 and self.padding is None:
+        # inherit padding info only if currently not defined
+        if pad is not None and pad > 0 and self.padding is None:
             self.padding = pad
+
         set.update(self, range(start, stop, step))
 
     def copy(self):
@@ -531,14 +513,6 @@ class RangeSet(set):
     # NotImplemented instead of raising TypeError (albeit that *why* it
     # raises TypeError as-is is also a bit subtle).
 
-    def _wrap_set_op(self, fun, arg):
-        """Wrap built-in set operations for RangeSet to workaround built-in set
-        base class issues (RangeSet.__new/init__ not called)"""
-        result = fun(self, arg)
-        result._autostep = self._autostep
-        result.padding = self.padding
-        return result
-
     def __or__(self, other):
         """Return the union of two RangeSets as a new RangeSet.
 
@@ -553,7 +527,9 @@ class RangeSet(set):
 
         (I.e. all elements that are in either set.)
         """
-        return self._wrap_set_op(set.union, other)
+        self_copy = self.copy()
+        self_copy.update(other)
+        return self_copy
 
     def __and__(self, other):
         """Return the intersection of two RangeSets as a new RangeSet.
@@ -569,7 +545,9 @@ class RangeSet(set):
 
         (I.e. all elements that are in both sets.)
         """
-        return self._wrap_set_op(set.intersection, other)
+        self_copy = self.copy()
+        self_copy.intersection_update(other)
+        return self_copy
 
     def __xor__(self, other):
         """Return the symmetric difference of two RangeSets as a new RangeSet.
@@ -582,10 +560,12 @@ class RangeSet(set):
 
     def symmetric_difference(self, other):
         """Return the symmetric difference of two RangeSets as a new RangeSet.
-        
+
         (ie. all elements that are in exactly one of the sets.)
         """
-        return self._wrap_set_op(set.symmetric_difference, other)
+        self_copy = self.copy()
+        self_copy.symmetric_difference_update(other)
+        return self_copy
 
     def __sub__(self, other):
         """Return the difference of two RangeSets as a new RangeSet.
@@ -601,7 +581,9 @@ class RangeSet(set):
 
         (I.e. all elements that are in this set and not in the other.)
         """
-        return self._wrap_set_op(set.difference, other)
+        self_copy = self.copy()
+        self_copy.difference_update(other)
+        return self_copy
 
     # Membership test
 
@@ -653,7 +635,7 @@ class RangeSet(set):
     # Subtle:  The xyz_update() functions deliberately return None,
     # as do all mutating operations on built-in container types.
     # The __xyz__ spellings have to return self, though.
-    
+
     def __ior__(self, other):
         """Update a RangeSet with the union of itself and another."""
         self._binary_sanity_check(other)
@@ -685,7 +667,7 @@ class RangeSet(set):
         """Update a RangeSet with the symmetric difference of itself and
         another."""
         set.symmetric_difference_update(self, other)
-        
+
     def __isub__(self, other):
         """Remove all elements of another set from this RangeSet."""
         self._binary_sanity_check(other)
@@ -694,11 +676,11 @@ class RangeSet(set):
 
     def difference_update(self, other, strict=False):
         """Remove all elements of another set from this RangeSet.
-        
+
         If strict is True, raise KeyError if an element cannot be removed.
         (strict is a RangeSet addition)"""
         if strict and other not in self:
-            raise KeyError(other.difference(self)[0])
+            raise KeyError(set.difference(other, self).pop())
         set.difference_update(self, other)
 
     # Python dict-like mass mutations: update, clear
@@ -735,9 +717,11 @@ class RangeSet(set):
         """Add an element to a RangeSet.
         This has no effect if the element is already present.
         """
-        set.add(self, int(element))
-        if pad > 0 and self.padding is None:
+        # inherit padding info only if currently not defined
+        if pad is not None and pad > 0 and self.padding is None:
             self.padding = pad
+
+        set.add(self, int(element))
 
     def remove(self, element):
         """Remove an element from a RangeSet; it must be a member.
@@ -870,8 +854,10 @@ class RangeSetND(object):
             return NotImplemented
         return len(self) == len(other) and self.issubset(other)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._veclist)
+
+    __nonzero__ = __bool__  # Python 2 compat
 
     def __len__(self):
         """Count unique elements in N-dimensional rangeset."""
@@ -931,7 +917,7 @@ class RangeSetND(object):
     def pads(self):
         """Get a tuple of padding length info for each dimension."""
         # return a tuple of max padding length for each axis
-        pad_veclist = ((rg.padding for rg in vec) for vec in self._veclist)
+        pad_veclist = ((rg.padding or 0 for rg in vec) for vec in self._veclist)
         return tuple(max(pads) for pads in zip(*pad_veclist))
 
     def get_autostep(self):

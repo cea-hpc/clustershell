@@ -98,7 +98,14 @@ class EngineBaseTimer(object):
         """
         Create a base timer.
         """
-        self.fire_delay = fire_delay
+        # fire_delay is used for comparison between timers and MUST NOT be
+        # None in Python 3 as comparison with float is not possible and could
+        # lead to confusion anyway. If None is passed, fire_delay is now set
+        # to -1 to avoid the timer to be armed in _EngineTimerQ.schedule().
+        if fire_delay is None:
+            self.fire_delay = -1.0
+        else:
+            self.fire_delay = fire_delay
         self.interval = interval
         self.autoclose = autoclose
         self._engine = None
@@ -195,7 +202,12 @@ class _EngineTimerQ(object):
             assert self.client.fire_delay > -EPSILON
             self.fire_date = self.client.fire_delay + time.time()
 
+        def __lt__(self, other):
+            # NOTE: add @total_ordering decorator in Python 2.7+
+            return self.fire_date < other.fire_date
+
         def __cmp__(self, other):
+            # DEPRECATED: no longer used in Python 3
             return cmp(self.fire_date, other.fire_date)
 
         def arm(self, client):
@@ -699,38 +711,36 @@ class Engine(object):
         if self.running:
             raise EngineAlreadyRunningError()
 
-        # note: try-except-finally not supported before python 2.5
         try:
             self.running = True
+            # start port clients
+            self.start_ports()
+            # peek in ports for early pending messages
+            self.snoop_ports()
+            # start all other clients
+            self.start_clients()
+            # run loop until all clients and timers are removed
+            self.runloop(timeout)
+        except EngineTimeoutException:
+            self.clear(did_timeout=True)
+            raise
+        except: # MUST use BaseException as soon as possible (py2.5+)
+            # The game is over.
+            exc_t, exc_val, exc_tb = sys.exc_info()
             try:
-                # start port clients
-                self.start_ports()
-                # peek in ports for early pending messages
-                self.snoop_ports()
-                # start all other clients
-                self.start_clients()
-                # run loop until all clients and timers are removed
-                self.runloop(timeout)
-            except EngineTimeoutException:
-                self.clear(did_timeout=True)
+                # Close Engine clients
+                self.clear()
+            except:
+                # self.clear() may still generate termination events that
+                # may raises exceptions, overriding the other one above.
+                # In the future, we should block new user events to avoid
+                # that. Also, such cases could be better handled with
+                # BaseException. For now, print a backtrace in debug to
+                # help detect the problem.
+                tbexc = traceback.format_exception(exc_t, exc_val, exc_tb)
+                LOGGER.debug(''.join(tbexc))
                 raise
-            except: # MUST use BaseException as soon as possible (py2.5+)
-                # The game is over.
-                exc_t, exc_val, exc_tb = sys.exc_info()
-                try:
-                    # Close Engine clients
-                    self.clear()
-                except:
-                    # self.clear() may still generate termination events that
-                    # may raises exceptions, overriding the other one above.
-                    # In the future, we should block new user events to avoid
-                    # that. Also, such cases could be better handled with
-                    # BaseException. For now, print a backtrace in debug to
-                    # help detect the problem.
-                    tbexc = traceback.format_exception(exc_t, exc_val, exc_tb)
-                    LOGGER.debug(''.join(tbexc))
-                    raise
-                raise
+            raise
         finally:
             # cleanup
             self.timerq.clear()

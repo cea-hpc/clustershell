@@ -1,15 +1,11 @@
-#!/usr/bin/env python
 # ClusterShell.Defaults test suite
 # Written by S. Thiell
 
-
-"""Unit test for ClusterShell Defaults module"""
+"""Unit test for ClusterShell.Defaults"""
 
 from textwrap import dedent
 import sys
 import unittest
-
-sys.path.insert(0, '../lib')
 
 from TLib import make_temp_file
 
@@ -141,7 +137,7 @@ class Defaults001ConfigTest(unittest.TestCase):
 
     def test_000_empty(self):
         """test Defaults config file (empty)"""
-        conf_test = make_temp_file('')
+        conf_test = make_temp_file(b'')
         self.defaults = Defaults(filenames=[conf_test.name])
         self._assert_default_values()
 
@@ -163,7 +159,7 @@ class Defaults001ConfigTest(unittest.TestCase):
             fanout: 64
             grooming_delay: 0.25
             connect_timeout: 10
-            command_timeout: 0"""))
+            command_timeout: 0""").encode('ascii'))
         self.defaults = Defaults(filenames=[conf_test.name])
         self._assert_default_values()
 
@@ -185,7 +181,7 @@ class Defaults001ConfigTest(unittest.TestCase):
             fanout: 256
             grooming_delay: 0.5
             connect_timeout: 12.5
-            command_timeout: 30.5"""))
+            command_timeout: 30.5""").encode('ascii'))
         self.defaults = Defaults(filenames=[conf_test.name])
         self.assertTrue(self.defaults.stderr)
         self.assertFalse(self.defaults.stdout_msgtree)

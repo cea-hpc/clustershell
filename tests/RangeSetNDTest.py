@@ -1,14 +1,10 @@
-#!/usr/bin/env python
 # ClusterShell.RangeSet.RangeSetND test suite
 # Written by S. Thiell
-
 
 """Unit test for RangeSetND"""
 
 import sys
 import unittest
-
-sys.path.insert(0, '../lib')
 
 from ClusterShell.RangeSet import RangeSet, RangeSetND
 

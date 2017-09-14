@@ -1,8 +1,10 @@
-#!/usr/bin/env python
-# ClusterShell.Task tree test suite
+"""
+Unit test for ClusterShell.Task in tree mode
+"""
 
 import logging
 import os
+from textwrap import dedent
 import unittest
 
 from ClusterShell.Task import task_self
@@ -24,8 +26,10 @@ class TreeTaskTest(unittest.TestCase):
     def test_shell_auto_tree_dummy(self):
         """test task shell auto tree"""
         # initialize a dummy topology.conf file
-        topofile = make_temp_file(
-            '[Main]\n%s: dummy-gw\ndummy-gw: dummy-node\n' % HOSTNAME)
+        topofile = make_temp_file(dedent("""
+                        [Main]
+                        %s: dummy-gw
+                        dummy-gw: dummy-node"""% HOSTNAME).encode())
         task = task_self()
         task.set_default("auto_tree", True)
         task.TOPOLOGY_CONFIGS = [topofile.name]
@@ -51,8 +55,10 @@ class TreeTaskTest(unittest.TestCase):
     def test_shell_auto_tree_error(self):
         """test task shell auto tree [TopologyError]"""
         # initialize an erroneous topology.conf file
-        topofile = make_temp_file(
-            '[Main]\n%s: dummy-gw\ndummy-gw: dummy-gw\n' % HOSTNAME)
+        topofile = make_temp_file(dedent("""
+                        [Main]
+                        %s: dummy-gw
+                        dummy-gw: dummy-gw"""% HOSTNAME).encode())
         task = task_self()
         task.set_default("auto_tree", True)
         task.TOPOLOGY_CONFIGS = [topofile.name]

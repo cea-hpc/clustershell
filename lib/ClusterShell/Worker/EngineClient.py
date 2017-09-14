@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2009-2016 CEA/DAM
-# Copyright (C) 2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -31,8 +31,14 @@ and stderr, or even more...)
 import errno
 import logging
 import os
-import Queue
-import thread
+
+try:
+    import queue
+except ImportError:
+    # Python 2 compatibility
+    import Queue as queue
+
+import threading
 
 from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
     set_nonblock_flag
@@ -73,8 +79,8 @@ class EngineClientStream(object):
         """
         self.name = name
         self.fd = None
-        self.rbuf = ""
-        self.wbuf = ""
+        self.rbuf = bytes()
+        self.wbuf = bytes()
         self.eof = False
         self.evmask = evmask
         self.events = 0
@@ -163,7 +169,7 @@ class EngineClientStreamDict(dict):
 
     def readers(self):
         """Get an iterator on all streams setup as readable."""
-        return (s for s in self.values() if s.evmask & E_READ)
+        return (s for s in list(self.values()) if s.evmask & E_READ)
 
     def active_writers(self):
         """Get an iterator on writable streams (with fd set)."""
@@ -171,7 +177,7 @@ class EngineClientStreamDict(dict):
 
     def writers(self):
         """Get an iterator on all streams setup as writable."""
-        return (s for s in self.values() if s.evmask & E_WRITE)
+        return (s for s in list(self.values()) if s.evmask & E_WRITE)
 
     def retained(self):
         """Check whether this set of streams is retained.
@@ -380,10 +386,10 @@ class EngineClient(EngineBaseTimer):
 
         buf = rfile.rbuf + readbuf
         lines = buf.splitlines(True)
-        rfile.rbuf = ""
+        rfile.rbuf = bytes()
         for line in lines:
-            if line.endswith('\n'):
-                if line.endswith('\r\n'):
+            if line.endswith(b'\n'):
+                if line.endswith(b'\r\n'):
                     yield line[:-2] # trim CRLF
                 else:
                     # trim LF
@@ -437,7 +443,7 @@ class EnginePort(EngineClient):
         def __init__(self, user_msg, sync):
             self._user_msg = user_msg
             self._sync_msg = sync
-            self.reply_lock = thread.allocate_lock()
+            self.reply_lock = threading.Lock()
             self.reply_lock.acquire()
 
         def get(self):
@@ -465,7 +471,7 @@ class EnginePort(EngineClient):
         self.delayable = False
 
         # Port messages queue
-        self._msgq = Queue.Queue(self.task.default("port_qlimit"))
+        self._msgq = queue.Queue(self.task.default("port_qlimit"))
 
         # Request pipe
         (readfd, writefd) = os.pipe()
@@ -501,7 +507,7 @@ class EnginePort(EngineClient):
                     if self.task.info("debug", False):
                         self.task.info("print_debug")(self.task,
                             "EnginePort: dropped msg: %s" % str(pmsg.get()))
-            except Queue.Empty:
+            except queue.Empty:
                 pass
         self._msgq = None
         del self.streams['out']
@@ -534,7 +540,7 @@ class EnginePort(EngineClient):
         pmsg = EnginePort._Msg(send_msg, not send_once)
         self._msgq.put(pmsg, block=True, timeout=None)
         try:
-            ret = os.write(self.streams['out'].fd, "M")
+            ret = os.write(self.streams['out'].fd, b'M')
         except OSError:
             raise
         pmsg.sync()

@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
-
-"""Unit test for ClusterShell Task with all engines (pdsh distant worker)"""
+"""
+Unit test for ClusterShell Task with all engines (pdsh distant worker)
+"""
 
 import sys
 import unittest
-
-sys.path.insert(0, '../lib')
 
 from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Engine.Select import EngineSelect

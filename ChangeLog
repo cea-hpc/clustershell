@@ -1,3 +1,28 @@
+2017-09-01 S. Thiell <sthiell@stanford.edu>
+
+	* 1.8 beta1 (1.7.81) release.
+
+2017-08-09 S. Thiell <sthiell@stanford.edu>
+
+	* Added Python 3 support (#337).
+
+2017-07-27 S. Thiell <sthiell@stanford.edu>
+
+	* NodeUtils.py: fix external reverse node group upcall caching issue.
+
+2017-06-27 S. Thiell <sthiell@stanford.edu>
+
+	* CLI/Clush.py: add -n as an alias of --nostdin (#333).
+
+2017-04-29 S. Thiell <sthiell@stanford.edu>
+
+	* NodeSet.py: allow fully numeric node names (ticket #338).
+
+2017-02-21 S. Thiell <sthiell@stanford.edu>
+
+	* Worker/Tree.py: fix defect in file copying code when destination target
+	directory is provided (ticket #332).
+
 2016-12-20 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.7.3 released.

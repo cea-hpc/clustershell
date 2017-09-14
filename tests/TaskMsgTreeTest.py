@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # ClusterShell test suite
 # Written by S. Thiell
-
 
 """Unit test for ClusterShell TaskMsgTree variants"""
 
@@ -65,7 +63,7 @@ class TaskMsgTreeTest(unittest.TestCase):
         task.resume()
         # only second message has been recorded
         for buf, keys in task.iter_buffers():
-            self.assertEqual(buf, "foo bar2")
+            self.assertEqual(buf, b"foo bar2")
 
     def testHotDisablingMsgTree(self):
         """test TaskMsgTree disabling at runtime (v1.7)"""
@@ -79,7 +77,7 @@ class TaskMsgTreeTest(unittest.TestCase):
         task.resume()
         # only first message has been recorded
         for buf, keys in task.iter_buffers():
-            self.assertEqual(buf, "foo bar")
+            self.assertEqual(buf, b"foo bar")
 
     def testEnabledMsgTreeStdErr(self):
         """test TaskMsgTree enabled for stderr"""

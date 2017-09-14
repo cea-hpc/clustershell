@@ -103,7 +103,7 @@ class PdshClient(ExecClient):
                 self.worker._on_node_timeout(node)
         else:
             for node in (self.key - self._closed_nodes):
-                self.worker._on_node_rc(node, 0)
+                self.worker._on_node_close(node, 0)
 
         self.worker._check_fini()
 
@@ -111,9 +111,9 @@ class PdshClient(ExecClient):
         """
         Parse Pdsh line syntax.
         """
-        if line.startswith("pdsh@") or \
-           line.startswith("pdcp@") or \
-           line.startswith("sending "):
+        if line.startswith(b"pdsh@") or \
+           line.startswith(b"pdcp@") or \
+           line.startswith(b"sending "):
             try:
                 # pdsh@cors113: cors115: ssh exited with exit code 1
                 #       0          1      2     3     4    5    6  7
@@ -130,23 +130,25 @@ class PdshClient(ExecClient):
                 words = line.split()
                 # Set return code for nodename of worker
                 if self.MODE == 'pdsh':
-                    if len(words) == 4 and words[2] == "command" and \
-                       words[3] == "timeout":
+                    if len(words) == 4 and words[2] == b"command" and \
+                       words[3] == b"timeout":
                         pass
-                    elif len(words) == 8 and words[3] == "exited" and \
+                    elif len(words) == 8 and words[3] == b"exited" and \
                          words[7].isdigit():
-                        self._closed_nodes.add(words[1][:-1])
-                        self.worker._on_node_rc(words[1][:-1], int(words[7]))
+                        nodename = words[1][:-1].decode()
+                        self._closed_nodes.add(nodename)
+                        self.worker._on_node_close(nodename, int(words[7]))
                 elif self.MODE == 'pdcp':
-                    self._closed_nodes.add(words[1][:-1])
-                    self.worker._on_node_rc(words[1][:-1], errno.ENOENT)
+                    nodename = words[1][:-1].decode()
+                    self._closed_nodes.add(nodename)
+                    self.worker._on_node_close(nodename, errno.ENOENT)
 
             except Exception as exc:
                 raise EngineClientError("Pdsh parser error: %s" % exc)
         else:
             # split pdsh reply "nodename: msg"
-            nodename, msg = line.split(': ', 1)
-            self.worker._on_node_msgline(nodename, msg, sname)
+            nodename, msg = line.split(b': ', 1)
+            self.worker._on_node_msgline(nodename.decode(), msg, sname)
 
     def _flush_read(self, sname):
         """Called at close time to flush stream read buffer."""

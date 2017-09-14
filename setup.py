@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -30,7 +29,7 @@ else:
     # User, in-prefix config install (rpmbuild or pip as user)
     CFGDIR = 'etc/clustershell'
 
-VERSION = '1.7.3'
+VERSION = '1.7.81'
 
 # Dependencies (for pip install)
 REQUIRES = ['PyYAML']
@@ -76,10 +75,9 @@ setup(name='ClusterShell',
           "Operating System :: POSIX :: BSD",
           "Operating System :: POSIX :: Linux",
           "Programming Language :: Python",
-          "Programming Language :: Python :: 2.4",
-          "Programming Language :: Python :: 2.5",
           "Programming Language :: Python :: 2.6",
           "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3",
           "Topic :: Software Development :: Libraries :: Python Modules",
           "Topic :: System :: Clustering",
           "Topic :: System :: Distributed Computing"

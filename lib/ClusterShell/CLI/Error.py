@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2010-2012 CEA/DAM
 #
@@ -21,6 +20,8 @@
 """
 CLI error handling helper functions
 """
+
+from __future__ import print_function
 
 import os.path
 import signal
@@ -59,26 +60,27 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         raise excobj
     except EngineNotSupportedError as exc:
         msgfmt = "%s: I/O events engine '%s' not supported on this host"
-        print >> sys.stderr, msgfmt % (prog, exc.engineid)
+        print(msgfmt % (prog, exc.engineid), file=sys.stderr)
     except EngineClientError as exc:
-        print >> sys.stderr, "%s: EngineClientError: %s" % (prog, exc)
+        print("%s: EngineClientError: %s" % (prog, exc), file=sys.stderr)
     except NodeSetExternalError as exc:
-        print >> sys.stderr, "%s: External error:" % prog, exc
+        print("%s: External error: %s" % (prog, exc), file=sys.stderr)
     except (NodeSetParseError, RangeSetParseError) as exc:
-        print >> sys.stderr, "%s: Parse error:" % prog, exc
+        print("%s: Parse error: %s" % (prog, exc), file=sys.stderr)
     except GroupResolverIllegalCharError as exc:
-        print >> sys.stderr, '%s: Illegal group character: "%s"' % (prog, exc)
+        print('%s: Illegal group character: "%s"' % (prog, exc),
+              file=sys.stderr)
     except GroupResolverSourceError as exc:
-        print >> sys.stderr, '%s: Unknown group source: "%s"' % (prog, exc)
+        print('%s: Unknown group source: "%s"' % (prog, exc), file=sys.stderr)
     except GroupSourceNoUpcall as exc:
         msgfmt = '%s: No %s upcall defined for group source "%s"'
-        print >> sys.stderr, msgfmt % (prog, exc, exc.group_source.name)
+        print(msgfmt % (prog, exc, exc.group_source.name), file=sys.stderr)
     except GroupSourceError as exc:
-        print >> sys.stderr, "%s: Group error:" % prog, exc
+        print("%s: Group error: %s" % (prog, exc), file=sys.stderr)
     except TopologyError as exc:
-        print >> sys.stderr, "%s: TREE MODE:" % prog, exc
+        print("%s: TREE MODE: %s" % (prog, exc), file=sys.stderr)
     except (TypeError, WorkerError) as exc:
-        print >> sys.stderr, "%s: %s" % (prog, exc)
+        print("%s: %s" % (prog, exc), file=sys.stderr)
     except IOError:
         # ignore broken pipe
         pass

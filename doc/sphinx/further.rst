@@ -14,10 +14,15 @@ Get the latest :ref:`install-source` code first.
    effect." (from `Wikipedia`_)
 
 The *tests* directory of the source archive (not the RPM) contains all
-regression and non-regression tests. To run all tests, use the following::
+regression and non-regression tests. To run all tests with Python 2, use the
+following commands::
 
     $ cd tests
     $ nosetests -sv --all-modules .
+
+Or run all tests with Python 3 by using the following command instead::
+
+    $ nosetests-3 -sv --all-modules .
 
 Some tests assume that *ssh(1)* to localhost is allowed for the current user.
 Some tests use *bc(1)*. And some tests need *pdsh(1)* installed.
