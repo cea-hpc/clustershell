@@ -149,9 +149,9 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t(["-b", "--color=never"], b"foo: bar\n", _outfmt("foo"))
         self._clubak_t(["-b", "--color=auto"], b"foo: bar\n", _outfmt("foo"))
         self._clubak_t(["-L", "--color=always"], b"foo: bar\n",
-                       b"\x1b[34mfoo: \x1b[0m bar\n")
+                       b"\x1b[94mfoo: \x1b[0m bar\n")
         self._clubak_t(["-b", "--color=always"], b"foo: bar\n",
-                       b"\x1b[34m---------------\nfoo\n---------------\x1b[0m\n bar\n")
+                       b"\x1b[94m---------------\nfoo\n---------------\x1b[0m\n bar\n")
 
     def test_009_diff(self):
         """test clubak (--diff)"""
@@ -161,7 +161,7 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t(["--diff"], b"foo1: bar\nfoo2: BAR\nfoo3: bar\nfoo2: end\nfoo1: end\nfoo3: end",
                        b"--- foo[1,3] (2)\n+++ foo2\n@@ -1,2 +1,2 @@\n- bar\n+ BAR\n  end\n")
         self._clubak_t(["--diff", "--color=always"], b"foo1: bar\nfoo2: BAR\nfoo3: bar\nfoo2: end\nfoo1: end\nfoo3: end",
-                       b"\x1b[1m--- foo[1,3] (2)\x1b[0m\n\x1b[1m+++ foo2\x1b[0m\n\x1b[36m@@ -1,2 +1,2 @@\x1b[0m\n\x1b[31m- bar\x1b[0m\n\x1b[32m+ BAR\x1b[0m\n  end\n")
+                       b"\x1b[1m--- foo[1,3] (2)\x1b[0m\n\x1b[1m+++ foo2\x1b[0m\n\x1b[96m@@ -1,2 +1,2 @@\x1b[0m\n\x1b[91m- bar\x1b[0m\n\x1b[92m+ BAR\x1b[0m\n  end\n")
         self._clubak_t(["--diff", "-d"], b"foo: bar\n", b"INPUT foo: bar\n", 0,
                        b"line_mode=False gather=True tree_depth=1\n")
         self._clubak_t(["--diff", "-L"], b"foo1: bar\nfoo2: bar", b'', 2,

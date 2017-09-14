@@ -51,13 +51,13 @@ class Display(object):
     """
     Output display class for command line scripts.
     """
-    COLOR_RESULT_FMT = "\033[32m%s\033[0m"
-    COLOR_STDOUT_FMT = "\033[34m%s\033[0m"
-    COLOR_STDERR_FMT = "\033[31m%s\033[0m"
+    COLOR_RESULT_FMT = "\033[92m%s\033[0m"
+    COLOR_STDOUT_FMT = "\033[94m%s\033[0m"
+    COLOR_STDERR_FMT = "\033[91m%s\033[0m"
     COLOR_DIFFHDR_FMT = "\033[1m%s\033[0m"
-    COLOR_DIFFHNK_FMT = "\033[36m%s\033[0m"
-    COLOR_DIFFADD_FMT = "\033[32m%s\033[0m"
-    COLOR_DIFFDEL_FMT = "\033[31m%s\033[0m"
+    COLOR_DIFFHNK_FMT = "\033[96m%s\033[0m"
+    COLOR_DIFFADD_FMT = "\033[92m%s\033[0m"
+    COLOR_DIFFDEL_FMT = "\033[91m%s\033[0m"
     SEP = "-" * 15
 
     class _KeySet(set):
