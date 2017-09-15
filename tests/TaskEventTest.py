@@ -7,6 +7,7 @@ import copy
 import socket
 import sys
 import unittest
+import warnings
 
 import ClusterShell
 
@@ -107,6 +108,12 @@ class AbortOnReadHandler(EventHandler):
         worker.abort()
 
 class TaskEventTest(unittest.TestCase):
+
+    def setUp(self):
+        warnings.simplefilter("always")
+
+    def tearDown(self):
+        warnings.resetwarnings()
 
     def testSimpleEventHandler(self):
         """test simple event handler"""
