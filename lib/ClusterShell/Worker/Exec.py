@@ -29,9 +29,15 @@ commands or copy files, locally.
 This is the base class for most of other distant workers.
 """
 
+try:
+    from inspect import getfullargspec  # py3
+except ImportError:
+    from inspect import getargspec as getfullargspec  # py2
+
 import os
 from string import Template
 
+from ClusterShell.Event import _warn_signature
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.Worker import WorkerError, DistantWorker
@@ -374,8 +380,14 @@ class ExecWorker(DistantWorker):
         self._close_count += 1
         assert self._close_count <= len(self._clients)
         if self._close_count == len(self._clients) and self.eh:
-            if self._has_timeout:
+            if self._has_timeout and hasattr(self.eh, 'ev_timeout'):
                 self.eh.ev_timeout(self)
-            self.eh.ev_close(self)
+            # ev_close: check for old signature first (< 1.8)
+            if len(getfullargspec(self.eh.ev_close)[0]) == 2:
+                _warn_signature('ev_close')
+                self.eh.ev_close(self)
+            else:
+                self.eh.ev_close(self, self._has_timeout)
+
 
 WORKER_CLASS = ExecWorker

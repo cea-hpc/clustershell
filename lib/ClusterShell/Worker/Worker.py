@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -24,9 +24,14 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
-import inspect
+try:
+    from inspect import getfullargspec  # py3
+except ImportError:
+    from inspect import getargspec as getfullargspec  # py2
+
 import warnings
 
+from ClusterShell.Event import _warn_signature
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Engine.Engine import FANOUT_UNLIMITED, FANOUT_DEFAULT
@@ -140,7 +145,12 @@ class Worker(object):
                 self.eh.ev_start(self)
 
         if self.eh:
-            self.eh.ev_pickup(self)
+            # ev_pickup: check for old signature first (< 1.8)
+            if len(getfullargspec(self.eh.ev_pickup)[0]) == 2:
+                _warn_signature('ev_pickup')
+                self.eh.ev_pickup(self)
+            else:
+                self.eh.ev_pickup(self, key)
 
     def _on_close(self, key, rc=None):
         """Called to generate events when the Worker is closing."""
@@ -153,7 +163,11 @@ class Worker(object):
             self.task._rc_set(self, key, rc)
 
         if self.eh:
-            self.eh.ev_hup(self)
+            # ev_hup: check for old signature first (< 1.8)
+            if len(getfullargspec(self.eh.ev_hup)[0]) == 2:
+                self.eh.ev_hup(self)
+            else:
+                self.eh.ev_hup(self, key, rc)
 
     def _on_written(self, key, bytes_count, sname):
         """Notification of bytes written."""
@@ -161,10 +175,13 @@ class Worker(object):
         self.current_node = key
         self.current_sname = sname
 
-        # generate event - for ev_written, also check for new signature (1.7)
-        # NOTE: add DeprecationWarning in 1.8 for old ev_written signature
-        if self.eh and len(inspect.getargspec(self.eh.ev_written)[0]) == 5:
-            self.eh.ev_written(self, key, sname, bytes_count)
+        # generate event - ev_written: check for old signature first (< 1.7)
+        if self.eh:
+            if len(getfullargspec(self.eh.ev_written)[0]) == 2:
+                _warn_signature('ev_written')
+                self.eh.ev_written(self)
+            else:
+                self.eh.ev_written(self, key, sname, bytes_count)
 
     # Base getters
 
@@ -236,15 +253,26 @@ class DistantWorker(Worker):
         # update task msgtree
         task._msg_add(self, node, sname, msg)
         # generate event
-        self.current_node = node
-        if sname == self.SNAME_STDERR:
-            self.current_errmsg = msg
-            if handler is not None:
-                handler.ev_error(self)
-        else:
-            self.current_msg = msg
-            if handler is not None:
-                handler.ev_read(self)
+        if handler is not None:
+            self.current_node = node
+            if sname == self.SNAME_STDERR:
+                self.current_errmsg = msg
+                if handler is not None:
+                    # check for deprecated ev_error (< 1.8)
+                    if hasattr(handler, 'ev_error'):
+                        handler.ev_error(self)
+                    else:
+                        # at that point, MUST use ev_read new signature (1.8)
+                        self.eh.ev_read(self, node, sname, msg)
+            else:
+                self.current_msg = msg
+                if handler is not None:
+                    # ev_read: check for old signature first (< 1.8)
+                    if len(getfullargspec(handler.ev_read)[0]) == 2:
+                        _warn_signature('ev_read')
+                        handler.ev_read(self)
+                    else:
+                        handler.ev_read(self, node, sname, msg)
 
     def _on_node_close(self, node, rc):
         """Command return code received."""
@@ -417,7 +445,12 @@ class StreamClient(EngineClient):
         self.worker._on_close(self.key)
 
         if self.worker.eh:
-            self.worker.eh.ev_close(self.worker)
+            # ev_close: check for old signature first (< 1.8)
+            if len(getfullargspec(self.worker.eh.ev_close)[0]) == 2:
+                _warn_signature('ev_close')
+                self.worker.eh.ev_close(self.worker)
+            else:
+                self.worker.eh.ev_close(self.worker, timeout)
 
     def _handle_read(self, sname):
         """Engine is telling us there is data available for reading."""
@@ -480,13 +513,8 @@ class StreamWorker(Worker):
     and worker is already scheduled).
 
     Configured readers will generate ev_read() events when data is
-    available for reading. So, the following additional public worker
-    variable is available and defines the stream name for the event:
-        >>> worker.current_sname [ev_read,ev_error]
-
-    Please note that ev_error() is called instead of ev_read() when the
-    stream name is 'stderr'. Indeed, all other stream names use
-    ev_read().
+    available for reading, with the stream name passed as one of its
+    argument.
 
     Configured writers will allow the use of the method write(), eg.
     worker.write(data, 'stream2'), to write to the stream.
@@ -555,19 +583,29 @@ class StreamWorker(Worker):
             # add last msg to local buffer
             self.current_errmsg = msg
             if self.eh:
-                self.eh.ev_error(self)
+                # check for deprecated ev_error (< 1.8)
+                if hasattr(self.eh, 'ev_error'):
+                    self.eh.ev_error(self)
+                else:
+                    # at that point, MUST use ev_read new signature (1.8)
+                    self.eh.ev_read(self, key, sname, msg)
         else:
             # add last msg to local buffer
             self.current_msg = msg
             if self.eh:
-                self.eh.ev_read(self)
+                # ev_read: check for old signature first (< 1.8)
+                if len(getfullargspec(self.eh.ev_read)[0]) == 2:
+                    _warn_signature('ev_read')
+                    self.eh.ev_read(self)
+                else:
+                    self.eh.ev_read(self, key, sname, msg)
 
     def _on_timeout(self, key):
         """Update on timeout."""
         self.task._timeout_add(self, key)
 
-        # trigger timeout event
-        if self.eh:
+        # trigger timeout event (depreacated in 1.8+)
+        if self.eh and hasattr(self.eh, 'ev_timeout'):
             self.eh.ev_timeout(self)
 
     def abort(self):
@@ -670,7 +708,13 @@ class WorkerSimple(StreamWorker):
                 self.eh.ev_start(self)
 
         if self.eh:
-            self.eh.ev_pickup(self)
+            # ev_pickup: check for old signature first (< 1.8)
+            if len(getfullargspec(self.eh.ev_pickup)[0]) == 2:
+                warnings.warn("ev_pickup() now takes more arguments",
+                              DeprecationWarning)
+                self.eh.ev_pickup(self)
+            else:
+                self.eh.ev_pickup(self, key)
 
     def _on_close(self, key, rc=None):
         """Called to generate events when the Worker is closing."""
@@ -682,14 +726,21 @@ class WorkerSimple(StreamWorker):
             self.task._rc_set(self, key, rc)
 
         if self.eh:
-            self.eh.ev_hup(self)
+            # ev_hup: check for old signature first (< 1.8)
+            if len(getfullargspec(self.eh.ev_hup)[0]) == 2:
+                self.eh.ev_hup(self)
+            else:
+                self.eh.ev_hup(self, key, rc)
 
     def _on_written(self, key, bytes_count, sname):
         """Notification of bytes written."""
         # set node and stream name (compat only)
         self.current_sname = sname
 
-        # generate event - for ev_written, also check for new signature (1.7)
-        # NOTE: add DeprecationWarning in 1.8 for old ev_written signature
-        if self.eh and len(inspect.getargspec(self.eh.ev_written)[0]) == 5:
-            self.eh.ev_written(self, key, sname, bytes_count)
+        # generate event - ev_written: check for old signature first (< 1.7)
+        if self.eh:
+            if len(getfullargspec(self.eh.ev_written)[0]) == 2:
+                _warn_signature('ev_written')
+                self.eh.ev_written(self)
+            else:
+                self.eh.ev_written(self, key, sname, bytes_count)
