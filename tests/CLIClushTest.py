@@ -372,7 +372,16 @@ class CLIClushTest_A(unittest.TestCase):
         args = ["-w", HOSTNAME, "--worker=exec", "-q", "--nostdin", "-b",
                 "echo start; sleep 10"]
         python_exec = basename(sys.executable or 'python')
-        process = Popen([python_exec, '-m', 'ClusterShell.CLI.Clush'] + args,
+        ################################################################
+        ### TEMPORARY for Event API change [PATCH 1/2]
+        # -W ignore is needed in Python 2.6 to ignore DeprecationWarning
+        if sys.version_info < (2, 7, 0):
+            warn_args = ['-W', 'ignore']
+        else:
+            warn_args = []
+        ################################################################
+        process = Popen([python_exec] + warn_args +
+                        ['-m', 'ClusterShell.CLI.Clush'] + args,
                         stderr=PIPE, stdout=PIPE, bufsize=0)
         kth.pidkill = process.pid
         kth.start()
