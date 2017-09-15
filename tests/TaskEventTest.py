@@ -7,12 +7,16 @@ import copy
 import socket
 import sys
 import unittest
+import warnings
 
 import ClusterShell
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Event import EventHandler
+
+
+warnings.simplefilter("always")
 
 
 class TestHandler(EventHandler):
