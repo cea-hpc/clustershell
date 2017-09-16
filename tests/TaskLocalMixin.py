@@ -28,7 +28,6 @@ import threading
 import tempfile
 import warnings
 
-warnings.simplefilter("always")
 
 
 def _test_print_debug(task, s):
@@ -40,12 +39,14 @@ class TaskLocalMixin(object):
     inheritance with unittest.TestCase"""
 
     def setUp(self):
+        warnings.simplefilter("once")
         # save original fanout value
         self.fanout_orig = task_self().info("fanout")
 
     def tearDown(self):
         # restore original fanout value
         task_self().set_info("fanout", self.fanout_orig)
+        warnings.resetwarnings()
 
     def testSimpleCommand(self):
         task = task_self()
