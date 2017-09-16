@@ -738,27 +738,24 @@ class TaskDistantMixin(object):
         self.assertEqual(test_eh.close_count, 1)
 
     def test_last_deprecated(self):
-        # Currently does not really test DeprecationWarning but will display
-        # them.
-        # Laster with Python 2.6+, we will be able to use
-        # "with warnings.catch_warnings".
-
-        # Cause all warnings to always be triggered.
-        warnings.simplefilter("always")
 
         class TestHandlerHandler(EventHandler):
             def ev_read(self, worker):
-                # XXX with Python 2.6+ use:
-                #with warnings.catch_warnings(record=True) as w:
-                self.node, self.msg = worker.last_read()
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always")
+                    self.node, self.msg = worker.last_read()
+                    assert len(w) == 1
+                    assert issubclass(w[-1].category, DeprecationWarning)
             def ev_hup(self, worker):
-                # XXX with Python 2.6+ use:
-                #with warnings.catch_warnings(record=True) as w:
-                self.node, self.rc = worker.last_retcode()
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always")
+                    self.node, self.rc = worker.last_retcode()
+                    assert len(w) == 1
+                    assert issubclass(w[-1].category, DeprecationWarning)
 
         eh = TestHandlerHandler()
         reader = self._task.shell("echo foobar", nodes=HOSTNAME, handler=eh)
         self._task.resume()
         self.assertEqual(eh.node, HOSTNAME)
         self.assertEqual(eh.rc, 0)
-        warnings.simplefilter('default')
+        warnings.resetwarnings()
