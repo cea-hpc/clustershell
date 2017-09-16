@@ -381,6 +381,9 @@ class ExecWorker(DistantWorker):
         assert self._close_count <= len(self._clients)
         if self._close_count == len(self._clients) and self.eh is not None:
             if self._has_timeout and hasattr(self.eh, 'ev_timeout'):
+                warnings.warn("%s: ev_timeout() is deprecated: use argument "
+                              "did_timeout of ev_close instead."
+                              % self.eh.__class__.__name__, DeprecationWarning)
                 self.eh.ev_timeout(self)
 
             ### FUTURE (2.x) ###
