@@ -36,16 +36,16 @@ class CheckNodesResult(object):
 
 class CheckNodesHandler(EventHandler):
     """Our ClusterShell EventHandler"""
+
     def __init__(self, result):
         """Initialize our event handler with a ref to our result object."""
         EventHandler.__init__(self)
         self.result = result
 
-    def ev_read(self, worker):
+    def ev_read(self, worker, node, sname, msg):
         """Read event from remote nodes"""
-        node = worker.current_node
         # this is an example to demonstrate remote result parsing
-        bootime = " ".join(worker.current_msg.strip().split()[2:])
+        bootime = " ".join(msg.strip().split()[2:])
         date_boot = None
         for fmt in ("%Y-%m-%d %H:%M",): # formats with year
             try:
@@ -70,27 +70,27 @@ class CheckNodesHandler(EventHandler):
         else:
             self.result.nodes_ko.add(node)
 
-    def ev_timeout(self, worker):
-        """Timeout occurred on some nodes"""
-        self.result.nodes_ko.add(NodeSet.fromlist(worker.iter_keys_timeout()))
-
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         """Worker has finished (command done on all nodes)"""
+        if timedout:
+            nodeset = NodeSet.fromlist(worker.iter_keys_timeout())
+            self.result.nodes_ko.add(nodeset)
         self.result.show()
-
 
 def main():
     """ Main script function """
     # Initialize option parser
     parser = optparse.OptionParser()
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
-        default=False, help="Enable debug mode")
+                      default=False, help="Enable debug mode")
     parser.add_option("-n", "--nodes", action="store", dest="nodes",
-        default="@all", help="Target nodes (default @all group)")
+                      default="@all", help="Target nodes (default @all group)")
     parser.add_option("-f", "--fanout", action="store", dest="fanout",
-        default="128", help="Fanout window size (default 128)", type=int)
+                      default="128", help="Fanout window size (default 128)",
+                      type=int)
     parser.add_option("-t", "--timeout", action="store", dest="timeout",
-        default="5", help="Timeout in seconds (default 5)", type=float)
+                      default="5", help="Timeout in seconds (default 5)",
+                      type=float)
     options, _ = parser.parse_args()
 
     # Get current task (associated to main thread)
