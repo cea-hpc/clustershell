@@ -35,6 +35,7 @@ Usage example:
 """
 
 from ClusterShell.Worker.Worker import WorkerSimple, StreamClient
+from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 
 
 class PopenClient(StreamClient):
@@ -88,8 +89,9 @@ class PopenClient(StreamClient):
             self.rc = 128 + -prc
             self.worker._on_close(self.key, self.rc)
 
-        if self.worker.eh:
-            self.worker.eh.ev_close(self.worker)
+        if self.worker.eh is not None:
+            _eh_sigspec_invoke_compat(self.worker.eh.ev_close, 2, self.worker,
+                                      timeout)
 
 
 class WorkerPopen(WorkerSimple):

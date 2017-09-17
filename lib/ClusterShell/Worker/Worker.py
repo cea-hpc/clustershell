@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -24,12 +24,32 @@ ClusterShell worker interface.
 A worker is a generic object which provides "grouped" work in a specific task.
 """
 
-import inspect
+try:
+    from inspect import getfullargspec  # py3
+except ImportError:
+    from inspect import getargspec as getfullargspec  # py2
+
 import warnings
 
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Engine.Engine import FANOUT_UNLIMITED, FANOUT_DEFAULT
+
+
+def _eh_sigspec_invoke_compat(method, argc_legacy, *args):
+    """
+    Helper function to invoke an event handler method, with legacy
+    signature compatibility if actual argc does match argc_legacy.
+    This should be removed when old signatures (< 1.8) aren't supported
+    anymore (in 2.x).
+    """
+    argc_actual = len(getfullargspec(method)[0])
+    if argc_actual == argc_legacy:
+        # Use legacy signature (1.x)
+        return method(*args[0:argc_legacy - 1])
+    else:
+        # Assume new signature (2.x)
+        return method(*args)
 
 
 class WorkerException(Exception):
@@ -59,24 +79,11 @@ class Worker(object):
     class is key here as Worker objects are passed as parameter of most event
     handlers (see the ClusterShell.Event.EventHandler class).
 
-    The following public object variables are defined on some events, so you
-    may find them useful in event handlers:
-        - worker.current_node [ev_pickup,ev_read,ev_error,ev_hup]
-            node/key concerned by event
-        - worker.current_msg [ev_read]
-            message just read (from stdout)
-        - worker.current_errmsg [ev_error]
-            error message just read (from stderr)
-        - worker.current_rc [ev_hup]
-            return code just received
-
     Example of use:
 
         >>> from ClusterShell.Event import EventHandler
         >>> class MyOutputHandler(EventHandler):
-        ...     def ev_read(self, worker):
-        ...             node = worker.current_node
-        ...             line = worker.current_msg
+        ...     def ev_read(self, worker, node, sname, msg):
         ...             print "%s: %s" % (node, line)
         ...
     """
@@ -136,24 +143,24 @@ class Worker(object):
 
         if not self.started:
             self.started = True
-            if self.eh:
+            if self.eh is not None:
                 self.eh.ev_start(self)
 
-        if self.eh:
-            self.eh.ev_pickup(self)
+        if self.eh is not None:
+            _eh_sigspec_invoke_compat(self.eh.ev_pickup, 2, self, key)
 
     def _on_close(self, key, rc=None):
         """Called to generate events when the Worker is closing."""
-        self.current_node = key
-        self.current_rc = rc
-
         # rc may be None here for example when called from StreamClient
         # Only update task if rc is not None.
         if rc is not None:
             self.task._rc_set(self, key, rc)
 
-        if self.eh:
-            self.eh.ev_hup(self)
+        self.current_node = key
+        self.current_rc = rc
+
+        if self.eh is not None:
+            _eh_sigspec_invoke_compat(self.eh.ev_hup, 2, self, key, rc)
 
     def _on_written(self, key, bytes_count, sname):
         """Notification of bytes written."""
@@ -161,10 +168,9 @@ class Worker(object):
         self.current_node = key
         self.current_sname = sname
 
-        # generate event - for ev_written, also check for new signature (1.7)
-        # NOTE: add DeprecationWarning in 1.8 for old ev_written signature
-        if self.eh and len(inspect.getargspec(self.eh.ev_written)[0]) == 5:
-            self.eh.ev_written(self, key, sname, bytes_count)
+        if self.eh is not None:
+            _eh_sigspec_invoke_compat(self.eh.ev_written, 5, self, key, sname,
+                                      bytes_count)
 
     # Base getters
 
@@ -216,6 +222,7 @@ class Worker(object):
         self._task_bound_check()
         self.task._flush_errors_by_worker(self)
 
+
 class DistantWorker(Worker):
     """Base class DistantWorker.
 
@@ -229,22 +236,36 @@ class DistantWorker(Worker):
         """Message received from node, update last* stuffs."""
         # Maxoptimize this method as it might be called very often.
         task = self.task
-        handler = self.eh
         assert not isinstance(node, NodeSet) # for testing
-        # set stream name
-        self.current_sname = sname
         # update task msgtree
         task._msg_add(self, node, sname, msg)
+
+        ### LEGACY (1.x) ###
+        # set stream name
+        self.current_sname = sname
+
         # generate event
         self.current_node = node
         if sname == self.SNAME_STDERR:
             self.current_errmsg = msg
-            if handler is not None:
-                handler.ev_error(self)
+            if self.eh is not None:
+                # check for deprecated ev_error (< 1.8)
+                if hasattr(self.eh, 'ev_error'):
+                    self.eh.ev_error(self)
+                else:
+                    # ev_read: ignore old signature (< 1.8)
+                    if len(getfullargspec(self.eh.ev_read)[0]) != 2:
+                        ### FUTURE (2.x) ###
+                        self.eh.ev_read(self, node, sname, msg)
         else:
             self.current_msg = msg
-            if handler is not None:
-                handler.ev_read(self)
+            if self.eh is not None:
+                # ev_read: check for old signature first (< 1.8)
+                if len(getfullargspec(self.eh.ev_read)[0]) == 2:
+                    self.eh.ev_read(self)
+                else:
+                    ### FUTURE (2.x) ###
+                    self.eh.ev_read(self, node, sname, msg)
 
     def _on_node_close(self, node, rc):
         """Command return code received."""
@@ -417,7 +438,7 @@ class StreamClient(EngineClient):
         self.worker._on_close(self.key)
 
         if self.worker.eh:
-            self.worker.eh.ev_close(self.worker)
+            _eh_sigspec_invoke_compat(self.worker.eh.ev_close, 2, self, timeout)
 
     def _handle_read(self, sname):
         """Engine is telling us there is data available for reading."""
@@ -480,13 +501,8 @@ class StreamWorker(Worker):
     and worker is already scheduled).
 
     Configured readers will generate ev_read() events when data is
-    available for reading. So, the following additional public worker
-    variable is available and defines the stream name for the event:
-        >>> worker.current_sname [ev_read,ev_error]
-
-    Please note that ev_error() is called instead of ev_read() when the
-    stream name is 'stderr'. Indeed, all other stream names use
-    ev_read().
+    available for reading, with the stream name passed as one of its
+    argument.
 
     Configured writers will allow the use of the method write(), eg.
     worker.write(data, 'stream2'), to write to the stream.
@@ -547,27 +563,39 @@ class StreamWorker(Worker):
         # update task msgtree
         self.task._msg_add(self, key, sname, msg)
 
+        ### LEGACY (1.x) ###
         # set stream name
         self.current_sname = sname
 
         # generate event
         if sname == 'stderr':
-            # add last msg to local buffer
             self.current_errmsg = msg
-            if self.eh:
-                self.eh.ev_error(self)
+            if self.eh is not None:
+                # this part is tricky to support backward compatibility...
+                # check for deprecated ev_error (< 1.8)
+                if hasattr(self.eh, 'ev_error'):
+                    self.eh.ev_error(self)
+                else:
+                    # ev_read: ignore old signature (< 1.8)
+                    if len(getfullargspec(self.eh.ev_read)[0]) != 2:
+                        ### FUTURE (2.x) ###
+                        self.eh.ev_read(self, key, sname, msg)
         else:
-            # add last msg to local buffer
             self.current_msg = msg
-            if self.eh:
-                self.eh.ev_read(self)
+            if self.eh is not None:
+                # ev_read: check for old signature first (< 1.8)
+                if len(getfullargspec(self.eh.ev_read)[0]) == 2:
+                    self.eh.ev_read(self)
+                else:
+                    ### FUTURE (2.x) ###
+                    self.eh.ev_read(self, key, sname, msg)
 
     def _on_timeout(self, key):
         """Update on timeout."""
         self.task._timeout_add(self, key)
 
-        # trigger timeout event
-        if self.eh:
+        # trigger timeout event (deprecated in 1.8+)
+        if self.eh and hasattr(self.eh, 'ev_timeout'):
             self.eh.ev_timeout(self)
 
     def abort(self):
@@ -666,11 +694,12 @@ class WorkerSimple(StreamWorker):
         """Called on command start."""
         if not self.started:
             self.started = True
-            if self.eh:
+            if self.eh is not None:
                 self.eh.ev_start(self)
 
-        if self.eh:
-            self.eh.ev_pickup(self)
+        if self.eh is not None:
+            # generate ev_pickup
+            _eh_sigspec_invoke_compat(self.eh.ev_pickup, 2, self, key)
 
     def _on_close(self, key, rc=None):
         """Called to generate events when the Worker is closing."""
@@ -681,15 +710,16 @@ class WorkerSimple(StreamWorker):
         if rc is not None:
             self.task._rc_set(self, key, rc)
 
-        if self.eh:
-            self.eh.ev_hup(self)
+        if self.eh is not None:
+            # generate ev_hup
+            _eh_sigspec_invoke_compat(self.eh.ev_hup, 2, self, key, rc)
 
     def _on_written(self, key, bytes_count, sname):
         """Notification of bytes written."""
         # set node and stream name (compat only)
         self.current_sname = sname
 
-        # generate event - for ev_written, also check for new signature (1.7)
-        # NOTE: add DeprecationWarning in 1.8 for old ev_written signature
-        if self.eh and len(inspect.getargspec(self.eh.ev_written)[0]) == 5:
-            self.eh.ev_written(self, key, sname, bytes_count)
+        if self.eh is not None:
+            # generate ev_written
+            _eh_sigspec_invoke_compat(self.eh.ev_written, 5, self, key, sname,
+                                      bytes_count)
