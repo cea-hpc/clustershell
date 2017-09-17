@@ -545,3 +545,15 @@ class TaskEventTest(unittest.TestCase):
         eh.do_asserts_read_write_notimeout()
         self.assertEqual(eh.cnt_written, 1)
         self.assertEqual(eh.bytes_written, len(content))
+
+    def test_ev_timeout_legacy(self):
+        """test ev_timeout legacy event"""
+        task = task_self()
+
+        eh = LegacyTestHandler()
+
+        task.shell("/bin/sleep 1", handler=eh, key="n1", timeout=0.1)
+        task.shell("/bin/sleep 1", handler=eh, key="n2", timeout=0.1)
+
+        # warnings: 2 x pickup + 2 x timeout + 2 x close
+        self.run_task_and_catch_warnings(task, 6)
