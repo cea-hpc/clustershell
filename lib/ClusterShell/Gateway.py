@@ -112,45 +112,37 @@ class WorkerTreeResponder(EventHandler):
             self.gwchan.send(RetcodeMessage(nodes, rc, self.srcwkr))
         self.retcodes.clear()
 
-    def ev_read(self, worker):
-        """message received on stdout"""
+    def ev_read(self, worker, node, sname, msg):
+        """message received"""
+        if sname == worker.SNAME_STDOUT:
+            msg_class = StdOutMessage
+        elif sname == worker.SNAME_STDERR:
+            msg_class = StdErrMessage
+            self.logger.debug("WorkerTreeResponder: ev_error %s %s", node, msg)
+
         if self.timer is None:
-            self.gwchan.send(StdOutMessage(worker.current_node,
-                                           worker.current_msg,
-                                           self.srcwkr))
+            self.gwchan.send(msg_class(node, msg, self.srcwkr))
 
-    def ev_error(self, worker):
-        """message received on stderr"""
-        self.logger.debug("WorkerTreeResponder: ev_error %s %s",
-                          worker.current_node,
-                          worker.current_errmsg)
-        if self.timer is None:
-            self.gwchan.send(StdErrMessage(worker.current_node,
-                                           worker.current_errmsg,
-                                           self.srcwkr))
-
-    def ev_timeout(self, worker):
-        """Received timeout event: some nodes did timeout"""
-        msg = TimeoutMessage(NodeSet._fromlist1(worker.iter_keys_timeout()),
-                             self.srcwkr)
-        self.gwchan.send(msg)
-
-    def ev_hup(self, worker):
+    def ev_hup(self, worker, node, rc):
         """Received end of command from one node"""
         if self.timer is None:
-            self.gwchan.send(RetcodeMessage(worker.current_node,
-                                            worker.current_rc,
-                                            self.srcwkr))
+            self.gwchan.send(RetcodeMessage(node, rc, self.srcwkr))
         else:
             # retcode grooming
-            if worker.current_rc in self.retcodes:
-                self.retcodes[worker.current_rc].add(worker.current_node)
+            if rc in self.retcodes:
+                self.retcodes[rc].add(node)
             else:
-                self.retcodes[worker.current_rc] = NodeSet(worker.current_node)
+                self.retcodes[rc] = NodeSet(node)
 
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         """End of CTL responder"""
-        self.logger.debug("WorkerTreeResponder: ev_close")
+        self.logger.debug("WorkerTreeResponder: ev_close timedout=%s", timedout)
+        if timedout:
+            # some nodes did timeout
+            msg = TimeoutMessage(NodeSet._fromlist1(worker.iter_keys_timeout()),
+                                 self.srcwkr)
+            self.gwchan.send(msg)
+
         if self.timer is not None:
             # finalize grooming
             self.ev_timer(None)
@@ -304,7 +296,7 @@ class GatewayChannel(Channel):
         """acknowledge a received message"""
         self.send(ACKMessage(msg.msgid))
 
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         """Gateway (parent) channel is closing.
 
         We abort the whole gateway task to stop other running workers.

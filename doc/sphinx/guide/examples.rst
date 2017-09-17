@@ -51,13 +51,12 @@ erroneous return codes::
 
     class MyHandler(EventHandler):
 
-       def ev_read(self, worker):
-           print "%s: %s" % (worker.current_node, worker.current_msg)
+       def ev_read(self, worker, node, sname, msg):
+           print "%s: %s" % (node, msg)
 
-       def ev_hup(self, worker):
-           if worker.current_rc != 0:
-               print "%s: returned with error code %s" % (
-                    worker.current_node, worker.current_rc)
+       def ev_hup(self, worker, node, rc):
+           if rc != 0:
+               print "%s: returned with error code %s" % (node, rc)
 
     task = task_self()
 
@@ -116,11 +115,10 @@ is usually packaged with ClusterShell::
             EventHandler.__init__(self)
             self.result = result
 
-        def ev_read(self, worker):
+        def ev_read(self, worker, node, sname, msg):
             """Read event from remote nodes"""
-            node = worker.current_node
             # this is an example to demonstrate remote result parsing
-            bootime = " ".join(worker.current_msg.strip().split()[2:])
+            bootime = " ".join(msg.strip().split()[2:])
             date_boot = None
             for fmt in ("%Y-%m-%d %H:%M",): # formats with year
                 try:
@@ -145,13 +143,11 @@ is usually packaged with ClusterShell::
             else:
                 self.result.nodes_ko.add(node)
 
-        def ev_timeout(self, worker):
-            """Timeout occurred on some nodes"""
-            self.result.nodes_ko.add( \
-                    NodeSet.fromlist(worker.iter_keys_timeout()))
-
-        def ev_close(self, worker):
+        def ev_close(self, worker, timedout):
             """Worker has finished (command done on all nodes)"""
+            if timedout:
+                nodeset = NodeSet.fromlist(worker.iter_keys_timeout())
+                self.result.nodes_ko.add(nodeset)
             self.result.show()
 
     def main():
@@ -159,13 +155,15 @@ is usually packaged with ClusterShell::
         # Initialize option parser
         parser = optparse.OptionParser()
         parser.add_option("-d", "--debug", action="store_true", dest="debug",
-            default=False, help="Enable debug mode")
+                          default=False, help="Enable debug mode")
         parser.add_option("-n", "--nodes", action="store", dest="nodes",
-            default="@all", help="Target nodes (default @all group)")
+                          default="@all", help="Target nodes (default @all group)")
         parser.add_option("-f", "--fanout", action="store", dest="fanout",
-            default="128", help="Fanout window size (default 128)", type=int)
+                          default="128", help="Fanout window size (default 128)",
+                          type=int)
         parser.add_option("-t", "--timeout", action="store", dest="timeout",
-            default="5", help="Timeout in seconds (default 5)", type=float)
+                          default="5", help="Timeout in seconds (default 5)",
+                          type=float)
         options, _ = parser.parse_args()
 
         # Get current task (associated to main thread)
@@ -175,7 +173,6 @@ is usually packaged with ClusterShell::
         if options.debug:
             print "nodeset : %s" % nodes_target
             task.set_info("debug", True)
-
 
         # Create ClusterShell event handler
         handler = CheckNodesHandler(CheckNodesResult())

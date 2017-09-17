@@ -140,29 +140,25 @@ class DirectOutputHandler(OutputHandler):
         OutputHandler.__init__(self)
         self._display = display
 
-    def ev_read(self, worker):
-        node = worker.current_node or worker.key
-        self._display.print_line(node, worker.current_msg)
+    def ev_read(self, worker, node, sname, msg):
+        if sname == worker.SNAME_STDOUT:
+            self._display.print_line(node, msg)
+        elif sname == worker.SNAME_STDERR:
+            self._display.print_line_error(node, msg)
 
-    def ev_error(self, worker):
-        node = worker.current_node or worker.key
-        self._display.print_line_error(node, worker.current_errmsg)
-
-    def ev_hup(self, worker):
-        node = worker.current_node or worker.key
-        rc = worker.current_rc
+    def ev_hup(self, worker, node, rc):
         if rc > 0:
             verb = VERB_QUIET
             if self._display.maxrc:
                 verb = VERB_STD
-            self._display.vprint_err(verb, \
-                "clush: %s: exited with exit code %d" % (node, rc))
+            self._display.vprint_err(verb, "clush: %s: "
+                                     "exited with exit code %d" % (node, rc))
 
-    def ev_timeout(self, worker):
-        self._display.vprint_err(VERB_QUIET, "clush: %s: command timeout" % \
-            NodeSet._fromlist1(worker.iter_keys_timeout()))
-
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
+        if timedout:
+            nodeset = NodeSet._fromlist1(worker.iter_keys_timeout())
+            self._display.vprint_err(VERB_QUIET,
+                                     "clush: %s: command timeout" % nodeset)
         self.update_prompt(worker)
 
 class DirectProgressOutputHandler(DirectOutputHandler):
@@ -172,20 +168,17 @@ class DirectProgressOutputHandler(DirectOutputHandler):
     #       first look overkill, but merging both is slightly impacting ev_read
     #       performance of current DirectOutputHandler.
 
-    def ev_read(self, worker):
+    def ev_read(self, worker, node, sname, msg):
         self._runtimer_clean()
         # it is ~10% faster to avoid calling super here
-        node = worker.current_node or worker.key
-        self._display.print_line(node, worker.current_msg)
+        if sname == worker.SNAME_STDOUT:
+            self._display.print_line(node, msg)
+        elif sname == worker.SNAME_STDERR:
+            self._display.print_line_error(node, msg)
 
-    def ev_error(self, worker):
+    def ev_close(self, worker, timedout):
         self._runtimer_clean()
-        node = worker.current_node or worker.key
-        self._display.print_line_error(node, worker.current_errmsg)
-
-    def ev_close(self, worker):
-        self._runtimer_clean()
-        DirectOutputHandler.ev_close(self, worker)
+        DirectOutputHandler.ev_close(self, worker, timedout)
 
 class CopyOutputHandler(DirectProgressOutputHandler):
     """Copy output event handler."""
@@ -193,7 +186,7 @@ class CopyOutputHandler(DirectProgressOutputHandler):
         DirectOutputHandler.__init__(self, display)
         self.reverse = reverse
 
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         """A copy worker has finished."""
         for rc, nodes in worker.iter_retcodes():
             if rc == 0:
@@ -209,7 +202,8 @@ class CopyOutputHandler(DirectProgressOutputHandler):
         worker.task.set_default("USER_copies", copies)
         if copies == 0:
             self._runtimer_finalize(worker)
-            self.update_prompt(worker)
+            # handle timeout
+            DirectOutputHandler.ev_close(self, worker, timedout)
 
 class GatherOutputHandler(OutputHandler):
     """Gathered output event handler class (clush -b)."""
@@ -218,18 +212,16 @@ class GatherOutputHandler(OutputHandler):
         OutputHandler.__init__(self)
         self._display = display
 
-    def ev_read(self, worker):
-        if self._display.verbosity == VERB_VERB:
-            node = worker.current_node or worker.key
-            self._display.print_line(node, worker.current_msg)
+    def ev_read(self, worker, node, sname, msg):
+        if sname == worker.SNAME_STDOUT:
+            if self._display.verbosity == VERB_VERB:
+                self._display.print_line(node, worker.current_msg)
+        elif sname == worker.SNAME_STDERR:
+            self._runtimer_clean()
+            self._display.print_line_error(node, msg)
+            self._runtimer_set_dirty()
 
-    def ev_error(self, worker):
-        self._runtimer_clean()
-        self._display.print_line_error(worker.current_node,
-                                       worker.current_errmsg)
-        self._runtimer_set_dirty()
-
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         # Worker is closing -- it's time to gather results...
         self._runtimer_finalize(worker)
         # Display command output, try to order buffers by rc
@@ -277,7 +269,7 @@ class GatherOutputHandler(OutputHandler):
 class SortedOutputHandler(GatherOutputHandler):
     """Sorted by node output event handler class (clush -L)."""
 
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         # Overrides GatherOutputHandler.ev_close()
         self._runtimer_finalize(worker)
 
@@ -308,21 +300,23 @@ class LiveGatherOutputHandler(GatherOutputHandler):
         self._mtreeq = []
         self._offload = 0
 
-    def ev_read(self, worker):
+    def ev_read(self, worker, node, sname, msg):
+        if sname != worker.SNAME_STDOUT:
+            GatherOutputHandler.ev_read(self, worker, node, sname, msg)
+            return
         # Read new line from node
-        node = worker.current_node
         self._nodecnt[node] += 1
         cnt = self._nodecnt[node]
         if len(self._mtreeq) < cnt:
             self._mtreeq.append(MsgTree())
-        self._mtreeq[cnt - self._offload - 1].add(node, worker.current_msg)
+        self._mtreeq[cnt - self._offload - 1].add(node, msg)
         self._live_line(worker)
 
-    def ev_hup(self, worker):
-        if self._mtreeq and worker.current_node not in self._mtreeq[0]:
+    def ev_hup(self, worker, node, rc):
+        if self._mtreeq and node not in self._mtreeq[0]:
             # forget a node that doesn't answer to continue live line
             # gathering anyway
-            self._nodes.remove(worker.current_node)
+            self._nodes.remove(node)
             self._live_line(worker)
 
     def _live_line(self, worker):
@@ -337,7 +331,7 @@ class LiveGatherOutputHandler(GatherOutputHandler):
                 self._display.print_gather(nodeset, buf)
             self._runtimer_set_dirty()
 
-    def ev_close(self, worker):
+    def ev_close(self, worker, timedout):
         # Worker is closing -- it's time to gather results...
         self._runtimer_finalize(worker)
 
