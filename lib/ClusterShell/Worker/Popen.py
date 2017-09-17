@@ -34,6 +34,11 @@ Usage example:
 
 """
 
+try:
+    from inspect import getfullargspec  # py3
+except ImportError:
+    from inspect import getargspec as getfullargspec  # py2
+
 from ClusterShell.Worker.Worker import WorkerSimple, StreamClient
 
 
@@ -88,8 +93,14 @@ class PopenClient(StreamClient):
             self.rc = 128 + -prc
             self.worker._on_close(self.key, self.rc)
 
-        if self.worker.eh:
-            self.worker.eh.ev_close(self.worker)
+        if self.worker.eh is not None:
+            ### LEGACY (1.x) ###
+            # ev_close: check for old signature first (< 1.8)
+            if len(getfullargspec(self.worker.eh.ev_close)[0]) == 2:
+                self.worker.eh.ev_close(self.worker)
+            else:
+                ### FUTURE (2.x) ###
+                self.worker.eh.ev_close(self.worker, timeout)
 
 
 class WorkerPopen(WorkerSimple):
