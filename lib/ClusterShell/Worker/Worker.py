@@ -626,6 +626,9 @@ class StreamWorker(Worker):
 
         # trigger timeout event (depreacated in 1.8+)
         if self.eh and hasattr(self.eh, 'ev_timeout'):
+            warnings.warn("%s: ev_timeout() is deprecated: use argument "
+                          "did_timeout of ev_close instead."
+                          % self.eh.__class__.__name__, DeprecationWarning)
             self.eh.ev_timeout(self)
 
     def abort(self):
