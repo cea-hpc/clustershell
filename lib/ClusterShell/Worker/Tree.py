@@ -54,21 +54,11 @@ class MetaWorkerEventHandler(EventHandler):
         self.metaworker._start_count += 1
         self.metaworker._check_ini()
 
-    def ev_read(self, worker):
+    def ev_read(self, worker, node, sname, msg):
         """
         Called to indicate that a worker has data to read.
         """
-        self.metaworker._on_node_msgline(worker.current_node,
-                                         worker.current_msg,
-                                         'stdout')
-
-    def ev_error(self, worker):
-        """
-        Called to indicate that a worker has error to read (on stderr).
-        """
-        self.metaworker._on_node_msgline(worker.current_node,
-                                         worker.current_errmsg,
-                                         'stderr')
+        self.metaworker._on_node_msgline(node, msg, sname)
 
     def ev_written(self, worker, node, sname, size):
         """
@@ -80,31 +70,27 @@ class MetaWorkerEventHandler(EventHandler):
         if metaworker.eh:
             metaworker.eh.ev_written(metaworker, node, sname, size)
 
-    def ev_hup(self, worker):
+    def ev_hup(self, worker, node, rc):
         """
         Called to indicate that a worker's connection has been closed.
         """
-        self.metaworker._on_node_close(worker.current_node, worker.current_rc)
+        self.metaworker._on_node_close(node, rc)
 
-    def ev_timeout(self, worker):
+    def ev_close(self, worker, did_timeout):
         """
-        Called to indicate that a worker has timed out (worker timeout only).
+        Called to indicate that a worker has just finished. It may have failed
+        on timeout if did_timeout is set.
         """
-        # WARNING!!! this is not possible as metaworking is changing task's
-        # shared timeout set!
-        #for node in worker.iter_keys_timeout():
-        #    self.metaworker._on_node_timeout(node)
-        # we use NodeSet to copy set
-        self.logger.debug("MetaWorkerEventHandler: ev_timeout")
-        for node in NodeSet._fromlist1(worker.iter_keys_timeout()):
-            self.metaworker._on_node_timeout(node)
-
-    def ev_close(self, worker):
-        """
-        Called to indicate that a worker has just finished (it may already
-        have failed on timeout).
-        """
-        self.logger.debug("MetaWorkerEventHandler: ev_close")
+        self.logger.debug("MetaWorkerEventHandler: ev_close, did_timeout=%s",
+                          did_timeout)
+        if did_timeout:
+            # WARNING!!! this is not possible as metaworker is changing task's
+            # shared timeout set!
+            #for node in worker.iter_keys_timeout():
+            #    self.metaworker._on_node_timeout(node)
+            # we use NodeSet to copy set
+            for node in NodeSet._fromlist1(worker.iter_keys_timeout()):
+                self.metaworker._on_node_timeout(node)
         self.metaworker._check_fini()
         #self._completed += 1
         #if self._completed >= self.grpcount:
@@ -471,7 +457,7 @@ class WorkerTree(DistantWorker):
             if handler:
                 if self._has_timeout and hasattr(handler, 'ev_timeout'):
                     handler.ev_timeout(self)
-                handler.ev_close(self)
+                handler.ev_close(self, self._has_timeout)
 
         # check completion of targets per gateway
         if gateway:
