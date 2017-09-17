@@ -380,11 +380,11 @@ class PropagationChannel(Channel):
             assert False
         """
 
-    def ev_hup(self, worker):
+    def ev_hup(self, worker, node, rc):
         """Channel command is closing"""
-        self._rc = worker.current_rc
+        self._rc = rc
 
-    def ev_close(self, worker):
+    def ev_close(self, worker, did_timeout):
         """Channel is closing"""
         # do not use worker buffer or rc accessors here as we doesn't use
         # common stream names
