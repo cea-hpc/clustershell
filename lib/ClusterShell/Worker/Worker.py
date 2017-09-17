@@ -31,6 +31,7 @@ except ImportError:
 
 import warnings
 
+from ClusterShell.Event import _warn_signature
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Engine.Engine import FANOUT_UNLIMITED, FANOUT_DEFAULT
@@ -138,6 +139,7 @@ class Worker(object):
         if self.eh is not None:
             # ev_pickup: check for old signature first (< 1.8)
             if len(getfullargspec(self.eh.ev_pickup)[0]) == 2:
+                _warn_signature(self.eh, 'ev_pickup')
                 self.eh.ev_pickup(self)
             else:
                 self.eh.ev_pickup(self, key)
@@ -160,6 +162,7 @@ class Worker(object):
         if self.eh is not None:
             # ev_hup: check for old signature first (< 1.8)
             if len(getfullargspec(self.eh.ev_hup)[0]) == 2:
+                _warn_signature(self.eh, 'ev_hup')
                 self.eh.ev_hup(self)
             else:
                 self.eh.ev_hup(self, key, rc)
@@ -178,6 +181,7 @@ class Worker(object):
         # ev_written: check for old signature first (< 1.7)
         if self.eh is not None:
             if len(getfullargspec(self.eh.ev_written)[0]) == 2:
+                _warn_signature(self.eh, 'ev_written')
                 self.eh.ev_written(self)
             else:
                 self.eh.ev_written(self, key, sname, bytes_count)
@@ -276,6 +280,7 @@ class DistantWorker(Worker):
                 if self.eh is not None:
                     # ev_read: check for old signature first (< 1.8)
                     if len(getfullargspec(self.eh.ev_read)[0]) == 2:
+                        _warn_signature(self.eh, 'ev_read')
                         self.eh.ev_read(self)
                     else:
                         self.eh.ev_read(self, node, sname, msg)
@@ -457,6 +462,7 @@ class StreamClient(EngineClient):
             ### LEGACY (1.x) ###
             # ev_close: check for old signature first (< 1.8)
             if len(getfullargspec(self.worker.eh.ev_close)[0]) == 2:
+                _warn_signature(self.worker.eh, 'ev_close')
                 self.worker.eh.ev_close(self.worker)
             else:
                 self.worker.eh.ev_close(self.worker, timeout)
@@ -609,6 +615,7 @@ class StreamWorker(Worker):
             if self.eh is not None:
                 # ev_read: check for old signature first (< 1.8)
                 if len(getfullargspec(self.eh.ev_read)[0]) == 2:
+                    _warn_signature(self.eh, 'ev_read')
                     self.eh.ev_read(self)
                 else:
                     self.eh.ev_read(self, key, sname, msg)
@@ -727,6 +734,7 @@ class WorkerSimple(StreamWorker):
         if self.eh is not None:
             # ev_pickup: check for old signature first (< 1.8)
             if len(getfullargspec(self.eh.ev_pickup)[0]) == 2:
+                _warn_signature(self.eh, 'ev_pickup')
                 self.eh.ev_pickup(self)
             else:
                 self.eh.ev_pickup(self, key)
@@ -743,6 +751,7 @@ class WorkerSimple(StreamWorker):
         if self.eh is not None:
             # ev_hup: check for old signature first (< 1.8)
             if len(getfullargspec(self.eh.ev_hup)[0]) == 2:
+                _warn_signature(self.eh, 'ev_hup')
                 self.eh.ev_hup(self)
             else:
                 self.eh.ev_hup(self, key, rc)
@@ -755,6 +764,7 @@ class WorkerSimple(StreamWorker):
         # generate event - ev_written: check for old signature first (< 1.7)
         if self.eh is not None:
             if len(getfullargspec(self.eh.ev_written)[0]) == 2:
+                _warn_signature(self.eh, 'ev_written')
                 self.eh.ev_written(self)
             else:
                 self.eh.ev_written(self, key, sname, bytes_count)

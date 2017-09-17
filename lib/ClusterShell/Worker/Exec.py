@@ -37,6 +37,7 @@ except ImportError:
 import os
 from string import Template
 
+from ClusterShell.Event import _warn_signature
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.Worker import WorkerError, DistantWorker
@@ -388,6 +389,7 @@ class ExecWorker(DistantWorker):
             ### LEGACY (1.x) ###
             # ev_close: check for old signature first (< 1.8)
             if len(getfullargspec(self.eh.ev_close)[0]) == 2:
+                _warn_signature(self.eh, 'ev_close')
                 self.eh.ev_close(self)
             else:
                 self.eh.ev_close(self, self._has_timeout)
