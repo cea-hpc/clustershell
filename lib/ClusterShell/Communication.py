@@ -215,13 +215,13 @@ class Channel(EventHandler):
         self.worker = worker
         self.start()
 
-    def ev_read(self, worker):
+    def ev_read(self, worker, node, sname, msg):
         """channel has data to read"""
-        raw = worker.current_msg
+        # TODO: better handling of sname == self.SNAME_ERROR?
         try:
-            self._parser.feed(raw + b'\n')
+            self._parser.feed(msg + b'\n')
         except SAXParseException as ex:
-            self.logger.error("SAXParseException: %s: %s", ex.getMessage(), raw)
+            self.logger.error("SAXParseException: %s: %s", ex.getMessage(), msg)
             # Warning: do not send malformed raw message back
             if self.error_response:
                 self.send(ErrorMessage('Parse error: %s' % ex.getMessage()))
