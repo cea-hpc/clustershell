@@ -469,7 +469,7 @@ class WorkerTree(DistantWorker):
         if self._close_count >= self._target_count:
             handler = self.eh
             if handler:
-                if self._has_timeout:
+                if self._has_timeout and hasattr(handler, 'ev_timeout'):
                     handler.ev_timeout(self)
                 handler.ev_close(self)
 
