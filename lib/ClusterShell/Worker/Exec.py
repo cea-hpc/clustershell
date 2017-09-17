@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2014-2015 CEA/DAM
 # Copyright (C) 2014-2015 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2014-2015 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2014-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -29,12 +29,18 @@ commands or copy files, locally.
 This is the base class for most of other distant workers.
 """
 
+try:
+    from inspect import getfullargspec  # py3
+except ImportError:
+    from inspect import getargspec as getfullargspec  # py2
+
 import os
 from string import Template
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.EngineClient import EngineClient
 from ClusterShell.Worker.Worker import WorkerError, DistantWorker
+from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 
 
 def _replace_cmd(pattern, node, rank):
@@ -373,9 +379,12 @@ class ExecWorker(DistantWorker):
         """
         self._close_count += 1
         assert self._close_count <= len(self._clients)
-        if self._close_count == len(self._clients) and self.eh:
-            if self._has_timeout:
+        if self._close_count == len(self._clients) and self.eh is not None:
+            if self._has_timeout and hasattr(self.eh, 'ev_timeout'):
+                # Legacy ev_timeout event
                 self.eh.ev_timeout(self)
-            self.eh.ev_close(self)
+            _eh_sigspec_invoke_compat(self.eh.ev_close, 2, self,
+                                      self._has_timeout)
+
 
 WORKER_CLASS = ExecWorker

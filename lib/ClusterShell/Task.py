@@ -162,14 +162,13 @@ class Task(object):
         >>> task.run("check_network.sh", nodes="tiger[1-20]", timeout=30)
 
     You can then either use Task's iter_keys_timeout() method after execution
-    to see on what nodes the command has timed out, or listen for ev_timeout()
-    events in your event handler.
+    to see on what nodes the command has timed out, or listen for ev_close()
+    events in your event handler and check the timedout boolean.
 
     To get command result, you can either use Task's iter_buffers() method for
     standard output, iter_errors() for standard error after command execution
     (common output contents are automatically gathered), or you can listen for
-    ev_read() and ev_error() events in your event handler and get live command
-    output.
+    ev_read() events in your event handler and get live command output.
 
     To get command return codes, you can either use Task's iter_retcodes(),
     node_retcode() and max_retcode() methods after command execution, or
@@ -822,9 +821,9 @@ class Task(object):
 
         When used with a command, you can set a maximum delay of individual
         command execution with the help of the timeout parameter (see
-        Task.shell's parameters). You can then listen for ev_timeout() events
-        in your Worker event handlers, or use num_timeout() or
-        iter_keys_timeout() afterwards.
+        Task.shell's parameters). You can then listen for ev_close() events
+        and check the timedout boolean in your Worker event handlers, or use
+        num_timeout() or iter_keys_timeout() afterwards.
         But, when used as an alias to Task.resume(), the timeout parameter
         sets an hard limit of task execution time. In that case, a TimeoutError
         exception is raised if this delay is reached.
