@@ -39,6 +39,7 @@ try:
 except ImportError:
     from inspect import getargspec as getfullargspec  # py2
 
+from ClusterShell.Event import _warn_signature
 from ClusterShell.Worker.Worker import WorkerSimple, StreamClient
 
 
@@ -100,6 +101,7 @@ class PopenClient(StreamClient):
             ### LEGACY (1.x) ###
             # ev_close: check for old signature first (< 1.8)
             if len(getfullargspec(self.worker.eh.ev_close)[0]) == 2:
+                _warn_signature(self.worker.eh, 'ev_close')
                 self.worker.eh.ev_close(self.worker)
             else:
                 self.worker.eh.ev_close(self.worker, timeout)
