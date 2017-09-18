@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2566e7f1_ac591e91",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-18T08:43:33Z",
+      "side": 1,
+      "message": "i think you mean 3 x l here ?\n nodeset -s chassis -lll",
+      "range": {
+        "startLine": 19,
+        "startChar": 25,
+        "endLine": 19,
+        "endChar": 28
+      },
+      "revId": "7a63b0d902754f393bf65e2b827d76a15ed4f1cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
