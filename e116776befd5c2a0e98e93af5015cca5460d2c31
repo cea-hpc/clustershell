@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4890983a_62dc71bb",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-18T08:05:13Z",
+      "side": 0,
+      "message": "This comment was not so useless. Keep \"(new in 1.6)\" ?",
+      "revId": "e116776befd5c2a0e98e93af5015cca5460d2c31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
