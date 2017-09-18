@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b570403_cd79592d",
+        "filename": "tests/TaskDistantMixin.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 744,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-18T07:51:14Z",
+      "side": 1,
+      "message": "avoid one letter variable. \"wns\" ? \"wngs\" ?",
+      "range": {
+        "startLine": 744,
+        "startChar": 61,
+        "endLine": 744,
+        "endChar": 62
+      },
+      "revId": "e116776befd5c2a0e98e93af5015cca5460d2c31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
