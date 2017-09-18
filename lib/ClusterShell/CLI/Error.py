@@ -82,7 +82,7 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
     except (TypeError, WorkerError) as exc:
         print("%s: %s" % (prog, exc), file=sys.stderr)
     except IOError:
-        # ignore broken pipe
+        # ignore - can be broken pipe or permission denied
         pass
     except KeyboardInterrupt as exc:
         return 128 + signal.SIGINT
