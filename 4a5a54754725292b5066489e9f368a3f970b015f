@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "84ffa020_0d8701ca",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-19T07:48:03Z",
+      "side": 1,
+      "message": "why adding this global test here? eh is also tested below and this will slightly change code behaviour without reason (current_node and current_msg won\u0027t be assigned if eh is None, but on close or on writtend it will, by example)",
+      "revId": "4a5a54754725292b5066489e9f368a3f970b015f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
