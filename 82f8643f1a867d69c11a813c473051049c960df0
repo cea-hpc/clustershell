@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "51be6d3e_0c52ec5f",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "434dd85f_68111bb8",
+      "revId": "82f8643f1a867d69c11a813c473051049c960df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b3d6914f_6d4ec679",
         "filename": "lib/ClusterShell/Worker/Exec.py",
         "patchSetId": 12
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-18T08:05:13Z",
       "side": 1,
       "message": "merge these 2 lines with the \u0027else\u0027 clause below",
+      "revId": "82f8643f1a867d69c11a813c473051049c960df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d088b2da_dd00ae91",
+        "filename": "lib/ClusterShell/Worker/Exec.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3d6914f_6d4ec679",
       "revId": "82f8643f1a867d69c11a813c473051049c960df0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "a0f69f6a_99c63d8f",
+        "filename": "lib/ClusterShell/Worker/Popen.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7086868_8431aa15",
+      "revId": "82f8643f1a867d69c11a813c473051049c960df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a7d8282b_469b67b1",
         "filename": "lib/ClusterShell/Worker/Worker.py",
         "patchSetId": 12
@@ -64,6 +118,24 @@
       "writtenOn": "2017-09-18T08:05:13Z",
       "side": 1,
       "message": "idem",
+      "revId": "82f8643f1a867d69c11a813c473051049c960df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35f1634f_77fcb1f4",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7d8282b_469b67b1",
       "revId": "82f8643f1a867d69c11a813c473051049c960df0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
