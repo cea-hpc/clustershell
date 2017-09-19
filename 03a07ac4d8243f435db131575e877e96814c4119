@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6a61e451_d99f4019",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T05:03:05Z",
+      "side": 1,
+      "message": "I\u0027ll try to remember :D",
+      "parentUuid": "399361fe_33b77924",
+      "revId": "03a07ac4d8243f435db131575e877e96814c4119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b06bf6c5_9220f613",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "77c2a6a2_8fcd4a08",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T05:03:05Z",
+      "side": 1,
+      "message": "I remember a small performance issue, but if it was only 10% it may not be worth it. I\u0027ll check later",
+      "parentUuid": "b06bf6c5_9220f613",
+      "revId": "03a07ac4d8243f435db131575e877e96814c4119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a812d019_f765ecd4",
         "filename": "lib/ClusterShell/Gateway.py",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2017-09-18T08:27:12Z",
       "side": 1,
       "message": "a pity we hardcoded this in GW protocol :(\nDid not had added StreamWorker at that time... One day, we should drop this too",
+      "revId": "03a07ac4d8243f435db131575e877e96814c4119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "990d892d_8be1f3fc",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-19T05:03:05Z",
+      "side": 1,
+      "message": "That could be changed I guess, something like StdMessage(sname) maybe. But currently, StdOutMessage.ident \u003d \u0027OUT\u0027 and StdErrMessage \u003d \u0027SER\u0027 which is not the same names as the default std streams... so a mapping would be needed. Blargh.",
+      "parentUuid": "a812d019_f765ecd4",
       "revId": "03a07ac4d8243f435db131575e877e96814c4119",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
