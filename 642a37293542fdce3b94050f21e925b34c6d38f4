@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66f20118_343e2b97",
+        "filename": "tests/TaskEventTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-19T07:44:50Z",
+      "side": 1,
+      "message": "I would have let the old one as LegacyTestHandler, and simply named the new one: TestHandler.\n\nAt some point, the old one will simply be removed.",
+      "range": {
+        "startLine": 106,
+        "startChar": 6,
+        "endLine": 106,
+        "endChar": 10
+      },
+      "revId": "642a37293542fdce3b94050f21e925b34c6d38f4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
