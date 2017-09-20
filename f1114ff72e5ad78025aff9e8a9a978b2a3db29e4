@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7a40f45_8395c78a",
+        "filename": "lib/ClusterShell/Worker/Exec.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-20T15:25:32Z",
+      "side": 1,
+      "message": "whole try/except useless",
+      "revId": "f1114ff72e5ad78025aff9e8a9a978b2a3db29e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "243b4cb4_47522673",
+        "filename": "lib/ClusterShell/Worker/Popen.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-20T15:25:32Z",
+      "side": 1,
+      "message": "whole try/except is useless (I almost missed it :))",
+      "revId": "f1114ff72e5ad78025aff9e8a9a978b2a3db29e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
