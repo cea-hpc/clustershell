@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4e9a954e_71b0148a",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-20T13:33:23Z",
+      "side": 1,
+      "message": "no, you have to specify the old spec somehow, see my comment for bad signature detection.\n\nFor example, I want an exception raised if the user makes a mistake and use a bad signature like:\n\n  ev_hup(self, worker, node):",
+      "parentUuid": "e84905ba_6de8c6b9",
+      "range": {
+        "startLine": 39,
+        "startChar": 38,
+        "endLine": 39,
+        "endChar": 49
+      },
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a93c57d6_ad83490d",
         "filename": "lib/ClusterShell/Worker/Worker.py",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2017-09-20T09:11:56Z",
       "side": 1,
       "message": "spaces (pep8?)",
+      "range": {
+        "startLine": 50,
+        "startChar": 41,
+        "endLine": 50,
+        "endChar": 43
+      },
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88d3999b_e02d6268",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-20T13:33:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a93c57d6_ad83490d",
       "range": {
         "startLine": 50,
         "startChar": 41,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "238990fc_311633c8",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-20T13:33:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74ad93e9_77a94a1c",
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4a94081e_ee10775f",
         "filename": "lib/ClusterShell/Worker/Worker.py",
         "patchSetId": 14
@@ -76,6 +142,24 @@
       "writtenOn": "2017-09-20T09:11:56Z",
       "side": 1,
       "message": "straighforward, no?",
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40eac14d_b17894e3",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-20T13:33:23Z",
+      "side": 1,
+      "message": "true :)",
+      "parentUuid": "4a94081e_ee10775f",
       "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
