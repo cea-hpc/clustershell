@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e84905ba_6de8c6b9",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-20T09:11:56Z",
+      "side": 1,
+      "message": "why specify this? We could just use *args[0:argc_actual - 1]",
+      "range": {
+        "startLine": 39,
+        "startChar": 38,
+        "endLine": 39,
+        "endChar": 49
+      },
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a93c57d6_ad83490d",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-20T09:11:56Z",
+      "side": 1,
+      "message": "spaces (pep8?)",
+      "range": {
+        "startLine": 50,
+        "startChar": 41,
+        "endLine": 50,
+        "endChar": 43
+      },
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74ad93e9_77a94a1c",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-20T09:11:56Z",
+      "side": 1,
+      "message": "use else. Easier to understand",
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a94081e_ee10775f",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-20T09:11:56Z",
+      "side": 1,
+      "message": "straighforward, no?",
+      "revId": "41ece6e7920db3ba2c52f4882da72b135d291f7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
