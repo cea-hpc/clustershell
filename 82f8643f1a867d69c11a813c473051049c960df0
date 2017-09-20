@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "8f4b87b9_03b744a6",
+        "filename": "lib/ClusterShell/Event.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-20T13:33:23Z",
+      "side": 1,
+      "message": "yeah, but I have a hard time rebasing this, it is fixed in a next patch though",
+      "parentUuid": "15521d85_c122b255",
+      "revId": "82f8643f1a867d69c11a813c473051049c960df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b3d6914f_6d4ec679",
         "filename": "lib/ClusterShell/Worker/Exec.py",
         "patchSetId": 12
