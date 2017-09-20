@@ -33,6 +33,24 @@
       "revId": "f1114ff72e5ad78025aff9e8a9a978b2a3db29e4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a407ea07_793037df",
+        "filename": "lib/ClusterShell/Worker/Popen.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-20T17:28:01Z",
+      "side": 1,
+      "message": "ohh!! good catch!! thx",
+      "parentUuid": "243b4cb4_47522673",
+      "revId": "f1114ff72e5ad78025aff9e8a9a978b2a3db29e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
