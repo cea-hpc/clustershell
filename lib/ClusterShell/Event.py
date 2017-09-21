@@ -51,6 +51,8 @@ class EventHandler(object):
             in ClusterShell 1.8, please update your :class:`.EventHandler`
             derived classes and add the node argument.
 
+        *New in version 1.7.*
+
         :param worker: :class:`.Worker` derived object
         :param node: node (or key)
         """
@@ -80,7 +82,7 @@ class EventHandler(object):
         nodes, the amount of data to write and the block size used by the
         worker.
 
-        New in 1.6.
+        *New in version 1.7.*
 
         :param worker: :class:`.Worker` derived object
         :param node: node (or) key
