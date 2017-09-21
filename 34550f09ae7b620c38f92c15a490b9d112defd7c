@@ -16,6 +16,24 @@
       "revId": "34550f09ae7b620c38f92c15a490b9d112defd7c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd9ff873_1fb39856",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-21T19:13:37Z",
+      "side": 1,
+      "message": "Yep! thanks again for the idea.",
+      "parentUuid": "0a624390_962f4137",
+      "revId": "34550f09ae7b620c38f92c15a490b9d112defd7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
