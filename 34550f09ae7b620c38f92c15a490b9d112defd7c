@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a624390_962f4137",
+        "filename": "lib/ClusterShell/Worker/Worker.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003528
+      },
+      "writtenOn": "2017-09-21T14:10:57Z",
+      "side": 1,
+      "message": "\"\"\"This leverages the fact that the new functions expect the same parameters as the old ones, at the same positions but followed by extra parameters.\"\"\"\n\nOtherwise, for total flexibility you would need something like what I described before with s2\u003d{a,b}, s4\u003d{b,c,d}",
+      "revId": "34550f09ae7b620c38f92c15a490b9d112defd7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
