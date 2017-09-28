@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c618579c_b647967e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-28T22:28:56Z",
+      "side": 1,
+      "message": "what if I use -lll -e -S\u0027\\t\u0027 ?",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "717ecb5c_33358fac",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-28T22:28:56Z",
+      "side": 1,
+      "message": "this is not so legacy. Is it?\n\nThis is still a fully supported and recommanded command, no?",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8513a3f_b61a02bb",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-28T22:28:56Z",
+      "side": 1,
+      "message": "mhhh. that\u0027s looks strange. There should be more mutualisation here.\n\nWhat if I use : nodeset -lll -f ?",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "608431c7_09d67e5c",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-09-28T22:28:56Z",
+      "side": 1,
+      "message": "too much detail for a --help output. This belongs to man page. Keep it short :)\n\nIf too much details are required here that means the feature is too complex :)",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
