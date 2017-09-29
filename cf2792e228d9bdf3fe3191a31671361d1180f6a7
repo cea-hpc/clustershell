@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e96653f8_c10f6ae5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-29T05:54:05Z",
+      "side": 1,
+      "message": "-ll or -lll has only an effect if used  like before, without a display command -e/-c/-f,  does that sound good to you?",
+      "parentUuid": "c618579c_b647967e",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "717ecb5c_33358fac",
         "filename": "lib/ClusterShell/CLI/Nodeset.py",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2017-09-28T22:28:56Z",
       "side": 1,
       "message": "this is not so legacy. Is it?\n\nThis is still a fully supported and recommanded command, no?",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "717523f6_bceedae2",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-29T05:54:05Z",
+      "side": 1,
+      "message": "good point, -l is NOT being superseded, bad wording, fixed",
+      "parentUuid": "717ecb5c_33358fac",
       "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "a08e0735_d123dbd4",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-29T05:54:05Z",
+      "side": 1,
+      "message": "Not sure what looks strange. It is not really mergeable with anything else, as the notion of groupset is new here. But maybe I missed someting.\n\nre: nodeset -lll -f, what about:\n-ll and -lll has no effect if used as -f, as -f overrides the display behavior",
+      "parentUuid": "d8513a3f_b61a02bb",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "608431c7_09d67e5c",
         "filename": "lib/ClusterShell/CLI/OptionParser.py",
         "patchSetId": 4
@@ -64,6 +118,24 @@
       "writtenOn": "2017-09-28T22:28:56Z",
       "side": 1,
       "message": "too much detail for a --help output. This belongs to man page. Keep it short :)\n\nIf too much details are required here that means the feature is too complex :)",
+      "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2542587_32a8bb14",
+        "filename": "lib/ClusterShell/CLI/OptionParser.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-09-29T05:54:05Z",
+      "side": 1,
+      "message": "Good point, thx! Done",
+      "parentUuid": "608431c7_09d67e5c",
       "revId": "cf2792e228d9bdf3fe3191a31671361d1180f6a7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
