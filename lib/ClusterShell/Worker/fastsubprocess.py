@@ -242,7 +242,14 @@ class Popen(object):
         if stdout is None:
             pass
         elif stdout == PIPE:
-            c2pread, c2pwrite = os.pipe()
+            try:
+                c2pread, c2pwrite = os.pipe()
+            except:
+                # Cleanup of previous pipe() descriptors
+                if stdin == PIPE:
+                    os.close(p2cread)
+                    os.close(p2cwrite)
+                raise
         elif isinstance(stdout, int):
             c2pwrite = stdout
         else:
@@ -252,7 +259,17 @@ class Popen(object):
         if stderr is None:
             pass
         elif stderr == PIPE:
-            errread, errwrite = os.pipe()
+            try:
+                errread, errwrite = os.pipe()
+            except:
+                # Cleanup of previous pipe() descriptors
+                if stdin == PIPE:
+                    os.close(p2cread)
+                    os.close(p2cwrite)
+                if stdout == PIPE:
+                    os.close(c2pread)
+                    os.close(c2pwrite)
+                raise
         elif stderr == STDOUT:
             errwrite = c2pwrite
         elif isinstance(stderr, int):

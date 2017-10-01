@@ -54,7 +54,9 @@ def make_temp_filename(suffix=''):
     """Return a temporary name for a file."""
     if len(suffix) > 0 and suffix[0] != '-':
         suffix = '-' + suffix
-    return (tempfile.mkstemp(suffix, prefix='cs-test-'))[1]
+    fd, name = tempfile.mkstemp(suffix, prefix='cs-test-')
+    os.close(fd)  # don't leak open fd
+    return name
 
 def make_temp_file(text, suffix='', dir=None):
     """Create a temporary file with the provided text."""
@@ -101,37 +103,44 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     sys.stdout = out = TBytesIO()
     sys.stderr = err = TBytesIO()
 
-    sys.argv = args
     try:
+        sys.argv = args
         try:
-            main()
-        except SystemExit as exc:
-            rc = int(str(exc))
-    finally:
-        sys.stdout = saved_stdout
-        sys.stderr = saved_stderr
-        sys.stdin = saved_stdin
+            try:
+                main()
+            except SystemExit as exc:
+                rc = int(str(exc))
+        finally:
+            sys.stdout = saved_stdout
+            sys.stderr = saved_stderr
+            sys.stdin = saved_stdin
 
-    if expected_stdout is not None:
-        # expected_stdout might be a compiled regexp or a string
-        try:
-            if not expected_stdout.search(out.getvalue()):
-                # search failed; use assertEqual() to display expected/output
-                test.assertEqual(out.getvalue(), expected_stdout.pattern)
-        except AttributeError:
-            # not a regexp
-            test.assertEqual(out.getvalue(), expected_stdout)
-    out.close()
-    if expected_stderr is not None:
-        # expected_stderr might be a compiled regexp or a string
-        try:
-            if not expected_stderr.match(err.getvalue()):
-                # match failed; use assertEqual() to display expected/output
-                test.assertEqual(err.getvalue(), expected_stderr.pattern)
-        except AttributeError:
-            # check the end as stderr messages are often prefixed with argv[0]
-            test.assertTrue(err.getvalue().endswith(expected_stderr),
-                            err.getvalue() + b' != ' + expected_stderr)
-    if expected_rc is not None:
-        test.assertEqual(rc, expected_rc, "rc=%d err=%s" % (rc, err.getvalue()))
-    err.close()
+        if expected_stdout is not None:
+            # expected_stdout might be a compiled regexp or a string
+            try:
+                if not expected_stdout.search(out.getvalue()):
+                    # search failed; use assertEqual() to display
+                    # expected/output
+                    test.assertEqual(out.getvalue(), expected_stdout.pattern)
+            except AttributeError:
+                # not a regexp
+                test.assertEqual(out.getvalue(), expected_stdout)
+
+        if expected_stderr is not None:
+            # expected_stderr might be a compiled regexp or a string
+            try:
+                if not expected_stderr.match(err.getvalue()):
+                    # match failed; use assertEqual() to display expected/output
+                    test.assertEqual(err.getvalue(), expected_stderr.pattern)
+            except AttributeError:
+                # check the end as stderr messages are often prefixed with
+                # argv[0]
+                test.assertTrue(err.getvalue().endswith(expected_stderr),
+                                err.getvalue() + b' != ' + expected_stderr)
+
+        if expected_rc is not None:
+            test.assertEqual(rc, expected_rc,
+                             "rc=%d err=%s" % (rc, err.getvalue()))
+    finally:
+        out.close()
+        err.close()
