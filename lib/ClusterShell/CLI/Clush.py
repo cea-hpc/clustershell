@@ -33,7 +33,6 @@ When no command are specified, clush runs interactively.
 
 from __future__ import print_function
 
-import errno
 import logging
 import os
 from os.path import abspath, dirname, exists, isdir, join
@@ -775,12 +774,6 @@ def clush_excepthook(extype, exp, traceback):
         else:
             print("Keyboard interrupt.", file=sys.stderr)
         clush_exit(128 + signal.SIGINT)
-    except OSError as exp:
-        print("ERROR: %s" % exp, file=sys.stderr)
-        if exp.errno == errno.EMFILE:
-            print("ERROR: current `nofile' limits: soft=%d hard=%d"
-                  % resource.getrlimit(resource.RLIMIT_NOFILE), file=sys.stderr)
-        clush_exit(1)
     except GENERIC_ERRORS as exc:
         clush_exit(handle_generic_error(exc))
 
