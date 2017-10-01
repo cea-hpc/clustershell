@@ -571,6 +571,7 @@ class CLINodesetGroupResolverTest1(CLINodesetTestBase):
 
     def tearDown(self):
         set_std_group_resolver(None)
+        self.f = None  # used to release temp file
 
     def test_022_list(self):
         """test nodeset --list"""
@@ -621,6 +622,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
 
     def tearDown(self):
         set_std_group_resolver(None)
+        self.f = None  # used to release temp file
 
     def test_024_groups(self):
         self._nodeset_t(["--split=2", "-r", "unknown2", "unknown3"], None, b"unknown2\nunknown3\n")
@@ -725,6 +727,7 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
 
     def tearDown(self):
         set_std_group_resolver(None)
+        self.f = None  # used to release temp file
 
     def test_040_list_all(self):
         """test nodeset --list-all (w/ missing list upcall)"""
