@@ -23,7 +23,10 @@ CLI error handling helper functions
 
 from __future__ import print_function
 
+import errno
+import logging
 import os.path
+from resource import getrlimit, RLIMIT_NOFILE
 import signal
 import sys
 
@@ -51,8 +54,11 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   TopologyError,
                   TypeError,
                   IOError,
+                  OSError,
                   KeyboardInterrupt,
                   WorkerError)
+
+LOGGER = logging.getLogger(__name__)
 
 def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
     """handle error given `excobj' generic script exception"""
@@ -81,9 +87,16 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print("%s: TREE MODE: %s" % (prog, exc), file=sys.stderr)
     except (TypeError, WorkerError) as exc:
         print("%s: %s" % (prog, exc), file=sys.stderr)
-    except IOError:
-        # ignore broken pipe
-        pass
+    except (IOError, OSError) as exc:  # see PEP 3151
+        if exc.errno == errno.EPIPE:
+            # be quiet on broken pipe
+            LOGGER.debug(exc)
+        else:
+            print("ERROR: %s" % exc, file=sys.stderr)
+            if exc.errno == errno.EMFILE:
+                print("ERROR: maximum number of open file descriptors: "
+                      "soft=%d hard=%d" % getrlimit(RLIMIT_NOFILE),
+                      file=sys.stderr)
     except KeyboardInterrupt as exc:
         return 128 + signal.SIGINT
     except:

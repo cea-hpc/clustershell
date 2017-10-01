@@ -9,6 +9,7 @@ import os
 from os.path import basename
 import pwd
 import re
+import resource
 import signal
 import sys
 import tempfile
@@ -38,9 +39,14 @@ class CLIClushTest_A(unittest.TestCase):
         s = "\x1b[94m%s: \x1b[0mok\n" % HOSTNAME
         self.output_ok_color = s.encode()
 
+        self.soft, self.hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+
     def tearDown(self):
         """cleanup all tasks"""
         task_cleanup()
+
+        # we played with fd_max: restore original nofile resource limits
+        resource.setrlimit(resource.RLIMIT_NOFILE, (self.soft, self.hard))
 
     def _clush_t(self, args, stdin, expected_stdout, expected_rc=0,
                  expected_stderr=None):
@@ -546,6 +552,13 @@ class CLIClushTest_A(unittest.TestCase):
         """test clush (nostdin)"""
         self._clush_t(["-n", "-w", HOSTNAME, "cat"], b"dummy", b"")
         self._clush_t(["--nostdin", "-w", HOSTNAME, "cat"], b"dummy", b"")
+
+    def test_038_rlimits(self):
+        """test clush error with low fd_max"""
+        self.assertRaises(OSError, self._clush_t,
+                          ["-N", "-R", "exec", "-w", 'foo[1-1000]', "-b",
+                           "-f", "1000", "-O", "fd_max=100", "echo ok"],
+                          None, b"ok\n")
 
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
