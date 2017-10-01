@@ -814,6 +814,13 @@ def main():
     #
     config = ClushConfig(options)
 
+    # Initialize logging
+    if config.verbosity >= VERB_DEBUG:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug("clush: STARTING DEBUG")
+    else:
+        logging.basicConfig(level=logging.CRITICAL)
+
     # Should we use ANSI colors for nodes?
     if config.color == "auto":
         color = sys.stdout.isatty() and (options.gatherall or \
@@ -965,13 +972,7 @@ def main():
     display.vprint(VERB_DEBUG, "Create STDIN worker: %s" % \
                                task.default("USER_stdin_worker"))
 
-    if config.verbosity >= VERB_DEBUG:
-        task.set_info("debug", True)
-        logging.basicConfig(level=logging.DEBUG)
-        logging.debug("clush: STARTING DEBUG")
-    else:
-        logging.basicConfig(level=logging.CRITICAL)
-
+    task.set_info("debug", config.verbosity >= VERB_DEBUG)
     task.set_info("fanout", config.fanout)
 
     if options.worker:
