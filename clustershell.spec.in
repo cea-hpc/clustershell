@@ -1,6 +1,6 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python2_sitelib: %global python2_sitelib %{python_sitelib}}
-%{!?__python: %global __python2 python}
+%{!?__python: %global __python python}
 %{!?__python2: %global __python2 %{__python}}
 
 %if 0%{?fedora} >= 22
@@ -23,30 +23,35 @@
 
 %global srcname ClusterShell
 
-Name:          clustershell
-Version:       %{version}
-Release:       5%{?dist}
-Summary:       Python framework for efficient cluster administration
+Name:           clustershell
+Version:        %{version}
+Release:        1%{?dist}
+Summary:        Python framework for efficient cluster administration
 
 %if 0%{?suse_version}
-License:       LGPL-2.1
+License:        LGPL-2.1
 %else
-License:       LGPLv2+
+License:        LGPLv2+
 %endif
-URL:           http://cea-hpc.github.io/clustershell/
-Source0:       https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
-BuildArch:     noarch
-Requires:      python2-%{name} = %{version}-%{release}
+%if 0%{?suse_version}
+Group:          Productivity/Clustering/Computing
+%else if 0%{?rhel}
+Group:          System Environment/Base
+%endif
+URL:            http://cea-hpc.github.io/clustershell/
+Source0:        https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
+BuildArch:      noarch
+Requires:       python2-%{name} = %{version}-%{release}
 %if 0%{?rhel} >= 7 || 0%{?fedora}
-Requires:      vim-filesystem
+Requires:       vim-filesystem
 %else if 0%{?suse_version}
-BuildRequires: vim
-Requires:      vim
+Requires:       vim
+BuildRequires:  vim
 %else
-Requires:      vim-common
+Requires:       vim-common
 %endif
-Provides:      vim-clustershell = %{version}-%{release}
-Obsoletes:     vim-clustershell < 1.7.81-4
+Provides:       vim-clustershell = %{version}-%{release}
+Obsoletes:      vim-clustershell < 1.7.81-4
 
 %description
 ClusterShell is a set of tools and a Python library to execute commands
@@ -59,14 +64,14 @@ offered by the library.
 
 
 %package -n python2-%{name}
-Summary:       ClusterShell module for Python 2
-BuildRequires: %{python2_pkgprefix}-devel
-BuildRequires: %{python2_pkgprefix}-setuptools
-Requires:      %{python2_pkgprefix}-setuptools
+Summary:        ClusterShell module for Python 2
+BuildRequires:  %{python2_pkgprefix}-devel
+BuildRequires:  %{python2_pkgprefix}-setuptools
+Requires:       %{python2_pkgprefix}-setuptools
 %if 0%{?suse_version}
-Requires:      %{python2_pkgprefix}-PyYAML
+Requires:       %{python2_pkgprefix}-PyYAML
 %else
-Requires:      PyYAML
+Requires:       PyYAML
 %endif
 %{?python_provide:%python_provide python2-%{name}}
 
@@ -75,11 +80,11 @@ ClusterShell Python 2 module and related command line tools.
 
 
 %package -n %{python3_pkgprefix}-%{name}
-Summary:       ClusterShell module for Python 3
-BuildRequires: %{python3_pkgprefix}-devel
-BuildRequires: %{python3_pkgprefix}-setuptools
-Requires:      %{python3_pkgprefix}-setuptools
-Requires:      %{python3_pkgprefix}-PyYAML
+Summary:        ClusterShell module for Python 3
+BuildRequires:  %{python3_pkgprefix}-devel
+BuildRequires:  %{python3_pkgprefix}-setuptools
+Requires:       %{python3_pkgprefix}-PyYAML
+Requires:       %{python3_pkgprefix}-setuptools
 %{?python_provide:%python_provide %{python3_pkgprefix}-%{srcname}}
 
 %description -n %{python3_pkgprefix}-%{name}
@@ -165,7 +170,7 @@ rm -rf %{buildroot}
 %{python3_sitelib}/ClusterShell/
 %{python3_sitelib}/ClusterShell-*-py?.?.egg-info
 
-%files -n %{name}
+%files
 %if 0%{?rhel}
 %defattr(-,root,root,-)
 %endif
