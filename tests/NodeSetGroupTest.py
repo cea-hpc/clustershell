@@ -1594,3 +1594,36 @@ three: trois
 
         resolver = GroupResolverConfig(f.name)
         self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+
+    def test_yaml_permission_denied(self):
+        """test groups when not allowed to read some YAML config file"""
+        dname = make_temp_dir()
+        try:
+            f = make_temp_file(dedent("""
+                [Main]
+                default: yaml1
+                autodir: %s
+                """ % dname).encode('ascii'))
+
+            yamlfile1 = make_temp_file(b'yaml1: {foo: "example[1-4]"}',
+                                       suffix=".yaml", dir=dname)
+            yamlfile2 = make_temp_file(b'yaml2: {bar: "example[5-8]"}',
+                                       suffix=".yaml", dir=dname)
+
+            # do not allow read access to yamlfile2
+            os.chmod(yamlfile2.name, 0)
+            self.assertFalse(os.access(yamlfile2.name, os.R_OK))
+
+            res = GroupResolverConfig(f.name)
+
+            # using yaml1 should work
+            nodeset = NodeSet("@foo", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-4]")
+
+            # using yaml2 won't, of course
+            self.assertRaises(GroupResolverSourceError, NodeSet, "@yaml2:bar",
+                              resolver=res)
+        finally:
+            yamlfile1.close()
+            yamlfile2.close()
+            shutil.rmtree(dname, ignore_errors=True)
