@@ -35,6 +35,7 @@ except ImportError:
     # Python 2 compat
     from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 
+import errno
 from functools import wraps
 import glob
 import logging
@@ -44,6 +45,9 @@ import time
 
 from string import Template
 from subprocess import Popen, PIPE
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class GroupSourceError(Exception):
@@ -589,7 +593,14 @@ class GroupResolverConfig(GroupResolver):
                                                    " a directory" % autodir)
                 # add auto sources declared in groups.d YAML files
                 for autosfn in sorted(glob.glob('%s/*.yaml' % autodir)):
-                    self._sources_from_yaml(autosfn)
+                    try:
+                        self._sources_from_yaml(autosfn)
+                    except IOError as exc:  # same as OSError in Python 3
+                        # in Python 3 only, we could just catch PermissionError
+                        if exc.errno in (errno.EACCES, errno.EPERM):
+                            # ignore YAML files that we don't have access to
+                            LOGGER.debug(exc)
+                            continue
         except (NoSectionError, NoOptionError):
             pass
 
