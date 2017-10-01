@@ -547,6 +547,32 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-n", "-w", HOSTNAME, "cat"], b"dummy", b"")
         self._clush_t(["--nostdin", "-w", HOSTNAME, "cat"], b"dummy", b"")
 
+    def test_038_rlimits(self):
+        """test clush error with low fd_max"""
+        # These tests also cover pipe() fd cleanup handling code in
+        # fastsubprocess' Popen._gethandles(). All file descriptors should
+        # be properly cleaned.
+        #
+        # Each fork creates 3 FDs remaining in the parent process. We have
+        # two tests here with a different fd_max each time in order to raise
+        # the exception during stdout and stderr pipe creation.
+        # Depending on the current available FDs during the test, the two
+        # tests below might be reversed.
+        #
+        # test for error when creating stdout pipes:
+        #   99 used OK + 1 (stdin)
+        self.assertRaises(OSError, self._clush_t,
+                          ["-N", "-R", "exec", "-w", 'foo[1-1000]', "-b",
+                           "-f", "1000", "-O", "fd_max=100", "echo ok"],
+                          None, b"ok\n")
+        #
+        # test for error when creating stderr pipes:
+        #   99 OK + 1 (stdin) + 1 (stdout)
+        self.assertRaises(OSError, self._clush_t,
+                          ["-N", "-R", "exec", "-w", 'foo[1-1000]', "-b",
+                           "-f", "1000", "-O", "fd_max=101", "echo ok"],
+                          None, b"ok\n")
+
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
