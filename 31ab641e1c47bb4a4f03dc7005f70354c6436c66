@@ -2,6 +2,80 @@
   "comments": [
     {
       "key": {
+        "uuid": "6c5c45b8_6deaf119",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-01T21:50:24Z",
+      "side": 1,
+      "message": "this paragraph should be put before \"This change fixes...\" as it explains why you are doing this",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95d65404_72b42347",
+        "filename": "lib/ClusterShell/Worker/fastsubprocess.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-01T21:50:24Z",
+      "side": 1,
+      "message": "as this code is taken from standard library, does this mean python itself is leaking FDs when facing exception with these os.pipe()?\nCould we exhaust FDs looping on Popen instance creation with standard python?",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9894e67b_3e2ba235",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-01T21:50:24Z",
+      "side": 1,
+      "message": "I do not understand why we need these 2 different tests",
+      "range": {
+        "startLine": 561,
+        "startChar": 48,
+        "endLine": 561,
+        "endChar": 58
+      },
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a993c11d_e1b95a98",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-01T21:50:24Z",
+      "side": 1,
+      "message": "idealy we should stop using temp file everywhere in test.\nHere, we just need to populate GroupResolver with a static configuration (shown below), in memory, just needed for this TestSuite. Something similar to StaticGroupSource in NodeSetGroupTest.py",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2fe0aff4_f3cf9c90",
         "filename": "tests/TLib.py",
         "patchSetId": 1
