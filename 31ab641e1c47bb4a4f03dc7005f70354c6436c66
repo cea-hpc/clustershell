@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fe0aff4_f3cf9c90",
+        "filename": "tests/TLib.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-01T21:32:18Z",
+      "side": 1,
+      "message": "we can now use try/except/finally in the same try since we drop support for 2.4 and 2.5",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
