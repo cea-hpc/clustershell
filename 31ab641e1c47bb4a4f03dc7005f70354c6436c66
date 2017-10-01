@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4bdb4c69_585bec2b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-01T23:16:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c5c45b8_6deaf119",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "95d65404_72b42347",
         "filename": "lib/ClusterShell/Worker/fastsubprocess.py",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2017-10-01T21:50:24Z",
       "side": 1,
       "message": "as this code is taken from standard library, does this mean python itself is leaking FDs when facing exception with these os.pipe()?\nCould we exhaust FDs looping on Popen instance creation with standard python?",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab2d5382_c333ce9d",
+        "filename": "lib/ClusterShell/Worker/fastsubprocess.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-01T23:16:02Z",
+      "side": 1,
+      "message": "Good point. Your comment made me think about it a little bit more...\n\nAnd it seems that the standard library is affected by this issue too. I have to admit this is a bit tricky, but still, it looks like a bug to me. It only happens if an OSError, like \"OSError: [Errno 24] Too many open files\", is raised when stdout or stderr pipes are initialized (like here, in fastsubprocess). It will leak the pipes previously created. Python GC is not helpful there as these are true file descriptors (integers), and cannot be garbage collected. Usually it\u0027s not a big deal as the application just quits... but for our tests, it is a bit annoying, especially when we want to test the errors :)\n\nI created a reproducer available at https://gist.github.com/thiell/c245c2ef48812f3d1d62263de82ad626\n\nYou will easily see that pipes are leaking, unless the exception is raised at stdin pipe creation, that is why you may need to adjust the nofile soft limit (the 101 thing in my example).\n\nLast thing, I checked the code of subprocess.py, and it has slightly evolved in 2.7. The code overall hasn\u0027t changed much, but we should probably do an update in 1.9 because the pipes are set with a FD_CLOEXEC flag, which we currently don\u0027t have. This is not related to the current problem though because I can reproduce the issue with my reproducer in python 2.7.",
+      "parentUuid": "95d65404_72b42347",
       "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "2d023088_c365f599",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-01T23:16:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9894e67b_3e2ba235",
+      "range": {
+        "startLine": 561,
+        "startChar": 48,
+        "endLine": 561,
+        "endChar": 58
+      },
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a993c11d_e1b95a98",
         "filename": "tests/CLINodesetTest.py",
         "patchSetId": 1
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "91ca3f69_84cdc987",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-01T23:16:02Z",
+      "side": 1,
+      "message": "It\u0027s good to exercise the whole parser though, but I agree, it is not needed everywhere!",
+      "parentUuid": "a993c11d_e1b95a98",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2fe0aff4_f3cf9c90",
         "filename": "tests/TLib.py",
         "patchSetId": 1
@@ -87,6 +165,24 @@
       "writtenOn": "2017-10-01T21:32:18Z",
       "side": 1,
       "message": "we can now use try/except/finally in the same try since we drop support for 2.4 and 2.5",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6f5f323_94c587e4",
+        "filename": "tests/TLib.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-01T23:16:02Z",
+      "side": 1,
+      "message": "Done, but I think I still need two try clauses. A first one for the execution, then restore sys.stdstuffs, then check for errors (raising exceptions), to finally close the TBytesIO().",
+      "parentUuid": "2fe0aff4_f3cf9c90",
       "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
