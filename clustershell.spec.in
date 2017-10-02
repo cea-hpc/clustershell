@@ -200,6 +200,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Mon Oct  2 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.82-1
+- update to 1.7.82 (1.8 beta2)
+
 * Sun Sep  3 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.81-4
 - move vim extensions into the clustershell package
 - use Requires: vim-filesystem instead of vim-common

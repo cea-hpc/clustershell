@@ -1,3 +1,14 @@
+2017-10-02 S. Thiell <sthiell@stanford.edu>
+
+	* 1.8 beta2 (1.7.82) release.
+
+	* CLI: make color output legible on dark backgrounds (#334)
+	* Event API 2.0: new ev_* method signatures (#232)
+	* CLI/Clush.py: initialize logging earlier (#348)
+	* NodeUtils: ignore YAML group files with permission error (#348)
+	* CLI/Clush.py: fix mishandled broken pipe in Python 3
+	* CLI/Nodeset: display warning on misplaced set operation (#318)
+
 2017-09-01 S. Thiell <sthiell@stanford.edu>
 
 	* 1.8 beta1 (1.7.81) release.
