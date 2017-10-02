@@ -16,6 +16,24 @@
       "revId": "341101c07a315248757064f1cbccc55860fabe9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acd668ec_12276d9f",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1629,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-02T20:53:45Z",
+      "side": 1,
+      "message": "+1, it would be even better if make_temp_dir could be garbage collected so we don\u0027t have to worry, like make_temp_file here, but I\u0027m not sure it is easily doable. I\u0027ll clean that later, thx!",
+      "parentUuid": "b70697eb_c662f47e",
+      "revId": "341101c07a315248757064f1cbccc55860fabe9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
