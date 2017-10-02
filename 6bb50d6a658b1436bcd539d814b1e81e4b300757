@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d5bfec1d_38f10d81",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-02T17:07:54Z",
+      "side": 1,
+      "message": "in the future, we should have a more generic way to handle print() and verbosity. logger on console?",
+      "range": {
+        "startLine": 232,
+        "startChar": 40,
+        "endLine": 232,
+        "endChar": 61
+      },
+      "revId": "6bb50d6a658b1436bcd539d814b1e81e4b300757",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
