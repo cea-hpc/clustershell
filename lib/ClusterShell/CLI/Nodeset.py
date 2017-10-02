@@ -228,6 +228,10 @@ def nodeset():
         # No need to specify '-' to read stdin in these cases
         process_stdin(xset.update, xset.__class__, autostep)
 
+    if not xset and (options.and_nodes or options.sub_nodes or
+                     options.xor_nodes) and not options.quiet:
+        print('WARNING: empty left operand for set operation', file=sys.stderr)
+
     # Apply first operations (before first non-option)
     for nodes in options.and_nodes:
         if nodes == '-':

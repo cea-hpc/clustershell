@@ -222,7 +222,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--fold", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], "foo[395-442]\n", b"bar[3,24],foo[1-200,245-442]\n")
         # using stdin for -X
         self._nodeset_t(["-f", "foo[2-4]", "-X", "-"], "foo4 foo5 foo6\n", b"foo[2-3,5-6]\n")
-        self._nodeset_t(["-f", "-X", "-", "foo[1-6]"], "foo4 foo5 foo6\n", b"foo[1-6]\n")
+        self._nodeset_t(["-f", "-X", "-", "foo[1-6]"], "foo4 foo5 foo6\n",
+                        b"foo[1-6]\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
 
     def test_011_fold_exclude(self):
         """test nodeset --fold --exclude"""
@@ -240,8 +242,10 @@ class CLINodesetTest(CLINodesetTestBase):
     def test_012_fold_exclude_stdin(self):
         """test nodeset --fold --exclude (stdin)"""
         # Empty result
-        self._nodeset_t(["--fold", "-x", "foo"], "", b"\n")
-        self._nodeset_t(["--fold", "-x", "foo"], "\n", b"\n")
+        self._nodeset_t(["--fold", "-x", "foo"], "", b"\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
+        self._nodeset_t(["--fold", "-x", "foo"], "\n", b"\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
         self._nodeset_t(["--fold", "-x", "foo"], "foo\n", b"\n")
         # With no range
         self._nodeset_t(["--fold", "-x", "foo"], "foo,bar\n", b"bar\n")
@@ -253,7 +257,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--fold", "--exclude", "foo[5-10,15]"], "foo[0-10]\nfoo[13-18]\n", b"foo[0-4,13-14,16-18]\n")
         # using stdin for -x
         self._nodeset_t(["-f", "foo[1-6]", "-x", "-"], "foo4 foo5 foo6\n", b"foo[1-3]\n")
-        self._nodeset_t(["-f", "-x", "-", "foo[1-6]"], "foo4 foo5 foo6\n", b"foo[1-6]\n")
+        self._nodeset_t(["-f", "-x", "-", "foo[1-6]"], "foo4 foo5 foo6\n",
+                        b"foo[1-6]\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
 
     def test_013_fold_intersection(self):
         """test nodeset --fold --intersection"""
@@ -270,12 +276,16 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--fold", "node123[1-2]", "-i", "node1232"], None, b"node1232\n")
         self._nodeset_t(["--fold", "node023[1-2]0", "-i", "node02320"], None, b"node02320\n")
         self._nodeset_t(["--fold", "node023[1-2]0-ipmi2", "-i", "node02320-ipmi2"], None, b"node02320-ipmi2\n")
+        self._nodeset_t(["--fold", "-i", "foo", "foo"], None, b"foo\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
 
     def test_014_fold_intersection_stdin(self):
         """test nodeset --fold --intersection (stdin)"""
         # Empty result
-        self._nodeset_t(["--fold", "--intersection", "foo"], "", b"\n")
-        self._nodeset_t(["--fold", "--intersection", "foo"], "\n", b"\n")
+        self._nodeset_t(["--fold", "--intersection", "foo"], "", b"\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
+        self._nodeset_t(["--fold", "--intersection", "foo"], "\n", b"\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
         self._nodeset_t(["--fold", "-i", "foo"], "foo\n", b"foo\n")
         # With no range
         self._nodeset_t(["--fold", "-i", "foo"], "foo,bar\n", b"foo\n")
@@ -287,7 +297,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--fold", "-i", "foo[5-10,15]"], "foo[0-10]\nfoo[13-18]\n", b"foo[5-10,15]\n")
         # using stdin for -i
         self._nodeset_t(["-f", "foo[1-6]", "-i", "-"], "foo4 foo5 foo6\n", b"foo[4-6]\n")
-        self._nodeset_t(["-f", "-i", "-", "foo[1-6]"], "foo4 foo5 foo6\n", b"foo[1-6]\n")
+        self._nodeset_t(["-f", "-i", "-", "foo[1-6]"], "foo4 foo5 foo6\n",
+                        b"foo[1-6]\n", 0,
+                        b"WARNING: empty left operand for set operation\n")
         # numerical bracket folding (#228)
         self._nodeset_t(["--fold", "-i", "node123[1-2]"], "node1232\n", b"node1232\n")
         self._nodeset_t(["--fold", "-i", "node023[1-2]0"], "node02320\n", b"node02320\n")
