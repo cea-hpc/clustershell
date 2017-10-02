@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "bc3e6525_2e43a6cc",
+        "filename": "lib/ClusterShell/Worker/fastsubprocess.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-02T09:36:55Z",
+      "side": 1,
+      "message": "Do you want to open you first ticket in Python and even have your first patch in it? :)\n\nupdating fastsubprocess is a long standing idea I have.\nSince we dropped  2.4 and 2.5 it makes even more sense.\n\nIdealy I would like we modify it as less as possible. It makes this easier to maintain and follow updated and in a future we could imagine having a simple overload or monkey patching of this module instead of a full recopy.",
+      "parentUuid": "ab2d5382_c333ce9d",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9894e67b_3e2ba235",
         "filename": "tests/CLIClushTest.py",
         "patchSetId": 1
