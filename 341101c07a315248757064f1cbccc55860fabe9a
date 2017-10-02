@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b70697eb_c662f47e",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1629,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-02T20:49:29Z",
+      "side": 1,
+      "message": "i\u0027m not fan of blind recursive removals. for your information, for a future patch, if you add \"delete\u003dtrue\" to make_temp_file(), file are deleted as soon as they are closed. So you can safely use \n\n  os.rmdir(dname)\n\nGood to avoid test bug where dname is, by error, \"$HOME\" ^^",
+      "revId": "341101c07a315248757064f1cbccc55860fabe9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
