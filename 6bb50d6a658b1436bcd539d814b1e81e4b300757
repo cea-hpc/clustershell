@@ -22,6 +22,30 @@
       "revId": "6bb50d6a658b1436bcd539d814b1e81e4b300757",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06b5d0b0_1efcfa8f",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-02T18:28:50Z",
+      "side": 1,
+      "message": "logger seems good. I just noticed that there is an open ticket (#71) for that. Well, lately I have been adding a few LOGGER\u0027s module instances, that\u0027s usually what other libraries do. Progressively we should switch using logging especially for warnings yes... Let\u0027s work on that in 1.9",
+      "parentUuid": "d5bfec1d_38f10d81",
+      "range": {
+        "startLine": 232,
+        "startChar": 40,
+        "endLine": 232,
+        "endChar": 61
+      },
+      "revId": "6bb50d6a658b1436bcd539d814b1e81e4b300757",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
