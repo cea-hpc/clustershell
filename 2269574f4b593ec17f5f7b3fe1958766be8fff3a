@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f1690b0e_430a4746",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-02T08:50:23Z",
+      "side": 1,
+      "message": "Could you add an explanation for the \"100\" value\n\nlike : \n # Each fork creates 3 FDs (stdin, stdout, stderr)\n # Test for error when creating stdout pipes: 99 OK + 1 (stdin)",
+      "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9ef23dd_049218b5",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-02T08:50:23Z",
+      "side": 1,
+      "message": "# Test for error when creating stderr pipes: 99 OK + 1 (stdin) + 1 (stdout)",
+      "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "661bc845_208e365a",
+        "filename": "tests/TLib.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-02T08:50:23Z",
+      "side": 1,
+      "message": "this last check could be kept outside of try clause to keep try scope smaller",
+      "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
