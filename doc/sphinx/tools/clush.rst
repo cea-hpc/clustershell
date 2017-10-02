@@ -16,9 +16,9 @@ Some features of *clush* command line tool are:
 
 * two modes of parallel cluster commands execution:
 
-  + **:ref:`flat mode <clush-flat>`**: sliding window of local or remote (eg.
+  + :ref:`flat mode <clush-flat>`: sliding window of local or remote (eg.
     *ssh(1)*) commands
-  + **:ref:`tree mode <clush-tree>`**: commands propagated to the targets
+  + :ref:`tree mode <clush-tree>`: commands propagated to the targets
     through a tree of pre-configured gateways; gateways are then using a
     sliding window of local or *ssh(1)* commands to reach the targets (if the
     target count per gateway is greater than the
@@ -128,7 +128,7 @@ Flat execution mode
 ^^^^^^^^^^^^^^^^^^^
 
 The default execution mode is to launch commands (local or remote) in parallel,
-up to a certain limit fixed by the **:ref:`fanout <clush-fanout>`** value,
+up to a certain limit fixed by the :ref:`fanout <clush-fanout>` value,
 which is the number of child processes allowed to run at a time. This "sliding
 window" of active commands is a common technique used on large clusters to
 conserve resources on the initiating host, while allowing some commands to
