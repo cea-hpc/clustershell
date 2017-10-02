@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c2611f93_170f5c12",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-02T14:51:12Z",
+      "side": 1,
+      "message": "Done. It\u0027s a bit complicated ...\n\nNote: for whatever reason, I cannot raise OSError at the stdin pipe creation level. A possible explanation is: because FDs are free\u0027d after a fork (6 FDs are created but only 3 remain in the parent process), there is always 2 FDs available when calling _get_handles() next time, so the pipe() here never fails. The strange thing is that even if I allocate one or two FDs before, I\u0027m not able to raise any exception from there...",
+      "parentUuid": "f1690b0e_430a4746",
+      "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f9ef23dd_049218b5",
         "filename": "tests/CLIClushTest.py",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "f83c66e7_472ac47f",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-02T14:51:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f9ef23dd_049218b5",
+      "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "661bc845_208e365a",
         "filename": "tests/TLib.py",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2017-10-02T08:50:23Z",
       "side": 1,
       "message": "this last check could be kept outside of try clause to keep try scope smaller",
+      "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc94e277_eaccefb1",
+        "filename": "tests/TLib.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-02T14:51:12Z",
+      "side": 1,
+      "message": "no, because we\u0027re still using err for err.getvalue() in case of assert failure",
+      "parentUuid": "661bc845_208e365a",
       "revId": "2269574f4b593ec17f5f7b3fe1958766be8fff3a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
