@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "e0232f20_7684f508",
+        "filename": "lib/ClusterShell/Worker/fastsubprocess.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-02T14:51:12Z",
+      "side": 1,
+      "message": "I think I will :) I need to find some time though, my day is filled with meetings... :/\n\nI wonder if there is a C version of it though. Maybe not actually...\n\nAgreed re: the overload or hack if possible (monkey patching !! hehe) :-)",
+      "parentUuid": "bc3e6525_2e43a6cc",
+      "revId": "31ab641e1c47bb4a4f03dc7005f70354c6436c66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9894e67b_3e2ba235",
         "filename": "tests/CLIClushTest.py",
         "patchSetId": 1
