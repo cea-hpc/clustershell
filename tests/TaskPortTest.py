@@ -3,8 +3,6 @@
 
 """Unit test for ClusterShell inter-Task msg"""
 
-import pickle
-import sys
 import threading
 import time
 import unittest

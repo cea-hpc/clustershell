@@ -6,7 +6,6 @@ Unit test for ClusterShell task's join feature in multithreaded
 environments
 """
 
-import sys
 import time
 import unittest
 

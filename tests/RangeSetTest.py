@@ -4,9 +4,7 @@
 """Unit test for RangeSet"""
 
 import binascii
-import copy
 import pickle
-import sys
 import unittest
 
 from ClusterShell.RangeSet import RangeSet, RangeSetParseError

@@ -4,8 +4,6 @@
 """Unit test for ClusterShell Task (resource limits)"""
 
 import resource
-import subprocess
-import sys
 import unittest
 
 from TLib import HOSTNAME

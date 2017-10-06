@@ -3,15 +3,12 @@
 
 """Unit test for ClusterShell Task (distant)"""
 
-import copy
 import pwd
 import shutil
-import sys
 import warnings
 
 from TLib import HOSTNAME, make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
-from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.EngineClient import *

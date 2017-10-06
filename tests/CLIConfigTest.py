@@ -6,7 +6,6 @@
 import resource
 import os.path
 import shutil
-import sys
 import tempfile
 from textwrap import dedent
 import unittest

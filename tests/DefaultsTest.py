@@ -4,7 +4,6 @@
 """Unit test for ClusterShell.Defaults"""
 
 from textwrap import dedent
-import sys
 import unittest
 
 from TLib import make_temp_file

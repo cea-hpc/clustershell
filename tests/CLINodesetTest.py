@@ -11,7 +11,7 @@ from TLib import *
 from ClusterShell.CLI.Nodeset import main
 
 from ClusterShell.NodeUtils import GroupResolverConfig
-from ClusterShell.NodeSet import std_group_resolver, set_std_group_resolver
+from ClusterShell.NodeSet import set_std_group_resolver
 
 
 class CLINodesetTestBase(unittest.TestCase):

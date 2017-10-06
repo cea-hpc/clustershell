@@ -2,8 +2,7 @@
 Unit test for NodeSet with Group support
 """
 
-import copy
-import shutil
+import os
 import sys
 from textwrap import dedent
 import unittest
@@ -749,7 +748,7 @@ class NodeSetGroupTest(unittest.TestCase):
         finally:
             f2.close()
             f.close()
-            shutil.rmtree(dname, ignore_errors=True)
+            os.rmdir(dname)
 
     def testConfigGroupsMultipleDirs(self):
         """test groups with multiple confdir defined"""
@@ -797,8 +796,8 @@ class NodeSetGroupTest(unittest.TestCase):
             fs2.close()
             fs1.close()
             f.close()
-            shutil.rmtree(dname2, ignore_errors=True)
-            shutil.rmtree(dname1, ignore_errors=True)
+            os.rmdir(dname2)
+            os.rmdir(dname1)
 
     def testConfigGroupsDirDupConfig(self):
         """test groups with duplicate in groupsdir"""
@@ -836,7 +835,7 @@ class NodeSetGroupTest(unittest.TestCase):
             f3.close()
             f2.close()
             f.close()
-            shutil.rmtree(dname, ignore_errors=True)
+            os.rmdir(dname)
 
     def testConfigGroupsDirExistsNoOther(self):
         """test groups with groupsdir defined (real, no other)"""
@@ -864,8 +863,8 @@ class NodeSetGroupTest(unittest.TestCase):
         finally:
             f2.close()
             f.close()
-            shutil.rmtree(dname1, ignore_errors=True)
-            shutil.rmtree(dname2, ignore_errors=True)
+            os.rmdir(dname1)
+            os.rmdir(dname2)
 
     def testConfigGroupsDirNotADirectory(self):
         """test groups with groupsdir defined (not a directory)"""
@@ -883,7 +882,7 @@ class NodeSetGroupTest(unittest.TestCase):
         finally:
             fdummy.close()
             f.close()
-            shutil.rmtree(dname, ignore_errors=True)
+            os.rmdir(dname)
 
     def testConfigIllegalChars(self):
         """test groups with illegal characters"""
@@ -1453,48 +1452,52 @@ class GroupResolverYAMLTest(unittest.TestCase):
                 foo: example[1-4,91-100],example90
                 bar: example[5-89]
             """).encode('ascii'), suffix=".yaml", dir=dname)
+        try:
+            res = GroupResolverConfig(f.name)
 
-        res = GroupResolverConfig(f.name)
+            # Group resolution
+            nodeset = NodeSet("@foo", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-4,90-100]")
+            nodeset = NodeSet("@bar", resolver=res)
+            self.assertEqual(str(nodeset), "example[5-89]")
+            nodeset = NodeSet("@foo,@bar", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-100]")
+            nodeset = NodeSet("@unknown", resolver=res)
+            self.assertEqual(len(nodeset), 0)
 
-        # Group resolution
-        nodeset = NodeSet("@foo", resolver=res)
-        self.assertEqual(str(nodeset), "example[1-4,90-100]")
-        nodeset = NodeSet("@bar", resolver=res)
-        self.assertEqual(str(nodeset), "example[5-89]")
-        nodeset = NodeSet("@foo,@bar", resolver=res)
-        self.assertEqual(str(nodeset), "example[1-100]")
-        nodeset = NodeSet("@unknown", resolver=res)
-        self.assertEqual(len(nodeset), 0)
+            # Regroup
+            nodeset = NodeSet("example[1-4,90-100]", resolver=res)
+            self.assertEqual(str(nodeset), "example[1-4,90-100]")
+            self.assertEqual(nodeset.regroup(), "@foo")
+            self.assertEqual(list(nodeset.groups().keys()), ["@foo"])
+            self.assertEqual(str(NodeSet("@foo", resolver=res)),
+                             "example[1-4,90-100]")
 
-        # Regroup
-        nodeset = NodeSet("example[1-4,90-100]", resolver=res)
-        self.assertEqual(str(nodeset), "example[1-4,90-100]")
-        self.assertEqual(nodeset.regroup(), "@foo")
-        self.assertEqual(list(nodeset.groups().keys()), ["@foo"])
-        self.assertEqual(str(NodeSet("@foo", resolver=res)), "example[1-4,90-100]")
+            # No 'all' defined: all_nodes() should raise an error
+            self.assertRaises(GroupSourceError, res.all_nodes)
+            # but then NodeSet falls back to the union of all groups
+            nodeset = NodeSet.fromall(resolver=res)
+            self.assertEqual(str(nodeset), "example[1-100]")
+            # regroup doesn't use @all in that case
+            self.assertEqual(nodeset.regroup(), "@bar,@foo")
 
-        # No 'all' defined: all_nodes() should raise an error
-        self.assertRaises(GroupSourceError, res.all_nodes)
-        # but then NodeSet falls back to the union of all groups
-        nodeset = NodeSet.fromall(resolver=res)
-        self.assertEqual(str(nodeset), "example[1-100]")
-        # regroup doesn't use @all in that case
-        self.assertEqual(nodeset.regroup(), "@bar,@foo")
+            # No 'reverse' defined: node_groups() should raise an error
+            self.assertRaises(GroupSourceError, res.node_groups, "example1")
 
-        # No 'reverse' defined: node_groups() should raise an error
-        self.assertRaises(GroupSourceError, res.node_groups, "example1")
+            # regroup with rest
+            nodeset = NodeSet("example[1-101]", resolver=res)
+            self.assertEqual(nodeset.regroup(), "@bar,@foo,example101")
 
-        # regroup with rest
-        nodeset = NodeSet("example[1-101]", resolver=res)
-        self.assertEqual(nodeset.regroup(), "@bar,@foo,example101")
+            # regroup incomplete
+            nodeset = NodeSet("example[50-200]", resolver=res)
+            self.assertEqual(nodeset.regroup(), "example[50-200]")
 
-        # regroup incomplete
-        nodeset = NodeSet("example[50-200]", resolver=res)
-        self.assertEqual(nodeset.regroup(), "example[50-200]")
-
-        # regroup no matching
-        nodeset = NodeSet("example[102-200]", resolver=res)
-        self.assertEqual(nodeset.regroup(), "example[102-200]")
+            # regroup no matching
+            nodeset = NodeSet("example[102-200]", resolver=res)
+            self.assertEqual(nodeset.regroup(), "example[102-200]")
+        finally:
+            yamlfile.close()
+            os.rmdir(dname)
 
     def test_yaml_fromall(self):
         """test groups special all group"""
@@ -1510,12 +1513,15 @@ class GroupResolverYAMLTest(unittest.TestCase):
                 bar: example[5-89]
                 all: example[90-100]
             """).encode('ascii'), suffix=".yaml", dir=dname)
-
-        res = GroupResolverConfig(f.name)
-        nodeset = NodeSet.fromall(resolver=res)
-        self.assertEqual(str(nodeset), "example[90-100]")
-        # regroup uses @all if it is defined
-        self.assertEqual(nodeset.regroup(), "@all")
+        try:
+            res = GroupResolverConfig(f.name)
+            nodeset = NodeSet.fromall(resolver=res)
+            self.assertEqual(str(nodeset), "example[90-100]")
+            # regroup uses @all if it is defined
+            self.assertEqual(nodeset.regroup(), "@all")
+        finally:
+            yamlfile.close()
+            os.rmdir(dname)
 
     def test_yaml_invalid_groups_not_dict(self):
         """test groups with an invalid YAML config file (1)"""
@@ -1528,9 +1534,12 @@ class GroupResolverYAMLTest(unittest.TestCase):
         yamlfile = make_temp_file(b"""
 yaml: bar
         """, suffix=".yaml", dir=dname)
-
-        resolver = GroupResolverConfig(f.name)
-        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        try:
+            resolver = GroupResolverConfig(f.name)
+            self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        finally:
+            yamlfile.close()
+            os.rmdir(dname)
 
     def test_yaml_invalid_root_dict(self):
         """test groups with an invalid YAML config file (2)"""
@@ -1545,9 +1554,12 @@ yaml: bar
 - North by Northwest
 - The Man Who Wasn't There
         """, suffix=".yaml", dir=dname)
-
-        resolver = GroupResolverConfig(f.name)
-        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        try:
+            resolver = GroupResolverConfig(f.name)
+            self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        finally:
+            yamlfile.close()
+            os.rmdir(dname)
 
     def test_yaml_invalid_not_yaml(self):
         """test groups with an invalid YAML config file (3)"""
@@ -1563,9 +1575,12 @@ one: un
 two: deux
 three: trois
         """, suffix=".yaml", dir=dname)
-
-        resolver = GroupResolverConfig(f.name)
-        self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        try:
+            resolver = GroupResolverConfig(f.name)
+            self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        finally:
+            yamlfile.close()
+            os.rmdir(dname)
 
     def test_wrong_autodir(self):
         """test wrong autodir (doesn't exist)"""
@@ -1591,25 +1606,30 @@ three: trois
             [local]
             map: node
             """ % fe.name).encode('ascii'))
-
         resolver = GroupResolverConfig(f.name)
         self.assertRaises(GroupResolverConfigError, resolver.grouplist)
 
     def test_yaml_permission_denied(self):
         """test groups when not allowed to read some YAML config file"""
+
+        # This test doesn't work if run as root, as root can read the
+        # yaml group file even with restricted file permissions...
+        if os.geteuid() == 0:
+            return
+
         dname = make_temp_dir()
+        f = make_temp_file(dedent("""
+            [Main]
+            default: yaml1
+            autodir: %s
+            """ % dname).encode('ascii'))
+
+        yamlfile1 = make_temp_file(b'yaml1: {foo: "example[1-4]"}',
+                                   suffix=".yaml", dir=dname)
+        yamlfile2 = make_temp_file(b'yaml2: {bar: "example[5-8]"}',
+                                   suffix=".yaml", dir=dname)
+
         try:
-            f = make_temp_file(dedent("""
-                [Main]
-                default: yaml1
-                autodir: %s
-                """ % dname).encode('ascii'))
-
-            yamlfile1 = make_temp_file(b'yaml1: {foo: "example[1-4]"}',
-                                       suffix=".yaml", dir=dname)
-            yamlfile2 = make_temp_file(b'yaml2: {bar: "example[5-8]"}',
-                                       suffix=".yaml", dir=dname)
-
             # do not allow read access to yamlfile2
             os.chmod(yamlfile2.name, 0)
             self.assertFalse(os.access(yamlfile2.name, os.R_OK))
@@ -1626,4 +1646,4 @@ three: trois
         finally:
             yamlfile1.close()
             yamlfile2.close()
-            shutil.rmtree(dname, ignore_errors=True)
+            os.rmdir(dname)

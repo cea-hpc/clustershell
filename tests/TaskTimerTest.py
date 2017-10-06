@@ -6,7 +6,6 @@
 import copy
 import threading
 from time import sleep, time
-import sys
 import unittest
 
 from TLib import HOSTNAME

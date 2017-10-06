@@ -3,10 +3,9 @@
 
 """Unit test for ClusterShell TaskMsgTree variants"""
 
-import sys
 import unittest
 
-from ClusterShell.Task import Task, TaskMsgTreeError
+from ClusterShell.Task import TaskMsgTreeError
 from ClusterShell.Task import task_cleanup, task_self
 from ClusterShell.Event import EventHandler
 

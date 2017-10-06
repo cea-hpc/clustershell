@@ -6,28 +6,18 @@
 import copy
 import os
 import signal
-import sys
+import socket
+import threading
 import time
-
-import ClusterShell
+import warnings
 
 from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Event import EventHandler
-from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import *
 from ClusterShell.Worker.Exec import ExecWorker
-from ClusterShell.Worker.Worker import StreamWorker, WorkerSimple, WorkerError
+from ClusterShell.Worker.Worker import StreamWorker, WorkerSimple
 from ClusterShell.Worker.Worker import WorkerBadArgumentError
 from ClusterShell.Worker.Worker import FANOUT_UNLIMITED
-
-# private import
-from ClusterShell.Engine.Engine import E_READ, E_WRITE
-
-import socket
-import threading
-import tempfile
-import warnings
-
 
 
 def _test_print_debug(task, s):

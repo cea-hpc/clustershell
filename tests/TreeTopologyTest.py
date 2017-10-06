@@ -3,7 +3,6 @@
 
 """Unit test for Topology"""
 
-import sys
 import unittest
 import tempfile
 

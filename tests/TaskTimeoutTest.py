@@ -3,15 +3,9 @@
 
 """Unit test for ClusterShell Task/Worker timeout support"""
 
-import copy
-import socket
-import sys
 import unittest
 
-import ClusterShell
-
-from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Task import *
+from ClusterShell.Task import task_self
 
 
 class TaskTimeoutTest(unittest.TestCase):

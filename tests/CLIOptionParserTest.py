@@ -4,9 +4,6 @@
 """Unit test for CLI.OptionParser"""
 
 from optparse import OptionConflictError
-import os
-import sys
-import tempfile
 import unittest
 
 from ClusterShell.CLI.OptionParser import OptionParser

@@ -3,8 +3,6 @@
 
 """Unit test for CLI.Display"""
 
-import os
-import sys
 import tempfile
 import unittest
 from io import BytesIO

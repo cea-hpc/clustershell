@@ -3,7 +3,6 @@
 
 """Unit test for ClusterShell common library misusages"""
 
-import sys
 import unittest
 
 from TLib import HOSTNAME
@@ -11,7 +10,7 @@ from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Popen import WorkerPopen
 from ClusterShell.Worker.Ssh import WorkerSsh
 from ClusterShell.Worker.Worker import WorkerError
-from ClusterShell.Task import Task, task_self, AlreadyRunningError
+from ClusterShell.Task import task_self, AlreadyRunningError
 
 
 class MisusageTest(unittest.TestCase):

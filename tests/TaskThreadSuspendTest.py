@@ -4,7 +4,6 @@
 """Unit test for ClusterShell in multithreaded environments"""
 
 import random
-import sys
 import time
 import threading
 import unittest
