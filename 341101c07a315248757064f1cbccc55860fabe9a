@@ -34,6 +34,24 @@
       "revId": "341101c07a315248757064f1cbccc55860fabe9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3185682_4ca52789",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1629,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-06T04:41:00Z",
+      "side": 1,
+      "message": "actually delete\u003dtrue seems to be the default :)",
+      "parentUuid": "acd668ec_12276d9f",
+      "revId": "341101c07a315248757064f1cbccc55860fabe9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
