@@ -16,6 +16,24 @@
       "revId": "034cd9a234a341c8cae242044bf46399d8559749",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3f412d1_0c9f2a88",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-06T15:44:10Z",
+      "side": 1,
+      "message": "Don\u0027t be so sure :) I just changed that because when I packaged 1.8 beta2, I noticed \u0027rm -rf buildroot\u0027 was present in the specfile for EPEL6, but not EPEL7. It might be inherited from EPEL5. I will double check before pushing this one.",
+      "parentUuid": "c69b9607_30739b1f",
+      "revId": "034cd9a234a341c8cae242044bf46399d8559749",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
