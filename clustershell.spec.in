@@ -99,10 +99,6 @@ ClusterShell Python 3 module and related command line tools.
 %{__python2} setup.py build
 
 %install
-%if 0%{?rhel}
-rm -rf %{buildroot}
-%endif
-
 %{__python3} setup.py install -O1 --skip-build --root %{buildroot}
 
 pushd %{buildroot}%{_bindir}
