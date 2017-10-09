@@ -308,6 +308,8 @@ gateway. That is, if the *fanout* is **16**, each gateway will initiate up to
    command on the cluster. In tree mode, please note that in that case, each
    gateway will be able to run a command at the same time.
 
+.. _clush-tree-python:
+
 Remote Python executable
 """"""""""""""""""""""""
 

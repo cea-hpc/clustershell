@@ -90,9 +90,9 @@ class Worker(object):
 
     # The following common stream names are recognized by the Task class.
     # They can be changed per Worker, thus avoiding any Task buffering.
-    SNAME_STDIN  = 'stdin'
-    SNAME_STDOUT = 'stdout'
-    SNAME_STDERR = 'stderr'
+    SNAME_STDIN  = 'stdin'   #: stream name usually used for stdin
+    SNAME_STDOUT = 'stdout'  #: stream name usually used for stdout
+    SNAME_STDERR = 'stderr'  #: stream name usually used for stderr
 
     def __init__(self, handler):
         """Initializer. Should be called from derived classes."""
