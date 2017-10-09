@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca3c9119_bdb70d4a",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-09T12:22:27Z",
+      "side": 1,
+      "message": "why maintenance ?",
+      "range": {
+        "startLine": 9,
+        "startChar": 14,
+        "endLine": 9,
+        "endChar": 25
+      },
+      "revId": "621c588fa54cc0a4dc9c7610f5105c7a02d547ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51c6d721_52e3a77e",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-09T12:22:27Z",
+      "side": 1,
+      "message": "do not reference RFC here, we never stated nodeset should be Internet hosts. Actually this is much wider and is use for a lot of non-hosts things :)\n\nLet just say we support numeric node names",
+      "revId": "621c588fa54cc0a4dc9c7610f5105c7a02d547ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81cf4913_2e3daf2f",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-09T12:22:27Z",
+      "side": 1,
+      "message": "this is not such a big change actually. I\u0027m afraid people will be confused with CS 2.0.\nBetter just say: Improved event API or Enhanced, or whatever, but not 2.0 :)",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 13
+      },
+      "revId": "621c588fa54cc0a4dc9c7610f5105c7a02d547ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
