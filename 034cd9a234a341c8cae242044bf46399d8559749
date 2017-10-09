@@ -70,6 +70,24 @@
       "revId": "034cd9a234a341c8cae242044bf46399d8559749",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "912bd5de_ba9e438e",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-09T15:27:39Z",
+      "side": 1,
+      "message": "Good catch! I think it\u0027s clear now. I\u0027ll remove it ;)",
+      "parentUuid": "1b8d9e6b_4a0219bd",
+      "revId": "034cd9a234a341c8cae242044bf46399d8559749",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
