@@ -52,6 +52,24 @@
       "revId": "034cd9a234a341c8cae242044bf46399d8559749",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b8d9e6b_4a0219bd",
+        "filename": "clustershell.spec.in",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-09T07:49:11Z",
+      "side": 1,
+      "message": "Not really a big deal, but Fedora says that, starting from F10, BuildRoot is useless. RHEL6 is F12 based IIRC.\nhttps://fedoraproject.org/w/index.php?title\u003dPackaging:Guidelines\u0026oldid\u003d417413#BuildRoot_tag\n\nI needed this info for my own packaging issues :)",
+      "parentUuid": "50658fcc_eff5bb21",
+      "revId": "034cd9a234a341c8cae242044bf46399d8559749",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
