@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6fabdfe_9d0bebd2",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-10T07:38:06Z",
+      "side": 1,
+      "message": "there is already a test in original for-loop below. Better add them there and not to add this method.",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86a0fee8_730d788c",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-10T07:38:06Z",
+      "side": 1,
+      "message": "better doing this test after checking groups is a dict (after test below). For now you are only checking this is an iterable (could be a list)",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f62fcf22_ce3c3e53",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-10T07:38:06Z",
+      "side": 1,
+      "message": "add srcname type check here",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c250ffa3_50b106e3",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1436,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-10T07:38:06Z",
+      "side": 1,
+      "message": "(pep8) useless white spaces",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32431450_8dc39a54",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1449,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-10T07:38:06Z",
+      "side": 1,
+      "message": "useless whitespaces",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
