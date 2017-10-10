@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cee4acbd_a4180899",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-10T07:28:47Z",
+      "side": 1,
+      "message": "actually this is a string, not a list, from a YAML point of view :)",
+      "range": {
+        "startLine": 778,
+        "startChar": 20,
+        "endLine": 778,
+        "endChar": 34
+      },
+      "revId": "702ec6e2fdec0dc1c0c1d73cf976be79747ffa34",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
