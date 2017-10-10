@@ -23,14 +23,6 @@ CLI utility functions
 
 import sys
 
-# CLI modules might safely import the NodeSet class from here.
-from ClusterShell.NodeUtils import GroupResolverConfigError
-try:
-    from ClusterShell.NodeSet import NodeSet
-except GroupResolverConfigError as exc:
-    print >> sys.stderr, \
-        "ERROR: ClusterShell node groups configuration error:\n\t%s" % exc
-    sys.exit(1)
 
 (KIBI, MEBI, GIBI, TEBI) = (1024.0, 1024.0 ** 2, 1024.0 ** 3, 1024.0 ** 4)
 
