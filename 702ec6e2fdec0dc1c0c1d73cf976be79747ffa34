@@ -22,6 +22,30 @@
       "revId": "702ec6e2fdec0dc1c0c1d73cf976be79747ffa34",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "332ee919_e3db15a4",
+        "filename": "tests/CLINodesetTest.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-10T15:57:11Z",
+      "side": 1,
+      "message": "see how I am also confused!!! like those users I was talking about in the commit message (of the other patch)... :D thx",
+      "parentUuid": "cee4acbd_a4180899",
+      "range": {
+        "startLine": 778,
+        "startChar": 20,
+        "endLine": 778,
+        "endChar": 34
+      },
+      "revId": "702ec6e2fdec0dc1c0c1d73cf976be79747ffa34",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
