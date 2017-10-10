@@ -46,6 +46,11 @@ import time
 from string import Template
 from subprocess import Popen, PIPE
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -313,7 +318,20 @@ class YAMLGroupLoader(object):
 
         first = not self.sources
 
-        for srcname, groups in sources.items():
+        def sources_gen():
+            """sources generator that checks if type of keys is string"""
+            for src, groups in sources.items():
+                if not isinstance(src, basestring):
+                    fmt = '%s: group source %s not a string (add quotes?)'
+                    raise GroupResolverConfigError(fmt % (self.filename, src))
+                for grp in groups:
+                    if not isinstance(grp, basestring):
+                        fmt = '%s: group name %s not a string (add quotes?)'
+                        raise GroupResolverConfigError(fmt % (self.filename,
+                                                              grp))
+                yield src, groups
+
+        for srcname, groups in sources_gen():
 
             if not isinstance(groups, dict):
                 fmt = "%s: invalid content (group source '%s' is not a dict)"

@@ -1425,6 +1425,32 @@ class YAMLGroupLoaderTest(unittest.TestCase):
             time.sleep(0.5) # force reload
             self.assertEqual(len(source.groups), 2)
 
+    def test_numeric_sources(self):
+        """test YAMLGroupLoader with numeric sources"""
+        # good
+        f = make_temp_file(b"'111': { compute: 'sgisummit-rcf-111-[08,10]' }")
+        loader = YAMLGroupLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(loader.groups("111"),
+                         { 'compute': 'sgisummit-rcf-111-[08,10]' })
+        # bad
+        f = make_temp_file(b"111: { compute: 'sgisummit-rcf-111-[08,10]' }")
+        self.assertRaises(GroupResolverConfigError, YAMLGroupLoader, f.name)
+
+    def test_numeric_group(self):
+        """test YAMLGroupLoader with numeric group"""
+        # good
+        f = make_temp_file(b"courses: { '101': 'workstation-[1-10]' }")
+        loader = YAMLGroupLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(loader.groups("courses"),
+                         { '101': 'workstation-[1-10]' })
+        # bad
+        f = make_temp_file(b"courses: { 101: 'workstation-[1-10]' }")
+        self.assertRaises(GroupResolverConfigError, YAMLGroupLoader, f.name)
+
 
 class GroupResolverYAMLTest(unittest.TestCase):
 
