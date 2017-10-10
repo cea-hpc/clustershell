@@ -3,6 +3,7 @@
 
 """Unit test for CLI.Nodeset"""
 
+import os
 import random
 from textwrap import dedent
 import unittest
@@ -759,3 +760,34 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
         """test nodeset --list -s source w/ missing list upcall"""
         self._nodeset_t(["--list", "-s", "pdu"], None, b"", 1,
                         b'No list upcall defined for group source "pdu"\n')
+
+
+class CLINodesetGroupResolverConfigErrorTest(CLINodesetTestBase):
+    """Unit test class for testing GroupResolverConfigError"""
+
+    def setUp(self):
+        self.dname = make_temp_dir()
+        self.gconff = make_temp_file(dedent("""
+            [Main]
+            default: default
+            autodir: %s
+            """ % self.dname).encode('ascii'))
+        self.yamlf = make_temp_file(dedent("""
+            default:
+                compute: 'foo'
+            111:
+                compute: 'sgisummit-rcf-111-[08,10]'
+            """).encode('ascii'), suffix=".yaml", dir=self.dname)
+
+        set_std_group_resolver(GroupResolverConfig(self.gconff.name))
+
+    def tearDown(self):
+        set_std_group_resolver(None)
+        self.gconff = None
+        self.yamlf = None
+        os.rmdir(self.dname)
+
+    def test_bad_yaml_config(self):
+        """test nodeset with bad yaml config"""
+        self._nodeset_t(["--list-all"], None, b"", 1,
+                        b"group source 111 not a string (add quotes?)\n")

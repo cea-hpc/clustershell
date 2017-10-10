@@ -35,9 +35,9 @@ import sys
 
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
-from ClusterShell.CLI.Utils import NodeSet  # safe import
 
-from ClusterShell.NodeSet import RangeSet, grouplist, std_group_resolver
+from ClusterShell.NodeSet import NodeSet, RangeSet
+from ClusterShell.NodeSet import grouplist, std_group_resolver
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
 
 
