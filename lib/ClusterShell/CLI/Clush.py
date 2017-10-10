@@ -55,13 +55,12 @@ from ClusterShell.CLI.Display import Display, sys_stdin
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
-from ClusterShell.CLI.Utils import NodeSet, bufnodeset_cmpkey
-from ClusterShell.CLI.Utils import human_bi_bytes_unit
+from ClusterShell.CLI.Utils import bufnodeset_cmpkey, human_bi_bytes_unit
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
 from ClusterShell.NodeSet import RESOLVER_NOGROUP, std_group_resolver
-from ClusterShell.NodeSet import NodeSetParseError
+from ClusterShell.NodeSet import NodeSet, NodeSetParseError
 from ClusterShell.Task import Task, task_self
 
 
