@@ -30,13 +30,13 @@ from __future__ import print_function
 import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
-from ClusterShell.NodeSet import NodeSetParseError, std_group_resolver
+from ClusterShell.NodeSet import NodeSet, NodeSetParseError, std_group_resolver
 
 from ClusterShell.CLI.Display import Display, THREE_CHOICES
 from ClusterShell.CLI.Display import sys_stdin, sys_stdout, sys_stderr
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
-from ClusterShell.CLI.Utils import NodeSet, nodeset_cmpkey
+from ClusterShell.CLI.Utils import nodeset_cmpkey
 
 
 def display_tree(tree, disp, out):
