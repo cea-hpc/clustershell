@@ -124,6 +124,35 @@ using the following command::
 Python 3 versions of the tools are installed as *tool-pythonversion*, like
 ``clush-3.4``, ``cluset-3.4`` or ``nodeset-3.4`` on EPEL 6 and 7.
 
+openSUSE
+^^^^^^^^
+
+ClusterShell is available in openSUSE Tumbleweed (since 2017)::
+
+    $ zypper search clustershell
+    Loading repository data...
+    Reading installed packages...
+
+    S | Name                 | Summary                                               | Type
+    --+----------------------+-------------------------------------------------------+--------
+      | clustershell         | Python framework for efficient cluster administration | package
+      | python2-clustershell | ClusterShell module for Python 2                      | package
+      | python3-clustershell | ClusterShell module for Python 3                      | package
+
+
+To install ClusterShell on openSUSE Tumbleweed (Factory), use::
+
+    $ zypper install clustershell
+
+Python 2 module and tools are installed by default. If interested in Python 3
+development, simply install the additional ClusterShell's Python 3 subpackage
+using the following command::
+
+    $ zypper install python3-clustershell
+
+Python 3 versions of the tools are installed as *tool-pythonversion*, like
+``clush-3.6``, ``cluset-3.6`` or ``nodeset-3.6``.
+
 Debian
 ^^^^^^
 
