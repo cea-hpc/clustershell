@@ -30,7 +30,7 @@ See *man clush* for more details.
 
 See *man clubak* for more details.
 
-- **nodeset**: compute advanced nodeset/nodegroup operations
+- **nodeset** (or **cluset**): compute advanced nodeset/nodegroup operations
 
 Examples of use:
 
@@ -63,9 +63,9 @@ Examples of use:
   $ nodeset -e @mds
   node6 node7
 
-See *man nodeset* for more details.
+See *man nodeset* (or *man cluset*) for more details.
 
 Please visit the ClusterShell website_.
 
-.. _website: http://clustershell.sourceforge.net
+.. _website: http://cea-hpc.github.io/clustershell/
 
