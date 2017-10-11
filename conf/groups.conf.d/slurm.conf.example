@@ -9,7 +9,7 @@
 [slurmpart,sp]
 map: sinfo -h -o "%N" -p $GROUP
 all: sinfo -h -o "%N"
-list: sinfo -h -o "%P" | sed 's/[*$]//g'
+list: sinfo -h -o "%R"
 reverse: sinfo -h -N -o "%R" -n $NODE
 
 #
