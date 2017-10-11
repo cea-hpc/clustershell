@@ -11,7 +11,7 @@ remote shell facilities already installed on your systems, like SSH.
 
 ClusterShell's primary goal is to improve the administration of high-
 performance clusters by providing a lightweight but scalable Python API for
-developers. It also provides clush, clubak and nodeset, three convenient
+developers. It also provides clush, clubak and cluset/nodeset, convenient
 command-line tools that allow traditional shell scripts to benefit from some
 of the library features.
 
@@ -20,7 +20,7 @@ Requirements
 
  * GNU/Linux, BSD, Mac OS X
  * OpenSSH (ssh/scp) or rsh
- * Python 2.x (x >= 6)
+ * Python 2.x (x >= 6) or Python 3.x (x >= 4)
  * PyYAML (optional)
 
 License
@@ -49,7 +49,7 @@ For local library API documentation, just type:
 
 The following man pages are also provided:
 
-    clush(1), clubak(1), nodeset(1), clush.conl(5), groups.conf(5)
+    clush(1), clubak(1), nodeset(1), clush.conf(5), groups.conf(5)
 
 Test Suite
 ----------
@@ -64,8 +64,8 @@ You have to allow 'ssh localhost' and 'ssh $HOSTNAME' without any warnings for
 "remote" tests to run as expected. $HOSTNAME should not be 127.0.0.1 nor ::1.
 Also some tests use the 'bc' command.
 
-ClusterShell interactively
---------------------------
+Python code (simple example)
+----------------------------
 
 ```python
 >>> from ClusterShell.Task import task_self
@@ -86,8 +86,7 @@ Links
 
 Web site:
 
-    http://clustershell.sourceforge.net
-    or http://cea-hpc.github.com/clustershell/
+    http://cea-hpc.github.com/clustershell/
 
 Online documentation:
 
@@ -105,17 +104,15 @@ Github Issue tracking system:
 
     https://github.com/cea-hpc/clustershell/issues
 
-Sourceforge.net project page:
+Python Package Index (PyPI) links:
 
-    http://sourceforge.net/projects/clustershell
-
-Python Package Index (PyPI) link:
+    https://pypi.org/project/ClusterShell/
 
     http://pypi.python.org/pypi/ClusterShell
 
 ClusterShell was born along with Shine, a scalable Lustre FS admin tool:
 
-    http://lustre-shine.sourceforge.net
+    https://github.com/cea-hpc/shine
 
 Core developers/reviewers
 -------------------------

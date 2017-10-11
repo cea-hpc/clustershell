@@ -196,6 +196,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Wed Oct 11 2017 Stephane Thiell <sthiell@stanford.edu> 1.8-1
+- update to 1.8
+
 * Mon Oct  2 2017 Stephane Thiell <sthiell@stanford.edu> 1.7.82-1
 - update to 1.7.82 (1.8 beta2)
 

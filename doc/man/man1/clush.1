@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2017-10-02" "1.7.82" "ClusterShell User Manual"
+.TH CLUSH 1 "2017-10-11" "1.8" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -370,17 +370,26 @@ Copy \fI/etc/motd\fP from remote nodes node[3\-5,62] to local \fI/tmp\fP directo
 .INDENT 0.0
 .TP
 .B \fI/etc/clustershell/clush.conf\fP
-System\-wide \fBclush\fP configuration file.
+System\-wide clush configuration file.
+.TP
+.B \fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP
+User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
+\fI$HOME/.config/clustershell/clush.conf\fP is used instead.
+.TP
+.B \fI$HOME/.local/etc/clustershell/clush.conf\fP
+Local user configuration file for clush (default installation for pip \-\-user)
 .TP
 .B \fI~/.clush.conf\fP
-This is the per\-user \fBclush\fP configuration file.
+Deprecated per\-user clush configuration file.
 .TP
 .B \fI~/.clush_history\fP
 File in which interactive \fBclush\fP command history is saved.
 .UNINDENT
 .SH SEE ALSO
 .sp
-\fBclubak\fP(1), \fBnodeset\fP(1), \fBreadline\fP(3), \fBclush.conf\fP(5), \fBgroups.conf\fP(5).
+\fBclubak\fP(1), \fBcluset\fP(1), \fBnodeset\fP(1), \fBreadline\fP(3), \fBclush.conf\fP(5), \fBgroups.conf\fP(5).
+.sp
+\fI\%http://clustershell.readthedocs.org/\fP
 .SH BUG REPORTS
 .INDENT 0.0
 .TP
