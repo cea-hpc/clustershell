@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "74649044_437fbc97",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-11T01:47:16Z",
+      "side": 1,
+      "message": "sorry it was too late I guess, you\u0027re totally right. I did this because I first started by converting the integers into strings, but then ran into weird stuff like when you use 011: , yaml will see that as an octal and return 9, so the group will be the string \"9\"... This is why I guess it is better to raise an exception instead of implicit casting, and let the user adds quotes.\n\nDone",
+      "parentUuid": "e6fabdfe_9d0bebd2",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "86a0fee8_730d788c",
         "filename": "lib/ClusterShell/NodeUtils.py",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2017-10-10T07:38:06Z",
       "side": 1,
       "message": "better doing this test after checking groups is a dict (after test below). For now you are only checking this is an iterable (could be a list)",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19f73e03_01b0c24b",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-11T01:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "86a0fee8_730d788c",
       "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "c5a75865_e2c6afdc",
+        "filename": "lib/ClusterShell/NodeUtils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-11T01:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f62fcf22_ce3c3e53",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c250ffa3_50b106e3",
         "filename": "tests/NodeSetGroupTest.py",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "f373dab4_c977e960",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1436,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-11T01:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c250ffa3_50b106e3",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "32431450_8dc39a54",
         "filename": "tests/NodeSetGroupTest.py",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2017-10-10T07:38:06Z",
       "side": 1,
       "message": "useless whitespaces",
+      "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be2dfa97_d5e2a1de",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1449,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-11T01:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32431450_8dc39a54",
       "revId": "baf95c5fc214a981b1f0af3c420b46a66c342103",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
