@@ -560,7 +560,6 @@ class CLINodesetTest(CLINodesetTestBase):
                             None, str(num).encode() + b'\n')
 
 
-
 class CLINodesetGroupResolverTest1(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
 
@@ -611,6 +610,7 @@ class CLINodesetGroupResolverTest1(CLINodesetTestBase):
         self._nodeset_t(["-L"], None, b"@bar\n@foo\n@moo\n")
         self._nodeset_t(["-LL"], None, b"@bar example[1-100]\n@foo example[1-100]\n@moo example[1-100]\n")
         self._nodeset_t(["-LLL"], None, b"@bar example[1-100] 100\n@foo example[1-100] 100\n@moo example[1-100] 100\n")
+
 
 class CLINodesetGroupResolverTest2(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver"""
@@ -711,6 +711,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
         self._nodeset_t(["--list-all", "-G", "-s", "other"], None,
                         b"@baz\n@norf\n@qux\n@bar\n@foo\n@moo\n") # 'other' source first
 
+
 class CLINodesetGroupResolverTest3(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver
 
@@ -790,3 +791,19 @@ class CLINodesetGroupResolverConfigErrorTest(CLINodesetTestBase):
         """test nodeset with bad yaml config"""
         self._nodeset_t(["--list-all"], None, b"", 1,
                         b"invalid content (group source 'broken' is not a dict)\n")
+
+
+class CLINodesetEmptyGroupsConf(CLINodesetTestBase):
+    """Unit test class for testing empty groups.conf"""
+
+    def setUp(self):
+        self.gconff = make_temp_file(b"")
+        set_std_group_resolver(GroupResolverConfig(self.gconff.name))
+
+    def tearDown(self):
+        set_std_group_resolver(None)
+        self.gconff = None
+
+    def test_empty_groups_conf(self):
+        """test nodeset with empty groups.conf"""
+        self._nodeset_t(["--list-all"], None, b"")
