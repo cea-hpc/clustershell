@@ -1,8 +1,9 @@
 """
-Unit test for ClusterShell.Worker.WorkerTree
+Unit test for ClusterShell.Worker.WorkerTree (copy)
 """
 
 import logging
+import os
 import unittest
 
 from os.path import dirname, join
@@ -61,6 +62,7 @@ class TreeCopyTestTest(unittest.TestCase):
 
     def tearDown(self):
         """remove WorkerTree mock after each test"""
+        self.tfile = None  # clean temporary file
         task_cleanup()
         ClusterShell.Task.WorkerTree = WorkerTree
 
@@ -69,9 +71,8 @@ class TreeCopyTestTest(unittest.TestCase):
         self.test_ok = False
         self.tfile = make_temp_file(b"dummy")
         # add leading '/' like clush so that WorkerTree knows it's a dir
-        task_self().copy(self.tfile.name,
-                         join(dirname(self.tfile.name), ''),
-                         "n60")
+        dirpath = join(dirname(self.tfile.name), '')
+        task_self().copy(self.tfile.name, dirpath, "n60")
         task_self().resume()
         self.assertTrue(self.test_ok)
 
@@ -80,6 +81,9 @@ class TreeCopyTestTest(unittest.TestCase):
         self.test_ok = False
         self.tfile = make_temp_file(b"dummy-src")
         self.tdir = make_temp_dir()
-        task_self().rcopy(self.tfile.name, self.tdir, "n60")
-        task_self().resume()
-        self.assertTrue(self.test_ok)
+        try:
+            task_self().rcopy(self.tfile.name, self.tdir, "n60")
+            task_self().resume()
+            self.assertTrue(self.test_ok)
+        finally:
+            os.rmdir(self.tdir)
