@@ -34,6 +34,7 @@ import tempfile
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.Worker import DistantWorker, WorkerError
+from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 from ClusterShell.Worker.Exec import ExecWorker
 
 from ClusterShell.Propagation import PropagationTreeRouter
@@ -52,7 +53,7 @@ class MetaWorkerEventHandler(EventHandler):
         """
         self.logger.debug("MetaWorkerEventHandler: ev_start")
         self.metaworker._start_count += 1
-        self.metaworker._check_ini()
+        self.metaworker._check_ini()  # also generate ev_pickup events
 
     def ev_read(self, worker, node, sname, msg):
         """
@@ -379,7 +380,7 @@ class WorkerTree(DistantWorker):
             return
 
         # rcopy only: we expect base64 encoded tar content on stdout
-        encoded = self._rcopy_bufs.setdefault(node, '') + msg
+        encoded = self._rcopy_bufs.setdefault(node, b'') + msg
         if node not in self._rcopy_tars:
             self._rcopy_tars[node] = tempfile.TemporaryFile()
 
@@ -447,7 +448,13 @@ class WorkerTree(DistantWorker):
         self.logger.debug("WorkerTree: _check_ini (%d, %d)", self._start_count,
                           self._child_count)
         if self.eh and self._start_count >= self._child_count:
+            # this part is called once
             self.eh.ev_start(self)
+            # Blindly generate pickup events: this could maybe be improved, for
+            # example, generated only when commands are sent to the gateways
+            # or for direct targets, using MetaWorkerEventHandler.
+            for node in self.nodes:
+                _eh_sigspec_invoke_compat(self.eh.ev_pickup, 2, self, node)
 
     def _check_fini(self, gateway=None):
         self.logger.debug("check_fini %s %s", self._close_count,
@@ -457,7 +464,8 @@ class WorkerTree(DistantWorker):
             if handler:
                 if self._has_timeout and hasattr(handler, 'ev_timeout'):
                     handler.ev_timeout(self)
-                handler.ev_close(self, self._has_timeout)
+                _eh_sigspec_invoke_compat(handler.ev_close, 2, self,
+                                          self._has_timeout)
 
         # check completion of targets per gateway
         if gateway:
