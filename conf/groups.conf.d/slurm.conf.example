@@ -18,15 +18,15 @@ reverse: sinfo -h -N -o "%R" -n $NODE
 [slurmstate,st]
 map: sinfo -h -o "%N" -t $GROUP
 all: sinfo -h -o "%N"
-list: sinfo -h -o "%T" | sed 's/[*$]//g'
-reverse: sinfo -h -N -o "%T" -n $NODE | sed 's/[*$]//g'
+list: sinfo -h -o "%T" | tr -d '*~#$@+'
+reverse: sinfo -h -N -o "%T" -n $NODE | tr -d '*~#$@+'
 cache_time: 60
 
 #
 # SLURM job bindings
 #
 [slurmjob,sj]
-map: squeue -j $GROUP -h -o "%N"
+map: squeue -h -j $GROUP -o "%N"
 list: squeue -h -o "%i" -t R
-reverse: squeue -w $NODE -h -o "%i"
+reverse: squeue -h -w $NODE -o "%i"
 cache_time: 60
