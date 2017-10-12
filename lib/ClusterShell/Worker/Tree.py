@@ -34,6 +34,7 @@ import tempfile
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Worker.Worker import DistantWorker, WorkerError
+from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 from ClusterShell.Worker.Exec import ExecWorker
 
 from ClusterShell.Propagation import PropagationTreeRouter
@@ -457,7 +458,8 @@ class WorkerTree(DistantWorker):
             if handler:
                 if self._has_timeout and hasattr(handler, 'ev_timeout'):
                     handler.ev_timeout(self)
-                handler.ev_close(self, self._has_timeout)
+                _eh_sigspec_invoke_compat(handler.ev_close, 2, self,
+                                          self._has_timeout)
 
         # check completion of targets per gateway
         if gateway:
