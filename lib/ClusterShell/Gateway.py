@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -310,12 +310,17 @@ def gateway_main():
     """ClusterShell gateway entry point"""
     host = _getshorthostname()
     # configure root logger
-    logdir = os.path.expanduser(os.environ.get('CLUSTERSHELL_GW_LOG_DIR', \
+    logdir = os.path.expanduser(os.environ.get('CLUSTERSHELL_GW_LOG_DIR',
                                                '/tmp'))
     loglevel = os.environ.get('CLUSTERSHELL_GW_LOG_LEVEL', 'INFO')
-    logging.basicConfig(level=getattr(logging, loglevel.upper(), logging.INFO),
-                        format='%(asctime)s %(name)s %(levelname)s %(message)s',
-                        filename=os.path.join(logdir, "%s.gw.log" % host))
+    try:
+        log_level = getattr(logging, loglevel.upper(), logging.INFO)
+        log_fmt = '%(asctime)s %(name)s %(levelname)s %(message)s'
+        logging.basicConfig(level=log_level, format=log_fmt,
+                            filename=os.path.join(logdir, "%s.gw.log" % host))
+    except (IOError, OSError):
+        pass  # logging failure is not fatal
+
     logger = logging.getLogger(__name__)
     sys.excepthook = gateway_excepthook
 
