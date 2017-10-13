@@ -1,0 +1,249 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ffc0fb9_500a98d9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "\"Re: \" ?",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 4
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f55c344_463a9ced",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "ev_pickup is really useful if it is separated from ev_start.\nok for now but we need a ticket to track this bug/limitation.",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b73929f_5bc5db16",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "hardcode test string in the 2 tests which are using it",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b3b01ac_8b65b507",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "better call it TEventHandlerv17 or TEventHandlerLegacy or TEventHandlerCompat.\nThe \"current\" eventhandler should be simply named TEventHandler\n\nWe will simply remove this old code at some point in the future and we keep \"TEventHandler\" code",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87804b83_bbf986d6",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "not v1.0, but \" for v1.7\" or \"pre 1.8\"",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "800aad7d_e3b0fce4",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "simple TEventHandler",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e20daea6_caa2e288",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "no version, or \"from CS 1.8+\"",
+      "range": {
+        "startLine": 57,
+        "startChar": 26,
+        "endLine": 57,
+        "endChar": 29
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7142a488_2ff86b87",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "in a perfect world this should not be needed. This means some things are not very well cleaned elsewhere...",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ea2e3ca_d5fe4ebf",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "adapt test names according to eventhandler names",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a53666b_1d64d847",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "no debug comment :)",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2f42845_44d0a6d9",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "timeout\u003d0.5\n\nTry to keep these tests as short as possible :)",
+      "range": {
+        "startLine": 157,
+        "startChar": 75,
+        "endLine": 157,
+        "endChar": 76
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26b590c8_273d21aa",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "same comments regarding test names",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8068c639_dcb8cf87",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-13T08:45:59Z",
+      "side": 1,
+      "message": "timeout\u003d0.5",
+      "range": {
+        "startLine": 180,
+        "startChar": 75,
+        "endLine": 180,
+        "endChar": 76
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
