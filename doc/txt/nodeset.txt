@@ -27,7 +27,7 @@ Note: ``nodeset`` and ``cluset`` are the same command.
 ``nodeset`` is an utility command provided with the ClusterShell library which
 implements some features of ClusterShell's NodeSet and RangeSet Python classes.
 It provides easy manipulation of 1D or nD-indexed cluster nodes and node
-groups and supports RFC 1123 (except that a node name can't be entirely numeric).
+groups.
 
 Also, ``nodeset`` is automatically bound to the library node group resolution
 mechanism. Thus, it is especially useful to enhance cluster aware
