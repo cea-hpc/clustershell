@@ -12,10 +12,6 @@ shell scripts. It is also full-featured as it provides most of the
 :class:`.NodeSet` and :class:`.RangeSet` class methods (see also
 :ref:`class-NodeSet`, and :ref:`class-RangeSet`).
 
-
-The *nodeset* command supports RFC 1123 (which defines naming standards for
-host names) except that a node name can't be entirely numeric.
-
 Most of the examples in this section are using simple indexed node sets,
 however, *nodeset* supports multidimensional node sets, like *dc[1-2]n[1-99]*,
 introduced in version 1.7 (see :ref:`class-RangeSetND` for more info).
@@ -30,8 +26,10 @@ One exclusive command must be specified to *nodeset*, for example::
 
     $ nodeset --expand node[13-15,17-19]
     node13 node14 node15 node17 node18 node19
+
     $ nodeset --count node[13-15,17-19]
     6
+
     $ nodeset --fold node1-ipmi node2-ipmi node3-ipmi
     node[1-3]-ipmi
 
