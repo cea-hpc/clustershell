@@ -310,6 +310,23 @@ before executing shell commands:
 * *$SOURCE* is replaced by current source name (see an usage example just
   below)
 
+.. _group-external-caching:
+
+Caching considerations
+""""""""""""""""""""""
+
+External command results are cached in memory, for a limited amount of time,
+to avoid multiple similar calls.
+
+The optional parameter **cache_time**, when specified within a group source
+section, defines the number of seconds each upcall result is kept in cache,
+in memory only. Please note that caching is actually only useful for
+long-running programs (like daemons) that are using node groups, not for
+one-shot commands like :ref:`clush <clush-tool>` or
+:ref:`cluset <cluset-tool>`/:ref:`nodeset <nodeset-tool>`.
+
+The default value of **cache_time** is 3600 seconds.
+
 Multiple sources section
 """"""""""""""""""""""""
 
@@ -350,6 +367,91 @@ is not doable. But if the call return zero, for instance, for a non-existing
 group, the user will not receive any error when trying to resolve such unknown
 group. The desired behavior is up to the system administrator.
 
+Slurm bindings (example)
+""""""""""""""""""""""""
+
+Enable Slurm node group bindings by renaming the example configuration file
+usually installed as ``/etc/clustershell/groups.conf.d/slurm.conf.example`` to
+``slurm.conf``. Three group sources are defined in this file and are detailed
+below. Each section comes with a long and short names (for convenience), but
+actually defines a same group source.
+
+While examples below are based on the :ref:`nodeset-tool` tool, all Python
+tools using ClusterShell and the :class:`.NodeSet`  class will automatically
+benefit from these additional node groups.
+
+.. highlight:: ini
+
+The first section **slurmpart,sp** defines a group source based on Slurm
+partitions. Each group is named after the partition name and contains the
+partition's nodes::
+
+    [slurmpart,sp]
+    map: sinfo -h -o "%N" -p $GROUP
+    all: sinfo -h -o "%N"
+    list: sinfo -h -o "%R"
+    reverse: sinfo -h -N -o "%R" -n $NODE
+
+.. highlight:: console
+
+Example of use with :ref:`nodeset <nodeset-tool>` on a cluster having two Slurm
+partitions named *kepler* and *pascal* ::
+
+    $ nodeset -s sp -ll
+    @sp:kepler cluster-[0001-0065]
+    @sp:pascal cluster-[0066-0068]
+
+.. highlight:: ini
+
+The second section **slurmstate,st** defines a group source based on Slurm
+node states. Each group is based on a different state name and contains the
+nodes currently in that state::
+
+    [slurmstate,st]
+    map: sinfo -h -o "%N" -t $GROUP
+    all: sinfo -h -o "%N"
+    list: sinfo -h -o "%T" | tr -d '*~#$@+'
+    reverse: sinfo -h -N -o "%T" -n $NODE | tr -d '*~#$@+'
+    cache_time: 60
+
+Here, :ref:`cache_time <group-external-caching>` is set to 60 seconds instead
+of the default (3600s) to avoid caching results in memory for too long, in
+case of state change (this is only useful for long-running processes, not
+one-shot commands).
+
+.. highlight:: console
+
+Example of use with :ref:`nodeset <nodeset-tool>` to get the current nodes that
+are in the Slurm state *drained* ::
+
+    $ nodeset -f @st:drained
+    cluster-[0058,0067]
+
+.. highlight:: ini
+
+The third section **slurmjob,sj** defines a group source based on Slurm jobs.
+Each group is based on a running job ID and contains the nodes currently
+allocated for this job::
+
+    [slurmjob,sj]
+    map: squeue -h -j $GROUP -o "%N"
+    list: squeue -h -o "%i" -t R
+    reverse: squeue -h -w $NODE -o "%i"
+    cache_time: 60
+
+:ref:`cache_time <group-external-caching>` is also set to 60 seconds instead
+of the default (3600s) to avoid caching results in memory for too long, because
+this group source is likely very dynamic (this is only useful for long-running
+processes, not one-shot commands).
+
+.. highlight:: console
+
+You can then easily find nodes associated with a Slurm job ID::
+
+     $ nodeset -f @sj:686518
+     cluster-[0003,0005,0010,0012,0015,0017,0021,0055]
+
+.. highlight:: text
 
 .. _defaults-config:
 
