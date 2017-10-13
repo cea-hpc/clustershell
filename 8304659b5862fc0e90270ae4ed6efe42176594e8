@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c4f3cecd_acffae21",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ffc0fb9_500a98d9",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 4
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4f55c344_463a9ced",
         "filename": "lib/ClusterShell/Worker/Tree.py",
         "patchSetId": 6
@@ -36,6 +60,24 @@
       "writtenOn": "2017-10-13T08:45:59Z",
       "side": 1,
       "message": "ev_pickup is really useful if it is separated from ev_start.\nok for now but we need a ticket to track this bug/limitation.",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd986e2b_eed0fba0",
+        "filename": "lib/ClusterShell/Worker/Tree.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Yes, we\u0027ll have to track that.",
+      "parentUuid": "4f55c344_463a9ced",
       "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "30fc7ef8_e4e04130",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b73929f_5bc5db16",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b3b01ac_8b65b507",
         "filename": "tests/TreeWorkerTest.py",
         "patchSetId": 6
@@ -70,6 +130,24 @@
       "writtenOn": "2017-10-13T08:45:59Z",
       "side": 1,
       "message": "better call it TEventHandlerv17 or TEventHandlerLegacy or TEventHandlerCompat.\nThe \"current\" eventhandler should be simply named TEventHandler\n\nWe will simply remove this old code at some point in the future and we keep \"TEventHandler\" code",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0791f3ef_98327994",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b3b01ac_8b65b507",
       "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "8d2d229b_acced43e",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87804b83_bbf986d6",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "800aad7d_e3b0fce4",
         "filename": "tests/TreeWorkerTest.py",
         "patchSetId": 6
@@ -104,6 +200,24 @@
       "writtenOn": "2017-10-13T08:45:59Z",
       "side": 1,
       "message": "simple TEventHandler",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71c35305_dd05b26f",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "800aad7d_e3b0fce4",
       "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -133,6 +247,30 @@
     },
     {
       "key": {
+        "uuid": "c0f2e0bf_c81edc92",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e20daea6_caa2e288",
+      "range": {
+        "startLine": 57,
+        "startChar": 26,
+        "endLine": 57,
+        "endChar": 29
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7142a488_2ff86b87",
         "filename": "tests/TreeWorkerTest.py",
         "patchSetId": 6
@@ -144,6 +282,24 @@
       "writtenOn": "2017-10-13T08:45:59Z",
       "side": 1,
       "message": "in a perfect world this should not be needed. This means some things are not very well cleaned elsewhere...",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "198b1072_e6ee7d96",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Yup! at this time task doesn\u0027t seem terminated properly in other tests. This is needed here because we substitute PropagationChannel. I\u0027ll add a short comment.",
+      "parentUuid": "7142a488_2ff86b87",
       "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -167,6 +323,24 @@
     },
     {
       "key": {
+        "uuid": "d3084bff_84b956cf",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ea2e3ca_d5fe4ebf",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a53666b_1d64d847",
         "filename": "tests/TreeWorkerTest.py",
         "patchSetId": 6
@@ -178,6 +352,24 @@
       "writtenOn": "2017-10-13T08:45:59Z",
       "side": 1,
       "message": "no debug comment :)",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93719730_977e383f",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "oops",
+      "parentUuid": "9a53666b_1d64d847",
       "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -207,6 +399,30 @@
     },
     {
       "key": {
+        "uuid": "8efb6708_eb33ec83",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2f42845_44d0a6d9",
+      "range": {
+        "startLine": 157,
+        "startChar": 75,
+        "endLine": 157,
+        "endChar": 76
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "26b590c8_273d21aa",
         "filename": "tests/TreeWorkerTest.py",
         "patchSetId": 6
@@ -224,6 +440,24 @@
     },
     {
       "key": {
+        "uuid": "eb9f91e8_5c9576bc",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26b590c8_273d21aa",
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8068c639_dcb8cf87",
         "filename": "tests/TreeWorkerTest.py",
         "patchSetId": 6
@@ -235,6 +469,30 @@
       "writtenOn": "2017-10-13T08:45:59Z",
       "side": 1,
       "message": "timeout\u003d0.5",
+      "range": {
+        "startLine": 180,
+        "startChar": 75,
+        "endLine": 180,
+        "endChar": 76
+      },
+      "revId": "8304659b5862fc0e90270ae4ed6efe42176594e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f85fc9fa_358c4a36",
+        "filename": "tests/TreeWorkerTest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-13T15:51:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8068c639_dcb8cf87",
       "range": {
         "startLine": 180,
         "startChar": 75,
