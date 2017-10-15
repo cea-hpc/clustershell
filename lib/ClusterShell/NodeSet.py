@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2007-2016 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2007-2017 Aurelien Degremont <aurelien.degremont@cea.fr>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -49,6 +49,7 @@ Usage example
   cluster32
 """
 
+import fnmatch
 import re
 import string
 import sys
@@ -756,6 +757,16 @@ def _strip_escape(nsstr):
     """
     return nsstr.strip().replace('%', '%%')
 
+def _rsets4nsb(rsets, autostep):
+    """
+    Helper to convert a list of RangeSet objects into the proper object
+    for NodeSetBase: RangeSet, RangeSetND or None (no node index).
+    """
+    if len(rsets) > 1:
+        return RangeSetND([rsets], None, autostep, copy_rangeset=False)
+    elif len(rsets) == 1:
+        return rsets[0]
+
 
 class ParsingEngine(object):
     """
@@ -769,12 +780,13 @@ class ParsingEngine(object):
     BRACKET_OPEN = '['
     BRACKET_CLOSE = ']'
 
-    def __init__(self, group_resolver):
+    def __init__(self, group_resolver, node_wildcards=True):
         """
         Initialize Parsing Engine.
         """
         self.group_resolver = group_resolver
         self.base_node_re = re.compile("(\D*)(\d*)")
+        self.node_wildcards = node_wildcards  # node wildcard support
 
     def parse(self, nsobj, autostep):
         """
@@ -824,6 +836,29 @@ class ParsingEngine(object):
                                                           ns_nsp_ext))
                 # perform operation
                 getattr(nodeset, opc)(ns_group)
+
+            elif self.node_wildcards and ('*' in pat or '?' in pat):
+
+                # We also support ranges with wildcard mask by testing each
+                # node against the mask. An optimitization is perhaps possible
+                # here by directly modifying (pattern, rangeset) depending on
+                # the mask, but it doesn't seem so easy, and don't forget
+                # 'foo?' matches 'foo[1-9]' but NOT 'foo10'...
+                # For now, we expand the node masks that we just parsed.
+                wcmasks = (str(wcn) for wcn in NodeSetBase(pat, rgnd, False))
+
+                # A wildcarded nodeset can be seen as a single nodeset, so
+                # we compute the union of nodes matching the wildcard mask(s)
+                # and use the resulting NodeSetBase object as argument of the
+                # next operation (opc), so that for example, nodes!*badnodes*
+                # does actually remove all badnodes.
+                wcns = NodeSetBase()
+                for wcpat, wcrsets in self._expand_wildcards(wcmasks, autostep,
+                                                             namespace):
+                    wcrgnd = _rsets4nsb(wcrsets, autostep)
+                    wcns.update(NodeSetBase(wcpat, wcrgnd, False))
+                getattr(nodeset, opc)(wcns)
+
             else:
                 getattr(nodeset, opc)(NodeSetBase(pat, rgnd, False))
 
@@ -1059,13 +1094,7 @@ class ParsingEngine(object):
                 node = node.rstrip()
                 newpat, rsets = self._scan_string_single(node, autostep)
 
-            if len(rsets) > 1:
-                yield op_code, newpat, RangeSetND([rsets], None, autostep,
-                                                  copy_rangeset=False)
-            elif len(rsets) == 1:
-                yield op_code, newpat, rsets[0]
-            else:
-                yield op_code, newpat, None
+            yield op_code, newpat, _rsets4nsb(rsets, autostep)
 
     def _amend_leading_digits(self, outer, inner):
         """Helper to get rid of leading bracket digits.
@@ -1110,6 +1139,23 @@ class ParsingEngine(object):
                                        for bound in elem.split('-'))
                               for elem in inner.split(',')))
         return outerstrip, inner
+
+    def _expand_wildcards(self, wcmasks, autostep, namespace):
+        """Expand nodes matching any of the wildcard mask"""
+        # get an iterator on all individual nodes
+        alln = NodeSetBase()
+        self.node_wildcards = False  # avoid infinite recursion
+        try:
+            for res in self.all_nodes(namespace):
+                alln.update(self.parse_string(res, autostep, namespace))
+
+            for wcmask in wcmasks:
+                # return the subset of the nodes that match wildcard mask
+                for node in fnmatch.filter(alln, wcmask):
+                    yield self._scan_string_single(node, autostep)
+        finally:
+            self.node_wildcards = True  # always True here
+
 
 class NodeSet(NodeSetBase):
     """
