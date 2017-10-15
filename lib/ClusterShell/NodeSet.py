@@ -49,6 +49,7 @@ Usage example
   cluster32
 """
 
+import fnmatch
 import re
 import string
 import sys
@@ -756,6 +757,16 @@ def _strip_escape(nsstr):
     """
     return nsstr.strip().replace('%', '%%')
 
+def _rsets4nsb(rsets, autostep):
+    """
+    Helper to convert a list of RangeSet objects into the proper object
+    for NodeSetBase: RangeSet, RangeSetND or None (no node index).
+    """
+    if len(rsets) > 1:
+        return RangeSetND([rsets], None, autostep, copy_rangeset=False)
+    elif len(rsets) == 1:
+        return rsets[0]
+
 
 class ParsingEngine(object):
     """
@@ -769,12 +780,13 @@ class ParsingEngine(object):
     BRACKET_OPEN = '['
     BRACKET_CLOSE = ']'
 
-    def __init__(self, group_resolver):
+    def __init__(self, group_resolver, enable_wildcards=True):
         """
         Initialize Parsing Engine.
         """
         self.group_resolver = group_resolver
         self.base_node_re = re.compile("(\D*)(\d*)")
+        self.wildcards_enabled = enable_wildcards
 
     def parse(self, nsobj, autostep):
         """
@@ -808,24 +820,29 @@ class ParsingEngine(object):
         nodeset = NodeSetBase()
         nsstr = _strip_escape(nsstr)
 
-        for opc, pat, rgnd in self._scan_string(nsstr, autostep):
-            # Parser main debugging:
-            #print "OPC %s PAT %s RANGESETS %s" % (opc, pat, rgnd)
-            if self.group_resolver and pat[0] == '@':
-                ns_group = NodeSetBase()
-                for nodegroup in NodeSetBase(pat, rgnd):
-                    # parse/expand nodes group: get group string and namespace
-                    ns_str_ext, ns_nsp_ext = self.parse_group_string(nodegroup,
-                                                                     namespace)
-                    if ns_str_ext: # may still contain groups
-                        # recursively parse and aggregate result
-                        ns_group.update(self.parse_string(ns_str_ext,
-                                                          autostep,
-                                                          ns_nsp_ext))
-                # perform operation
-                getattr(nodeset, opc)(ns_group)
+        for opc, args in self._scan_string(nsstr, autostep, namespace):
+            # args is a list that can either contain (pat, rsets), still to be
+            # processed or, alternatively, a ready-to-use NodeSetBase object
+            if len(args) == 1:
+                getattr(nodeset, opc)(args[0])
             else:
-                getattr(nodeset, opc)(NodeSetBase(pat, rgnd, False))
+                pat, rgnd = args
+                # Group set support
+                if self.group_resolver and pat[0] == '@':
+                    ns_group = NodeSetBase()
+                    for nodegroup in NodeSetBase(pat, rgnd):
+                        # parse/expand nodes group: get group str and namespace
+                        ns_str_ext, ns_nsp_ext = \
+                            self.parse_group_string(nodegroup, namespace)
+                        if ns_str_ext:  # may still contain groups
+                            # recursively parse and aggregate result
+                            ns_group.update(self.parse_string(ns_str_ext,
+                                                              autostep,
+                                                              ns_nsp_ext))
+                    # perform operation
+                    getattr(nodeset, opc)(ns_group)
+                else:
+                    getattr(nodeset, opc)(NodeSetBase(pat, rgnd, False))
 
         return nodeset
 
@@ -875,12 +892,16 @@ class ParsingEngine(object):
         for grpstr in self.group_resolver.grouplist(namespace):
             # We scan each group string to expand any range seen...
             grpstr = _strip_escape(grpstr)
-            for opc, pat, rgnd in self._scan_string(grpstr, None):
+            for opc, (pat, rgnd) in self._scan_string(grpstr, None, namespace):
                 getattr(grpset, opc)(NodeSetBase(pat, rgnd, False))
         return list(grpset)
 
     def all_nodes(self, namespace=None):
-        """Get all nodes from group resolver as a list of strings."""
+        """
+        Get all nodes from group resolver as a list of strings, close to
+        what the GroupResolver will return, so it is NOT guaranteed to be a
+        list of single nodes.
+        """
         # namespace is the optional group source
         assert self.group_resolver is not None
         alln = []
@@ -943,11 +964,26 @@ class ParsingEngine(object):
                 pat += "%s%%s" % pfx
                 rangesets.append(RangeSet.fromone(idxint, pad, autostep))
             else:
-                # undefined pad means no node index
+                # no node index
                 pat += pfx
         return pat, rangesets
 
-    def _scan_string(self, nsstr, autostep):
+    def _expand_wildcards(self, wcpattern, autostep, namespace):
+        """Expand nodes according to wildcard mask"""
+        # get an iterator on all individual nodes
+        alln = NodeSetBase()
+        self.wildcards_enabled = False  # avoid infinite recursion
+        try:
+            for res in self.all_nodes(namespace):
+                alln.update(self.parse_string(res, autostep, namespace))
+
+            # return the subset of the nodes that match pattern
+            for node in fnmatch.filter(alln, wcpattern):
+                yield self._scan_string_single(node, autostep)
+        finally:
+            self.wildcards_enabled = True  # always True here
+
+    def _scan_string(self, nsstr, autostep, namespace):
         """Parsing engine's string scanner method (iterator)."""
         next_op_code = 'update'
         while nsstr:
@@ -1057,15 +1093,26 @@ class ParsingEngine(object):
 
                 # Ignore whitespace(s)
                 node = node.rstrip()
-                newpat, rsets = self._scan_string_single(node, autostep)
 
-            if len(rsets) > 1:
-                yield op_code, newpat, RangeSetND([rsets], None, autostep,
-                                                  copy_rangeset=False)
-            elif len(rsets) == 1:
-                yield op_code, newpat, rsets[0]
-            else:
-                yield op_code, newpat, None
+                # Node wildcard support
+                if self.wildcards_enabled and node[0] != '@' and \
+                   ('*' in node or '?' in node):
+                    # A wildcarded nodeset can be seen as a single nodeset, so
+                    # we compute the union of nodes matching the wildcard mask
+                    # and yield result along with op_code, so that for example,
+                    # nodes!*badnodes* does actually remove *all* badnodes.
+                    wcns = NodeSetBase()
+                    for wcpat, wcrsets in self._expand_wildcards(node, autostep,
+                                                                 namespace):
+                        wcrgnd = _rsets4nsb(wcrsets, autostep)
+                        wcns.update(NodeSetBase(wcpat, wcrgnd, False))
+                    yield op_code, (wcns,)  # direct NodeSetBase yield
+                    continue                # already yielded
+                else:
+                    newpat, rsets = self._scan_string_single(node, autostep)
+
+            # common single-pattern yield
+            yield op_code, (newpat, _rsets4nsb(rsets, autostep))
 
     def _amend_leading_digits(self, outer, inner):
         """Helper to get rid of leading bracket digits.
@@ -1509,7 +1556,8 @@ def grouplist(namespace=None, resolver=None):
     group namespace (or use default namespace).
     Group names are not prefixed with "@".
     """
-    return ParsingEngine(resolver or RESOLVER_STD_GROUP).grouplist(namespace)
+    return ParsingEngine(resolver or RESOLVER_STD_GROUP,
+                         enable_wildcards=False).grouplist(namespace)
 
 def std_group_resolver():
     """
