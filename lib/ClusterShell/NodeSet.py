@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2007-2016 Aurelien Degremont <aurelien.degremont@cea.fr>
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2007-2017 Aurelien Degremont <aurelien.degremont@cea.fr>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -49,6 +49,7 @@ Usage example
   cluster32
 """
 
+import fnmatch
 import re
 import string
 import sys
@@ -756,6 +757,16 @@ def _strip_escape(nsstr):
     """
     return nsstr.strip().replace('%', '%%')
 
+def _rsets4nsb(rsets, autostep):
+    """
+    Helper to convert a list of RangeSet objects into the proper object
+    for NodeSetBase: RangeSet, RangeSetND or None (no node index).
+    """
+    if len(rsets) > 1:
+        return RangeSetND([rsets], None, autostep, copy_rangeset=False)
+    elif len(rsets) == 1:
+        return rsets[0]
+
 
 class ParsingEngine(object):
     """
@@ -769,12 +780,13 @@ class ParsingEngine(object):
     BRACKET_OPEN = '['
     BRACKET_CLOSE = ']'
 
-    def __init__(self, group_resolver):
+    def __init__(self, group_resolver, node_wildcard_enable=True):
         """
         Initialize Parsing Engine.
         """
         self.group_resolver = group_resolver
         self.base_node_re = re.compile("(\D*)(\d*)")
+        self.node_wc = node_wildcard_enable  # node wildcard support
 
     def parse(self, nsobj, autostep):
         """
@@ -805,6 +817,7 @@ class ParsingEngine(object):
 
         Return a NodeSetBase object.
         """
+        alln_cache = None  # used to compute 'all nodes' only once
         nodeset = NodeSetBase()
         nsstr = _strip_escape(nsstr)
 
@@ -824,6 +837,42 @@ class ParsingEngine(object):
                                                           ns_nsp_ext))
                 # perform operation
                 getattr(nodeset, opc)(ns_group)
+
+            elif self.group_resolver and self.node_wc and ('*' in pat or
+                                                           '?' in pat):
+                # We support ranges with wildcard mask by testing all nodes
+                # against each expanded mask (wcmasks).
+                wcmasks = (str(wcn) for wcn in NodeSetBase(pat, rgnd, False))
+
+                # Our reference set is 'all nodes', we need to build it from
+                # NodeSetBase to iterate over each individual node.
+                if alln_cache is None:
+                    self.node_wc = False  # avoid infinite recursion
+                    try:
+                        nsb = NodeSetBase()
+                        for res in self.all_nodes(namespace):
+                            nsb.update(self.parse_string(res, autostep,
+                                                         namespace))
+                        alln_cache = set(str(node) for node in nsb)
+                    finally:
+                        self.node_wc = True
+
+                alln = alln_cache.copy()
+
+                # A wildcarded nodeset can be seen as a single nodeset, so we
+                # compute the union of nodes matching the wildcard mask(s) and
+                # use the resulting NodeSetBase object as argument of the next
+                # operation (opc).
+                wcns = NodeSetBase()
+                for wcmask in wcmasks:
+                    # Expand nodes matching any of the wildcard mask
+                    for node in fnmatch.filter(alln, wcmask):
+                        alln.remove(node)  # remove matching node for next iter
+                        wcp, wcr = self._scan_string_single(node, autostep)
+                        wcrgnd = _rsets4nsb(wcr, autostep)
+                        wcns.update(NodeSetBase(wcp, wcrgnd, False))
+                getattr(nodeset, opc)(wcns)
+
             else:
                 getattr(nodeset, opc)(NodeSetBase(pat, rgnd, False))
 
@@ -1059,13 +1108,7 @@ class ParsingEngine(object):
                 node = node.rstrip()
                 newpat, rsets = self._scan_string_single(node, autostep)
 
-            if len(rsets) > 1:
-                yield op_code, newpat, RangeSetND([rsets], None, autostep,
-                                                  copy_rangeset=False)
-            elif len(rsets) == 1:
-                yield op_code, newpat, rsets[0]
-            else:
-                yield op_code, newpat, None
+            yield op_code, newpat, _rsets4nsb(rsets, autostep)
 
     def _amend_leading_digits(self, outer, inner):
         """Helper to get rid of leading bracket digits.
@@ -1110,6 +1153,7 @@ class ParsingEngine(object):
                                        for bound in elem.split('-'))
                               for elem in inner.split(',')))
         return outerstrip, inner
+
 
 class NodeSet(NodeSetBase):
     """
