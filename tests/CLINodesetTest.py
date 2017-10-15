@@ -711,6 +711,22 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
         self._nodeset_t(["--list-all", "-G", "-s", "other"], None,
                         b"@baz\n@norf\n@qux\n@bar\n@foo\n@moo\n") # 'other' source first
 
+    def test_040_wildcards(self):
+        """test nodeset with wildcards"""
+        self._nodeset_t(["-f", "*"], None, b"example[1-100]\n")
+        self._nodeset_t(["-f", "x*"], None, b"\n")  # no match
+        self._nodeset_t(["-s", "other", "-f", "*"], None, b"nova[030-489]\n")
+        self._nodeset_t(["-G", "-s", "other", "-f", "*"], None,
+                        b"nova[030-489]\n")
+        self._nodeset_t(["-s", "other", "-f", "nova0??"], None,
+                        b"nova[030-099]\n")
+        self._nodeset_t(["-s", "other", "-f", "nova?[12-42]"], None,
+                        b"nova[030-042,112-142,212-242,312-342,412-442]\n")
+        self._nodeset_t(["-s", "other", "-f", "*!*[033]"], None,
+                        b"nova[030-032,034-489]\n")
+        self._nodeset_t(["-s", "other", "--autostep=3", "-f", "*!*[033-099/2]"],
+                        None, b"nova[030-031,032-100/2,101-489]\n")
+
 
 class CLINodesetGroupResolverTest3(CLINodesetTestBase):
     """Unit test class for testing CLI/Nodeset.py with custom Group Resolver
@@ -743,7 +759,7 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
         set_std_group_resolver(None)
         self.f = None  # used to release temp file
 
-    def test_040_list_all(self):
+    def test_list_all(self):
         """test nodeset --list-all (w/ missing list upcall)"""
         self._nodeset_t(["--list-all"], None,
                         b"@bar\n@foo\n@moo\n@other:baz\n@other:norf\n@other:qux\n", 0,
@@ -757,7 +773,7 @@ class CLINodesetGroupResolverTest3(CLINodesetTestBase):
                         b"@other:baz nova[030-489] 460\n@other:norf nova[030-489] 460\n@other:qux nova[030-489] 460\n", 0,
                         b"Warning: No list upcall defined for group source pdu\n")
 
-    def test_041_list_failure(self):
+    def test_list_failure(self):
         """test nodeset --list -s source w/ missing list upcall"""
         self._nodeset_t(["--list", "-s", "pdu"], None, b"", 1,
                         b'No list upcall defined for group source "pdu"\n')
