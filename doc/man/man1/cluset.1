@@ -233,6 +233,64 @@ The \fB@*\fP and \fB@SOURCE:*\fP special notations may be used in extended patte
 .UNINDENT
 .UNINDENT
 .UNINDENT
+.SH NODE WILDCARDS
+.sp
+Any wildcard mask found is matched against all nodes from the group source (see \fBgroups.conf\fP(5) and the \fB\-a/\-\-all\fP option above).
+\fB*\fP means match zero or more characters of any type; \fB?\fP means match exactly one character of any type.
+This can be especially useful for server farms, or when cluster node names differ.
+.INDENT 0.0
+.TP
+.B Say that your group configuration is set to return the following “all nodes”:
+.INDENT 7.0
+.TP
+.B $ cluset \-f \-a
+.UNINDENT
+.nf
+bckserv[1\-2],dbserv[1\-4],wwwserv[1\-9]
+.fi
+.sp
+.TP
+.B Then, you can use wildcards to select particular nodes, as shown below:
+.INDENT 7.0
+.TP
+.B $ cluset \-f \(aqwww*\(aq
+.UNINDENT
+.nf
+wwwserv[1\-9]
+.fi
+.sp
+.INDENT 7.0
+.TP
+.B $ cluset \-f \(aqwww*[1\-4]\(aq
+.UNINDENT
+.nf
+wwwserv[1\-4]
+.fi
+.sp
+.INDENT 7.0
+.TP
+.B $ cluset \-f \(aq*serv1\(aq
+.UNINDENT
+.nf
+bckserv1,dbserv1,wwwserv1
+.fi
+.sp
+.UNINDENT
+.sp
+Wildcard masks are resolved prior to extended patterns, but each mask is evaluated as a whole node set operand.
+In the example below, we select all nodes matching \fB*serv*\fP before removing all nodes matching \fBwww*\fP:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B $ cluset  \-f \(aq*serv*!www*\(aq
+.UNINDENT
+.nf
+bckserv[1\-2],dbserv[1\-4]
+.fi
+.sp
+.UNINDENT
+.UNINDENT
 .SH EXIT STATUS
 .sp
 An exit status of zero indicates success of the \fBcluset\fP command. A non\-zero

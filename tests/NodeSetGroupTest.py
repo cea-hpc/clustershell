@@ -3,6 +3,7 @@ Unit test for NodeSet with Group support
 """
 
 import os
+import posixpath
 import sys
 from textwrap import dedent
 import unittest
@@ -1026,6 +1027,142 @@ class NodeSetGroupTest(unittest.TestCase):
         ns = NodeSet('montana[87-90]', resolver=res)
         # could also result in escape%test?
         self.assertEqual(ns.regroup(), '@esc%test2')
+
+    def test_nodeset_wildcard_support(self):
+        """test NodeSet wildcard support"""
+        f = make_temp_file(dedent("""
+            [local]
+            map: echo blargh
+            all: echo foo1 foo2 foo3 bar bar1 bar2 foobar foobar1
+            list: echo g1 g2 g3
+            """).encode('ascii'))
+        res = GroupResolverConfig(f.name)
+        self.assertEqual(res.grouplist(), ['g1', 'g2', 'g3'])
+        # wildcard expansion computes against 'all'
+        nodeset = NodeSet("*foo*", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-3],foobar,foobar1")
+        self.assertEqual(len(nodeset), 5)
+        nodeset = NodeSet("foo?", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-3]")
+        nodeset = NodeSet("*bar", resolver=res)
+        self.assertEqual(str(nodeset), "bar,foobar")
+        # to exercise 'all nodes' caching
+        nodeset = NodeSet("foo*,bar1,*bar", resolver=res)
+        self.assertEqual(str(nodeset), "bar,bar1,foo[1-3],foobar,foobar1")
+        nodeset = NodeSet("*", resolver=res)
+        self.assertEqual(str(nodeset), "bar,bar[1-2],foo[1-3],foobar,foobar1")
+        # wildcard matching is done with fnmatch, which is always case
+        # sensitive on UNIX-like systems, the only supported systems
+        self.assertEqual(os.path, posixpath)
+        nodeset = NodeSet("*Foo*", resolver=res)  # case sensitive
+        self.assertEqual(str(nodeset), "")
+
+    def test_nodeset_wildcard_support_noall(self):
+        """test NodeSet wildcard support (without all upcall)"""
+        f = make_temp_file(dedent("""
+            [local]
+            map: echo foo1 foo2 foo3 bar bar1 bar2 foobar foobar1
+            list: echo g1 g2 g3
+            """).encode('ascii'))
+        res = GroupResolverConfig(f.name)
+        # wildcard expansion computes against 'all', which if absent
+        # is resolved using list+map
+        nodeset = NodeSet("*foo*", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-3],foobar,foobar1")
+        nodeset = NodeSet("foo?", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-3]")
+        nodeset = NodeSet("*bar", resolver=res)
+        self.assertEqual(str(nodeset), "bar,foobar")
+        nodeset = NodeSet("*", resolver=res)
+        self.assertEqual(str(nodeset), "bar,bar[1-2],foo[1-3],foobar,foobar1")
+
+    def test_nodeset_wildcard_infinite_recursion(self):
+        """test NodeSet wildcard infinite recursion protection"""
+        f = make_temp_file(dedent(r"""
+            [local]
+            map: echo foo1 foo2 foo3
+            all: echo foo1 foo2 foo\*
+            list: echo g1
+            """).encode('ascii'))
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("*foo*", resolver=res)
+        # wildcard mask should be automatically ignored on foo* due to
+        # infinite recursion
+        self.assertEqual(str(nodeset), "foo[1-2],foo*")
+        self.assertEqual(len(nodeset), 3)
+
+    def test_nodeset_wildcard_grouplist(self):
+        """test NodeSet wildcard support and grouplist()"""
+        f = make_temp_file(dedent(r"""
+            [local]
+            map: echo other
+            all: echo foo1 foo2 foo3 bar bar1 bar2 foobar foobar1
+            list: echo a b\* c d e
+            """).encode('ascii'))
+        res = GroupResolverConfig(f.name)
+        # grouplist() shouldn't trigger wildcard expansion
+        self.assertEqual(grouplist(resolver=res), ['a', 'b*', 'c', 'd', 'e'])
+        nodeset = NodeSet("*foo*", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-3],foobar,foobar1")
+
+    def test_nodeset_wildcard_support_ranges(self):
+        """test NodeSet wildcard support with ranges"""
+        f = make_temp_file(dedent("""
+            [local]
+            map: echo blargh
+            all: echo foo1 foo2 foo3 foo1-ib0 foo2-ib0 foo1-ib1 foo2-ib1 bar10 foobar foobar1
+            list: echo g1 g2 g3
+            """).encode('ascii'))
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("*foo[1-2]", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-2]")
+        nodeset = NodeSet("f?o[1]", resolver=res)
+        self.assertEqual(str(nodeset), "foo1")
+        nodeset = NodeSet("foo*", resolver=res)
+        self.assertEqual(str(nodeset),
+                         "foo[1-3],foo[1-2]-ib[0-1],foobar,foobar1")
+        nodeset = NodeSet("foo[1-2]*[0]", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-2]-ib0")
+        nodeset = NodeSet("foo[1-2]*[0-1]", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-2]-ib[0-1]")
+        nodeset = NodeSet("*[1-2]*[0-1]", resolver=res)  # we do it all :)
+        self.assertEqual(str(nodeset), "bar10,foo[1-2]-ib[0-1]")  # bar10 too
+        nodeset = NodeSet("*[1-2]*", resolver=res)
+        self.assertEqual(str(nodeset),
+                         "bar10,foo[1-2],foo[1-2]-ib[0-1],foobar1")
+
+    def test_nodeset_wildcard_precedence(self):
+        """test NodeSet wildcard support precedence"""
+        f = make_temp_file(dedent("""
+            [local]
+            map: echo blargh
+            all: echo foo1-ib0 foo2-ib0 foo1-ib1 foo2-ib1 bar001 bar002
+            list: echo g1 g2 g3
+            """).encode('ascii'))
+        res = GroupResolverConfig(f.name)
+        nodeset = NodeSet("foo*!foo[1-2]-ib0", resolver=res)
+        self.assertEqual(str(nodeset), "foo[1-2]-ib1")
+        nodeset = NodeSet("foo2-ib0!*", resolver=res)
+        self.assertEqual(str(nodeset), "")
+        nodeset = NodeSet("bar[001-002],foo[1-2]-ib[0-1]!*foo*", resolver=res)
+        self.assertEqual(str(nodeset), "bar[001-002]")
+        nodeset = NodeSet("bar0*,foo[1-2]-ib[0-1]!*foo*", resolver=res)
+        self.assertEqual(str(nodeset), "bar[001-002]")
+        nodeset = NodeSet("bar??1,foo[1-2]-ib[0-1]!*foo*", resolver=res)
+        self.assertEqual(str(nodeset), "bar001")
+        nodeset = NodeSet("*,*", resolver=res)
+        self.assertEqual(str(nodeset), "bar[001-002],foo[1-2]-ib[0-1]")
+        nodeset = NodeSet("*!*", resolver=res)
+        self.assertEqual(str(nodeset), "")
+        nodeset = NodeSet("*&*", resolver=res)
+        self.assertEqual(str(nodeset), "bar[001-002],foo[1-2]-ib[0-1]")
+        nodeset = NodeSet("*^*", resolver=res)
+        self.assertEqual(str(nodeset), "")
+
+    def test_nodeset_wildcard_no_resolver(self):
+        """test NodeSet wildcard without resolver"""
+        nodeset = NodeSet("foo*", resolver=RESOLVER_NOGROUP)
+        self.assertEqual(str(nodeset), "foo*")
 
 
 class NodeSetGroup2GSTest(unittest.TestCase):
