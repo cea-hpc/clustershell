@@ -16,7 +16,7 @@ from ClusterShell.Gateway import GatewayChannel
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import Task, task_self
 from ClusterShell.Topology import TopologyGraph
-from ClusterShell.Worker.Tree import WorkerTree
+from ClusterShell.Worker.Tree import TreeWorker
 from ClusterShell.Worker.Worker import StreamWorker
 
 from TLib import HOSTNAME
@@ -355,7 +355,7 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         msg = self.recvxml(ACKMessage)
 
         # prepare a remote shell command request...
-        workertree = WorkerTree(nodes=target, handler=None, timeout=timeout,
+        workertree = TreeWorker(nodes=target, handler=None, timeout=timeout,
                                 command=command)
         # code snippet from PropagationChannel.shell()
         ctl = ControlMessage(id(workertree))

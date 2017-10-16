@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2011-2016 CEA/DAM
-# Copyright (C) 2015-2016 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -41,7 +41,7 @@ from ClusterShell.Propagation import PropagationTreeRouter
 
 
 class MetaWorkerEventHandler(EventHandler):
-    """Handle events for the meta worker WorkerTree"""
+    """Handle events for the meta worker TreeWorker"""
 
     def __init__(self, metaworker):
         self.metaworker = metaworker
@@ -99,7 +99,7 @@ class MetaWorkerEventHandler(EventHandler):
         #    metaworker.eh.ev_close(metaworker)
 
 
-class WorkerTree(DistantWorker):
+class TreeWorker(DistantWorker):
     """
     ClusterShell tree worker Class.
 
@@ -147,7 +147,7 @@ class WorkerTree(DistantWorker):
 
         if self.command is None and self.source is None:
             raise ValueError("missing command or source parameter in "
-                             "WorkerTree constructor")
+                             "TreeWorker constructor")
 
         # rcopy is enforcing separated stderr to handle tar error messages
         # because stdout is used for data transfer
@@ -192,7 +192,7 @@ class WorkerTree(DistantWorker):
     def _set_task(self, task):
         """
         Bind worker to task. Called by task.schedule().
-        WorkerTree metaworker: override to schedule sub-workers.
+        TreeWorker metaworker: override to schedule sub-workers.
         """
         ##if fanout is None:
         ##    fanout = self.router.fanout
@@ -206,7 +206,7 @@ class WorkerTree(DistantWorker):
         self._check_ini()
 
     def _launch(self, nodes):
-        self.logger.debug("WorkerTree._launch on %s (fanout=%d)", nodes,
+        self.logger.debug("TreeWorker._launch on %s (fanout=%d)", nodes,
                           self.task.info("fanout"))
 
         # Prepare copy params if source is defined
@@ -445,7 +445,7 @@ class WorkerTree(DistantWorker):
         self._has_timeout = True
 
     def _check_ini(self):
-        self.logger.debug("WorkerTree: _check_ini (%d, %d)", self._start_count,
+        self.logger.debug("TreeWorker: _check_ini (%d, %d)", self._start_count,
                           self._child_count)
         if self.eh and self._start_count >= self._child_count:
             # this part is called once
@@ -472,7 +472,7 @@ class WorkerTree(DistantWorker):
             targets = self.gwtargets[str(gateway)]
             if not targets:
                 # no more active targets for this gateway
-                self.logger.debug("WorkerTree._check_fini %s call pchannel_"
+                self.logger.debug("TreeWorker._check_fini %s call pchannel_"
                                   "release for gw %s", self, gateway)
                 self.task._pchannel_release(gateway, self)
                 del self.gwtargets[str(gateway)]
@@ -514,6 +514,9 @@ class WorkerTree(DistantWorker):
 
     def abort(self):
         """Abort processing any action by this worker."""
-        # Not yet supported by WorkerTree
+        # Not yet supported by TreeWorker
         raise NotImplementedError("see github issue #229")
 
+
+# TreeWorker's former name (deprecated as of 1.8)
+WorkerTree = TreeWorker
