@@ -36,7 +36,7 @@ from ClusterShell.Task import task_self, _getshorthostname
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Worker.fastsubprocess import set_nonblock_flag
 from ClusterShell.Worker.Worker import StreamWorker, FANOUT_UNLIMITED
-from ClusterShell.Worker.Tree import WorkerTree
+from ClusterShell.Worker.Tree import TreeWorker
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
     ControlMessage, ACKMessage, ErrorMessage, StartMessage, EndMessage, \
     StdOutMessage, StdErrMessage, RetcodeMessage, TimeoutMessage, \
@@ -56,14 +56,14 @@ def gateway_excepthook(exc_type, exc_value, tb):
     logging.getLogger(__name__).error(''.join(tbexc))
 
 
-class WorkerTreeResponder(EventHandler):
-    """Gateway WorkerTree handler"""
+class TreeWorkerResponder(EventHandler):
+    """Gateway TreeWorker handler"""
 
     def __init__(self, task, gwchan, srcwkr):
         EventHandler.__init__(self)
         self.gwchan = gwchan    # gateway channel
-        self.srcwkr = srcwkr    # id of distant parent WorkerTree
-        self.worker = None      # local WorkerTree instance
+        self.srcwkr = srcwkr    # id of distant parent TreeWorker
+        self.worker = None      # local TreeWorker instance
         self.retcodes = {}      # self-managed retcodes
         self.logger = logging.getLogger(__name__)
 
@@ -77,10 +77,10 @@ class WorkerTreeResponder(EventHandler):
             # create auto-closing timer object for grooming
             self.timer = task.timer(qdelay, self, qdelay, autoclose=True)
 
-        self.logger.debug("WorkerTreeResponder initialized grooming=%f", qdelay)
+        self.logger.debug("TreeWorkerResponder initialized grooming=%f", qdelay)
 
     def ev_start(self, worker):
-        self.logger.debug("WorkerTreeResponder: ev_start")
+        self.logger.debug("TreeWorkerResponder: ev_start")
         self.worker = worker
 
     def ev_timer(self, timer):
@@ -118,7 +118,7 @@ class WorkerTreeResponder(EventHandler):
             msg_class = StdOutMessage
         elif sname == worker.SNAME_STDERR:
             msg_class = StdErrMessage
-            self.logger.debug("WorkerTreeResponder: ev_error %s %s", node, msg)
+            self.logger.debug("TreeWorkerResponder: ev_error %s %s", node, msg)
 
         if self.timer is None:
             self.gwchan.send(msg_class(node, msg, self.srcwkr))
@@ -136,7 +136,7 @@ class WorkerTreeResponder(EventHandler):
 
     def ev_close(self, worker, timedout):
         """End of CTL responder"""
-        self.logger.debug("WorkerTreeResponder: ev_close timedout=%s", timedout)
+        self.logger.debug("TreeWorkerResponder: ev_close timedout=%s", timedout)
         if timedout:
             # some nodes did timeout
             msg = TimeoutMessage(NodeSet._fromlist1(worker.iter_keys_timeout()),
@@ -263,9 +263,9 @@ class GatewayChannel(Channel):
 
                 self.logger.debug('launching execution/enter gathering state')
 
-                responder = WorkerTreeResponder(task, self, msg.srcid)
+                responder = TreeWorkerResponder(task, self, msg.srcid)
 
-                self.propagation = WorkerTree(msg.target, responder, timeout,
+                self.propagation = TreeWorker(msg.target, responder, timeout,
                                               command=cmd,
                                               topology=self.topology,
                                               newroot=self.nodename,
@@ -275,7 +275,7 @@ class GatewayChannel(Channel):
                 responder.worker = self.propagation
                 self.propagation.upchannel = self
                 task.schedule(self.propagation)
-                self.logger.debug("WorkerTree scheduled")
+                self.logger.debug("TreeWorker scheduled")
                 self._ack(msg)
             elif msg.action == 'write':
                 data = msg.data_decode()
