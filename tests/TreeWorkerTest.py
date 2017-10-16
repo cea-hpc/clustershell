@@ -1,5 +1,5 @@
 """
-Unit test for ClusterShell.Worker.WorkerTree
+Unit test for ClusterShell.Worker.TreeWorker
 
 This unit test requires working ssh connections to the following
 local addresses: $HOSTNAME, localhost, 127.0.0.[2-4]
@@ -19,7 +19,7 @@ import unittest
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, task_terminate
 from ClusterShell.Topology import TopologyGraph
-from ClusterShell.Worker.Tree import WorkerTree
+from ClusterShell.Worker.Tree import TreeWorker, WorkerTree
 
 from TLib import HOSTNAME, make_temp_dir, make_temp_file, make_temp_filename
 
@@ -101,7 +101,7 @@ class TEventHandler(TEventHandlerBase):
 
 class TreeWorkerTest(unittest.TestCase):
     """
-    TreeWorkerTest: test WorkerTree
+    TreeWorkerTest: test TreeWorker
 
         NODE_HEAD -> NODE_GATEWAY -> NODE_DISTANT
                   -> NODE_DIRECT    [defined in topology]
@@ -389,7 +389,11 @@ class TreeWorkerTest(unittest.TestCase):
         self._tree_rcopy_dir(NODE_GATEWAY)
 
     def test_tree_worker_missing_arguments(self):
-        """test WorkerTree with missing arguments"""
+        """test TreeWorker with missing arguments"""
         teh = TEventHandler()
         # no command nor source
-        self.assertRaises(ValueError, WorkerTree, NODE_DISTANT, teh, 10)
+        self.assertRaises(ValueError, TreeWorker, NODE_DISTANT, teh, 10)
+
+    def test_tree_worker_name_compat(self):
+        """test TreeWorker former name (WorkerTree)"""
+        self.assertEqual(TreeWorker, WorkerTree)

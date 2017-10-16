@@ -10,4 +10,3 @@ ExecWorker
 .. autoclass:: ExecClient
     :members:
     :special-members:
-

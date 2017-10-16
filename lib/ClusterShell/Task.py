@@ -66,7 +66,7 @@ from ClusterShell.Engine.Engine import EngineTimer
 from ClusterShell.Engine.Factory import PreferredEngine
 from ClusterShell.Worker.EngineClient import EnginePort, EngineClientError
 from ClusterShell.Worker.Popen import WorkerPopen
-from ClusterShell.Worker.Tree import WorkerTree
+from ClusterShell.Worker.Tree import TreeWorker
 from ClusterShell.Worker.Worker import FANOUT_UNLIMITED
 
 from ClusterShell.Event import EventHandler
@@ -584,7 +584,7 @@ class Task(object):
                     raise TaskError("tree mode required for distant shell "
                                     "command with unknown topology!")
                 # create tree worker
-                wrkcls = WorkerTree
+                wrkcls = TreeWorker
             elif not remote:
                 # create local worker
                 wrkcls = self.default('local_worker')
@@ -634,7 +634,7 @@ class Task(object):
                                 "command with unknown topology!")
 
             # create tree worker
-            wrkcls = WorkerTree
+            wrkcls = TreeWorker
         else:
             # create a new copy worker
             wrkcls = self.default('distant_worker')
