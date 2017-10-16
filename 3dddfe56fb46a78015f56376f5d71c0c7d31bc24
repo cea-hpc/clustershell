@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1bc72f8_05a42811",
+        "filename": "lib/ClusterShell/Gateway.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T08:04:11Z",
+      "side": 1,
+      "message": "(if you refresh) should fit on one line",
+      "revId": "3dddfe56fb46a78015f56376f5d71c0c7d31bc24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
