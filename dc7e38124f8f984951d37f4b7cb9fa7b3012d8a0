@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a6044e30_59074915",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 1151,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T15:46:00Z",
+      "side": 1,
+      "message": "should probably be merged with calling function. No need for a 3-line method here.",
+      "revId": "dc7e38124f8f984951d37f4b7cb9fa7b3012d8a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
