@@ -337,7 +337,7 @@ class PropagationChannel(Channel):
                 _, nodes, bytes_count, metaworker = self._cfg_write_hist.pop()
                 for node in nodes:
                     # we are losing track of the gateway here, we could override
-                    # on_written in WorkerTree if needed (eg. for stats)
+                    # on_written in TreeWorker if needed (eg. for stats)
                     metaworker._on_written(node, bytes_count, 'stdin')
             self.send_dequeue()
         elif isinstance(msg, RoutedMessageBase):
@@ -397,4 +397,4 @@ class PropagationChannel(Channel):
             self.logger.debug("unreachable gateway %s", gateway)
             worker.task.router.mark_unreachable(gateway)
             self.logger.debug("worker.task.gateways=%s", worker.task.gateways)
-            # TODO: find best gateway, update WorkerTree counters, relaunch...
+            # TODO: find best gateway, update TreeWorker counters, relaunch...
