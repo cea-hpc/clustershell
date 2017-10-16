@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4de4a02_75ace53f",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 789,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T09:59:28Z",
+      "side": 1,
+      "message": "should we call wildcard matching \u0027globbing\u0027 ?",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8bab201_9bbb180b",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1150,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T09:59:28Z",
+      "side": 1,
+      "message": "looks like we are computing \"all\" nodeset each time _expand_wildcards() is called.\n\nif you have something like \"foo*[1-100]\", this means you will parse each node of \"all\"  100 times.\nThis could be very expansive.",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0e97eaa_36a9e45c",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1154,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T09:59:28Z",
+      "side": 1,
+      "message": "looking more closely at this, you are computing a NodeSetBase, parsing each string from \"all\" upcall and then iterating on this nodeset, casting each elem back to string.\n\nThis is exactly what NodeSet users should avoid to do :)",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5513b20c_4667b9c1",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1155,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T09:59:28Z",
+      "side": 1,
+      "message": "better just yield the str here and let the caller call this _scan_string_single()\n\nthis last change makes this method NodeSet agnostic. may be can get rid of the recursion guard also.\n\nAt the end, I\u0027m wondering if this method does not belong to Resolver code...",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcfc3988_31501402",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1033,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T09:59:28Z",
+      "side": 1,
+      "message": "no need for the Main section when there is only one source in tests",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a74bf31_63c622c2",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1046,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-16T09:59:28Z",
+      "side": 1,
+      "message": "i think it is useless to test __len__ code everywhere. We already have test for this feature and it works. \n\nhere, if first check using str() is correct, the second one only makes test bigger without any gain.",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
