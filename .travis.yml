@@ -14,6 +14,8 @@ before_script:
   - cp ~/.ssh/{id_rsa.pub,authorized_keys}
   # Avoid ssh "known hosts" warnings
   - printf '%s\n    %s\n    %s\n' 'Host *' 'StrictHostKeyChecking no' 'LogLevel ERROR' >> ~/.ssh/config
+  # Activate virtualenv when sshing to localhost to enable gateway tests
+  - sed -i "1isource $VIRTUAL_ENV/bin/activate" ~/.bashrc
   # WorkerPdsh
   - sudo apt-get -y install pdsh
   - sudo sh -c 'echo ssh > /etc/pdsh/rcmd_default'
