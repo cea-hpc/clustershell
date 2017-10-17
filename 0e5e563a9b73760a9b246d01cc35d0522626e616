@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eada5751_f17f9d7b",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T15:52:05Z",
+      "side": 1,
+      "message": "which for loop?",
+      "parentUuid": "0af3a9f0_88107e04",
+      "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e0e1b55d_c0fa7995",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2017-10-17T15:31:57Z",
       "side": 1,
       "message": "(perf) if you remove from \"alln\" each \u0027node\u0027 which is matching wcmask, next wcmask comparison will be faster",
+      "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1aa2cdb3_99daca33",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T15:52:05Z",
+      "side": 1,
+      "message": "good idea! I\u0027ll try",
+      "parentUuid": "e0e1b55d_c0fa7995",
       "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
