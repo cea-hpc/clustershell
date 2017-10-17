@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0af3a9f0_88107e04",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-17T15:31:57Z",
+      "side": 1,
+      "message": "(perf) all_nodes() always has the same result and do not need to be compute for each iteration of the for-loop.",
+      "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0e1b55d_c0fa7995",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-17T15:31:57Z",
+      "side": 1,
+      "message": "(perf) if you remove from \"alln\" each \u0027node\u0027 which is matching wcmask, next wcmask comparison will be faster",
+      "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8f1a816_e81c2ed6",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1043,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-17T15:31:57Z",
+      "side": 1,
+      "message": "this is already tested here: https://github.com/cea-hpc/clustershell/blob/master/tests/NodeSetTest.py#L748\n\nwhat\u0027s the benefit of this test here? Are we lacking something in NodeSetTest? (niark niark niark :D)",
+      "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cd277bc_74e556ef",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1050,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-17T15:31:57Z",
+      "side": 1,
+      "message": "actually, we are filesystem case sensitive (meaning, on windows-like plateforms, we are not case sensitive here)",
+      "revId": "0e5e563a9b73760a9b246d01cc35d0522626e616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
