@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e37fcad9_4a8bfe7d",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 789,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T04:25:25Z",
+      "side": 1,
+      "message": "To avoid any confusion, from an API standpoint, it is probably better to avoid \u0027glob\u0027 when it\u0027s not about files. Some insight @ https://en.wikipedia.org/wiki/Glob_(programming)\n\nI also want to make sure there is a distinction between node wildcards and group wildcards, like @*, this is why I added node_",
+      "parentUuid": "a4de4a02_75ace53f",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d8bab201_9bbb180b",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2017-10-16T09:59:28Z",
       "side": 1,
       "message": "looks like we are computing \"all\" nodeset each time _expand_wildcards() is called.\n\nif you have something like \"foo*[1-100]\", this means you will parse each node of \"all\"  100 times.\nThis could be very expansive.",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f226993_f666f6e8",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1150,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T04:25:25Z",
+      "side": 1,
+      "message": "Yeah, indeed this was a bad idea. Computing all once greatly reduce the time spent here:\n\nExample with a range of 20000:\n  before:\n    real\t0m3.947s\n  after:\n    real\t0m2.553s",
+      "parentUuid": "d8bab201_9bbb180b",
       "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "31cd28ec_78492afb",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1154,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T04:25:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0e97eaa_36a9e45c",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5513b20c_4667b9c1",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 7
@@ -64,6 +118,24 @@
       "writtenOn": "2017-10-16T09:59:28Z",
       "side": 1,
       "message": "better just yield the str here and let the caller call this _scan_string_single()\n\nthis last change makes this method NodeSet agnostic. may be can get rid of the recursion guard also.\n\nAt the end, I\u0027m wondering if this method does not belong to Resolver code...",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d309a49_16a7d48d",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1155,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T04:25:25Z",
+      "side": 1,
+      "message": "recursion guard is required when calling parse_string() from all nodes to compute the nodeset. I will see what I can do.",
+      "parentUuid": "5513b20c_4667b9c1",
       "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "2ed8486d_bfebf5e2",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1033,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T04:25:25Z",
+      "side": 1,
+      "message": "this is nice! :D thx",
+      "parentUuid": "bcfc3988_31501402",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4a74bf31_63c622c2",
         "filename": "tests/NodeSetGroupTest.py",
         "patchSetId": 7
@@ -98,6 +188,24 @@
       "writtenOn": "2017-10-16T09:59:28Z",
       "side": 1,
       "message": "i think it is useless to test __len__ code everywhere. We already have test for this feature and it works. \n\nhere, if first check using str() is correct, the second one only makes test bigger without any gain.",
+      "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64146af5_cf2d0594",
+        "filename": "tests/NodeSetGroupTest.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 1046,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-17T04:25:25Z",
+      "side": 1,
+      "message": "I kept just one :D",
+      "parentUuid": "4a74bf31_63c622c2",
       "revId": "ea27967cfff3e91bbf1c3d0b7adbf5ed93e59c25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
