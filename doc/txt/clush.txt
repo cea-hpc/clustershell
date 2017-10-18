@@ -7,9 +7,9 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2017-10-02
+:Date:   2017-10-11
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.7.82
+:Version: 1.8
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -277,10 +277,17 @@ FILES
 =====
 
 */etc/clustershell/clush.conf*
-  System-wide ``clush`` configuration file.
+  System-wide clush configuration file.
+
+*$XDG_CONFIG_HOME/clustershell/clush.conf*
+  User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
+  *$HOME/.config/clustershell/clush.conf* is used instead.
+
+*$HOME/.local/etc/clustershell/clush.conf*
+  Local user configuration file for clush (default installation for pip --user)
 
 *~/.clush.conf*
-  This is the per-user ``clush`` configuration file.
+  Deprecated per-user clush configuration file.
 
 *~/.clush_history*
   File in which interactive ``clush`` command history is saved.
@@ -288,7 +295,9 @@ FILES
 SEE ALSO
 ========
 
-``clubak``\(1), ``nodeset``\(1), ``readline``\(3), ``clush.conf``\(5), ``groups.conf``\(5).
+``clubak``\(1), ``cluset``\(1), ``nodeset``\(1), ``readline``\(3), ``clush.conf``\(5), ``groups.conf``\(5).
+
+http://clustershell.readthedocs.org/
 
 BUG REPORTS
 ===========

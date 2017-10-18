@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2017-10-02
+:Date:   2017-10-11
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.7.82
+:Version: 1.8
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -141,6 +141,6 @@ from *clush.conf*.  External commands whose outputs were used by ``clush``
 SEE ALSO
 ========
 
-``clush``\(1), ``nodeset``\(1), ``groups.conf``\(5)
+``clush``\(1), ``groups.conf``\(5).
 
-http://clustershell.sourceforge.net/
+http://clustershell.readthedocs.org/
