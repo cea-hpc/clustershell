@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1d31124_4a40cc93",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2017-10-18T08:27:30Z",
+      "side": 1,
+      "message": "you\u0027re modifying alln while iterating on it in fnmatch.filter(). This could led to unexpected results, I\u0027m afraid. Not sure set() is current-element-remove-safe while iterating on it. use alln.copy() ?",
+      "revId": "0936a23d5e26ff38bbbedf6956eb0b3f296d8f61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
