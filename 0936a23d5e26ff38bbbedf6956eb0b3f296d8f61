@@ -16,6 +16,24 @@
       "revId": "0936a23d5e26ff38bbbedf6956eb0b3f296d8f61",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "864fec5e_c2ef7aee",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2017-10-18T13:16:17Z",
+      "side": 1,
+      "message": "Good point, I didn\u0027t think about that. But it looks like fnmatch.filter() isn\u0027t a generator but is creating a list of result, so I guess it is safe to remove node here. I haven\u0027t seen any \"RuntimeError: Set changed size during iteration\" during testing.",
+      "parentUuid": "c1d31124_4a40cc93",
+      "revId": "0936a23d5e26ff38bbbedf6956eb0b3f296d8f61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
