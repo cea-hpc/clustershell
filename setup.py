@@ -30,7 +30,7 @@ else:
     # User, in-prefix config install (rpmbuild or pip as user)
     CFGDIR = 'etc/clustershell'
 
-VERSION = '1.7.91'
+VERSION = '1.8'
 
 # Dependencies (for pip install)
 REQUIRES = ['PyYAML']
