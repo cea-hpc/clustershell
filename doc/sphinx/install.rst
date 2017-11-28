@@ -127,7 +127,7 @@ Python 3 versions of the tools are installed as *tool-pythonversion*, like
 openSUSE
 ^^^^^^^^
 
-ClusterShell is available in openSUSE Tumbleweed (since 2017)::
+ClusterShell is available in openSUSE Tumbleweed (Factory) and Leap since 2017::
 
     $ zypper search clustershell
     Loading repository data...
@@ -140,7 +140,7 @@ ClusterShell is available in openSUSE Tumbleweed (since 2017)::
       | python3-clustershell | ClusterShell module for Python 3                      | package
 
 
-To install ClusterShell on openSUSE Tumbleweed (Factory), use::
+To install ClusterShell on openSUSE, use::
 
     $ zypper install clustershell
 
