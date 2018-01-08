@@ -772,10 +772,13 @@ class ParsingEngine(object):
     """
     Class that is able to transform a source into a NodeSetBase.
     """
-    OP_CODES = { 'update': ',',
-                 'difference_update': '!',
-                 'intersection_update': '&',
-                 'symmetric_difference_update': '^' }
+
+    OP_CODES = {',': 'update',
+                '!': 'difference_update',
+                '&': 'intersection_update',
+                '^': 'symmetric_difference_update'}
+
+    OP_CODES_PAT = '[%s]' % re.escape(''.join(OP_CODES.keys()))
 
     BRACKET_OPEN = '['
     BRACKET_CLOSE = ']'
@@ -953,14 +956,11 @@ class ParsingEngine(object):
 
     def _next_op(self, pat):
         """Opcode parsing subroutine."""
-        op_idx = -1
-        next_op_code = None
-        for opc, idx in [(k, pat.find(v))
-                         for k, v in ParsingEngine.OP_CODES.items()]:
-            if idx >= 0 and (op_idx < 0 or idx <= op_idx):
-                next_op_code = opc
-                op_idx = idx
-        return op_idx, next_op_code
+        mobj = re.search(ParsingEngine.OP_CODES_PAT, pat)
+        if mobj:
+            return mobj.span()[0], mobj.group()
+        else:
+            return -1, None
 
     def _scan_string_single(self, nsstr, autostep):
         """Single node scan, returns (pat, list of rangesets)"""
@@ -998,7 +998,7 @@ class ParsingEngine(object):
 
     def _scan_string(self, nsstr, autostep):
         """Parsing engine's string scanner method (iterator)."""
-        next_op_code = 'update'
+        next_op_code = ','  # if no operator, default one is to update nodeset
         while nsstr:
             # Ignore whitespace(s) for convenience
             nsstr = nsstr.lstrip()
@@ -1072,11 +1072,11 @@ class ParsingEngine(object):
                 if op_idx < 0:
                     nsstr = None
                 else:
-                    opc = self.OP_CODES[next_op_code]
-                    sfx, nsstr = sfx.split(opc, 1)
+                    sfx, nsstr = sfx.split(next_op_code, 1)
                     # Detected character operator so right operand is mandatory
                     if not nsstr:
-                        msg = "missing nodeset operand with '%s' operator" % opc
+                        msg = "missing nodeset operand with '%s' " \
+                              "operator" % next_op_code
                         raise NodeSetParseError(None, msg)
 
                 # Ignore whitespace(s)
@@ -1093,11 +1093,11 @@ class ParsingEngine(object):
                     node = nsstr
                     nsstr = None # break next time
                 else:
-                    opc = self.OP_CODES[next_op_code]
-                    node, nsstr = nsstr.split(opc, 1)
+                    node, nsstr = nsstr.split(next_op_code, 1)
                     # Detected character operator so both operands are mandatory
                     if not node or not nsstr:
-                        msg = "missing nodeset operand with '%s' operator" % opc
+                        msg = "missing nodeset operand with '%s' " \
+                              "operator" % next_op_code
                         raise NodeSetParseError(node or nsstr, msg)
 
                 # Check for illegal closing bracket
@@ -1108,7 +1108,8 @@ class ParsingEngine(object):
                 node = node.rstrip()
                 newpat, rsets = self._scan_string_single(node, autostep)
 
-            yield op_code, newpat, _rsets4nsb(rsets, autostep)
+            op = ParsingEngine.OP_CODES[op_code]
+            yield op, newpat, _rsets4nsb(rsets, autostep)
 
     def _amend_leading_digits(self, outer, inner):
         """Helper to get rid of leading bracket digits.
