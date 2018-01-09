@@ -194,6 +194,30 @@
       "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "18e70374_1fdc9a9c",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1001,
+      "author": {
+        "id": 1011891
+      },
+      "writtenOn": "2018-01-09T16:37:39Z",
+      "side": 1,
+      "message": "Fully agree. At first I thought it was just the first to start with and cycle them, but instead has to be exactly this one.\nAnd yeah about the order, dunno what I was thinking ;)",
+      "parentUuid": "fca3eab9_48c7b803",
+      "range": {
+        "startLine": 1001,
+        "startChar": 23,
+        "endLine": 1001,
+        "endChar": 26
+      },
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
