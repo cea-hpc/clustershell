@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4ad2c1ce_671a9c61",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-01-09T15:52:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e3d523d4_36168491",
+      "range": {
+        "startLine": 12,
+        "startChar": 14,
+        "endLine": 12,
+        "endChar": 23
+      },
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d709c63_c6fd9e2f",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 1
@@ -137,6 +161,30 @@
       "side": 1,
       "message": "I meant something like:\n\n  next_op_code \u003d self.OP_CODES.keys()[0]",
       "parentUuid": "4d04bcd1_f153ca99",
+      "range": {
+        "startLine": 1001,
+        "startChar": 23,
+        "endLine": 1001,
+        "endChar": 26
+      },
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fca3eab9_48c7b803",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1001,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-01-09T15:52:23Z",
+      "side": 1,
+      "message": "By default, we merge (update) nodesets together. So the default operation should be an update. This is what this line is intended for. I\u0027m not sure your proposal is clearer. \n\nBy the way, keys()[0] is not correct as dict keys are not ordered. This is hash-based so this could be any operator (as each key is only one character I think it will be ASCII table ordered, but this is a side effect).\n\nI will add a class variable for that. It will make the code slightly better and it could be use if people modify ParsingEngine behavior.",
+      "parentUuid": "16d09159_02dda314",
       "range": {
         "startLine": 1001,
         "startChar": 23,
