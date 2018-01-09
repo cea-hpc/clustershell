@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e3d523d4_36168491",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1011891
+      },
+      "writtenOn": "2018-01-09T10:21:41Z",
+      "side": 1,
+      "message": "typo: expensive",
+      "range": {
+        "startLine": 12,
+        "startChar": 14,
+        "endLine": 12,
+        "endChar": 23
+      },
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d709c63_c6fd9e2f",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 1011891
+      },
+      "writtenOn": "2018-01-09T10:21:41Z",
+      "side": 1,
+      "message": "Technically this is changing the public API of this class.\nDepending on which ClusterShell version you aim to release this change, you might want to consider keeping backward compatibility here.",
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "27c9389f_8a4a344f",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1001,
+      "author": {
+        "id": 1011891
+      },
+      "writtenOn": "2018-01-09T10:21:41Z",
+      "side": 1,
+      "message": "It might be more clear and less error-prone to get it from the OP_CODES dictionary.",
+      "range": {
+        "startLine": 1001,
+        "startChar": 23,
+        "endLine": 1001,
+        "endChar": 26
+      },
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
