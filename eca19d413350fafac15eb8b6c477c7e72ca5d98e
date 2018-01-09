@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "2d9a61d4_a6a76ba4",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 1011891
+      },
+      "writtenOn": "2018-01-09T14:55:19Z",
+      "side": 1,
+      "message": "Fair enough. No I\u0027m not using it.",
+      "parentUuid": "56977b5f_dff8be49",
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27c9389f_8a4a344f",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 1
@@ -95,6 +113,30 @@
       "side": 1,
       "message": "Mhhh.... I do not see how I can do better, except creating a symbol for that. I can add a comment at least.",
       "parentUuid": "27c9389f_8a4a344f",
+      "range": {
+        "startLine": 1001,
+        "startChar": 23,
+        "endLine": 1001,
+        "endChar": 26
+      },
+      "revId": "eca19d413350fafac15eb8b6c477c7e72ca5d98e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16d09159_02dda314",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1001,
+      "author": {
+        "id": 1011891
+      },
+      "writtenOn": "2018-01-09T14:55:19Z",
+      "side": 1,
+      "message": "I meant something like:\n\n  next_op_code \u003d self.OP_CODES.keys()[0]",
+      "parentUuid": "4d04bcd1_f153ca99",
       "range": {
         "startLine": 1001,
         "startChar": 23,
