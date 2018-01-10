@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "614e177a_4e47e5c3",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 782,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-01-10T10:45:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f412935_fc306b01",
+      "range": {
+        "startLine": 782,
+        "startChar": 4,
+        "endLine": 782,
+        "endChar": 19
+      },
+      "revId": "545134210898ca1c219021efd8713b999bb900cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "66f47d10_9c5e83d5",
         "filename": "lib/ClusterShell/NodeSet.py",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-09T18:50:59Z",
       "side": 1,
       "message": "I would put \u0027,\u0027 here + your added comment",
+      "range": {
+        "startLine": 1002,
+        "startChar": 23,
+        "endLine": 1002,
+        "endChar": 37
+      },
+      "revId": "545134210898ca1c219021efd8713b999bb900cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9444158f_2aafe696",
+        "filename": "lib/ClusterShell/NodeSet.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1002,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-01-10T10:45:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66f47d10_9c5e83d5",
       "range": {
         "startLine": 1002,
         "startChar": 23,
