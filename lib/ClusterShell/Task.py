@@ -1312,7 +1312,7 @@ class Task(object):
         if gwstr not in self.gateways:
             chan = PropagationChannel(self, gateway)
             logger = logging.getLogger(__name__)
-            logger.info("pchannel: creating new channel %s", chan)
+            logger.debug("pchannel: creating new channel %s", chan)
             # invoke gateway
             timeout = None # FIXME: handle timeout for gateway channels
             wrkcls = self.default('distant_worker')
@@ -1355,7 +1355,7 @@ class Task(object):
             chanworker, metaworkers = self.gateways[gwstr]
             metaworkers.remove(metaworker)
             if len(metaworkers) == 0:
-                logger.info("pchannel_release: destroying channel %s",
+                logger.debug("pchannel_release: destroying channel %s",
                             chanworker.eh)
                 chanworker.abort()
                 # delete gateway reference
