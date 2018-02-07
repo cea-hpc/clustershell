@@ -96,7 +96,7 @@ The signatures of the following :class:`.EventHandler` methods **changed** in
 
 * :meth:`.EventHandler.ev_pickup`: new ``node`` argument
 * :meth:`.EventHandler.ev_read`: new ``node``, ``sname`` and ``msg`` arguments
-* :meth:`.EventHandler.ev_hup`: new ``rc`` argument
+* :meth:`.EventHandler.ev_hup`: new ``node``, ``rc`` argument
 * :meth:`.EventHandler.ev_close`: new ``timedout`` argument
 
 Both old and new signatures are supported in 1.8. The old signatures will
