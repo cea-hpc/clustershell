@@ -16,10 +16,10 @@ syn case ignore
 syn match groupsDefaultValue "\(:\|=\)\s*\w\+$"ms=s+1 contained
 syn match groupsColonValue "\(:\|=\).*" contained contains=groupsDefaultValue
 syn match groupsDefaultKey "^default\(:\|=\).*$" contains=groupsColonValue
-syn match groupsGroupsDirKey "^\(groupsdir\|confdir\|autodir\)\(:\|=\)"
+syn match groupsGroupsDirKey "^\(groupsdir\|confdir\|autodir\)\(:\|=\).*$" contains=groupsKeys,groupsVars
 
 " Sources
-syn match groupsVars "\(\$GROUP\|\$NODE\|$SOURCE\)" contained
+syn match groupsVars "\(\$GROUP\|\$NODE\|$SOURCE\|$CFGDIR\)" contained
 syn match groupsKeys "^\w\+\(:\|=\)"me=e-1 contained
 syn match groupsKeyValue "^\(map\|all\|list\|reverse\|cache_time\)\+\(:\|=\).*$" contains=groupsKeys,groupsVars
 
@@ -47,7 +47,6 @@ if version >= 508 || !exists("did_groupsconf_syntax_inits")
   HiLink groupsComment		Comment
   HiLink groupsMainHeader	Constant
   HiLink groupsDefaultKey	Identifier
-  HiLink groupsGroupsDirKey	Identifier
   HiLink groupsDefaultValue	Special
   HiLink groupsKeys		Identifier
   HiLink groupsVars		Keyword
