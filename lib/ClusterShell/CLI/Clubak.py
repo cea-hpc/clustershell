@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2010-2012 CEA/DAM
-# Copyright (C) 2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2017-2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -31,9 +31,10 @@ import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
 from ClusterShell.NodeSet import NodeSet, NodeSetParseError, std_group_resolver
+from ClusterShell.NodeSet import set_std_group_resolver_config
 
 from ClusterShell.CLI.Display import Display, THREE_CHOICES
-from ClusterShell.CLI.Display import sys_stdin, sys_stdout, sys_stderr
+from ClusterShell.CLI.Display import sys_stdin, sys_stdout
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Utils import nodeset_cmpkey
@@ -94,11 +95,14 @@ def clubak():
 
     # Argument management
     parser = OptionParser("%prog [options]")
+    parser.install_groupsconf_option()
     parser.install_display_options(verbose_options=True,
                                    separator_option=True,
                                    dshbak_compat=True,
                                    msgtree_mode=True)
     options = parser.parse_args()[0]
+
+    set_std_group_resolver_config(options.groupsconf)
 
     if options.interpret_keys == THREE_CHOICES[-1]: # auto?
         enable_nodeset_key = None # AUTO

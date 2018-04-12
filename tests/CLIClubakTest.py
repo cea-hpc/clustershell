@@ -10,6 +10,9 @@ import unittest
 from TLib import *
 from ClusterShell.CLI.Clubak import main
 
+from ClusterShell.NodeSet import set_std_group_resolver, \
+                                 set_std_group_resolver_config
+
 
 def _outfmt(*args):
     outfmt = "---------------\n%s\n---------------\n bar\n"
@@ -166,3 +169,42 @@ class CLIClubakTest(unittest.TestCase):
                        b"line_mode=False gather=True tree_depth=1\n")
         self._clubak_t(["--diff", "-L"], b"foo1: bar\nfoo2: bar", b'', 2,
                        b"error: option mismatch (diff not supported in line_mode)\n")
+
+
+class CLIClubakTestGroupsConf(CLIClubakTest):
+    """Unit test class for testing --groupsconf option"""
+
+    def setUp(self):
+        self.gconff = make_temp_file(dedent("""
+            [Main]
+            default: global_default
+
+            [global_default]
+            map: echo foo[1-2]
+            all: echo @foo
+            list: echo foo
+            """).encode())
+        set_std_group_resolver_config(self.gconff.name)
+
+        # passed to --groupsconf
+        self.custf = make_temp_file(dedent("""
+            [Main]
+            default: custom
+
+            [custom]
+            map: echo foo[1-2]
+            all: echo @bar
+            list: echo bar
+            """).encode())
+
+    def tearDown(self):
+        set_std_group_resolver(None)
+        self.gconff = None
+        self.custf = None
+
+    def test_groupsconf_option(self):
+        """test nodeset with --groupsconf"""
+        # use -r (--regroup) to test group resolution
+        self._clubak_t(["-r"], b"foo1: bar\nfoo2: bar", _outfmt("@foo (2)"))
+        self._clubak_t(["--groupsconf", self.custf.name, "-r"],
+                       b"foo1: bar\nfoo2: bar", _outfmt("@bar (2)"))

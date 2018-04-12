@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010-2015 CEA/DAM
+# Copyright (C) 2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -20,8 +21,6 @@
 """
 CLI utility functions
 """
-
-import sys
 
 
 (KIBI, MEBI, GIBI, TEBI) = (1024.0, 1024.0 ** 2, 1024.0 ** 3, 1024.0 ** 4)
