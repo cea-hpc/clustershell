@@ -89,6 +89,12 @@ class OptionParser(optparse.OptionParser):
                         dest="option", default=[],
                         help="override any key=value %s options" % filename)
 
+    def install_config_file_option(self, optname, filename):
+        """Install an alternate config file option"""
+        self.add_option("--" + optname, action="store", dest=optname,
+                        metavar='FILE', help="use alternate config file for "
+                                             + filename)
+
     def install_nodes_options(self):
         """Install nodes selection options"""
         optgrp = optparse.OptionGroup(self, "Selecting target nodes")

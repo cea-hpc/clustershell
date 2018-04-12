@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -37,8 +37,9 @@ from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
 
 from ClusterShell.NodeSet import NodeSet, RangeSet
-from ClusterShell.NodeSet import grouplist, std_group_resolver
-from ClusterShell.NodeUtils import GroupSourceNoUpcall
+from ClusterShell.NodeSet import grouplist, ILLEGAL_GROUP_CHARS
+from ClusterShell.NodeSet import set_std_group_resolver, std_group_resolver
+from ClusterShell.NodeUtils import GroupSourceNoUpcall, GroupResolverConfig
 
 
 def process_stdin(xsetop, xsetcls, autostep):
@@ -154,12 +155,18 @@ def nodeset():
     usage = "%prog [COMMAND] [OPTIONS] [ns1 [-ixX] ns2|...]"
 
     parser = OptionParser(usage)
+    parser.install_config_file_option('groupsconf', 'groups.conf(5)')
     parser.install_nodeset_commands()
     parser.install_nodeset_operations()
     parser.install_nodeset_options()
     (options, args) = parser.parse_args()
 
-    group_resolver = std_group_resolver()
+    if options.groupsconf:
+        group_resolver = GroupResolverConfig(options.groupsconf,
+                                             ILLEGAL_GROUP_CHARS)
+        set_std_group_resolver(group_resolver)
+    else:
+        group_resolver = std_group_resolver()
 
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)

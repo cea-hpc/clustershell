@@ -30,7 +30,10 @@ from __future__ import print_function
 import sys
 
 from ClusterShell.MsgTree import MsgTree, MODE_DEFER, MODE_TRACE
-from ClusterShell.NodeSet import NodeSet, NodeSetParseError, std_group_resolver
+from ClusterShell.NodeSet import NodeSet, NodeSetParseError
+from ClusterShell.NodeSet import ILLEGAL_GROUP_CHARS
+from ClusterShell.NodeSet import set_std_group_resolver, std_group_resolver
+from ClusterShell.NodeUtils import GroupResolverConfig
 
 from ClusterShell.CLI.Display import Display, THREE_CHOICES
 from ClusterShell.CLI.Display import sys_stdin, sys_stdout, sys_stderr
@@ -94,12 +97,16 @@ def clubak():
 
     # Argument management
     parser = OptionParser("%prog [options]")
+    parser.install_config_file_option('groupsconf', 'groups.conf(5)')
     parser.install_display_options(verbose_options=True,
                                    separator_option=True,
                                    dshbak_compat=True,
                                    msgtree_mode=True)
     options = parser.parse_args()[0]
 
+    if options.groupsconf:
+        set_std_group_resolver(GroupResolverConfig(options.groupsconf,
+                                                   ILLEGAL_GROUP_CHARS))
     if options.interpret_keys == THREE_CHOICES[-1]: # auto?
         enable_nodeset_key = None # AUTO
     else:
