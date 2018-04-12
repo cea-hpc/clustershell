@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -35,6 +35,7 @@ import sys
 
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
+from ClusterShell.CLI.Utils import cli_opt_set_groupsconf
 
 from ClusterShell.NodeSet import NodeSet, RangeSet
 from ClusterShell.NodeSet import grouplist, std_group_resolver
@@ -154,12 +155,16 @@ def nodeset():
     usage = "%prog [COMMAND] [OPTIONS] [ns1 [-ixX] ns2|...]"
 
     parser = OptionParser(usage)
+    parser.install_groupsconf_option()
     parser.install_nodeset_commands()
     parser.install_nodeset_operations()
     parser.install_nodeset_options()
     (options, args) = parser.parse_args()
 
-    group_resolver = std_group_resolver()
+    if options.groupsconf:
+        group_resolver = cli_opt_set_groupsconf(options.groupsconf)
+    else:
+        group_resolver = std_group_resolver()
 
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)

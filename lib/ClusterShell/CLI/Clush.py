@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -55,7 +55,8 @@ from ClusterShell.CLI.Display import Display, sys_stdin
 from ClusterShell.CLI.Display import VERB_QUIET, VERB_STD, VERB_VERB, VERB_DEBUG
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
-from ClusterShell.CLI.Utils import bufnodeset_cmpkey, human_bi_bytes_unit
+from ClusterShell.CLI.Utils import bufnodeset_cmpkey, human_bi_bytes_unit, \
+                                   cli_opt_set_groupsconf
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.MsgTree import MsgTree
@@ -793,7 +794,8 @@ def main():
     parser.add_option("-n", "--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
 
-    parser.install_config_options('clush.conf(5)')
+    parser.install_groupsconf_option()
+    parser.install_clush_config_options()
     parser.install_nodes_options()
     parser.install_display_options(verbose_options=True)
     parser.install_filecopy_options()
@@ -801,10 +803,12 @@ def main():
 
     (options, args) = parser.parse_args()
 
+    cli_opt_set_groupsconf(options.groupsconf)
+
     #
     # Load config file and apply overrides
     #
-    config = ClushConfig(options)
+    config = ClushConfig(options, options.conf)
 
     # Initialize logging
     if config.verbosity >= VERB_DEBUG:
