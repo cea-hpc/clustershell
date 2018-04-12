@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2017-10-23
+:Date:   2018-04-16
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.8
 :Manual section: 1
@@ -131,6 +131,8 @@ OPTIONS
 -s GROUPSOURCE, --groupsource=GROUPSOURCE
                       optional ``groups.conf``\(5) group source to use
 -n, --nostdin         do not watch for possible input from stdin; this should be used when ``clush`` is run in the background (or in scripts).
+--groupsconf=FILE     use alternate config file for groups.conf(5)
+--conf=FILE           use alternate config file for clush.conf(5)
 -O <KEY=VALUE>, --option=<KEY=VALUE>
                       override any key=value ``clush.conf``\(5) options (repeat as needed)
 

@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010-2015 CEA/DAM
+# Copyright (C) 2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -22,6 +23,11 @@ CLI utility functions
 """
 
 import sys
+
+from ClusterShell.NodeSet import ILLEGAL_GROUP_CHARS, \
+                                 set_std_group_resolver, \
+                                 std_group_resolver
+from ClusterShell.NodeUtils import GroupResolverConfig
 
 
 (KIBI, MEBI, GIBI, TEBI) = (1024.0, 1024.0 ** 2, 1024.0 ** 3, 1024.0 ** 4)
@@ -50,3 +56,10 @@ def nodeset_cmpkey(nodeset):
 def bufnodeset_cmpkey(buf):
     """Helper to get nodeset compare key from a buffer (buf, nodeset)"""
     return nodeset_cmpkey(buf[1])
+
+def cli_opt_set_groupsconf(groupsconf):
+    """Helper to create and set std group resolver from config file"""
+    if groupsconf:
+        group_resolver = GroupResolverConfig(groupsconf, ILLEGAL_GROUP_CHARS)
+        set_std_group_resolver(group_resolver)
+        return group_resolver
