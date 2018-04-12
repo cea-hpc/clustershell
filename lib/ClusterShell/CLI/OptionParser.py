@@ -83,11 +83,20 @@ class OptionParser(optparse.OptionParser):
                         type="safestring", dest="groupsource",
                         help="optional groups.conf(5) group source to use")
 
-    def install_config_options(self, filename=''):
-        """Install config options override"""
+    def install_clush_config_options(self):
+        """Install config options for clush"""
+        # config file override (--conf)
+        self.add_option("--conf", action="store", metavar='FILE',
+                        help="use alternate config file for clush.conf(5)")
+        # config file option overrides (-O)
         self.add_option("-O", "--option", action="append", metavar="KEY=VALUE",
                         dest="option", default=[],
-                        help="override any key=value %s options" % filename)
+                        help="override any key=value clush.conf(5) options")
+
+    def install_groupsconf_option(self):
+        """Install an alternate groups.conf file option"""
+        self.add_option("--groupsconf", action="store", metavar='FILE',
+                        help="use alternate config file for groups.conf(5)")
 
     def install_nodes_options(self):
         """Install nodes selection options"""

@@ -12,7 +12,8 @@ from TLib import *
 from ClusterShell.CLI.Nodeset import main
 
 from ClusterShell.NodeUtils import GroupResolverConfig
-from ClusterShell.NodeSet import set_std_group_resolver
+from ClusterShell.NodeSet import set_std_group_resolver, \
+                                 set_std_group_resolver_config
 
 
 class CLINodesetTestBase(unittest.TestCase):
@@ -839,3 +840,42 @@ class CLINodesetMalformedGroupsConf(CLINodesetTestBase):
     def test_malformed_groups_conf(self):
         """test nodeset with malformed groups.conf"""
         self._nodeset_t(["--list-all"], None, b"", 1, b"'[Main'\n")
+
+
+class CLINodesetGroupsConfOption(CLINodesetTestBase):
+    """Unit test class for testing --groupsconf option"""
+
+    def setUp(self):
+        self.gconff = make_temp_file(dedent("""
+            [Main]
+            default: global_default
+
+            [global_default]
+            map: echo example[1-100]
+            all: echo @foo,@bar,@moo
+            list: echo foo bar moo
+            """).encode())
+        set_std_group_resolver_config(self.gconff.name)
+
+        # passed to --groupsconf
+        self.custf = make_temp_file(dedent("""
+            [Main]
+            default: custom
+
+            [custom]
+            map: echo custom[7-42]
+            all: echo @selene,@artemis
+            list: echo selene artemis
+            """).encode())
+
+    def tearDown(self):
+        set_std_group_resolver(None)
+        self.gconff = None
+        self.custf = None
+
+    def test_groupsconf_option(self):
+        """test nodeset with --groupsconf"""
+        self._nodeset_t(["--list-all"], None, b"@bar\n@foo\n@moo\n")
+        self._nodeset_t(["-f", "@foo"], None, b"example[1-100]\n")
+        self._nodeset_t(["--groupsconf", self.custf.name, "--list-all"], None, b"@artemis\n@selene\n")
+        self._nodeset_t(["--groupsconf", self.custf.name, "-f", "@artemis"], None, b"custom[7-42]\n")

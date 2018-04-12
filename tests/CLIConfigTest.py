@@ -30,7 +30,7 @@ class CLIClushConfigTest(unittest.TestCase):
         f.write(b"\n")
 
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -53,7 +53,7 @@ class CLIClushConfigTest(unittest.TestCase):
         f.write("[Main]\n".encode())
 
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -86,7 +86,7 @@ class CLIClushConfigTest(unittest.TestCase):
             #ssh_options: -oStrictHostKeyChecking=no""").encode())
         f.flush()
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -125,7 +125,7 @@ class CLIClushConfigTest(unittest.TestCase):
 
         f.flush()
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -161,7 +161,7 @@ class CLIClushConfigTest(unittest.TestCase):
 
         f.flush()
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -216,7 +216,7 @@ class CLIClushConfigTest(unittest.TestCase):
             """ % hard2).encode())
         f.flush()
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -248,7 +248,7 @@ class CLIClushConfigTest(unittest.TestCase):
             verbosity: 1""").encode())
         f.flush()
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -282,7 +282,7 @@ class CLIClushConfigTest(unittest.TestCase):
             verbosity: 1""").encode())
         f.flush()
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args(["-f", "36", "-u", "3", "-t", "7",
@@ -308,7 +308,7 @@ class CLIClushConfigTest(unittest.TestCase):
         # This test needs installed configuration files (needed for
         # maximum coverage).
         parser = OptionParser("dummy")
-        parser.install_config_options()
+        parser.install_clush_config_options()
         parser.install_display_options(verbose_options=True)
         parser.install_connector_options()
         options, _ = parser.parse_args([])
@@ -350,7 +350,7 @@ class CLIClushConfigTest(unittest.TestCase):
 
             cfgfile.flush()
             parser = OptionParser("dummy")
-            parser.install_config_options()
+            parser.install_clush_config_options()
             parser.install_display_options(verbose_options=True)
             parser.install_connector_options()
             options, _ = parser.parse_args([])

@@ -1572,3 +1572,18 @@ def set_std_group_resolver(new_resolver):
     global RESOLVER_STD_GROUP
     RESOLVER_STD_GROUP = new_resolver or _DEF_RESOLVER_STD_GROUP
 
+def set_std_group_resolver_config(groupsconf, illegal_chars=None):
+    """
+    Helper to create and set std group resolver from a config file path.
+
+    By default, the GroupResolverConfig object is created using
+    illegal_chars=NodeSet.ILLEGAL_GROUP_CHARS.
+
+    This method does nothing if groupsconf is not defined.
+    """
+    if groupsconf:
+        if illegal_chars is None:
+            illegal_chars = ILLEGAL_GROUP_CHARS
+        group_resolver = NodeUtils.GroupResolverConfig(groupsconf,
+                                                       illegal_chars)
+        set_std_group_resolver(group_resolver)

@@ -7,7 +7,7 @@ format output from clush/pdsh-like output and more
 --------------------------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2017-10-23
+:Date:   2018-04-16
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.8
 :Manual section: 1
@@ -49,6 +49,8 @@ OPTIONS
 -r, --regroup  fold nodeset using node groups
 -s GROUPSOURCE, --groupsource=GROUPSOURCE
                optional ``groups.conf``\(5) group source to use
+--groupsconf=FILE
+               use alternate config file for groups.conf(5)
 -G, --groupbase
                do not display group source prefix (always `@groupname`)
 -S SEPARATOR, --separator=SEPARATOR
