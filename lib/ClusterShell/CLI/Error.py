@@ -23,6 +23,12 @@ CLI error handling helper functions
 
 from __future__ import print_function
 
+try:
+    import configparser
+except ImportError:
+    # Python 2 compat
+    import ConfigParser as configparser
+
 import errno
 import logging
 import os.path
@@ -42,7 +48,8 @@ from ClusterShell.Topology import TopologyError
 from ClusterShell.Worker.EngineClient import EngineClientError
 from ClusterShell.Worker.Worker import WorkerError
 
-GENERIC_ERRORS = (EngineNotSupportedError,
+GENERIC_ERRORS = (configparser.Error,
+                  EngineNotSupportedError,
                   EngineClientError,
                   NodeSetExternalError,
                   NodeSetParseError,
@@ -88,6 +95,8 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print("%s: Group error: %s" % (prog, exc), file=sys.stderr)
     except TopologyError as exc:
         print("%s: TREE MODE: %s" % (prog, exc), file=sys.stderr)
+    except configparser.Error as exc:
+        print("%s: %s" % (prog, exc), file=sys.stderr)
     except (TypeError, WorkerError) as exc:
         print("%s: %s" % (prog, exc), file=sys.stderr)
     except (IOError, OSError) as exc:  # see PEP 3151

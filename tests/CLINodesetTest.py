@@ -823,3 +823,19 @@ class CLINodesetEmptyGroupsConf(CLINodesetTestBase):
     def test_empty_groups_conf(self):
         """test nodeset with empty groups.conf"""
         self._nodeset_t(["--list-all"], None, b"")
+
+
+class CLINodesetMalformedGroupsConf(CLINodesetTestBase):
+    """Unit test class for testing malformed groups.conf"""
+
+    def setUp(self):
+        self.gconff = make_temp_file(b"[Main")
+        set_std_group_resolver(GroupResolverConfig(self.gconff.name))
+
+    def tearDown(self):
+        set_std_group_resolver(None)
+        self.gconff = None
+
+    def test_malformed_groups_conf(self):
+        """test nodeset with malformed groups.conf"""
+        self._nodeset_t(["--list-all"], None, b"", 1, b"'[Main'\n")
