@@ -13,6 +13,7 @@ import resource
 import signal
 import sys
 import tempfile
+from textwrap import dedent
 import threading
 import time
 import unittest
@@ -23,6 +24,8 @@ from TLib import *
 import ClusterShell.CLI.Clush
 from ClusterShell.CLI.Clush import main
 from ClusterShell.NodeSet import NodeSet
+from ClusterShell.NodeUtils import GroupResolverConfig
+from ClusterShell.NodeSet import set_std_group_resolver
 from ClusterShell.Task import task_cleanup
 
 from ClusterShell.Worker.EngineClient import EngineClientNotSupportedError
@@ -579,6 +582,23 @@ class CLIClushTest_A(unittest.TestCase):
                            "-f", "1000", "-O", "fd_max=101", "echo ok"],
                           None, b"ok\n")
 
+    def test_039_conf_option(self):
+        """test clush --conf option"""
+        custf = make_temp_file(dedent("""
+            [Main]
+            node_count: no
+            """).encode())
+
+        # simple test that checks if "node_count:" no from custom conf file
+        # is taken into account
+
+        self._clush_t(["-b", "-R", "exec", "-w", "foo[1-10]", "echo ok"], b"",
+                      b"---------------\nfoo[1-10] (10)\n---------------\nok\n")
+
+        self._clush_t(["--conf", custf.name, "-b", "-R", "exec", "-w",
+                       "foo[1-10]", "echo ok"], b"",
+                      b"---------------\nfoo[1-10]\n---------------\nok\n")
+
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
@@ -606,3 +626,48 @@ class CLIClushTest_B_StdinFailure(unittest.TestCase):
         """test clush with broken stdin"""
         self._clush_t(["-w", HOSTNAME, "-v", "sleep 1"], None,
                       b"stdin: [Errno 22] Invalid argument\n", 0, b"")
+
+
+class CLIClushTest_C_GroupsConf(unittest.TestCase):
+    """Unit test class for testing CLI/Clush.py with --groupsconf"""
+
+    def setUp(self):
+        self.gconff = make_temp_file(dedent("""
+            [Main]
+            default: global_default
+
+            [global_default]
+            map: echo example[1-100]
+            all: echo @foo,@bar,@moo
+            list: echo foo bar moo
+            """).encode())
+        set_std_group_resolver(GroupResolverConfig(self.gconff.name))
+
+        # passed to --groupsconf
+        self.custf = make_temp_file(dedent("""
+            [Main]
+            default: custom
+
+            [custom]
+            map: echo custom[7-42]
+            all: echo @selene,@artemis
+            list: echo selene artemis
+            """).encode())
+
+    def tearDown(self):
+        set_std_group_resolver(None)
+        self.gconff = None
+        self.custf = None
+
+    def _clush_t(self, args, stdin, expected_stdout, expected_rc=0,
+                 expected_stderr=None):
+        CLI_main(self, main, ['clush'] + args, stdin, expected_stdout,
+                 expected_rc, expected_stderr)
+
+    def test_200_groupsconf_option(self):
+        """test clush --groupsconf"""
+        self._clush_t(["-R", "exec", "-w", "@foo", "-bL", "echo ok"], None,
+                      b"example[1-100]: ok\n", 0, b"")
+        self._clush_t(["--groupsconf", self.custf.name, "-R", "exec", "-w",
+                       "@foo", "-bL", "echo ok"], None,
+                      b"custom[7-42]: ok\n", 0, b"")
