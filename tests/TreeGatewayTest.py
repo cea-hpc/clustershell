@@ -157,8 +157,6 @@ class TreeGatewayTest(TreeGatewayBaseTest):
 
         self.channel_send_stop()
         self.recvxml(EndMessage)
-        self.assertEqual(self.chan.opened, False)
-        self.assertEqual(self.chan.setup, False)
         # ending tag should abort gateway worker without delay
         self.gateway.wait()
         self.gateway.close()
@@ -179,8 +177,6 @@ class TreeGatewayTest(TreeGatewayBaseTest):
 
         # gateway should terminate channel session
         msg = self.recvxml(EndMessage)
-        self.assertEqual(self.chan.opened, False)
-        self.assertEqual(self.chan.setup, False)
         self.gateway.wait()
         self.gateway.close()
 
@@ -216,10 +212,6 @@ class TreeGatewayTest(TreeGatewayBaseTest):
             self.assertEqual(msg.type, 'END')
         else:
             self.recvxml()
-
-        # flags should be reset
-        self.assertEqual(self.chan.opened, False)
-        self.assertEqual(self.chan.setup, False)
 
         # gateway task should exit properly
         self.gateway.wait()
