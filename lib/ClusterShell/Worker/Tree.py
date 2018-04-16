@@ -334,7 +334,7 @@ class TreeWorker(DistantWorker):
 
         self._target_count += len(targets)
 
-        self.gwtargets[str(gateway)] = targets.copy()
+        self.gwtargets.setdefault(str(gateway), NodeSet()).add(targets)
 
         # tar commands are built here and launched on targets
         if reverse:
@@ -360,12 +360,31 @@ class TreeWorker(DistantWorker):
 
         self._target_count += len(targets)
 
-        self.gwtargets[str(gateway)] = targets.copy()
+        self.gwtargets.setdefault(str(gateway), NodeSet()).add(targets)
 
         pchan = self.task._pchannel(gateway, self)
         pchan.shell(nodes=targets, command=cmd, worker=self, timeout=timeout,
                     stderr=self.stderr, gw_invoke_cmd=self.invoke_gateway,
                     remote=self.remote)
+
+    def _relaunch(self, previous_gateway):
+        """Redistribute and relaunch commands on targets that were running
+        on previous_gateway (which is probably marked unreacheable by now)
+
+        NOTE: Relaunch is always called after failed remote execution, so
+        previous_gateway must be defined. However, it is not guaranted that
+        the relaunch is going to be performed using gateways (that's a feature).
+        """
+        targets = self.gwtargets[previous_gateway].copy()
+        self.logger.debug("_relaunch on targets %s from previous_gateway %s",
+                          targets, previous_gateway)
+
+        for target in targets:
+            self.gwtargets[previous_gateway].remove(target)
+
+        self._check_fini(previous_gateway)
+        self._target_count -= len(targets)
+        self._launch(targets)
 
     def _engine_clients(self):
         """

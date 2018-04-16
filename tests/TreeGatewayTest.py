@@ -217,10 +217,6 @@ class TreeGatewayTest(TreeGatewayBaseTest):
         else:
             self.recvxml()
 
-        # flags should be reset
-        self.assertEqual(self.chan.opened, False)
-        self.assertEqual(self.chan.setup, False)
-
         # gateway task should exit properly
         self.gateway.wait()
         self.gateway.close()
