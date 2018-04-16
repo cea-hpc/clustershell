@@ -827,6 +827,7 @@ class TaskLocalMixin(object):
                 self.testtimer = False
             def ev_timer(self, timer):
                 self.ext_worker.abort()
+                self.ext_worker.abort()  # safe but no effect
                 self.testtimer = True
 
         aot = AbortOnTimer(task.shell("sleep 10"))

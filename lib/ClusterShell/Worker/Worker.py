@@ -209,7 +209,10 @@ class Worker(object):
     # Base actions
 
     def abort(self):
-        """Abort processing any action by this worker."""
+        """Abort processing any action by this worker.
+
+        Safe to call on an already closing or aborting worker.
+        """
         raise NotImplementedError("Derived classes must implement.")
 
     def flush_buffers(self):
@@ -599,7 +602,10 @@ class StreamWorker(Worker):
             self.eh.ev_timeout(self)
 
     def abort(self):
-        """Abort processing any action by this worker."""
+        """Abort processing any action by this worker.
+
+        Safe to call on an already closing or aborting worker.
+        """
         self.clients[0].abort()
 
     def read(self, node=None, sname='stdout'):

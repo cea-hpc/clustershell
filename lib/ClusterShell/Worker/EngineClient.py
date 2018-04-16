@@ -266,6 +266,8 @@ class EngineClient(EngineBaseTimer):
         for sname in list(self.streams):
             self._close_stream(sname)
 
+        self.invalidate()  # set self._engine to None
+
     def _close_stream(self, sname):
         """
         Close specific stream by name (internal, called by engine). This method
@@ -318,7 +320,8 @@ class EngineClient(EngineBaseTimer):
         wfile = self.streams[sname]
         if not wfile.wbuf and wfile.eof:
             # remove stream from engine (not directly)
-            self._engine.remove_stream(self, wfile)
+            if self._engine:
+                self._engine.remove_stream(self, wfile)
         elif len(wfile.wbuf) > 0:
             try:
                 wcnt = os.write(wfile.fd, wfile.wbuf)
@@ -340,7 +343,8 @@ class EngineClient(EngineBaseTimer):
                 if wfile.eof and not wfile.wbuf:
                     self.worker._on_written(self.key, wcnt, sname)
                     # remove stream from engine (not directly)
-                    self._engine.remove_stream(self, wfile)
+                    if self._engine:
+                        self._engine.remove_stream(self, wfile)
                 else:
                     self._set_writing(sname)
                     self.worker._on_written(self.key, wcnt, sname)
@@ -424,9 +428,15 @@ class EngineClient(EngineBaseTimer):
             self._engine.remove_stream(self, wfile)
 
     def abort(self):
-        """Abort processing any action by this client."""
-        if self._engine:
-            self._engine.remove(self, abort=True)
+        """Abort processing any action by this client.
+
+        Safe to call on an already closing or aborting client.
+        """
+        engine = self._engine
+        if engine:
+            self.invalidate()  # set self._engine to None
+            engine.remove(self, abort=True)
+
 
 class EnginePort(EngineClient):
     """
