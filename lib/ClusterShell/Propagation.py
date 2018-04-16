@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2010-2016 CEA/DAM
 # Copyright (C) 2010-2011 Henri Doreau <henri.doreau@cea.fr>
-# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -40,6 +40,7 @@ from ClusterShell.Topology import TopologyError
 
 class RouteResolvingError(Exception):
     """error raised on invalid conditions during routing operations"""
+
 
 class PropagationTreeRouter(object):
     """performs routes resolving operations within a propagation tree.
@@ -392,9 +393,13 @@ class PropagationChannel(Channel):
         self.logger.debug("ev_close gateway=%s %s", gateway, self)
         self.logger.debug("ev_close rc=%s", self._rc) # may be None
 
-        if self._rc: # got explicit error code
-            # ev_routing?
-            self.logger.debug("unreachable gateway %s", gateway)
-            worker.task.router.mark_unreachable(gateway)
-            self.logger.debug("worker.task.gateways=%s", worker.task.gateways)
-            # TODO: find best gateway, update TreeWorker counters, relaunch...
+        if self._rc:
+            self.logger.debug("error on gateway %s (setup=%s)", gateway,
+                              self.setup)
+            self.task.router.mark_unreachable(gateway)
+            self.logger.debug("gateway %s now set as unreachable", gateway)
+
+            if not self.setup:
+                # channel was not set up: we can safely repropagate commands
+                for mw in set(self.task.gateways[gateway][1]):
+                    mw._relaunch(gateway)
