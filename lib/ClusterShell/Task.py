@@ -1318,6 +1318,7 @@ class Task(object):
             wrkcls = self.default('distant_worker')
             chanworker = wrkcls(gateway, command=metaworker.invoke_gateway,
                                 handler=chan, stderr=True, timeout=timeout)
+            chanworker._update_task_rc = False
             # gateway is special! define worker._fanout to not rely on the
             # engine's fanout, and use the special value FANOUT_UNLIMITED to
             # always allow registration of gateways

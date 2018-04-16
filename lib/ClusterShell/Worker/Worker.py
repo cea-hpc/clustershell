@@ -110,6 +110,10 @@ class Worker(object):
         # cannot currently be changed afterwards.
         self._fanout = FANOUT_DEFAULT
 
+        # Update task rc? [private]
+        # TODO: to be replaced with Task Event Handlers
+        self._update_task_rc = True
+
         # Parent task (once bound)
         self.task = None            #: worker's task when scheduled or None
         self.started = False        #: set to True when worker has started
@@ -155,10 +159,11 @@ class Worker(object):
 
     def _on_close(self, key, rc=None):
         """Called to generate events when the Worker is closing."""
-        # rc may be None here for example when called from StreamClient
-        # Only update task if rc is not None.
-        if rc is not None:
-            self.task._rc_set(self, key, rc)
+        if self._update_task_rc:
+            # rc may be None here for example when called from StreamClient
+            # Only update task if rc is not None.
+            if rc is not None:
+                self.task._rc_set(self, key, rc)
 
         self.current_node = key
         self.current_rc = rc
