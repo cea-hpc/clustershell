@@ -128,6 +128,7 @@ class ExecClient(EngineClient):
         prc = self.popen.wait()
 
         self.streams.clear()
+        self.invalidate()
 
         if prc >= 0:
             self._on_nodeset_close(self.key, prc)
