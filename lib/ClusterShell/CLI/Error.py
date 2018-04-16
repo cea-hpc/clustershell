@@ -38,6 +38,7 @@ from ClusterShell.NodeUtils import GroupSourceError
 from ClusterShell.NodeUtils import GroupSourceNoUpcall
 from ClusterShell.NodeSet import NodeSetExternalError, NodeSetParseError
 from ClusterShell.NodeSet import RangeSetParseError
+from ClusterShell.Propagation import RouteResolvingError
 from ClusterShell.Topology import TopologyError
 from ClusterShell.Worker.EngineClient import EngineClientError
 from ClusterShell.Worker.Worker import WorkerError
@@ -52,6 +53,7 @@ GENERIC_ERRORS = (EngineNotSupportedError,
                   GroupResolverSourceError,
                   GroupSourceError,
                   GroupSourceNoUpcall,
+                  RouteResolvingError,
                   TopologyError,
                   TypeError,
                   IOError,
@@ -86,7 +88,7 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print(msgfmt % (prog, exc, exc.group_source.name), file=sys.stderr)
     except GroupSourceError as exc:
         print("%s: Group error: %s" % (prog, exc), file=sys.stderr)
-    except TopologyError as exc:
+    except (RouteResolvingError, TopologyError) as exc:
         print("%s: TREE MODE: %s" % (prog, exc), file=sys.stderr)
     except (TypeError, WorkerError) as exc:
         print("%s: %s" % (prog, exc), file=sys.stderr)

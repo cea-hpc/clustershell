@@ -204,11 +204,10 @@ class Channel(EventHandler):
     def _close(self):
         """close an already opened channel"""
         send_endtag = self.opened
-        # set to False before sending tag for state test purposes
-        self.opened = self.setup = False
         if send_endtag:
             XMLGenerator(self.worker, encoding=ENCODING).endElement('channel')
         self.worker.abort()
+        self.opened = self.setup = False
 
     def ev_start(self, worker):
         """connection established. Open higher level channel"""
