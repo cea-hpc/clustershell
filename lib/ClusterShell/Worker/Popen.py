@@ -77,6 +77,7 @@ class PopenClient(StreamClient):
         prc = self.popen.wait()
 
         self.streams.clear()
+        self.invalidate()
 
         if prc >= 0: # filter valid rc
             self.rc = prc

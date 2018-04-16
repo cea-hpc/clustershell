@@ -96,6 +96,7 @@ class PdshClient(ExecClient):
             raise WorkerError("Cannot run pdsh (error %d)" % prc)
 
         self.streams.clear()
+        self.invalidate()
 
         if timeout:
             assert abort, "abort flag not set on timeout"

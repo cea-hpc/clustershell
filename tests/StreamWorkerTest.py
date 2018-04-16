@@ -219,6 +219,7 @@ class StreamTest(unittest.TestCase):
                 self.check_written += 1
                 self.testcase.assertEqual(os.read(self.rfd, 1024), b"initial")
                 worker.abort()
+                worker.abort()  # safe but no effect
 
         rfd, wfd = os.pipe()
 
@@ -248,6 +249,7 @@ class StreamTest(unittest.TestCase):
                 self.check_written += 1
                 self.testcase.assertEqual(os.read(self.rfd, 1024), b"initial")
                 worker.abort()
+                worker.abort()  # safe but no effect
 
         rfd, wfd = os.pipe()
 
@@ -299,3 +301,31 @@ class StreamTest(unittest.TestCase):
         self.run_worker(worker)
         self.assertEqual(hdlr.check_hup, 1)
         self.assertEqual(hdlr.check_written, 1)
+
+    def test_009_worker_abort_on_close(self):
+        """test StreamWorker abort() on closing worker"""
+
+        class TestH(EventHandler):
+            def __init__(self, testcase, rfd):
+                self.testcase = testcase
+                self.rfd = rfd
+                self.check_close = 0
+
+            def ev_close(self, worker, timedout):
+                self.check_close += 1
+                self.testcase.assertFalse(timedout)
+                os.close(self.rfd)
+                worker.abort()
+                worker.abort()  # safe but no effect
+
+        rfd, wfd = os.pipe()
+
+        hdlr = TestH(self, rfd)
+        worker = StreamWorker(handler=hdlr)
+
+        worker.set_writer("test", wfd)  # closefd=True
+        worker.write(b"initial", "test")
+        worker.set_write_eof()
+
+        self.run_worker(worker)
+        self.assertEqual(hdlr.check_close, 1)

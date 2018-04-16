@@ -8,6 +8,7 @@ import unittest
 
 from TLib import HOSTNAME, make_temp_file, make_temp_filename, make_temp_dir
 
+from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Exec import ExecWorker, WorkerError
 from ClusterShell.Task import task_self
 
@@ -150,3 +151,29 @@ class ExecTest(unittest.TestCase):
                               stderr=True, reverse=True)
         finally:
             os.rmdir(dstbasedir)
+
+    def test_abort_on_read(self):
+        """test ExecWorker.abort() on read"""
+
+        class TestH(EventHandler):
+            def ev_read(self, worker):
+                worker.abort()
+                worker.abort()  # safe but no effect
+
+        self.execw(nodes='localhost', handler=TestH(),
+                   command="echo ok; tail -f /dev/null")
+        self.assertEqual(task_self().max_retcode(), None)
+        self.assertEqual(task_self().node_buffer('localhost'), b'ok')
+
+    def test_abort_on_close(self):
+        """test ExecWorker.abort() on close"""
+
+        class TestH(EventHandler):
+            def ev_close(self, worker, timedout):
+                worker.abort()
+                worker.abort()  # safe but no effect
+
+        self.execw(nodes='localhost', handler=TestH(),
+                   command="echo ok; sleep .1")
+        self.assertEqual(task_self().max_retcode(), 0)
+        self.assertEqual(task_self().node_buffer('localhost'), b'ok')
