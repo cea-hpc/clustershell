@@ -37,8 +37,7 @@ class TreeTaskTest(unittest.TestCase):
 
         self.assertRaises(RouteResolvingError, task.run, "/bin/hostname",
                           nodes="dummy-node", stderr=True)
-        # FIXME: should probably be None
-        self.assertEqual(task.max_retcode(), 255)
+        self.assertEqual(task.max_retcode(), None)
 
     def test_shell_auto_tree_noconf(self):
         """test task shell auto tree [no topology.conf]"""
