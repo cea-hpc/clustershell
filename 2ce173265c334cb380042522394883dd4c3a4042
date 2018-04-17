@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5676b15_4af0b0bb",
+        "filename": "lib/ClusterShell/CLI/Clubak.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-04-17T08:20:44Z",
+      "side": 1,
+      "message": "this is duplicate code in all CLI file. Mhh... I was wondering if we can avoid importing all these symbols and duplicating this file everywhere....",
+      "revId": "2ce173265c334cb380042522394883dd4c3a4042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcfed1af_ae0d5d07",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-04-17T08:20:44Z",
+      "side": 1,
+      "message": "I do not like having thing like man page info in every CLI file. I know this is de-factorization but I would prefer having an explicit call for groups.conf and clush.conf. 2 different methods, one for each.",
+      "revId": "2ce173265c334cb380042522394883dd4c3a4042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7efb6eb0_4dd87a89",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-04-17T08:20:44Z",
+      "side": 1,
+      "message": "(by the wayn this is the only place where this is used, and so \u0027clush.conf(5)\u0027 is the only possible value for this arg)",
+      "revId": "2ce173265c334cb380042522394883dd4c3a4042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
