@@ -376,6 +376,7 @@ class ExecWorker(DistantWorker):
         self._close_count += 1
         assert self._close_count <= len(self._clients)
         if self._close_count == len(self._clients) and self.eh is not None:
+            # also use hasattr check because ev_timeout was missing in 1.8.0
             if self._has_timeout and hasattr(self.eh, 'ev_timeout'):
                 # Legacy ev_timeout event
                 self.eh.ev_timeout(self)

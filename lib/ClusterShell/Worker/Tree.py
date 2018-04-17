@@ -462,6 +462,7 @@ class TreeWorker(DistantWorker):
         if self._close_count >= self._target_count:
             handler = self.eh
             if handler:
+                # also use hasattr check because ev_timeout was missing in 1.8.0
                 if self._has_timeout and hasattr(handler, 'ev_timeout'):
                     handler.ev_timeout(self)
                 _eh_sigspec_invoke_compat(handler.ev_close, 2, self,

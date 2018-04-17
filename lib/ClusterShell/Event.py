@@ -72,6 +72,20 @@ class EventHandler(object):
         :param msg: message
         """
 
+    def ev_error(self, worker):
+        """
+        Called to indicate that a worker has error to read on stderr from
+        a specific node (or key).
+
+        [DEPRECATED] use ev_read instead and test if sname is 'stderr'
+
+        :param worker: :class:`.Worker` object
+
+        Available worker attributes:
+        * :attr:`.Worker.current_node` - node (or key)
+        * :attr:`.Worker.current_errmsg` - read error message
+        """
+
     def ev_written(self, worker, node, sname, size):
         """
         Called to indicate that some writing has been done by the worker to a
@@ -104,6 +118,15 @@ class EventHandler(object):
         :param node: node (or key)
         :param rc: command return code (or None if the worker doesn't support
             command return codes)
+        """
+
+    def ev_timeout(self, worker):
+        """
+        Called to indicate that a worker has timed out (worker timeout only).
+
+        [DEPRECATED] use ev_close instead and check if timedout is True
+
+        :param worker: :class:`.Worker` object
         """
 
     def ev_close(self, worker, timedout):
