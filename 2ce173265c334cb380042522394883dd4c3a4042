@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3e7a68d0_e2423f37",
+        "filename": "lib/ClusterShell/CLI/Clubak.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-04-17T22:19:41Z",
+      "side": 1,
+      "message": "good point",
+      "parentUuid": "f5676b15_4af0b0bb",
+      "revId": "2ce173265c334cb380042522394883dd4c3a4042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bcfed1af_ae0d5d07",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "6d535966_8e570160",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-04-17T22:19:41Z",
+      "side": 1,
+      "message": "good point",
+      "parentUuid": "bcfed1af_ae0d5d07",
+      "revId": "2ce173265c334cb380042522394883dd4c3a4042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7efb6eb0_4dd87a89",
         "filename": "lib/ClusterShell/CLI/Clush.py",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2018-04-17T08:20:44Z",
       "side": 1,
       "message": "(by the wayn this is the only place where this is used, and so \u0027clush.conf(5)\u0027 is the only possible value for this arg)",
+      "revId": "2ce173265c334cb380042522394883dd4c3a4042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b4b1e2c_0df01249",
+        "filename": "lib/ClusterShell/CLI/Clush.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-04-17T22:19:41Z",
+      "side": 1,
+      "message": "good point :p",
+      "parentUuid": "7efb6eb0_4dd87a89",
       "revId": "2ce173265c334cb380042522394883dd4c3a4042",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
