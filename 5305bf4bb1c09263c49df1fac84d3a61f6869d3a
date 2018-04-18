@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "ba19f916_65bce832",
+        "filename": "lib/ClusterShell/CLI/Utils.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-04-18T17:36:59Z",
+      "side": 1,
+      "message": "oh yeah, indeed!",
+      "parentUuid": "c96bdfe9_f66b7ae1",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 12
+      },
+      "revId": "5305bf4bb1c09263c49df1fac84d3a61f6869d3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f0d0ea2f_43d56337",
         "filename": "tests/CLIClubakTest.py",
         "patchSetId": 4
@@ -59,6 +83,24 @@
     },
     {
       "key": {
+        "uuid": "cd495262_29c45b2a",
+        "filename": "tests/CLIClubakTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-04-18T17:36:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f0d0ea2f_43d56337",
+      "revId": "5305bf4bb1c09263c49df1fac84d3a61f6869d3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "06087d4f_adeedb7e",
         "filename": "tests/CLIClushTest.py",
         "patchSetId": 4
@@ -70,6 +112,24 @@
       "writtenOn": "2018-04-18T11:40:29Z",
       "side": 1,
       "message": "use the new helper?",
+      "revId": "5305bf4bb1c09263c49df1fac84d3a61f6869d3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d8319b1_6757e624",
+        "filename": "tests/CLIClushTest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-04-18T17:36:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06087d4f_adeedb7e",
       "revId": "5305bf4bb1c09263c49df1fac84d3a61f6869d3a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
