@@ -261,7 +261,8 @@ def nodeset():
         return command_list(options, xset, group_resolver)
 
     # Interprete special characters (may raise SyntaxError)
-    separator = eval('\'%s\'' % options.separator, {"__builtins__":None}, {})
+    separator = eval('\'\'\'%s\'\'\'' % options.separator,
+                     {"__builtins__":None}, {})
 
     if options.slice_rangeset:
         _xset = class_set()
