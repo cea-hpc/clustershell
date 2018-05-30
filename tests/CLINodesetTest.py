@@ -200,6 +200,7 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--expand", "-S", ",", "foo[1-2],bar"], None, b"bar,foo1,foo2\n")
         self._nodeset_t(["--expand", "-S", "uuu", "foo[1-2],bar"], None, b"baruuufoo1uuufoo2\n")
         self._nodeset_t(["--expand", "-S", "\\n", "foo[1-2]"], None, b"foo1\nfoo2\n")
+        self._nodeset_t(["--expand", "-S", "\n", "foo[1-2]"], None, b"foo1\nfoo2\n")
 
     def test_009_fold_xor(self):
         """test nodeset --fold --xor"""
