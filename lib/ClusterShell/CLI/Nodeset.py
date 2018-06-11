@@ -260,7 +260,7 @@ def nodeset():
     if options.list > 0 or options.listall > 0:
         return command_list(options, xset, group_resolver)
 
-    # Interprete special characters (may raise SyntaxError)
+    # Interpret special characters (may raise SyntaxError)
     separator = eval('\'\'\'%s\'\'\'' % options.separator,
                      {"__builtins__":None}, {})
 
@@ -292,7 +292,7 @@ def nodeset():
         # convert to string for sample as nsiter() is slower for big
         # nodesets; and we assume options.pick will remain small-ish
         keep = random.sample(list(xset), options.pick)
-        # explicit class_set creation and str() convertion for RangeSet
+        # explicit class_set creation and str() conversion for RangeSet
         keep = class_set(','.join([str(x) for x in keep]))
         xset.intersection_update(keep)
 

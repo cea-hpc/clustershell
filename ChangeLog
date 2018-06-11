@@ -691,7 +691,7 @@
 
 	* Version 1.4 released.
 
-	* NodeSet.py: Add docstring for NodeSet string arithmetics (, ! & ^),
+	* NodeSet.py: Add docstring for NodeSet string arithmetic (, ! & ^),
 	which is also called extended string pattern (trac ticket #127).
 
 2010-12-14 S. Thiell <stephane.thiell@cea.fr>
@@ -1027,7 +1027,7 @@
 
 	* NodeSet.py: Added node group support with the help of the new NodeUtils
 	module (trac ticket #41). Improved parser to support basic node/nodegroups
-	arithmetics (trac ticket #44).
+	arithmetic (trac ticket #44).
 
 	* NodeUtils.py: New module that provides binding support to external node
 	group sources (trac ticket #43).

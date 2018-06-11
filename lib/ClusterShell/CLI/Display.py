@@ -81,7 +81,7 @@ class Display(object):
         # diff implies at least -b
         self.gather = options.gatherall or options.gather or options.diff
         self.progress = getattr(options, 'progress', False) # only in clush
-        # check parameter combinaison
+        # check parameter compatibility
         if options.diff and options.line_mode:
             raise ValueError("diff not supported in line_mode")
         self.line_mode = options.line_mode

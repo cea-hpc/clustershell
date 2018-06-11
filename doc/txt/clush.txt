@@ -54,7 +54,7 @@ Non-interactive mode
 
   The ``-w`` option allows you to specify remote hosts by using ClusterShell
   NodeSet syntax, including the node groups ``@group`` special syntax and the
-  ``Extended Patterns`` syntax to benefits from NodeSet basic arithmetics
+  ``Extended Patterns`` syntax to benefits from NodeSet basic arithmetic
   (like ``@Agroup\&@Bgroup``). See EXTENDED PATTERNS in ``nodeset``\(1) and
   also ``groups.conf``\(5) for more information.
 

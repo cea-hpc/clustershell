@@ -352,7 +352,7 @@ class Task(object):
     def default_excepthook(self, exc_type, exc_value, tb):
         """Default excepthook for a newly Task. When an exception is
         raised and uncaught on Task thread, excepthook is called, which
-        is default_excepthook by default. Once excepthook overriden,
+        is default_excepthook by default. Once excepthook overridden,
         you can still call default_excepthook if needed."""
         print('Exception in thread %s:' % self.thread, file=sys.stderr)
         traceback.print_exception(exc_type, exc_value, tb, file=sys.stderr)
@@ -529,7 +529,7 @@ class Task(object):
         presence of the nodes parameter) and immediately schedules it for
         execution in task's runloop. So, if the task is already running
         (ie. called from an event handler), the command is started immediately,
-        assuming current execution contraintes are met (eg. fanout value). If
+        assuming current execution constraints are met (eg. fanout value). If
         the task is not running, the command is not started but scheduled for
         late execution. See resume() to start task runloop.
 
@@ -1288,7 +1288,7 @@ class Task(object):
         """
         Class method that blocks calling thread until all tasks have
         finished (from a ClusterShell point of view, for instance,
-        their task.resume() return). It doesn't necessarly mean that
+        their task.resume() return). It doesn't necessarily mean that
         associated threads have finished.
         """
         Task._task_lock.acquire()

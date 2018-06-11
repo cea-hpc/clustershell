@@ -56,7 +56,7 @@ class RangeSetParseError(RangeSetException):
         self.part = part
 
 class RangeSetPaddingError(RangeSetParseError):
-    """Raised when a fatal padding incoherency occurs"""
+    """Raised when a fatal padding incoherence occurs"""
     def __init__(self, part, msg):
         RangeSetParseError.__init__(self, part, "padding mismatch (%s)" % msg)
 
@@ -315,12 +315,12 @@ class RangeSet(set):
             return
 
         prng = None         # pending range
-        istart = None       # processing starting indice
+        istart = None       # processing starting indices
         step = 0            # processing step
         for sli in self._contiguous_slices():
             start = sli.start
             stop = sli.stop
-            unitary = (start + 1 == stop)   # one indice?
+            unitary = (start + 1 == stop)   # one indices?
             if istart is None:  # first loop
                 if unitary:
                     istart = start
@@ -378,7 +378,7 @@ class RangeSet(set):
                 elif not unitary:
                     # case: broken step by contiguous range
                     if stepped:
-                        # yield 'range/step' by taking first indice of new range
+                        # yield 'range/step' by taking first indices of new range
                         yield slice(istart, i + 1, step)
                         i += 1
                     else:
@@ -390,7 +390,7 @@ class RangeSet(set):
                     istart = i = k = stop - 1
             step = i - k
             k = i
-        # exited loop, process pending range or indice...
+        # exited loop, process pending range or indices...
         if step == 0:
             if prng:
                 yield slice(*prng)
@@ -497,7 +497,7 @@ class RangeSet(set):
         """
         # Return NotImplemented instead of raising TypeError, to
         # indicate that the comparison is not implemented with respect
-        # to the other type (the other comparand then gets a change to
+        # to the other type (the other comparand then gets a chance to
         # determine the result, then it falls back to object address
         # comparison).
         if not isinstance(other, RangeSet):

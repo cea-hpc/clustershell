@@ -173,7 +173,7 @@ pattern*, adding support for union (with special character *","*), difference
 (with special character *"!"*), intersection (with special character *"&"*)
 and symmetric difference (with special character *"^"*) operations. String
 patterns are read from left to right, by proceeding any character operators
-accordinately. The following example shows how you can use this feature::
+accordingly. The following example shows how you can use this feature::
 
     >>> print NodeSet("node[10-42],node46!node10")
     node[11-42,46]

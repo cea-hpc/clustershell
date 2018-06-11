@@ -141,7 +141,7 @@ split result into a number of subsets
 split result into contiguous subsets (ie. for nodeset, subsets will contain nodes with same pattern name and a contiguous range of indexes, like foobar[1\-100]; for rangeset, subsets with consists in contiguous index ranges)"""
 .TP
 .BI \-\-axis\fB= RANGESET
-for nD nodesets, fold along provided axis only. Axis are indexed from 1 to n and can be specified here either using the rangeset syntax, eg. \(aq1\(aq, \(aq1\-2\(aq, \(aq1,3\(aq, or by a single negative number meaning that the indice is counted from the end. Because some nodesets may have several different dimensions, axis indices are silently truncated to fall in the allowed range.
+for nD nodesets, fold along provided axis only. Axis are indexed from 1 to n and can be specified here either using the rangeset syntax, eg. \(aq1\(aq, \(aq1\-2\(aq, \(aq1,3\(aq, or by a single negative number meaning that the indices is counted from the end. Because some nodesets may have several different dimensions, axis indices are silently truncated to fall in the allowed range.
 .TP
 .BI \-\-pick\fB= N
 pick N node(s) at random in nodeset

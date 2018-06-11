@@ -70,14 +70,14 @@ class Worker(object):
     """
     Worker is an essential base class for the ClusterShell library. The goal
     of a worker object is to execute a common work on a single or several
-    targets (abstract notion) in parallel. Concret targets and also the notion
-    of local or distant targets are managed by Worker's subclasses (for
-    example, see the DistantWorker base class).
+    targets (abstract notion) in parallel. Concrete targets and also the
+    notion of local or distant targets are managed by Worker's subclasses
+    (for example, see the DistantWorker base class).
 
     A configured Worker object is associated to a specific ClusterShell Task,
     which can be seen as a single-threaded Worker supervisor. Indeed, the work
     to be done is executed in parallel depending on other Workers and Task's
-    current paramaters, like current fanout value.
+    current parameters, like current fanout value.
 
     ClusterShell is designed to write event-driven applications, and the Worker
     class is key here as Worker objects are passed as parameter of most event

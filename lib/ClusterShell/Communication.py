@@ -153,7 +153,7 @@ class XMLReader(ContentHandler):
 
 class Channel(EventHandler):
     """Use this event handler to establish a communication channel between to
-    hosts whithin the propagation tree.
+    hosts within the propagation tree.
 
     The endpoint's logic has to be implemented by subclassing the Channel class
     and overriding the start() and recv() methods.

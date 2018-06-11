@@ -120,7 +120,7 @@ class NodeSetBase(object):
     otherwise it may be referenced (should be seen as an ownership transfer
     upon creation).
 
-    This class implements core node set arithmetics (no string parsing here).
+    This class implements core node set arithmetic (no string parsing here).
 
     Example:
        >>> nsb = NodeSetBase('node%s-ipmi', RangeSet('1-5,7'), False)
@@ -1184,7 +1184,7 @@ class NodeSet(NodeSetBase):
     pattern" which adds support for union (special character ","),
     difference ("!"), intersection ("&") and symmetric difference ("^")
     operations. String patterns are read from left to right, by
-    proceeding any character operators accordinately.
+    proceeding any character operators accordingly.
 
     Extended string pattern usage examples:
 
@@ -1231,7 +1231,7 @@ class NodeSet(NodeSetBase):
         is, to fold first dimension using ``[a-b]`` rangeset syntax whenever
         possible). Using `fold_axis` ensures that rangeset won't be folded on
         unspecified axis, but please note however, that using `fold_axis` may
-        lead to suboptimial folding, this is because NodeSet algorithms are
+        lead to suboptimal folding, this is because NodeSet algorithms are
         optimized for folding along all axis (default behavior).
         """
         NodeSetBase.__init__(self, autostep=autostep, fold_axis=fold_axis)
