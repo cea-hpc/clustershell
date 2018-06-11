@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "75798ed2_5b8ec010",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-06-11T02:15:01Z",
+      "side": 1,
+      "message": "What, I\u0027m actually supposed to fix old code too?! :p\nI wonder if pylint can run words against a dictionary like checkpatch...",
+      "parentUuid": "2f9ca5bf_d2cfdcf7",
+      "range": {
+        "startLine": 263,
+        "startChar": 6,
+        "endLine": 263,
+        "endChar": 16
+      },
+      "revId": "40ec1946aa11a0a7a90074362f57e6928607f169",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8fc6908f_d467b93e",
         "filename": "lib/ClusterShell/CLI/Nodeset.py",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2018-06-08T13:27:12Z",
       "side": 1,
       "message": "If I understand correctly, we should have used $\"\\n\" construct from Bash from the beginning, to avoid having to interpret \"\\n\" string using this ugly eval? Correct?",
+      "revId": "40ec1946aa11a0a7a90074362f57e6928607f169",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d594190_c8afda67",
+        "filename": "lib/ClusterShell/CLI/Nodeset.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-06-11T02:15:01Z",
+      "side": 1,
+      "message": "ugh gerrit font is bad, $\"\\n\" will not work, $\u0027\\n\u0027 will - and while this works in bash/zsh/ksh/busybox-ash it doesn\u0027t work in dash so it\u0027s not universal and I can understand wanting an easy way to specify a new line separator as that could be fairly common...\n\nI can understand why this was done this way in the first place \"for convenience\", and having looked briefly for another way to replace this kind of sequences to newlines I haven\u0027t found anything great (the best I could come up with would be a couple of substitutions via regex rather than eval, but ultimately it\u0027s still ugly, and I couldn\u0027t fault the security of eval with this environment given - even if I can get it to execute code, I can\u0027t do any side effect without builtins/modules and can\u0027t call other clustershell functions either so meh, good enough?",
+      "parentUuid": "8fc6908f_d467b93e",
       "revId": "40ec1946aa11a0a7a90074362f57e6928607f169",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
