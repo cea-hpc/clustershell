@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e744f259_2561d741",
+        "filename": ".spelling-dict",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-06-11T05:38:24Z",
+      "side": 1,
+      "message": "I pushed the dictionary file, can probably remove it but if we want to do another pass later (in another 10 years) it might be useful to keep around... maybe... unsure.",
+      "revId": "f9efb64684b245dd63df04be91de376339846142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
