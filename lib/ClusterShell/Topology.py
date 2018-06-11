@@ -239,7 +239,7 @@ class TopologyRoute(object):
                 'Source and destination nodesets overlap')
 
     def dest(self, nodeset=None):
-        """get the route's destination. The optionnal argument serves for
+        """get the route's destination. The optional argument serves for
         convenience and provides a way to use the method for a subset of the
         whole source nodeset
         """
@@ -297,7 +297,7 @@ class TopologyRoutingTable(object):
         return '\n'.join([str(route) for route in self._routes])
 
     def __iter__(self):
-        """return an iterator over the list of rotues"""
+        """return an iterator over the list of routes"""
         return iter(self._routes)
 
     def _introduce_circular_reference(self, route):
@@ -462,7 +462,7 @@ class TopologyParser(configparser.ConfigParser):
         """Return a previously generated propagation tree or build it if
         required. As rebuilding tree can be quite expensive, once built,
         the propagation tree is cached. you can force a re-generation
-        using the optionnal `force_rebuild' parameter.
+        using the optional `force_rebuild' parameter.
         """
         if self._tree is None or force_rebuild:
             self._tree = self.graph.to_tree(root)

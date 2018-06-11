@@ -369,10 +369,10 @@ class TreeWorker(DistantWorker):
 
     def _relaunch(self, previous_gateway):
         """Redistribute and relaunch commands on targets that were running
-        on previous_gateway (which is probably marked unreacheable by now)
+        on previous_gateway (which is probably marked unreachable by now)
 
         NOTE: Relaunch is always called after failed remote execution, so
-        previous_gateway must be defined. However, it is not guaranted that
+        previous_gateway must be defined. However, it is not guaranteed that
         the relaunch is going to be performed using gateways (that's a feature).
         """
         targets = self.gwtargets[previous_gateway].copy()

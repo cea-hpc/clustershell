@@ -2671,11 +2671,11 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(n1), 16)
 
         # reverse
-        n1.fold_axis = [-1] # first indice from the end
+        n1.fold_axis = [-1] # first indices from the end
         self.assertEqual(str(n1), "da1c[1-2],da2c[1-2],ln[0-1],master,slave,x1y1z[1-2],x2y1z[1-2],x1y2z[1-2],x2y2z[1-2]")
         self.assertEqual(len(n1), 16)
 
-        n1.fold_axis = [-2] # second indice from the end
+        n1.fold_axis = [-2] # second indices from the end
         self.assertEqual(str(n1), "da[1-2]c1,da[1-2]c2,ln0,ln1,master,slave,x1y[1-2]z1,x2y[1-2]z1,x1y[1-2]z2,x2y[1-2]z2")
         self.assertEqual(len(n1), 16)
 

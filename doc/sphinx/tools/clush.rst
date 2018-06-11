@@ -47,7 +47,7 @@ The ``-w`` option allows you to specify remote hosts by using ClusterShell
 :class:`.NodeSet` syntax, including the node groups *@group* special syntax
 (cf. :ref:`nodeset-groupsexpr`) and the Extended String Patterns syntax (see
 :ref:`class-NodeSet-extended-patterns`) to benefits from :class:`.NodeSet`
-basic arithmetics (like ``@Agroup&@Bgroup``). Additionally, the ``-x`` option
+basic arithmetic (like ``@Agroup&@Bgroup``). Additionally, the ``-x`` option
 allows you to exclude nodes from remote hosts list (the same NodeSet syntax
 can be used here). Nodes exclusion has priority over nodes addition.
 
