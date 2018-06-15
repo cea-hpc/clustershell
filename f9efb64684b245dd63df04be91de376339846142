@@ -33,6 +33,24 @@
       "revId": "f9efb64684b245dd63df04be91de376339846142",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26169ae5_54a0d96f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-06-15T01:30:51Z",
+      "side": 1,
+      "message": "But I like dots!",
+      "parentUuid": "c27f034f_f5100db8",
+      "revId": "f9efb64684b245dd63df04be91de376339846142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
