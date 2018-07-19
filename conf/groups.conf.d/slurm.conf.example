@@ -35,7 +35,7 @@ cache_time: 60
 # SLURM user bindings for running jobs
 #
 [slurmuser,su]
-map: squeue -h -u $GROUP -o "%N" -t running
+map: squeue -h -u $GROUP -o "%N" -t R
 list: squeue -h -o "%i" -t R
 reverse: squeue -h -w $NODE -o "%i"
 cache_time: 60
