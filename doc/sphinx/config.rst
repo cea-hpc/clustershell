@@ -439,6 +439,22 @@ allocated for this job::
     reverse: squeue -h -w $NODE -o "%i"
     cache_time: 60
 
+The fourth section **slurmuser,su** defines a group source based on Slurm users.
+Each group is based on a username and contains the nodes currently
+allocated for jobs belonging to the username::
+
+    [slurmuser,su]
+    map: squeue -h -u $GROUP -o "%N" -t running
+    list: squeue -h -o "%i" -t R
+    reverse: squeue -h -w $NODE -o "%i"
+    cache_time: 60
+
+Example of use with :ref:`clush <clush-tool>` to execute a command on all nodes
+with running jobs of username::
+
+    $ clush -bw@su:username 'df -Ph /scratch'
+    $ clush -bw@su:username 'du -s /scratch/username' 
+
 :ref:`cache_time <group-external-caching>` is also set to 60 seconds instead
 of the default (3600s) to avoid caching results in memory for too long, because
 this group source is likely very dynamic (this is only useful for long-running

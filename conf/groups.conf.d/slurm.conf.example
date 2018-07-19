@@ -30,3 +30,12 @@ map: squeue -h -j $GROUP -o "%N"
 list: squeue -h -o "%i" -t R
 reverse: squeue -h -w $NODE -o "%i"
 cache_time: 60
+
+#
+# SLURM user bindings for running jobs
+#
+[slurmuser,su]
+map: squeue -h -u $GROUP -o "%N" -t running
+list: squeue -h -o "%i" -t R
+reverse: squeue -h -w $NODE -o "%i"
+cache_time: 60
