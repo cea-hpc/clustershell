@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a838290_e6a71902",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-09-04T08:57:01Z",
+      "side": 1,
+      "message": "\"Closes #391\" ? (in which case it\u0027s not really needed in the subject, but it\u0027s kind of fun looking at the git log -- Aurélien\u0027s patches having the ticket number as first word of the subject like lustre... ;))",
+      "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
