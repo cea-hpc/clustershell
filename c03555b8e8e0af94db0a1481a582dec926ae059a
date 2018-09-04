@@ -16,6 +16,24 @@
       "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e88ab27a_f6e2819f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-09-04T09:42:29Z",
+      "side": 1,
+      "message": "Done. \"Closes #ID\" is good as github uses it.\nI like having the ticket id in the subject, makes the git log easier to read.\nThis is not limited to Lustre. A lot of projects do that, like Puppet by example :)",
+      "parentUuid": "5a838290_e6a71902",
+      "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
