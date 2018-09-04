@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "77557219_ad433c2c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-09-04T10:23:40Z",
+      "side": 1,
+      "message": "(actually reading the text) typo, were; I think. Or if you meant where it doesn\u0027t parse well.",
+      "range": {
+        "startLine": 9,
+        "startChar": 40,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5a838290_e6a71902",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -31,6 +54,24 @@
       "side": 1,
       "message": "Done. \"Closes #ID\" is good as github uses it.\nI like having the ticket id in the subject, makes the git log easier to read.\nThis is not limited to Lustre. A lot of projects do that, like Puppet by example :)",
       "parentUuid": "5a838290_e6a71902",
+      "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b16f5e10_70209a79",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1003556
+      },
+      "writtenOn": "2018-09-04T10:23:40Z",
+      "side": 1,
+      "message": "I think it only makes git log easier to read if everyone does it (which is why I said it\u0027s kind of fun to look at the log), it may be worth discussing in a more general context.\nI don\u0027t mind either way :)",
+      "parentUuid": "e88ab27a_f6e2819f",
       "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
