@@ -158,6 +158,11 @@ class RangeSetNDTest(unittest.TestCase):
                      "0-2; 1-2; 0-4\n3; 1-2; 0-5\n", 42)
         self._testRS([["0-2", "1-2", "0-4"], ["1-3", "1-3", "0-4"]],
                      "1-2; 1-3; 0-4\n0,3; 1-2; 0-4\n3; 3; 0-4\n", 55)
+
+        # triggers full expand heuristic
+        veclist = [item for x in range(0, 22, 2) for item in [(x,0), (x,1)]]
+        self._testRS(veclist, "0-20/2; 0-1\n", 22)
+
         # the following test triggers folding loop protection
         self._testRS([["0-100", "50-200"], ["2-101", "49"]],
                      "0-100; 50-200\n2-101; 49\n", 15351)
