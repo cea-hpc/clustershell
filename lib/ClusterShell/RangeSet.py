@@ -1131,7 +1131,8 @@ class RangeSetND(object):
         if len(self._veclist) * (len(self._veclist) - 1) / 2 > max_length * 10:
             # *** nD full expand is preferred ***
             pads = self.pads()
-            self._veclist = [[RangeSet.fromone(i, pad=pads[axis])
+            self._veclist = [[RangeSet.fromone(i, pad=pads[axis],
+                                               autostep=self.autostep)
                               for axis, i in enumerate(tvec)]
                              for tvec in set(self._iter())]
             return
