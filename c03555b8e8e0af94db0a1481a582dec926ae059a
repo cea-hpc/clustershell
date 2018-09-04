@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "00e76517_3526a25e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-09-04T15:37:23Z",
+      "side": 1,
+      "message": "Was already fixed in patchset 2",
+      "parentUuid": "77557219_ad433c2c",
+      "range": {
+        "startLine": 9,
+        "startChar": 40,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "c03555b8e8e0af94db0a1481a582dec926ae059a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a838290_e6a71902",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
