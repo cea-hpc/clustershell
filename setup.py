@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2016-2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2018 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -23,14 +23,17 @@ import os
 from setuptools import setup, find_packages
 
 
-if os.geteuid() == 0:
-    # System-wide, out-of-prefix config install (rpmbuild or pip as root)
-    CFGDIR = '/etc/clustershell'
-else:
-    # User, in-prefix config install (rpmbuild or pip as user)
-    CFGDIR = 'etc/clustershell'
-
 VERSION = '1.8'
+
+# Default CFGDIR: in-prefix config install (rpmbuild or pip as user)
+CFGDIR = 'etc/clustershell'
+
+# Use system-wide CFGDIR instead when installing as root on Unix
+try:
+    if os.geteuid() == 0:
+        CFGDIR = '/etc/clustershell'
+except AttributeError:  # Windows?
+    pass
 
 # Dependencies (for pip install)
 REQUIRES = ['PyYAML']
