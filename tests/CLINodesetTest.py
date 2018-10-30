@@ -84,6 +84,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--count", "foo[395-442]", "--intersection", "foo", "-i", "foo[1-200,245-394]"], None, b"0\n")
         self._nodeset_t(["--count", "foo[395-442]", "-i", "foo", "-i", "foo[0-200,245-394]"], None, b"0\n")
         self._nodeset_t(["--count", "foo[395-442]", "--intersection", "bar3,bar24", "-i", "foo[1-200,245-394]"], None, b"0\n")
+        # multiline args (#394)
+        self._nodeset_t(["--count", "foo[1,2]", "-i", "foo1\nfoo2"], None, b"2\n")
+        self._nodeset_t(["--count", "foo[1,2]", "-i", "foo1\nfoo2", "foo3\nfoo4"], None, b"4\n")
 
     def test_003_count_intersection_stdin(self):
         """test nodeset --count --intersection (stdin)"""
@@ -114,6 +117,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(args + ["--fold", "foo[395-442]", "foo", "foo[1-200,245-394]"], None, b"foo,foo[1-200,245-442]\n")
         self._nodeset_t(args + ["--fold", "foo[395-442]", "foo", "foo[0-200,245-394]"], None, b"foo,foo[0-200,245-442]\n")
         self._nodeset_t(args + ["--fold", "foo[395-442]", "bar3,bar24", "foo[1-200,245-394]"], None, b"bar[3,24],foo[1-200,245-442]\n")
+        # multiline arg (#394)
+        self._nodeset_t(args + ["--fold", "foo3\nfoo1\nfoo2\nbar"], None, b"bar,foo[1-3]\n")
+        self._nodeset_t(args + ["--fold", "foo3\n\n\nfoo1\n\nfoo2\n\n"], None, b"foo[1-3]\n")
         # stdin
         self._nodeset_t(args + ["--fold"], "\n", b"\n")
         self._nodeset_t(args + ["--fold"], "foo\n", b"foo\n")
@@ -212,6 +218,9 @@ class CLINodesetTest(CLINodesetTestBase):
         self._nodeset_t(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[1-200,245-394]"], None, b"foo,foo[1-200,245-442]\n")
         self._nodeset_t(["--fold", "foo[395-442]", "-X", "foo", "-X", "foo[0-200,245-394]"], None, b"foo,foo[0-200,245-442]\n")
         self._nodeset_t(["--fold", "foo[395-442]", "-X", "bar3,bar24", "-X", "foo[1-200,245-394]"], None, b"bar[3,24],foo[1-200,245-442]\n")
+        # multiline args (#394)
+        self._nodeset_t(["--fold", "foo[1-10]", "-X", "foo5\nfoo6\nfoo7"], None, b"foo[1-4,8-10]\n")
+        self._nodeset_t(["--fold", "foo[1-10]", "-X", "foo5\nfoo6\nfoo7", "foo5\nfoo6"], None, b"foo[1-6,8-10]\n")
 
     def test_010_fold_xor_stdin(self):
         """test nodeset --fold --xor (stdin)"""
@@ -241,6 +250,9 @@ class CLINodesetTest(CLINodesetTestBase):
         # Do no change
         self._nodeset_t(["--fold", "foo[6-10]", "-x", "bar[0-5]"], None, b"foo[6-10]\n")
         self._nodeset_t(["--fold", "foo[0-10]", "foo[13-18]", "--exclude", "foo[5-10,15]"], None, b"foo[0-4,13-14,16-18]\n")
+        # multiline args (#394)
+        self._nodeset_t(["--fold", "foo[0-5]", "-x", "foo0\nfoo9\nfoo3\nfoo2\nfoo1"], None, b"foo[4-5]\n")
+        self._nodeset_t(["--fold", "foo[0-5]", "-x", "foo0\nfoo9\nfoo3\nfoo2\nfoo1", "foo5\nfoo6"], None, b"foo[4-6]\n")
 
     def test_012_fold_exclude_stdin(self):
         """test nodeset --fold --exclude (stdin)"""

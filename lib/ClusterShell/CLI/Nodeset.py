@@ -59,7 +59,9 @@ def compute_nodeset(xset, args, autostep):
     """Apply operations and operands from args on xset, an initial
     RangeSet or NodeSet."""
     class_set = xset.__class__
-    # Process operations
+    # Process operations from command arguments.
+    # The special argument string "-" indicates to read stdin.
+    # We also take care of multiline shell arguments (#394).
     while args:
         arg = args.pop(0)
         if arg in ("-i", "--intersection"):
@@ -67,25 +69,27 @@ def compute_nodeset(xset, args, autostep):
             if val == '-':
                 process_stdin(xset.intersection_update, class_set, autostep)
             else:
-                xset.intersection_update(class_set(val, autostep=autostep))
+                xset.intersection_update(class_set.fromlist(val.splitlines(),
+                                                            autostep=autostep))
         elif arg in ("-x", "--exclude"):
             val = args.pop(0)
             if val == '-':
                 process_stdin(xset.difference_update, class_set, autostep)
             else:
-                xset.difference_update(class_set(val, autostep=autostep))
+                xset.difference_update(class_set.fromlist(val.splitlines(),
+                                                          autostep=autostep))
         elif arg in ("-X", "--xor"):
             val = args.pop(0)
             if val == '-':
                 process_stdin(xset.symmetric_difference_update, class_set,
                               autostep)
             else:
-                xset.symmetric_difference_update(class_set(val,
-                                                           autostep=autostep))
+                xset.symmetric_difference_update(
+                    class_set.fromlist(val.splitlines(), autostep=autostep))
         elif arg == '-':
             process_stdin(xset.update, xset.__class__, autostep)
         else:
-            xset.update(class_set(arg, autostep=autostep))
+            xset.update(class_set.fromlist(arg.splitlines(), autostep=autostep))
 
     return xset
 
