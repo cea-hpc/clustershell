@@ -13,6 +13,35 @@ farms! Special thanks to the many of you that have sent us feedback on GitHub!
 
 .. warning:: Support for Python 2.5 and below has been dropped in this version.
 
+Version 1.8.1
+^^^^^^^^^^^^^
+
+This update contains a few bug fixes and some performance improvements of the
+:class:`.NodeSet` class.
+
+The :ref:`tree mode <clush-tree>` has been fixed to properly support offline
+gateways.
+
+We added the following command line options:
+
+* ``--conf`` to specify alternative clush.conf (clush only)
+
+* ``--groupsconf`` to specify alternative groups.conf (all CLIs)
+
+In :class:`.EventHandler`, we reinstated :meth:`.EventHandler.ev_error`: and
+:meth:`.EventHandler.ev_error`: (as deprecated) for compatibility purposes.
+Please see below for more details about important :class:`.EventHandler`
+changes in 1.8.
+
+Finally, :ref:`cluset <cluset-tool>`/:ref:`nodeset <nodeset-tool>` have been
+improved by adding support for:
+
+* litteral new line in ``-S``
+
+* multiline shell variables in options
+
+For more details, please have a look at `GitHub Issues for 1.8.1 milestone`_.
+
 Main changes in 1.8
 ^^^^^^^^^^^^^^^^^^^
 
@@ -469,6 +498,7 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.7.2 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.2
 .. _GitHub Issues for 1.7.3 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.3
 .. _GitHub Issues for 1.8 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8
+.. _GitHub Issues for 1.8.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.1
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/

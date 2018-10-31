@@ -1,3 +1,22 @@
+2018-10-30 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.8.1 released. The main changes are listed below.
+
+	* Tree: support offline gateways (#260)
+
+	* CLI: added the following command line options (#336):
+		--conf to specify alternative clush.conf (clush only)
+		--groupsconf to specify alternative groups.conf (all CLIs)
+
+	* NodeSet: speed-up nodeset parsing (#370)
+
+	* EventHandler: reinstate ev_error and ev_timeout as deprecated (#377)
+
+	* nodeset/cluset CLI: allow litteral new line in -S, so both -S "\n"
+	and -S $'\n' will work
+
+	* nodeset/cluset CLI: handle multiline shell arguments in options (#394)
+
 2017-10-23 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.8 released.

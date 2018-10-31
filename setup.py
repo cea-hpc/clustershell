@@ -23,7 +23,7 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '1.8'
+VERSION = '1.8.1'
 
 # Default CFGDIR: in-prefix config install (rpmbuild or pip as user)
 CFGDIR = 'etc/clustershell'
