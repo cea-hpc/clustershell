@@ -34,6 +34,24 @@
       "revId": "783dfa8cfdb8799ad445e120e304151e5cc4fbbb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b80890b_f7b4ccb6",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1004434
+      },
+      "writtenOn": "2018-11-02T19:24:38Z",
+      "side": 1,
+      "message": "Oops, missed it. That\u0027s ok!",
+      "parentUuid": "4d51fd61_f5f1e548",
+      "revId": "783dfa8cfdb8799ad445e120e304151e5cc4fbbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
