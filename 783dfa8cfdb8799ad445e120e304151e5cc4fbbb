@@ -16,6 +16,24 @@
       "revId": "783dfa8cfdb8799ad445e120e304151e5cc4fbbb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d51fd61_f5f1e548",
+        "filename": "doc/sphinx/release.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003524
+      },
+      "writtenOn": "2018-11-02T19:21:48Z",
+      "side": 1,
+      "message": "It is mentioned just below. Do you want me to add more details?",
+      "parentUuid": "3460da25_81e703af",
+      "revId": "783dfa8cfdb8799ad445e120e304151e5cc4fbbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
