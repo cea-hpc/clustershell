@@ -7,11 +7,11 @@
 #
 [xcat]
 
-# this will list the nodes in the specified node group
-map: nodels $GROUP
+# list the nodes in the specified node group
+map: lsdef -s -t node $GROUP | cut -d' ' -f1
 
-# as an example here, we use a group named 'server' containing all servers
-all: nodels server
+# list all the nodes defined in the xCAT tables
+all: lsdef -s -t node | cut -d' ' -f1
 
 # list all groups
 list: lsdef -t group | cut -d' ' -f1
