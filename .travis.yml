@@ -1,6 +1,5 @@
 language: python
 python:
-  - '2.6'
   - '2.7'
   - '3.4'
   - '3.5'
@@ -14,6 +13,10 @@ before_script:
   - cp ~/.ssh/{id_rsa.pub,authorized_keys}
   # Avoid ssh "known hosts" warnings
   - printf '%s\n    %s\n    %s\n' 'Host *' 'StrictHostKeyChecking no' 'LogLevel ERROR' >> ~/.ssh/config
+  # ssh: propagate TRAVIS* environment variables
+  - printf '    %s\n' 'SendEnv TRAVIS*' >> ~/.ssh/config
+  - sudo sh -c "echo 'AcceptEnv TRAVIS*' >> /etc/ssh/sshd_config"
+  - sudo service ssh restart
   # Activate virtualenv when sshing to localhost to enable gateway tests
   - sed -i "1isource $VIRTUAL_ENV/bin/activate" ~/.bashrc
   # WorkerPdsh
