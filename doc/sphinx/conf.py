@@ -140,7 +140,14 @@ def setup(app):
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+# Better to disable this to prevent alteration of command-line arguments
+# Sphinx <1.6 use `html_use_smartypants` and >=1.6 use `smartquotes`
+from sphinx import __version__ as sphinx_version
+sphinx_version_parts = [int(i) for i in sphinx_version.split('.')]
+if sphinx_version_parts[0] <= 1 and sphinx_version_parts[1] < 6:
+    html_use_smartypants = False
+else:
+    smartquotes = False
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
