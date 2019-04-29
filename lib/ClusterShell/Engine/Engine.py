@@ -311,7 +311,7 @@ class _EngineTimerQ(object):
         # timer is fired, but only once per call.
         expired_timercases = []
         now = time.time()
-        while self.timers and (self.timers[0].fire_date - now) <= EPSILON:
+        while self.timers and self.timers[0].fire_date <= now:
             expired_timercases.append(heapq.heappop(self.timers))
             self._dequeue_disarmed()
 

@@ -428,7 +428,7 @@ class TaskTimerTest(unittest.TestCase):
         INTERVAL = 0.25
         task = task_self()
         teh = self.__class__.TForceDelayedRepeaterAutoCloseChecker()
-        bootstrap = task.shell("sleep %f" % INTERVAL)
+        bootstrap = task.shell("sleep %f" % (2 * INTERVAL))
         repeater1 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
         repeater2 = task.timer(INTERVAL, teh, INTERVAL, autoclose=True)
         task.resume()
@@ -436,9 +436,14 @@ class TaskTimerTest(unittest.TestCase):
         # one will block thread for INTERVAL+0.1, the second one will also
         # block for INTERVAL+0.1 more time. Then at next runloop the engine
         # will see our shell command termination so will unregister associated
-        # worker client. At this point, only autoclosing timers remain
+        # worker client. At this point, only non-autoclosing timers remain
         # registered, so timer firing will be skipped and runloop will exit.
-        self.assertEqual(teh.count, 2)
+        #
+        # Why two possible values below? This has changed due to #399:
+        # count will be 1 if one timer is fired first (most likely without
+        #   epsilon batching effect fixed in #399)
+        # count will be 2 if both timers are fired during the same runloop
+        self.assertTrue(teh.count in (1, 2))
 
     def testMultipleAddSameTimerPrivate(self):
         """test multiple add() of same timer [private]"""
