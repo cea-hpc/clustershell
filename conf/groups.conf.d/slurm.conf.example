@@ -36,6 +36,6 @@ cache_time: 60
 #
 [slurmuser,su]
 map: squeue -h -u $GROUP -o "%N" -t R
-list: squeue -h -o "%i" -t R
-reverse: squeue -h -w $NODE -o "%i"
+list: squeue -h -o "%u" -t R
+reverse: squeue -h -w $NODE -o "%u"
 cache_time: 60
