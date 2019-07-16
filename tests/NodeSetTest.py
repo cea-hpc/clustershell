@@ -570,6 +570,8 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
         n1.fold_axis = RangeSet("0-1") # ok
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        n1.fold_axis = (0, 1) # ok
+        self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
 
     def testSimpleNodeSetUpdates(self):
         """test NodeSet simple nodeset-based update()"""

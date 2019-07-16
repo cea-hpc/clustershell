@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015-2017 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2019 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -42,6 +42,7 @@ import sys
 #
 CFG_SECTION_TASK_DEFAULT = 'task.default'
 CFG_SECTION_TASK_INFO = 'task.info'
+CFG_SECTION_NODESET = 'nodeset'
 
 #
 # Functions
@@ -84,6 +85,20 @@ def config_paths(config_name):
                                         os.path.expanduser('~/.config')),
                          'clustershell', config_name)]
 
+def _converter_integer_tuple(value):
+    """ConfigParser converter for tuple of integers"""
+    # NOTE: compatible with ConfigParser 'converters' argument (Python 3.5+)
+    return tuple(int(x) for x in value.split(',') if x.strip())
+
+def _parser_get_integer_tuple(parser, section, option, **kwargs):
+    """
+    Compatible converter for parsing tuple of integers until we can use
+    converters from new ConfigParser (Python 3.5+).
+    """
+    return _converter_integer_tuple(
+        ConfigParser.get(parser, section, option, **kwargs))
+
+
 #
 # Classes
 #
@@ -93,7 +108,13 @@ class Defaults(object):
 
     The following attributes may be read at any time and also changed
     programmatically, for most of them **before** ClusterShell objects
-    are initialized (like Task):
+    (Task or NodeSet) are initialized.
+
+    NodeSet defaults:
+
+    * fold_axis (tuple of axis integers; default is empty tuple ``()``)
+
+    Task defaults:
 
     * stderr (boolean; default is ``False``)
     * stdin (boolean; default is ``True``)
@@ -181,12 +202,23 @@ class Defaults(object):
     #
     _TASK_INFO_PKEYS_BL = ['engine', 'print_debug']
 
+    #
+    # Default values for NodeSet
+    #
+    _NODESET = {"fold_axis" : ()}
+
+    #
+    # Datatype converters for NodeSet defaults
+    #
+    _NODESET_CONVERTERS = {"fold_axis" : _parser_get_integer_tuple}
+
     def __init__(self, filenames):
         """Initialize Defaults from config filenames"""
 
         self._task_default = self._TASK_DEFAULT.copy()
         self._task_info = self._TASK_INFO.copy()
         self._task_info_pkeys_bl = list(self._TASK_INFO_PKEYS_BL)
+        self._nodeset = self._NODESET.copy()
 
         config = ConfigParser()
         parsed = config.read(filenames)
@@ -212,22 +244,34 @@ class Defaults(object):
             except (NoSectionError, NoOptionError):
                 pass
 
+        # NodeSet
+        for key, conv in self._NODESET_CONVERTERS.items():
+            try:
+                self._nodeset[key] = conv(config, CFG_SECTION_NODESET, key)
+            except (NoSectionError, NoOptionError):
+                pass
+
     def __getattr__(self, name):
         """Defaults attribute lookup"""
         if name in self._task_default:
             return self._task_default[name]
         elif name in self._task_info:
             return self._task_info[name]
+        elif name in self._nodeset:
+            return self._nodeset[name]
         raise AttributeError(name)
 
     def __setattr__(self, name, value):
         """Defaults attribute assignment"""
-        if name in ('_task_default', '_task_info', '_task_info_pkeys_bl'):
+        if name in ('_task_default', '_task_info', '_task_info_pkeys_bl',
+                    '_nodeset'):
             object.__setattr__(self, name, value)
         elif name in self._task_default:
             self._task_default[name] = value
         elif name in self._task_info:
             self._task_info[name] = value
+        elif name in self._nodeset:
+            self._nodeset[name] = value
         else:
             raise AttributeError(name)
 

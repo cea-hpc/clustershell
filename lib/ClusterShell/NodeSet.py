@@ -60,7 +60,7 @@ try:
 except NameError:
     basestring = str
 
-from ClusterShell.Defaults import config_paths
+from ClusterShell.Defaults import config_paths, DEFAULTS
 import ClusterShell.NodeUtils as NodeUtils
 
 # Import all RangeSet module public objects
@@ -137,6 +137,8 @@ class NodeSetBase(object):
         self._length = 0
         self._patterns = {}
         self.fold_axis = fold_axis  #: iterable over nD 0-indexed axis
+        if self.fold_axis is None and DEFAULTS.fold_axis:
+            self.fold_axis = DEFAULTS.fold_axis  # non-empty tuple
         if pattern:
             self._add(pattern, rangeset, copy_rangeset)
         elif rangeset:

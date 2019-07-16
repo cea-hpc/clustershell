@@ -23,6 +23,8 @@ class Defaults000NoConfigTest(unittest.TestCase):
 
     def test_000_initial(self):
         """test Defaults initial values"""
+        # nodeset
+        self.assertEqual(self.defaults.fold_axis, ())
         # task_default
         self.assertFalse(self.defaults.stderr)
         self.assertTrue(self.defaults.stdout_msgtree)
@@ -43,6 +45,9 @@ class Defaults000NoConfigTest(unittest.TestCase):
 
     def test_001_setattr(self):
         """test Defaults setattr"""
+        # nodeset
+        self.defaults.fold_axis = (0, 2)
+        self.assertEqual(self.defaults.fold_axis, (0, 2))
         # task_default
         self.defaults.stderr = True
         self.assertTrue(self.defaults.stderr)
@@ -116,6 +121,8 @@ class Defaults001ConfigTest(unittest.TestCase):
         self.defaults = None
 
     def _assert_default_values(self):
+        # nodeset
+        self.assertEqual(self.defaults.fold_axis, ())
         # task_default
         self.assertFalse(self.defaults.stderr)
         self.assertTrue(self.defaults.stdout_msgtree)
@@ -143,6 +150,9 @@ class Defaults001ConfigTest(unittest.TestCase):
     def test_001_defaults(self):
         """test Defaults config file (defaults)"""
         conf_test = make_temp_file(dedent("""
+            [nodeset]
+            fold_axis: 
+
             [task.default]
             stderr: false
             stdout_msgtree: true
@@ -165,6 +175,9 @@ class Defaults001ConfigTest(unittest.TestCase):
     def test_002_changed(self):
         """test Defaults config file (changed)"""
         conf_test = make_temp_file(dedent("""
+            [nodeset]
+            fold_axis: -1
+
             [task.default]
             stderr: true
             stdout_msgtree: false
@@ -182,6 +195,9 @@ class Defaults001ConfigTest(unittest.TestCase):
             connect_timeout: 12.5
             command_timeout: 30.5""").encode('ascii'))
         self.defaults = Defaults(filenames=[conf_test.name])
+        # nodeset
+        self.assertEqual(self.defaults.fold_axis, (-1,))
+        # task_default
         self.assertTrue(self.defaults.stderr)
         self.assertFalse(self.defaults.stdout_msgtree)
         self.assertFalse(self.defaults.stderr_msgtree)
