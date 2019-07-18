@@ -134,7 +134,7 @@ Instead of running provided command on remote nodes, \fBclush\fP can use the
 dedicated \fIexec\fP worker to launch the command \fIlocally\fP, for each node.
 Some parameters could be used in the command line to make a different
 command for each node. \fB%h\fP or \fB%host\fP will be replaced by node name and
-\fB%r\fP or \fB%rank\fP by the remote rank [0\-N] (to get a literal % use %%)
+\fB%n\fP or \fB%rank\fP by the remote rank [0\-N] (to get a literal % use %%)
 .TP
 .B File copying mode ( \fB\-\-copy\fP )
 When \fBclush\fP is started with the \fB\-c\fP or \fB\-\-copy\fP option, it will

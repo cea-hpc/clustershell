@@ -106,7 +106,7 @@ Local execution ( ``--worker=exec`` or ``-R exec`` )
   dedicated *exec* worker to launch the command *locally*, for each node.
   Some parameters could be used in the command line to make a different
   command for each node. ``%h`` or ``%host`` will be replaced by node name and
-  ``%r`` or ``%rank`` by the remote rank [0-N] (to get a literal % use %%)
+  ``%n`` or ``%rank`` by the remote rank [0-N] (to get a literal % use %%)
 
 File copying mode ( ``--copy`` )
   When ``clush`` is started with the ``-c`` or ``--copy`` option, it will
