@@ -41,7 +41,11 @@ Group:          System Environment/Base
 URL:            http://cea-hpc.github.io/clustershell/
 Source0:        https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
 BuildArch:      noarch
+%if 0%{?rhel} >= 8
+Requires:       python3-%{name} = %{version}-%{release}
+%else
 Requires:       python2-%{name} = %{version}-%{release}
+%endif
 %if 0%{?rhel} >= 7 || 0%{?fedora}
 Requires:       vim-filesystem
 %else if 0%{?suse_version}
@@ -62,7 +66,7 @@ server farms. Command line utilities like clush, clubak and nodeset (or
 cluset) allow traditional shell scripts to take benefit of the features
 offered by the library.
 
-
+%if 0%{?rhel} < 8
 %package -n python2-%{name}
 Summary:        ClusterShell module for Python 2
 BuildRequires:  %{python2_pkgprefix}-devel
@@ -77,7 +81,7 @@ Requires:       PyYAML
 
 %description -n python2-%{name}
 ClusterShell Python 2 module and related command line tools.
-
+%endif
 
 %package -n %{python3_pkgprefix}-%{name}
 Summary:        ClusterShell module for Python 3
@@ -107,7 +111,9 @@ for i in clubak cluset clush nodeset; do
 done
 popd
 
+%if 0%{?rhel} < 8
 %{__python2} setup.py install -O1 --skip-build --root %{buildroot}
+%endif
 
 # move config dir away from default setuptools /usr prefix (if rpm-building as user)
 [ -d %{buildroot}/usr/etc ] && mv %{buildroot}/usr/etc %{buildroot}/%{_sysconfdir}
@@ -144,6 +150,7 @@ install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadi
 rm -rf %{buildroot}
 %endif
 
+%if 0%{?rhel} < 8
 %files -n python2-%{name}
 %if 0%{?rhel}
 %defattr(-,root,root,-)
@@ -154,6 +161,7 @@ rm -rf %{buildroot}
 %{_bindir}/nodeset
 %{python2_sitelib}/ClusterShell/
 %{python2_sitelib}/ClusterShell-*-py?.?.egg-info
+%endif
 
 %files -n %{python3_pkgprefix}-%{name}
 %if 0%{?rhel}
@@ -196,7 +204,7 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
-- Tue Oct 30 2018 Stephane Thiell <sthiell@stanford.edu> 1.8.1-1
+* Tue Oct 30 2018 Stephane Thiell <sthiell@stanford.edu> 1.8.1-1
 - update to 1.8.1
 
 * Mon Oct 23 2017 Stephane Thiell <sthiell@stanford.edu> 1.8-1
