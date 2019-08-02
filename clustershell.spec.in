@@ -105,13 +105,13 @@ ClusterShell Python 3 module and related command line tools.
 %install
 %{__python3} setup.py install -O1 --skip-build --root %{buildroot}
 
+%if 0%{?rhel} < 8
 pushd %{buildroot}%{_bindir}
 for i in clubak cluset clush nodeset; do
   mv $i $i-%{python3_shortver}
 done
 popd
 
-%if 0%{?rhel} < 8
 %{__python2} setup.py install -O1 --skip-build --root %{buildroot}
 %endif
 
@@ -167,10 +167,10 @@ rm -rf %{buildroot}
 %if 0%{?rhel}
 %defattr(-,root,root,-)
 %endif
-%{_bindir}/clubak-%{python3_shortver}
-%{_bindir}/cluset-%{python3_shortver}
-%{_bindir}/clush-%{python3_shortver}
-%{_bindir}/nodeset-%{python3_shortver}
+%{_bindir}/clubak
+%{_bindir}/cluset
+%{_bindir}/clush
+%{_bindir}/nodeset
 %{python3_sitelib}/ClusterShell/
 %{python3_sitelib}/ClusterShell-*-py?.?.egg-info
 
