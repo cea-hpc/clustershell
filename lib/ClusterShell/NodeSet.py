@@ -790,7 +790,7 @@ class ParsingEngine(object):
         Initialize Parsing Engine.
         """
         self.group_resolver = group_resolver
-        self.base_node_re = re.compile("(\D*)(\d*)")
+        self.base_node_re = re.compile(r"(\D*)(\d*)")
         self.node_wc = node_wildcard_enable  # node wildcard support
 
     def parse(self, nsobj, autostep):
