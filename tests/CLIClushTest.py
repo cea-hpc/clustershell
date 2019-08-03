@@ -232,9 +232,8 @@ class CLIClushTest_A(unittest.TestCase):
     def test_012_diff_null(self):
         """test clush (diff w/o output)"""
         rxs = r"^--- %s\n\+\+\+ localhost\n@@ -1(,1)? \+[01],0 @@\n-ok\n$" % HOSTNAME
-        self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff",
-                       'echo $SSH_CONNECTION | cut -d " " -f 3 |'
-                       'egrep "^(127.0.0.1|::1)$" >/dev/null || echo ok'],
+        self._clush_t(["-R", "exec", "-w", "%s,localhost" % HOSTNAME, "--diff",
+                       'echo %h | egrep -q "^localhost$" || echo ok'],
                       None, re.compile(rxs.encode()))
 
     def test_013_stdin(self):
