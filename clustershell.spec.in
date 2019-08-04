@@ -150,6 +150,7 @@ install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadi
 rm -rf %{buildroot}
 %endif
 
+# Unversioned python3 for rhel8
 %if 0%{?rhel} < 8
 %files -n python2-%{name}
 %if 0%{?rhel}
@@ -161,8 +162,19 @@ rm -rf %{buildroot}
 %{_bindir}/nodeset
 %{python2_sitelib}/ClusterShell/
 %{python2_sitelib}/ClusterShell-*-py?.?.egg-info
-%endif
 
+%files -n %{python3_pkgprefix}-%{name}
+%if 0%{?rhel}
+%defattr(-,root,root,-)
+%endif
+%{_bindir}/clubak-%{python3_shortver}
+%{_bindir}/cluset-%{python3_shortver}
+%{_bindir}/clush-%{python3_shortver}
+%{_bindir}/nodeset-%{python3_shortver}
+%{python3_sitelib}/ClusterShell/
+%{python3_sitelib}/ClusterShell-*-py?.?.egg-info
+
+%else
 %files -n %{python3_pkgprefix}-%{name}
 %if 0%{?rhel}
 %defattr(-,root,root,-)
@@ -173,6 +185,8 @@ rm -rf %{buildroot}
 %{_bindir}/nodeset
 %{python3_sitelib}/ClusterShell/
 %{python3_sitelib}/ClusterShell-*-py?.?.egg-info
+%endif
+
 
 %files
 %if 0%{?rhel}
