@@ -161,15 +161,17 @@ def clubak():
     # Display results
     try:
         disp = Display(options)
-        if options.debug:
-            std_group_resolver().set_verbosity(1)
-            print("clubak: line_mode=%s gather=%s tree_depth=%d"
-                  % (bool(options.line_mode), bool(disp.gather), tree._depth()),
-                  file=sys.stderr)
-        display(tree, disp, disp.gather or disp.regroup, \
-                options.trace_mode, enable_nodeset_key is not False)
     except ValueError as exc:
         parser.error("option mismatch (%s)" % exc)
+        return
+
+    if options.debug:
+        std_group_resolver().set_verbosity(1)
+        print("clubak: line_mode=%s gather=%s tree_depth=%d"
+              % (bool(options.line_mode), bool(disp.gather), tree._depth()),
+              file=sys.stderr)
+    display(tree, disp, disp.gather or disp.regroup, \
+            options.trace_mode, enable_nodeset_key is not False)
 
 def main():
     """main script function"""

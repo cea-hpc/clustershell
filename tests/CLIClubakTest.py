@@ -169,6 +169,9 @@ class CLIClubakTest(unittest.TestCase):
                        b"line_mode=False gather=True tree_depth=1\n")
         self._clubak_t(["--diff", "-L"], b"foo1: bar\nfoo2: bar", b'', 2,
                        b"error: option mismatch (diff not supported in line_mode)\n")
+        # GH #400
+        self._clubak_t(["--diff"], b"host1: \xc3\xa5\nhost2: a\nhost2: b\nhost1: b\n",
+                       b"--- host1\n+++ host2\n@@ -1,2 +1,2 @@\n- \xc3\xa5\n+ a\n  b\n")
 
 
 class CLIClubakTestGroupsConf(CLIClubakTest):

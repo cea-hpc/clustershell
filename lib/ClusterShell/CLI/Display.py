@@ -36,6 +36,12 @@ VERB_DEBUG = 3
 THREE_CHOICES = ["never", "always", "auto"]
 WHENCOLOR_CHOICES = THREE_CHOICES   # deprecated; use THREE_CHOICES
 
+if sys.getdefaultencoding() == 'ascii':
+    STRING_ENCODING = 'utf-8'  # enforce UTF-8 with Python 2
+else:
+    STRING_ENCODING = sys.getdefaultencoding()
+
+
 # Python 3 compat: wrappers for standard streams
 def sys_stdin():
     return getattr(sys.stdin, 'buffer', sys.stdin)
@@ -166,13 +172,13 @@ class Display(object):
             (indstr, self.SEP,
              indstr, self._format_nodeset(nodeset), nodecntstr,
              indstr, self.SEP))
-        return hdr.encode('ascii') + b'\n'
+        return hdr.encode(STRING_ENCODING) + b'\n'
 
     def print_line(self, nodeset, line):
         """Display a line with optional label."""
         if self.label:
             prefix = self.color_stdout_fmt % ("%s: " % nodeset)
-            self.out.write(prefix.encode('ascii') + line + b'\n')
+            self.out.write(prefix.encode(STRING_ENCODING) + line + b'\n')
         else:
             self.out.write(line + b'\n')
 
@@ -180,7 +186,7 @@ class Display(object):
         """Display an error line with optional label."""
         if self.label:
             prefix = self.color_stderr_fmt % ("%s: " % nodeset)
-            self.err.write(prefix.encode('ascii') + line + b'\n')
+            self.err.write(prefix.encode(STRING_ENCODING) + line + b'\n')
         else:
             self.err.write(line + b'\n')
 
@@ -234,7 +240,7 @@ class Display(object):
                 else:
                     output += line
                 output += '\n'
-            self.out.write(output.encode('ascii'))
+            self.out.write(output.encode(STRING_ENCODING))
 
     def _print_lines(self, nodeset, msg):
         """Display a MsgTree buffer by line with prefixed header."""
@@ -243,7 +249,7 @@ class Display(object):
             header = self.color_stdout_fmt % \
                         ("%s: " % self._format_nodeset(nodeset))
             for line in msg:
-                out.write(header.encode('ascii') + line + b'\n')
+                out.write(header.encode(STRING_ENCODING) + line + b'\n')
         else:
             for line in msg:
                 out.write(line + b'\n')
