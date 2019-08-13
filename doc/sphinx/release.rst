@@ -13,6 +13,43 @@ farms! Special thanks to the many of you that have sent us feedback on GitHub!
 
 .. warning:: Support for Python 2.5 and below has been dropped in this version.
 
+Version 1.8.2
+^^^^^^^^^^^^^
+
+This version contains a few minor fixes:
+
+* :ref:`clush-tool`: support UTF-8 string encoding with
+  :ref:`--diff <clush-diff>`
+
+* in some cases, :ref:`timers <configuring-a-timer>` were too fast due to an
+  issue in :class:`.EngineTimer`
+
+* fix issue in the :ref:`Slurm group bindings <group-slurm-bindings>` where job
+  ids were used instead of user names
+
+* performance update for :ref:`xCAT group bindings <group-xcat-bindings>`
+
+For more details, please have a look at `GitHub Issues for 1.8.2 milestone`_.
+
+Python support
+""""""""""""""
+
+Version 1.8.2 adds support for Python 3.7.
+
+.. note:: This version still supports Python 2.6 and thus also RHEL/CentOS
+   6, but please note that ClusterShell 1.9 is expected to require at least
+   Python 2.7.
+
+OS support
+""""""""""
+
+Version 1.8.2 adds support for RHEL 8/CentOS 8 and Fedora 31+, where only the
+Python 3 package is provided. The ``clustershell`` packages will be made
+available in EPEL-8 as soon as possible.
+
+No packaging changes were made to ``clustershell`` in RHEL/CentOS 6 or 7.
+
+
 Version 1.8.1
 ^^^^^^^^^^^^^
 
@@ -499,6 +536,7 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.7.3 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.7.3
 .. _GitHub Issues for 1.8 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8
 .. _GitHub Issues for 1.8.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.1
+.. _GitHub Issues for 1.8.2 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.2
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/

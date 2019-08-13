@@ -367,8 +367,10 @@ is not doable. But if the call return zero, for instance, for a non-existing
 group, the user will not receive any error when trying to resolve such unknown
 group. The desired behavior is up to the system administrator.
 
-Slurm bindings (example)
-""""""""""""""""""""""""
+.. _group-slurm-bindings:
+
+Slurm group bindings
+""""""""""""""""""""
 
 Enable Slurm node group bindings by renaming the example configuration file
 usually installed as ``/etc/clustershell/groups.conf.d/slurm.conf.example`` to
@@ -445,7 +447,7 @@ allocated for jobs belonging to the username::
 
     [slurmuser,su]
     map: squeue -h -u $GROUP -o "%N" -t R
-    list: squeue -h -o "%i" -t R
+    list: squeue -h -o "%u" -t R
     reverse: squeue -h -w $NODE -o "%i"
     cache_time: 60
 
@@ -453,7 +455,7 @@ Example of use with :ref:`clush <clush-tool>` to execute a command on all nodes
 with running jobs of username::
 
     $ clush -bw@su:username 'df -Ph /scratch'
-    $ clush -bw@su:username 'du -s /scratch/username' 
+    $ clush -bw@su:username 'du -s /scratch/username'
 
 :ref:`cache_time <group-external-caching>` is also set to 60 seconds instead
 of the default (3600s) to avoid caching results in memory for too long, because
@@ -466,6 +468,50 @@ You can then easily find nodes associated with a Slurm job ID::
 
      $ nodeset -f @sj:686518
      cluster-[0003,0005,0010,0012,0015,0017,0021,0055]
+
+.. _group-xcat-bindings:
+
+xCAT group bindings
+"""""""""""""""""""
+
+Enable xCAT node group bindings by renaming the example configuration file
+usually installed as ``/etc/clustershell/groups.conf.d/xcat.conf.example`` to
+``xcat.conf``. A single group source is defined in this file and is detailed
+below.
+
+.. warning:: xCAT installs its own `nodeset`_ command which
+   usually takes precedence over ClusterShell's :ref:`nodeset-tool` command.
+   In that case, simply use :ref:`cluset <cluset-tool>` instead.
+
+While examples below are based on the :ref:`cluset-tool` tool, all Python
+tools using ClusterShell and the :class:`.NodeSet`  class will automatically
+benefit from these additional node groups.
+
+.. highlight:: ini
+
+The section **xcat** defines a group source based on xCAT static node groups::
+
+    [xcat]
+
+    # list the nodes in the specified node group
+    map: lsdef -s -t node $GROUP | cut -d' ' -f1
+    
+    # list all the nodes defined in the xCAT tables
+    all: lsdef -s -t node | cut -d' ' -f1
+    
+    # list all groups
+    list: lsdef -t group | cut -d' ' -f1
+
+.. highlight:: console
+
+Example of use with :ref:`cluset-tool`::
+
+    $ lsdef -s -t node dtn
+    sh-dtn01  (node)
+    sh-dtn02  (node)
+    
+    $ cluset -s xcat -f @dtn
+    sh-dtn[01-02]
 
 .. highlight:: text
 
@@ -493,5 +539,40 @@ following files is found, in priority order::
     $HOME/.config/clustershell/defaults.conf (only if $XDG_CONFIG_HOME is not defined)
     $HOME/.local/etc/clustershell/defaults.conf
 
+Use case: rsh
+^^^^^^^^^^^^^^
+
+If your cluster uses a rsh variant like ``mrsh`` or ``krsh``, you may want to
+change it in the library defaults.
+
+An example file is usually available in
+``/usr/share/doc/clustershell-*/examples/defaults.conf-rsh`` and could be
+copied to ``/etc/clustershell/defaults.conf`` or to an alternate path
+described above. Basically, the change consists in defining an alternate
+distant worker by Python module name as follow::
+
+    [task.default]
+    distant_workername: Rsh
+
+
+.. _defaults-config-slurm:
+
+Use case: Slurm
+^^^^^^^^^^^^^^^
+
+If your cluster naming scheme has multiple dimensions, as in ``node-93-02``, we
+recommend that you disengage some nD folding when using Slurm, which is
+currently unable to detect some multidimensional node indexes when not
+explicitly enclosed with square brackets.
+
+To do so, define ``fold_axis`` to -1 in the :ref:`defaults-config` so that nD
+folding is only computed on the last axis (seems to work best with Slurm)::
+
+    [nodeset]
+    fold_axis: -1
+
+That way, node sets computed by ClusterShell tools can be passed to Slurm
+without error.
 
 .. _ConfigParser: http://docs.python.org/library/configparser.html
+.. _nodeset: https://xcat-docs.readthedocs.io/en/stable/guides/admin-guides/references/man8/nodeset.8.html

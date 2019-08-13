@@ -227,6 +227,8 @@ executed remotely are not necessary stopped (this is due to *ssh(1)*
 behavior).
 
 
+.. _configuring-a-timer:
+
 Configuring a Timer
 ^^^^^^^^^^^^^^^^^^^
 

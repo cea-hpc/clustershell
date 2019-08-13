@@ -388,6 +388,8 @@ even if all nodes have successfully run the command. When you hit CTRL-C with
     2.6.18-164.11.1.el5
     Keyboard interrupt (node1 did not complete).
 
+.. _clush-diff:
+
 Performing *diff* of cluster-wide outputs
 """""""""""""""""""""""""""""""""""""""""
 
