@@ -1694,9 +1694,9 @@ class GroupResolverYAMLTest(unittest.TestCase):
             default: yaml
             autodir: %s
             """ % dname).encode('ascii'))
-        yamlfile = make_temp_file(b"""
-yaml: bar
-        """, suffix=".yaml", dir=dname)
+        yamlfile = make_temp_file(dedent("""
+            yaml: bar
+            """).encode('ascii'), suffix=".yaml", dir=dname)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
@@ -1712,11 +1712,11 @@ yaml: bar
             default: yaml
             autodir: %s
             """ % dname).encode('ascii'))
-        yamlfile = make_temp_file(b"""
-- Casablanca
-- North by Northwest
-- The Man Who Wasn't There
-        """, suffix=".yaml", dir=dname)
+        yamlfile = make_temp_file(dedent("""
+            - Casablanca
+            - North by Northwest
+            - The Man Who Wasn't There
+            """).encode('ascii'), suffix=".yaml", dir=dname)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
@@ -1732,18 +1732,40 @@ yaml: bar
             default: yaml
             autodir: %s
             """ % dname).encode('ascii'))
-        yamlfile = make_temp_file(b"""
-[Dummy]
-one: un
-two: deux
-three: trois
-        """, suffix=".yaml", dir=dname)
+        yamlfile = make_temp_file(dedent("""
+            [Dummy]
+            one: un
+            two: deux
+            three: trois
+            """).encode('ascii'), suffix=".yaml", dir=dname)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             yamlfile.close()
             os.rmdir(dname)
+
+    def test_yaml_unsafe_yaml(self):
+        """test groups with an invalid YAML config file (4)"""
+        dname = make_temp_dir()
+        f = make_temp_file(dedent("""
+            [Main]
+            default: yaml
+            autodir: %s
+            """ % dname).encode('ascii'))
+        yamlfile = make_temp_file(dedent("""
+            yaml:
+                foo: !!python/object/new:os.system [echo EXPLOIT!]
+                bar: example[5-89]
+                all: example[90-100]
+            """).encode('ascii'), suffix=".yaml", dir=dname)
+        try:
+            resolver = GroupResolverConfig(f.name)
+            self.assertRaises(GroupResolverConfigError, resolver.grouplist)
+        finally:
+            yamlfile.close()
+            os.rmdir(dname)
+
 
     def test_wrong_autodir(self):
         """test wrong autodir (doesn't exist)"""

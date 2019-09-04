@@ -304,7 +304,7 @@ class YAMLGroupLoader(object):
         with open(self.filename) as yamlfile:
             try:
                 import yaml
-                sources = yaml.load(yamlfile)
+                sources = yaml.safe_load(yamlfile)
             except ImportError as exc:
                 msg = "Disable autodir or install PyYAML!"
                 raise GroupResolverConfigError("%s (%s)" % (str(exc), msg))
