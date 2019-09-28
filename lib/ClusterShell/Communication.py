@@ -173,7 +173,7 @@ class Channel(EventHandler):
     SNAME_READER = 'ch-reader'
     SNAME_ERROR = 'ch-error'
 
-    def __init__(self, error_response=False):
+    def __init__(self, initiator=False):
         """
         """
         EventHandler.__init__(self)
@@ -183,8 +183,10 @@ class Channel(EventHandler):
         # channel state flags
         self.opened = False
         self.setup = False
-        # will this channel send communication error responses?
-        self.error_response = error_response
+        # Are we initiating the Channel? False on the receiving Gateway.
+        # if True, this Channel will report errors to subclass as StdErrMessage
+        # if False, this Channel will send communication error responses
+        self.initiator = initiator
 
         self._xml_reader = XMLReader()
         self._parser = xml.sax.make_parser(["IncrementalParser"])
@@ -217,20 +219,35 @@ class Channel(EventHandler):
     def ev_read(self, worker, node, sname, msg):
         """channel has data to read"""
         # sname can be either SNAME_READER or self.SNAME_ERROR
-        # TODO: special handler for SNAME_ERROR?
+
+        if sname == self.SNAME_ERROR:
+            if self.initiator:
+                self.recv(StdErrMessage(node, msg))
+            # This is not considered fatal from our side, so we choose to not
+            # close the channel on stderr message.
+            return
+
         try:
             self._parser.feed(msg + b'\n')
         except SAXParseException as ex:
             self.logger.error("SAXParseException: %s: %s", ex.getMessage(), msg)
             # Warning: do not send malformed raw message back
-            if self.error_response:
+            if self.initiator:
+                self.recv(StdErrMessage(node, ex.getMessage()))
+            else:
+                # target, not initiator: we can send an error message back
                 self.send(ErrorMessage('Parse error: %s' % ex.getMessage()))
+            # This constitutes a fatal channel error, close it now.
             self._close()
             return
         except MessageProcessingError as ex:
             self.logger.error("MessageProcessingError: %s", ex)
-            if self.error_response:
+            if self.initiator:
+                self.recv(StdErrMessage(node, str(ex)))
+            else:
+                # target, not initiator: we can send an error message back
                 self.send(ErrorMessage(str(ex)))
+            # This constitutes a fatal channel error, close it now.
             self._close()
             return
 

@@ -157,6 +157,7 @@ class TreeWorker(DistantWorker):
         # build gateway invocation command
         invoke_gw_args = []
         for envname in ('PYTHONPATH',
+                        'CLUSTERSHELL_GW_PYTHON_EXECUTABLE',
                         'CLUSTERSHELL_GW_LOG_DIR',
                         'CLUSTERSHELL_GW_LOG_LEVEL',
                         'CLUSTERSHELL_GW_B64_LINE_LENGTH'):

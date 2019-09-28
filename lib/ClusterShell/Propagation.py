@@ -213,7 +213,7 @@ class PropagationChannel(Channel):
     def __init__(self, task, gateway):
         """
         """
-        Channel.__init__(self)
+        Channel.__init__(self, initiator=True)
         self.task = task
         self.gateway = gateway
         self.workers = {}
@@ -255,6 +255,17 @@ class PropagationChannel(Channel):
             self.logger.debug("got EndMessage; closing")
             # abort worker (now working)
             self.worker.abort()
+        elif msg.type == StdErrMessage.ident and msg.srcid == 0:
+            # Handle error messages when channel is not established yet
+            # or if messages are non-routed (eg. gateway-related)
+            nodeset = NodeSet(msg.nodes)
+            decoded = msg.data_decode() + b'\n'
+
+            for metaworker in self.workers.values():
+                for line in decoded.splitlines():
+                    for node in nodeset:
+                        metaworker._on_remote_node_msgline(node, line, 'stderr',
+                                                           self.gateway)
         elif self.setup:
             self.recv_ctl(msg)
         elif self.opened:
@@ -393,7 +404,8 @@ class PropagationChannel(Channel):
         self.logger.debug("ev_close gateway=%s %s", gateway, self)
         self.logger.debug("ev_close rc=%s", self._rc) # may be None
 
-        if self._rc:
+        # NOTE: self._rc may be None if the communication channel has aborted
+        if self._rc != 0:
             self.logger.debug("error on gateway %s (setup=%s)", gateway,
                               self.setup)
             self.task.router.mark_unreachable(gateway)

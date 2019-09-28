@@ -152,7 +152,7 @@ class TreeWorkerResponder(EventHandler):
 class GatewayChannel(Channel):
     """high level logic for gateways"""
     def __init__(self, task):
-        Channel.__init__(self, error_response=True)
+        Channel.__init__(self)
         self.task = task
         self.nodename = None
         self.topology = None
