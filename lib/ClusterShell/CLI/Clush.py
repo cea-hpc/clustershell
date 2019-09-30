@@ -434,7 +434,7 @@ def readline_setup():
     except IOError:
         pass
 
-def ttyloop(task, nodeset, timeout, display, remote):
+def ttyloop(task, nodeset, timeout, display, remote, trytree):
     """Manage the interactive prompt to run command"""
     readline_avail = False
     interactive = task.default("USER_interactive")
@@ -597,13 +597,14 @@ def ttyloop(task, nodeset, timeout, display, remote):
                 continue
 
             if cmdl.startswith('!') and len(cmd.strip()) > 0:
-                run_command(task, cmd[1:], None, timeout, display, remote)
+                run_command(task, cmd[1:], None, timeout, display, remote,
+                            trytree)
             elif cmdl != "quit":
                 if not cmd:
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                run_command(task, cmd, ns, timeout, display, remote)
+                run_command(task, cmd, ns, timeout, display, remote, trytree)
     return rc
 
 def _stdin_thread_start(stdin_port, display):
@@ -645,7 +646,7 @@ def bind_stdin(worker, display):
     stdin_thread.setDaemon(True)
     stdin_thread.start()
 
-def run_command(task, cmd, ns, timeout, display, remote):
+def run_command(task, cmd, ns, timeout, display, remote, trytree):
     """
     Create and run the specified command line, displaying
     results in a dshbak way when gathering is used.
@@ -671,7 +672,7 @@ def run_command(task, cmd, ns, timeout, display, remote):
         handler = DirectOutputHandler(display)
 
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                        remote=remote)
+                        remote=remote, tree=trytree)
     if ns is None:
         worker.set_key('LOCAL')
     if task.default("USER_stdin_worker"):
@@ -982,8 +983,7 @@ def main():
             msg = "ERROR: Could not load worker '%s'" % options.worker
             display.vprint_err(VERB_QUIET, msg)
             clush_exit(1, task)
-
-    if options.topofile or task._default_tree_is_enabled():
+    elif options.topofile or task._default_tree_is_enabled():
         if options.topofile:
             task.load_topology(options.topofile)
         if config.verbosity >= VERB_VERB:
@@ -1079,10 +1079,11 @@ def main():
                       options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, timeout, display,
-                        options.remote != 'no')
+                        options.remote != 'no', options.worker is None)
 
     if user_interaction:
-        ttyloop(task, nodeset_base, timeout, display, options.remote != 'no')
+        ttyloop(task, nodeset_base, timeout, display, options.remote != 'no',
+                options.worker is None)
     elif task.default("USER_interactive"):
         display.vprint_err(VERB_QUIET, \
             "ERROR: interactive mode requires a tty")
