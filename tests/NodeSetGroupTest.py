@@ -1006,7 +1006,7 @@ class NodeSetGroupTest(unittest.TestCase):
         source = UpcallGroupSource("simple",
                                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups2.name,
                                    None,
-                                   "sed -n 's/^\([0-9A-Za-z_-\%%]*\):.*/\\1/p' %s"
+                                   "sed -n 's/^\([0-9A-Za-z_\%%-]*\):.*/\\1/p' %s"
                                    % test_groups2.name,
                                    None)
         res = GroupResolver(source)
