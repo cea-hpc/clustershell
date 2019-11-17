@@ -545,14 +545,14 @@ class NodeSetBase(object):
 
     def update(self, other):
         """
-        s.update(t) returns nodeset s with elements added from t.
+        s.update(t) updates nodeset s with elements added from t.
         """
         for pat, rangeset in other._patterns.items():
             self._add(pat, rangeset)
 
     def updaten(self, others):
         """
-        s.updaten(list) returns nodeset s with elements added from given list.
+        s.updaten(list) updates nodeset s with elements added from given list.
         """
         for other in others:
             self.update(other)
@@ -592,7 +592,7 @@ class NodeSetBase(object):
 
     def intersection_update(self, other):
         """
-        ``s.intersection_update(t)`` returns nodeset s keeping only
+        ``s.intersection_update(t)`` updates nodeset s keeping only
         elements also found in t.
         """
         if other is self:
@@ -712,7 +712,7 @@ class NodeSetBase(object):
 
     def symmetric_difference_update(self, other):
         """
-        ``s.symmetric_difference_update(t)`` returns nodeset s keeping all
+        ``s.symmetric_difference_update(t)`` updates nodeset s keeping all
         nodes that are in exactly one of the nodesets.
         """
         purge_patterns = []
