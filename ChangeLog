@@ -1,3 +1,15 @@
+2019-12-01 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.8.3 released. The main changes are listed below.
+
+	* NodeUtils: use yaml.safe_load() instead of default loader (#417)
+
+	* Tree-mode doesn't work with multi-hop gateways (#419)
+
+	* Silent error on Python version mismatch with gateway (#388)
+
+	* clush: support --worker/-R when topology.conf is present (#386)
+
 2019-08-12 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.8.2 released. The main changes are listed below.

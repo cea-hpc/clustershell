@@ -1,15 +1,15 @@
 Introduction
 ============
 
-ClusterShell provides a light, unified and robust command execution Python
-framework, well-suited to ease daily administrative tasks of nowadays Linux
-clusters. Some of the most important benefits of using ClusterShell are:
+ClusterShell provides a light and unified command execution Python framework
+to help administer GNU/Linux or BSD clusters. Some of the most important
+benefits of using ClusterShell are to:
 
-* to provide an efficient, parallel and highly scalable command execution
-  engine in Python,
-* to provide an unified node groups syntax and external group access (see the
-  NodeSet class),
-* to significantly speed up initial cluster setup and daily administrative tasks
+* provide an efficient, parallel and highly scalable command execution engine
+  in Python,
+* support an unified node groups syntax and external group access (see the
+  :class:`.NodeSet` class),
+* significantly speed up initial cluster setup and daily administrative tasks
   when using tools like :ref:`clush-tool` and :ref:`nodeset-tool`.
 
 Originally created by the HPC Linux system development team at CEA [#]_ HPC
@@ -21,11 +21,11 @@ axes:
   center: compute clusters, but also storage clusters and server farms (so
   they can use the same efficient framework for their administrative
   applications),
-* sharing administration techniques across multiple generations of
-  super-computing clusters (first of all, to avoid that every cluster
+* sharing cluster administration techniques across multiple generations of
+  super-computing clusters (first of all, to avoid that each cluster
   administration application has to implement its own command execution layer,
   but also to encourage the adoption of event-based coding model in
-  administration scripts).
+  cluster management scripts).
 
 Two available coding models make the library well-suited for simple scripts or
 for complex applications as well. Also, the library is fully cluster-aware and

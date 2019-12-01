@@ -7,9 +7,9 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2019-08-12
+:Date:   2019-12-01
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.2
+:Version: 1.8.3
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
