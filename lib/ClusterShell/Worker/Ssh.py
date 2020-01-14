@@ -125,18 +125,18 @@ class ScpClient(CopyClient):
 
         if self.reverse:
             if user:
-                cmd_l.append("%s@%s:%s" % (user, self.key, self.source))
+                cmd_l.append("%s@[%s]:%s" % (user, self.key, self.source))
             else:
-                cmd_l.append("%s:%s" % (self.key, self.source))
+                cmd_l.append("[%s]:%s" % (self.key, self.source))
 
             cmd_l.append(os.path.join(self.dest, "%s.%s" % \
                          (os.path.basename(self.source), self.key)))
         else:
             cmd_l.append(self.source)
             if user:
-                cmd_l.append("%s@%s:%s" % (user, self.key, self.dest))
+                cmd_l.append("%s@[%s]:%s" % (user, self.key, self.dest))
             else:
-                cmd_l.append("%s:%s" % (self.key, self.dest))
+                cmd_l.append("[%s]:%s" % (self.key, self.dest))
 
         return (cmd_l, None)
 
