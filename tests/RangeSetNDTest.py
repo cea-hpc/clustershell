@@ -432,6 +432,9 @@ class RangeSetNDTest(unittest.TestCase):
         # steps
         self.assertEqual(str(rn1[0:12:2]), "0-3; 1\n10; 10,12\n")
         self.assertEqual(str(rn1[1:12:2]), "0-3; 2\n10; 11,13\n")
+        # GitHub #429
+        rn1 = RangeSetND([["110", "15-16"], ["107", "06"]])
+        self.assertEqual(str(rn1[0:3:2]), "107; 06\n110; 15\n")
 
     def test_contiguous(self):
         rn0 = RangeSetND()

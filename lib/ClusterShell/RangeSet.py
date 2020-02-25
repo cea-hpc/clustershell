@@ -956,8 +956,7 @@ class RangeSetND(object):
             for rgvec in self._veclist:
                 iveclist += product(*rgvec)
             assert(len(iveclist) == len(self))
-            rnd = RangeSetND(iveclist[index],
-                             pads=[rg.padding for rg in self._veclist[0]],
+            rnd = RangeSetND(iveclist[index], pads=self.pads(),
                              autostep=self.autostep)
             return rnd
 
