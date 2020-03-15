@@ -55,17 +55,30 @@ def _load_workerclass(workername):
     """
     Return the class pointer matching `workername`.
 
+    This can be the 'short' name (such as `ssh`) or a fully-qualified
+    module path (such as ClusterShell.Worker.Ssh).
+
     The module is loaded if not done yet.
     """
-    modname = "ClusterShell.Worker.%s" % workername.capitalize()
 
+    # First try the worker name as a module under ClusterShell.Worker,
+    # but if that fails, try the worker name directly
+    try:
+        modname = "ClusterShell.Worker.%s" % workername.capitalize()
+        _import_module(modname)
+    except ImportError:
+        modname = workername
+        _import_module(modname)
+
+    # Get the class pointer
+    return sys.modules[modname].WORKER_CLASS
+
+def _import_module(modname):
+    """Import a python module if not done yet."""
     # Iterate over a copy of sys.modules' keys to avoid RuntimeError
     if modname.lower() not in [mod.lower() for mod in list(sys.modules)]:
         # Import module if not yet loaded
         __import__(modname)
-
-    # Get the class pointer
-    return sys.modules[modname].WORKER_CLASS
 
 def _local_workerclass(defaults):
     """Return default local worker class."""

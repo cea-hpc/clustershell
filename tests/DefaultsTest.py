@@ -3,10 +3,14 @@
 
 """Unit test for ClusterShell.Defaults"""
 
+import os
+import sys
+import shutil
+
 from textwrap import dedent
 import unittest
 
-from TLib import make_temp_file
+from TLib import make_temp_file, make_temp_dir
 
 from ClusterShell.Defaults import Defaults, _task_print_debug
 
@@ -97,6 +101,21 @@ class Defaults000NoConfigTest(unittest.TestCase):
         task = task_self(self.defaults)
         self.assertTrue(task.default("distant_worker") is WorkerSsh)
         task_terminate()
+
+        dname = make_temp_dir()
+        modfile = open(os.path.join(dname, 'OutOfTree.py'), 'w')
+        modfile.write(dedent("""
+            class OutOfTreeWorker(object):
+                pass
+            WORKER_CLASS = OutOfTreeWorker"""))
+        modfile.flush()
+        modfile.close()
+        sys.path.append(dname)
+        self.defaults.distant_workername = 'OutOfTree'
+        task = task_self(self.defaults)
+        self.assertTrue(task.default("distant_worker").__name__ is 'OutOfTreeWorker')
+        task_terminate()
+        shutil.rmtree(dname, ignore_errors=True)
 
     def test_005_misc_value_errors(self):
         """test Defaults misc value errors"""
