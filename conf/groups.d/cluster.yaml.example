@@ -39,6 +39,11 @@ racks:
     # and yes, ranges work for groups too!
     old: '@rack[1,3]'
     new: '@rack[2,4]'
+    # YAML lists
+    rack5:
+        - 'example[200-205]'  # some comment about example[200-205]
+        - 'example245'
+        - 'example300,example[401-406]'
 
 # Group source cpu:
 # define groups @cpu:ivy, @cpu:hsw and @cpu:all
