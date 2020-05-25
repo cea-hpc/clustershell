@@ -445,6 +445,8 @@ class GroupResolver(object):
         result = []
         assert source
         raw = getattr(source, 'resolv_%s' % what)(*args)
+        if isinstance(raw, list):
+            raw = ','.join(raw)
         for line in raw.splitlines():
             [result.append(x) for x in line.strip().split()]
         return result
