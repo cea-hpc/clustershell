@@ -1589,6 +1589,18 @@ class YAMLGroupLoaderTest(unittest.TestCase):
         self.assertRaises(GroupResolverConfigError, YAMLGroupLoader, f.name)
 
 
+    def test_list_group(self):
+        f = make_temp_file(dedent("""
+            rednecks:
+                bubba: 
+                    - pickup-1
+                    - pickup-2
+                    - tractor-[1-2]""").encode('ascii'))
+        loader = YAMLGroupLoader(f.name)
+        sources = list(loader)
+        self.assertEqual(loader.groups("rednecks"),
+                { 'bubba': 'pickup-[1-2],tractor-[1-2]' })
+
 class GroupResolverYAMLTest(unittest.TestCase):
 
     def setUp(self):
