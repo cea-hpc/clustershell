@@ -1590,7 +1590,6 @@ class YAMLGroupLoaderTest(unittest.TestCase):
 
 
     def test_list_group(self):
-        from nose.tools import set_trace; set_trace()
         f = make_temp_file(dedent("""
             rednecks:
                 bubba: 
