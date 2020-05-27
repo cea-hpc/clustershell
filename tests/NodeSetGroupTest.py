@@ -1590,6 +1590,7 @@ class YAMLGroupLoaderTest(unittest.TestCase):
 
 
     def test_list_group(self):
+        from nose.tools import set_trace; set_trace()
         f = make_temp_file(dedent("""
             rednecks:
                 bubba: 
@@ -1598,8 +1599,9 @@ class YAMLGroupLoaderTest(unittest.TestCase):
                     - tractor-[1-2]""").encode('ascii'))
         loader = YAMLGroupLoader(f.name)
         sources = list(loader)
-        self.assertEqual(loader.groups("rednecks"),
-                { 'bubba': 'pickup-[1-2],tractor-[1-2]' })
+        resolver = GroupResolver(sources[0])
+        self.assertEqual(resolver.group_nodes('bubba'),
+                [ 'pickup-1,pickup-2,tractor-[1-2]' ])
 
 class GroupResolverYAMLTest(unittest.TestCase):
 
