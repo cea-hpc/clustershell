@@ -236,6 +236,11 @@ Here is an example of **/etc/clustershell/groups.d/cluster.yaml**::
         compute: 'node[0001-0288]'
         gpu: 'node[0001-0008]'
 
+        servers:                         # example of yaml list syntax for nodes
+            - 'server001'                # in a group
+            - 'server002,server101'                
+            - 'server[003-006]'
+
         cpu_only: '@compute!@gpu'        # example of inline set operation
                                          # define group @cpu_only with node[0009-0288]
 
