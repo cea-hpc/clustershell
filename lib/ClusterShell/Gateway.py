@@ -255,6 +255,11 @@ class GatewayChannel(Channel):
                 task._info.update(taskinfo)
                 task.set_info('print_debug', _gw_print_debug)
 
+                for infokey in taskinfo:
+                    if infokey.startswith('tree_default:'):
+                        self.logger.debug('Setting default %s to %s', infokey[13:], taskinfo[infokey])
+                        task.set_default(infokey[13:], taskinfo[infokey])
+
                 if task.info('debug'):
                     self.logger.setLevel(logging.DEBUG)
 

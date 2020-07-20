@@ -280,11 +280,12 @@ class TreeWorker(DistantWorker):
                                                  tree=False)
                 else:
                     assert self.source is None
-                    worker = ExecWorker(nodes=targets,
-                                        command=self.command,
-                                        handler=self.metahandler,
-                                        timeout=self.timeout,
-                                        stderr=self.stderr)
+                    workerclass = self.task.default('local_worker')
+                    worker = workerclass(nodes=targets,
+                                         command=self.command,
+                                         handler=self.metahandler,
+                                         timeout=self.timeout,
+                                         stderr=self.stderr)
                     self.task.schedule(worker)
 
                 self.workers.append(worker)

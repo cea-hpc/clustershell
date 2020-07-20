@@ -58,7 +58,7 @@ except NameError:  # Python 3 compat
     basestring = str
 
 from ClusterShell.Defaults import config_paths, DEFAULTS
-from ClusterShell.Defaults import _local_workerclass, _distant_workerclass
+from ClusterShell.Defaults import _local_workerclass, _distant_workerclass, _load_workerclass
 from ClusterShell.Engine.Engine import EngineAbortException
 from ClusterShell.Engine.Engine import EngineTimeoutException
 from ClusterShell.Engine.Engine import EngineAlreadyRunningError
@@ -470,6 +470,10 @@ class Task(object):
         self._default_lock.acquire()
         try:
             self._default[default_key] = value
+            if default_key == 'local_workername':
+                self._default['local_worker'] = _load_workerclass(value)
+            elif default_key == 'distant_workername':
+                self._default['distant_worker'] = _load_workerclass(value)
         finally:
             self._default_lock.release()
 
@@ -510,6 +514,8 @@ class Task(object):
           - "command_timeout": Time in seconds to wait for a command to
             complete before aborting (default: 0, which means
             unlimited).
+          - "tree_default:<key>": In tree mode, overrides the key <key>
+            in Defaults (settings normally set in defaults.conf)
 
         Threading considerations
         ========================
