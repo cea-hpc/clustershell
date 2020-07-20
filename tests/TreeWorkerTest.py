@@ -191,6 +191,22 @@ class TreeWorkerTest(unittest.TestCase):
         self.assertEqual(teh.ev_close_cnt, 1)
         self.assertEqual(teh.last_read, NODE_DISTANT.encode('ascii'))
 
+    def test_tree_run_noremote_alt_localworker(self):
+        """test tree run with remote=False and a non-exec localworker"""
+        teh = TEventHandler()
+        self.task.set_info('tree_default:local_workername', 'ssh')
+        self.task.run('echo %h', nodes=NODE_DISTANT, handler=teh, remote=False)
+        self.assertEqual(teh.ev_start_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, 1)
+        self.assertEqual(teh.ev_read_cnt, 1)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        # The exec worker will expand %h to the host, but ssh will just echo '%h'
+        self.assertEqual(teh.last_read, '%h'.encode('ascii'))
+        del self.task._info['tree_default:local_workername']
+
     def test_tree_run_direct(self):
         """test tree run with direct target, in topology"""
         teh = TEventHandler()
