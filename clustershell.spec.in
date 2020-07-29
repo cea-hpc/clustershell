@@ -21,6 +21,10 @@
 %{!?__python3: %global __python3 python3}
 %{!?python3_shortver: %global python3_shortver %(%{__python3} -c 'import sys; print(str(sys.version_info.major) + "." + str(sys.version_info.minor))')}
 
+%if ! 0%{?rhel} >= 8 && ! 0%{?suse_version} > 1550
+%define py2 1
+%endif
+
 %global srcname ClusterShell
 
 Name:           clustershell
@@ -29,30 +33,35 @@ Release:        1%{?dist}
 Summary:        Python framework for efficient cluster administration
 
 %if 0%{?suse_version}
-License:        LGPL-2.1
+License:        LGPL-2.1-or-later
 %else
 License:        LGPLv2+
 %endif
 %if 0%{?suse_version}
 Group:          Productivity/Clustering/Computing
-%else if 0%{?rhel}
+%else
+%if 0%{?rhel}
 Group:          System Environment/Base
+%endif
 %endif
 URL:            http://cea-hpc.github.io/clustershell/
 Source0:        https://files.pythonhosted.org/packages/source/C/%{srcname}/%{srcname}-%{version}.tar.gz
 BuildArch:      noarch
-%if 0%{?rhel} >= 8
-Requires:       python3-%{name} = %{version}-%{release}
-%else
+%if 0%{?py2}
 Requires:       python2-%{name} = %{version}-%{release}
+%else
+Requires:       python3-%{name} = %{version}-%{release}
 %endif
 %if 0%{?rhel} >= 7 || 0%{?fedora}
 Requires:       vim-filesystem
-%else if 0%{?suse_version}
+%else
+%if 0%{?suse_version}
 Requires:       vim
+BuildRequires:  fdupes
 BuildRequires:  vim
 %else
 Requires:       vim-common
+%endif
 %endif
 Provides:       vim-clustershell = %{version}-%{release}
 Obsoletes:      vim-clustershell < 1.7.81-4
@@ -66,7 +75,7 @@ server farms. Command line utilities like clush, clubak and nodeset (or
 cluset) allow traditional shell scripts to take benefit of the features
 offered by the library.
 
-%if 0%{?rhel} < 8
+%if 0%{?py2}
 %package -n python2-%{name}
 Summary:        ClusterShell module for Python 2
 BuildRequires:  %{python2_pkgprefix}-devel
@@ -89,6 +98,7 @@ BuildRequires:  %{python3_pkgprefix}-devel
 BuildRequires:  %{python3_pkgprefix}-setuptools
 Requires:       %{python3_pkgprefix}-PyYAML
 Requires:       %{python3_pkgprefix}-setuptools
+%{!?py2:Obsoletes:      python2-%{name}}
 %{?python_provide:%python_provide %{python3_pkgprefix}-%{srcname}}
 
 %description -n %{python3_pkgprefix}-%{name}
@@ -100,12 +110,12 @@ ClusterShell Python 3 module and related command line tools.
 
 %build
 %{__python3} setup.py build
-%{__python2} setup.py build
+%{?py2:%{__python2} setup.py build}
 
 %install
 %{__python3} setup.py install -O1 --skip-build --root %{buildroot}
 
-%if 0%{?rhel} < 8
+%if 0%{?py2}
 pushd %{buildroot}%{_bindir}
 for i in clubak cluset clush nodeset; do
   mv $i $i-%{python3_shortver}
@@ -144,6 +154,7 @@ install -d %{buildroot}/%{vimdatadir}/{ftdetect,syntax}
 install -p -m 0644 doc/extras/vim/ftdetect/clustershell.vim %{buildroot}/%{vimdatadir}/ftdetect/
 install -p -m 0644 doc/extras/vim/syntax/clushconf.vim %{buildroot}/%{vimdatadir}/syntax/
 install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadir}/syntax/
+%{?suse_version:%fdupes %{buildroot}}
 
 %if 0%{?rhel}
 %clean
@@ -151,7 +162,7 @@ rm -rf %{buildroot}
 %endif
 
 # Unversioned python3 for rhel8
-%if 0%{?rhel} < 8
+%if 0%{?py2}
 %files -n python2-%{name}
 %if 0%{?rhel}
 %defattr(-,root,root,-)
@@ -192,7 +203,12 @@ rm -rf %{buildroot}
 %if 0%{?rhel}
 %defattr(-,root,root,-)
 %endif
-%doc ChangeLog COPYING.LGPLv2.1 README.md
+%doc ChangeLog README.md
+%if 0%{?suse_version} >= 1500
+%license COPYING.LGPLv2.1
+%else
+%doc COPYING.LGPLv2.1
+%endif
 %doc doc/examples
 %doc doc/sphinx
 %{_mandir}/man1/clubak.1*
