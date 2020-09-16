@@ -1285,6 +1285,24 @@ class NodeSet(NodeSetBase):
             raise NodeSetExternalError(errmsg)
         return inst
 
+    @classmethod
+    def fromdown(cls, groupsource=None, autostep=None, resolver=None):
+        """Class method that returns a new NodeSet with all nodes from optional
+        groupsource."""
+        inst = NodeSet(autostep=autostep, resolver=resolver)
+        try:
+            if not inst._resolver:
+                raise NodeSetExternalError("Group resolver is not defined")
+            else:
+                # fill this nodeset with all nodes found by resolver
+                down_nodes = inst._parser.group_resolver.down_nodes(groupsource)
+                inst = NodeSet.fromlist(down_nodes)
+        except NodeUtils.GroupResolverError as exc:
+            errmsg = "Group source error (%s: %s)" % (exc.__class__.__name__,
+                                                      exc)
+            raise NodeSetExternalError(errmsg)
+        return inst
+
     def __getstate__(self):
         """Called when pickling: remove references to group resolver."""
         odict = self.__dict__.copy()

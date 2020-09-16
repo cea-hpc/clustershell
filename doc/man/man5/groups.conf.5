@@ -64,7 +64,7 @@ Global configuration options. There should be only one Main section.
 .B \fIGroup_source\fP
 The \fIGroup_source\fP section(s) define the configuration for each node group
 source (or namespace). This configuration consists in external commands
-definition (map, all, list and reverse).
+definition (map, all, list, down, and reverse).
 .UNINDENT
 .sp
 Only \fIGroup_source\fP section(s) are allowed in additional configuration files.
@@ -122,6 +122,11 @@ external command in the same group source followed by \fBmap\fP for each group.
 Optional external shell command that should return the list of all groups
 for this group source (separated by space characters or by carriage
 returns).
+.TP
+.B down
+Optional external shell command that should return the list of all hosts
+that are down for this group source (separated by space characters or by
+carriage returns).
 .TP
 .B reverse
 Optional external shell command used to find the group(s) of a single

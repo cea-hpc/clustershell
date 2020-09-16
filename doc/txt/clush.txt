@@ -140,6 +140,7 @@ Selecting target nodes:
   -w NODES            nodes where to run the command
   -x NODES            exclude nodes from the node list
   -a, --all           run command on all nodes
+  -D, --nodown        exclude nodes that are down
   -g GROUP, --group=GROUP
                       run command on a group of nodes
   -X GROUP            exclude nodes from this group
