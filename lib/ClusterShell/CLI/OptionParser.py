@@ -106,6 +106,8 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("-x", action="append", type="safestring",
                           dest="exclude", metavar="NODES",
                           help="exclude nodes from the node list")
+        optgrp.add_option("-D", "--nodown", action="store_true", dest="nodown",
+                          help="exclude down nodes from the node list")
         optgrp.add_option("-a", "--all", action="store_true", dest="nodes_all",
                           help="run command on all nodes")
         optgrp.add_option("-g", "--group", action="append", type="safestring",
