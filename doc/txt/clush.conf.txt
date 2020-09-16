@@ -71,6 +71,8 @@ history_size
 node_count
   Should ``clush`` display additional (node count) information in buffer
   header? (`yes`/`no`)
+maxrc
+  Should ``clush`` return the largest of command return codes? (yes/no)
 verbosity
   Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more
   (debug).
@@ -109,6 +111,7 @@ Simple configuration file.
 | color: auto
 | fd_max: 10240
 | node_count: yes
+| maxrc: no
 |
 
 

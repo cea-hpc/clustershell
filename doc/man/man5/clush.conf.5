@@ -103,6 +103,9 @@ list. Negative values imply unlimited history file size.
 Should \fBclush\fP display additional (node count) information in buffer
 header? (\fIyes\fP/\fIno\fP)
 .TP
+.B maxrc
+Should \fBclush\fP return the largest of command return codes? (\fIyes\fP/\fIno\fP)
+.TP
 .B verbosity
 Set the verbosity level: \fI0\fP (quiet), \fI1\fP (default), \fI2\fP (verbose) or more
 (debug).
@@ -146,6 +149,7 @@ history_size: 100
 color: auto
 fd_max: 10240
 node_count: yes
+maxrc: no
 
 .fi
 .sp
