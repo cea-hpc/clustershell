@@ -1346,8 +1346,10 @@ class StaticGroupSource(UpcallGroupSource):
         reverse_upcall = None
         if 'reverse' in data:
             reverse_upcall = 'fake_reverse'
-        UpcallGroupSource.__init__(self, name, "fake_map", all_upcall,
-                                   list_upcall, reverse_upcall)
+        UpcallGroupSource.__init__(self, name, "fake_map",
+                                   all_upcall=all_upcall,
+                                   list_upcall=list_upcall,
+                                   reverse_upcall=reverse_upcall)
         self._data = data
 
     def _upcall_read(self, cmdtpl, args=dict()):

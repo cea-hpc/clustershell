@@ -685,11 +685,12 @@ class GroupResolverConfig(GroupResolver):
                         # add new group source
                         self.add_source(UpcallGroupSource(srcname,
                                                           map_upcall,
-                                                          all_upcall,
-                                                          list_upcall,
-                                                          down_upcall,
-                                                          reverse_upcall,
-                                                          cfgdir, ctime))
+                                                          all_upcall=all_upcall,
+                                                          list_upcall=list_upcall,
+                                                          down_upcall=down_upcall,
+                                                          reverse_upcall=reverse_upcall,
+                                                          cfgdir=cfgdir,
+                                                          cache_time=ctime))
         except (NoSectionError, NoOptionError, ValueError) as exc:
             raise GroupResolverConfigError(str(exc))
 
