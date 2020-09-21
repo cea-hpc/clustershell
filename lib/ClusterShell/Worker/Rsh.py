@@ -26,7 +26,6 @@ This is also the base class for rsh evolutions, like Ssh worker.
 
 import os
 import shlex
-import re
 
 from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 
@@ -46,7 +45,6 @@ class RshClient(ExecClient):
         path = task.info("rsh_path") or "rsh"
         user = task.info("rsh_user")
         options = task.info("rsh_options")
-        maxrc = task.info("maxrc", False)
 
         cmd_l = [os.path.expanduser(pathc) for pathc in shlex.split(path)]
 
@@ -61,30 +59,7 @@ class RshClient(ExecClient):
         cmd_l.append("%s" % self.key)  # key is the node
         cmd_l.append("%s" % self.command)
 
-        # Save the return code from the command if required
-        if maxrc:
-            cmd_l.append("; echo XXRETCODE: $?")
-
         return (cmd_l, None)
-
-    def _parse_line(self, line, sname):
-
-        # Read the return code from the command if required
-        task = self.worker.task
-        maxrc = task.info("maxrc", False)
-        if maxrc:
-            match = re.search("^XXRETCODE: (\d+)$", line.decode("utf-8"))
-            if match:
-                self.worker.current_rc = int(match.group(1))
-            else:
-                self.worker._on_node_msgline(self.key, line, sname)
-        else:
-            self.worker._on_node_msgline(self.key, line, sname)
-
-    def _handle_read(self, sname):
-        """Engine is telling us a read is available."""
-        for msg in self._readlines(sname):
-            self._parse_line(msg, sname)
 
 
 class RcpClient(CopyClient):
@@ -147,17 +122,12 @@ class WorkerRsh(ExecWorker):
     Remote Copy (rcp) usage example:
        >>> worker = WorkerRsh(nodeset, handler=MyEventHandler(),
        ...                     source="/etc/my.conf",
-       ...                     dest="/etc/my.conf.bak")
+       ...                     dest="/etc/my.conf")
        >>> task.schedule(worker)      # schedule worker for execution
        >>> task.resume()              # run
 
     connect_timeout option is ignored by this worker.
     """
-
-    def _on_node_close(self, node, rc):
-        if rc is None or self.current_rc > rc:
-            rc = self.current_rc
-        ExecWorker._on_close(self, node, rc)
 
     SHELL_CLASS = RshClient
     COPY_CLASS = RcpClient

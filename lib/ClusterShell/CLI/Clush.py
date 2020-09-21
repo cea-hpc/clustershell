@@ -1027,9 +1027,6 @@ def main():
     task.set_info("connect_timeout", config.connect_timeout)
     task.set_info("command_timeout", config.command_timeout)
 
-    # Return code handling
-    task.set_info("maxrc", config.maxrc)
-
     # Enable stdout/stderr separation
     task.set_default("stderr", not options.gatherall)
 
