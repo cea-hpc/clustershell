@@ -26,6 +26,7 @@ This is also the base class for rsh evolutions, like Ssh worker.
 
 import os
 import shlex
+import re
 
 from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 
@@ -59,7 +60,24 @@ class RshClient(ExecClient):
         cmd_l.append("%s" % self.key)  # key is the node
         cmd_l.append("%s" % self.command)
 
+        # rsh does not properly return exit status
+        # force the exit status to be printed out
+        cmd_l.append("; echo XXRETCODE: $?")
+
         return (cmd_l, None)
+
+    def _on_nodeset_msgline(self, nodes, msg, sname):
+        """local wrapper over _on_node_msgline that can also handle nodeset"""
+        match = re.search("^XXRETCODE: (\d+)$", msg.decode("utf-8"))
+        if match:
+            self.rsh_rc = int(match.group(1))
+        self.worker._on_node_msgline(nodes, msg, sname)
+
+    def _on_nodeset_close(self, nodes, rc):
+        """local wrapper over _on_node_rc that can also handle nodeset"""
+        if (rc == 0 or rc == 1) and self.rsh_rc is not None:
+            rc = self.rsh_rc
+        self.worker._on_node_close(nodes, rc)
 
 
 class RcpClient(CopyClient):
@@ -122,7 +140,7 @@ class WorkerRsh(ExecWorker):
     Remote Copy (rcp) usage example:
        >>> worker = WorkerRsh(nodeset, handler=MyEventHandler(),
        ...                     source="/etc/my.conf",
-       ...                     dest="/etc/my.conf")
+       ...                     dest="/etc/my.conf.bak")
        >>> task.schedule(worker)      # schedule worker for execution
        >>> task.resume()              # run
 
