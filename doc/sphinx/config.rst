@@ -64,6 +64,9 @@ The following table describes available *clush* config file settings.
 | node_count      | Should *clush* display additional (node count)     |
 |                 | information in buffer header? (yes/no)             |
 +-----------------+----------------------------------------------------+
+| maxrc           | Should *clush* return the largest of command       |
+|                 | return codes? (yes/no)                             |
++-----------------+----------------------------------------------------+
 | verbosity       | Set the verbosity level: 0 (quiet), 1 (default),   |
 |                 | 2 (verbose) or more (debug).                       |
 +-----------------+----------------------------------------------------+
