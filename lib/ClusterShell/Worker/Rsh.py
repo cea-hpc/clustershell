@@ -66,18 +66,24 @@ class RshClient(ExecClient):
 
         return (cmd_l, None)
 
+    def _on_nodeset_start(self, nodes):
+        """Override _on_nodeset_start to guarantee that rsh_rc is initialized """
+        self.rsh_rc = None
+        ExecClient._on_nodeset_start(self, nodes)
+
     def _on_nodeset_msgline(self, nodes, msg, sname):
-        """local wrapper over _on_node_msgline that can also handle nodeset"""
+        """Override _on_nodeset_msgline to parse magic return code"""
         match = re.search("^XXRETCODE: (\d+)$", msg.decode("utf-8"))
         if match:
             self.rsh_rc = int(match.group(1))
-        self.worker._on_node_msgline(nodes, msg, sname)
+        else:
+            ExecClient._on_nodeset_msgline(self, nodes, msg, sname)
 
     def _on_nodeset_close(self, nodes, rc):
-        """local wrapper over _on_node_rc that can also handle nodeset"""
+        """Override _on_nodeset_close to return rsh_rc"""
         if (rc == 0 or rc == 1) and self.rsh_rc is not None:
             rc = self.rsh_rc
-        self.worker._on_node_close(nodes, rc)
+        ExecClient._on_nodeset_close(self, nodes, rc)
 
 
 class RcpClient(CopyClient):
@@ -140,7 +146,7 @@ class WorkerRsh(ExecWorker):
     Remote Copy (rcp) usage example:
        >>> worker = WorkerRsh(nodeset, handler=MyEventHandler(),
        ...                     source="/etc/my.conf",
-       ...                     dest="/etc/my.conf.bak")
+       ...                     dest="/etc/my.conf")
        >>> task.schedule(worker)      # schedule worker for execution
        >>> task.resume()              # run
 
