@@ -36,6 +36,12 @@ class RshClient(ExecClient):
     Rsh EngineClient.
     """
 
+    def __init__(self, node, command, worker, stderr, timeout, autoclose=False,
+                 rank=None):
+        ExecClient.__init__(self, node, command, worker, stderr, timeout,
+                            autoclose, rank)
+        self.rsh_rc = None
+
     def _build_cmd(self):
         """
         Build the shell command line to start the rsh commmand.
@@ -65,11 +71,6 @@ class RshClient(ExecClient):
         cmd_l.append("; echo XXRETCODE: $?")
 
         return (cmd_l, None)
-
-    def _on_nodeset_start(self, nodes):
-        """Override _on_nodeset_start to guarantee that rsh_rc is initialized """
-        self.rsh_rc = None
-        ExecClient._on_nodeset_start(self, nodes)
 
     def _on_nodeset_msgline(self, nodes, msg, sname):
         """Override _on_nodeset_msgline to parse magic return code"""
