@@ -74,7 +74,7 @@ class RshClient(ExecClient):
 
     def _on_nodeset_msgline(self, nodes, msg, sname):
         """Override _on_nodeset_msgline to parse magic return code"""
-        match = re.search("^XXRETCODE: (\d+)$", msg.decode("utf-8"))
+        match = re.search("^XXRETCODE: (\d+)$", msg.decode())
         if match:
             self.rsh_rc = int(match.group(1))
         else:
