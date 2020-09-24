@@ -26,6 +26,7 @@ This is also the base class for rsh evolutions, like Ssh worker.
 
 import os
 import shlex
+import re
 
 from ClusterShell.Worker.Exec import ExecClient, CopyClient, ExecWorker
 
@@ -34,6 +35,12 @@ class RshClient(ExecClient):
     """
     Rsh EngineClient.
     """
+
+    def __init__(self, node, command, worker, stderr, timeout, autoclose=False,
+                 rank=None):
+        ExecClient.__init__(self, node, command, worker, stderr, timeout,
+                            autoclose, rank)
+        self.rsh_rc = None
 
     def _build_cmd(self):
         """
@@ -59,7 +66,25 @@ class RshClient(ExecClient):
         cmd_l.append("%s" % self.key)  # key is the node
         cmd_l.append("%s" % self.command)
 
+        # rsh does not properly return exit status
+        # force the exit status to be printed out
+        cmd_l.append("; echo XXRETCODE: $?")
+
         return (cmd_l, None)
+
+    def _on_nodeset_msgline(self, nodes, msg, sname):
+        """Override _on_nodeset_msgline to parse magic return code"""
+        match = re.search("^XXRETCODE: (\d+)$", msg.decode())
+        if match:
+            self.rsh_rc = int(match.group(1))
+        else:
+            ExecClient._on_nodeset_msgline(self, nodes, msg, sname)
+
+    def _on_nodeset_close(self, nodes, rc):
+        """Override _on_nodeset_close to return rsh_rc"""
+        if (rc == 0 or rc == 1) and self.rsh_rc is not None:
+            rc = self.rsh_rc
+        ExecClient._on_nodeset_close(self, nodes, rc)
 
 
 class RcpClient(CopyClient):
