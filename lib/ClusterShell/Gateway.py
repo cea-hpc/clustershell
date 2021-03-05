@@ -329,6 +329,14 @@ def gateway_main():
     logger = logging.getLogger(__name__)
     sys.excepthook = gateway_excepthook
 
+    if sys.stdin is None:
+        logger.critical('Gateway failure: sys.stdin is None')
+        sys.exit(1)
+
+    if sys.stdin.isatty():
+        logger.critical('Gateway failure: sys.stdin.isatty() is True')
+        sys.exit(1)
+
     logger.debug('Starting gateway on %s', host)
     logger.debug("environ=%s", os.environ)
 
@@ -342,10 +350,6 @@ def gateway_main():
     # Disable MsgTree buffering, it is enabled later when needed
     task.set_default("stdout_msgtree", False)
     task.set_default("stderr_msgtree", False)
-
-    if sys.stdin.isatty():
-        logger.critical('Gateway failure: sys.stdin.isatty() is True')
-        sys.exit(1)
 
     gateway = GatewayChannel(task)
     worker = StreamWorker(handler=gateway)
