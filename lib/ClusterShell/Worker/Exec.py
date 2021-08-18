@@ -38,30 +38,6 @@ from ClusterShell.Worker.Worker import WorkerError, DistantWorker
 from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 
 
-def _replace_cmd(pattern, node, rank):
-    """
-    Replace keywords in `pattern' with value from `node' and `rank'.
-
-    %h, %host map `node'
-    %n, %rank map `rank'
-    """
-    variables = {
-        'h':     node,
-        'host':  node,
-        'hosts': node,
-        'n':     rank or 0,
-        'rank':  rank or 0,
-    #    'u': None,
-    }
-    class Replacer(Template):
-        delimiter = '%'
-    try:
-        cmd = Replacer(pattern).substitute(variables)
-    except (KeyError, ValueError) as error:
-        msg = "%s is not a valid pattern, use '%%%%' to escape '%%'" % error
-        raise WorkerError(msg)
-    return cmd
-
 class ExecClient(EngineClient):
     """
     Run a simple local command.
@@ -83,6 +59,30 @@ class ExecClient(EngineClient):
         # Declare writer stream to allow early buffering
         self.streams.set_writer(worker.SNAME_STDIN, None, retain=True)
 
+    def _replace_cmd(self):
+        """
+        Replace keywords in `pattern' with value from `node' and `rank'.
+
+        %h, %host map `node'
+        %n, %rank map `rank'
+        """
+        variables = {
+            'h':     self.key,
+            'host':  self.key,
+            'hosts': self.key,
+            'n':     self.rank or 0,
+            'rank':  self.rank or 0,
+        #    'u': None,
+        }
+        class Replacer(Template):
+            delimiter = '%'
+        try:
+            cmd = Replacer(self.command).substitute(variables)
+        except (KeyError, ValueError) as error:
+            msg = "%s is not a valid pattern, use '%%%%' to escape '%%'" % error
+            raise WorkerError(msg)
+        return cmd
+
     def _build_cmd(self):
         """
         Build the shell command line to start the commmand.
@@ -91,7 +91,7 @@ class ExecClient(EngineClient):
         of string, and a dict of additional environment variables. None could
         be returned if no environment change is required.
         """
-        return (_replace_cmd(self.command, self.key, self.rank), None)
+        return (self._replace_cmd(), None)
 
     def _start(self):
         """Prepare command and start client."""
