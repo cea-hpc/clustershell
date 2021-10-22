@@ -622,13 +622,14 @@ def _stdin_thread_start(stdin_port, display):
         bufsize = 64 * 1024
         # thread loop: read stdin + send messages to specified port object
         # use select to work around https://bugs.python.org/issue42717
-        if select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
-            buf = sys_stdin().read(bufsize)  # use buffer in Python 3
-            while buf:
-                # send message to specified port object (with ack)
-                stdin_port.msg(buf)
-                if select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
-                    buf = sys_stdin().read(bufsize)
+        while True:
+            if not select([sys_stdin()], [], [], None) == ([sys_stdin()], [], []):
+                break
+            buf = os.read(sys_stdin().fileno(), bufsize)  # use os.read to allow partial read
+            if not buf:
+                break
+            # send message to specified port object (with ack)
+            stdin_port.msg(buf)
     except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
