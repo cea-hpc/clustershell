@@ -635,7 +635,7 @@ def bind_stdin(worker, display):
     """Create a stdin->port->worker binding: connect specified worker
     to stdin with the help of a reader thread and a ClusterShell Port
     object."""
-    assert not sys.stdin.isatty()
+    assert sys.stdin is not None and not sys.stdin.isatty()
     # Create a ClusterShell Port object bound to worker's task. This object
     # is able to receive messages in a thread-safe manner and then will safely
     # trigger ev_msg() on a specified event handler.
@@ -932,7 +932,7 @@ def main():
     interactive = not len(args) and \
                   not (options.copy or options.rcopy)
     # check for foreground ttys presence (input)
-    stdin_isafgtty = sys.stdin.isatty() and \
+    stdin_isafgtty = sys.stdin is not None and sys.stdin.isatty() and \
         os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
     # check for special condition (empty command and stdin not a tty)
     if interactive and not stdin_isafgtty:
@@ -966,7 +966,8 @@ def main():
     task.set_default("USER_handle_SIGUSR1", user_interaction)
 
     task.excepthook = sys.excepthook
-    task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or \
+    task.set_default("USER_stdin_worker", not (sys.stdin is None or \
+                                               sys.stdin.isatty() or \
                                                options.nostdin or \
                                                user_interaction))
     display.vprint(VERB_DEBUG, "Create STDIN worker: %s" % \
