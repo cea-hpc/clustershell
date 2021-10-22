@@ -623,7 +623,7 @@ def _stdin_thread_start(stdin_port, display):
         # thread loop: read stdin + send messages to specified port object
         # use select to work around https://bugs.python.org/issue42717
         while True:
-            if not select([sys_stdin()], [], [], None) == ([sys_stdin()], [], []):
+            if not select([sys_stdin()], [], []) == ([sys_stdin()], [], []):
                 break
             # use os.read to allow partial read
             buf = os.read(sys_stdin().fileno(), bufsize)
