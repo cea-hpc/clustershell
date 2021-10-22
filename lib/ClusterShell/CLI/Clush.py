@@ -625,7 +625,8 @@ def _stdin_thread_start(stdin_port, display):
         while True:
             if not select([sys_stdin()], [], [], None) == ([sys_stdin()], [], []):
                 break
-            buf = os.read(sys_stdin().fileno(), bufsize)  # use os.read to allow partial read
+            # use os.read to allow partial read
+            buf = os.read(sys_stdin().fileno(), bufsize)
             if not buf:
                 break
             # send message to specified port object (with ack)
