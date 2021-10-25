@@ -606,7 +606,7 @@ class CLIClushTest_B_StdinFailure(unittest.TestCase):
         class BrokenStdinMock(object):
             def isatty(self):
                 return False
-            def read(self, bufsize=1024):
+            def fileno(self):
                 raise IOError(errno.EINVAL, "Invalid argument")
 
         sys.stdin = BrokenStdinMock()
