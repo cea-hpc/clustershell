@@ -22,6 +22,23 @@ __all__ = ['HOSTNAME', 'load_cfg', 'make_temp_filename', 'make_temp_file',
 # Get machine short hostname
 HOSTNAME = socket.gethostname().split('.', 1)[0]
 
+class TBytesIO(BytesIO):
+    """Standard stream of in memory bytes for testing purpose."""
+
+    def __init__(self, initial_bytes=None):
+        if initial_bytes and type(initial_bytes) is not bytes:
+            initial_bytes = initial_bytes.encode('ascii')
+        BytesIO.__init__(self, initial_bytes)
+
+    def write(self, b):
+        if type(b) is bytes:
+            BytesIO.write(self, b)
+        else:
+            BytesIO.write(self, b.encode('ascii'))
+
+    def isatty(self):
+        return False
+
 
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
@@ -78,9 +95,10 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         sys.stdin.write(stdin)
         sys.stdin.seek(0)  # ready to be read
 
-    # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr()
-    sys.stdout = out = tempfile.TemporaryFile()
-    sys.stderr = err = tempfile.TemporaryFile()
+    # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr() and when
+    # print() is used, TBytesIO does a conversion to ascii.
+    sys.stdout = out = TBytesIO()
+    sys.stderr = err = TBytesIO()
     sys.argv = args
     try:
         main()
@@ -95,35 +113,32 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
         sys.stdin = saved_stdin
 
     try:
-        # prepare to read captured standard streams
-        out.seek(0)
-        err.seek(0)
         if expected_stdout is not None:
             # expected_stdout might be a compiled regexp or a string
             try:
-                if not expected_stdout.search(out.read()):
+                if not expected_stdout.search(out.getvalue()):
                     # search failed; use assertEqual() to display
                     # expected/output
-                    test.assertEqual(out.read(), expected_stdout.pattern)
+                    test.assertEqual(out.getvalue(), expected_stdout.pattern)
             except AttributeError:
                 # not a regexp
-                test.assertEqual(out.read(), expected_stdout)
+                test.assertEqual(out.getvalue(), expected_stdout)
 
         if expected_stderr is not None:
             # expected_stderr might be a compiled regexp or a string
             try:
-                if not expected_stderr.match(err.read()):
+                if not expected_stderr.match(err.getvalue()):
                     # match failed; use assertEqual() to display expected/output
-                    test.assertEqual(err.read(), expected_stderr.pattern)
+                    test.assertEqual(err.getvalue(), expected_stderr.pattern)
             except AttributeError:
                 # check the end as stderr messages are often prefixed with
                 # argv[0]
-                test.assertTrue(err.read().endswith(expected_stderr),
-                                err.read() + b' != ' + expected_stderr)
+                test.assertTrue(err.getvalue().endswith(expected_stderr),
+                                err.getvalue() + b' != ' + expected_stderr)
 
         if expected_rc is not None:
             test.assertEqual(rc, expected_rc,
-                             "rc=%d err=%s" % (rc, err.read()))
+                             "rc=%d err=%s" % (rc, err.getvalue()))
     finally:
         out.close()
         err.close()
