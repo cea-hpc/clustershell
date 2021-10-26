@@ -670,3 +670,48 @@ class CLIClushTest_C_GroupsConf(unittest.TestCase):
         self._clush_t(["--groupsconf", self.custf.name, "-R", "exec", "-w",
                        "@foo", "-bL", "echo ok"], None,
                       b"custom[7-42]: ok\n", 0, b"")
+
+
+class CLIClushTest_D_StdinFIFO(unittest.TestCase):
+    """Unit test class for testing CLI/Clush.py when stdin is a named pipe"""
+
+    def setUp(self):
+        # Create fifo
+        self.fname = tempfile.mktemp()
+        os.mkfifo(self.fname)
+
+        # Launch write thread
+        class FIFOThread(threading.Thread):
+            def run(self):
+                fifo_wr = open(self.fname, "w")
+                fifo_wr.write("0123456789")
+                fifo_wr.close()
+
+        fifoth = FIFOThread()
+        fifoth.fname = self.fname
+        fifoth.start()
+
+        # Use read end of fifo as stdin
+        sys.stdin = open(self.fname, "r")
+
+    def tearDown(self):
+        """cleanup all tasks"""
+        sys.stdin.close()
+        os.unlink(self.fname)
+        task_cleanup()
+        sys.stdin = sys.__stdin__
+
+    def _clush_t(self, args, stdin, expected_stdout, expected_rc=0,
+                 expected_stderr=None):
+        CLI_main(self, main, ['clush'] + args, stdin, expected_stdout,
+                 expected_rc, expected_stderr)
+
+    def test_300_fifo_stdin(self):
+        """test clush with stdin is a fifo (read)"""
+        self._clush_t(["-w", HOSTNAME, "-v", "cat"], None,
+                      b"dev-centos7: 0123456789\n", 0, b"")
+
+    def test_301_fifo_stdin(self):
+        """test clush with stdin is a fifo (not read)"""
+        self._clush_t(["-w", HOSTNAME, "-v", "echo ok"], None,
+                      b"dev-centos7: ok\n", 0, b"")
