@@ -708,10 +708,12 @@ class CLIClushTest_D_StdinFIFO(unittest.TestCase):
 
     def test_300_fifo_stdin(self):
         """test clush with stdin is a fifo (read)"""
+        s = "%s: 0123456789\n" % HOSTNAME
         self._clush_t(["-w", HOSTNAME, "-v", "cat"], None,
-                      b"dev-centos7: 0123456789\n", 0, b"")
+                      s.encode(), 0, b"")
 
     def test_301_fifo_stdin(self):
         """test clush with stdin is a fifo (not read)"""
+        s = "%s: ok\n" % HOSTNAME
         self._clush_t(["-w", HOSTNAME, "-v", "echo ok"], None,
-                      b"dev-centos7: ok\n", 0, b"")
+                      s.encode(), 0, b"")
