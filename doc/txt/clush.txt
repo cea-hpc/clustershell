@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2019-12-01
+:Date:   2021-10-27
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.8.3
 :Manual section: 1
@@ -159,7 +159,7 @@ Output behaviour:
   -b, --dshbak        display gathered results in a dshbak-like way (note: it will only try to aggregate the output of commands with same return codes)
   -B                  like -b but including standard error
   -r, --regroup       fold nodeset using node groups
-  -S                  return the largest of command return codes
+  -S, --maxrc         return the largest of command return codes
   --color=WHENCOLOR   whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
   --diff              show diff between common outputs (find the best reference output by focusing on largest nodeset and also smaller command return code)
 
@@ -183,7 +183,7 @@ Connection options:
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
   -R WORKER, --worker=WORKER
-                      worker name to use for connection (``exec``, ``ssh``, ``rsh``, ``pdsh``), default is ``ssh``
+                      worker name to use for connection (``exec``, ``ssh``, ``rsh``, ``pdsh``, or the name of a Python worker module), default is ``ssh``
   --remote=REMOTE     whether to enable remote execution: in tree mode, 'yes' forces connections to the leaf nodes for execution, 'no' establishes connections up to the leaf parent nodes for execution (default is 'yes') 
 
 For a short explanation of these options, see ``-h, --help``.

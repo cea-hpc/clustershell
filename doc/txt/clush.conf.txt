@@ -110,8 +110,8 @@ Simple configuration file.
 | history_size: 100
 | color: auto
 | fd_max: 10240
-| node_count: yes
 | maxrc: no
+| node_count: yes
 |
 
 

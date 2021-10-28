@@ -66,6 +66,10 @@ The following table describes available *clush* config file settings.
 +-----------------+----------------------------------------------------+
 | maxrc           | Should *clush* return the largest of command       |
 |                 | return codes? (yes/no)                             |
+|                 | If set to no (the default), *clush* exit status    |
+|                 | gives no information about command return codes,   |
+|                 | but rather reports on *clush* execution itself     |
+|                 | (zero indicating a successful run).                |
 +-----------------+----------------------------------------------------+
 | verbosity       | Set the verbosity level: 0 (quiet), 1 (default),   |
 |                 | 2 (verbose) or more (debug).                       |
