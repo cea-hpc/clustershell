@@ -621,11 +621,8 @@ def _stdin_thread_start(stdin_port, display):
         # reads) ; could consider making it an option for e.g. gsissh.
         bufsize = 64 * 1024
         # thread loop: read stdin + send messages to specified port object
-        # use select to work around https://bugs.python.org/issue42717
+        # use os.read() to work around https://bugs.python.org/issue42717
         while True:
-            if not select([sys_stdin()], [], []) == ([sys_stdin()], [], []):
-                break
-            # use os.read to allow partial read
             buf = os.read(sys_stdin().fileno(), bufsize)
             if not buf:
                 break
