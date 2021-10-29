@@ -39,6 +39,7 @@ class TBytesIO(BytesIO):
     def isatty(self):
         return False
 
+
 def load_cfg(name):
     """Load test configuration file as a new ConfigParser"""
     cfgparser = configparser.ConfigParser()
@@ -88,14 +89,16 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
 
     # Capture standard streams
 
-    # Input: if defined, stdin may either be a buffer or a string (with an
-    # encoding).
+    # Input: if defined, the stdin argument specifies input data
     if stdin is not None:
-        if type(stdin) is bytes:  # also works for str in Python 2
-            sys.stdin = TBytesIO(stdin)
+        if type(stdin) is bytes:
+            # Use temporary file in Python 2 or with buffer (bytes) in Python 3
+            sys.stdin = tempfile.TemporaryFile()
+            sys.stdin.write(stdin)
+            sys.stdin.seek(0)  # ready to be read
         else:
             # If stdin is a string in Python 3, use StringIO as sys.stdin
-            # should be read in text mode for some tests.
+            # should be read in text mode for some tests (eg. Nodeset).
             sys.stdin = StringIO(stdin)
 
     # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr() and when
@@ -110,7 +113,10 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     finally:
         sys.stdout = saved_stdout
         sys.stderr = saved_stderr
-        sys.stdin = saved_stdin
+        # close temporary file if we used one for stdin
+        if saved_stdin != sys.stdin:
+            sys.stdin.close()
+            sys.stdin = saved_stdin
 
     try:
         if expected_stdout is not None:

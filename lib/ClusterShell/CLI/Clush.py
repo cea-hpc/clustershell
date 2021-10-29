@@ -619,13 +619,14 @@ def _stdin_thread_start(stdin_port, display):
         # 64k seems to be perfect with an openssh backend (they issue 64k
         # reads) ; could consider making it an option for e.g. gsissh.
         bufsize = 64 * 1024
-        # thread loop: blocking read stdin + send messages to specified
-        #              port object
-        buf = sys_stdin().read(bufsize)  # use buffer in Python 3
-        while buf:
+        # thread loop: read stdin + send messages to specified port object
+        # use os.read() to work around https://bugs.python.org/issue42717
+        while True:
+            buf = os.read(sys_stdin().fileno(), bufsize)
+            if not buf:
+                break
             # send message to specified port object (with ack)
             stdin_port.msg(buf)
-            buf = sys_stdin().read(bufsize)
     except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
