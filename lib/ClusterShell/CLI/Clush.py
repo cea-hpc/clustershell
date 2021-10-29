@@ -38,7 +38,6 @@ import os
 from os.path import abspath, dirname, exists, isdir, join
 import random
 import resource
-from select import select
 import signal
 import sys
 import time
