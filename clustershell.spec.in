@@ -234,6 +234,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Wed Nov  3 2021 Stephane Thiell <sthiell@stanford.edu> 1.8.4-1
+- update to 1.8.4
+
 * Sun Dec  1 2019 Stephane Thiell <sthiell@stanford.edu> 1.8.3-1
 - update to 1.8.3
 
