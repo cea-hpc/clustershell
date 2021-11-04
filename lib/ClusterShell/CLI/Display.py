@@ -25,6 +25,7 @@ from __future__ import print_function
 
 import difflib
 import sys
+import os
 
 from ClusterShell.NodeSet import NodeSet
 
@@ -33,7 +34,7 @@ VERB_QUIET = 0
 VERB_STD = 1
 VERB_VERB = 2
 VERB_DEBUG = 3
-THREE_CHOICES = ["never", "always", "auto"]
+THREE_CHOICES = ["", "never", "always", "auto"]
 WHENCOLOR_CHOICES = THREE_CHOICES   # deprecated; use THREE_CHOICES
 
 if sys.getdefaultencoding() == 'ascii':
@@ -98,6 +99,18 @@ class Display(object):
         # display may change when 'max return code' option is set
         self.maxrc = getattr(options, 'maxrc', False)
 
+        # Be compliant with NO_COLOR and CLI_COLORS trying to solve #428
+        # See https://no-color.org/ and https://bixense.com/clicolors/
+        # NO_COLOR takes precedence over CLI_COLORS. --color option always
+        # takes precedence over any environment variable.
+
+        if options.whencolor is None:
+            if (config is None) or (config.color == '' or config.color == 'auto'):
+                if 'NO_COLOR' not in os.environ:
+                    color = self._has_cli_color()
+                else:
+                    color = False
+
         if color is None:
             # Should we use ANSI colors?
             color = False
@@ -136,6 +149,26 @@ class Display(object):
                 self.verbosity = VERB_VERB
             if hasattr(options, 'debug') and options.debug:
                 self.verbosity = VERB_DEBUG
+
+    def _has_cli_color(self):
+        """Tests CLICOLOR environment variable to determine wether to
+        use color or not on output."""
+        # When CLICOLOR_FORCE is set to something else than 0
+        # colors must be used.
+        if os.getenv("CLICOLOR_FORCE", "0") != "0":
+            return True
+
+        cli_color = os.getenv("CLICOLOR")
+
+        if cli_color is None:
+            return None
+        elif cli_color != "0":
+            # CLICOLOR is set and colored output should
+            # be used if stdout is a tty
+            return sys.stdout.isatty()
+        else:
+            # CLICOLOR is set to not display colors.
+            return False
 
     def flush(self):
         """flush display object buffers"""

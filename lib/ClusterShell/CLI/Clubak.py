@@ -107,7 +107,7 @@ def clubak():
     if options.interpret_keys == THREE_CHOICES[-1]: # auto?
         enable_nodeset_key = None # AUTO
     else:
-        enable_nodeset_key = (options.interpret_keys == THREE_CHOICES[1])
+        enable_nodeset_key = (options.interpret_keys == THREE_CHOICES[2])
 
     # Create new message tree
     if options.trace_mode:
