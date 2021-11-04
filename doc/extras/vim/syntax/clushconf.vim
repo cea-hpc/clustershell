@@ -16,7 +16,7 @@ syn match  clushComment	    "#.*$"
 syn match  clushComment	    ";.*$"
 syn match  clushHeader	    "\[\w\+\]"
 
-syn keyword clushKeys       fanout command_timeout connect_timeout color fd_max history_size node_count verbosity
+syn keyword clushKeys       fanout command_timeout connect_timeout color fd_max history_size node_count maxrc verbosity
 syn keyword clushKeys       ssh_user ssh_path ssh_options
 syn keyword clushKeys       rsh_path rcp_path rcp_options
 

@@ -1096,7 +1096,7 @@ def main():
         clush_exit(1, task)
 
     rc = 0
-    if options.maxrc:
+    if config.maxrc:
         # Instead of clush return code, return commands retcode
         rc = task.max_retcode()
         if task.num_timeout() > 0:

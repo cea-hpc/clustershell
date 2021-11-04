@@ -38,6 +38,7 @@ class CLIClushConfigTest(unittest.TestCase):
         self.assertEqual(config.color, WHENCOLOR_CHOICES[-1])
         self.assertEqual(config.verbosity, VERB_STD)
         self.assertEqual(config.fanout, 64)
+        self.assertEqual(config.maxrc, False)
         self.assertEqual(config.node_count, True)
         self.assertEqual(config.connect_timeout, 10)
         self.assertEqual(config.command_timeout, 0)
@@ -60,6 +61,7 @@ class CLIClushConfigTest(unittest.TestCase):
         config = ClushConfig(options, filename=f.name)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[-1])
         self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.maxrc, False)
         self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 64)
         self.assertEqual(config.connect_timeout, 10)
@@ -96,6 +98,7 @@ class CLIClushConfigTest(unittest.TestCase):
         display.vprint(VERB_DEBUG, "shouldn't see this")
         self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
         self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.maxrc, False)
         self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 42)
         self.assertEqual(config.connect_timeout, 14)
@@ -116,6 +119,7 @@ class CLIClushConfigTest(unittest.TestCase):
             command_timeout: 0
             history_size: 100
             color: auto
+            maxrc: yes
             node_count: yes
             verbosity: 1
             ssh_user: root
@@ -132,6 +136,7 @@ class CLIClushConfigTest(unittest.TestCase):
         config = ClushConfig(options, filename=f.name)
         self.assertEqual(config.color, WHENCOLOR_CHOICES[2])
         self.assertEqual(config.verbosity, VERB_STD)
+        self.assertEqual(config.maxrc, True)
         self.assertEqual(config.node_count, True)
         self.assertEqual(config.fanout, 42)
         self.assertEqual(config.connect_timeout, 14)

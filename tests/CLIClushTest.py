@@ -275,6 +275,14 @@ class CLIClushTest_A(unittest.TestCase):
         self._clush_t(["-w", HOSTNAME, "/bin/false"], None, b"", 0, exp_err)
         self._clush_t(["-w", HOSTNAME, "-b", "/bin/false"], None, b"", 0, exp_err)
         self._clush_t(["-S", "-w", HOSTNAME, "/bin/false"], None, b"", 1, exp_err)
+        self._clush_t(["--maxrc", "-w", HOSTNAME, "/bin/false"], None, b"", 1, exp_err)
+        self._clush_t(["-O", "maxrc=yes", "-w", HOSTNAME, "/bin/false"], None,
+                      b"", 1, exp_err)
+        # -O takes precedence over --maxrc
+        self._clush_t(["--maxrc", "-O", "maxrc=no", "-w", HOSTNAME, "/bin/false"], None,
+                      b"", 0, exp_err)
+        self._clush_t(["-O", "maxrc=no", "--maxrc", "-w", HOSTNAME, "/bin/false"], None,
+                      b"", 0, exp_err)
         for i in (1, 2, 127, 128, 255):
             s = "clush: %s: exited with exit code %d\n" % (HOSTNAME, i)
             self._clush_t(["-S", "-w", HOSTNAME, "exit %d" % i], None, b"", i,

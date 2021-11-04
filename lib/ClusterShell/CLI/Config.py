@@ -56,6 +56,7 @@ class ClushConfig(configparser.ConfigParser, object):
                      "color": THREE_CHOICES[-1], # auto
                      "verbosity": "%d" % VERB_STD,
                      "node_count": "yes",
+                     "maxrc": "no",
                      "fd_max": "8192"}
 
     def __init__(self, options, filename=None):
@@ -94,6 +95,8 @@ class ClushConfig(configparser.ConfigParser, object):
             self._set_main("command_timeout", options.command_timeout)
         if options.whencolor:
             self._set_main("color", options.whencolor)
+        if options.maxrc:
+            self._set_main("maxrc", options.maxrc)
 
         try:
             # -O/--option KEY=VALUE
@@ -211,6 +214,11 @@ class ClushConfig(configparser.ConfigParser, object):
     def node_count(self):
         """node_count value as a boolean"""
         return self.getboolean("Main", "node_count")
+
+    @property
+    def maxrc(self):
+        """maxrc value as a boolean"""
+        return self.getboolean("Main", "maxrc")
 
     @property
     def fd_max(self):
