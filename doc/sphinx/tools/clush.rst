@@ -589,6 +589,8 @@ output nodeset header::
     ---------------
     ok
 
+NO_COLOR, CLICOLOR_FORCE and CLICOLOR environment variables can also
+be used to change the way *clush* uses colors to display messages.
 
 .. _clush-worker:
 

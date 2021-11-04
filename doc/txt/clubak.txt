@@ -57,7 +57,7 @@ OPTIONS
                node / line content separator string (default: `:`)
 -F, --fast     faster but memory hungry mode (preload all messages per node)
 -T, --tree     message tree trace mode; switch to enable ``ClusterShell.MsgTree`` trace mode, all keys/nodes being kept for each message element of the tree, thus allowing special output gathering
---color=WHENCOLOR   whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
+--color=WHENCOLOR   ``clush`` can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE environment variables. ``--color`` command line option always takes precedence over environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which takes precedence over CLICOLOR. ``--color`` tells whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
 --diff         show diff between gathered outputs
 
 
