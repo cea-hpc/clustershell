@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUBAK 1 "2019-12-01" "1.8.3" "ClusterShell User Manual"
+.TH CLUBAK 1 "2021-11-03" "1.8.4" "ClusterShell User Manual"
 .SH NAME
 clubak \- format output from clush/pdsh-like output and more
 .
@@ -87,7 +87,7 @@ faster but memory hungry mode (preload all messages per node)
 message tree trace mode; switch to enable \fBClusterShell.MsgTree\fP trace mode, all keys/nodes being kept for each message element of the tree, thus allowing special output gathering
 .TP
 .BI \-\-color\fB= WHENCOLOR
-whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. \fIWHENCOLOR\fP is \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
+\fBclush\fP can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE environment variables. \fB\-\-color\fP command line option always takes precedence over environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which takes precedence over CLICOLOR. \fB\-\-color\fP tells whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. \fIWHENCOLOR\fP is \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard output refers to a terminal). Color is set to [34m (blue foreground text) and cannot be modified.
 .TP
 .B \-\-diff
 show diff between gathered outputs
