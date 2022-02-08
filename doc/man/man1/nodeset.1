@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH NODESET 1 "2021-11-03" "1.8.4" "ClusterShell User Manual"
+.TH NODESET 1 "2022-03-19" "1.8.4" "ClusterShell User Manual"
 .SH NAME
 nodeset \- compute advanced nodeset operations
 .
@@ -225,7 +225,7 @@ node[0\-4,11\-13]
 .sp
 This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
 .TP
-.B "All nodes" extension (v1.7+)
+.B "All nodes" extension
 The \fB@*\fP and \fB@SOURCE:*\fP special notations may be used in extended patterns to represent all nodes (in SOURCE) according to the \fIall\fP external shell command (see \fBgroups.conf\fP(5)) and are equivalent to:
 .INDENT 7.0
 .INDENT 3.5
@@ -233,6 +233,21 @@ The \fB@*\fP and \fB@SOURCE:*\fP special notations may be used in extended patte
 .TP
 .B $ nodeset [\-s SOURCE] \-a \-f
 .UNINDENT
+.UNINDENT
+.UNINDENT
+.TP
+.B Group names in expressions
+The \fB@@SOURCE\fP notation may be used to access all group names from the specified SOURCE (or from the default group source when just \fB@@\fP is used) in node set expressions; this works with either file\-based group sources or with external group sources that have the \fIlist\fP upcall defined (see \fBgroups.conf\fP(5)):
+.INDENT 7.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B $ nodeset \-f @@rack
+.UNINDENT
+.nf
+J[1\-3]
+.fi
+.sp
 .UNINDENT
 .UNINDENT
 .UNINDENT

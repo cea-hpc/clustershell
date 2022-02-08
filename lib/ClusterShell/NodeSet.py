@@ -916,6 +916,8 @@ class ParsingEngine(object):
             namespace, group = grpstr.split(':', 1)
         if group == '*': # @* or @source:* magic
             reslist = self.all_nodes(namespace)
+        elif group.startswith('@'): # @@source group name list
+            reslist = self.grouplist(grpstr[1:])
         else:
             reslist = self.group_resolver.group_nodes(group, namespace)
         return ','.join(reslist), namespace

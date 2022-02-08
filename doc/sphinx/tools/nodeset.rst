@@ -634,9 +634,13 @@ configured group sources and also display the default group source (unless
 Listing group names
 """""""""""""""""""
 
-If the **list** external shell command is configured (see
-:ref:`node groups configuration <groups-config>`), it is possible to list
-available groups *from the default source* with the following commands::
+It is always possible to list the groups from a group source if the source is
+:ref:`file-based <group-file-based>`.
+If the source is an :ref:`external group source <group-external-sources>`, the
+**list** upcall must be configured (see also:
+:ref:`node groups configuration <groups-config>`).
+
+To list available groups *from the default source*, use the following command::
 
     $ nodeset -l
     @mgnt
@@ -645,7 +649,7 @@ available groups *from the default source* with the following commands::
     @login
     @compute
 
-Or, to list groups *from a specific group source*, use *-l* in conjunction
+To list groups *from a specific group source*, use *-l* in conjunction
 with *-s* (or *--groupsource*)::
 
     $ nodeset -l -s slurm
@@ -666,6 +670,47 @@ Or, to list groups *from all available group sources*, use *-L* (or
 
 You can also use ``nodeset -ll`` or ``nodeset -LL`` to see each group's
 associated node sets.
+
+Listing group names in expressions
+""""""""""""""""""""""""""""""""""
+
+ClusterShell 1.8.5 introduces a new operator **@@** optionally followed by
+a source name (e.g. **@@source**) to access the list of *raw group names* of
+the source (without the **@** prefix). If no source is specified (as in *just*
+**@@**), the default group source is used (see :ref:`groups_config_conf`).
+The **@@** operator may be used in any node set expression to manipulate group
+names as a node set.
+
+Example with the default group source::
+
+    $ nodeset -l
+    @mgnt
+    @mds
+    @oss
+    @login
+    @compute
+    
+    $ nodeset -e @@
+    compute login mds mgnt oss
+
+Example with a group source "rack" that defines group names from rack
+locations in a data center::
+
+    $ nodeset -l -s rack
+    @rack:J1
+    @rack:J2
+    @rack:J3
+    
+    $ nodeset -f @@rack
+    J[1-3]
+
+A set of valid, indexed group sources is also accepted by the **@@** operator
+(e.g. **@@dc[1-3]**).
+
+
+.. warning:: An error is generated when using **@@** in an expression if the
+             source is not valid (e.g. invalid name, not configured or upcalls
+             not currently working).
 
 
 Using node groups in basic commands
