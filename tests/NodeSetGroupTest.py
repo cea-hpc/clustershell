@@ -625,6 +625,11 @@ class NodeSetGroupTest(unittest.TestCase):
         self.assertEqual(str(NodeSet.fromall(resolver=res)), "rack[1-10]z[1-42]")
         self.assertEqual(res.grouplist(), ['x1y1', 'x1y2', 'x1y[3-4]']) # raw
         self.assertEqual(grouplist(resolver=res), ['x1y1', 'x1y2', 'x1y3', 'x1y4']) # cleaned
+        # test "@@" group name set
+        nodeset = NodeSet("@@", resolver=res)
+        self.assertEqual(str(nodeset), "x1y[1-4]")
+        nodeset = NodeSet("@@local", resolver=res)
+        self.assertEqual(str(nodeset), "x1y[1-4]")
         # test "@*" magic group listing
         nodeset = NodeSet("@*", resolver=res)
         self.assertEqual(str(nodeset), "rack[1-10]z[1-42]")
@@ -1104,6 +1109,11 @@ class NodeSetGroupTest(unittest.TestCase):
         self.assertEqual(grouplist(resolver=res), ['a', 'b*', 'c', 'd', 'e'])
         nodeset = NodeSet("*foo*", resolver=res)
         self.assertEqual(str(nodeset), "foo[1-3],foobar,foobar1")
+        # currently @@ triggers group name wildcard expansion
+        nodeset = NodeSet("@@", resolver=res)
+        self.assertEqual(str(nodeset), "a,bar,bar[1-2],c,d,e")
+        nodeset = NodeSet("@@local", resolver=res)
+        self.assertEqual(str(nodeset), "a,bar,bar[1-2],c,d,e")
 
     def test_nodeset_wildcard_support_ranges(self):
         """test NodeSet wildcard support with ranges"""
@@ -1228,6 +1238,16 @@ class NodeSetGroup2GSTest(unittest.TestCase):
         self.assertEqual(len(all_nodes), len(nodes))
         self.assertEqual(all_nodes, nodes)
 
+        # @@ special operator
+        gl_nodes = NodeSet("@@")
+        self.assertEqual(len(gl_nodes), 20)
+        self.assertEqual(str(gl_nodes),
+            "Uppercase,all,chassis[1-12],compute,gpu,gpuchassis,io,mds,oss")
+        gl_nodes = NodeSet("@@default")
+        self.assertEqual(len(gl_nodes), 20)
+        self.assertEqual(str(gl_nodes),
+            "Uppercase,all,chassis[1-12],compute,gpu,gpuchassis,io,mds,oss")
+
     def testGroupListSource2(self):
         """test NodeSet group listing GroupResolver.grouplist(source)"""
         groups = std_group_resolver().grouplist("source2")
@@ -1236,6 +1256,11 @@ class NodeSetGroup2GSTest(unittest.TestCase):
         for group in groups:
             total += len(NodeSet("@source2:%s" % group))
         self.assertEqual(total, 24)
+
+        # @@ special operator
+        gl_nodes = NodeSet("@@source2")
+        self.assertEqual(len(gl_nodes), 2)
+        self.assertEqual(str(gl_nodes), "gpu,para")
 
     def testGroupNoPrefix(self):
         """test NodeSet group noprefix option"""
@@ -1640,6 +1665,12 @@ class GroupResolverYAMLTest(unittest.TestCase):
             self.assertEqual(str(nodeset), "example[1-100]")
             nodeset = NodeSet("@unknown", resolver=res)
             self.assertEqual(len(nodeset), 0)
+
+            # @@ grouplist operator
+            nodeset = NodeSet("@@", resolver=res)
+            self.assertEqual(str(nodeset), "bar,foo")
+            nodeset = NodeSet("@@yaml", resolver=res)
+            self.assertEqual(str(nodeset), "bar,foo")
 
             # Regroup
             nodeset = NodeSet("example[1-4,90-100]", resolver=res)
