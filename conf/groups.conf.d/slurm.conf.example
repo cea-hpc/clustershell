@@ -18,8 +18,8 @@ reverse: sinfo -h -N -o "%R" -n $NODE
 [slurmstate,st]
 map: sinfo -h -o "%N" -t $GROUP
 all: sinfo -h -o "%N"
-list: sinfo -h -o "%T" | tr -d '*~#$@+'
-reverse: sinfo -h -N -o "%T" -n $NODE | tr -d '*~#$@+'
+list: sinfo -h -o "%T" | tr -d '*~#!%$@+^-'
+reverse: sinfo -h -N -o "%T" -n $NODE | tr -d '*~#!%$@+^-'
 cache_time: 60
 
 #
