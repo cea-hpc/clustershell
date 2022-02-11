@@ -171,19 +171,19 @@ class DirectOutputDirHandler(DirectOutputHandler):
         self._errfiles = {}
         for n in self._ns:
            if display.outdir:
-               self._outfiles[n] = open(f"{display.outdir}/{n}", mode="w", newline="\n")
+               self._outfiles[n] = open("{}/{}".format(display.outdir, n), mode="w")
            if display.errdir:
-               self._errfiles[n] = open(f"{display.errdir}/{n}", mode="w", newline="\n")
+               self._errfiles[n] = open("{}/{}".format(display.errdir, n), mode="w")
 
     def ev_read(self, worker, node, sname, msg):
         if sname == worker.SNAME_STDOUT:
             self._display.print_line(node, msg)
             if self._display.outdir:
-                self._outfiles[node].write(f"""{msg.decode("utf-8")}\n""")
+                self._outfiles[node].write("{}\n".format(msg.decode("utf-8")))
         elif sname == worker.SNAME_STDERR:
             self._display.print_line_error(node, msg)
             if self._display.errdir:
-                self._errfiles[node].write(f"""{msg.decode("utf-8")}\n""")
+                self._errfiles[node].write("{}\n".format(msg.decode("utf-8")))
 
     def ev_close(self, worker, timedout):
         if timedout:
@@ -709,6 +709,8 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
     elif display.progress and display.verbosity > VERB_QUIET:
         handler = DirectProgressOutputHandler(display)
         handler.runtimer_init(task, len(ns))
+    elif (display.outdir or display.errdir) and ns is not None:
+        handler = DirectOutputDirHandler(display, ns)
     else:
         # this is the simpler but faster output handler
         handler = DirectOutputHandler(display)
