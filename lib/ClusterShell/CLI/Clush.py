@@ -161,6 +161,43 @@ class DirectOutputHandler(OutputHandler):
                                      (self._prog, nodeset))
         self.update_prompt(worker)
 
+class DirectOutputDirHandler(DirectOutputHandler):
+    """Direct output files event handler class. pssh style"""
+    def __init__(self, display, ns):
+        OutputHandler.__init__(self)
+        self._display = display
+        self._ns = ns
+        self._outfiles = {}
+        self._errfiles = {}
+        for n in self._ns:
+           if display.outdir:
+               self._outfiles[n] = open(f"{display.outdir}/{n}", mode="w", newline="\n")
+           if display.errdir:
+               self._errfiles[n] = open(f"{display.errdir}/{n}", mode="w", newline="\n")
+
+    def ev_read(self, worker, node, sname, msg):
+        if sname == worker.SNAME_STDOUT:
+            self._display.print_line(node, msg)
+            if self._display.outdir:
+                self._outfiles[node].write(f"""{msg.decode("utf-8")}\n""")
+        elif sname == worker.SNAME_STDERR:
+            self._display.print_line_error(node, msg)
+            if self._display.errdir:
+                self._errfiles[node].write(f"""{msg.decode("utf-8")}\n""")
+
+    def ev_close(self, worker, timedout):
+        if timedout:
+            nodeset = NodeSet._fromlist1(worker.iter_keys_timeout())
+            self._display.vprint_err(VERB_QUIET,
+                                     "clush: %s: command timeout" % nodeset)
+        if self._display.outdir:
+            for v in self._outfiles.values():
+                v.close()
+        if self._display.errdir:
+            for v in self._errfiles.values():
+                v.close()
+        self.update_prompt(worker)
+
 class DirectProgressOutputHandler(DirectOutputHandler):
     """Direct output event handler class with progress support."""
 
