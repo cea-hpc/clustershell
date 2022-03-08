@@ -13,6 +13,26 @@ farms! Special thanks to the many of you that have sent us feedback on GitHub!
 
 .. warning:: Support for Python 2.5 and below has been dropped in this version.
 
+Version 1.8.4
+^^^^^^^^^^^^^
+
+This version contains a few bug fixes and improvements:
+
+* allow out-of-tree worker modules
+
+* use default local_worker and allow overriding :ref:`defaults-config` (tree mode)
+
+* return maxrc properly in the case of the Rsh Worker
+
+* :ref:`clush-tool`: improve stdin support with Python 3
+
+* :ref:`clush-tool`: add maxrc option to :ref:`clush.conf <clush-config>`
+
+* :ref:`clush-tool`: add support for NO_COLOR and CLICOLOR
+
+For more details, please have a look at `GitHub Issues for 1.8.4 milestone`_.
+
+
 Version 1.8.3
 ^^^^^^^^^^^^^
 
@@ -564,6 +584,7 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.8.1 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.1
 .. _GitHub Issues for 1.8.2 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.2
 .. _GitHub Issues for 1.8.3 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.3
+.. _GitHub Issues for 1.8.4 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.4
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/

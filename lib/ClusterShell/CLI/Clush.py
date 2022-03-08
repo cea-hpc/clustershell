@@ -619,13 +619,14 @@ def _stdin_thread_start(stdin_port, display):
         # 64k seems to be perfect with an openssh backend (they issue 64k
         # reads) ; could consider making it an option for e.g. gsissh.
         bufsize = 64 * 1024
-        # thread loop: blocking read stdin + send messages to specified
-        #              port object
-        buf = sys_stdin().read(bufsize)  # use buffer in Python 3
-        while buf:
+        # thread loop: read stdin + send messages to specified port object
+        # use os.read() to work around https://bugs.python.org/issue42717
+        while True:
+            buf = os.read(sys_stdin().fileno(), bufsize)
+            if not buf:
+                break
             # send message to specified port object (with ack)
             stdin_port.msg(buf)
-            buf = sys_stdin().read(bufsize)
     except IOError as ex:
         display.vprint(VERB_VERB, "stdin: %s" % ex)
     # send a None message to indicate EOF
@@ -635,7 +636,7 @@ def bind_stdin(worker, display):
     """Create a stdin->port->worker binding: connect specified worker
     to stdin with the help of a reader thread and a ClusterShell Port
     object."""
-    assert not sys.stdin.isatty()
+    assert sys.stdin is not None and not sys.stdin.isatty()
     # Create a ClusterShell Port object bound to worker's task. This object
     # is able to receive messages in a thread-safe manner and then will safely
     # trigger ev_msg() on a specified event handler.
@@ -932,7 +933,7 @@ def main():
     interactive = not len(args) and \
                   not (options.copy or options.rcopy)
     # check for foreground ttys presence (input)
-    stdin_isafgtty = sys.stdin.isatty() and \
+    stdin_isafgtty = sys.stdin is not None and sys.stdin.isatty() and \
         os.tcgetpgrp(sys.stdin.fileno()) == os.getpgrp()
     # check for special condition (empty command and stdin not a tty)
     if interactive and not stdin_isafgtty:
@@ -966,7 +967,8 @@ def main():
     task.set_default("USER_handle_SIGUSR1", user_interaction)
 
     task.excepthook = sys.excepthook
-    task.set_default("USER_stdin_worker", not (sys.stdin.isatty() or \
+    task.set_default("USER_stdin_worker", not (sys.stdin is None or \
+                                               sys.stdin.isatty() or \
                                                options.nostdin or \
                                                user_interaction))
     display.vprint(VERB_DEBUG, "Create STDIN worker: %s" % \
@@ -1094,7 +1096,7 @@ def main():
         clush_exit(1, task)
 
     rc = 0
-    if options.maxrc:
+    if config.maxrc:
         # Instead of clush return code, return commands retcode
         rc = task.max_retcode()
         if task.num_timeout() > 0:

@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2019-12-01
+:Date:   2021-11-03
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.3
+:Version: 1.8.4
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -54,12 +54,16 @@ command_timeout
   ClusterShell library ensures that any commands complete in less than
   ( connect_timeout + command_timeout ). If set to *0*, no timeout occurs.
 color
-  Whether to use ANSI colors to surround node or nodeset prefix/header with
-  escape sequences to display them in color on the terminal. Valid arguments
-  are ``never``, ``always`` or ``auto`` (which use color if standard
-  output/error refer to a terminal). Colors are set to [34m (blue foreground
-  text) for stdout and [31m (red foreground text) for stderr, and cannot be
-  modified.
+  ``clush`` can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE
+  environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which
+  takes precedence over CLICOLOR. When the option is set in configuration file
+  environment variables are taken into account only with `auto` argument.
+  ``color`` tells  whether to use ANSI colors to surround node or nodeset
+  prefix/header with escape sequences to display them in color on the terminal.
+  Valid arguments are ``never``, ``always`` or ``auto`` (which use color if
+  standard output/error refer to a terminal). Colors are set to [34m (blue
+  foreground text) for stdout and [31m (red foreground text) for stderr, and
+  cannot be modified.
 fd_max
   Maximum number of open file descriptors permitted per clush process (soft
   resource limit for open files). This limit can never exceed the system
@@ -71,6 +75,8 @@ history_size
 node_count
   Should ``clush`` display additional (node count) information in buffer
   header? (`yes`/`no`)
+maxrc
+  Should ``clush`` return the largest of command return codes? (yes/no)
 verbosity
   Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more
   (debug).
@@ -108,6 +114,7 @@ Simple configuration file.
 | history_size: 100
 | color: auto
 | fd_max: 10240
+| maxrc: no
 | node_count: yes
 |
 

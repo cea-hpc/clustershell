@@ -5,9 +5,10 @@
 
 import tempfile
 import unittest
+import os
 from io import BytesIO
 
-from ClusterShell.CLI.Display import Display, WHENCOLOR_CHOICES, VERB_STD
+from ClusterShell.CLI.Display import Display, THREE_CHOICES, VERB_STD
 from ClusterShell.CLI.OptionParser import OptionParser
 
 from ClusterShell.MsgTree import MsgTree
@@ -38,27 +39,46 @@ class CLIDisplayTest(unittest.TestCase):
         mtree.add("hostfoo", b"message0")
         mtree.add("hostfoo", b"message1")
 
-        for whencolor in WHENCOLOR_CHOICES: # test whencolor switch
-            for label in [True, False]:     # test no-label switch
-                options.label = label
-                options.whencolor = whencolor
-                disp = Display(options)
-                # inhibit output
-                disp.out = BytesIO()
-                disp.err = BytesIO()
-                # test print_* methods...
-                disp.print_line(ns, b"foo bar")
-                disp.print_line_error(ns, b"foo bar")
-                disp.print_gather(ns, list(mtree.walk())[0][0])
-                # test also string nodeset as parameter
-                disp.print_gather("hostfoo", list(mtree.walk())[0][0])
-                # test line_mode property
-                self.assertEqual(disp.line_mode, False)
-                disp.line_mode = True
-                self.assertEqual(disp.line_mode, True)
-                disp.print_gather("hostfoo", list(mtree.walk())[0][0])
-                disp.line_mode = False
-                self.assertEqual(disp.line_mode, False)
+        list_env_vars = []
+        list_env_vars.append(dict())
+        list_env_vars.append(dict(NO_COLOR='0'))
+        list_env_vars.append(dict(CLICOLOR='0'))
+        list_env_vars.append(dict(CLICOLOR='1'))
+        list_env_vars.append(dict(CLICOLOR='0', CLICOLOR_FORCE='0'))
+        list_env_vars.append(dict(CLICOLOR_FORCE='1'))
+
+        for env_vars in list_env_vars:
+            for var_name in env_vars:
+                var_value = env_vars[var_name]
+                os.environ[var_name] = var_value
+
+            for whencolor in THREE_CHOICES: # test whencolor switch
+                if whencolor == "":
+                    options.whencolor = None
+                else:
+                    options.whencolor = whencolor
+                for label in [True, False]: # test no-label switch
+                    options.label = label
+                    disp = Display(options)
+                    # inhibit output
+                    disp.out = BytesIO()
+                    disp.err = BytesIO()
+                    # test print_* methods...
+                    disp.print_line(ns, b"foo bar")
+                    disp.print_line_error(ns, b"foo bar")
+                    disp.print_gather(ns, list(mtree.walk())[0][0])
+                    # test also string nodeset as parameter
+                    disp.print_gather("hostfoo", list(mtree.walk())[0][0])
+                    # test line_mode property
+                    self.assertEqual(disp.line_mode, False)
+                    disp.line_mode = True
+                    self.assertEqual(disp.line_mode, True)
+                    disp.print_gather("hostfoo", list(mtree.walk())[0][0])
+                    disp.line_mode = False
+                    self.assertEqual(disp.line_mode, False)
+
+            for var_name in env_vars:
+                os.environ.pop(var_name)
 
     def testDisplayRegroup(self):
         """test CLI.Display (regroup)"""

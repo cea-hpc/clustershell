@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH.CONF 5 "2019-12-01" "1.8.3" "ClusterShell User Manual"
+.TH CLUSH.CONF 5 "2021-11-03" "1.8.4" "ClusterShell User Manual"
 .SH NAME
 clush.conf \- Configuration file for clush
 .
@@ -82,12 +82,16 @@ ClusterShell library ensures that any commands complete in less than
 ( connect_timeout + command_timeout ). If set to \fI0\fP, no timeout occurs.
 .TP
 .B color
-Whether to use ANSI colors to surround node or nodeset prefix/header with
-escape sequences to display them in color on the terminal. Valid arguments
-are \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard
-output/error refer to a terminal). Colors are set to [34m (blue foreground
-text) for stdout and [31m (red foreground text) for stderr, and cannot be
-modified.
+\fBclush\fP can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE
+environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which
+takes precedence over CLICOLOR. When the option is set in configuration file
+environment variables are taken into account only with \fIauto\fP argument.
+\fBcolor\fP tells  whether to use ANSI colors to surround node or nodeset
+prefix/header with escape sequences to display them in color on the terminal.
+Valid arguments are \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if
+standard output/error refer to a terminal). Colors are set to [34m (blue
+foreground text) for stdout and [31m (red foreground text) for stderr, and
+cannot be modified.
 .TP
 .B fd_max
 Maximum number of open file descriptors permitted per clush process (soft
@@ -102,6 +106,9 @@ list. Negative values imply unlimited history file size.
 .B node_count
 Should \fBclush\fP display additional (node count) information in buffer
 header? (\fIyes\fP/\fIno\fP)
+.TP
+.B maxrc
+Should \fBclush\fP return the largest of command return codes? (yes/no)
 .TP
 .B verbosity
 Set the verbosity level: \fI0\fP (quiet), \fI1\fP (default), \fI2\fP (verbose) or more
@@ -145,6 +152,7 @@ command_timeout: 0
 history_size: 100
 color: auto
 fd_max: 10240
+maxrc: no
 node_count: yes
 
 .fi

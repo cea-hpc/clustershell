@@ -172,7 +172,7 @@ class OptionParser(optparse.OptionParser):
                               help="node / line content separator string "
                                    "(default: ':')")
         else:
-            optgrp.add_option("-S", action="store_true", dest="maxrc",
+            optgrp.add_option("-S", "--maxrc", action="store_true", dest="maxrc",
                               help="return the largest of command return codes")
 
         if msgtree_mode:

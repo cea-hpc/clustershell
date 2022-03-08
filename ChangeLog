@@ -1,3 +1,27 @@
+2021-11-03 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.8.4 released. The main changes are listed below.
+
+	* RangeSetND: fix padding info when slicing using __getitem__() (#429)
+
+	* Defaults: Allow out-of-tree worker modules
+
+	* NodeUtils: allow YAML list to declare node groups (#438)
+
+	* Tree: Use default local_worker and allow overriding Defaults
+
+	* Worker/Rsh: return maxrc properly for Rsh Worker (#448)
+
+	* xCAT binding: add support for spaces in group names (#459)
+
+	* CLI/Clush: Avoid python3 error with no stdin (#460)
+
+	* CLI/Clush: use os.read() in stdin thread (#463)
+
+	* CLI/Clush: Add maxrc option to clush.conf (#451)
+
+	* CLI/Display: Add support for NO_COLOR and CLICOLOR (#428) (#432)
+
 2019-12-01 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.8.3 released. The main changes are listed below.

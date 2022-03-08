@@ -1,0 +1,55 @@
+name: ClusterShell nosetests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '2.7', '3.6', '3.7', '3.8', '3.9' ]
+    name: Tests with Python ${{ matrix.python-version }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install coverage
+        pip install nose
+        pip install .
+    - name: Allow us to SSH passwordless to localhost
+      run: |
+        chmod og-rw ~
+        ssh-keygen -f ~/.ssh/id_rsa -N ""
+        cp ~/.ssh/{id_rsa.pub,authorized_keys}
+    - name: Avoid ssh "known hosts" warnings
+      run: |
+        printf '%s\n    %s\n    %s\n' 'Host *' 'StrictHostKeyChecking no' 'LogLevel ERROR' >> ~/.ssh/config
+    - name: Set Python paths when sshing for gateway tests
+      run: |
+        sed -i "1iexport CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)" ~/.bashrc
+        sed -i "2iexport PYTHONPATH=\$PYTHONPATH:$(realpath $pythonLocation/lib/python*/site-packages)" ~/.bashrc
+        head ~/.bashrc
+    - name: Install pdsh to test WorkerPdsh
+      run: |
+        sudo apt-get -y install pdsh
+        sudo sh -c 'echo ssh > /etc/pdsh/rcmd_default'
+    - name: Run tests
+      id: tests
+      run: |
+        python --version
+        export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)
+        nosetests -v --all-modules --with-coverage --cover-tests --cover-erase --cover-package=ClusterShell tests
+    - name: Post to Slack
+      if: always()  # could be changed to failure() if too verbose
+      id: slack
+      uses: slackapi/slack-github-action@v1.15.0
+      with:
+        channel-id: 'C07GRMDK3'
+        slack-message: "${{ github.workflow }} by ${{ github.actor }} on ${{ github.ref }} for Python ${{ matrix.python-version }}: ${{ job.status }}"
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
