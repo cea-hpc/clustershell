@@ -710,6 +710,10 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         handler = DirectProgressOutputHandler(display)
         handler.runtimer_init(task, len(ns))
     elif (display.outdir or display.errdir) and ns is not None:
+        if display.outdir and not exists(display.outdir):
+            os.makedirs(display.outdir)
+        if display.errdir and not exists(display.errdir):
+            os.makedirs(display.errdir)
         handler = DirectOutputDirHandler(display, ns)
     else:
         # this is the simpler but faster output handler
