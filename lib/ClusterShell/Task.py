@@ -421,10 +421,25 @@ class Task(object):
         """
         self.topology = TopologyParser(topology_file).tree(_getshorthostname())
 
-    def _default_router(self):
-        if self.router is None:
-            self.router = PropagationTreeRouter(str(self.topology.root.nodeset),
-                                                self.topology)
+    def _default_router(self, router=None):
+        """
+        Helper to instantiate or bind a default PropagationTreeRouter
+        for the task which can then be shared by multiple workers.
+        Called by a TreeWorker when it is scheduled with this task.
+        """
+        if router is None:
+            if self.router is None:
+                # Init router with the task's topology (e.g. root node)
+                self.router = \
+                    PropagationTreeRouter(str(self.topology.root.nodeset),
+                                          self.topology)
+        else:
+            if self.router is not None:
+                # Update default router if a different one is used by a worker.
+                logger = logging.getLogger(__name__)
+                logger.debug("_default_router: overriding previous default " \
+                             "router %s with %s", self.router, router)
+            self.router = router
         return self.router
 
     def default(self, default_key, def_val=None):
