@@ -202,7 +202,7 @@ class TreeWorker(DistantWorker):
         DistantWorker._set_task(self, task)
         # Now bound to task - initalize router
         self.topology = self.topology or task.topology
-        self.router = self.router or task._default_router()
+        self.router = task._default_router(self.router)
         self._launch(self.nodes)
         self._check_ini()
 
