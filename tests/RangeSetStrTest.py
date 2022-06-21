@@ -6,10 +6,19 @@
 import binascii
 import pickle
 import unittest
+import warnings
 
+from ClusterShell import RangeSet as RangeSetModule
 from ClusterShell.RangeSet import RangeSet, RangeSetParseError
 
 class RangeSetTest(unittest.TestCase):
+
+    def setUp(self):
+        RangeSetModule.BACKEND_TYPE = str
+        warnings.simplefilter("always")
+
+    def tearDown(self):
+        RangeSetModule.BACKEND_TYPE = RangeSetModule.DEFAULT_BACKEND_TYPE
 
     def _testRS(self, test, res, length):
         r1 = RangeSet(test, autostep=3)
@@ -34,7 +43,7 @@ class RangeSetTest(unittest.TestCase):
 
     def testStepAdvanced(self):
         """test RangeSet advanced step usages"""
-        self._testRS("1-4/4,2-6/2", "1-2,4,6", 4)   # 1.6 and 1.9 small behavior change
+        self._testRS("1-4/4,2-6/2", "1-2,4,6", 4)   # 1.9 small behavior change
         self._testRS("6-24/6,9-21/6", "6-24/3", 7)
         self._testRS("0-24/2,9-21/2", "0-8/2,9-22,24", 20)
         self._testRS("0-24/2,9-21/2,100", "0-8/2,9-22,24,100", 21)
@@ -49,8 +58,9 @@ class RangeSetTest(unittest.TestCase):
         self._testRS("1-16/3,1-16/6", "1-16/3", 6)
         self._testRS("1-16/6,1-16/3", "1-16/3", 6)
         self._testRS("1-16/3,3-19/6", "1,3-4,7,9-10,13,15-16", 9)
-        #self._testRS("1-16/3,3-19/4", "1,3,4-10/3,11-15/2,16,19", 10) # >= 1.6
-        self._testRS("1-16/3,3-19/4", "1,3-4,7,10-11,13,15-16,19", 10) # >= 1.9
+        #self._testRS("1-16/3,3-19/4", "1,3-4,7,10-11,13,15-16,19", 10)  # <1.6
+        #self._testRS("1-16/3,3-19/4", "1,3,4-10/3,11-15/2,16,19", 10)   # 1.6+
+        self._testRS("1-16/3,3-19/4", "1,3-4,7,10-11,13,15-16,19", 10)   # 1.9+
         self._testRS("1-17/2,2-18/2", "1-18", 18)
         self._testRS("1-17/2,33-41/2,2-18/2", "1-18,33-41/2", 23)
         self._testRS("1-17/2,33-41/2,2-20/2", "1-18,20,33-41/2", 24)
@@ -327,8 +337,8 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 240)
         self.assertTrue(99 in r1)
         self.assertTrue("99" in r1)
-        self.assertTrue("099" in r1)
-        self.assertRaises(TypeError, r1.__contains__, object())
+        self.assertFalse("099" in r1)  # fixed in 1.9+
+        self.assertFalse(object() in r1)
         self.assertTrue(101 not in r1)
         self.assertEqual(len(r1), 240)
         r2 = RangeSet("1-100/3,40-60/3", autostep=3)
@@ -340,16 +350,16 @@ class RangeSetTest(unittest.TestCase):
         self.assertTrue(40 in r2)
         self.assertTrue(101 not in r2)
         r3 = RangeSet("0003-0143,0360-1000")
-        self.assertTrue(360 in r3)
-        self.assertTrue("360" in r3)
+        self.assertFalse(360 in r3)    # fixed in 1.9+
+        self.assertFalse("360" in r3)  # fixed in 1.9+
         self.assertTrue("0360" in r3)
         r4 = RangeSet("00-02")
         self.assertTrue("00" in r4)
-        self.assertTrue(0 in r4)
-        self.assertTrue("0" in r4)
+        self.assertFalse(0 in r4)      # changed in 1.9+
+        self.assertFalse("0" in r4)    # fixed in 1.9+
         self.assertTrue("01" in r4)
-        self.assertTrue(1 in r4)
-        self.assertTrue("1" in r4)
+        self.assertFalse(1 in r4)      # changed in 1.9+
+        self.assertFalse("1" in r4)    # fixed in 1.9+
         self.assertTrue("02" in r4)
         self.assertFalse("03" in r4)
         #
@@ -400,31 +410,31 @@ class RangeSetTest(unittest.TestCase):
         self.assertFalse(r1 < r2)
         self.assertFalse(r1 <= r2)
         self.assertFalse(r2 >= r1)
-        # since v1.6, padding is ignored when computing set operations
+        # fixed in v1.9 where mixed padding is now supported
         r1 = RangeSet("1-100")
         r2 = RangeSet("001-100")
-        self.assertTrue(r1.issubset(r2))
+        self.assertFalse(r1.issubset(r2)) # used to be true < v1.9
 
     def testGetItem(self):
         """test RangeSet.__getitem__()"""
         r1 = RangeSet("1-100,102,105-242,800")
         self.assertEqual(len(r1), 240)
-        self.assertEqual(r1[0], 1)
-        self.assertEqual(r1[1], 2)
-        self.assertEqual(r1[2], 3)
-        self.assertEqual(r1[99], 100)
-        self.assertEqual(r1[100], 102)
-        self.assertEqual(r1[101], 105)
-        self.assertEqual(r1[102], 106)
-        self.assertEqual(r1[103], 107)
-        self.assertEqual(r1[237], 241)
-        self.assertEqual(r1[238], 242)
-        self.assertEqual(r1[239], 800)
+        self.assertEqual(r1[0], '1')
+        self.assertEqual(r1[1], '2')
+        self.assertEqual(r1[2], '3')
+        self.assertEqual(r1[99], '100')
+        self.assertEqual(r1[100], '102')
+        self.assertEqual(r1[101], '105')
+        self.assertEqual(r1[102], '106')
+        self.assertEqual(r1[103], '107')
+        self.assertEqual(r1[237], '241')
+        self.assertEqual(r1[238], '242')
+        self.assertEqual(r1[239], '800')
         self.assertRaises(IndexError, r1.__getitem__, 240)
         self.assertRaises(IndexError, r1.__getitem__, 241)
         # negative indices
-        self.assertEqual(r1[-1], 800)
-        self.assertEqual(r1[-240], 1)
+        self.assertEqual(r1[-1], '800')
+        self.assertEqual(r1[-240], '1')
         for n in range(1, len(r1)):
             self.assertEqual(r1[-n], r1[len(r1)-n])
         self.assertRaises(IndexError, r1.__getitem__, -len(r1)-1)
@@ -432,19 +442,19 @@ class RangeSetTest(unittest.TestCase):
 
         r2 = RangeSet("1-37/3,43-52/3,58-67/3,73-100/3,102-106/2")
         self.assertEqual(len(r2), 34)
-        self.assertEqual(r2[0], 1)
-        self.assertEqual(r2[1], 4)
-        self.assertEqual(r2[2], 7)
-        self.assertEqual(r2[12], 37)
-        self.assertEqual(r2[13], 43)
-        self.assertEqual(r2[14], 46)
-        self.assertEqual(r2[16], 52)
-        self.assertEqual(r2[17], 58)
-        self.assertEqual(r2[29], 97)
-        self.assertEqual(r2[30], 100)
-        self.assertEqual(r2[31], 102)
-        self.assertEqual(r2[32], 104)
-        self.assertEqual(r2[33], 106)
+        self.assertEqual(r2[0], '1')
+        self.assertEqual(r2[1], '4')
+        self.assertEqual(r2[2], '7')
+        self.assertEqual(r2[12], '37')
+        self.assertEqual(r2[13], '43')
+        self.assertEqual(r2[14], '46')
+        self.assertEqual(r2[16], '52')
+        self.assertEqual(r2[17], '58')
+        self.assertEqual(r2[29], '97')
+        self.assertEqual(r2[30], '100')
+        self.assertEqual(r2[31], '102')
+        self.assertEqual(r2[32], '104')
+        self.assertEqual(r2[33], '106')
         self.assertRaises(TypeError, r2.__getitem__, "foo")
 
     def testGetSlice(self):
@@ -581,24 +591,27 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 240)
         r1.add(801)
         self.assertEqual(len(r1), 241)
-        self.assertEqual(r1[0], 1)
-        self.assertEqual(r1[240], 801)
+        self.assertEqual(r1[0], '1')
+        self.assertEqual(r1[240], '801')
         r1.add(788)
         self.assertEqual(str(r1), "1-100,102,105-242,788,800-801")
         self.assertEqual(len(r1), 242)
-        self.assertEqual(r1[0], 1)
-        self.assertEqual(r1[239], 788)
-        self.assertEqual(r1[240], 800)
+        self.assertEqual(r1[0], '1')
+        self.assertEqual(r1[239], '788')
+        self.assertEqual(r1[240], '800')
         r1.add(812)
         self.assertEqual(len(r1), 243)
         # test forced padding
         r1 = RangeSet("1-100,102,105-242,800")
         r1.add(801, pad=3)
         self.assertEqual(len(r1), 241)
-        self.assertEqual(str(r1), "001-100,102,105-242,800-801")
-        r1.padding = 4
+        self.assertEqual(str(r1), "1-100,102,105-242,800-801")
+
+        with self.assertRaises(TypeError):
+            r1.padding = 4  # not supported in str mode
+
         self.assertEqual(len(r1), 241)
-        self.assertEqual(str(r1), "0001-0100,0102,0105-0242,0800-0801")
+        self.assertEqual(str(r1), "1-100,102,105-242,800-801")
 
     def testUpdate(self):
         """test RangeSet.update()"""
@@ -608,7 +621,6 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r2), 618)
         r1.update(r2)
         self.assertEqual(type(r1), RangeSet)
-        self.assertEqual(r1.padding, None)
         self.assertEqual(len(r1), 240+618) 
         self.assertEqual(str(r1), "1-100,102,105-800,1924-1984")
         r1 = RangeSet("1-100,102,105-242,800")
@@ -624,7 +636,6 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r2), 618)
         r3 = r1.union(r2)
         self.assertEqual(type(r3), RangeSet)
-        self.assertEqual(r3.padding, None)
         self.assertEqual(len(r3), 240+618) 
         self.assertEqual(str(r3), "1-100,102,105-800,1924-1984")
         r4 = r1 | r2
@@ -647,10 +658,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 239)
         self.assertEqual(str(r1), "1-99,102,105-242,800")
         self.assertRaises(KeyError, r1.remove, 101)
-        # test remove integer-castable type (convenience)
+        self.assertRaises(KeyError, r1.remove, "101")
         r1.remove("106")
-        # non integer castable cases raise ValueError (documented since 1.6)
-        self.assertRaises(ValueError, r1.remove, "foo")
+        self.assertRaises(KeyError, r1.remove, "foo")
 
     def testDiscard(self):
         """test RangeSet.discard()"""
@@ -660,8 +670,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(len(r1), 239)
         self.assertEqual(str(r1), "1-99,102,105-242,800")
         r1.discard(101)     # should not raise KeyError
-        # test remove integer-castable type (convenience)
-        r1.remove("106")
+        r1.discard('105')
+        self.assertEqual(len(r1), 238)
+        self.assertEqual(str(r1), "1-99,102,106-242,800")
         r1.discard("foo")
 
     def testClear(self):
@@ -728,7 +739,7 @@ class RangeSetTest(unittest.TestCase):
 
     def testIterator(self):
         """test RangeSet iterator"""
-        matches = [ 1, 3, 4, 5, 6, 7, 8, 11 ]
+        matches = ['1', '3', '4', '5', '6', '7', '8', '11']
         rgs = RangeSet.fromlist([ "11", "3", "5-8", "1", "4" ])
         cnt = 0
         for rg in rgs:
@@ -736,10 +747,12 @@ class RangeSetTest(unittest.TestCase):
             cnt += 1
         self.assertEqual(cnt, len(matches))
         # with padding
+        matches = ['001', '003', '004', '005', '006', '007', '008', '011']
         rgs = RangeSet.fromlist([ "011", "003", "005-008", "001", "004" ])
         cnt = 0
         for rg in rgs:
-            self.assertTrue(isinstance(rg, int))
+            self.assertFalse(isinstance(rg, int))  # true prior to v1.9
+            self.assertTrue(isinstance(rg, str))   # true since v1.9
             self.assertEqual(rg, matches[cnt])
             cnt += 1
         self.assertEqual(cnt, len(matches))
@@ -881,11 +894,11 @@ class RangeSetTest(unittest.TestCase):
         r1.add_range(40, 65, 10)
         self.assertEqual(r1.autostep, 3)
         self.assertEqual(len(r1), 33)
-        self.assertEqual(str(r1), "1-30,40-60/10") # slight change in v1.9
+        self.assertEqual(str(r1), "1-30,40-60/10")
         # One
         r1.add_range(103, 104)
         self.assertEqual(len(r1), 34)
-        self.assertEqual(str(r1), "1-30,40-60/10,103") # slight change in v1.9
+        self.assertEqual(str(r1), "1-30,40-60/10,103")
         # Zero
         self.assertRaises(AssertionError, r1.add_range, 103, 103)
 
@@ -928,15 +941,19 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r1), "115-117,130,167-170,4780-4999")
         self.assertEqual(str(r2), "115-118,130,166-170,4780-4999")
 
+    # unpickling tests; generate data with:
+    # rs = RangeSet("5,7-102,104,106-107")
+    # print(binascii.b2a_base64(pickle.dumps(rs)))
+
     def test_unpickle_v1_3_py24(self):
         """test RangeSet unpickling (against v1.3/py24)"""
         rngset = pickle.loads(binascii.a2b_base64("gAIoY0NsdXN0ZXJTaGVsbC5Ob2RlU2V0ClJhbmdlU2V0CnEAb3EBfXECKFUHX2xlbmd0aHEDS2RVCV9hdXRvc3RlcHEER1SySa0llMN9VQdfcmFuZ2VzcQVdcQYoKEsFSwVLAUsAdHEHKEsHS2ZLAUsAdHEIKEtoS2hLAUsAdHEJKEtqS2tLAUsAdHEKZXViLg=="))
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
 
     def test_unpickle_v1_3_py26(self):
         """test RangeSet unpickling (against v1.3/py26)"""
@@ -944,9 +961,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
 
     # unpickle_v1_4_py24 : unpickling fails as v1.4 does not have slice pickling workaround
 
@@ -956,9 +973,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
 
     def test_unpickle_v1_5_py24(self):
         """test RangeSet unpickling (against v1.5/py24)"""
@@ -966,9 +983,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
 
     def test_unpickle_v1_5_py26(self):
         """test RangeSet unpickling (against v1.5/py26)"""
@@ -977,9 +994,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
 
     def test_unpickle_v1_6_py24(self):
         """test RangeSet unpickling (against v1.6/py24)"""
@@ -987,9 +1004,9 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
 
     def test_unpickle_v1_6_py26(self):
         """test RangeSet unpickling (against v1.6/py26)"""
@@ -997,9 +1014,27 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
         self.assertEqual(str(rngset), "5,7-102,104,106-107")
         self.assertEqual(len(rngset), 100)
-        self.assertEqual(rngset[0], 5)
-        self.assertEqual(rngset[1], 7)
-        self.assertEqual(rngset[-1], 107)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
+
+    def test_unpickle_v1_8_4_py27(self):
+        """test RangeSet unpickling (against v1.8.4/py27)"""
+        rngset = pickle.loads(binascii.a2b_base64("Y0NsdXN0ZXJTaGVsbC5SYW5nZVNldApSYW5nZVNldApwMAooUyc1LDctMTAyLDEwNCwxMDYtMTA3JwpwMQp0cDIKUnAzCihkcDQKUydwYWRkaW5nJwpwNQpOc1MnX2F1dG9zdGVwJwpwNgpGMWUrMTAwCnNTJ192ZXJzaW9uJwpwNwpJMwpzYi4="))
+        self.assertEqual(rngset, RangeSet("5,7-102,104,106-107"))
+        self.assertEqual(str(rngset), "5,7-102,104,106-107")
+        self.assertEqual(len(rngset), 100)
+        self.assertEqual(rngset[0], '5')
+        self.assertEqual(rngset[1], '7')
+        self.assertEqual(rngset[-1], '107')
+
+        rngset = pickle.loads(binascii.a2b_base64("Y0NsdXN0ZXJTaGVsbC5SYW5nZVNldApSYW5nZVNldApwMAooUycwMDAzLTAwNDAsMDA1OS0xNDAwJwpwMQp0cDIKUnAzCihkcDQKUydwYWRkaW5nJwpwNQpJNApzUydfYXV0b3N0ZXAnCnA2CkYxZSsxMDAKc1MnX3ZlcnNpb24nCnA3CkkzCnNiLg=="))
+        self.assertEqual(rngset, RangeSet("0003-0040,0059-1400"))
+        self.assertEqual(str(rngset), "0003-0040,0059-1400")
+        self.assertEqual(len(rngset), 1380)
+        self.assertEqual(rngset[0], '0003')
+        self.assertEqual(rngset[1], '0004')
+        self.assertEqual(rngset[-1], '1400')
 
     def test_pickle_current(self):
         """test RangeSet pickling (current version)"""
@@ -1008,9 +1043,9 @@ class RangeSetTest(unittest.TestCase):
         rngset = pickle.loads(dump)
         self.assertEqual(rngset, RangeSet("1-100"))
         self.assertEqual(str(rngset), "1-100")
-        self.assertEqual(rngset[0], 1)
-        self.assertEqual(rngset[1], 2)
-        self.assertEqual(rngset[-1], 100)
+        self.assertEqual(rngset[0], '1')
+        self.assertEqual(rngset[1], '2')
+        self.assertEqual(rngset[-1], '100')
 
     def testIntersectionLength(self):
         """test RangeSet intersection/length"""
@@ -1053,9 +1088,9 @@ class RangeSetTest(unittest.TestCase):
         r1 = RangeSet("1,3-4,6,8", autostep=4)
         self.assertEqual(str(r1), "1,3-4,6,8")
         r1 = RangeSet("1,3-4,6,8", autostep=2)
-        self.assertEqual(str(r1), "1-3/2,4,6-8/2") # slight change in v1.9
+        self.assertEqual(str(r1), "1-3/2,4,6-8/2")
         r1 = RangeSet("1,3-4,6,8", autostep=3)
-        self.assertEqual(str(r1), "1,3-4,6,8") # slight change in v1.9
+        self.assertEqual(str(r1), "1,3-4,6,8")
 
         # empty set
         r1 = RangeSet(autostep=3)
@@ -1104,3 +1139,43 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r0.dim(), 0)
         r1 = RangeSet("1-10,15-20")
         self.assertEqual(r1.dim(), 1)
+
+    def test_mixed_padding(self):
+        r0 = RangeSet("030-031,032-100/2,101-489", autostep=3)
+        self.assertEqual(str(r0), "030-032,034-100/2,101-489")
+        r1 = RangeSet("030-032,033-100/3,102", autostep=3)
+        self.assertEqual(str(r1), "030-033,036-102/3")
+        r2 = RangeSet("030-032,033-100/3,101", autostep=3)
+        self.assertEqual(str(r2), "030-033,036-099/3,101")
+        r3 = RangeSet("030-032,033-100/3,100", autostep=3)
+        self.assertEqual(str(r3), "030-033,036-099/3,100")
+        r4 = RangeSet("030-032,033-99/3,100", autostep=3)
+        self.assertEqual(str(r4), "030-033,036-099/3,100")
+        r5 = RangeSet("030-032,033-100/3,99-105/3,0001", autostep=3)
+        self.assertEqual(str(r5), "99,030-033,036-105/3,0001")
+
+    def test_intiter(self):
+        matches = [ 1, 3, 4, 5, 6, 7, 8, 11 ]
+        rgs = RangeSet.fromlist([ "11", "3", "5-8", "1", "4" ])
+        cnt = 0
+        for rg in rgs.intiter():
+            self.assertEqual(rg, matches[cnt])
+            cnt += 1
+        self.assertEqual(cnt, len(matches))
+        # with padding
+        rgs = RangeSet.fromlist([ "011", "003", "005-008", "001", "004" ])
+        cnt = 0
+        for rg in rgs.intiter():
+            self.assertTrue(isinstance(rg, int))
+            self.assertEqual(rg, matches[cnt])
+            cnt += 1
+        self.assertEqual(cnt, len(matches))
+        # with mixed length padding (add 01, 09 and 0001)
+        matches = [ 1, 9 ] + matches + [ 1 ]
+        rgs = RangeSet.fromlist([ "011", "01", "003", "005-008", "001", "0001", "09", "004" ])
+        cnt = 0
+        for rg in rgs.intiter():
+            self.assertTrue(isinstance(rg, int))
+            self.assertEqual(rg, matches[cnt])
+            cnt += 1
+        self.assertEqual(cnt, len(matches))

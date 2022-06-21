@@ -123,7 +123,7 @@ class NodeSetBase(object):
     This class implements core node set arithmetic (no string parsing here).
 
     Example:
-       >>> nsb = NodeSetBase('node%s-ipmi', RangeSet('1-5,7'), False)
+       >>> nsb = NodeSetBase('node%s-ipmi', RangeSet('1-5,7', btype=str), False)
        >>> str(nsb)
        'node[1-5,7]-ipmi'
        >>> nsb = NodeSetBase('node%s-ib%s', RangeSetND([['1-5,7', '1-2']]), False)
@@ -165,44 +165,38 @@ class NodeSetBase(object):
 
     def _iter(self):
         """Iterator on internal item tuples
-            (pattern, indexes, padding, autostep)."""
+            (pattern, indexes, autostep)."""
         for pat, rset in sorted(self._patterns.items()):
             if rset:
                 autostep = rset.autostep
                 if rset.dim() == 1:
                     assert isinstance(rset, RangeSet)
-                    padding = rset.padding
                     for idx in rset:
-                        yield pat, (idx,), (padding,), autostep
+                        yield pat, (idx,), autostep
                 else:
-                    for args, padding in rset.iter_padding():
-                        yield pat, args, padding, autostep
+                    for rvec in rset:
+                        yield pat, rvec, autostep
             else:
-                yield pat, None, None, None
+                yield pat, None, None
 
     def _iterbase(self):
         """Iterator on single, one-item NodeSetBase objects."""
-        for pat, ivec, pad, autostep in self._iter():
+        for pat, ivec, autostep in self._iter():
             rset = None     # 'no node index' by default
             if ivec is not None:
                 assert len(ivec) > 0
                 if len(ivec) == 1:
-                    rset = RangeSet.fromone(ivec[0], pad[0] or 0, autostep)
+                    rset = RangeSet.fromone(ivec[0], autostep, btype=str)
                 else:
-                    rset = RangeSetND([ivec], pad, autostep)
+                    rset = RangeSetND([ivec], autostep, btype=str)
             yield NodeSetBase(pat, rset)
 
     def __iter__(self):
         """Iterator on single nodes as string."""
         # Does not call self._iterbase() + str() for better performance.
-        for pat, ivec, pads, _ in self._iter():
+        for pat, ivec, _ in self._iter():
             if ivec is not None:
-                # For performance reasons, add a special case for 1D RangeSet
-                if len(ivec) == 1:
-                    yield pat % ("%0*d" % (pads[0] or 0, ivec[0]))
-                else:
-                    yield pat % tuple(["%0*d" % (pad or 0, i) \
-                                      for pad, i in zip(pads, ivec)])
+                yield pat % ivec
             else:
                 yield pat % ()
 
@@ -214,14 +208,13 @@ class NodeSetBase(object):
 
     def nsiter(self):
         """Object-based NodeSet iterator on single nodes."""
-        for pat, ivec, pads, autostep in self._iter():
+        for pat, ivec, autostep in self._iter():
             nodeset = self.__class__()
             if ivec is not None:
                 if len(ivec) == 1:
-                    pad = pads[0] or 0
-                    nodeset._add_new(pat, RangeSet.fromone(ivec[0], pad))
+                    nodeset._add_new(pat, RangeSet.fromone(ivec[0], btype=str))
                 else:
-                    nodeset._add_new(pat, RangeSetND([ivec], pads, autostep))
+                    nodeset._add_new(pat, RangeSetND([ivec], autostep, btype=str))
             else:
                 nodeset._add_new(pat, None)
             yield nodeset
@@ -765,7 +758,7 @@ def _rsets4nsb(rsets, autostep):
     for NodeSetBase: RangeSet, RangeSetND or None (no node index).
     """
     if len(rsets) > 1:
-        return RangeSetND([rsets], None, autostep, copy_rangeset=False)
+        return RangeSetND([rsets], None, autostep, copy_rangeset=False, btype=str)
     elif len(rsets) == 1:
         return rsets[0]
 
@@ -888,7 +881,7 @@ class ParsingEngine(object):
         pat, rangesets = self._scan_string_single(_strip_escape(nsstr),
                                                   autostep)
         if len(rangesets) > 1:
-            rgobj = RangeSetND([rangesets], None, autostep, copy_rangeset=False)
+            rgobj = RangeSetND([rangesets], None, autostep, copy_rangeset=False, btype=str)
         elif len(rangesets) == 1:
             rgobj = rangesets[0]
         else: # non-indexed nodename
@@ -994,7 +987,7 @@ class ParsingEngine(object):
                         RangeSetParseError(idx, "invalid rangeset index"))
                 # optimization: use numerical RangeSet constructor
                 pat += "%s%%s" % pfx
-                rangesets.append(RangeSet.fromone(idxint, pad, autostep))
+                rangesets.append(RangeSet.fromone(idxint, pad, autostep, btype=str))
             else:
                 # undefined pad means no node index
                 pat += pfx
@@ -1067,7 +1060,7 @@ class ParsingEngine(object):
 
                     newpat += "%s%%s" % pfx
                     try:
-                        rsets.append(RangeSet(rng, autostep))
+                        rsets.append(RangeSet(rng, autostep, btype=str))
                     except RangeSetParseError as ex:
                         raise NodeSetParseRangeError(ex)
 
@@ -1129,7 +1122,8 @@ class ParsingEngine(object):
             inner = ','.join(
                 '-'.join(outerdigits + bound for bound in elem.split('-'))
                 for elem in (str(subrng)
-                             for subrng in RangeSet(inner).contiguous()))
+                             for subrng in RangeSet(inner,
+                                                    btype=str).contiguous()))
         return outerstrip, inner
 
     def _amend_trailing_digits(self, outer, inner):

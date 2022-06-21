@@ -14,23 +14,30 @@ RangeSet class
 --------------
 
 The :class:`.RangeSet` class implements a mutable, ordered set of cluster node
-indexes (one dimension) featuring a fast range-based API. This class is used
-by the :class:`.NodeSet` class (see :ref:`class-NodeSet`). Since version 1.6,
-:class:`.RangeSet` really derives from standard Python set class (`Python
-sets`_), and thus provides methods like :meth:`.RangeSet.union`,
+indexes (over a single dimension) featuring a fast range-based API. This class
+is used by the :class:`.NodeSet` class (see :ref:`class-NodeSet`). Since
+version 1.6, :class:`.RangeSet` actually derives from the standard Python set
+class (`Python sets`_), and thus provides methods like :meth:`.RangeSet.union`,
 :meth:`.RangeSet.intersection`, :meth:`.RangeSet.difference`,
 :meth:`.RangeSet.symmetric_difference` and their in-place versions
 :meth:`.RangeSet.update`, :meth:`.RangeSet.intersection_update`,
 :meth:`.RangeSet.difference_update()` and
 :meth:`.RangeSet.symmetric_difference_update`.
 
-Since v1.6, padding of ranges (eg. *003-009*) can be managed through a public
-:class:`.RangeSet` instance variable named padding. It may be changed at any
-time. Padding is a simple display feature per RangeSet object, thus current
-padding value is not taken into account when computing set operations. Also
-since v1.6, :class:`.RangeSet` is itself an iterator over its items as
-integers (instead of strings). To iterate over string items as before (with
-optional padding), you can now use the :meth:`.RangeSet.striter()` method.
+In v1.9, the implementation of zero-based padding of indexes (e.g. `001`) has
+been improved. The inner set contains indexes as strings with the padding
+included, which allows the use of mixed length zero-padded indexes (eg. using
+both `01` and `001` is valid and supported in the same object). Prior to v1.9,
+zero-padding was a simple display feature of fixed length per
+:class:`.RangeSet` object, and indexes where stored as integers in the inner
+set.
+
+To iterate over indexes as strings with zero-padding included, you can now
+iterate over the :class:`.RangeSet` object (:meth:`.RangeSet.__iter__()`),
+or still use the :meth:`.RangeSet.striter()` method which has not changed.
+To iterate over the set's indexes as integers, you may use the new method
+:meth:`.RangeSet.intiter()`, which is the equivalent of iterating over the
+:class:`.RangeSet` object before v1.9.
 
 .. _class-RangeSetND:
 
@@ -47,6 +54,8 @@ tuples, for instance::
 
     >>> from ClusterShell.RangeSet import RangeSet, RangeSetND
     >>> r1 = RangeSet("1-5/2")
+    >>> list(r1)
+    ['1', '3', '5']
     >>> r2 = RangeSet("10-12")
     >>> r3 = RangeSet("0-4/2")
     >>> r4 = RangeSet("10-12")
@@ -57,7 +66,8 @@ tuples, for instance::
     0-5; 10-12
 
     >>> print list(rnd)
-    [(0, 10), (0, 11), (0, 12), (1, 10), (1, 11), (1, 12), (2, 10), (2, 11), (2, 12), (3, 10), (3, 11), (3, 12), (4, 10), (4, 11), (4, 12), (5, 10), (5, 11), (5, 12)]
+    [('0', '10'), ('0', '11'), ('0', '12'), ('1', '10'), ('1', '11'), ('1', '12'), ('2', '10'), ('2', '11'), ('2', '12'), ('3', '10'), ('3', '11'), ('3', '12'), ('4', '10'), ('4', '11'), ('4', '12'), ('5', '10'), ('5', '11'), ('5', '12')]
+
     >>> r1 = RangeSetND([(0, 4), (0, 5), (1, 4), (1, 5)])
     >>> len(r1)
     4
@@ -70,7 +80,7 @@ tuples, for instance::
     >>> str(r)
     '1; 4-5\n'
     >>> list(r)
-    [(1, 4), (1, 5)]
+    [('1', '4'), ('1', '5')]
 
 
 .. _Python sets: http://docs.python.org/library/sets.html
