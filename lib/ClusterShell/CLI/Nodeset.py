@@ -287,7 +287,8 @@ def nodeset():
     if options.axis:
         if not options.axis.startswith('-'):
             # axis are 1-indexed in nodeset CLI (0 ignored)
-            xset.fold_axis = tuple(x-1 for x in RangeSet(options.axis) if x > 0)
+            xset.fold_axis = tuple(x-1 for x in \
+                                   RangeSet(options.axis).intiter() if x > 0)
         else:
             # negative axis index (only single number supported)
             xset.fold_axis = [int(options.axis)]
