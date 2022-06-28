@@ -85,8 +85,11 @@ class RangeSet(set):
     a simple display feature per RangeSet object, thus current padding value is
     not taken into account when computing set operations.
     RangeSet is itself an iterator over its items as integers (instead of
-    strings). To iterate over string items with optional padding, you can use
-    the :meth:`RangeSet.striter`: method.
+    strings). However, this behavior is going to change in the next version
+    v1.9. For compatibility, please use the explicit method
+    :meth:`.RangeSet.intiter` to iterate over the set's indexes as integers.
+    To iterate over string items (with zero-padding if present), please use the
+    :meth:`RangeSet.striter` method.
 
     RangeSet provides methods like :meth:`RangeSet.union`,
     :meth:`RangeSet.intersection`, :meth:`RangeSet.difference`,
@@ -225,7 +228,15 @@ class RangeSet(set):
         return sorted(set.__iter__(self))
 
     def __iter__(self):
-        """Iterate over each element in RangeSet."""
+        """Iterate over each element in RangeSet, currently as integers, with
+        no padding information.
+        To guarantee future compatibility, please use the methods intiter()
+        or striter() instead."""
+        return iter(self._sorted())
+
+    def intiter(self):
+        """Iterate over each element in RangeSet as integer.
+        Zero padding info is ignored."""
         return iter(self._sorted())
 
     def striter(self):
