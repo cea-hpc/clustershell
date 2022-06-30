@@ -676,13 +676,13 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         # this is the simpler but faster output handler
         handler = DirectOutputHandler(display)
 
+    stdin = task.default("USER_stdin_worker")
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                        remote=remote, tree=trytree)
+                        remote=remote, tree=trytree, stdin=stdin)
     if ns is None:
         worker.set_key('LOCAL')
-    if task.default("USER_stdin_worker"):
+    if stdin:
         bind_stdin(worker, display)
-
     task.resume()
 
 def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
@@ -1031,9 +1031,6 @@ def main():
 
     # Enable stdout/stderr separation
     task.set_default("stderr", not options.gatherall)
-
-    # Prevent reading from stdin?
-    task.set_default("stdin", not options.nostdin)
 
     # Disable MsgTree buffering if not gathering outputs
     task.set_default("stdout_msgtree", display.gather or display.line_mode)
