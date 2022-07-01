@@ -71,8 +71,9 @@ class RangeSet(set):
     RangeSet basic constructors:
 
        >>> rset = RangeSet()            # empty RangeSet
-       >>> rset = RangeSet("5,10-42")   # contains 5, 10 to 42
-       >>> rset = RangeSet("0-10/2")    # contains 0, 2, 4, 6, 8, 10
+       >>> rset = RangeSet("5,10-42")   # contains '5', '10' to '42'
+       >>> rset = RangeSet("0-10/2")    # contains '0', '2', '4', '6', '8', '10'
+       >>> rset = RangeSet("00-10/2")   # contains '00', '02', '04', '06', '08', '10'
 
     Also any iterable of integers can be specified as first argument:
 
@@ -80,16 +81,17 @@ class RangeSet(set):
        1,3,6-8
        >>> rset2 = RangeSet(rset)
 
-    Padding of ranges (eg. "003-009") can be managed through a public RangeSet
-    instance variable named padding. It may be changed at any time. Padding is
-    a simple display feature per RangeSet object, thus current padding value is
-    not taken into account when computing set operations.
-    RangeSet is itself an iterator over its items as integers (instead of
-    strings). However, this behavior is going to change in the next version
-    v1.9. For compatibility, please use the explicit method
-    :meth:`.RangeSet.intiter` to iterate over the set's indexes as integers.
-    To iterate over string items (with zero-padding if present), please use the
-    :meth:`RangeSet.striter` method.
+    Padding of ranges (eg. "003-009") is inferred from intput arguments and
+    managed automatically. This is new in ClusterShell v1.9, where mixed lengths
+    zero padding is now supported within the same RangeSet. The instance
+    variable `padding` has become a property that can still be used to either
+    get the max padding length in the set, or force a fixed length zero-padding
+    on the set.
+
+    RangeSet is itself a set and as such, provides an iterator over its items
+    as strings (strings are used since v1.9). It is recommended to use the
+    explicit iterators :meth:`RangeSet.intiter` and :meth:`RangeSet.striter`
+    when iterating over a RangeSet.
 
     RangeSet provides methods like :meth:`RangeSet.union`,
     :meth:`RangeSet.intersection`, :meth:`RangeSet.difference`,
@@ -99,7 +101,7 @@ class RangeSet(set):
     :meth:`RangeSet.symmetric_difference_update` which conform to the Python
     Set API.
     """
-    _VERSION = 3    # serial version number
+    _VERSION = 4    # serial version number
 
     def __init__(self, pattern=None, autostep=None):
         """Initialize RangeSet object.
@@ -107,17 +109,15 @@ class RangeSet(set):
         :param pattern: optional string pattern
         :param autostep: optional autostep threshold
         """
-        if pattern is None or isinstance(pattern, str):
-            set.__init__(self)
-        else:
-            set.__init__(self, pattern)
+        set.__init__(self)
+
+        if pattern is not None and not isinstance(pattern, str):
+            pattern = ",".join("%s" % i for i in pattern)
 
         if isinstance(pattern, RangeSet):
             self._autostep = pattern._autostep
-            self.padding = pattern.padding
         else:
             self._autostep = None
-            self.padding = None
         self.autostep = autostep #: autostep threshold public instance attribute
 
         if isinstance(pattern, str):
@@ -185,8 +185,13 @@ class RangeSet(set):
 
     @classmethod
     def fromone(cls, index, pad=0, autostep=None):
-        """Class method that returns a new RangeSet of one single item or
-        a single range (from integer or slice object)."""
+        """
+        Class method that returns a new RangeSet of one single item or
+        a single range. Accepted input arguments can be:
+        - integer and padding length
+        - slice object and padding length
+        - string (1.9+) with padding automatically detected (pad is ignored)
+        """
         inst = RangeSet(autostep=autostep)
         # support slice object with duck-typing
         try:
@@ -196,6 +201,29 @@ class RangeSet(set):
                 raise ValueError("Invalid range upper limit (%s)" % index.stop)
             inst.add_range(index.start or 0, index.stop, index.step or 1, pad)
         return inst
+
+    @property
+    def padding(self):
+        """Get largest padding value of whole set"""
+        result = None
+        for si in self:
+            idx, digitlen = int(si), len(si)
+            # explicitly padded?
+            if digitlen > 1 and si[0] == '0':
+                # result always grows bigger as we iterate over a sorted set
+                # with largest padded values at the end
+                result = digitlen
+        return result
+
+    @padding.setter
+    def padding(self, value):
+        """Force padding length on the whole set"""
+        if value is None:
+            value = 1
+        cpyset = set(self)
+        self.clear()
+        for i in cpyset:
+            self.add(int(i), pad=value)
 
     def get_autostep(self):
         """Get autostep value (property)"""
@@ -225,7 +253,8 @@ class RangeSet(set):
 
     def _sorted(self):
         """Get sorted list from inner set."""
-        return sorted(set.__iter__(self))
+        # for mixed padding support, sort by both string length and index
+        return sorted(set.__iter__(self), key=lambda x: (len(x), int(x)))
 
     def __iter__(self):
         """Iterate over each element in RangeSet, currently as integers, with
@@ -240,15 +269,19 @@ class RangeSet(set):
         return iter(self._sorted())
 
     def striter(self):
-        """Iterate over each (optionally padded) string element in RangeSet."""
-        pad = self.padding or 0
-        for i in self._sorted():
-            yield "%0*d" % (pad, i)
+        """Iterate over each element in RangeSet as strings with optional
+        zero-padding."""
+        return iter(self._sorted())
+
+    def intiter(self):
+        """Iterate over each element in RangeSet as integer.
+        Zero padding info is ignored."""
+        for e in self._sorted():
+            yield int(e)
 
     def contiguous(self):
         """Object-based iterator over contiguous range sets."""
-        pad = self.padding or 0
-        for sli in self._contiguous_slices():
+        for sli, pad in self._contiguous_slices():
             yield RangeSet.fromone(slice(sli.start, sli.stop, sli.step), pad)
 
     def __reduce__(self):
@@ -274,20 +307,25 @@ class RangeSet(set):
                     # workaround for object pickled from Python < 2.5
                     setattr(self, '_ranges', [(slice(start, stop, step), pad) \
                         for (start, stop, step), pad in self_ranges])
-            # convert to v3
-            for sli, pad in getattr(self, '_ranges'):
-                self.add_range(sli.start, sli.stop, sli.step, pad)
-            delattr(self, '_ranges')
-            delattr(self, '_length')
 
-        # add padding if unpickling old instances
-        if not hasattr(self, 'padding'):
-            setattr(self, 'padding', None)
+            if hasattr(self, '_ranges'):
+                # convert to v3
+                for sli, pad in getattr(self, '_ranges'):
+                    self.add_range(sli.start, sli.stop, sli.step, pad)
+                delattr(self, '_ranges')
+                delattr(self, '_length')
+
+            if getattr(self, '_version', 0) == 3:  # 1.6 - 1.8
+                padding = getattr(self, 'padding', 0)
+                # convert integer set to string set
+                cpyset = set(self)
+                self.clear()
+                for i in cpyset:
+                    self.add(i, pad=padding)  # automatic conversion
 
     def _strslices(self):
         """Stringify slices list (x-y/step format)"""
-        pad = self.padding or 0
-        for sli in self.slices():
+        for sli, pad in self._folded_slices():
             if sli.start + 1 == sli.stop:
                 yield "%0*d" % (pad, sli.start)
             else:
@@ -306,134 +344,128 @@ class RangeSet(set):
     # could be used to recreate a RangeSet with the same value
     __repr__ = __str__
 
+    def slices2(self, autostep=AUTOSTEP_DISABLED):
+        """Iterator over (slices, padding).
+
+        Iterator over RangeSet slices, either a:b:1 slices if autostep
+        is disabled (default), or a:b:step slices if autostep is specified.
+        """
+        #
+        # Now support mixed lengths zero-padding (v1.9)
+        cur_pad = 0
+        cur_padded = False
+        cur_start = None
+        cur_step = None
+        last_idx = None
+
+        for si in self._sorted():
+
+            # numerical index and length of digits
+            idx, digitlen = int(si), len(si)
+
+            # is current digit zero-padded?
+            padded = (digitlen > 1 and si[0] == '0')
+
+            if cur_start is not None:
+                padding_mismatch = False
+                step_mismatch = False
+
+                # check conditions to yield
+                # - padding mismatch
+                # - step check (step=1 is just a special case if contiguous)
+
+                if cur_padded:
+                    # currently strictly padded, our next item could be
+                    # unpadded but with the same length
+                    if digitlen != cur_pad:
+                        padding_mismatch = True
+                else:
+                    # current not padded, and because the set is sorted,
+                    # it should stay that way
+                    if padded:
+                        padding_mismatch = True
+
+                if not padding_mismatch:
+                    # does current range lead to broken step?
+                    if cur_step is not None:
+                        # only consider it if step is defined
+                        if cur_step != idx - last_idx:
+                            step_mismatch = True
+
+                if padding_mismatch or step_mismatch:
+                    if cur_step is not None:
+                        # stepped is True when autostep setting does apply
+                        stepped = (cur_step == 1) or (last_idx - cur_start >= autostep * cur_step)
+                        step = cur_step
+                    else:
+                        stepped = True
+                        step = 1
+
+                    if stepped:
+                        yield slice(cur_start, last_idx + 1, step), cur_pad if cur_padded else 0
+                        cur_start = idx
+                        cur_padded = padded
+                        cur_pad = digitlen
+                    else:
+                        if padding_mismatch:
+                            stop = last_idx + 1
+                        else:
+                            stop = last_idx - step + 1
+
+                        for j in range(cur_start, stop, step):
+                            yield slice(j, j + 1, 1), cur_pad if cur_padded else 0
+
+                        if padding_mismatch:
+                            cur_start = idx
+                            cur_padded = padded
+                            cur_pad = digitlen
+                        else:
+                            cur_start = last_idx
+
+                    cur_step = idx - last_idx if step_mismatch else None
+                    last_idx = idx
+                    continue
+
+            else:
+                # first index
+                cur_padded = padded
+                cur_pad = digitlen
+                cur_start = idx
+                cur_step = None
+                last_idx = idx
+                continue
+
+            cur_step = idx - last_idx
+            last_idx = idx
+
+        if cur_start is not None:
+            if cur_step is not None:
+                # stepped is True when autostep setting does apply
+                stepped = (last_idx - cur_start >= self._autostep * cur_step)
+            else:
+                stepped = True
+
+            if stepped or cur_step == 1:
+                yield slice(cur_start, last_idx + 1, cur_step), cur_pad if cur_padded else 0
+            else:
+                for j in range(cur_start, idx + 1, cur_step):
+                    yield slice(j, j + 1, 1), cur_pad if cur_padded else 0
+
     def _contiguous_slices(self):
         """Internal iterator over contiguous slices in RangeSet."""
-        k = j = None
-        for i in self._sorted():
-            if k is None:
-                k = j = i
-            if i - j > 1:
-                yield slice(k, j + 1, 1)
-                k = i
-            j = i
-        if k is not None:
-            yield slice(k, j + 1, 1)
+        return self.slices2()
 
     def _folded_slices(self):
-        """Internal generator that is able to retrieve ranges organized by
-        step."""
-        if len(self) == 0:
-            return
-
-        prng = None         # pending range
-        istart = None       # processing starting indices
-        step = 0            # processing step
-        for sli in self._contiguous_slices():
-            start = sli.start
-            stop = sli.stop
-            unitary = (start + 1 == stop)   # one indices?
-            if istart is None:  # first loop
-                if unitary:
-                    istart = start
-                else:
-                    prng = [start, stop, 1]
-                    istart = stop - 1
-                i = k = istart
-            elif step == 0:        # istart is set but step is unknown
-                if not unitary:
-                    if prng is not None:
-                        # yield and replace pending range
-                        yield slice(*prng)
-                    else:
-                        yield slice(istart, istart + 1, 1)
-                    prng = [start, stop, 1]
-                    istart = k = stop - 1
-                    continue
-                i = start
-            else:               # step > 0
-                assert step > 0
-                i = start
-                # does current range lead to broken step?
-                if step != i - k or not unitary:
-                    #Python2.6+: j = i if step == i - k else k
-                    if step == i - k:
-                        j = i
-                    else:
-                        j = k
-                    # stepped is True when autostep setting does apply
-                    stepped = (j - istart >= self._autostep * step)
-                    if prng:    # yield pending range?
-                        if stepped:
-                            prng[1] -= 1
-                        else:
-                            istart += step
-                        yield slice(*prng)
-                        prng = None
-                if step != i - k:
-                    # case: step value has changed
-                    if stepped:
-                        yield slice(istart, k + 1, step)
-                    else:
-                        for j in range(istart, k - step + 1, step):
-                            yield slice(j, j + 1, 1)
-                        if not unitary:
-                            yield slice(k, k + 1, 1)
-                    if unitary:
-                        if stepped:
-                            istart = i = k = start
-                        else:
-                            istart = k
-                    else:
-                        prng = [start, stop, 1]
-                        istart = i = k = stop - 1
-                elif not unitary:
-                    # case: broken step by contiguous range
-                    if stepped:
-                        # yield 'range/step' by taking first indices of new range
-                        yield slice(istart, i + 1, step)
-                        i += 1
-                    else:
-                        # autostep setting does not apply in that case
-                        for j in range(istart, i - step + 1, step):
-                            yield slice(j, j + 1, 1)
-                    if stop > i + 1:    # current->pending only if not unitary
-                        prng = [i, stop, 1]
-                    istart = i = k = stop - 1
-            step = i - k
-            k = i
-        # exited loop, process pending range or indices...
-        if step == 0:
-            if prng:
-                yield slice(*prng)
-            else:
-                yield slice(istart, istart + 1, 1)
-        else:
-            assert step > 0
-            stepped = (k - istart >= self._autostep * step)
-            if prng:
-                if stepped:
-                    prng[1] -= 1
-                else:
-                    istart += step
-                yield slice(*prng)
-                prng = None
-            if stepped:
-                yield slice(istart, i + 1, step)
-            else:
-                for j in range(istart, i + 1, step):
-                    yield slice(j, j + 1, 1)
+        """Internal generator over ranges organized by step."""
+        return self.slices2(self._autostep)
 
     def slices(self):
         """
-        Iterate over RangeSet ranges as Python slice objects.
+        Iterate over RangeSet ranges as Python slide objects.
+        NOTE: zero-padding info is not provided; use slices2() instead
         """
-        # return an iterator
-        if self._autostep >= AUTOSTEP_DISABLED:
-            # autostep disabled: call simpler method to return only a:b slices
-            return self._contiguous_slices()
-        else:
-            # autostep enabled: call generic method to return a:b:step slices
-            return self._folded_slices()
+        for sli, pad in self._folded_slices():
+            yield sli
 
     def __getitem__(self, index):
         """
@@ -442,7 +474,6 @@ class RangeSet(set):
         if isinstance(index, slice):
             inst = RangeSet()
             inst._autostep = self._autostep
-            inst.padding = self.padding
             inst.update(self._sorted()[index])
             return inst
         elif isinstance(index, int):
@@ -486,17 +517,15 @@ class RangeSet(set):
         assert pad >= 0
         assert stop - start < 1e9, "range too large"
 
-        # inherit padding info only if currently not defined
-        if pad is not None and pad > 0 and self.padding is None:
-            self.padding = pad
-
-        set.update(self, range(start, stop, step))
+        if pad == 0:
+            set.update(self, ("%d" % i for i in range(start, stop, step)))
+        else:
+            set.update(self, ("%0*d" % (pad, i) for i in range(start, stop, step)))
 
     def copy(self):
         """Return a shallow copy of a RangeSet."""
         cpy = self.__class__()
         cpy._autostep = self._autostep
-        cpy.padding = self.padding
         cpy.update(self)
         return cpy
 
@@ -608,7 +637,7 @@ class RangeSet(set):
         if isinstance(element, set):
             return element.issubset(self)
 
-        return set.__contains__(self, int(element))
+        return set.__contains__(self, str(element))
 
     # Subset and superset test
 
@@ -697,11 +726,7 @@ class RangeSet(set):
     # Python dict-like mass mutations: update, clear
 
     def update(self, iterable):
-        """Add all integers from an iterable (such as a list)."""
-        if isinstance(iterable, RangeSet):
-            # keep padding unless it has not been defined yet
-            if self.padding is None and iterable.padding is not None:
-                self.padding = iterable.padding
+        """Add all indexes (as strings) from an iterable (such as a list)."""
         assert not isinstance(iterable, str)
         set.update(self, iterable)
 
@@ -711,46 +736,66 @@ class RangeSet(set):
         """
         for rng in rangesets:
             if isinstance(rng, set):
-                self.update(rng)
+                self.update(str(i) for i in rng)  # 1.9+: force cast to str
             else:
                 self.update(RangeSet(rng))
-            # py2.5+
-            #self.update(rng if isinstance(rng, set) else RangeSet(rng))
 
     def clear(self):
         """Remove all elements from this RangeSet."""
         set.clear(self)
-        self.padding = None
 
     # Single-element mutations: add, remove, discard
 
     def add(self, element, pad=0):
         """Add an element to a RangeSet.
         This has no effect if the element is already present.
+
+        ClusterShell 1.9+ uses strings instead of integers to better manage
+        zero-padded ranges with mixed lengths. This method supports either a
+        string or an integer with padding info.
+
+        :param element: the element to add (integer or string)
+        :param pad: zero padding length (integer); ignored if element is string
         """
-        # inherit padding info only if currently not defined
-        if pad is not None and pad > 0 and self.padding is None:
-            self.padding = pad
+        if isinstance(element, str):
+            set.add(self, element)
+        else:
+            set.add(self, "%0*d" % (pad, int(element)))
 
-        set.add(self, int(element))
+    def remove(self, element, pad=0):
+        """Remove an element from a RangeSet.
 
-    def remove(self, element):
-        """Remove an element from a RangeSet; it must be a member.
+        ClusterShell 1.9+ uses strings instead of integers to better manage
+        zero-padded ranges with mixed lengths. This method supports either a
+        string or an integer with padding info.
 
-        :param element: the element to remove
+        :param element: the element to remove (integer or string)
+        :param pad: zero padding length (integer); ignored if element is string
         :raises KeyError: element is not contained in RangeSet
         :raises ValueError: element is not castable to integer
         """
-        set.remove(self, int(element))
+        if isinstance(element, str):
+            set.remove(self, element)
+        else:
+            set.remove(self, "%0*d" % (pad, int(element)))
 
-    def discard(self, element):
-        """Remove element from the RangeSet if it is a member.
+    def discard(self, element, pad=0):
+        """Discard an element from a RangeSet if it is a member.
 
         If the element is not a member, do nothing.
+
+        ClusterShell 1.9+ uses strings instead of integers to better manage
+        zero-padded ranges with mixed lengths. This method supports either a
+        string or an integer with padding info.
+
+        :param element: the element to remove (integer or string)
+        :param pad: zero padding length (integer); ignored if element is string
         """
         try:
-            i = int(element)
-            set.discard(self, i)
+            if isinstance(element, str):
+                set.discard(self, element)
+            else:
+                set.discard(self, "%0*d" % (pad, int(element)))
         except ValueError:
             pass # ignore other object types
 
@@ -896,7 +941,9 @@ class RangeSetND(object):
 
     @precond_fold()
     def iter_padding(self):
-        """Iterate through individual items as tuples with padding info."""
+        """Iterate through individual items as tuples with padding info.
+        As of v1.9, this method returns the largest padding value of each
+        items, as mixed length padding is allowed."""
         for vec in self._veclist:
             for ivec in product(*vec):
                 yield ivec, [rg.padding for rg in vec]
@@ -967,8 +1014,7 @@ class RangeSetND(object):
             for rgvec in self._veclist:
                 iveclist += product(*rgvec)
             assert(len(iveclist) == len(self))
-            rnd = RangeSetND(iveclist[index], pads=self.pads(),
-                             autostep=self.autostep)
+            rnd = RangeSetND(iveclist[index], autostep=self.autostep)
             return rnd
 
         elif isinstance(index, int):
@@ -1079,7 +1125,7 @@ class RangeSetND(object):
             #   (3) lower first index first
             #   (4) lower last index first
             return (-reduce(mul, [len(rg) for rg in rgvec]), \
-                    tuple((-len(rg), rg[0], rg[-1]) for rg in rgvec))
+                    tuple((-len(rg), int(rg[0]), int(rg[-1])) for rg in rgvec))
         self._veclist.sort(key=rgveckeyfunc)
 
     @precond_fold()
@@ -1137,13 +1183,11 @@ class RangeSetND(object):
         """Multivariate nD folding: expand [phase 1]"""
         max_length = sum([reduce(mul, [len(rg) for rg in rgvec]) \
                                        for rgvec in self._veclist])
-        # Simple heuristic that makes us faster
+        # Simple heuristic to make us faster
         if len(self._veclist) * (len(self._veclist) - 1) / 2 > max_length * 10:
             # *** nD full expand is preferred ***
-            pads = self.pads()
-            self._veclist = [[RangeSet.fromone(i, pad=pads[axis],
-                                               autostep=self.autostep)
-                              for axis, i in enumerate(tvec)]
+            self._veclist = [[RangeSet.fromone(i, autostep=self.autostep)
+                              for i in tvec]
                              for tvec in set(self._iter())]
             return
 

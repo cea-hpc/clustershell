@@ -739,7 +739,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
         self._nodeset_t(["-s", "other", "-f", "*!*[033]"], None,
                         b"nova[030-032,034-489]\n")
         self._nodeset_t(["-s", "other", "--autostep=3", "-f", "*!*[033-099/2]"],
-                        None, b"nova[030-031,032-100/2,101-489]\n")
+                        None, b"nova[030-032,034-100/2,101-489]\n")
 
 
 class CLINodesetGroupResolverTest3(CLINodesetTestBase):

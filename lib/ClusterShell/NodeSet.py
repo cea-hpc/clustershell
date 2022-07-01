@@ -165,44 +165,38 @@ class NodeSetBase(object):
 
     def _iter(self):
         """Iterator on internal item tuples
-            (pattern, indexes, padding, autostep)."""
+            (pattern, indexes, autostep)."""
         for pat, rset in sorted(self._patterns.items()):
             if rset:
                 autostep = rset.autostep
                 if rset.dim() == 1:
                     assert isinstance(rset, RangeSet)
-                    padding = rset.padding
                     for idx in rset:
-                        yield pat, (idx,), (padding,), autostep
+                        yield pat, (idx,), autostep
                 else:
-                    for args, padding in rset.iter_padding():
-                        yield pat, args, padding, autostep
+                    for rvec in rset:
+                        yield pat, rvec, autostep
             else:
-                yield pat, None, None, None
+                yield pat, None, None
 
     def _iterbase(self):
         """Iterator on single, one-item NodeSetBase objects."""
-        for pat, ivec, pad, autostep in self._iter():
+        for pat, ivec, autostep in self._iter():
             rset = None     # 'no node index' by default
             if ivec is not None:
                 assert len(ivec) > 0
                 if len(ivec) == 1:
-                    rset = RangeSet.fromone(ivec[0], pad[0] or 0, autostep)
+                    rset = RangeSet.fromone(ivec[0], autostep)
                 else:
-                    rset = RangeSetND([ivec], pad, autostep)
+                    rset = RangeSetND([ivec], autostep)
             yield NodeSetBase(pat, rset)
 
     def __iter__(self):
         """Iterator on single nodes as string."""
         # Does not call self._iterbase() + str() for better performance.
-        for pat, ivec, pads, _ in self._iter():
+        for pat, ivec, _ in self._iter():
             if ivec is not None:
-                # For performance reasons, add a special case for 1D RangeSet
-                if len(ivec) == 1:
-                    yield pat % ("%0*d" % (pads[0] or 0, ivec[0]))
-                else:
-                    yield pat % tuple(["%0*d" % (pad or 0, i) \
-                                      for pad, i in zip(pads, ivec)])
+                yield pat % ivec
             else:
                 yield pat % ()
 
@@ -214,14 +208,13 @@ class NodeSetBase(object):
 
     def nsiter(self):
         """Object-based NodeSet iterator on single nodes."""
-        for pat, ivec, pads, autostep in self._iter():
+        for pat, ivec, autostep in self._iter():
             nodeset = self.__class__()
             if ivec is not None:
                 if len(ivec) == 1:
-                    pad = pads[0] or 0
-                    nodeset._add_new(pat, RangeSet.fromone(ivec[0], pad))
+                    nodeset._add_new(pat, RangeSet.fromone(ivec[0]))
                 else:
-                    nodeset._add_new(pat, RangeSetND([ivec], pads, autostep))
+                    nodeset._add_new(pat, RangeSetND([ivec], autostep))
             else:
                 nodeset._add_new(pat, None)
             yield nodeset
