@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2018 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2022 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -645,10 +645,9 @@ def bind_stdin(worker, display):
     # can be a file, so we cannot use a WorkerSimple here as polling on file
     # may result in different behaviors depending on selected engine.
     stdin_thread = threading.Thread(None, _stdin_thread_start, args=(port, display))
-    # setDaemon because we're sometimes left with data that has been read and
-    # ssh connection already closed.
-    # Syntax for compat with Python < 2.6
-    stdin_thread.setDaemon(True)
+    # Set thread as daemon because we're sometimes left with data that have
+    # been read but the ssh connection is already closed.
+    stdin_thread.daemon = True
     stdin_thread.start()
 
 def run_command(task, cmd, ns, timeout, display, remote, trytree):
