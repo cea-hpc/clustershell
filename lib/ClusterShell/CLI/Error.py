@@ -66,12 +66,14 @@ GENERIC_ERRORS = (configparser.Error,
                   IOError,
                   OSError,
                   KeyboardInterrupt,
+                  ValueError,
                   WorkerError)
 
 LOGGER = logging.getLogger(__name__)
 
-def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
+def handle_generic_error(excobj):
     """handle error given `excobj' generic script exception"""
+    prog = os.path.basename(sys.argv[0])
     try:
         raise excobj
     except EngineNotSupportedError as exc:
@@ -99,7 +101,7 @@ def handle_generic_error(excobj, prog=os.path.basename(sys.argv[0])):
         print("%s: TREE MODE: %s" % (prog, exc), file=sys.stderr)
     except configparser.Error as exc:
         print("%s: %s" % (prog, exc), file=sys.stderr)
-    except (TypeError, WorkerError) as exc:
+    except (TypeError, ValueError, WorkerError) as exc:
         print("%s: %s" % (prog, exc), file=sys.stderr)
     except (IOError, OSError) as exc:  # see PEP 3151
         if exc.errno == errno.EPIPE:
