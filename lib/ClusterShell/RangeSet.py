@@ -254,7 +254,7 @@ class RangeSet(set):
     def _sorted(self):
         """Get sorted list from inner set."""
         # for mixed padding support, sort by both string length and index
-        return sorted(set.__iter__(self), key=lambda x: (len(x), int(x)))
+        return sorted(set.__iter__(self), key=lambda x: (len(x), x))
 
     def __iter__(self):
         """Iterate over each element in RangeSet, currently as integers, with
