@@ -81,7 +81,7 @@ class RangeSet(set):
        1,3,6-8
        >>> rset2 = RangeSet(rset)
 
-    Padding of ranges (eg. "003-009") is inferred from intput arguments and
+    Padding of ranges (eg. "003-009") is inferred from input arguments and
     managed automatically. This is new in ClusterShell v1.9, where mixed lengths
     zero padding is now supported within the same RangeSet. The instance
     variable `padding` has become a property that can still be used to either
