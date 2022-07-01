@@ -7,7 +7,7 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2021-11-03
+:Date:   2022-06-29
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.8.4
 :Manual section: 5
@@ -98,6 +98,8 @@ rcp_path
   Same a rsh_path for rcp command. (Default is `rcp`)
 rsh_options
   Set additional options to pass to the underlying rsh/rcp command.
+sudo_command
+  sudo command for use with `--sudo`
 
 EXAMPLES
 ===========

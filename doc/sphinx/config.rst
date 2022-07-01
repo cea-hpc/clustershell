@@ -101,6 +101,9 @@ The following table describes available *clush* config file settings.
 | rsh_options     | Set additional options to pass to the underlying   |
 |                 | rsh/rcp command.                                   |
 +-----------------+----------------------------------------------------+
+| sudo_command    | *sudo(8)* command for use with                     |
+|                 | :ref:`--sudo <clush-sudo>`                         |
++-----------------+----------------------------------------------------+
 
 
 .. _groups-config:

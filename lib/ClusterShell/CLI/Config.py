@@ -57,7 +57,8 @@ class ClushConfig(configparser.ConfigParser, object):
                      "verbosity": "%d" % VERB_STD,
                      "node_count": "yes",
                      "maxrc": "no",
-                     "fd_max": "8192"}
+                     "fd_max": "8192",
+                     "sudo_command": 'sudo -S -p "\'\'" -k'}
 
     def __init__(self, options, filename=None):
         """Initialize ClushConfig object from corresponding
@@ -225,3 +226,7 @@ class ClushConfig(configparser.ConfigParser, object):
         """max number of open files (soft rlimit)"""
         return self.getint("Main", "fd_max")
 
+    @property
+    def sudo_command(self):
+        """sudo_command value as a string (optional)"""
+        return self._get_optional("Main", "sudo_command")
