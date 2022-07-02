@@ -350,7 +350,7 @@ class RangeSet(set):
     # could be used to recreate a RangeSet with the same value
     __repr__ = __str__
 
-    def slices2(self, autostep=AUTOSTEP_DISABLED):
+    def _slices_padding(self, autostep=AUTOSTEP_DISABLED):
         """Iterator over (slices, padding).
 
         Iterator over RangeSet slices, either a:b:1 slices if autostep
@@ -459,16 +459,16 @@ class RangeSet(set):
 
     def _contiguous_slices(self):
         """Internal iterator over contiguous slices in RangeSet."""
-        return self.slices2()
+        return self._slices_padding()
 
     def _folded_slices(self):
         """Internal generator over ranges organized by step."""
-        return self.slices2(self._autostep)
+        return self._slices_padding(self._autostep)
 
     def slices(self):
         """
         Iterate over RangeSet ranges as Python slide objects.
-        NOTE: zero-padding info is not provided; use slices2() instead
+        NOTE: zero-padding info is not provided
         """
         for sli, pad in self._folded_slices():
             yield sli
