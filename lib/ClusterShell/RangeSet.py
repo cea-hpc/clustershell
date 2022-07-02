@@ -127,6 +127,7 @@ class RangeSet(set):
         """Parse string of comma-separated x-y/step -like ranges"""
         # Comma separated ranges
         for subrange in pattern.split(','):
+            subrange = subrange.strip()  # ignore whitespaces
             if subrange.find('/') < 0:
                 baserange, step = subrange, 1
             else:
@@ -143,7 +144,8 @@ class RangeSet(set):
                     raise RangeSetParseError(subrange, "invalid step usage")
                 begin = end = baserange
             else:
-                begin, end = baserange.split('-', 1)
+                # ignore whitespaces in a range
+                begin, end = (n.strip() for n in baserange.split('-', 1))
 
             # compute padding and return node range info tuple
             try:
