@@ -1038,12 +1038,18 @@ class ParsingEngine(object):
                     pfxlen, sfxlen = len(pfx), len(sfx)
 
                     if sfxlen > 0:
-                        # amending trailing digits generates /steps
-                        sfx, rng = self._amend_trailing_digits(sfx, rng)
+                        try:
+                            # amending trailing digits generates /steps
+                            sfx, rng = self._amend_trailing_digits(sfx, rng)
+                        except RangeSetParseError as ex:
+                            raise NodeSetParseRangeError(ex)
 
                     if pfxlen > 0:
-                        # this method supports /steps
-                        pfx, rng = self._amend_leading_digits(pfx, rng)
+                        try:
+                            # this method supports /steps
+                            pfx, rng = self._amend_leading_digits(pfx, rng)
+                        except RangeSetParseError as ex:
+                            raise NodeSetParseRangeError(ex)
                         if pfx:
                             # scan any nonempty pfx as a single node (no bracket)
                             pfx, pfxrvec = self._scan_string_single(pfx, autostep)

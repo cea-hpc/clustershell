@@ -1169,10 +1169,19 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(str(r2), "030-033,036-099/3,101")
         r3 = RangeSet("030-032,033-100/3,100", autostep=3)
         self.assertEqual(str(r3), "030-033,036-099/3,100")
-        r4 = RangeSet("030-032,033-99/3,100", autostep=3)
-        self.assertEqual(str(r4), "030-033,036-099/3,100")
         r5 = RangeSet("030-032,033-100/3,99-105/3,0001", autostep=3)
         self.assertEqual(str(r5), "99,030-033,036-105/3,0001")
+
+    def test_mixed_padding_mismatch(self):
+        self.assertRaises(RangeSetParseError, RangeSet, "1-044")
+        self.assertRaises(RangeSetParseError, RangeSet, "01-044")
+        self.assertRaises(RangeSetParseError, RangeSet, "001-44")
+
+        self.assertRaises(RangeSetParseError, RangeSet, "0-9,1-044")
+        self.assertRaises(RangeSetParseError, RangeSet, "0-9,01-044")
+        self.assertRaises(RangeSetParseError, RangeSet, "0-9,001-44")
+
+        self.assertRaises(RangeSetParseError, RangeSet, "030-032,033-99/3,100")
 
     def test_padding_property_compat(self):
         r0 = RangeSet("0-10,15-20")
@@ -1186,7 +1195,7 @@ class RangeSetTest(unittest.TestCase):
         r0.padding = 3
         self.assertEqual(r0.padding, 3)
         self.assertEqual(str(r0), "000-010,015-020")
-        # reset padding using None allowed
+        # reset padding using None is allowed
         r0.padding = None
         self.assertEqual(r0.padding, None)
         self.assertEqual(str(r0), "0-10,15-20")

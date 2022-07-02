@@ -18,6 +18,12 @@ from ClusterShell.NodeSet import NodeSetBase, AUTOSTEP_DISABLED, \
 
 class NodeSetTest(unittest.TestCase):
 
+    def _assertEqual(self, pattern, result=None):
+        ns = NodeSet(pattern)
+        if result is None:
+            result = pattern
+        self.assertEqual(str(ns), result)
+
     def _assertNode(self, nodeset, nodename):
         """helper to assert single node presence"""
         self.assertEqual(str(nodeset), nodename)
@@ -426,14 +432,12 @@ class NodeSetTest(unittest.TestCase):
         # see also NodeSetErrorTest.py for unsupported trailing digits w/ steps
 
         # /!\ padding mismatch cases: mixed padding allowed since 1.9
-        nodeset = NodeSet("prod-0[10-345]") # padding mismatch - tricky case!
-        self.assertEqual(str(nodeset), "prod-[010-345]")
-        nodeset = NodeSet("prod-1[10-345]") # no mismatch there
+        nodeset = NodeSet("prod-1[10-345]") # no padding so no mismatch there: OK
         self.assertEqual(str(nodeset), "prod-[110-1345]")
-        nodeset = NodeSet("prod-02[10-345]") # padding mismatch
-        self.assertEqual(str(nodeset), "prod-[0210-2345]")
-        nodeset = NodeSet("prod-02[10-34,069-099]") # padding mismatch
+        nodeset = NodeSet("prod-02[10-34,069-099]") # no padding mismatch within a range: OK
         self.assertEqual(str(nodeset), "prod-[0210-0234,02069-02099]")
+        self._assertNS("prod-0[10-345]", NodeSetParseRangeError) # padding length mismatch in a range
+        self._assertNS("prod-02[10-345]", NodeSetParseRangeError) # padding length mismatch in a range
 
         # numerical folding with nD nodesets
         nodeset = NodeSet("x01[0-1]y01[0-1]z01[0-1]")
@@ -517,8 +521,10 @@ class NodeSetTest(unittest.TestCase):
         nodeset = NodeSet("0[3,6,9]1abc16[1-4]56d")
         self.assertEqual(str(nodeset), "[031,061,091]abc[16156,16256,16356,16456]d")
 
-        # bogus range with padding, we do our best here, range is split in v1.9+
-        nodeset = NodeSet("0123[0-100]L6")
+        # bogus range with padding, we are stricter in v1.9+
+        self._assertNS("0123[0-100]L6", NodeSetParseRangeError)
+        # ok when no mismatch within a given range
+        nodeset = NodeSet("[01230-99999,100000-123100]L6")
         self.assertEqual(str(nodeset), "[01230-99999,100000-123100]L6")
         nodeset = NodeSet("0123[000-100]L6")
         self.assertEqual(str(nodeset), "[0123000-0123100]L6")
@@ -1379,8 +1385,9 @@ class NodeSetTest(unittest.TestCase):
         self.assertTrue(nodeset > NodeSet("tronic[0100-0200]"))
         self.assertTrue(nodeset > NodeSet("lounge[36-400/2]"))
         self.assertTrue(nodeset.issuperset(NodeSet("lounge[36-400/2],"
-                                                   "tronic[0100-660]")))
-        self.assertTrue(nodeset > NodeSet("lounge[36-400/2],tronic[0100-660]"))
+                                                   "tronic[0100-0660]")))
+        self.assertTrue(nodeset > NodeSet("lounge[36-400/2],tronic[0100-0660]"))
+        self._assertNS("lounge[36-400/2],tronic[0100-660]", NodeSetParseRangeError)
 
     def test_issubset(self):
         """test NodeSet issubset()"""
@@ -2801,9 +2808,6 @@ class NodeSetTest(unittest.TestCase):
         n1 = NodeSet("3,5,[7-10,40]")
         self.assertEqual(str(n1), "[3,5,7-10,40]")
         self.assertEqual(len(n1), 7)
-        n1 = NodeSet("0[7-9,10]")
-        self.assertEqual(str(n1), "[07-10]")
-        self.assertEqual(len(n1), 4)
         n1 = NodeSet("nova3,nova4,5,nova6")
         self.assertEqual(str(n1), "5,nova[3-4,6]")
         self.assertEqual(len(n1), 4)
@@ -2813,13 +2817,15 @@ class NodeSetTest(unittest.TestCase):
         n1 = NodeSet("[0-10]")
         self.assertEqual(str(n1), "[0-10]")
         self.assertEqual(len(n1), 11)
-        n1 = NodeSet("0[0-10]")
-        self.assertEqual(str(n1), "[00-10]")
         self.assertEqual(len(n1), 11)
-        n1 = NodeSet("[0-10]0")
-        self.assertEqual(str(n1), "[00,10,20,30,40,50,60,70,80,90,100]")
-        self.assertEqual(len(n1), 11)
-        n1 = NodeSet("0[0-10]0")
-        self.assertEqual(str(n1),
-                         "[000,010,020,030,040,050,060,070,080,090,0100]")
-        self.assertEqual(len(n1), 11)
+        # leading 0 along with mixed lengths padding
+        self._assertEqual("[07-09,010]")
+        self._assertNS("0[7-10]", NodeSetParseRangeError)
+        self._assertNS("0[7-9,10]", NodeSetParseRangeError) # expanded to 7-10 first
+        self._assertEqual("0[7-9,010]", "[07-09,0010]")
+        self._assertEqual("0[07-09,10]", "[007-010]")
+        self._assertEqual("0[07-09,010]", "[007-009,0010]")
+        self._assertNS("0[0-10]", NodeSetParseRangeError)
+        # trailing 0 along with mixed lengths padding
+        self._assertNS("[0-10]0", NodeSetParseRangeError)
+        self._assertNS("0[0-10]0", NodeSetParseRangeError)

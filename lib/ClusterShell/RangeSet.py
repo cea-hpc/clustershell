@@ -147,7 +147,7 @@ class RangeSet(set):
 
             # compute padding and return node range info tuple
             try:
-                pad = 0
+                pad = endpad = 0
                 if int(begin) != 0:
                     begins = begin.lstrip("0")
                     if len(begin) - len(begins) > 0:
@@ -161,6 +161,12 @@ class RangeSet(set):
                     ends = end.lstrip("0")
                 else:
                     ends = end
+                # explicit padding for begin and end must match
+                if len(end) - len(ends) > 0:
+                    endpad = len(end)
+                if (pad > 0 or endpad > 0) and len(begin) != len(end):
+                    raise RangeSetParseError(subrange,
+                                             "padding length mismatch")
                 stop = int(ends)
             except ValueError:
                 if len(subrange) == 0:
