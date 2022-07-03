@@ -61,6 +61,10 @@ class RangeSetTest(unittest.TestCase):
         self._testRS("1-17/2,33-41/2,2-20/2", "1-18,20,33-41/2", 24)
         self._testRS("1-17/2,33-41/2,2-19/2", "1-18,33-41/2", 23)
         self._testRS("1968-1970,1972,1975,1978-1981,1984-1989", "1968-1970,1972-1978/3,1979-1981,1984-1989", 15)
+        # use of 0-padding in the step number is ignored
+        self._testRS("1-17/01", "1-17", 17)
+        self._testRS("1-17/02", "1-17/2", 9)
+        self._testRS("1-17/03", "1-16/3", 6)
 
     def test_bad_syntax(self):
         """test parse errors"""
@@ -1229,6 +1233,16 @@ class RangeSetTest(unittest.TestCase):
 
         self._testRS("0-8/2", "0-8/2", 5)
         self._testRS("1-7/2", "1-7/2", 4)
+        self._testRS("0-8 /2", "0-8/2", 5)
+        self._testRS("1-7 /2", "1-7/2", 4)
+        self._testRS("0-8/ 2", "0-8/2", 5)
+        self._testRS("1-7/ 2", "1-7/2", 4)
+        self._testRS("0-8 / 2", "0-8/2", 5)
+        self._testRS("1-7 / 2", "1-7/2", 4)
+        self._testRS("0 -8 / 2", "0-8/2", 5)
+        self._testRS("1 -7 / 2", "1-7/2", 4)
+        self._testRS("0 - 8 / 2", "0-8/2", 5)
+        self._testRS("1 - 7 / 2", "1-7/2", 4)
         self._testRS("00-08/2", "00-08/2", 5)
         self._testRS("01-07/2", "01-07/2", 4)
         self._testRS("00-08 /2", "00-08/2", 5)
