@@ -163,40 +163,35 @@ class DirectOutputHandler(OutputHandler):
 
 class DirectOutputDirHandler(DirectOutputHandler):
     """Direct output files event handler class. pssh style"""
-    def __init__(self, display, ns):
-        OutputHandler.__init__(self)
-        self._display = display
+    def __init__(self, display, ns, prog=None):
+        DirectOutputHandler.__init__(self, display, prog)
         self._ns = ns
         self._outfiles = {}
         self._errfiles = {}
-        for n in self._ns:
-           if display.outdir:
-               self._outfiles[n] = open("{}/{}".format(display.outdir, n), mode="w")
-           if display.errdir:
-               self._errfiles[n] = open("{}/{}".format(display.errdir, n), mode="w")
+        if display.outdir:
+            for n in self._ns:
+               self._outfiles[n] = open(join(display.outdir, n), mode="w")
+        if display.errdir:
+            for n in self._ns:
+               self._errfiles[n] = open(join(display.errdir, n), mode="w")
 
     def ev_read(self, worker, node, sname, msg):
+        DirectOutputHandler.ev_read(self, worker, node, sname, msg)
         if sname == worker.SNAME_STDOUT:
-            self._display.print_line(node, msg)
             if self._display.outdir:
-                self._outfiles[node].write("{}\n".format(msg.decode("utf-8")))
+                self._outfiles[node].write("{}\n".format(msg.decode()))
         elif sname == worker.SNAME_STDERR:
-            self._display.print_line_error(node, msg)
             if self._display.errdir:
-                self._errfiles[node].write("{}\n".format(msg.decode("utf-8")))
+                self._errfiles[node].write("{}\n".format(msg.decode()))
 
     def ev_close(self, worker, timedout):
-        if timedout:
-            nodeset = NodeSet._fromlist1(worker.iter_keys_timeout())
-            self._display.vprint_err(VERB_QUIET,
-                                     "clush: %s: command timeout" % nodeset)
+        DirectOutputHandler.ev_close(self, worker, timedout)
         if self._display.outdir:
             for v in self._outfiles.values():
                 v.close()
         if self._display.errdir:
             for v in self._errfiles.values():
                 v.close()
-        self.update_prompt(worker)
 
 class DirectProgressOutputHandler(DirectOutputHandler):
     """Direct output event handler class with progress support."""
