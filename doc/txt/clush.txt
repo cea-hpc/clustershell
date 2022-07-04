@@ -162,6 +162,8 @@ Output behaviour:
   -S, --maxrc         return the largest of command return codes
   --color=WHENCOLOR   ``clush`` can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which takes precedence over CLICOLOR.  When ``--color`` option is used these environment variables are not taken into account. ``--color`` tells whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
   --diff              show diff between common outputs (find the best reference output by focusing on largest nodeset and also smaller command return code)
+  --outdir=OUTDIR     output directory for stdout files (OPTIONAL)
+  --errdir=ERRDIR     output directory for sterr files (OPTIONAL)
 
 File copying:
   -c, --copy          copy local file or directory to remote nodes
