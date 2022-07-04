@@ -950,7 +950,10 @@ class Task(object):
         """
         Abort completion subroutine.
         """
-        assert self._quit == True
+        assert self._quit is True
+
+        if self._terminated:
+            return
         self._terminated = True
 
         if kill:
