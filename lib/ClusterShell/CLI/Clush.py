@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2007-2016 CEA/DAM
-# Copyright (C) 2015-2018 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2015-2022 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -677,10 +677,9 @@ def bind_stdin(worker, display):
     # can be a file, so we cannot use a WorkerSimple here as polling on file
     # may result in different behaviors depending on selected engine.
     stdin_thread = threading.Thread(None, _stdin_thread_start, args=(port, display))
-    # setDaemon because we're sometimes left with data that has been read and
-    # ssh connection already closed.
-    # Syntax for compat with Python < 2.6
-    stdin_thread.setDaemon(True)
+    # Set thread as daemon because we're sometimes left with data that have
+    # been read but the ssh connection is already closed.
+    stdin_thread.daemon = True
     stdin_thread.start()
 
 def run_command(task, cmd, ns, timeout, display, remote, trytree):
@@ -714,13 +713,13 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         # this is the simpler but faster output handler
         handler = DirectOutputHandler(display)
 
+    stdin = task.default("USER_stdin_worker")
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                        remote=remote, tree=trytree)
+                        remote=remote, tree=trytree, stdin=stdin)
     if ns is None:
         worker.set_key('LOCAL')
-    if task.default("USER_stdin_worker"):
+    if stdin:
         bind_stdin(worker, display)
-
     task.resume()
 
 def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
@@ -1069,9 +1068,6 @@ def main():
 
     # Enable stdout/stderr separation
     task.set_default("stderr", not options.gatherall)
-
-    # Prevent reading from stdin?
-    task.set_default("stdin", not options.nostdin)
 
     # Disable MsgTree buffering if not gathering outputs
     task.set_default("stdout_msgtree", display.gather or display.line_mode)

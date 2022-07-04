@@ -606,7 +606,19 @@ class CLIClushTest_A(unittest.TestCase):
                        "foo[1-10]", "echo ok"], b"",
                       b"---------------\nfoo[1-10]\n---------------\nok\n")
 
-    def test_040_outdir_errdir(self):
+    def test_040_stdin_eof(self):
+        """test clush (stdin eof)"""
+        # should not block if connection to stdin cannot be established
+        # or of --nostdin is specified
+        self._clush_t(["-w", HOSTNAME, "cat"], None, b'')
+        self._clush_t(["-w", HOSTNAME, "--nostdin", "cat"], None, b'')
+        setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
+        try:
+            self._clush_t(["-w", HOSTNAME, "cat"], None, b'')
+        finally:
+            delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
+
+    def test_041_outdir_errdir(self):
         """test clush --outdir and --errdir"""
         odir = make_temp_dir()
         edir = make_temp_dir()
@@ -644,6 +656,7 @@ class CLIClushTest_A(unittest.TestCase):
             os.unlink(tefilepath)
         os.rmdir(odir)
         os.rmdir(edir)
+
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):
     """Unit test class for testing CLI/Clush.py and stdin failure"""
