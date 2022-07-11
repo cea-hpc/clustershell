@@ -43,6 +43,7 @@ import sys
 CFG_SECTION_TASK_DEFAULT = 'task.default'
 CFG_SECTION_TASK_INFO = 'task.info'
 CFG_SECTION_NODESET = 'nodeset'
+CFG_SECTION_ENGINE = 'engine'
 
 #
 # Functions
@@ -134,7 +135,6 @@ class Defaults(object):
     * stdout_msgtree (boolean; default is ``True``)
     * stderr_msgtree (boolean; default is ``True``)
     * engine (string; default is ``'auto'``)
-    * port_qlimit (integer; default is ``100``)
     * local_workername (string; default is ``'exec'``)
     * distant_workername (string; default is ``'ssh'``)
     * debug (boolean; default is ``False``)
@@ -143,6 +143,10 @@ class Defaults(object):
     * grooming_delay (float; default is ``0.25``)
     * connect_timeout (float; default is ``10``)
     * command_timeout (float; default is ``0``)
+
+    Engine defaults:
+
+    * port_qlimit (integer; default is ``100``)
 
     Example of use::
 
@@ -172,7 +176,7 @@ class Defaults(object):
                      "stdout_msgtree"     : True,
                      "stderr_msgtree"     : True,
                      "engine"             : 'auto',
-                     "port_qlimit"        : 100,
+                     "port_qlimit"        : 100, # 1.8 compat
                      "auto_tree"          : True,
                      "local_workername"   : 'exec',
                      "distant_workername" : 'ssh'}
@@ -185,7 +189,7 @@ class Defaults(object):
                                 "stdout_msgtree"     : ConfigParser.getboolean,
                                 "stderr_msgtree"     : ConfigParser.getboolean,
                                 "engine"             : ConfigParser.get,
-                                "port_qlimit"        : ConfigParser.getint,
+                                "port_qlimit"        : ConfigParser.getint, # 1.8 compat
                                 "auto_tree"          : ConfigParser.getboolean,
                                 "local_workername"   : ConfigParser.get,
                                 "distant_workername" : ConfigParser.get}
@@ -225,6 +229,16 @@ class Defaults(object):
     #
     _NODESET_CONVERTERS = {"fold_axis" : _parser_get_integer_tuple}
 
+    #
+    # Default values for Engine objects
+    #
+    _ENGINE = {"port_qlimit" : 100}
+
+    #
+    # Datatype converters for Engine defaults
+    #
+    _ENGINE_CONVERTERS = {"port_qlimit" : ConfigParser.getint}
+
     def __init__(self, filenames):
         """Initialize Defaults from config filenames"""
 
@@ -232,6 +246,7 @@ class Defaults(object):
         self._task_info = self._TASK_INFO.copy()
         self._task_info_pkeys_bl = list(self._TASK_INFO_PKEYS_BL)
         self._nodeset = self._NODESET.copy()
+        self._engine = self._ENGINE.copy()
 
         config = ConfigParser()
         parsed = config.read(filenames)
@@ -264,9 +279,22 @@ class Defaults(object):
             except (NoSectionError, NoOptionError):
                 pass
 
+        # Engine
+        for key, conv in self._ENGINE_CONVERTERS.items():
+            try:
+                self._engine[key] = conv(config, CFG_SECTION_ENGINE, key)
+            except (NoSectionError, NoOptionError):
+                pass
+
     def __getattr__(self, name):
         """Defaults attribute lookup"""
-        if name in self._task_default:
+        # 1.8 compat: port_qlimit moved into engine section
+        if name == 'port_qlimit':
+            if self._engine[name] == self._ENGINE[name]:
+                return self._task_default[name]
+        if name in self._engine:
+            return self._engine[name]
+        elif name in self._task_default:
             return self._task_default[name]
         elif name in self._task_info:
             return self._task_info[name]
@@ -277,8 +305,10 @@ class Defaults(object):
     def __setattr__(self, name, value):
         """Defaults attribute assignment"""
         if name in ('_task_default', '_task_info', '_task_info_pkeys_bl',
-                    '_nodeset'):
+                    '_nodeset', '_engine'):
             object.__setattr__(self, name, value)
+        elif name in self._engine:
+            self._engine[name] = value
         elif name in self._task_default:
             self._task_default[name] = value
         elif name in self._task_info:

@@ -186,12 +186,16 @@ class Task(object):
         """Special task control port event handler.
         When a message is received on the port, call appropriate
         task method."""
+        def __init__(self, task):
+            EventHandler.__init__(self)
+            self.task = task
+
         def ev_msg(self, port, msg):
             """Message received: call appropriate task method."""
             # pull out function and its arguments from message
             func, (args, kwargs) = msg[0], msg[1:]
             # call task method
-            func(port.task, *args, **kwargs)
+            func(self.task, *args, **kwargs)
 
     class tasksyncmethod(object):
         """Class encapsulating a function that checks if the calling
@@ -320,9 +324,8 @@ class Task(object):
             self._reset()
 
             # special engine port for task method dispatching
-            self._dispatch_port = EnginePort(self,
-                                            handler=Task._SyncMsgHandler(),
-                                            autoclose=True)
+            self._dispatch_port = EnginePort(handler=Task._SyncMsgHandler(self),
+                                             autoclose=True)
             self._engine.add(self._dispatch_port)
 
             # set taskid used as Thread name
@@ -703,7 +706,7 @@ class Task(object):
         is not set, the task can only receive messages on the port by
         calling port.msg_recv().
         """
-        port = EnginePort(self, handler, autoclose)
+        port = EnginePort(handler, autoclose)
         self._add_port(port)
         return port
 
