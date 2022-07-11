@@ -20,17 +20,21 @@ class TaskPortTest(unittest.TestCase):
         """test port msg from main thread to task"""
 
         TaskPortTest.got_msg = False
+        TaskPortTest.started = 0
 
         # create task in new thread
         task = Task()
 
         class PortHandler(EventHandler):
+            def ev_start(self, port):
+                TaskPortTest.started += 1
+
             def ev_msg(self, port, msg):
                 # receive msg
                 assert msg == "toto"
-                assert port.task.thread == threading.currentThread()
+                assert task_self().thread == threading.currentThread()
                 TaskPortTest.got_msg = True
-                port.task.abort()
+                task_self().abort()
 
         # create non-autoclosing port
         port = task.port(handler=PortHandler())
@@ -38,6 +42,7 @@ class TaskPortTest(unittest.TestCase):
         # send msg from main thread
         port.msg("toto")
         task_wait()
+        self.assertEqual(TaskPortTest.started, 1)
         self.assertTrue(TaskPortTest.got_msg)
 
     def testPortRemove(self):

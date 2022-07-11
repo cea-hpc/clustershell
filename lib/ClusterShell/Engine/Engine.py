@@ -686,7 +686,7 @@ class Engine(object):
         for port in self._ports:
             if not port.registered:
                 self._debug("START PORT %s" % port)
-                self.register(port)
+                self.register(port._start())
 
     def start_clients(self):
         """Start and register regular engine clients in respect of fanout."""
