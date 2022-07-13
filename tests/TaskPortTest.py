@@ -26,7 +26,7 @@ class TaskPortTest(unittest.TestCase):
         task = Task()
 
         class PortHandler(EventHandler):
-            def ev_start(self, port):
+            def ev_port_start(self, port):
                 TaskPortTest.started += 1
 
             def ev_msg(self, port, msg):
