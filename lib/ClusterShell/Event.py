@@ -31,15 +31,17 @@ class EventHandler(object):
     """ClusterShell EventHandler interface.
 
     Derived class should implement any of the following methods to listen for
-    :class:`.Worker`, :class:`.EngineTimer` or :class:`.EnginePort` selected
-    events. If not implemented, the default behavior is to do nothing.
+    :class:`.Worker`, :class:`.EnginePort` or :class:`.EngineTimer` events.
+    If not implemented, the default behavior is to do nothing.
     """
 
-    def ev_start(self, obj):
-        """
-        Called to indicate that a worker (or port) has just started.
+    ### Worker events
 
-        :param obj: :class:`.Worker` or :class:`.EnginePort` derived object
+    def ev_start(self, worker):
+        """
+        Called to indicate that a worker has just started.
+
+        :param worker: :class:`.Worker` derived object
         """
 
     def ev_pickup(self, worker, node):
@@ -142,6 +144,21 @@ class EventHandler(object):
         :param timedout: boolean set to True if the worker has timed out
         """
 
+    def _ev_routing(self, worker, arg):
+        """
+        Routing event (private). Called to indicate that a (meta)worker has just
+        updated one of its route path. You can safely ignore this event.
+        """
+
+    ### EnginePort events
+
+    def ev_port_start(self, port):
+        """
+        Called to indicate that a :class:`.EnginePort` object has just started.
+
+        :param port: :class:`.EnginePort` derived object
+        """
+
     def ev_msg(self, port, msg):
         """
         Called to indicate that a message has been received on an
@@ -154,15 +171,11 @@ class EventHandler(object):
         :param msg: the message object received
         """
 
+    ### EngineTimer events
+
     def ev_timer(self, timer):
         """
         Called to indicate that a timer is firing.
 
         :param timer: :class:`.EngineTimer` object that is firing
-        """
-
-    def _ev_routing(self, worker, arg):
-        """
-        Routing event (private). Called to indicate that a (meta)worker has just
-        updated one of its route path. You can safely ignore this event.
         """

@@ -505,7 +505,7 @@ class EnginePort(EngineClient):
     def _start(self):
         """Start port."""
         if self.eh is not None:
-            self.eh.ev_start(self)
+            self.eh.ev_port_start(self)
         return self
 
     def _close(self, abort, timeout):
