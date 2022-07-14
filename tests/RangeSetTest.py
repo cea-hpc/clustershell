@@ -1104,3 +1104,30 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(r0.dim(), 0)
         r1 = RangeSet("1-10,15-20")
         self.assertEqual(r1.dim(), 1)
+
+    def test_intiter(self):
+        matches = [ 1, 3, 4, 5, 6, 7, 8, 11 ]
+        rgs = RangeSet.fromlist([ "11", "3", "5-8", "1", "4" ])
+        cnt = 0
+        for rg in rgs.intiter():
+            self.assertEqual(rg, matches[cnt])
+            cnt += 1
+        self.assertEqual(cnt, len(matches))
+        # with padding
+        rgs = RangeSet.fromlist([ "011", "003", "005-008", "001", "004" ])
+        cnt = 0
+        for rg in rgs.intiter():
+            self.assertTrue(isinstance(rg, int))
+            self.assertEqual(rg, matches[cnt])
+            cnt += 1
+        self.assertEqual(cnt, len(matches))
+        # with mixed length padding (add 01, 09 and 0001): not supported until 1.9
+        #matches = [ 1, 9 ] + matches + [ 1 ]
+        #rgs = RangeSet.fromlist([ "011", "01", "003", "005-008", "001", "0001", "09", "004" ])
+        #cnt = 0
+        #for rg in rgs.intiter():
+        #    print(rg)
+        #    self.assertTrue(isinstance(rg, int))
+        #    self.assertEqual(rg, matches[cnt])
+        #    cnt += 1
+        #self.assertEqual(cnt, len(matches))

@@ -7,7 +7,7 @@ compute advanced cluster node set operations
 --------------------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2021-11-03
+:Date:   2022-03-19
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.8.4
 :Manual section: 1
@@ -131,10 +131,18 @@ Example of advanced usage
 
   This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
 
-"All nodes" extension (v1.7+)
+"All nodes" extension
   The ``@*`` and ``@SOURCE:*`` special notations may be used in extended patterns to represent all nodes (in SOURCE) according to the *all* external shell command (see ``groups.conf``\(5)) and are equivalent to:
 
     :$ cluset [-s SOURCE] -a -f:
+
+Group names in expressions
+  The ``@@SOURCE`` notation may be used to access all group names from the specified SOURCE (or from the default group source when just ``@@`` is used) in node set expressions; this works with either file-based group sources or with external group sources that have the *list* upcall defined (see ``groups.conf``\(5)):
+
+
+    :$ cluset -f @@rack:
+    
+    | J[1-3]
 
 NODE WILDCARDS
 ==============

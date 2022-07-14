@@ -71,7 +71,7 @@ class TaskPortTest(unittest.TestCase):
         task.timer(0.2, handler=test_handler, autoclose=False)
         port = task.port(handler=test_handler, autoclose=True)
         thread = threading.Thread(None, test_thread_start, args=(port, self))
-        thread.setDaemon(True)
+        thread.daemon = True
         thread.start()
         task.resume()
         task.abort(kill=True) # will remove_port()
