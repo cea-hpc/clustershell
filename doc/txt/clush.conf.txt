@@ -23,7 +23,8 @@ following order:
  1. command-line options
  2. user configuration file (*$XDG_CONFIG_HOME/clustershell/clush.conf*)
  3. local pip user installation (*$HOME/.local/etc/clustershell/clush.conf*)
- 4. system-wide configuration file (*/etc/clustershell/clush.conf*)
+ 4. global configuration file (*$CLUSTERSHELL_CFGDIR/clush.conf*, defaults to
+    */etc/clustershell/clush.conf*)
 
 For each parameter, the first obtained value will be used.
 
@@ -124,8 +125,9 @@ Simple configuration file.
 FILES
 =====
 
-*/etc/clustershell/clush.conf*
-  System-wide clush configuration file.
+*$CLUSTERSHELL_CFGDIR/clush.conf*
+  Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
+  */etc/slutershell/clush.conf* is used instead.
 
 *$XDG_CONFIG_HOME/clustershell/clush.conf*
   User configuration file for clush. If $XDG_CONFIG_HOME is not defined,

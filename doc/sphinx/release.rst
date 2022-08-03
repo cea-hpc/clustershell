@@ -564,8 +564,11 @@ versions.
 Configuration files
 """""""""""""""""""
 
-When ``$XDG_CONFIG_HOME`` is defined, ClusterShell will use it to search for
-additional configuration files.
+When ``$CLUSTERSHELL_CFGDIR`` or ``$XDG_CONFIG_HOME`` are defined,
+ClusterShell will use them to search for additional configuration files.
+
+If ``$CLUSTERSHELL_CFGDIR`` is not defined, the global configuration files will
+be searched for in `/etc/clustershell`
 
 PIP user installation support
 """""""""""""""""""""""""""""

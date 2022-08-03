@@ -8,13 +8,16 @@ Configuration
 clush
 -----
 
-The following configuration file defines system-wide default values for
+The following configuration file defines global default values for
 several *clush* tool parameters::
 
-    /etc/clustershell/clush.conf
+    $CLUSTERSHELL_CFGDIR/clush.conf
+    
+If *$CLUSTERSHELL_CFGDIR* is not defined, */etc/clustershell/clush.conf* will
+be used,
 
-*clush* settings might then be overridden per user if one of the following
-files is found, in priority order::
+*clush* settings might then be overridden (globally, or per user) if one of the
+following files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/clush.conf
     $HOME/.config/clustershell/clush.conf (only if $XDG_CONFIG_HOME is not defined)
@@ -126,13 +129,16 @@ ClusterShell loads *groups.conf* configuration files that define how to
 obtain node groups configuration, ie. the way the library should access
 file-based or external node group **sources**.
 
-The following configuration file defines system-wide default values for
+The following configuration file defines global default values for
 *groups.conf*::
 
-    /etc/clustershell/groups.conf
+    $CLUSTERSHELL_CFGDIR/groups.conf
+    
+If *$CLUSTERSHELL_CFGDIR* is not defined, */etc/clustershell/groups.conf* will
+be used,
 
-*groups.conf* settings might then be overridden per user if one of the
-following files is found, in priority order::
+*groups.conf* settings might then be overridden (globally, or per user) if one
+of the following files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/groups.conf
     $HOME/.config/clustershell/groups.conf (only if $XDG_CONFIG_HOME is not defined)
@@ -545,10 +551,13 @@ in *defaults.conf*.
 
 The following configuration file defines ClusterShell system-wide defaults::
 
-    /etc/clustershell/defaults.conf
+    $CLUSTERSHELL_CFGDIR/defaults.conf
 
-*defaults.conf* settings might then be overridden per user if one of the
-following files is found, in priority order::
+If *$CLUSTERSHELL_CFGDIR* is not defined, */etc/clustershell/defaults.conf*
+will be used,
+
+*defaults.conf* settings might then be overridden (globally, or per user) if
+one of the following files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/defaults.conf
     $HOME/.config/clustershell/defaults.conf (only if $XDG_CONFIG_HOME is not defined)
