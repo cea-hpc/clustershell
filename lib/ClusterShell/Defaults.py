@@ -90,7 +90,9 @@ def _distant_workerclass(defaults):
 
 def config_paths(config_name):
     """Return default path list for a ClusterShell config file name."""
-    return ['/etc/clustershell/%s' % config_name, # system-wide config file
+    return [os.path.join(os.environ.get('CLUSTERSHELL_CFGDIR',
+                                        '/etc/clustershell/%s'),
+			             config_name), # global config file
             # default pip --user config file
             os.path.expanduser('~/.local/etc/clustershell/%s' % config_name),
             # per-user config (top override)

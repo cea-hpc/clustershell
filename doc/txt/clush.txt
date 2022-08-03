@@ -278,8 +278,9 @@ Copy files
 FILES
 =====
 
-*/etc/clustershell/clush.conf*
-  System-wide clush configuration file.
+*$CLUSTERSHELL_CFGDIR/clush.conf*
+  Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
+  */etc/clustershell/clush.conf* is used instead.
 
 *$XDG_CONFIG_HOME/clustershell/clush.conf*
   User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
