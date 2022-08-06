@@ -32,7 +32,7 @@ class TaskPortTest(unittest.TestCase):
             def ev_msg(self, port, msg):
                 # receive msg
                 assert msg == "toto"
-                assert task_self().thread == threading.currentThread()
+                assert task_self().thread == threading.current_thread()
                 TaskPortTest.got_msg = True
                 task_self().abort()
 
