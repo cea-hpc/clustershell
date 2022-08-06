@@ -258,7 +258,7 @@ class Task(object):
             self._cond.acquire()
             try:
                 self.suspend_count = min(self.suspend_count, 0)
-                self._cond.notifyAll()
+                self._cond.notify_all()
             finally:
                 self._cond.release()
 
@@ -350,7 +350,7 @@ class Task(object):
     def _is_task_self(self):
         """Private method used by the library to check if the task is
         task_self(), but do not create any task_self() instance."""
-        return self.thread == threading.currentThread()
+        return self.thread == threading.current_thread()
 
     def default_excepthook(self, exc_type, exc_value, tb):
         """Default excepthook for a newly Task. When an exception is
@@ -783,7 +783,7 @@ class Task(object):
 
     def _resume(self):
         """Resume task - called from self thread."""
-        assert self.thread == threading.currentThread()
+        assert self.thread == threading.current_thread()
         try:
             try:
                 self._reset()
@@ -798,7 +798,7 @@ class Task(object):
             # task becomes joinable
             self._join_cond.acquire()
             self._suspend_cond.atomic_inc()
-            self._join_cond.notifyAll()
+            self._join_cond.notify_all()
             self._join_cond.release()
 
     def resume(self, timeout=None):
@@ -972,14 +972,14 @@ class Task(object):
         # termination (late join()s)
         # must be called after _terminated is set to True
         self._join_cond.acquire()
-        self._join_cond.notifyAll()
+        self._join_cond.notify_all()
         self._join_cond.release()
 
         # destroy task if needed
         if kill:
             Task._task_lock.acquire()
             try:
-                del Task._tasks[threading.currentThread()]
+                del Task._tasks[threading.current_thread()]
             finally:
                 Task._task_lock.release()
 
@@ -1394,7 +1394,7 @@ def task_self(defaults=None):
     provided as a convenience is available in the top-level ClusterShell.Task
     package namespace.
     """
-    return Task(thread=threading.currentThread(), defaults=defaults)
+    return Task(thread=threading.current_thread(), defaults=defaults)
 
 def task_wait():
     """
@@ -1403,7 +1403,7 @@ def task_wait():
     convenience and is available in the top-level ClusterShell.Task package
     namespace.
     """
-    Task.wait(threading.currentThread())
+    Task.wait(threading.current_thread())
 
 def task_terminate():
     """
