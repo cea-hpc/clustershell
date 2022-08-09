@@ -40,9 +40,9 @@ except ImportError:
 
 import threading
 
+from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.Worker.fastsubprocess import Popen, PIPE, STDOUT, \
     set_nonblock_flag
-
 from ClusterShell.Engine.Engine import EngineBaseTimer, E_READ, E_WRITE
 
 
@@ -251,7 +251,7 @@ class EngineClient(EngineBaseTimer):
     def _start(self):
         """
         Starts client and returns client instance as a convenience.
-        Derived classes (except EnginePort) must implement.
+        Derived classes must implement.
         """
         raise NotImplementedError("Derived classes must implement.")
 
@@ -470,18 +470,17 @@ class EnginePort(EngineClient):
             if self._sync_msg:
                 self.reply_lock.acquire()
 
-    def __init__(self, task, handler=None, autoclose=False):
+    def __init__(self, handler=None, autoclose=False):
         """
         Initialize EnginePort object.
         """
         EngineClient.__init__(self, None, None, False, -1, autoclose)
-        self.task = task
         self.eh = handler
         # ports are no subject to fanout
         self.delayable = False
 
         # Port messages queue
-        self._msgq = queue.Queue(self.task.default("port_qlimit"))
+        self._msgq = queue.Queue(DEFAULTS.port_qlimit)
 
         # Request pipe
         (readfd, writefd) = os.pipe()
@@ -505,6 +504,8 @@ class EnginePort(EngineClient):
 
     def _start(self):
         """Start port."""
+        if self.eh is not None:
+            self.eh.ev_port_start(self)
         return self
 
     def _close(self, abort, timeout):
@@ -514,9 +515,7 @@ class EnginePort(EngineClient):
             try:
                 while not self._msgq.empty():
                     pmsg = self._msgq.get(block=False)
-                    if self.task.info("debug", False):
-                        self.task.info("print_debug")(self.task,
-                            "EnginePort: dropped msg: %s" % str(pmsg.get()))
+                    LOGGER.debug('%r: dropped msg: %s', self, pmsg.get())
             except queue.Empty:
                 pass
         self._msgq = None

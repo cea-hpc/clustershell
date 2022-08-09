@@ -254,8 +254,8 @@ class WorkerPdsh(ExecWorker):
         """
         Write data to process. Not supported with Pdsh worker.
         """
-        raise EngineClientNotSupportedError("writing is not supported by pdsh "
-                                            "worker")
+        raise EngineClientNotSupportedError("writing to stdin is not "
+                                            "supported by pdsh worker")
 
     def set_write_eof(self):
         """
@@ -264,7 +264,7 @@ class WorkerPdsh(ExecWorker):
 
         Not supported by PDSH Worker.
         """
-        raise EngineClientNotSupportedError("writing is not supported by pdsh "
-                                            "worker")
+        raise EngineClientNotSupportedError("writing to stdin is not "
+                                            "supported by pdsh worker")
 
 WORKER_CLASS = WorkerPdsh

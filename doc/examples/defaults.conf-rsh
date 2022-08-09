@@ -4,7 +4,8 @@
 # Example defaults.conf file for clusters using rsh instead of ssh.
 #
 # To enable this file, install it in one of the following locations:
-#       /etc/clustershell/defaults.conf (system-wide)
+#       $CLUSTERSHELL_CFGDIR/defaults.conf (global configuration, default to
+#       /etc/clustershell/defaults.conf)
 #       $XDG_CONFIG_HOME/clustershell/defaults.conf (per-user)
 #       $HOME/.local/etc/clustershell/defaults.conf (per-user)
 #

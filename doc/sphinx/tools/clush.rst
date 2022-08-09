@@ -652,6 +652,48 @@ By default, ClusterShell supports the following worker identifiers:
 Worker modules distributed outside of ClusterShell are also supported by
 specifying the case-sensitive full Python module name of a worker module.
 
+.. _clush-sudo:
+
+Support for sudo
+""""""""""""""""
+
+Since version 1.9, *clush* has support for `Sudo`_ password forwarding over
+stdin. This may be useful in an environment that only allows sysadmins
+to perform interactive *sudo* work with password.
+
+.. warning:: In this section, it is assumed that *sudo* always requires a
+   password for the user on the target nodes. If *sudo* does NOT require
+   any password (i.e. **NOPASSWD** is specified in your sudoers file), you
+   do not need any extra options to run your *sudo* commands with *clush*.
+
+Run *clush* with ``--sudo`` to **enable a password prompt** to type your *sudo*
+password, then *sudo* (well, ``sudo_command`` – see below) will be used to run
+your commands on the target nodes. The password is broadcasted to all target
+nodes over *ssh(1)* (or via your :ref:`favorite worker <clush-worker>`) and
+as such, must be the same on all target nodes. It is not stored on disk at
+any time and only kept in memory during the duration of the *clush* command.
+Thus, the password will be prompted every time you run *clush*. When you
+start *clush* in :ref:`interactive mode <clush-interactive>` along with
+``--sudo``, you can run multiple commands in that mode without having to type
+your password every time.
+
+When ``--sudo`` is used, *clush* will run *sudo* for you on each target node,
+so your command itself should NOT start with ``sudo``. The actual *sudo*
+command used by *clush* can be changed in :ref:`clush.conf <clush-config>` or
+in command line using ``-O sudo_command="..."``. The configured
+``sudo_command`` must be able to read a password on stdin followed by a new
+line (which is what ``sudo -S`` does).
+
+Usage example::
+
+    $ clush -w n[1-2]c[01-02] --sudo -b id
+    Password: 
+    ---------------
+    n[1-2]c[01-02] (4)
+    ---------------
+    uid=0(root) gid=0(root) groups=0(root)
+
+
 .. [#] LLNL parallel remote shell utility
    (https://computing.llnl.gov/linux/pdsh.html)
 
@@ -663,3 +705,5 @@ specifying the case-sensitive full Python module name of a worker module.
 .. _ticket: https://github.com/cea-hpc/clustershell/issues/new
 
 .. _this paper: https://www.kernel.org/doc/ols/2012/ols2012-thiell.pdf
+
+.. _Sudo: https://www.sudo.ws/

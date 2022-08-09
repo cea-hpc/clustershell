@@ -618,7 +618,38 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
-    def test_041_outdir_errdir(self):
+    def test_041_sudo(self):
+        """test clush --sudo"""
+        def ask_pass_mock():
+            return "passok"
+        ask_pass_save = ClusterShell.CLI.Clush.ask_pass
+        ClusterShell.CLI.Clush.ask_pass = ask_pass_mock
+        try:
+            s = "%s: passok\n" % HOSTNAME
+            expected = s.encode()
+            # test 'sudo -S' password forwarding using 'exec' command instead
+            self._clush_t(["--sudo", "-O", "sudo_command=exec", "-w", HOSTNAME, "cat"],
+                          None, expected)
+            self._clush_t(["--sudo","-O", "sudo_command=exec", "--nostdin", "-w", HOSTNAME, "cat"],
+                          None, expected)
+            self._clush_t(["--sudo","-O", "sudo_command=exec", "--nostdin", "-w", HOSTNAME, "cat"],
+                          b"test\n", expected)
+            # test sudo password forwarding followed by stdin stream
+            s = "%s: test stdin\n" % HOSTNAME
+            expected += s.encode()
+            self._clush_t(["-O", "sudo_command=exec", "-w", HOSTNAME, "--sudo", "cat"],
+                          b"test stdin\n", expected)
+            # write to stdin is not supported by pdsh worker
+            self.assertRaises(EngineClientNotSupportedError, self._clush_t,
+                              ["--sudo", "-O", "sudo_command=exec", "-w", HOSTNAME, "-R", "pdsh", "cat"],
+                              b"test stdin", expected, 1)
+            self.assertRaises(EngineClientNotSupportedError, self._clush_t,
+                              ["--nostdin", "--sudo", "-O", "sudo_command=exec", "-w", HOSTNAME, "-R", "pdsh", "cat"],
+                              b"test stdin", expected, 1)
+        finally:
+            ClusterShell.CLI.Clush.ask_pass = ask_pass_save
+            
+    def test_042_outdir_errdir(self):
         """test clush --outdir and --errdir"""
         odir = make_temp_dir()
         edir = make_temp_dir()

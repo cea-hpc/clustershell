@@ -5,11 +5,15 @@
 
 import sys
 import unittest
+import warnings
 
 from ClusterShell.RangeSet import RangeSet, RangeSetND
 
 
 class RangeSetNDTest(unittest.TestCase):
+
+    def setUp(self):
+        warnings.simplefilter("always")
 
     def _testRS(self, test, res, length):
         r1 = RangeSetND(test, autostep=3)
@@ -392,26 +396,26 @@ class RangeSetNDTest(unittest.TestCase):
     def test_getitem(self):
         rn1 = RangeSetND([["10", "10-13"], ["0-3", "1-2"]])
         self.assertEqual(len(rn1), 12)
-        self.assertEqual(rn1[0], (0, 1))
-        self.assertEqual(rn1[1], (0, 2))
-        self.assertEqual(rn1[2], (1, 1))
-        self.assertEqual(rn1[3], (1, 2))
-        self.assertEqual(rn1[4], (2, 1))
-        self.assertEqual(rn1[5], (2, 2))
-        self.assertEqual(rn1[6], (3, 1))
-        self.assertEqual(rn1[7], (3, 2))
-        self.assertEqual(rn1[8], (10, 10))
-        self.assertEqual(rn1[9], (10, 11))
-        self.assertEqual(rn1[10], (10, 12))
-        self.assertEqual(rn1[11], (10, 13))
+        self.assertEqual(rn1[0], ('0', '1'))
+        self.assertEqual(rn1[1], ('0', '2'))
+        self.assertEqual(rn1[2], ('1', '1'))
+        self.assertEqual(rn1[3], ('1', '2'))
+        self.assertEqual(rn1[4], ('2', '1'))
+        self.assertEqual(rn1[5], ('2', '2'))
+        self.assertEqual(rn1[6], ('3', '1'))
+        self.assertEqual(rn1[7], ('3', '2'))
+        self.assertEqual(rn1[8], ('10', '10'))
+        self.assertEqual(rn1[9], ('10', '11'))
+        self.assertEqual(rn1[10], ('10', '12'))
+        self.assertEqual(rn1[11], ('10', '13'))
         self.assertRaises(IndexError, rn1.__getitem__, 12)
         # negative indices
-        self.assertEqual(rn1[-1], (10, 13))
-        self.assertEqual(rn1[-2], (10, 12))
-        self.assertEqual(rn1[-3], (10, 11))
-        self.assertEqual(rn1[-4], (10, 10))
-        self.assertEqual(rn1[-5], (3, 2))
-        self.assertEqual(rn1[-12], (0, 1))
+        self.assertEqual(rn1[-1], ('10', '13'))
+        self.assertEqual(rn1[-2], ('10', '12'))
+        self.assertEqual(rn1[-3], ('10', '11'))
+        self.assertEqual(rn1[-4], ('10', '10'))
+        self.assertEqual(rn1[-5], ('3', '2'))
+        self.assertEqual(rn1[-12], ('0', '1'))
         self.assertRaises(IndexError, rn1.__getitem__, -13)
         self.assertRaises(TypeError, rn1.__getitem__, "foo")
 
@@ -447,11 +451,11 @@ class RangeSetNDTest(unittest.TestCase):
     def test_iter(self):
         rn0 = RangeSetND([['1-2', '3'], ['1-2', '4'], ['2-6', '6-9,11']])
         self.assertEqual(len([r for r in rn0]), len(rn0))
-        self.assertEqual([(2, 6), (2, 7), (2, 8), (2, 9), (2, 11), (3, 6),
-                          (3, 7), (3, 8), (3, 9), (3, 11), (4, 6), (4, 7),
-                          (4, 8), (4, 9), (4, 11), (5, 6), (5, 7), (5, 8),
-                          (5, 9), (5, 11), (6, 6), (6, 7), (6, 8), (6, 9),
-                          (6, 11), (1, 3), (1, 4), (2, 3), (2, 4)],
+        self.assertEqual([('2', '6'), ('2', '7'), ('2', '8'), ('2', '9'), ('2', '11'), ('3', '6'),
+                          ('3', '7'), ('3', '8'), ('3', '9'), ('3', '11'), ('4', '6'), ('4', '7'),
+                          ('4', '8'), ('4', '9'), ('4', '11'), ('5', '6'), ('5', '7'), ('5', '8'),
+                          ('5', '9'), ('5', '11'), ('6', '6'), ('6', '7'), ('6', '8'), ('6', '9'),
+                          ('6', '11'), ('1', '3'), ('1', '4'), ('2', '3'), ('2', '4')],
                          [r for r in rn0])
 
     def test_pads(self):
@@ -463,16 +467,15 @@ class RangeSetNDTest(unittest.TestCase):
         self.assertEqual(str(rn1), "02-06; 006-009,411\n01-02; 003-004\n")
         self.assertEqual(len(rn1), 29)
         self.assertEqual(rn1.pads(), (2, 3))
-        # Note: padding mismatch is NOT supported by ClusterShell
-        # We just track any regressions here (MAY CHANGE!)
+        # Note: mixed lenghts zero-padding supported in ClusterShell v1.9
         rn1 = RangeSetND([['01-02', '003'], ['01-02', '0101'], ['02-06', '006-009,411']])
-        # here 0101 padding is changed to 101
-        self.assertEqual(str(rn1), '02-06; 006-009,411\n01-02; 003,101\n')
+        # before v1.9: 0101 padding was changed to 101
+        self.assertEqual(str(rn1), '02-06; 006-009,411\n01-02; 003,0101\n')
         self.assertEqual(len(rn1), 29)
-        self.assertEqual(rn1.pads(), (2, 3))
+        self.assertEqual(rn1.pads(), (2, 4))
         rn1 = RangeSetND([['01-02', '0003'], ['01-02', '004'], ['02-06', '006-009,411']])
-        # here 004 padding is changed to 0004
-        self.assertEqual(str(rn1), '02-06; 006-009,411\n01-02; 0003-0004\n')
+        # before v1.9: 004 padding was wrongly changed to 0004
+        self.assertEqual(str(rn1), '02-06; 006-009,411\n01-02; 004,0003\n')
         self.assertEqual(len(rn1), 29)
         self.assertEqual(rn1.pads(), (2, 4)) # pads() returns max padding length by axis
 

@@ -319,6 +319,59 @@ class CLIClushConfigTest(unittest.TestCase):
         options, _ = parser.parse_args([])
         config = ClushConfig(options)
 
+    def testClushConfigCustomGlobal(self):
+        """test CLI.Config.ClushConfig (CLUSTERSHELL_CFGDIR global custom
+        config)
+        """
+
+        # Save existing environment variable, if it's defined
+        custom_config_save = os.environ.get('CLUSTERSHELL_CFGDIR')
+
+        # Create fake CLUSTERSHELL_CFGDIR
+        custom_cfg_dir = make_temp_dir()
+
+        try:
+            os.environ['CLUSTERSHELL_CFGDIR'] = custom_cfg_dir
+
+            cfgfile = open(os.path.join(custom_cfg_dir, 'clush.conf'), 'w')
+            cfgfile.write(dedent("""
+                [Main]
+                fanout: 42
+                connect_timeout: 14
+                command_timeout: 0
+                history_size: 100
+                color: never
+                verbosity: 2
+                ssh_user: joebar
+                ssh_path: ~/bin/ssh
+                ssh_options: -oSomeDummyUserOption=yes
+                """))
+
+            cfgfile.flush()
+            parser = OptionParser("dummy")
+            parser.install_clush_config_options()
+            parser.install_display_options(verbose_options=True)
+            parser.install_connector_options()
+            options, _ = parser.parse_args([])
+            config = ClushConfig(options) # filename=None to use defaults!
+            self.assertEqual(config.color, THREE_CHOICES[1])
+            self.assertEqual(config.verbosity, VERB_VERB) # takes biggest
+            self.assertEqual(config.fanout, 42)
+            self.assertEqual(config.connect_timeout, 14)
+            self.assertEqual(config.command_timeout, 0)
+            self.assertEqual(config.ssh_user, 'joebar')
+            self.assertEqual(config.ssh_path, '~/bin/ssh')
+            self.assertEqual(config.ssh_options, '-oSomeDummyUserOption=yes')
+            cfgfile.close()
+
+        finally:
+            if custom_config_save:
+                os.environ['CLUSTERSHELL_CFGDIR'] = custom_config_save
+            else:
+                del os.environ['CLUSTERSHELL_CFGDIR']
+            shutil.rmtree(custom_cfg_dir, ignore_errors=True)
+
+
     def testClushConfigUserOverride(self):
         """test CLI.Config.ClushConfig (XDG_CONFIG_HOME user config)"""
 

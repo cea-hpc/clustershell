@@ -33,11 +33,13 @@ When no command are specified, clush runs interactively.
 
 from __future__ import print_function
 
+import getpass
 import logging
 import os
 from os.path import abspath, dirname, exists, isdir, join
 import random
 import resource
+import shlex
 import signal
 import sys
 import time
@@ -640,6 +642,9 @@ def ttyloop(task, nodeset, timeout, display, remote, trytree):
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
+                if task.default("USER_sudo_command"):
+                    sudo_cmdl = shlex.split(task.default("USER_sudo_command"))
+                    cmd = "%s %s" % (' '.join(sudo_cmdl), cmd)
                 run_command(task, cmd, ns, timeout, display, remote, trytree)
     return rc
 
@@ -713,13 +718,18 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         # this is the simpler but faster output handler
         handler = DirectOutputHandler(display)
 
-    stdin = task.default("USER_stdin_worker")
+    stdin = task.default("USER_stdin_worker")      # stdin forwarding?
+    sudo_passwd = task.default("USER_sudo_passwd") # --sudo?
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                        remote=remote, tree=trytree, stdin=stdin)
+                        remote=remote, tree=trytree, stdin=stdin or sudo_passwd)
     if ns is None:
         worker.set_key('LOCAL')
+    if sudo_passwd:
+        worker.write(sudo_passwd.encode() + b'\n')
     if stdin:
         bind_stdin(worker, display)
+    if sudo_passwd and not stdin:
+        worker.set_write_eof() # we only enabled stdin to send the sudo password
     task.resume()
 
 def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
@@ -781,6 +791,10 @@ def set_fdlimit(fd_max, display):
             msgfmt = 'Warning: Failed to set max open files limit to %d (%s)'
             display.vprint_err(VERB_VERB, msgfmt % (rlim_max, exc))
 
+def ask_pass():
+    """Prompt for password (--sudo)"""
+    return getpass.getpass()
+
 def clush_exit(status, task=None):
     """Exit script, flushing stdio buffers and stopping ClusterShell task."""
     if task:
@@ -835,6 +849,8 @@ def main():
 
     parser.add_option("-n", "--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
+    parser.add_option("--sudo", action="store_true", dest="sudo",
+                      help="enable sudo password prompt")
 
     parser.install_groupsconf_option()
     parser.install_clush_config_options()
@@ -1013,6 +1029,16 @@ def main():
 
     task.set_info("debug", config.verbosity >= VERB_DEBUG)
     task.set_info("fanout", config.fanout)
+
+    if options.sudo:
+        # keep sudo_command for interactive mode ttyloop()
+        task.set_default("USER_sudo_command", config.sudo_command)
+        sudo_cmdl = shlex.split(config.sudo_command)
+        display.vprint(VERB_DEBUG, "sudo command prefix: %s" % sudo_cmdl)
+        # prefix actual command with sudo command
+        args = sudo_cmdl + args
+        # prompt for sudo password
+        task.set_default("USER_sudo_passwd", ask_pass())
 
     if options.worker:
         try:
