@@ -412,6 +412,20 @@ these criteria:
 #. largest nodeset with the same output result
 #. otherwise the first nodeset is taken (ordered (1) by name and (2) lowest range indexes)
 
+Saving output in files
+""""""""""""""""""""""
+
+To save the standard output (stdout) and/or error (stderr) of all remote
+commands to local files identified with the node name in a given directory,
+use the options ``--outdir`` and/or ``--errdir``. Any directory that
+doesn't exist will be automatically created. These options provide a
+similar functionality as *pssh(1)*.
+
+For example, to save all logs from *journalctl(1)* in a local directory
+``/tmp/run1/stdout``, you could use::
+
+    $ clush -w node[40-42] --outdir=/tmp/run1/stdout/ journalctl >/dev/null
+
 Standard input bindings
 """""""""""""""""""""""
 

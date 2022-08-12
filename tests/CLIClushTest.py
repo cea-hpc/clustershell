@@ -648,6 +648,45 @@ class CLIClushTest_A(unittest.TestCase):
                               b"test stdin", expected, 1)
         finally:
             ClusterShell.CLI.Clush.ask_pass = ask_pass_save
+            
+    def test_042_outdir_errdir(self):
+        """test clush --outdir and --errdir"""
+        odir = make_temp_dir()
+        edir = make_temp_dir()
+        tofilepath = os.path.join(odir, HOSTNAME)
+        tefilepath = os.path.join(edir, HOSTNAME)
+        try:
+            self._clush_t(["-w", HOSTNAME, "--outdir", odir, "echo", "ok"],
+                          None, self.output_ok)
+            self.assertTrue(os.path.isfile(tofilepath))
+            with open(tofilepath, "r") as f:
+                self.assertEqual(f.read(), "ok\n")
+        finally:
+            os.unlink(tofilepath)
+        try:
+            self._clush_t(["-w", HOSTNAME, "--errdir", edir, "echo", "ok", ">&2"],
+                          None, None, 0, self.output_ok)
+            self.assertTrue(os.path.isfile(tefilepath))
+            with open(tefilepath, "r") as f:
+                self.assertEqual(f.read(), "ok\n")
+        finally:
+            os.unlink(tefilepath)
+        try:
+            serr = "%s: err\n" % HOSTNAME
+            self._clush_t(["-w", HOSTNAME, "--outdir", odir, "--errdir", edir,
+                          "echo", "ok", ";", "echo", "err", ">&2"], None,
+                          self.output_ok, 0, serr.encode())
+            self.assertTrue(os.path.isfile(tofilepath))
+            self.assertTrue(os.path.isfile(tefilepath))
+            with open(tofilepath, "r") as f:
+                self.assertEqual(f.read(), "ok\n")
+            with open(tefilepath, "r") as f:
+                self.assertEqual(f.read(), "err\n")
+        finally:
+            os.unlink(tofilepath)
+            os.unlink(tefilepath)
+        os.rmdir(odir)
+        os.rmdir(edir)
 
 
 class CLIClushTest_B_StdinFailure(unittest.TestCase):

@@ -163,6 +163,38 @@ class DirectOutputHandler(OutputHandler):
                                      (self._prog, nodeset))
         self.update_prompt(worker)
 
+class DirectOutputDirHandler(DirectOutputHandler):
+    """Direct output files event handler class. pssh style"""
+    def __init__(self, display, ns, prog=None):
+        DirectOutputHandler.__init__(self, display, prog)
+        self._ns = ns
+        self._outfiles = {}
+        self._errfiles = {}
+        if display.outdir:
+            for n in self._ns:
+               self._outfiles[n] = open(join(display.outdir, n), mode="w")
+        if display.errdir:
+            for n in self._ns:
+               self._errfiles[n] = open(join(display.errdir, n), mode="w")
+
+    def ev_read(self, worker, node, sname, msg):
+        DirectOutputHandler.ev_read(self, worker, node, sname, msg)
+        if sname == worker.SNAME_STDOUT:
+            if self._display.outdir:
+                self._outfiles[node].write("{}\n".format(msg.decode()))
+        elif sname == worker.SNAME_STDERR:
+            if self._display.errdir:
+                self._errfiles[node].write("{}\n".format(msg.decode()))
+
+    def ev_close(self, worker, timedout):
+        DirectOutputHandler.ev_close(self, worker, timedout)
+        if self._display.outdir:
+            for v in self._outfiles.values():
+                v.close()
+        if self._display.errdir:
+            for v in self._errfiles.values():
+                v.close()
+
 class DirectProgressOutputHandler(DirectOutputHandler):
     """Direct output event handler class with progress support."""
 
@@ -676,6 +708,12 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
     elif display.progress and display.verbosity > VERB_QUIET:
         handler = DirectProgressOutputHandler(display)
         handler.runtimer_init(task, len(ns))
+    elif (display.outdir or display.errdir) and ns is not None:
+        if display.outdir and not exists(display.outdir):
+            os.makedirs(display.outdir)
+        if display.errdir and not exists(display.errdir):
+            os.makedirs(display.errdir)
+        handler = DirectOutputDirHandler(display, ns)
     else:
         # this is the simpler but faster output handler
         handler = DirectOutputHandler(display)

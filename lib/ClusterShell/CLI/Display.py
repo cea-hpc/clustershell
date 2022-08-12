@@ -96,6 +96,8 @@ class Display(object):
         self.regroup = options.regroup
         self.groupsource = options.groupsource
         self.noprefix = options.groupbase
+        self.outdir = options.outdir
+        self.errdir = options.errdir
         # display may change when 'max return code' option is set
         self.maxrc = getattr(options, 'maxrc', False)
 
