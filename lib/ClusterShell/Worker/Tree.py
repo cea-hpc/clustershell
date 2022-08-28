@@ -20,7 +20,7 @@
 # This file is part of the ClusterShell library.
 
 """
-ClusterShell v2 tree propagation worker
+ClusterShell tree propagation worker
 """
 
 import base64

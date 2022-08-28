@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH GROUPS.CONF 5 "2021-11-03" "1.8.4" "ClusterShell User Manual"
+.TH GROUPS.CONF 5 "2022-11-25" "1.9" "ClusterShell User Manual"
 .SH NAME
 groups.conf \- Configuration file for ClusterShell node groups
 .
@@ -42,7 +42,8 @@ user configuration file (\fI$XDG_CONFIG_HOME/clustershell/groups.conf\fP)
 .IP 2. 3
 local pip user installation (\fI$HOME/.local/etc/clustershell/groups.conf\fP)
 .IP 3. 3
-system\-wide configuration file (\fI/etc/clustershell/groups.conf\fP)
+Global configuration file (\fI$CLUSTERSHELL_CFGDIR/groups.conf\fP, defaults to
+\fI/etc/clustershell/groups.conf\fP)
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -183,13 +184,14 @@ reverse: sinfo \-h \-N \-o "%P" \-n $NODE
 .SH FILES
 .INDENT 0.0
 .TP
-.B \fI/etc/clustershell/groups.conf\fP
-System\-wide node groups configuration file.
+.B \fI$CLUSTERSHELL_CFGDIR/groups.conf\fP (defaults to \fI/etc/clustershell/groups.conf\fP)
+Global node groups configuration file.
 .TP
-.B \fI/etc/clustershell/groups.conf.d/\fP
+.B \fI$CLUSTERSHELL_CFGDIR/groups.conf.d/\fP (defaults to
+\fI/etc/clustershell/groups.conf.d/\fP)
 Recommended directory for additional configuration files.
 .TP
-.B \fI/etc/clustershell/groups.d/\fP
+.B \fI$CLUSTERSHELL_CFGDIR/groups.d/\fP (defaults to \fI/etc/clustershell/groups.d/\fP)
 Recommended directory for \fIautodir\fP, where native group definition files
 (.yaml files) are found.
 .TP

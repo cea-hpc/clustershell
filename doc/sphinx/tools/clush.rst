@@ -412,6 +412,8 @@ these criteria:
 #. largest nodeset with the same output result
 #. otherwise the first nodeset is taken (ordered (1) by name and (2) lowest range indexes)
 
+.. _clush-outdir:
+
 Saving output in files
 """"""""""""""""""""""
 
@@ -570,6 +572,9 @@ Here are some examples of file copying with *clush*::
 
     $ clush -v -w node[11-12] --copy /tmp/foo --dest /var/tmp/
     `/tmp/foo' -> node[11-12]:`/var/tmp/'
+
+.. note:: To copy a file to nodes under a different user, use the
+   ``--user=$USER`` option and **NOT** ``$USER@node[11-12]``.
 
 Reverse file copying mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^

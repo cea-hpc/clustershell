@@ -16,6 +16,7 @@ Contents:
     Worker
     ExecWorker
     StreamWorker
+    TreeWorker
     WorkerRsh
     WorkerPdsh
     WorkerPopen
