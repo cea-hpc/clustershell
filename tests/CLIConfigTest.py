@@ -229,7 +229,7 @@ class CLIClushConfigTest(unittest.TestCase):
         display = Display(options, config)
 
         # force a lower soft limit
-        resource.setrlimit(resource.RLIMIT_NOFILE, (hard2/2, hard))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard2//2, hard))
         # max_fdlimit should increase soft limit again
         set_fdlimit(config.fd_max, display)
         # verify
