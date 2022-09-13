@@ -160,8 +160,8 @@ class UpcallGroupSource(GroupSource):
     """
 
     def __init__(self, name, map_upcall, all_upcall=None,
-                 list_upcall=None, reverse_upcall=None, cfgdir=None,
-                 cache_time=None):
+                 list_upcall=None, down_upcall=None, reverse_upcall=None,
+                 cfgdir=None, cache_time=None):
         GroupSource.__init__(self, name)
         self.verbosity = 0 # deprecated
         self.cfgdir = cfgdir
@@ -174,6 +174,8 @@ class UpcallGroupSource(GroupSource):
             self.upcalls['all'] = all_upcall
         if list_upcall:
             self.upcalls['list'] = list_upcall
+        if down_upcall:
+            self.upcalls['down'] = down_upcall
         if reverse_upcall:
             self.upcalls['reverse'] = reverse_upcall
             self.has_reverse = True
@@ -192,6 +194,7 @@ class UpcallGroupSource(GroupSource):
         """
         self._cache = {
             'map': {},
+            'down': {},
             'reverse': {}
         }
 
@@ -224,12 +227,12 @@ class UpcallGroupSource(GroupSource):
             raise GroupSourceNoUpcall(upcall, self)
 
         # Purge expired data from cache
-        if key in cache and cache[key][1] < time.time():
+        if key in cache and cache[key]:
             self.logger.debug("PURGE EXPIRED (%d)'%s'", cache[key][1], key)
             del cache[key]
 
         # Fetch the data if unknown of just purged
-        if key not in cache:
+        if key not in cache or not cache[key]:
             cache_expiry = time.time() + self.cache_time
             # $CFGDIR and $SOURCE always replaced
             args['CFGDIR'] = self.cfgdir
@@ -251,6 +254,12 @@ class UpcallGroupSource(GroupSource):
         the cached value if available.
         """
         return self._upcall_cache('list', self._cache, 'list')
+
+    def resolv_down(self):
+        """
+        Return a list of all nodes that are down in this group.
+        """
+        return self._upcall_cache('down', self._cache, 'down')
 
     def resolv_all(self):
         """
@@ -496,6 +505,13 @@ class GroupResolver(object):
         source = self._source(namespace)
         return self._list_nodes(source, 'all')
 
+    def down_nodes(self, namespace=None):
+        """
+        Find all nodes. You may specify an optional namespace.
+        """
+        source = self._source(namespace)
+        return self._list_nodes(source, 'down')
+
     def grouplist(self, namespace=None):
         """
         Get full group list. You may specify an optional
@@ -653,11 +669,13 @@ class GroupResolverConfig(GroupResolver):
                     if srcname != self.SECTION_MAIN:
                         # only map is a mandatory upcall
                         map_upcall = cfg.get(section, 'map', raw=True)
-                        all_upcall = list_upcall = reverse_upcall = ctime = None
+                        all_upcall = list_upcall = down_upcall = reverse_upcall = ctime = None
                         if cfg.has_option(section, 'all'):
                             all_upcall = cfg.get(section, 'all', raw=True)
                         if cfg.has_option(section, 'list'):
                             list_upcall = cfg.get(section, 'list', raw=True)
+                        if cfg.has_option(section, 'down'):
+                            down_upcall = cfg.get(section, 'down', raw=True)
                         if cfg.has_option(section, 'reverse'):
                             reverse_upcall = cfg.get(section, 'reverse',
                                                      raw=True)
@@ -665,11 +683,14 @@ class GroupResolverConfig(GroupResolver):
                             ctime = float(cfg.get(section, 'cache_time',
                                                   raw=True))
                         # add new group source
-                        self.add_source(UpcallGroupSource(srcname, map_upcall,
-                                                          all_upcall,
-                                                          list_upcall,
-                                                          reverse_upcall,
-                                                          cfgdir, ctime))
+                        self.add_source(UpcallGroupSource(srcname,
+                                                          map_upcall,
+                                                          all_upcall=all_upcall,
+                                                          list_upcall=list_upcall,
+                                                          down_upcall=down_upcall,
+                                                          reverse_upcall=reverse_upcall,
+                                                          cfgdir=cfgdir,
+                                                          cache_time=ctime))
         except (NoSectionError, NoOptionError, ValueError) as exc:
             raise GroupResolverConfigError(str(exc))
 

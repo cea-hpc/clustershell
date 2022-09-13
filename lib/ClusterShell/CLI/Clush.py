@@ -976,6 +976,11 @@ def main():
             msg = "Picked random nodes: %s" % nodeset_base
             print(Display.COLOR_RESULT_FMT % msg)
 
+    # If we need to remove nodes that are down do it here
+    if options.nodown:
+        down = NodeSet.fromdown()
+        nodeset_base.difference_update(down)
+
     # Set open files limit.
     set_fdlimit(config.fd_max, display)
 

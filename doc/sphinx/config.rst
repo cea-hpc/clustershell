@@ -164,6 +164,7 @@ groups are bound to the source named *genders* by default::
     map: nodeattr -n $GROUP
     all: nodeattr -n ALL
     list: nodeattr -l
+    down: whatsup -n -d || /bin/true
 
     [slurm]
     map: sinfo -h -o "%N" -p $GROUP
