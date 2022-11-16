@@ -21,7 +21,7 @@
 %{!?__python3: %global __python3 python3}
 %{!?python3_shortver: %global python3_shortver %(%{__python3} -c 'import sys; print(str(sys.version_info.major) + "." + str(sys.version_info.minor))')}
 
-%if 0%{?rhel} < 8 &&  0%{?suse_version} <= 1500
+%if 0%{?rhel} < 8 &&  0%{?sle_version} < 150400
 %define py2 1
 %endif
 
