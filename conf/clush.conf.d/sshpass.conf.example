@@ -1,0 +1,19 @@
+# Example configuration file for ssh password auth support with sshpass.
+#
+# Copy as sshpass.conf to enable and edit the paths below as needed.
+# sshpass needs to be installed on your operating system.
+#
+# To activate sshpass mode, use clush -m sshpath ...
+
+[mode:sshpass]
+password_prompt: yes
+ssh_path: /usr/bin/sshpass /usr/bin/ssh
+scp_path: /usr/bin/sshpass /usr/bin/scp
+ssh_options: -oBatchMode=no -oStrictHostKeyChecking=no
+
+# Another mode that reads the password from a local file instead
+[mode:sshpass-file]
+password_prompt: no
+ssh_path: /usr/bin/sshpass -f /root/remotepasswordfile /usr/bin/ssh
+scp_path: /usr/bin/sshpass -f /root/remotepasswordfile /usr/bin/scp
+ssh_options: -oBatchMode=no -oStrictHostKeyChecking=no

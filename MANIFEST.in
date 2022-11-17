@@ -3,6 +3,8 @@ include README.md
 include COPYING.LGPLv2.1
 include conf/*.conf
 include conf/*.example
+include conf/clush.conf.d/README
+include conf/clush.conf.d/*.example
 include conf/groups.d/README
 include conf/groups.d/*.cfg
 include conf/groups.d/*.example

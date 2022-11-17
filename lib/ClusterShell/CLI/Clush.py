@@ -642,9 +642,9 @@ def ttyloop(task, nodeset, timeout, display, remote, trytree):
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                if task.default("USER_sudo_command"):
-                    sudo_cmdl = shlex.split(task.default("USER_sudo_command"))
-                    cmd = "%s %s" % (' '.join(sudo_cmdl), cmd)
+                if task.default("USER_command_prefix"):
+                    prefix_cmdl = shlex.split(task.default("USER_command_prefix"))
+                    cmd = "%s %s" % (' '.join(prefix_cmdl), cmd)
                 run_command(task, cmd, ns, timeout, display, remote, trytree)
     return rc
 
@@ -719,17 +719,18 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         handler = DirectOutputHandler(display)
 
     stdin = task.default("USER_stdin_worker")      # stdin forwarding?
-    sudo_passwd = task.default("USER_sudo_passwd") # --sudo?
+    prompt_passwd = task.default("USER_password_prompt")  # from --mode
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                        remote=remote, tree=trytree, stdin=stdin or sudo_passwd)
+                        remote=remote, tree=trytree,
+                        stdin=stdin or prompt_passwd is not None)
     if ns is None:
         worker.set_key('LOCAL')
-    if sudo_passwd:
-        worker.write(sudo_passwd.encode() + b'\n')
+    if prompt_passwd:
+        worker.write(prompt_passwd.encode() + b'\n')
     if stdin:
         bind_stdin(worker, display)
-    if sudo_passwd and not stdin:
-        worker.set_write_eof() # we only enabled stdin to send the sudo password
+    if prompt_passwd and not stdin:
+        worker.set_write_eof() # we only enabled stdin to send the password
     task.resume()
 
 def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
@@ -792,7 +793,7 @@ def set_fdlimit(fd_max, display):
             display.vprint_err(VERB_VERB, msgfmt % (rlim_max, exc))
 
 def ask_pass():
-    """Prompt for password (--sudo)"""
+    """Prompt for password (--mode with password_prompt=True)"""
     return getpass.getpass()
 
 def clush_exit(status, task=None):
@@ -849,8 +850,6 @@ def main():
 
     parser.add_option("-n", "--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
-    parser.add_option("--sudo", action="store_true", dest="sudo",
-                      help="enable sudo password prompt")
 
     parser.install_groupsconf_option()
     parser.install_clush_config_options()
@@ -1030,15 +1029,25 @@ def main():
     task.set_info("debug", config.verbosity >= VERB_DEBUG)
     task.set_info("fanout", config.fanout)
 
-    if options.sudo:
-        # keep sudo_command for interactive mode ttyloop()
-        task.set_default("USER_sudo_command", config.sudo_command)
-        sudo_cmdl = shlex.split(config.sudo_command)
-        display.vprint(VERB_DEBUG, "sudo command prefix: %s" % sudo_cmdl)
-        # prefix actual command with sudo command
-        args = sudo_cmdl + args
-        # prompt for sudo password
-        task.set_default("USER_sudo_passwd", ask_pass())
+    if options.mode:
+        display.vprint(VERB_DEBUG, "ClushConfig parsed: %s" % config.parsed)
+        display.vprint(VERB_DEBUG, "Available run modes: %s" % ' '.join(config.modes()))
+        config.set_mode(options.mode)
+        display.vprint(VERB_VERB, "[%s] run mode activated" % options.mode)
+
+    command_prefix = config.command_prefix
+    if command_prefix:
+        # keep command_prefix for interactive mode ttyloop()
+        task.set_default("USER_command_prefix", command_prefix)
+        prefix_cmdl = shlex.split(command_prefix)
+        display.vprint(VERB_VERB, "[%s] command prefix: %s" % \
+                       (options.mode, prefix_cmdl))
+        args = prefix_cmdl + args  # amend actual command with prefix
+
+    if config.password_prompt:
+        display.vprint(VERB_VERB, "[%s] password prompt enabled" % options.mode)
+        # prompt for password
+        task.set_default("USER_password_prompt", ask_pass())
 
     if options.worker:
         try:

@@ -7,7 +7,7 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2022-06-29
+:Date:   2022-11-18
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
 :Version: 1.8.4
 :Manual section: 1
@@ -185,6 +185,8 @@ Connection options:
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
+  -m MODE, --mode=MODE
+                      run mode; define MODEs in ``<confdir>/*.conf``
   -R WORKER, --worker=WORKER
                       worker name to use for connection (``exec``, ``ssh``, ``rsh``, ``pdsh``, or the name of a Python worker module), default is ``ssh``
   --remote=REMOTE     whether to enable remote execution: in tree mode, 'yes' forces connections to the leaf nodes for execution, 'no' establishes connections up to the leaf parent nodes for execution (default is 'yes') 

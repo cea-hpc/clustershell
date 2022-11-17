@@ -10,7 +10,7 @@ import tempfile
 from textwrap import dedent
 import unittest
 
-from TLib import make_temp_dir
+from TLib import *
 
 from ClusterShell.CLI.Clush import set_fdlimit
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError
@@ -429,3 +429,178 @@ class CLIClushConfigTest(unittest.TestCase):
             else:
                 del os.environ['XDG_CONFIG_HOME']
             shutil.rmtree(dname, ignore_errors=True)
+
+    def testClushConfigConfDirModesEmpty(self):
+        """test CLI.Config.ClushConfig (confdir with no modes)"""
+        dname1 = make_temp_dir()
+        dname2 = make_temp_dir()
+        f = make_temp_file(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            maxrc: yes
+            node_count: yes
+            verbosity: 1
+            confdir: %s "%s" %s
+            """ % (dname1, dname2, dname1)).encode())
+
+        try:
+            parser = OptionParser("dummy")
+            parser.install_clush_config_options()
+            parser.install_display_options(verbose_options=True)
+            parser.install_connector_options()
+            options, _ = parser.parse_args([])
+            config = ClushConfig(options, filename=f.name)
+            self.assertEqual(config.color, THREE_CHOICES[-1])
+            self.assertEqual(config.verbosity, VERB_STD)
+            self.assertTrue(config.maxrc)
+            self.assertTrue(config.node_count)
+            self.assertEqual(config.fanout, 42)
+            self.assertEqual(config.connect_timeout, 14)
+            self.assertEqual(config.command_timeout, 0)
+            self.assertEqual(config.ssh_user, None)
+            self.assertEqual(config.ssh_path, None)
+            self.assertEqual(config.ssh_options, None)
+            self.assertEqual(config.command_prefix, "")
+            self.assertFalse(config.command_prefix)
+            self.assertFalse(config.password_prompt)
+
+            self.assertEqual(len(set(config.modes())), 0)
+
+            self.assertRaises(ClushConfigError, config.set_mode, "sshpass")
+        finally:
+            f.close()
+            os.rmdir(dname2)
+            os.rmdir(dname1)
+
+
+    def testClushConfigConfDirModes(self):
+        """test CLI.Config.ClushConfig (confdir and modes)"""
+        dname1 = make_temp_dir()
+        dname2 = make_temp_dir()
+        # Notes:
+        #   - use dname1 two times to check dup checking code
+        #   - use quotes on one of the directory path
+        #   - enable each run modes and test config options
+        f = make_temp_file(dedent("""
+            [Main]
+            fanout: 42
+            connect_timeout: 14
+            command_timeout: 0
+            history_size: 100
+            color: auto
+            maxrc: yes
+            node_count: yes
+            verbosity: 1
+            ssh_user: root
+            ssh_path: /usr/bin/ssh
+            ssh_options: -oStrictHostKeyChecking=no
+            confdir: %s "%s" %s
+            """ % (dname1, dname2, dname1)).encode())
+
+        f1 = make_temp_file(dedent("""
+            [mode:sshpass]
+            password_prompt: yes
+            ssh_path: /usr/bin/sshpass /usr/bin/ssh
+            scp_path: /usr/bin/sshpass /usr/bin/scp
+            ssh_options: -oBatchMode=no
+            """).encode(), suffix=".conf", dir=dname1)
+
+        f2 = make_temp_file(dedent("""
+            [mode:sudo]
+            password_prompt: yes
+            command_prefix: /usr/bin/sudo -S -p "''"
+            """).encode(), suffix=".conf", dir=dname2)
+
+        f3 = make_temp_file(dedent("""
+            [mode:test]
+            fanout: 100
+            connect_timeout: 6
+            command_timeout: 5
+            history_size: 200
+            color: always
+            maxrc: no
+            node_count: no
+            verbosity: 0
+            ssh_user: nobody
+            ssh_path: /some/other/ssh
+            ssh_options:
+            """).encode(), suffix=".conf", dir=dname2)
+
+        try:
+            parser = OptionParser("dummy")
+            parser.install_clush_config_options()
+            parser.install_display_options(verbose_options=True)
+            parser.install_connector_options()
+            options, _ = parser.parse_args([])
+            config = ClushConfig(options, filename=f.name)
+            self.assertEqual(config.color, THREE_CHOICES[-1])
+            self.assertEqual(config.verbosity, VERB_STD)
+            self.assertTrue(config.maxrc)
+            self.assertTrue(config.node_count)
+            self.assertEqual(config.fanout, 42)
+            self.assertEqual(config.connect_timeout, 14)
+            self.assertEqual(config.command_timeout, 0)
+            self.assertEqual(config.ssh_user, "root")
+            self.assertEqual(config.ssh_path, "/usr/bin/ssh")
+            self.assertEqual(config.ssh_options, "-oStrictHostKeyChecking=no")
+            self.assertEqual(config.command_prefix, "")
+            self.assertFalse(config.command_prefix)
+            self.assertFalse(config.password_prompt)
+
+            self.assertEqual(set(config.modes()), {'sshpass', 'sudo', 'test'})
+
+            config.set_mode("sshpass")
+            self.assertEqual(config.color, THREE_CHOICES[-1])
+            self.assertEqual(config.verbosity, VERB_STD)
+            self.assertTrue(config.maxrc)
+            self.assertTrue(config.node_count)
+            self.assertEqual(config.fanout, 42)
+            self.assertEqual(config.connect_timeout, 14)
+            self.assertEqual(config.command_timeout, 0)
+            self.assertEqual(config.ssh_user, "root")
+            self.assertEqual(config.ssh_path, "/usr/bin/sshpass /usr/bin/ssh")
+            self.assertEqual(config.ssh_options, "-oBatchMode=no")
+            self.assertEqual(config.command_prefix, "")
+            self.assertFalse(config.command_prefix)
+            self.assertTrue(config.password_prompt)
+
+            config.set_mode("sudo")
+            self.assertEqual(config.color, THREE_CHOICES[-1])
+            self.assertEqual(config.verbosity, VERB_STD)
+            self.assertTrue(config.maxrc)
+            self.assertTrue(config.node_count)
+            self.assertEqual(config.fanout, 42)
+            self.assertEqual(config.connect_timeout, 14)
+            self.assertEqual(config.command_timeout, 0)
+            self.assertEqual(config.ssh_user, "root")
+            self.assertEqual(config.ssh_path, "/usr/bin/ssh")
+            self.assertEqual(config.ssh_options, "-oStrictHostKeyChecking=no")
+            self.assertEqual(config.command_prefix, '/usr/bin/sudo -S -p "\'\'"')
+            self.assertTrue(config.command_prefix)
+            self.assertTrue(config.password_prompt)
+
+            config.set_mode("test")
+            self.assertEqual(config.color, THREE_CHOICES[2])
+            self.assertEqual(config.verbosity, VERB_STD)
+            self.assertFalse(config.maxrc)
+            self.assertFalse(config.node_count)
+            self.assertEqual(config.fanout, 100)
+            self.assertEqual(config.connect_timeout, 6)
+            self.assertEqual(config.command_timeout, 5)
+            self.assertEqual(config.ssh_user, "nobody")
+            self.assertEqual(config.ssh_path, "/some/other/ssh")
+            self.assertEqual(config.ssh_options, "")
+            self.assertEqual(config.command_prefix, "")
+            self.assertFalse(config.command_prefix)
+            self.assertFalse(config.password_prompt)
+        finally:
+            f3.close()
+            f2.close()
+            f1.close()
+            f.close()
+            os.rmdir(dname2)
+            os.rmdir(dname1)

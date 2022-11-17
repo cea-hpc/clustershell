@@ -12,15 +12,19 @@ endif
 " shut case off
 syn case ignore
 
-syn match  clushComment	    "#.*$"
-syn match  clushComment	    ";.*$"
-syn match  clushHeader	    "\[\w\+\]"
+syn match  clushComment     "#.*$"
+syn match  clushComment     ";.*$"
+syn match  clushHeader      "\[\w\+\]$"
+syn match  clushHeaderMode  "\[mode:\S\+\]$"
+syn match  confDirGroup     "^confdir\(:\|=\).*$" contains=confDirKeys,confDirVars
+syn match  confDirVars      "$CFGDIR" contained
+syn match  confDirKeys      "^\w\+\(:\|=\)"me=e-1 contained
 
 syn keyword clushKeys       fanout command_timeout connect_timeout color fd_max history_size node_count maxrc verbosity
 syn keyword clushKeys       ssh_user ssh_path ssh_options
 syn keyword clushKeys       scp_user scp_path scp_options
 syn keyword clushKeys       rsh_path rcp_path rcp_options
-syn keyword clushKeys       sudo_command
+syn keyword clushKeys       command_prefix password_prompt
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
@@ -33,10 +37,13 @@ if version >= 508 || !exists("did_clushconf_syntax_inits")
     command -nargs=+ HiLink hi def link <args>
   endif
 
-  HiLink clushHeader	Special
-  HiLink clushComment	Comment
-  HiLink clushLabel	Type
-  HiLink clushKeys      Identifier
+  HiLink clushHeader        Special
+  HiLink clushHeaderMode    Constant
+  HiLink clushComment       Comment
+  HiLink clushLabel         Type
+  HiLink clushKeys          Identifier
+  HiLink confDirKeys        Identifier
+  HiLink confDirVars        Keyword
 
   delcommand HiLink
 endif
