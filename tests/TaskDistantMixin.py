@@ -734,25 +734,3 @@ class TaskDistantMixin(object):
         self.assertEqual(test_eh.hup_count, 2)
         self.assertEqual(test_eh.start_count, 1)
         self.assertEqual(test_eh.close_count, 1)
-
-    def test_last_deprecated(self):
-
-        class TestHandlerHandler(EventHandler):
-            def ev_read(self, worker):
-                with warnings.catch_warnings(record=True) as wngs:
-                    warnings.simplefilter("always")
-                    self.node, self.msg = worker.last_read()
-                    assert len(wngs) == 1
-                    assert issubclass(wngs[-1].category, DeprecationWarning)
-            def ev_hup(self, worker):
-                with warnings.catch_warnings(record=True) as wngs:
-                    warnings.simplefilter("always")
-                    self.node, self.rc = worker.last_retcode()
-                    assert len(wngs) == 1
-                    assert issubclass(wngs[-1].category, DeprecationWarning)
-
-        eh = TestHandlerHandler()
-        reader = self._task.shell("echo foobar", nodes=HOSTNAME, handler=eh)
-        self._task.resume()
-        self.assertEqual(eh.node, HOSTNAME)
-        self.assertEqual(eh.rc, 0)
