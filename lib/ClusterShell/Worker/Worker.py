@@ -289,42 +289,6 @@ class DistantWorker(Worker):
 
         self.task._timeout_add(self, node)
 
-    def last_node(self):
-        """
-        Get last node, useful to get the node in an EventHandler
-        callback like ev_read().
-        [DEPRECATED] use current_node
-        """
-        warnings.warn("use current_node instead", DeprecationWarning)
-        return self.current_node
-
-    def last_read(self):
-        """
-        Get last (node, buffer), useful in an EventHandler.ev_read()
-        [DEPRECATED] use (current_node, current_msg)
-        """
-        warnings.warn("use current_node and current_msg instead",
-                      DeprecationWarning)
-        return self.current_node, self.current_msg
-
-    def last_error(self):
-        """
-        Get last (node, error_buffer), useful in an EventHandler.ev_error()
-        [DEPRECATED] use (current_node, current_errmsg)
-        """
-        warnings.warn("use current_node and current_errmsg instead",
-                      DeprecationWarning)
-        return self.current_node, self.current_errmsg
-
-    def last_retcode(self):
-        """
-        Get last (node, rc), useful in an EventHandler.ev_hup()
-        [DEPRECATED] use (current_node, current_rc)
-        """
-        warnings.warn("use current_node and current_rc instead",
-                      DeprecationWarning)
-        return self.current_node, self.current_rc
-
     def node_buffer(self, node):
         """Get specific node buffer."""
         return self.read(node, self.SNAME_STDOUT)
@@ -680,24 +644,6 @@ class WorkerSimple(StreamWorker):
     def writer_fileno(self):
         """Return the writer file descriptor as an integer."""
         return self.clients[0].streams['stdin'].fd
-
-    def last_read(self):
-        """
-        Get last read message.
-
-        [DEPRECATED] use current_msg
-        """
-        warnings.warn("use current_msg instead", DeprecationWarning)
-        return self.current_msg
-
-    def last_error(self):
-        """
-        Get last error message.
-
-        [DEPRECATED] use current_errmsg
-        """
-        warnings.warn("use current_errmsg instead", DeprecationWarning)
-        return self.current_errmsg
 
     def error(self):
         """Read worker error buffer."""
