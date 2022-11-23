@@ -45,7 +45,10 @@ def _eh_sigspec_invoke_compat(method, argc_legacy, *args):
     """
     argc_actual = len(getfullargspec(method)[0])
     if argc_actual == argc_legacy:
-        # Use legacy signature (1.x)
+        # Use legacy signature (1.x) deprecated as of 1.9
+        warnings.warn("%s should use new %s() signature" % (method.__self__,
+                                                            method.__name__),
+                      DeprecationWarning)
         return method(*args[0:argc_legacy - 1])
     else:
         # Assume new signature (2.x)
@@ -53,7 +56,11 @@ def _eh_sigspec_invoke_compat(method, argc_legacy, *args):
 
 def _eh_sigspec_ev_read_17(ev_read):
     """Helper function to check whether ev_read has the old 1.7 signature."""
-    return len(getfullargspec(ev_read)[0]) == 2
+    if len(getfullargspec(ev_read)[0]) == 2:
+        warnings.warn("%s should use new ev_read() signature" % \
+                      ev_read.__self__, DeprecationWarning)
+        return True
+    return False
 
 
 class WorkerException(Exception):
@@ -121,11 +128,17 @@ class Worker(object):
         self.metarefcnt = 0
 
         # current_x public variables (updated at each event accordingly)
-        self.current_node = None    #: set to node in event handler
-        self.current_msg = None     #: set to stdout message in event handler
-        self.current_errmsg = None  #: set to stderr message in event handler
-        self.current_rc = 0         #: set to return code in event handler
-        self.current_sname = None   #: set to stream name in event handler
+
+        #: set to node in event handler; DEPRECATED: use :class:`.EventHandler` method argument **node**
+        self.current_node = None
+        #: set to stdout in event handler; DEPRECATED: use :class:`.EventHandler` method argument **msg** if ``sname==SNAME_STDOUT``
+        self.current_msg = None
+        #: set to stderr message in event handler; DEPRECATED: use :class:`.EventHandler` method argument **msg** if ``sname==SNAME_STDERR``
+        self.current_errmsg = None
+        #: set to return code in event handler; DEPRECATED: use :class:`.EventHandler` method argument **rc**
+        self.current_rc = 0
+        #: set to stream name in event handler; DEPRECATED: use :class:`.EventHandler` method argument **sname**
+        self.current_sname = None
 
     def _set_task(self, task):
         """Bind worker to task. Called by task.schedule()."""
@@ -178,24 +191,9 @@ class Worker(object):
         self.current_sname = sname
 
         if self.eh is not None:
-            _eh_sigspec_invoke_compat(self.eh.ev_written, 5, self, key, sname,
-                                      bytes_count)
+            self.eh.ev_written(self, key, sname, bytes_count)
 
     # Base getters
-
-    def last_read(self):
-        """
-        Get last read message from event handler.
-        [DEPRECATED] use current_msg
-        """
-        raise NotImplementedError("Derived classes must implement.")
-
-    def last_error(self):
-        """
-        Get last error message from event handler.
-        [DEPRECATED] use current_errmsg
-        """
-        raise NotImplementedError("Derived classes must implement.")
 
     def did_timeout(self):
         """Return whether this worker has aborted due to timeout."""
@@ -570,6 +568,8 @@ class StreamWorker(Worker):
         # trigger timeout event (deprecated in 1.8+)
         # also use hasattr check because ev_timeout was missing in 1.8.0
         if self.eh and hasattr(self.eh, 'ev_timeout'):
+            warnings.warn("%s should use new ev_close() instead of " \
+                          "ev_timeout()" % self.eh, DeprecationWarning)
             self.eh.ev_timeout(self)
 
     def abort(self):
@@ -680,5 +680,4 @@ class WorkerSimple(StreamWorker):
 
         if self.eh is not None:
             # generate ev_written
-            _eh_sigspec_invoke_compat(self.eh.ev_written, 5, self, key, sname,
-                                      bytes_count)
+            self.eh.ev_written(self, key, sname, bytes_count)
