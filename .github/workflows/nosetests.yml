@@ -4,10 +4,16 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [ '2.7', '3.6', '3.7', '3.8', '3.9' ]
+        os: [ubuntu-latest]
+        python-version: [ '3.7', '3.8', '3.9']
+        include:
+          - os: ubuntu-20.04
+            python-version: '2.7'
+          - os: ubuntu-20.04
+            python-version: '3.6'
     name: Tests with Python ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
