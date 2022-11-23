@@ -120,7 +120,7 @@ class ScpClient(CopyClient):
         # Disable passphrase/password querying
         # When used together with sshpass this must be overwritten
         # by a custom option to "-oBatchMode=no".
-        cmd_l.append("-oBatchMode=yes")
+        #cmd_l.append("-oBatchMode=yes")
 
 
         if self.reverse:

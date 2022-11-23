@@ -1,0 +1,10 @@
+# Example configuration file for sudo support.
+#
+# Copy as sudo.conf to enable and edit sudo's path as needed
+# (sudo needs to be installed on your operating system).
+#
+# To activate sudo mode, use clush -m sudo ...
+
+[mode:sudo]
+password_prompt: yes
+command_prefix: /usr/bin/sudo -S -p "''"

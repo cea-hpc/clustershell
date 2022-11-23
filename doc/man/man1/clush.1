@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2022-06-29" "1.8.4" "ClusterShell User Manual"
+.TH CLUSH 1 "2022-11-18" "1.8.4" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -289,6 +289,9 @@ limit time to connect to a node
 .BI \-u \ COMMAND_TIMEOUT\fP,\fB \ \-\-command_timeout\fB= COMMAND_TIMEOUT
 limit time for command to run on the node
 .TP
+.BI \-m \ MODE\fP,\fB \ \-\-mode\fB= MODE
+run mode; define MODEs in \fB<confdir>/*.conf\fP
+.TP
 .BI \-R \ WORKER\fP,\fB \ \-\-worker\fB= WORKER
 worker name to use for connection (\fBexec\fP, \fBssh\fP, \fBrsh\fP, \fBpdsh\fP, or the name of a Python worker module), default is \fBssh\fP
 .TP
@@ -384,8 +387,9 @@ Copy \fI/etc/motd\fP from remote nodes node[3\-5,62] to local \fI/tmp\fP directo
 .SH FILES
 .INDENT 0.0
 .TP
-.B \fI/etc/clustershell/clush.conf\fP
-System\-wide clush configuration file.
+.B \fI$CLUSTERSHELL_CFGDIR/clush.conf\fP
+Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
+\fI/etc/clustershell/clush.conf\fP is used instead.
 .TP
 .B \fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP
 User configuration file for clush. If $XDG_CONFIG_HOME is not defined,

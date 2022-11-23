@@ -549,6 +549,8 @@ The interactive mode and commands described above are subject to change and
 improvements in future releases. Feel free to open an enhancement `ticket`_ if
 you use the interactive mode and have some suggestions.
 
+.. _clush-copy:
+
 File copying mode
 ^^^^^^^^^^^^^^^^^
 
@@ -584,6 +586,109 @@ destination, example::
 
     $ ls /tmp/foo.*
     /tmp/foo.node11  /tmp/foo.node12
+
+.. _clush-modes:
+
+Run modes
+^^^^^^^^^
+
+Since version 1.9, *clush* has support for run modes, which are special
+:ref:`clush.conf <clush-config>` settings with a given name. See
+:ref:`run mode configuration <clushmode-config>` for more details on how
+to install a run mode.
+
+This section describes how to use the run modes from the provided example
+files. To use an installed run mode, just use the ``--mode`` or ``-m``
+command line option followed by the mode name (eg. ``sudo``, ``sshpass``,
+etc.).
+
+.. _clush-sshpass:
+
+Run mode: sshpass
+"""""""""""""""""
+
+Since version 1.9, *clush* has support for password-based ssh authentication.
+It is implemented thanks to the external `sshpass`_ tool and provided sshpass run
+mode example. When using this run mode, you will be prompted for a password
+that will be forwarded to sshpass.  This could be convenient for example in a
+new environment to install ssh keys on a large number of servers.
+
+Make sure you have *sshpass(1)* installed on your operating system and install
+the sshpass run mode by creating ``sshpass.conf`` in ``clush.conf.d``::
+
+    $ cd /etc/clustershell/clush.conf.d  # or $CLUSTERSHELL_CFGDIR/clush.conf.d
+    $ cp sshpass.conf.example sshpass.conf
+
+Then, run *clush* with ``--mode=sshpass`` (or ``-m sshpass``) to activate this
+run mode. You will be prompted for a password that will be forwarded on stdin
+to sshpass to authenticate your ssh workers.
+
+The following example shows how to check the date on four servers with
+password-based ssh authentication::
+
+    $ clush -w n[1-2]c[01-02] --mode=sshpass -b date
+    Password: 
+    ---------------
+    n[1-2]c[01-02] (4)
+    ---------------
+    Thu Nov 17 16:08:04 PST 2022
+
+The following example shows how to install an ``authorized_keys`` file with
+the :ref:`clush-copy` and password-based ssh authentication on four nodes::
+
+    $ clush -w n[1-2]c[01-02] -m sshpass -v --copy ~/authorized_keys --dest ~/.ssh/authorized_keys
+    [sshpass] run mode activated
+    [sshpass] password prompt enabled
+    Password: 
+    `/home/user/authorized_keys' -> n[1-2]c[01-02]:`/home/user/.ssh/authorized_keys'
+
+.. _clush-sudo:
+
+Run mode: sudo
+""""""""""""""
+
+Since version 1.9, *clush* has support for `sudo`_ password forwarding over
+stdin. This may be useful in an environment that only allows sysadmins
+to perform interactive *sudo* work with password.
+
+.. warning:: In this section, it is assumed that *sudo* always requires a
+   password for the user on the target nodes. If *sudo* does NOT require
+   any password (i.e. **NOPASSWD** is specified in your sudoers file), you
+   do not need any extra options to run your *sudo* commands with *clush*.
+
+Make sure you have *sudo(8)* installed on your operating system. Then install
+the sudo run mode by creating ``sudo.conf`` in ``clush.conf.d``::
+
+    $ cd /etc/clustershell/clush.conf.d  # or $CLUSTERSHELL_CFGDIR/clush.conf.d
+    $ cp sudo.conf.example sudo.conf
+
+Then, run *clush* with ``--mode=sudo`` (or ``-m sudo``) to **enable a password
+prompt** to type your *sudo* password, then *sudo* (well, the ``command_prefix``
+from the sudo run mode – see below) will be used to run your commands on the
+target nodes. The password is broadcasted to all target nodes over *ssh(1)* (or
+via your :ref:`favorite worker <clush-worker>`) and as such, must be the same
+on all target nodes. It is not stored on disk at any time and only kept in
+memory during the duration of the *clush* command.  Thus, the password will be
+prompted every time you run *clush*. When you start *clush* in
+:ref:`interactive mode <clush-interactive>` along with ``--mode=sudo``, you can
+run multiple commands in that mode without having to type your password every
+time.
+
+When ``--mode=sudo`` is used, *clush* will run *sudo* for you on each target
+node, so your command itself should NOT start with ``sudo``. The actual *sudo*
+command used by *clush* can be changed in ``clush.conf.d/sudo.conf`` or
+in command line using ``-O command_prefix"..."``. The configured
+``command_prefix`` must be able to read a password on stdin followed by a new
+line (which is what ``sudo -S`` does).
+
+Usage example::
+
+    $ clush -w n[1-2]c[01-02] --mode=sudo -b id
+    Password: 
+    ---------------
+    n[1-2]c[01-02] (4)
+    ---------------
+    uid=0(root) gid=0(root) groups=0(root)
 
 Other options
 ^^^^^^^^^^^^^
@@ -652,46 +757,6 @@ By default, ClusterShell supports the following worker identifiers:
 Worker modules distributed outside of ClusterShell are also supported by
 specifying the case-sensitive full Python module name of a worker module.
 
-.. _clush-sudo:
-
-Support for sudo
-""""""""""""""""
-
-Since version 1.9, *clush* has support for `Sudo`_ password forwarding over
-stdin. This may be useful in an environment that only allows sysadmins
-to perform interactive *sudo* work with password.
-
-.. warning:: In this section, it is assumed that *sudo* always requires a
-   password for the user on the target nodes. If *sudo* does NOT require
-   any password (i.e. **NOPASSWD** is specified in your sudoers file), you
-   do not need any extra options to run your *sudo* commands with *clush*.
-
-Run *clush* with ``--sudo`` to **enable a password prompt** to type your *sudo*
-password, then *sudo* (well, ``sudo_command`` – see below) will be used to run
-your commands on the target nodes. The password is broadcasted to all target
-nodes over *ssh(1)* (or via your :ref:`favorite worker <clush-worker>`) and
-as such, must be the same on all target nodes. It is not stored on disk at
-any time and only kept in memory during the duration of the *clush* command.
-Thus, the password will be prompted every time you run *clush*. When you
-start *clush* in :ref:`interactive mode <clush-interactive>` along with
-``--sudo``, you can run multiple commands in that mode without having to type
-your password every time.
-
-When ``--sudo`` is used, *clush* will run *sudo* for you on each target node,
-so your command itself should NOT start with ``sudo``. The actual *sudo*
-command used by *clush* can be changed in :ref:`clush.conf <clush-config>` or
-in command line using ``-O sudo_command="..."``. The configured
-``sudo_command`` must be able to read a password on stdin followed by a new
-line (which is what ``sudo -S`` does).
-
-Usage example::
-
-    $ clush -w n[1-2]c[01-02] --sudo -b id
-    Password: 
-    ---------------
-    n[1-2]c[01-02] (4)
-    ---------------
-    uid=0(root) gid=0(root) groups=0(root)
 
 
 .. [#] LLNL parallel remote shell utility
@@ -706,4 +771,5 @@ Usage example::
 
 .. _this paper: https://www.kernel.org/doc/ols/2012/ols2012-thiell.pdf
 
-.. _Sudo: https://www.sudo.ws/
+.. _sshpass: http://sshpass.sourceforge.net/
+.. _sudo: https://www.sudo.ws/
