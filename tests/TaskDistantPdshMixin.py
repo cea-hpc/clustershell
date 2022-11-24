@@ -172,30 +172,28 @@ class TaskDistantPdshMixin(object):
         def ev_start(self, worker):
             self.test.assertEqual(self.flags, 0)
             self.flags |= EV_START
-        def ev_pickup(self, worker):
+        def ev_pickup(self, worker, node):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_PICKUP
-            self.last_node = worker.current_node
-        def ev_read(self, worker):
+            self.last_node = node
+        def ev_read(self, worker, node, sname, msg):
             self.test.assertEqual(self.flags, EV_START | EV_PICKUP)
             self.flags |= EV_READ
-            self.last_node = worker.current_node
-            self.last_read = worker.current_msg
-        def ev_written(self, worker):
+            self.last_node = node
+            self.last_read = msg
+        def ev_written(self, worker, node, sname, size):
             self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_WRITTEN
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_HUP
-            self.last_node = worker.current_node
-            self.last_rc = worker.current_rc
-        def ev_timeout(self, worker):
-            self.test.assertTrue(self.flags & EV_START)
-            self.flags |= EV_TIMEOUT
-            self.last_node = worker.current_node
-        def ev_close(self, worker):
+            self.last_node = node
+            self.last_rc = rc
+        def ev_close(self, worker, timedout):
             self.test.assertTrue(self.flags & EV_START)
             self.test.assertTrue(self.flags & EV_CLOSE == 0)
+            if timedout:
+                self.flags |= EV_TIMEOUT
             self.flags |= EV_CLOSE
 
     def testExplicitWorkerPdshShellEvents(self):
@@ -500,13 +498,13 @@ class TaskDistantPdshMixin(object):
         def ev_start(self, worker):
             self.start_count += 1
 
-        def ev_pickup(self, worker):
+        def ev_pickup(self, worker, node):
             self.pickup_count += 1
 
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.hup_count += 1
 
-        def ev_close(self, worker):
+        def ev_close(self, worker, timedout):
             self.close_count += 1
 
     def testWorkerEventCount(self):

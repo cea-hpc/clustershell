@@ -106,7 +106,7 @@ class TaskThreadJoinTest(unittest.TestCase):
         class TestUnhandledException(Exception):
             """test exception"""
         class RaiseOnRead(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 raise TestUnhandledException("you should see this exception")
 
         task = Task()

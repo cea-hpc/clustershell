@@ -226,30 +226,28 @@ class TaskDistantMixin(object):
         def ev_start(self, worker):
             self.test.assertEqual(self.flags, 0)
             self.flags |= EV_START
-        def ev_pickup(self, worker):
+        def ev_pickup(self, worker, node):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_PICKUP
-            self.last_node = worker.current_node
-        def ev_read(self, worker):
+            self.last_node = node
+        def ev_read(self, worker, node, sname, msg):
             self.test.assertEqual(self.flags, EV_START | EV_PICKUP)
             self.flags |= EV_READ
-            self.last_node = worker.current_node
-            self.last_read = worker.current_msg
-        def ev_written(self, worker):
+            self.last_node = node
+            self.last_read = msg
+        def ev_written(self, worker, node, sname, size):
             self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_WRITTEN
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.test.assertTrue(self.flags & (EV_START | EV_PICKUP))
             self.flags |= EV_HUP
-            self.last_node = worker.current_node
-            self.last_rc = worker.current_rc
-        def ev_timeout(self, worker):
-            self.test.assertTrue(self.flags & EV_START)
-            self.flags |= EV_TIMEOUT
-            self.last_node = worker.current_node
-        def ev_close(self, worker):
+            self.last_node = node
+            self.last_rc = rc
+        def ev_close(self, worker, timedout):
             self.test.assertTrue(self.flags & EV_START)
             self.test.assertTrue(self.flags & EV_CLOSE == 0)
+            if timedout:
+                self.flags |= EV_TIMEOUT
             self.flags |= EV_CLOSE
 
     def testShellEvents(self):
@@ -550,8 +548,9 @@ class TaskDistantMixin(object):
 
     def testShellStderrWithHandler(self):
         class StdErrHandler(EventHandler):
-            def ev_error(self, worker):
-                assert worker.current_errmsg == b"something wrong"
+            def ev_read(self, worker, node, sname, msg):
+                if sname == worker.SNAME_STDERR:
+                    assert msg == b"something wrong"
 
         worker = self._task.shell("echo something wrong 1>&2", nodes=HOSTNAME,
                                   handler=StdErrHandler(), stderr=True)
@@ -572,9 +571,8 @@ class TaskDistantMixin(object):
         class WriteOnReadHandler(EventHandler):
             def __init__(self, target_worker):
                 self.target_worker = target_worker
-            def ev_read(self, worker):
-                self.target_worker.write(worker.current_node.encode('utf-8')
-                                         + b':' + worker.current_msg + b'\n')
+            def ev_read(self, worker, node, sname, msg):
+                self.target_worker.write(node.encode() + b':' + msg + b'\n')
                 self.target_worker.set_write_eof()
 
         reader = self._task.shell("cat", nodes=HOSTNAME)
@@ -582,7 +580,7 @@ class TaskDistantMixin(object):
                                   handler=WriteOnReadHandler(reader))
         self._task.resume()
         res = "%s:foobar" % HOSTNAME
-        self.assertEqual(reader.node_buffer(HOSTNAME), res.encode('utf-8'))
+        self.assertEqual(reader.node_buffer(HOSTNAME), res.encode())
 
     def testSshBadArgumentOption(self):
         # Check code < 1.4 compatibility
@@ -715,13 +713,13 @@ class TaskDistantMixin(object):
         def ev_start(self, worker):
             self.start_count += 1
 
-        def ev_pickup(self, worker):
+        def ev_pickup(self, worker, node):
             self.pickup_count += 1
 
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.hup_count += 1
 
-        def ev_close(self, worker):
+        def ev_close(self, worker, timedout):
             self.close_count += 1
 
     def testWorkerEventCount(self):

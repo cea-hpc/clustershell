@@ -156,7 +156,7 @@ class ExecTest(unittest.TestCase):
         """test ExecWorker.abort() on read"""
 
         class TestH(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 worker.abort()
                 worker.abort()  # safe but no effect
 

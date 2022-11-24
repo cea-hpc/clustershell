@@ -164,17 +164,15 @@ class TaskEventTest(unittest.TestCase):
         eh = LegacyTestHandler()
         # init worker
         worker = task.shell("echo abcdefghijklmnopqrstuvwxyz", handler=eh)
-        # future warnings: pickup + read + hup + close
-        #self.run_task_and_catch_warnings(task, 4)
-        self.run_task_and_catch_warnings(task, 0)
+        # warnings: pickup + read + hup + close
+        self.run_task_and_catch_warnings(task, 4)
         eh.do_asserts_read_notimeout()
         eh.reset_asserts()
 
         # test again
         worker = task.shell("echo abcdefghijklmnopqrstuvwxyz", handler=eh)
-        # future warnings: pickup + read + hup + close
-        #self.run_task_and_catch_warnings(task, 4)
-        self.run_task_and_catch_warnings(task, 0)
+        # warnings: pickup + read + hup + close
+        self.run_task_and_catch_warnings(task, 4)
         eh.do_asserts_read_notimeout()
 
     def test_simple_event_handler(self):
@@ -191,8 +189,21 @@ class TaskEventTest(unittest.TestCase):
         self.run_task_and_catch_warnings(task)
         eh.do_asserts_read_notimeout()
 
-    def test_simple_event_handler_with_task_timeout_legacy(self):
+    def test_simple_event_handler_with_timeout_legacy(self):
         """test simple event handler with timeout (legacy)"""
+        task = task_self()
+
+        eh = LegacyTestHandler()
+
+        task.shell("/bin/sleep 3", handler=eh, timeout=2)
+
+        # warnings: pickup + timeout + close
+        self.run_task_and_catch_warnings(task, 3)
+
+        eh.do_asserts_timeout()
+
+    def test_simple_event_handler_with_task_timeout_legacy(self):
+        """test simple event handler with task timeout (legacy)"""
         task = task_self()
 
         eh = LegacyTestHandler()
@@ -200,9 +211,8 @@ class TaskEventTest(unittest.TestCase):
         task.shell("/bin/sleep 3", handler=eh)
 
         try:
-            # future warnings: pickup + close
-            #self.run_task_and_catch_warnings(task, 2, task_timeout=2)
-            self.run_task_and_catch_warnings(task, 0, task_timeout=2)
+            # warnings: pickup + timeout + close
+            self.run_task_and_catch_warnings(task, 3, task_timeout=2)
         except TimeoutError:
             pass
         else:
@@ -211,7 +221,7 @@ class TaskEventTest(unittest.TestCase):
         eh.do_asserts_timeout()
 
     def test_simple_event_handler_with_task_timeout(self):
-        """test simple event handler with timeout (1.8+)"""
+        """test simple event handler with task timeout (1.8+)"""
         task = task_self()
 
         eh = TestHandler()
@@ -271,9 +281,8 @@ class TaskEventTest(unittest.TestCase):
         worker.write(content)
         worker.set_write_eof()
 
-        # future warnings: 1 x pickup + 1 x read + 1 x hup + 1 x close
-        #self.run_task_and_catch_warnings(task, 4)
-        self.run_task_and_catch_warnings(task, 0)
+        # warnings: 1 x pickup + 1 x read + 1 x hup + 1 x close
+        self.run_task_and_catch_warnings(task, 4)
         eh.do_asserts_read_write_notimeout()
 
     def test_popen_specific_behaviour(self):
@@ -348,10 +357,8 @@ class TaskEventTest(unittest.TestCase):
         worker = task.shell("/bin/uname", handler=eh)
         self.assertNotEqual(worker, None)
 
-        # future warnings: 1 x pickup + 1 x read + 2 x pickup + 3 x hup +
-        #                  3 x close
-        #self.run_task_and_catch_warnings(task, 10)
-        self.run_task_and_catch_warnings(task, 0)
+        # warnings: 1 x pickup + 1 x read + 2 x pickup + 3 x hup + 3 x close
+        self.run_task_and_catch_warnings(task, 10)
 
     class TOnTheFlyLauncher(EventHandler):
         """CS v1.8 Test Event handler to shedules commands on the fly"""
@@ -384,8 +391,7 @@ class TaskEventTest(unittest.TestCase):
         """test write on ev_start (legacy)"""
         task = task_self()
         task.shell("cat", handler=self.__class__.LegacyTWriteOnStart())
-        #self.run_task_and_catch_warnings(task, 1)  # future: read
-        self.run_task_and_catch_warnings(task, 0)
+        self.run_task_and_catch_warnings(task, 1)  # ev_read
 
     class TWriteOnStart(EventHandler):
         def ev_start(self, worker):
@@ -416,9 +422,8 @@ class TaskEventTest(unittest.TestCase):
                 worker = task.shell("echo ok; sleep 1", handler=eh)
                 self.assertTrue(worker is not None)
                 worker.write(b"OK\n")
-            # future warnings: 10 x read
-            #self.run_task_and_catch_warnings(task, 10)
-            self.run_task_and_catch_warnings(task, 0)
+            # warnings: 10 x read
+            self.run_task_and_catch_warnings(task, 10)
         finally:
             task.set_info("fanout", fanout)
 
@@ -451,9 +456,8 @@ class TaskEventTest(unittest.TestCase):
         task.shell("/bin/sleep 0.5", handler=eh)
         task.shell("/bin/sleep 0.5", handler=eh)
 
-        # future warnings: 3 x pickup + 3 x hup + 3 x close
-        #self.run_task_and_catch_warnings(task, 9)
-        self.run_task_and_catch_warnings(task, 0)
+        # warnings: 3 x pickup + 3 x hup + 3 x close
+        self.run_task_and_catch_warnings(task, 9)
 
         eh.do_asserts_noread_notimeout()
         self.assertEqual(eh.cnt_pickup, 3)
@@ -488,9 +492,8 @@ class TaskEventTest(unittest.TestCase):
             task.shell("/bin/sleep 0.5", handler=eh, key="n2")
             task.shell("/bin/sleep 0.5", handler=eh, key="n3")
 
-            # future warnings: 3 x pickup + 3 x hup + 3 x close
-            #self.run_task_and_catch_warnings(task, 9)
-            self.run_task_and_catch_warnings(task, 0)
+            # warnings: 3 x pickup + 3 x hup + 3 x close
+            self.run_task_and_catch_warnings(task, 9)
 
             eh.do_asserts_noread_notimeout()
             self.assertEqual(eh.cnt_pickup, 3)
@@ -530,9 +533,8 @@ class TaskEventTest(unittest.TestCase):
         worker.write(content)
         worker.set_write_eof()
 
-        # future warnings: pickup + read + hup + close
-        #self.run_task_and_catch_warnings(task, 4)
-        self.run_task_and_catch_warnings(task, 0)
+        # warnings: pickup + read + hup + close
+        self.run_task_and_catch_warnings(task, 4)
 
         eh.do_asserts_read_write_notimeout()
         self.assertEqual(eh.cnt_written, 1)
