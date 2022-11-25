@@ -189,6 +189,19 @@ class TaskEventTest(unittest.TestCase):
         self.run_task_and_catch_warnings(task)
         eh.do_asserts_read_notimeout()
 
+    def test_simple_event_handler_with_timeout(self):
+        """test simple event handler with timeout"""
+        task = task_self()
+
+        eh = TestHandler()
+
+        task.shell("/bin/sleep 3", handler=eh, timeout=2)
+
+        # verify that no warnings are generated
+        self.run_task_and_catch_warnings(task, 0)
+
+        eh.do_asserts_timeout()
+
     def test_simple_event_handler_with_timeout_legacy(self):
         """test simple event handler with timeout (legacy)"""
         task = task_self()
