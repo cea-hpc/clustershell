@@ -33,6 +33,12 @@ class EventHandler(object):
     Derived class should implement any of the following methods to listen for
     :class:`.Worker`, :class:`.EnginePort` or :class:`.EngineTimer` events.
     If not implemented, the default behavior is to do nothing.
+
+    NOTE: ``ev_timeout(self, worker)`` was removed from this class definition
+    in ClusterShell 1.9. For compatibility, it is still called if defined by
+    subclasses. Use ``ev_close()`` instead and check whether its argument
+    ``timedout`` is ``True``, which means that the :class:`.Worker` has timed
+    out.
     """
 
     ### Worker events
@@ -122,15 +128,6 @@ class EventHandler(object):
             command return codes)
         """
 
-    def ev_timeout(self, worker):
-        """
-        Called to indicate that a worker has timed out (worker timeout only).
-
-        [DEPRECATED] use ev_close instead and check if timedout is True
-
-        :param worker: :class:`.Worker` object
-        """
-
     def ev_close(self, worker, timedout):
         """
         Called to indicate that a worker has just finished.
@@ -138,7 +135,7 @@ class EventHandler(object):
         .. warning:: The signature of :meth:`EventHandler.ev_close` changed
             in ClusterShell 1.8, please update your :class:`.EventHandler`
             derived classes to add the timedout argument. Please use this
-            argument instead of the method ``ev_timeout``.
+            argument instead of the old method ``ev_timeout()``.
 
         :param worker: :class:`.Worker` derived object
         :param timedout: boolean set to True if the worker has timed out
