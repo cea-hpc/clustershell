@@ -13,6 +13,7 @@ from ClusterShell.Worker.Pdsh import WorkerPdsh
 from ClusterShell.Worker.EngineClient import *
 
 import socket
+import unittest
 
 # TEventHandlerChecker 'received event' flags
 EV_START = 0x01
@@ -507,6 +508,7 @@ class TaskDistantPdshMixin(object):
         def ev_close(self, worker, timedout):
             self.close_count += 1
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def testWorkerEventCount(self):
         test_eh = self.__class__.TEventHandlerEvCountChecker()
         nodes = "localhost,%s" % HOSTNAME

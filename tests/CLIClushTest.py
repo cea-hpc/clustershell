@@ -215,12 +215,14 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_010_diff(self):
         """test clush (diff)"""
         self._clush_t(["-w", HOSTNAME, "--diff", "echo", "ok"], None, b"")
         self._clush_t(["-w", "%s,localhost" % HOSTNAME, "--diff", "echo",
                        "ok"], None, b"")
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_011_diff_tty(self):
         """test clush (diff) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
@@ -229,6 +231,7 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_012_diff_null(self):
         """test clush (diff w/o output)"""
         rxs = r"^--- %s\n\+\+\+ localhost\n@@ -1(,1)? \+[01],0 @@\n-ok\n$" % HOSTNAME
@@ -268,6 +271,7 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_017_retcodes(self):
         """test clush (retcodes)"""
         s = "clush: %s: exited with exit code 1\n" % HOSTNAME
@@ -301,6 +305,7 @@ class CLIClushTest_A(unittest.TestCase):
                       s.encode())
         self._clush_t(["-w", duo, "-S", "-b", "-q", "/bin/false"], None, b"", 1)
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_018_retcodes_tty(self):
         """test clush (retcodes) [tty]"""
         setattr(ClusterShell.CLI.Clush, '_f_user_interaction', True)
@@ -468,6 +473,7 @@ class CLIClushTest_A(unittest.TestCase):
                        "color=never", "-w", HOSTNAME, "echo", "ok"], None,
                       self.output_ok)
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_031_progress(self):
         """test clush -P/--progress"""
         self._clush_t(["-w", HOSTNAME, "--progress", "echo", "ok"], None,
@@ -518,6 +524,7 @@ class CLIClushTest_A(unittest.TestCase):
         finally:
             delattr(ClusterShell.CLI.Clush, '_f_user_interaction')
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def test_034_pick(self):
         """test clush --pick"""
         rxs = r"^(localhost|%s): foo\n$" % HOSTNAME

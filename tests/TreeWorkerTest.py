@@ -100,6 +100,7 @@ class TEventHandler(TEventHandlerBase):
             self.ev_timedout_cnt += 1
 
 
+@unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
 class TreeWorkerTest(unittest.TestCase):
     """
     TreeWorkerTest: test TreeWorker
