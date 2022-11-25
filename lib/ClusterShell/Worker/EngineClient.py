@@ -499,7 +499,7 @@ class EnginePort(EngineClient):
             fd_out = self.streams['out'].fd
         except KeyError:
             fd_out = None
-        return "<%s at 0x%s (streams=(%d, %d))>" % (self.__class__.__name__, \
+        return "<%s at 0x%s (streams=(%s, %s))>" % (self.__class__.__name__,
                                                     id(self), fd_in, fd_out)
 
     def _start(self):
