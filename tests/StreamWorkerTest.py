@@ -21,7 +21,13 @@ class StreamTest(unittest.TestCase):
         """test empty StreamWorker"""
         # that makes no sense but well...
         # handler=None is supported by base Worker class
-        self.run_worker(StreamWorker(handler=None))
+        worker = StreamWorker(handler=None)
+        self.run_worker(worker)
+        # GH Issue #488:
+        # An unconfigured engine client does not abort by itself...
+        worker.abort()
+        # Check that we are in a clean state now
+        self.assertEqual(len(task_self()._engine._clients), 0)
 
     def test_002_pipe_readers(self):
         """test StreamWorker bound to several pipe readers"""
