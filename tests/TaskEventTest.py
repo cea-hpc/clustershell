@@ -136,11 +136,6 @@ class TestHandler(BaseAssertTestHandler):
             assert worker.read().startswith(b"abcdefghijklmnopqrstuvwxyz")
 
 
-class AbortOnReadHandler(EventHandler):
-    def ev_read(self, worker):
-        worker.abort()
-
-
 class TaskEventTest(unittest.TestCase):
 
     def run_task_and_catch_warnings(self, task, expected_warn_cnt=0,

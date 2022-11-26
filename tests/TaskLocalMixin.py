@@ -436,7 +436,7 @@ class TaskLocalMixin(object):
 
     def testEscape(self):
         task = task_self()
-        worker = task.shell("export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'")
+        worker = task.shell(r"export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'")
         # execute
         task.resume()
         # read result
@@ -444,7 +444,7 @@ class TaskLocalMixin(object):
 
     def testEscape2(self):
         task = task_self()
-        worker = task.shell("export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'")
+        worker = task.shell(r"export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'")
         # execute
         task.resume()
         # read result
