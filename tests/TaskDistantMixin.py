@@ -5,6 +5,7 @@
 
 import pwd
 import shutil
+import unittest
 import warnings
 
 from TLib import HOSTNAME, make_temp_filename, make_temp_dir
@@ -722,6 +723,7 @@ class TaskDistantMixin(object):
         def ev_close(self, worker, timedout):
             self.close_count += 1
 
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
     def testWorkerEventCount(self):
         test_eh = self.__class__.TEventHandlerEvCountChecker()
         nodes = "localhost,%s" % HOSTNAME
