@@ -49,8 +49,8 @@ class TopologyTest(unittest.TestCase):
         # Add the same dst nodeset twice (no error)
         g.add_route(ns0, ns2)
 
-        self.assertEquals(g.dest(admin), ns0)
-        self.assertEquals(g.dest(ns0), ns1 | ns2)
+        self.assertEqual(g.dest(admin), ns0)
+        self.assertEqual(g.dest(ns0), ns1 | ns2)
 
     def testBadLink(self):
         """test detecting bad links in graph"""
@@ -216,7 +216,7 @@ class TopologyTest(unittest.TestCase):
         ns_tree = NodeSet()
         for nodegroup in tree:
             ns_tree.add(nodegroup.nodeset)
-        self.assertEquals(ns, ns_tree)
+        self.assertEqual(ns, ns_tree)
 
     def testConfigurationParser(self):
         """test configuration parsing"""
@@ -384,7 +384,7 @@ class TopologyTest(unittest.TestCase):
         display = str(tree)
         self.assertTrue(display == display_ref1 or display == display_ref2)
 
-        self.assertEquals(str(TopologyTree()), '<TopologyTree instance (empty)>')
+        self.assertEqual(str(TopologyTree()), '<TopologyTree instance (empty)>')
 
     def testAddingInvalidChildren(self):
         """test detecting invalid children"""
@@ -393,9 +393,9 @@ class TopologyTest(unittest.TestCase):
         t1 = TopologyNodeGroup(NodeSet('node[10-19]'))
 
         t0.add_child(t1)
-        self.assertEquals(t0.children_ns(), t1.nodeset)
+        self.assertEqual(t0.children_ns(), t1.nodeset)
         t0.add_child(t1)
-        self.assertEquals(t0.children_ns(), t1.nodeset)
+        self.assertEqual(t0.children_ns(), t1.nodeset)
 
     def testRemovingChild(self):
         """test child removal operation"""
@@ -403,9 +403,9 @@ class TopologyTest(unittest.TestCase):
         t1 = TopologyNodeGroup(NodeSet('node[10-19]'))
 
         t0.add_child(t1)
-        self.assertEquals(t0.children_ns(), t1.nodeset)
+        self.assertEqual(t0.children_ns(), t1.nodeset)
         t0.clear_child(t1)
-        self.assertEquals(t0.children_ns(), None)
+        self.assertEqual(t0.children_ns(), None)
 
         t0.clear_child(t1) # error discarded
         self.assertRaises(ValueError, t0.clear_child, t1, strict=True)
@@ -413,26 +413,26 @@ class TopologyTest(unittest.TestCase):
         t2 = TopologyNodeGroup(NodeSet('node[20-29]'))
         t0.add_child(t1)
         t0.add_child(t2)
-        self.assertEquals(t0.children_ns(), t1.nodeset | t2.nodeset)
+        self.assertEqual(t0.children_ns(), t1.nodeset | t2.nodeset)
         t0.clear_children()
-        self.assertEquals(t0.children_ns(), None)
-        self.assertEquals(t0.children_len(), 0)
+        self.assertEqual(t0.children_ns(), None)
+        self.assertEqual(t0.children_len(), 0)
 
     def testStrConversions(self):
         """test str() casts"""
         t = TopologyNodeGroup(NodeSet('admin0'))
-        self.assertEquals(str(t), '<TopologyNodeGroup (admin0)>')
+        self.assertEqual(str(t), '<TopologyNodeGroup (admin0)>')
 
         t = TopologyRoutingTable()
         r0 = TopologyRoute(NodeSet('src[0-9]'), NodeSet('dst[5-8]'))
         r1 = TopologyRoute(NodeSet('src[10-19]'), NodeSet('dst[15-18]'))
 
-        self.assertEquals(str(r0), 'src[0-9] -> dst[5-8]')
+        self.assertEqual(str(r0), 'src[0-9] -> dst[5-8]')
 
         t.add_route(r0)
         t.add_route(r1)
-        self.assertEquals(str(t), 'src[0-9] -> dst[5-8]\nsrc[10-19] -> dst[15-18]')
+        self.assertEqual(str(t), 'src[0-9] -> dst[5-8]\nsrc[10-19] -> dst[15-18]')
 
         g = TopologyGraph()
         # XXX: Actually if g is not empty other things will be printed out...
-        self.assertEquals(str(g), '<TopologyGraph>\n')
+        self.assertEqual(str(g), '<TopologyGraph>\n')

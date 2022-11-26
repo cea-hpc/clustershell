@@ -18,7 +18,7 @@ class MisusageTest(unittest.TestCase):
     def testTaskResumedTwice(self):
         """test library misusage (task_self resumed twice)"""
         class ResumeAgainHandler(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 worker.task.resume()
         task = task_self()
         task.shell("/bin/echo OK", handler=ResumeAgainHandler())

@@ -15,6 +15,7 @@ import os
 from os.path import basename, join
 import shutil
 import unittest
+import warnings
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, task_terminate, task_wait
@@ -133,7 +134,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_run_event_legacy(self):
         """test simple tree run with legacy EventHandler"""
         teh = TEventHandlerLegacy()
-        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+            self.assertEqual(len(w), 4)
         self.assertEqual(teh.ev_start_cnt, 1)
         self.assertEqual(teh.ev_pickup_cnt, 1)
         self.assertEqual(teh.ev_read_cnt, 1)
@@ -146,7 +150,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_run_event_legacy_timeout(self):
         """test simple tree run with legacy EventHandler with timeout"""
         teh = TEventHandlerLegacy()
-        self.task.run('sleep 10', nodes=NODE_DISTANT, handler=teh, timeout=0.5)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.task.run('sleep 10', nodes=NODE_DISTANT, handler=teh, timeout=0.5)
+            self.assertEqual(len(w), 2)
         self.assertEqual(teh.ev_start_cnt, 1)
         self.assertEqual(teh.ev_pickup_cnt, 1)
         self.assertEqual(teh.ev_read_cnt, 0)      # nothing to read

@@ -113,7 +113,7 @@ class Defaults000NoConfigTest(unittest.TestCase):
         sys.path.append(dname)
         self.defaults.distant_workername = 'OutOfTree'
         task = task_self(self.defaults)
-        self.assertTrue(task.default("distant_worker").__name__ is 'OutOfTreeWorker')
+        self.assertEqual(task.default("distant_worker").__name__, 'OutOfTreeWorker')
         task_terminate()
         shutil.rmtree(dname, ignore_errors=True)
 
