@@ -1,4 +1,4 @@
-name: ClusterShell nosetests
+name: ClusterShell unit tests
 
 on: [push, pull_request]
 
@@ -25,7 +25,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install coverage
-        pip install nose
+        case ${{ matrix.python-version }} in
+        2.7|3.6|3.7|3.8)
+            pip install nose
+            ;;
+        esac
         pip install .
     - name: Allow us to SSH passwordless to localhost
       run: |
@@ -49,7 +53,20 @@ jobs:
       run: |
         python --version
         export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)
-        nosetests -v --all-modules --with-coverage --cover-tests --cover-erase --cover-package=ClusterShell tests
+        case ${{ matrix.python-version }} in
+        2.7|3.6|3.7|3.8)
+            nosetests -v --all-modules --with-coverage --cover-tests --cover-erase --cover-package=ClusterShell tests
+            ;;
+        *)
+            cd tests
+            python -m unittest ./*.py
+            # running with coverage does not record clustershell (installed) reports,
+            # and tries to record /tmp/xxx/OutOfTree.py from DefaultsTest.py which
+            # fails as file is no longer present for report, so give up for now:
+            # python -m coverage run -m unittest ./*.py
+            # python -m coverage report
+            ;;
+        esac
     - name: Post to Slack
       if: always()  # could be changed to failure() if too verbose
       id: slack
