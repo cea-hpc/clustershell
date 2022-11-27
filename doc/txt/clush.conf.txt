@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2022-06-29
+:Date:   2022-11-25
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.4
+:Version: 1.9
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 

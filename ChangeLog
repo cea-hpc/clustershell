@@ -1,3 +1,42 @@
+2022-11-25 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9 released. The main changes are listed below.
+
+	* clush: add --mode support with sudo and sshpass examples (#198,#234,#423)
+
+	* clush: add same arguments '--outdir=OUTDIR' and '--errdir=ERRDIR' as
+	pssh (#470)
+
+	* clush: always close stdin stream of worker when it is not used (#478)
+
+	* clush: use daemon attribute instead of deprecated setDaemon() (#479)
+
+	* slurm.conf.example: filter out more Slurm node state flags (#469)
+
+	* NodeSet: add special notation @@source to expand group names (#468)
+
+	* RangeSet: nD folding optimization (#485)
+
+	* RangeSet: support ranges with zero padding of mixed lengths (#293, #473)
+
+	* RangeSet: add explicit intiter() method to iterate over integers (#476)
+
+	* EngineClient: EnginePort improvements, add event ev_port_start() (#481)
+
+	* Tree: fix start and bufferize early writes (#482)
+
+	* Tree: fix error with intermediate gateways (#471)
+
+	* Defaults: Introduce CLUSTERSHELL_CFGDIR (#483)
+
+	* Fix for python-3.10 (#484)
+
+	* Worker: deprecate old EventHandler method signatures (#358)
+
+	* Worker: remove old last_*() methods (#226)
+
+	* tests: misc. improvements (#110, #501, #502, 503)
+
 2021-11-03 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.8.4 released. The main changes are listed below.

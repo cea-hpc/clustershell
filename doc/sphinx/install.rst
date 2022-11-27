@@ -17,7 +17,7 @@ Requirements
 ------------
 
 ClusterShell should work with any Unix [#]_ operating systems which provides
-Python 2.6, 2.7 or 3.x and OpenSSH or any compatible Secure Shell clients.
+Python 2.7 or 3.x and OpenSSH or any compatible Secure Shell clients.
 
 Furthermore, ClusterShell's engine has been optimized when the ``poll()``
 syscall is available or even better, when the ``epoll_wait()`` syscall is
@@ -25,12 +25,23 @@ available (Linux only).
 
 For instance, ClusterShell is known to work on the following operating systems:
 
-* GNU/Linux RHEL or CentOS 6 (Python 2.6)
-* GNU/Linux RHEL or CentOS 7 (Python 2.7)
-* GNU/Linux RHEL or CentOS 8 (Python 3.6)
-* GNU/Linux Fedora 22 and above (Python 2.6+)
-* GNU/Linux Debian wheezy and above (Python 2.7+)
-* Mac OS X 10.8+ (Python 2.6+)
+* GNU/Linux
+
+  * Red Hat Enterprise Linux 7 (Python 2.7)
+
+  * Red Hat Enterprise Linux 8 (Python 3.6)
+
+  * Red Hat Enterprise Linux 9 (Python 3.9)
+
+  * Fedora 30 and above (Python 2.7 to 3.10+)
+
+  * Debian 10 "buster" (Python 3.7)
+
+  * Debian 11 "bullseye" (Python 3.9)
+
+  * Ubuntu 20.04 (Python 3.8)
+
+* Mac OS X 12+ (Python 2.7 and 3.8)
 
 Distribution
 ------------
@@ -39,33 +50,31 @@ ClusterShell is an open-source project distributed under the GNU Lesser General
 Public License version or later (`LGPL v2.1+`_), which means that many
 possibilities are offered to the end user. Also, as a software library,
 ClusterShell should remain easily available to everyone. Hopefully, packages are
-currently available for Fedora Linux, RHEL (through EPEL repositories), Debian
-and Arch Linux.
+currently available for Fedora Linux, RHEL (through EPEL repositories), Debian,
+Arch Linux and more.
 
 .. _install-python-support-overview:
 
 Python support overview
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-As seen in :ref:`install-requirements`, ClusterShell supports Python 2.6 and
-onwards, at least up to Python 3.8 at the time of writing.
+As seen in :ref:`install-requirements`, ClusterShell supports Python 2.7 and
+onwards, at least up to Python 3.10 at the time of writing.
 
-The table below provides examples of versions of Python supported by
+The table below provides a few examples of versions of Python supported by
 ClusterShell packages as found in some common Linux distributions:
 
 +------------------+----------------------------+-----------------------------------+
 | Operating        | System Python version used | Alternate Python support          |
 | System           | by the clustershell tools  | packaged (version-suffixed tools) |
 +==================+============================+===================================+
-| RHEL/CentOS 6    | Python 2.6                 | Python 3.4                        |
+| RHEL 7           | Python 2.7                 | Python 3.6                        |
 +------------------+----------------------------+-----------------------------------+
-| RHEL/CentOS 7    | Python 2.7                 | Python 3.4/3.6                    |
+| RHEL 8           | **Python 3.6**             |                                   |
 +------------------+----------------------------+-----------------------------------+
-| RHEL/CentOS 8    | **Python 3.6**             |                                   |
+| RHEL 9           | **Python 3.9**             |                                   |
 +------------------+----------------------------+-----------------------------------+
-| Fedora 30        | Python 2.7                 | Python 3.7                        |
-+------------------+----------------------------+-----------------------------------+
-| Fedora 31        | **Python 3.8**             |                                   |
+| Fedora 36        | **Python 3.10**            |                                   |
 +------------------+----------------------------+-----------------------------------+
 | openSUSE Leap 15 | Python 2.7                 | Python 3.6                        |
 +------------------+----------------------------+-----------------------------------+
@@ -75,14 +84,16 @@ ClusterShell packages as found in some common Linux distributions:
 +------------------+----------------------------+-----------------------------------+
 | Ubuntu 18.04 LTS | **Python 3.6**             |                                   |
 +------------------+----------------------------+-----------------------------------+
+| Ubuntu 20.04 LTS | **Python 3.8**             |                                   |
++------------------+----------------------------+-----------------------------------+
 
-Red Hat Enterprise Linux (and CentOS)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Red Hat Enterprise Linux
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 ClusterShell packages are maintained on Extra Packages for Enterprise Linux
 `EPEL`_ for Red Hat Enterprise Linux (RHEL) and its compatible spinoffs such
-as CentOS. At the time of writing, ClusterShell |version| is available on
-EPEL 6, 7 and 8.
+as `Alma Linux`_ and `Rocky Linux`_. At the time of writing, ClusterShell |version|
+is available on EPEL 7, 8 and 9.
 
 
 Install ClusterShell from EPEL
@@ -99,28 +110,27 @@ Then, the ClusterShell installation procedure is quite the same as for
 
     $ yum install clustershell
 
-With EPEL 6 and 7, the Python 2 modules and tools are installed by default. If
+With EPEL 7, the Python 2 modules and tools are installed by default. If
 interested in Python 3 support, simply install the additional ClusterShell's
 Python 3 subpackage using the following command::
 
-    $ yum install python34-clustershell
+    $ yum install python36-clustershell
 
 .. note:: The Python 3 subpackage is named ``python34-clustershell`` or
-          ``python36-clustershell`` on EPEL 6 and 7, instead of
-          ``python3-clustershell``.
+          ``python36-clustershell`` instead of ``python3-clustershell``
+          on EPEL 7 only.
 
-With EPEL 6 and 7, Python 3 versions of the tools are installed as
-*tool-pythonversion*, like ``clush-3.4``, ``cluset-3.4`` or ``nodeset-3.4`` on
-EPEL 6 and 7.
+On EPEL 7, Python 3 versions of the tools are installed as *tool-pythonversion*,
+like ``clush-3.6``, ``cluset-3.6`` or ``nodeset-3.6``.
 
-With EPEL 8, however, Python 3 is the system default, and Python 2 has been
-deprecated. Thus only Python 3 is supported by the EPEL clustershell packages,
-the tools are using Python 3 by default and are not suffixed anymore.
+With EPEL 8 and 9, however, Python 3 is the system default, and Python 2 has
+been deprecated. Thus only Python 3 is supported by the EPEL clustershell
+packages, the tools are using Python 3 by default and are not suffixed anymore.
 
 Fedora
 ^^^^^^
 
-At the time of writing, ClusterShell |version| is available on Fedora 31
+At the time of writing, ClusterShell |version| is available on Fedora 37
 (releases being maintained by the Fedora Project).
 
 Install ClusterShell from *Fedora Updates*
@@ -142,7 +152,7 @@ command::
 
     $ dnf install clustershell
 
-Prior to Fedora 31, Python 2 modules and tools are installed by default. If
+Prior to Fedora 31, Python 2 modules and tools were installed by default. If
 interested in Python 3 support, simply install the additional ClusterShell's
 Python 3 subpackage using the following command::
 
@@ -156,8 +166,8 @@ On Fedora 31 and onwards, only Python 3 is supported.
 Install ClusterShell from Fedora Updates Testing
 """"""""""""""""""""""""""""""""""""""""""""""""
 
-Recent releases of ClusterShell are first available through the `Test
-Updates`_ repository of Fedora, then it is later pushed to the stable
+Recent releases of ClusterShell are first available through the
+`Test Updates`_ repository of Fedora, then it is later pushed to the stable
 *updates* repository. The following ``dnf`` command will also checks for
 packages availability in the *updates-testing* repository::
 
@@ -279,3 +289,5 @@ the latest development version from the repository::
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _Test Updates: http://fedoraproject.org/wiki/QA/Updates_Testing
 .. _EPEL: http://fedoraproject.org/wiki/EPEL
+.. _Alma Linux: https://almalinux.org/
+.. _Rocky Linux: https://rockylinux.org/
