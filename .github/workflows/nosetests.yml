@@ -59,12 +59,8 @@ jobs:
             ;;
         *)
             cd tests
-            python -m unittest ./*.py
-            # running with coverage does not record clustershell (installed) reports,
-            # and tries to record /tmp/xxx/OutOfTree.py from DefaultsTest.py which
-            # fails as file is no longer present for report, so give up for now:
-            # python -m coverage run -m unittest ./*.py
-            # python -m coverage report
+            python -m coverage run --omit="/tmp/*,./*" -m unittest discover -v --pattern '*.py'
+            python -m coverage report
             ;;
         esac
     - name: Post to Slack
