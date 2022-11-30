@@ -320,8 +320,7 @@ class CLIClushConfigTest(unittest.TestCase):
         config = ClushConfig(options)
 
     def testClushConfigCustomGlobal(self):
-        """test CLI.Config.ClushConfig (CLUSTERSHELL_CFGDIR global custom
-        config)
+        """test CLI.Config.ClushConfig (CLUSTERSHELL_CFGDIR global custom config)
         """
 
         # Save existing environment variable, if it's defined
@@ -374,13 +373,6 @@ class CLIClushConfigTest(unittest.TestCase):
 
     def testClushConfigUserOverride(self):
         """test CLI.Config.ClushConfig (XDG_CONFIG_HOME user config)"""
-
-        # XXX Test should be improved when CLUSTERSHELL_CONFIG is available
-        # Improvement: override CLUSTERSHELL_CONFIG and set a sys clush config
-        # then verify that user config overrides CLUSTERSHELL_CONFIG as
-        # expected...
-        # For now, it has been tested manually. This test only really only
-        # ensures that user config is taken into account.
 
         xdg_config_home_save = os.environ.get('XDG_CONFIG_HOME')
 
