@@ -91,15 +91,22 @@ def _distant_workerclass(defaults):
 
 def config_paths(config_name):
     """Return default path list for a ClusterShell config file name."""
-    return [os.path.join(os.environ.get('CLUSTERSHELL_CFGDIR',
-                                        '/etc/clustershell'),
-			             config_name), # global config file
-            # default pip --user config file
-            os.path.expanduser('~/.local/etc/clustershell/%s' % config_name),
-            # per-user config (top override)
-            os.path.join(os.environ.get('XDG_CONFIG_HOME',
-                                        os.path.expanduser('~/.config')),
-                         'clustershell', config_name)]
+
+    paths = [os.path.join('/etc/clustershell', config_name), # system-wide
+             # default pip --user config file
+             os.path.expanduser('~/.local/etc/clustershell/%s' % config_name),
+             # Python installation prefix (for venv)
+             os.path.join(sys.prefix, 'etc/clustershell', config_name),
+             # per-user config (XDG Base Directory Specification)
+             os.path.join(os.environ.get('XDG_CONFIG_HOME',
+                                         os.path.expanduser('~/.config')),
+                          'clustershell', config_name)]
+
+    # $CLUSTERSHELL_CFGDIR has precedence over any other config paths
+    if 'CLUSTERSHELL_CFGDIR' in os.environ:
+        paths.append(os.path.join(os.environ['CLUSTERSHELL_CFGDIR'],
+                                  config_name))
+    return paths
 
 def _converter_integer_tuple(value):
     """ConfigParser converter for tuple of integers"""

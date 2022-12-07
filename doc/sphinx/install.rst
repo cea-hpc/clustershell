@@ -231,27 +231,19 @@ ClusterShell is available since "Natty" release (11.04):
 * http://packages.ubuntu.com/clustershell
 
 
-Installing ClusterShell using PIP
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing ClusterShell the Python way
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Installing ClusterShell as root using PIP
-"""""""""""""""""""""""""""""""""""""""""
-
-To install ClusterShell as a standard Python package using PIP [#]_ as root::
-
-    $ pip install ClusterShell
-
-Or alternatively, using the source tarball::
-
-    $ pip install ClusterShell-1.x.tar.gz
-
+.. warning:: Installing ClusterShell as root using pip [#]_ is discouraged and
+   can result in conflicting behaviour with the system package manager.  Use
+   packages provided by your OS instead to install ClusterShell system-wide.
 
 .. _install-pip-user:
 
-Installing ClusterShell as user using PIP
+Installing ClusterShell as user using pip
 """""""""""""""""""""""""""""""""""""""""
 
-To install ClusterShell as a standard Python package using PIP as an user::
+To install ClusterShell as a standard Python package using pip as an user::
 
     $ pip install --user ClusterShell
 
@@ -259,16 +251,32 @@ Or alternatively, using the source tarball::
 
     $ pip install --user ClusterShell-1.x.tar.gz
 
-Then, you just need to update your ``PYTHONPATH`` environment variable to be
-able to import the library and ``PATH`` to easily use the :ref:`tools`::
+Then, you might need to update your ``PATH`` to easily use the :ref:`tools`,
+and possibly set the ``PYTHONPATH`` environment variable to be able to import
+the library, and finally ``MANPATH`` for the man pages::
 
-    $ export PYTHONPATH=$PYTHONPATH:~/.local/lib
     $ export PATH=$PATH:~/.local/bin
+    $
+    $ # Might also be needed:
+    $ export PYTHONPATH=$PYTHONPATH:~/.local/lib
+    $ export MANPATH=$MANPATH:$HOME/.local/share/man
 
 Configuration files are installed in ``~/.local/etc/clustershell`` and are
 automatically loaded before system-wide ones (for more info about supported
 user config files, please see the :ref:`clush-config` or :ref:`groups-config`
 config sections).
+
+.. _install-venv-pip:
+
+Isolated environment using virtualenv and pip
+"""""""""""""""""""""""""""""""""""""""""""""
+
+It is possible to use virtual env (`venv`_) and pip to install ClusterShell
+in an isolated environment::
+
+    $ python3 -m venv venv
+    $ source venv/bin/activate
+    $ pip install ClusterShell
 
 .. _install-source:
 
@@ -291,3 +299,4 @@ the latest development version from the repository::
 .. _EPEL: http://fedoraproject.org/wiki/EPEL
 .. _Alma Linux: https://almalinux.org/
 .. _Rocky Linux: https://rockylinux.org/
+.. _venv: https://docs.python.org/3/tutorial/venv.html

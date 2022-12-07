@@ -25,15 +25,8 @@ from setuptools import setup, find_packages
 
 VERSION = '1.9'
 
-# Default CFGDIR: in-prefix config install (rpmbuild or pip as user)
 CFGDIR = 'etc/clustershell'
-
-# Use system-wide CFGDIR instead when installing as root on Unix
-try:
-    if os.geteuid() == 0:
-        CFGDIR = '/etc/clustershell'
-except AttributeError:  # Windows?
-    pass
+MANDIR = 'share/man'
 
 # Dependencies (for pip install)
 REQUIRES = ['PyYAML']
@@ -57,7 +50,16 @@ setup(name='ClusterShell',
                   (os.path.join(CFGDIR, 'groups.d'),
                    ['conf/groups.d/cluster.yaml.example',
                     'conf/groups.d/local.cfg',
-                    'conf/groups.d/README'])],
+                    'conf/groups.d/README']),
+                  (os.path.join(MANDIR, 'man1'),
+                   ['doc/man/man1/clubak.1',
+                    'doc/man/man1/cluset.1',
+                    'doc/man/man1/clush.1',
+                    'doc/man/man1/nodeset.1']),
+                  (os.path.join(MANDIR, 'man5'),
+                   ['doc/man/man5/clush.conf.5',
+                    'doc/man/man5/groups.conf.5']),
+                    ],
       entry_points={'console_scripts':
                     ['clubak=ClusterShell.CLI.Clubak:main',
                      'cluset=ClusterShell.CLI.Nodeset:main',
