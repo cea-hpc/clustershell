@@ -87,33 +87,36 @@ class ClushConfig(ConfigParser, object):
 
         self.parsed = self.read(files)
 
-        # for proper $CFGDIR selection, take last parsed configfile only
-        cfg_dirname = os.path.dirname(files[-1])
+        if self.parsed:
+            # for proper $CFGDIR selection, take last parsed configfile only
+            cfg_dirname = os.path.dirname(self.parsed[-1])
 
-        # parse Main.confdir
-        try:
-            # keep track of loaded confdirs
-            loaded_confdirs = set()
+            # parse Main.confdir
+            try:
+                # keep track of loaded confdirs
+                loaded_confdirs = set()
 
-            confdirstr = self.get(self.MAIN_SECTION, "confdir")
-            for confdir in shlex.split(confdirstr):
-                # substitute $CFGDIR, set to the highest priority clustershell
-                # configuration directory that has been found
-                confdir = Template(confdir).safe_substitute(CFGDIR=cfg_dirname)
-                confdir = os.path.normpath(confdir)
-                if confdir in loaded_confdirs:
-                    continue # load each confdir only once
-                loaded_confdirs.add(confdir)
-                if not os.path.isdir(confdir):
-                    if not os.path.exists(confdir):
-                        continue
-                    msg = "Defined confdir %s is not a directory" % confdir
-                    raise ClushConfigError(msg=msg)
-                # add config declared in clush.conf.d file parts
-                for cfgfn in sorted(glob.glob('%s/*.conf' % confdir)):
-                    self.parsed += self.read(cfgfn) # ignore files that cannot be read
-        except (NoSectionError, NoOptionError):
-            pass
+                confdirstr = self.get(self.MAIN_SECTION, "confdir")
+                for confdir in shlex.split(confdirstr):
+                    # substitute $CFGDIR, set to the highest priority
+                    # configuration directory that has been found
+                    confdir = Template(confdir).safe_substitute(
+                                                    CFGDIR=cfg_dirname)
+                    confdir = os.path.normpath(confdir)
+                    if confdir in loaded_confdirs:
+                        continue # load each confdir only once
+                    loaded_confdirs.add(confdir)
+                    if not os.path.isdir(confdir):
+                        if not os.path.exists(confdir):
+                            continue
+                        msg = "Defined confdir %s is not a directory" % confdir
+                        raise ClushConfigError(msg=msg)
+                    # add config declared in clush.conf.d file parts
+                    for cfgfn in sorted(glob.glob('%s/*.conf' % confdir)):
+                        # ignore files that cannot be read
+                        self.parsed += self.read(cfgfn)
+            except (NoSectionError, NoOptionError):
+                pass
 
         # Apply command line overrides
         if options.quiet:
