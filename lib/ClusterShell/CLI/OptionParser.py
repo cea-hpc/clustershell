@@ -194,7 +194,7 @@ class OptionParser(optparse.OptionParser):
         optgrp.add_option("--diff", action="store_true", dest="diff",
                           help="show diff between gathered outputs")
         optgrp.add_option("--outdir", action="store", dest="outdir", help="output directory for stdout files (OPTIONAL)")
-        optgrp.add_option("--errdir", action="store", dest="errdir", help="output directory for sterr files (OPTIONAL)")
+        optgrp.add_option("--errdir", action="store", dest="errdir", help="output directory for stderr files (OPTIONAL)")
         self.add_option_group(optgrp)
 
     def _copy_callback(self, option, opt_str, value, parser):
