@@ -92,7 +92,7 @@ Online documentation:
 
     http://clustershell.readthedocs.org/
 
-Github source respository:
+Github source repository:
 
     https://github.com/cea-hpc/clustershell
 

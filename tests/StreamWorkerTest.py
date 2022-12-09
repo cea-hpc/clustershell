@@ -150,7 +150,7 @@ class StreamTest(unittest.TestCase):
         task_self().set_default("pipe1_msgtree", True)
         self.run_worker(worker)
 
-        # Timeout occured - read buffer should have been flushed
+        # Timeout occurred - read buffer should have been flushed
         self.assertEqual(worker.read(sname="pipe1"), b"Some data")
 
         # closefd was set, we should be able to close pipe fds

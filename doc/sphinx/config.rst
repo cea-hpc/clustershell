@@ -48,7 +48,7 @@ The following table describes available ``clush`` config file settings.
 |                 | :ref:`run modes <clushmode-config>` that can then  |
 |                 | be activated with `--mode`. All other ``clush``    |
 |                 | config file settings defined in this table might   |
-|                 | be overriden in a run mode. Each mode section      |
+|                 | be overridden in a run mode. Each mode section     |
 |                 | should have a name prefixed by "mode:" to clearly  |
 |                 | identify a section defining a mode. Duplicate      |
 |                 | modes are not allowed in those files.              |
@@ -171,7 +171,7 @@ sudo::
     password_prompt: yes
     command_prefix: /usr/bin/sudo -S -p "''"
 
-System administrators or users can easly create additional run modes by
+System administrators or users can easily create additional run modes by
 adding configuration files to :ref:`clush-config`'s ``confdir``.
 
 More details about using run modes can be found :ref:`here <clush-modes>`.

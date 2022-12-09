@@ -85,7 +85,7 @@ class ExecClient(EngineClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the commmand.
+        Build the shell command line to start the command.
 
         Return a tuple containing command and arguments as a string or a list
         of string, and a dict of additional environment variables. None could
@@ -224,7 +224,7 @@ class CopyClient(ExecClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the rcp commmand.
+        Build the shell command line to start the rcp command.
         Return an array of command and arguments.
         """
         source = _replace_cmd(self.source, self.key, self.rank)

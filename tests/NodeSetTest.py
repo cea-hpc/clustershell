@@ -1520,7 +1520,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(ns1.__or__(ns2), NotImplemented)
         self.assertEqual(ns1.__sub__(ns2), NotImplemented)
         self.assertEqual(ns1.__xor__(ns2), NotImplemented)
-        # Should implicitely raises TypeError if the real operator
+        # Should implicitly raises TypeError if the real operator
         # version is invoked. To test that, we perform a manual check
         # as an additional function would be needed to check with
         # assertRaises():

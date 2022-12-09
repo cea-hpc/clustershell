@@ -27,7 +27,7 @@ others within the propagation tree. At the highest level, messages are instances
 of several classes. They can be converted into XML to be sent over SSH links
 through a Channel instance.
 
-In the other side, XML is parsed and new message objects are instanciated.
+In the other side, XML is parsed and new message objects are instantiated.
 
 Communication channels have been implemented as ClusterShell events handlers.
 Whenever a message chunk is read, the data is given to a SAX XML parser, that

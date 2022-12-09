@@ -184,7 +184,7 @@ class EnginePoll(Engine):
 
                 self._current_stream = None
 
-                # apply any changes occured during processing
+                # apply any changes occurred during processing
                 if client.registered:
                     self.set_events(client, stream)
 

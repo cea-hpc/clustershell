@@ -788,7 +788,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rg1.__or__(rg2), NotImplemented)
         self.assertEqual(rg1.__sub__(rg2), NotImplemented)
         self.assertEqual(rg1.__xor__(rg2), NotImplemented)
-        # Should implicitely raises TypeError if the real operator
+        # Should implicitly raises TypeError if the real operator
         # version is invoked. To test that, we perform a manual check
         # as an additional function would be needed to check with
         # assertRaises():

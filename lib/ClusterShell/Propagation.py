@@ -48,7 +48,7 @@ class PropagationTreeRouter(object):
     directly connected node to use to forward a message to a remote
     node.
 
-    Upon instanciation, the router will parse the topology tree to
+    Upon instantiation, the router will parse the topology tree to
     generate its routing table.
     """
     def __init__(self, root, topology, fanout=0):

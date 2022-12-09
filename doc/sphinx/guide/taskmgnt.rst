@@ -98,7 +98,7 @@ Task info keys and their default values:
 Below is an example of `print_debug` override. As you can see, we set the
 function `print_csdebug(task, s)` as the value. When debugging is enabled,
 this function will be called for any debug text line. For example, this
-function searchs for any known patterns and print a modified debug line to
+function searches for any known patterns and print a modified debug line to
 stdout when found::
 
     def print_csdebug(task, s):
@@ -142,7 +142,7 @@ parameter (in seconds), for example::
 
     task.shell("uname -r", nodes=remote_nodes, handler=ehandler, timeout=5)
 
-This is the prefered way to specify a command timeout.
+This is the preferred way to specify a command timeout.
 :meth:`.EventHandler.ev_timeout` event is generated before the worker has finished to
 indicate that some nodes have timed out. You may then retrieve the nodes with
 :meth:`.DistantWorker.iter_keys_timeout()`.
@@ -185,7 +185,7 @@ way all scheduled workers and timers. Using such a timeout ensures that the
 Task will not exceed a given time for all its scheduled works. You can also
 configure per-worker timeout that generates an event
 :meth:`.EventHandler.ev_timeout` but will not raise an exception, allowing the
-Task to continue. Indeed, using a per-worker timeout is the prefered way for
+Task to continue. Indeed, using a per-worker timeout is the preferred way for
 most applications.
 
 

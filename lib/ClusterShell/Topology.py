@@ -376,7 +376,7 @@ class TopologyGraph(object):
         instances. Loops are not very expensive here as the number of routes
         will always be much lower than the number of nodes.
         """
-        # instanciate nodegroups as biggest groups of nodes sharing both parent
+        # instantiate nodegroups as biggest groups of nodes sharing both parent
         # and destination
         aggregated_src = self._routing.aggregated_src
         for route in self._routing:

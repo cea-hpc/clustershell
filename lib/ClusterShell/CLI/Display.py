@@ -68,7 +68,7 @@ class Display(object):
     SEP = "-" * 15
 
     class _KeySet(set):
-        """Private NodeSet substition to display raw keys"""
+        """Private NodeSet substitution to display raw keys"""
         def __str__(self):
             return ",".join(self)
 
@@ -153,7 +153,7 @@ class Display(object):
                 self.verbosity = VERB_DEBUG
 
     def _has_cli_color(self):
-        """Tests CLICOLOR environment variable to determine wether to
+        """Tests CLICOLOR environment variable to determine whether to
         use color or not on output."""
         # When CLICOLOR_FORCE is set to something else than 0
         # colors must be used.

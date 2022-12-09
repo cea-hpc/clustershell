@@ -322,7 +322,7 @@ variable::
 
     $ export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=/path/to/python3
 
-.. note:: It is highly recommended to have the same Python interpeter
+.. note:: It is highly recommended to have the same Python interpreter
    installed on all gateways and the root node.
 
 Debugging Tree mode
@@ -517,8 +517,8 @@ executed). These single-character interactive commands are detailed below:
 +------------------------------+-----------------------------------------------+
 | ``clush> !<COMMAND>``        | execute ``<COMMAND>`` on the local system     |
 +------------------------------+-----------------------------------------------+
-| ``clush> =``                 | toggle the ouput format (gathered or standard |
-|                              | mode)                                         |
+| ``clush> =``                 | toggle the output format (gathered or         |
+|                              | standard mode)                                |
 +------------------------------+-----------------------------------------------+
 
 To leave an interactive session, type ``quit`` or *Control-D*. As of version
@@ -739,9 +739,9 @@ By default, ClusterShell supports the following worker identifiers:
   rely on any external tool and provides command line placeholders described
   below:
 
-  * ``%h`` and ``%host`` are substitued with each *target hostname*
-  * ``%hosts`` is substitued with the full *target nodeset*
-  * ``%n`` and ``%rank`` are substitued with the remote *rank* (0 to n-1)
+  * ``%h`` and ``%host`` are substituted with each *target hostname*
+  * ``%hosts`` is substituted with the full *target nodeset*
+  * ``%n`` and ``%rank`` are substituted with the remote *rank* (0 to n-1)
 
   For example, the following would request the exec worker to locally run
   multiple *ipmitool* commands across the hosts foo[0-10] and automatically

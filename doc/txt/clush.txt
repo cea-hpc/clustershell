@@ -176,7 +176,7 @@ File copying:
 
 Connection options:
   -f FANOUT, --fanout=FANOUT
-                      do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same *fanout* value is used on the head node and on each gateway (the *fanout* value is propagated). That is, if the *fanout* is **16**, each gateway will initate up to **16** connections to their target nodes at the same time. Default *fanout* value is defined in ``clush.conf``\(5).
+                      do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same *fanout* value is used on the head node and on each gateway (the *fanout* value is propagated). That is, if the *fanout* is **16**, each gateway will initiate up to **16** connections to their target nodes at the same time. Default *fanout* value is defined in ``clush.conf``\(5).
   -l USER, --user=USER
                       execute remote command as user
   -o OPTIONS, --options=OPTIONS

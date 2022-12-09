@@ -343,7 +343,7 @@ class TaskEventTest(unittest.TestCase):
         eh.do_asserts_read_write_notimeout()
 
     class LegacyTOnTheFlyLauncher(EventHandler):
-        """Legacy Test Event handler to shedules commands on the fly"""
+        """Legacy Test Event handler to schedule commands on the fly"""
         def ev_read(self, worker):
             assert worker.task.running()
             # in-fly workers addition
@@ -369,7 +369,7 @@ class TaskEventTest(unittest.TestCase):
         self.run_task_and_catch_warnings(task, 10)
 
     class TOnTheFlyLauncher(EventHandler):
-        """CS v1.8 Test Event handler to shedules commands on the fly"""
+        """CS v1.8 Test Event handler to schedule commands on the fly"""
         def ev_read(self, worker, node, sname, msg):
             assert worker.task.running()
             # in-fly workers addition

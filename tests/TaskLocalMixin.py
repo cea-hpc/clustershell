@@ -25,7 +25,7 @@ def _test_print_debug(task, s):
     task.set_info("user_print_debug_last", s)
 
 class TaskLocalMixin(object):
-    """Mixin test case class: should be overrided and used in multiple
+    """Mixin test case class: should be overridden and used in multiple
     inheritance with unittest.TestCase"""
 
     def setUp(self):
@@ -568,7 +568,7 @@ class TaskLocalMixin(object):
 
         # retry
         task = task_self()
-        worker = task.shell("/bin/echo shouldnt see that")
+        worker = task.shell("/bin/echo should not see that")
         task.abort()
         self.assertEqual(task, task_self())
 

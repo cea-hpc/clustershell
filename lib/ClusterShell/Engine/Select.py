@@ -126,7 +126,7 @@ class EngineSelect(Engine):
                     logging.getLogger(__name__).error(msg)
                 raise
 
-            # iterate over fd on which events occured
+            # iterate over fd on which events occurred
             for fd in set(r_ready) | set(w_ready):
 
                 # get client instance
@@ -165,7 +165,7 @@ class EngineSelect(Engine):
                 # post processing
                 self._current_stream = None
 
-                # apply any changes occured during processing
+                # apply any changes occurred during processing
                 if client.registered:
                     self.set_events(client, stream)
 

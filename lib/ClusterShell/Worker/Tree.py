@@ -214,7 +214,7 @@ class TreeWorker(DistantWorker):
                                 autoclose=True)
 
     def _start(self):
-        # Engine has started: initalize router
+        # Engine has started: initialize router
         self.topology = self.topology or self.task.topology
         self.router = self.task._default_router(self.router)
         self._launch(self.nodes)

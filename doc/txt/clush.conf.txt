@@ -45,11 +45,11 @@ fanout
   resources on the initiating hosts. In tree mode, the same `fanout` value is
   used on the head node and on each gateway (the `fanout` value is propagated).
   That is, if the `fanout` is **16** on the head node, each gateway will
-  initate up to **16** connections to their target nodes at the same time.
+  initiate up to **16** connections to their target nodes at the same time.
 confdir
   Optional list of directory paths where clush should look for `.conf` files
   which define run modes that can then be activated with ``--mode``. All other
-  clush config file settings defined here might be overriden in a run mode.
+  clush config file settings defined here might be overridden in a run mode.
   Each mode section should have a name prefixed by "mode:" to clearly identify
   a section defining a mode. Duplicate modes are not allowed in those files.
   Configuration files that are not readable by the current user are ignored.
