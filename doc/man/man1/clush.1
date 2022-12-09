@@ -275,7 +275,7 @@ preserve modification times and modes
 .INDENT 7.0
 .TP
 .BI \-f \ FANOUT\fP,\fB \ \-\-fanout\fB= FANOUT
-do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same \fIfanout\fP value is used on the head node and on each gateway (the \fIfanout\fP value is propagated). That is, if the \fIfanout\fP is \fB16\fP, each gateway will initate up to \fB16\fP connections to their target nodes at the same time. Default \fIfanout\fP value is defined in \fBclush.conf\fP(5).
+do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same \fIfanout\fP value is used on the head node and on each gateway (the \fIfanout\fP value is propagated). That is, if the \fIfanout\fP is \fB16\fP, each gateway will initiate up to \fB16\fP connections to their target nodes at the same time. Default \fIfanout\fP value is defined in \fBclush.conf\fP(5).
 .TP
 .BI \-l \ USER\fP,\fB \ \-\-user\fB= USER
 execute remote command as user

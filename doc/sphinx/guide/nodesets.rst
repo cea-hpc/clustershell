@@ -269,11 +269,11 @@ using the *-r* switch (see :ref:`nodeset-regroup`).
 Overriding default groups configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It is possible to override the libary default groups configuration by changing
-the default :class:`.NodeSet` *resolver* object. Usually, this is done for
-testing or special purposes. Here is an example of how to override the
-*resolver* object using :func:`.NodeSet.set_std_group_resolver()` in order to
-use another configuration file::
+It is possible to override the library default groups configuration by
+changing the default :class:`.NodeSet` *resolver* object. Usually, this is
+done for testing or special purposes. Here is an example of how to override
+the *resolver* object using :func:`.NodeSet.set_std_group_resolver()` in order
+to use another configuration file::
 
     >>> from ClusterShell.NodeSet import NodeSet, set_std_group_resolver
     >>> from ClusterShell.NodeUtils import GroupResolverConfig

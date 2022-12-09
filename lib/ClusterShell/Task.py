@@ -155,7 +155,7 @@ class Task(object):
 
     A common need is to set a maximum delay for command execution, especially
     when the command time is not known. Doing this with ClusterShell Task is
-    very straighforward. To limit the execution time on each node, use the
+    very straightforward. To limit the execution time on each node, use the
     timeout parameter of shell() or run() methods to set a delay in seconds,
     like:
 

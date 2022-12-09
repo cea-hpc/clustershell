@@ -102,7 +102,7 @@ Configuration
 Tree mode
 """""""""
 
-* Fix start by implementing a proper asynchrounous start for :class:`.TreeWorker`,
+* Fix start by implementing a proper asynchronous start for :class:`.TreeWorker`,
   which is now only triggered when the engine actually starts.
 
 * Fix error with intermediate gateways
@@ -226,7 +226,7 @@ changes in 1.8.
 Finally, :ref:`cluset <cluset-tool>`/:ref:`nodeset <nodeset-tool>` have been
 improved by adding support for:
 
-* litteral new line in ``-S``
+* literal new line in ``-S``
 
 * multiline shell variables in options
 

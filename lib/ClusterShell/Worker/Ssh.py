@@ -38,7 +38,7 @@ class SshClient(ExecClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the ssh commmand.
+        Build the shell command line to start the ssh command.
         Return an array of command and arguments.
         """
 
@@ -85,7 +85,7 @@ class ScpClient(CopyClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the scp commmand.
+        Build the shell command line to start the scp command.
         Return an array of command and arguments.
         """
 

@@ -466,7 +466,7 @@ class RangeSetNDTest(unittest.TestCase):
         self.assertEqual(str(rn1), "03-06; 006-009,411\n02; 003-004,006-009,411\n01; 003-004\n")
         self.assertEqual(len(rn1), 29)
         self.assertEqual(rn1.pads(), (2, 3))
-        # Note: mixed lenghts zero-padding supported in ClusterShell v1.9
+        # Note: mixed lengths zero-padding supported in ClusterShell v1.9
         rn1 = RangeSetND([['01-02', '003'], ['01-02', '0101'], ['02-06', '006-009,411']])
         # before v1.9: 0101 padding was changed to 101
         self.assertEqual(str(rn1), '03-06; 006-009,411\n02; 003,006-009,411,0101\n01; 003,0101\n')

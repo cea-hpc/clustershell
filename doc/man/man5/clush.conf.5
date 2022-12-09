@@ -70,12 +70,12 @@ Size of the sliding window (fanout) of active commands for \fBclush\fP\&. This
 resources on the initiating hosts. In tree mode, the same \fIfanout\fP value is
 used on the head node and on each gateway (the \fIfanout\fP value is propagated).
 That is, if the \fIfanout\fP is \fB16\fP on the head node, each gateway will
-initate up to \fB16\fP connections to their target nodes at the same time.
+initiate up to \fB16\fP connections to their target nodes at the same time.
 .TP
 .B confdir
 Optional list of directory paths where clush should look for \fI\&.conf\fP files
 which define run modes that can then be activated with \fB\-\-mode\fP\&. All other
-clush config file settings defined here might be overriden in a run mode.
+clush config file settings defined here might be overridden in a run mode.
 Each mode section should have a name prefixed by "mode:" to clearly identify
 a section defining a mode. Duplicate modes are not allowed in those files.
 Configuration files that are not readable by the current user are ignored.

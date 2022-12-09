@@ -1002,7 +1002,7 @@ def main():
     # Force user_interaction if Clush._f_user_interaction for test purposes
     user_interaction = hasattr(sys.modules[__name__], '_f_user_interaction')
     if not options.nostdin:
-        # Try user interaction: check for foreground ttys presence (ouput)
+        # Try user interaction: check for foreground ttys presence (output)
         stdout_isafgtty = sys.stdout.isatty() and \
             os.tcgetpgrp(sys.stdout.fileno()) == os.getpgrp()
         user_interaction |= stdin_isafgtty and stdout_isafgtty
