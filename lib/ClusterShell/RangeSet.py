@@ -139,13 +139,30 @@ class RangeSet(set):
                 raise RangeSetParseError(subrange,
                                          "cannot convert string to integer")
 
+            begin_sign = end_sign = 1  # sign "scale factor"
+
             if baserange.find('-') < 0:
                 if step != 1:
                     raise RangeSetParseError(subrange, "invalid step usage")
                 begin = end = baserange
             else:
                 # ignore whitespaces in a range
-                begin, end = (n.strip() for n in baserange.split('-', 1))
+                try:
+                    begin, end = (n.strip() for n in baserange.split('-'))
+                    if not begin:  # single negative number "-5"
+                        begin = end
+                        begin_sign = end_sign = -1
+                except ValueError:
+                    try:
+                        # -0-3
+                        _, begin, end = (n.strip()
+                                         for n in baserange.split('-'))
+                        begin_sign = -1
+                    except ValueError:
+                        # -8--4
+                        _, begin, _, end = (n.strip()
+                                            for n in baserange.split('-'))
+                        begin_sign = end_sign = -1
 
             # compute padding and return node range info tuple
             try:
@@ -169,6 +186,7 @@ class RangeSet(set):
                 if (pad > 0 or endpad > 0) and len(begin) != len(end):
                     raise RangeSetParseError(subrange,
                                              "padding length mismatch")
+
                 stop = int(ends)
             except ValueError:
                 if len(subrange) == 0:
@@ -178,10 +196,14 @@ class RangeSet(set):
                 raise RangeSetParseError(subrange, msg)
 
             # check preconditions
-            if stop > 1e100 or start > stop or step < 1:
+            if pad > 0 and begin_sign < 0:
+                errmsg = "padding not supported in negative ranges"
+                raise RangeSetParseError(subrange, errmsg)
+
+            if stop > 1e100 or start * begin_sign > stop * end_sign or step < 1:
                 raise RangeSetParseError(subrange, "invalid values in range")
 
-            self.add_range(start, stop + 1, step, pad)
+            self.add_range(start * begin_sign, stop * end_sign + 1, step, pad)
 
     @classmethod
     def fromlist(cls, rnglist, autostep=None):
@@ -261,8 +283,10 @@ class RangeSet(set):
 
     def _sorted(self):
         """Get sorted list from inner set."""
-        # for mixed padding support, sort by both string length and index
-        return sorted(set.__iter__(self), key=lambda x: (len(x), x))
+        # For mixed padding support, sort by both string length and index
+        return sorted(set.__iter__(self),
+                      key=lambda x: (-len(x), int(x)) if x.startswith('-') \
+                                    else (len(x), x))
 
     def __iter__(self):
         """Iterate over each element in RangeSet, currently as integers, with
@@ -456,7 +480,7 @@ class RangeSet(set):
             if stepped or cur_step == 1:
                 yield slice(cur_start, last_idx + 1, cur_step), cur_pad if cur_padded else 0
             else:
-                for j in range(cur_start, idx + 1, cur_step):
+                for j in range(cur_start, last_idx + 1, cur_step):
                     yield slice(j, j + 1, 1), cur_pad if cur_padded else 0
 
     def _contiguous_slices(self):
