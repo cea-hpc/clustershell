@@ -295,11 +295,6 @@ class RangeSet(set):
         or striter() instead."""
         return iter(self._sorted())
 
-    def intiter(self):
-        """Iterate over each element in RangeSet as integer.
-        Zero padding info is ignored."""
-        return iter(self._sorted())
-
     def striter(self):
         """Iterate over each element in RangeSet as strings with optional
         zero-padding."""
