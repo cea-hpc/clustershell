@@ -10,6 +10,25 @@ We are pleased to announce the availability of this new release, which comes
 with some exciting new features and improvements. We would like to thank
 everyone who participated in this release in a way or another.
 
+Version 1.9.1
+^^^^^^^^^^^^^
+
+This version contains a few bug fixes and improvements over 1.9, mostly
+affecting packaging:
+
+* Allow ``clustershell`` to be installed as user in a ``venv`` using
+  ``pip install`` or using ``pip install --user`` with man pages. Root
+  installation using pip is now discouraged. If done, ``/usr/local`` is
+  likely to be used as the install prefix. See :ref:`install-python` for
+  more information.
+
+* :ref:`clush-tool`: ``$CFGDIR`` was broken if ``/etc/clustershell`` did not
+  exist
+
+* Add support for negative ranges in :class:`.RangeSet`.
+
+For more details, please have a look at `GitHub Issues for 1.9.1 milestone`_.
+
 Main changes in 1.9
 ^^^^^^^^^^^^^^^^^^^
 
@@ -696,6 +715,7 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.8.3 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.3
 .. _GitHub Issues for 1.8.4 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.4
 .. _GitHub Issues for 1.9 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.9
+.. _GitHub Issues for 1.9.1 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.1
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/

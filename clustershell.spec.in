@@ -230,6 +230,9 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Thu Feb  9 2023 Stephane Thiell <sthiell@stanford.edu> 1.9.1-1
+- update to 1.9.1
+
 * Fri Nov 25 2022 Stephane Thiell <sthiell@stanford.edu> 1.9-1
 - update to 1.9
 

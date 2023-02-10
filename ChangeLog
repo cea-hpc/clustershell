@@ -1,3 +1,21 @@
+2023-02-09 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9.1 released. The main changes are listed below.
+
+	* clush: select proper last parsed config file (#511) (#512)
+
+	* setup.py: update download url and remove python 2.6 support (#508)
+
+	* setup.py: improvements for pip install and venv (#510)
+
+	* doc: correct typo 'sterr' (#513)
+
+	* Fix typos found with codespell (#514)
+
+	* RangeSet: support negative ranges (#515) (#518)
+
+	* RangeSet: remove duplicate intiter() definition (#519)
+
 2022-11-25 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.9 released. The main changes are listed below.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2016-2022 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2023 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -23,7 +23,7 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '1.9'
+VERSION = '1.9.1'
 
 CFGDIR = 'etc/clustershell'
 MANDIR = 'share/man'

@@ -230,6 +230,7 @@ ClusterShell is available since "Natty" release (11.04):
 
 * http://packages.ubuntu.com/clustershell
 
+.. _install-python:
 
 Installing ClusterShell the Python way
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
