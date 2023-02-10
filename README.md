@@ -20,7 +20,7 @@ Requirements
 
  * GNU/Linux, BSD, Mac OS X
  * OpenSSH (ssh/scp) or rsh
- * Python 2.x (x >= 6) or Python 3.x (x >= 4)
+ * Python 2.x (x >= 7) or Python 3.x (x >= 6)
  * PyYAML
 
 License

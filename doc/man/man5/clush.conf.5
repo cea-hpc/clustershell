@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH.CONF 5 "2022-11-25" "1.9" "ClusterShell User Manual"
-.SH NAME
-clush.conf \- Configuration file for clush
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "CLUSH.CONF" 5 "2023-02-09" "1.9.1" "ClusterShell User Manual"
+.SH NAME
+clush.conf \- Configuration file for clush
 .SH DESCRIPTION
 .sp
 \fBclush\fP(1) obtains configuration options from the following sources in the
@@ -76,7 +76,7 @@ initiate up to \fB16\fP connections to their target nodes at the same time.
 Optional list of directory paths where clush should look for \fI\&.conf\fP files
 which define run modes that can then be activated with \fB\-\-mode\fP\&. All other
 clush config file settings defined here might be overridden in a run mode.
-Each mode section should have a name prefixed by "mode:" to clearly identify
+Each mode section should have a name prefixed by \(dqmode:\(dq to clearly identify
 a section defining a mode. Duplicate modes are not allowed in those files.
 Configuration files that are not readable by the current user are ignored.
 The variable \fI$CFGDIR\fP is replaced by the path of the highest priority

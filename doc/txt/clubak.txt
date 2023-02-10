@@ -7,9 +7,9 @@ format output from clush/pdsh-like output and more
 --------------------------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2022-11-25
+:Date:   2023-02-09
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.9
+:Version: 1.9.1
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
