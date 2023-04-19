@@ -27,9 +27,10 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+which python &>/dev/null && PYTHON=python || PYTHON=python3
 DIST=$1
 FORCE=${2:-no}
-VERS=$(python -c "import ClusterShell; print(ClusterShell.__version__)")
+VERS=$($PYTHON -c "import ClusterShell; print(ClusterShell.__version__)")
 PKGNAME=ClusterShell-$VERS
 
 echo "Building version $VERS for $DIST"
@@ -47,7 +48,7 @@ if [ ! -f dist/$PKGNAME.tar.gz -o $FORCE = "force" ]; then
     # Build base source package
     #
     rm -f dist/$PKGNAME.tar.gz
-    python setup.py sdist
+    $PYTHON setup.py sdist
     ls -l $PWD/dist/$PKGNAME.tar.gz
     md5sum dist/$PKGNAME.tar.gz
     echo "Base source tarball successfully built"
