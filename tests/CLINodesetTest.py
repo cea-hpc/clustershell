@@ -797,25 +797,25 @@ class CLINodesetGroupResolverConfigErrorTest(CLINodesetTestBase):
     """Unit test class for testing GroupResolverConfigError"""
 
     def setUp(self):
-        self.dname = make_temp_dir()
+        self.tdir = make_temp_dir()
         self.gconff = make_temp_file(dedent("""
             [Main]
             default: default
             autodir: %s
-            """ % self.dname).encode('ascii'))
+            """ % self.tdir.name).encode('ascii'))
         self.yamlf = make_temp_file(dedent("""
             default:
                 compute: 'foo'
             broken: i am not a dict
-            """).encode('ascii'), suffix=".yaml", dir=self.dname)
+            """).encode('ascii'), suffix=".yaml", dir=self.tdir.name)
 
         set_std_group_resolver(GroupResolverConfig(self.gconff.name))
 
     def tearDown(self):
         set_std_group_resolver(None)
-        self.gconff = None
-        self.yamlf = None
-        os.rmdir(self.dname)
+        self.yamlf.close()
+        self.gconff.close()
+        self.tdir.cleanup()
 
     def test_bad_yaml_config(self):
         """test nodeset with bad yaml config"""

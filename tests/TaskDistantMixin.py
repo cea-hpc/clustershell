@@ -4,7 +4,6 @@
 """Unit test for ClusterShell Task (distant)"""
 
 import pwd
-import shutil
 import unittest
 import warnings
 
@@ -100,16 +99,17 @@ class TaskDistantMixin(object):
         dtmp_src = make_temp_dir('src')
         dtmp_dst = make_temp_dir('testLocalhostCopyDir')
         try:
-            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = self._task.copy(dtmp_src, dtmp_dst, nodes=HOSTNAME)
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a", "lev2"))
+            worker = self._task.copy(dtmp_src.name, dtmp_dst.name,
+                                     nodes=HOSTNAME)
             self._task.resume()
-            self.assertTrue(os.path.exists(os.path.join(dtmp_dst,
-                            os.path.basename(dtmp_src), "lev1_a", "lev2")))
+            self.assertTrue(os.path.exists(os.path.join(dtmp_dst.name,
+                            os.path.basename(dtmp_src.name), "lev1_a", "lev2")))
         finally:
-            shutil.rmtree(dtmp_dst, ignore_errors=True)
-            shutil.rmtree(dtmp_src, ignore_errors=True)
+            dtmp_dst.cleanup()
+            dtmp_src.cleanup()
 
     def testLocalhostExplicitSshCopy(self):
         dest = make_temp_filename('testLocalhostExplicitSshCopy')
@@ -128,15 +128,15 @@ class TaskDistantMixin(object):
         self._task.set_info("scp_path", "/usr/bin/scp -l 10")
         self._task.set_info("scp_options", "-oLogLevel=QUIET")
         try:
-            worker = WorkerSsh(HOSTNAME, source="/etc/hosts", dest=dest,
+            worker = WorkerSsh(HOSTNAME, source="/etc/hosts", dest=dest.name,
                                handler=None)
             self._task.schedule(worker)
             self._task.resume()
             self.assertEqual(self._task.max_retcode(), 0)
-            self.assertTrue(os.path.exists(os.path.join(dest, "hosts")))
+            self.assertTrue(os.path.exists(os.path.join(dest.name, "hosts")))
         finally:
-            os.unlink(os.path.join(dest, "hosts"))
-            os.rmdir(dest)
+            os.unlink(os.path.join(dest.name, "hosts"))
+            dest.cleanup()
         # clear options after test
         task_cleanup()
         self.assertEqual(task_self().info("scp_path"), None)
@@ -145,36 +145,37 @@ class TaskDistantMixin(object):
         dtmp_src = make_temp_dir('src')
         dtmp_dst = make_temp_dir('testLocalhostExplicitSshCopyDir')
         try:
-            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerSsh(HOSTNAME, source=dtmp_src, dest=dtmp_dst,
-                               handler=None)
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a", "lev2"))
+            worker = WorkerSsh(HOSTNAME, source=dtmp_src.name,
+                               dest=dtmp_dst.name, handler=None)
             self._task.schedule(worker)
             self._task.resume()
-            path = os.path.join(dtmp_dst, os.path.basename(dtmp_src), "lev1_a",
-                                "lev2")
+            path = os.path.join(dtmp_dst.name, os.path.basename(dtmp_src.name),
+                                "lev1_a", "lev2")
             self.assertTrue(os.path.exists(path))
         finally:
-            shutil.rmtree(dtmp_dst, ignore_errors=True)
-            shutil.rmtree(dtmp_src, ignore_errors=True)
+            dtmp_dst.cleanup()
+            dtmp_src.cleanup()
 
     def testLocalhostExplicitSshCopyDirPreserve(self):
         dtmp_src = make_temp_dir('src')
         dtmp_dst = make_temp_dir('testLocalhostExplicitSshCopyDirPreserve')
         try:
-            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerSsh(HOSTNAME, source=dtmp_src, dest=dtmp_dst,
-                               handler=None, timeout=10, preserve=True)
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a", "lev2"))
+            worker = WorkerSsh(HOSTNAME, source=dtmp_src.name,
+                               dest=dtmp_dst.name, handler=None, timeout=10,
+                               preserve=True)
             self._task.schedule(worker)
             self._task.resume()
-            self.assertTrue(os.path.exists(os.path.join(dtmp_dst,
-                            os.path.basename(dtmp_src), "lev1_a", "lev2")))
+            self.assertTrue(os.path.exists(os.path.join(dtmp_dst.name,
+                            os.path.basename(dtmp_src.name), "lev1_a", "lev2")))
         finally:
-            shutil.rmtree(dtmp_dst, ignore_errors=True)
-            shutil.rmtree(dtmp_src, ignore_errors=True)
+            dtmp_dst.cleanup()
+            dtmp_src.cleanup()
 
     def testExplicitSshWorker(self):
         # init worker
@@ -634,61 +635,65 @@ class TaskDistantMixin(object):
         try:
             dest = make_temp_dir('testLocalhostRCopy')
             # use fake node 'aaa' to test rank > 0
-            worker = self._task.rcopy("/etc/hosts", dest, "aaa,%s" % HOSTNAME,
+            worker = self._task.rcopy("/etc/hosts", dest.name, "aaa,%s" % HOSTNAME,
                                       handler=None, timeout=10)
             self._task.resume()
             self.assertEqual(worker.source, "/etc/hosts")
-            self.assertEqual(worker.dest, dest)
-            self.assertTrue(os.path.exists(os.path.join(dest, "hosts.%s" % HOSTNAME)))
+            self.assertEqual(worker.dest, dest.name)
+            self.assertTrue(os.path.exists(os.path.join(dest.name,
+                                                        "hosts.%s" % HOSTNAME)))
         finally:
-            shutil.rmtree(dest, ignore_errors=True)
+            dest.cleanup()
 
     def testLocalhostExplicitSshReverseCopy(self):
         dest = make_temp_dir('testLocalhostExplicitSshRCopy')
         try:
-            worker = WorkerSsh(HOSTNAME, source="/etc/hosts", dest=dest,
+            worker = WorkerSsh(HOSTNAME, source="/etc/hosts", dest=dest.name,
                                handler=None, timeout=10, reverse=True)
             self._task.schedule(worker)
             self._task.resume()
             self.assertEqual(worker.source, "/etc/hosts")
-            self.assertEqual(worker.dest, dest)
-            self.assertTrue(os.path.exists(os.path.join(dest, "hosts.%s" % HOSTNAME)))
+            self.assertEqual(worker.dest, dest.name)
+            self.assertTrue(os.path.exists(os.path.join(dest.name,
+                                                        "hosts.%s" % HOSTNAME)))
         finally:
-            shutil.rmtree(dest, ignore_errors=True)
+            dest.cleanup()
 
     def testLocalhostExplicitSshReverseCopyDir(self):
         dtmp_src = make_temp_dir('src')
         dtmp_dst = make_temp_dir('testLocalhostExplicitSshReverseCopyDir')
         try:
-            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerSsh(HOSTNAME, source=dtmp_src, dest=dtmp_dst,
-                               handler=None, timeout=30, reverse=True)
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a", "lev2"))
+            worker = WorkerSsh(HOSTNAME, source=dtmp_src.name,
+                               dest=dtmp_dst.name, handler=None, timeout=30,
+                               reverse=True)
             self._task.schedule(worker)
             self._task.resume()
-            self.assertTrue(os.path.exists(os.path.join(dtmp_dst,
-                "%s.%s" % (os.path.basename(dtmp_src), HOSTNAME), "lev1_a", "lev2")))
+            self.assertTrue(os.path.exists(os.path.join(dtmp_dst.name, "%s.%s" % \
+                    (os.path.basename(dtmp_src.name), HOSTNAME), "lev1_a", "lev2")))
         finally:
-            shutil.rmtree(dtmp_dst, ignore_errors=True)
-            shutil.rmtree(dtmp_src, ignore_errors=True)
+            dtmp_dst.cleanup()
+            dtmp_src.cleanup()
 
     def testLocalhostExplicitSshReverseCopyDirPreserve(self):
         dtmp_src = make_temp_dir('src')
-        dtmp_dst = make_temp_dir('testLocalhostExplicitSshReverseCopyDirPreserve')
+        dtmp_dst = make_temp_dir('testLocalhostExplicitSshReverseCpDirPreserve')
         try:
-            os.mkdir(os.path.join(dtmp_src, "lev1_a"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_b"))
-            os.mkdir(os.path.join(dtmp_src, "lev1_a", "lev2"))
-            worker = WorkerSsh(HOSTNAME, source=dtmp_src, dest=dtmp_dst,
-                               handler=None, timeout=30, reverse=True)
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_b"))
+            os.mkdir(os.path.join(dtmp_src.name, "lev1_a", "lev2"))
+            worker = WorkerSsh(HOSTNAME, source=dtmp_src.name,
+                               dest=dtmp_dst.name, handler=None, timeout=30,
+                               reverse=True)
             self._task.schedule(worker)
             self._task.resume()
-            self.assertTrue(os.path.exists(os.path.join(dtmp_dst,
-                "%s.%s" % (os.path.basename(dtmp_src), HOSTNAME), "lev1_a", "lev2")))
+            self.assertTrue(os.path.exists(os.path.join(dtmp_dst.name, "%s.%s" % \
+                    (os.path.basename(dtmp_src.name), HOSTNAME), "lev1_a", "lev2")))
         finally:
-            shutil.rmtree(dtmp_dst, ignore_errors=True)
-            shutil.rmtree(dtmp_src, ignore_errors=True)
+            dtmp_dst.cleanup()
+            dtmp_src.cleanup()
 
     def testErroneousSshPath(self):
         try:

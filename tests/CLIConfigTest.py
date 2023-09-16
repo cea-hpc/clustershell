@@ -330,9 +330,9 @@ class CLIClushConfigTest(unittest.TestCase):
         custom_cfg_dir = make_temp_dir()
 
         try:
-            os.environ['CLUSTERSHELL_CFGDIR'] = custom_cfg_dir
+            os.environ['CLUSTERSHELL_CFGDIR'] = custom_cfg_dir.name
 
-            cfgfile = open(os.path.join(custom_cfg_dir, 'clush.conf'), 'w')
+            cfgfile = open(os.path.join(custom_cfg_dir.name, 'clush.conf'), 'w')
             cfgfile.write(dedent("""
                 [Main]
                 fanout: 42
@@ -368,7 +368,7 @@ class CLIClushConfigTest(unittest.TestCase):
                 os.environ['CLUSTERSHELL_CFGDIR'] = custom_config_save
             else:
                 del os.environ['CLUSTERSHELL_CFGDIR']
-            shutil.rmtree(custom_cfg_dir, ignore_errors=True)
+            custom_cfg_dir.cleanup()
 
 
     def testClushConfigUserOverride(self):
@@ -377,12 +377,12 @@ class CLIClushConfigTest(unittest.TestCase):
         xdg_config_home_save = os.environ.get('XDG_CONFIG_HOME')
 
         # Create fake XDG_CONFIG_HOME
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         try:
-            os.environ['XDG_CONFIG_HOME'] = dname
+            os.environ['XDG_CONFIG_HOME'] = tdir.name
 
             # create $XDG_CONFIG_HOME/clustershell/clush.conf
-            usercfgdir = os.path.join(dname, 'clustershell')
+            usercfgdir = os.path.join(tdir.name, 'clustershell')
             os.mkdir(usercfgdir)
             cfgfile = open(os.path.join(usercfgdir, 'clush.conf'), 'w')
             cfgfile.write(dedent("""
@@ -420,12 +420,14 @@ class CLIClushConfigTest(unittest.TestCase):
                 os.environ['XDG_CONFIG_HOME'] = xdg_config_home_save
             else:
                 del os.environ['XDG_CONFIG_HOME']
-            shutil.rmtree(dname, ignore_errors=True)
+            tdir.cleanup()
 
     def testClushConfigConfDirModesEmpty(self):
         """test CLI.Config.ClushConfig (confdir with no modes)"""
-        dname1 = make_temp_dir()
-        dname2 = make_temp_dir()
+        tdir1 = make_temp_dir()
+        dname1 = tdir1.name
+        tdir2 = make_temp_dir()
+        dname2 = tdir2.name
         f = make_temp_file(dedent("""
             [Main]
             fanout: 42
@@ -465,14 +467,16 @@ class CLIClushConfigTest(unittest.TestCase):
             self.assertRaises(ClushConfigError, config.set_mode, "sshpass")
         finally:
             f.close()
-            os.rmdir(dname2)
-            os.rmdir(dname1)
+            tdir2.cleanup()
+            tdir1.cleanup()
 
 
     def testClushConfigConfDirModes(self):
         """test CLI.Config.ClushConfig (confdir and modes)"""
-        dname1 = make_temp_dir()
-        dname2 = make_temp_dir()
+        tdir1 = make_temp_dir()
+        dname1 = tdir1.name
+        tdir2 = make_temp_dir()
+        dname2 = tdir2.name
         # Notes:
         #   - use dname1 two times to check dup checking code
         #   - use quotes on one of the directory path
@@ -594,5 +598,5 @@ class CLIClushConfigTest(unittest.TestCase):
             f2.close()
             f1.close()
             f.close()
-            os.rmdir(dname2)
-            os.rmdir(dname1)
+            tdir2.cleanup()
+            tdir1.cleanup()
