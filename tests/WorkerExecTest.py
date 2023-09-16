@@ -81,7 +81,7 @@ class ExecTest(unittest.TestCase):
         """test copying with an ExecWorker and host placeholder"""
         src = make_temp_file(b"data")
         dstdir = make_temp_dir()
-        dstpath = os.path.join(dstdir, os.path.basename(src.name))
+        dstpath = os.path.join(dstdir.name, os.path.basename(src.name))
         try:
             pattern = dstpath + ".%h"
             self.execw(nodes='localhost', handler=None, source=src.name,
@@ -90,7 +90,7 @@ class ExecTest(unittest.TestCase):
             self.assertTrue(os.path.isfile(dstpath + '.localhost'))
         finally:
             os.unlink(dstpath + '.localhost')
-            os.rmdir(dstdir)
+            dstdir.cleanup()
 
     def test_copy_preserve(self):
         """test copying with an ExecWorker (preserve=True)"""
@@ -110,49 +110,47 @@ class ExecTest(unittest.TestCase):
         """test copying directory with an ExecWorker"""
         srcdir = make_temp_dir()
         dstdir = make_temp_dir()
-        ref1 = make_temp_file(b"data1", dir=srcdir)
-        pathdstsrcdir = os.path.join(dstdir, os.path.basename(srcdir))
+        ref1 = make_temp_file(b"data1", dir=srcdir.name)
+        pathdstsrcdir = os.path.join(dstdir.name, os.path.basename(srcdir.name))
         pathdst1 = os.path.join(pathdstsrcdir, os.path.basename(ref1.name))
         try:
-            self.execw(nodes='localhost', handler=None, source=srcdir,
-                       dest=dstdir)
+            self.execw(nodes='localhost', handler=None, source=srcdir.name,
+                       dest=dstdir.name)
             self.assertEqual(task_self().max_retcode(), 0)
             self.assertTrue(os.path.isdir(pathdstsrcdir))
             self.assertTrue(os.path.isfile(pathdst1))
-            self.assertEqual(open(pathdst1).readlines()[0], "data1")
+            with open(pathdst1) as dst1:
+                self.assertEqual(dst1.readlines()[0], "data1")
         finally:
             os.unlink(pathdst1)
             os.rmdir(pathdstsrcdir)
-            del ref1
-            os.rmdir(dstdir)
-            os.rmdir(srcdir)
+            ref1.close()
+            dstdir.cleanup()
+            srcdir.cleanup()
 
     def test_copy_wrong_directory(self):
         """test copying wrong directory with an ExecWorker"""
         srcdir = make_temp_dir()
         dst = make_temp_file(b"data")
-        ref1 = make_temp_file(b"data1", dir=srcdir)
+        ref1 = make_temp_file(b"data1", dir=srcdir.name)
         try:
-            self.execw(nodes='localhost', handler=None, source=srcdir,
+            self.execw(nodes='localhost', handler=None, source=srcdir.name,
                        dest=dst.name, stderr=True)
             self.assertEqual(task_self().max_retcode(), 1)
             self.assertTrue(len(task_self().node_error("localhost")) > 0)
             self.assertTrue(os.path.isfile(ref1.name))
         finally:
-            del ref1
-            os.rmdir(srcdir)
+            ref1.close()
+            srcdir.cleanup()
 
     def test_rcopy_wrong_directory(self):
         """test ExecWorker reverse copying with wrong directory"""
-        dstbasedir = make_temp_dir()
-        dstdir = os.path.join(dstbasedir, "wrong")
-        src = make_temp_file(b"data")
-        try:
+        with make_temp_dir() as dstbasedirname:
+            dstdir = os.path.join(dstbasedirname, "wrong")
+            src = make_temp_file(b"data")
             self.assertRaises(ValueError, self.execw, nodes='localhost',
                               handler=None, source=src.name, dest=dstdir,
                               stderr=True, reverse=True)
-        finally:
-            os.rmdir(dstbasedir)
 
     def test_abort_on_read(self):
         """test ExecWorker.abort() on read"""

@@ -725,7 +725,7 @@ class NodeSetGroupTest(unittest.TestCase):
 
     def testConfigGroupsDirExists(self):
         """test groups with groupsdir defined (real, other)"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
 
             [Main]
@@ -737,14 +737,14 @@ class NodeSetGroupTest(unittest.TestCase):
             #all:
             list: echo foo
             #reverse:
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         f2 = make_temp_file(dedent("""
             [new_local]
             map: echo example[1-100]
             #all:
             list: echo bar
             #reverse:
-            """).encode('ascii'), suffix=".conf", dir=dname)
+            """).encode('ascii'), suffix=".conf", dir=tdir.name)
         try:
             res = GroupResolverConfig(f.name)
             nodeset = NodeSet("example[1-100]", resolver=res)
@@ -754,12 +754,14 @@ class NodeSetGroupTest(unittest.TestCase):
         finally:
             f2.close()
             f.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def testConfigGroupsMultipleDirs(self):
         """test groups with multiple confdir defined"""
-        dname1 = make_temp_dir()
-        dname2 = make_temp_dir()
+        tdir1 = make_temp_dir()
+        dname1 = tdir1.name
+        tdir2 = make_temp_dir()
+        dname2 = tdir2.name
         # Notes:
         #   - use dname1 two times to check dup checking code
         #   - use quotes on one of the directory path
@@ -802,12 +804,12 @@ class NodeSetGroupTest(unittest.TestCase):
             fs2.close()
             fs1.close()
             f.close()
-            os.rmdir(dname2)
-            os.rmdir(dname1)
+            tdir2.cleanup()
+            tdir1.cleanup()
 
     def testConfigGroupsDirDupConfig(self):
         """test groups with duplicate in groupsdir"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
 
             [Main]
@@ -819,21 +821,21 @@ class NodeSetGroupTest(unittest.TestCase):
             #all:
             list: echo foo
             #reverse:
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         f2 = make_temp_file(dedent("""
             [iamdup]
             map: echo example[1-100]
             #all:
             list: echo bar
             #reverse:
-            """).encode('ascii'), suffix=".conf", dir=dname)
+            """).encode('ascii'), suffix=".conf", dir=tdir.name)
         f3 = make_temp_file(dedent("""
             [iamdup]
             map: echo example[10-200]
             #all:
             list: echo patato
             #reverse:
-            """).encode('ascii'), suffix=".conf", dir=dname)
+            """).encode('ascii'), suffix=".conf", dir=tdir.name)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
@@ -841,12 +843,14 @@ class NodeSetGroupTest(unittest.TestCase):
             f3.close()
             f2.close()
             f.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def testConfigGroupsDirExistsNoOther(self):
         """test groups with groupsdir defined (real, no other)"""
-        dname1 = make_temp_dir()
-        dname2 = make_temp_dir()
+        tdir1 = make_temp_dir()
+        dname1 = tdir1.name
+        tdir2 = make_temp_dir()
+        dname2 = tdir2.name
         f = make_temp_file(dedent("""
 
             [Main]
@@ -869,26 +873,26 @@ class NodeSetGroupTest(unittest.TestCase):
         finally:
             f2.close()
             f.close()
-            os.rmdir(dname1)
-            os.rmdir(dname2)
+            tdir2.cleanup()
+            tdir1.cleanup()
 
     def testConfigGroupsDirNotADirectory(self):
         """test groups with groupsdir defined (not a directory)"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         fdummy = make_temp_file(b"wrong")
         f = make_temp_file(dedent("""
 
             [Main]
             default: new_local
             groupsdir: %s
-            """ % fdummy.name).encode('ascii'))
+            """ % fdummy.name).encode('ascii'), dir=tdir.name)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             fdummy.close()
             f.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def testConfigIllegalChars(self):
         """test groups with illegal characters"""
@@ -1640,19 +1644,19 @@ class GroupResolverYAMLTest(unittest.TestCase):
 
     def test_yaml_basic(self):
         """test groups with a basic YAML config file"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             # A comment
 
             [Main]
             default: yaml
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         yamlfile = make_temp_file(dedent("""
             yaml:
                 foo: example[1-4,91-100],example90
                 bar: example[5-89]
-            """).encode('ascii'), suffix=".yaml", dir=dname)
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
         try:
             res = GroupResolverConfig(f.name)
 
@@ -1704,22 +1708,22 @@ class GroupResolverYAMLTest(unittest.TestCase):
             self.assertEqual(nodeset.regroup(), "example[102-200]")
         finally:
             yamlfile.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def test_yaml_fromall(self):
         """test groups special all group"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             [Main]
             default: yaml
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         yamlfile = make_temp_file(dedent("""
             yaml:
                 foo: example[1-4,91-100],example90
                 bar: example[5-89]
                 all: example[90-100]
-            """).encode('ascii'), suffix=".yaml", dir=dname)
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
         try:
             res = GroupResolverConfig(f.name)
             nodeset = NodeSet.fromall(resolver=res)
@@ -1728,87 +1732,87 @@ class GroupResolverYAMLTest(unittest.TestCase):
             self.assertEqual(nodeset.regroup(), "@all")
         finally:
             yamlfile.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def test_yaml_invalid_groups_not_dict(self):
         """test groups with an invalid YAML config file (1)"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             [Main]
             default: yaml
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         yamlfile = make_temp_file(dedent("""
             yaml: bar
-            """).encode('ascii'), suffix=".yaml", dir=dname)
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             yamlfile.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def test_yaml_invalid_root_dict(self):
         """test groups with an invalid YAML config file (2)"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             [Main]
             default: yaml
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         yamlfile = make_temp_file(dedent("""
             - Casablanca
             - North by Northwest
             - The Man Who Wasn't There
-            """).encode('ascii'), suffix=".yaml", dir=dname)
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             yamlfile.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def test_yaml_invalid_not_yaml(self):
         """test groups with an invalid YAML config file (3)"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             [Main]
             default: yaml
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         yamlfile = make_temp_file(dedent("""
             [Dummy]
             one: un
             two: deux
             three: trois
-            """).encode('ascii'), suffix=".yaml", dir=dname)
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             yamlfile.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
     def test_yaml_unsafe_yaml(self):
         """test groups with an invalid YAML config file (4)"""
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             [Main]
             default: yaml
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
         yamlfile = make_temp_file(dedent("""
             yaml:
                 foo: !!python/object/new:os.system [echo EXPLOIT!]
                 bar: example[5-89]
                 all: example[90-100]
-            """).encode('ascii'), suffix=".yaml", dir=dname)
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
         try:
             resolver = GroupResolverConfig(f.name)
             self.assertRaises(GroupResolverConfigError, resolver.grouplist)
         finally:
             yamlfile.close()
-            os.rmdir(dname)
+            tdir.cleanup()
 
 
     def test_wrong_autodir(self):
@@ -1846,17 +1850,17 @@ class GroupResolverYAMLTest(unittest.TestCase):
         if os.geteuid() == 0:
             return
 
-        dname = make_temp_dir()
+        tdir = make_temp_dir()
         f = make_temp_file(dedent("""
             [Main]
             default: yaml1
             autodir: %s
-            """ % dname).encode('ascii'))
+            """ % tdir.name).encode('ascii'))
 
         yamlfile1 = make_temp_file(b'yaml1: {foo: "example[1-4]"}',
-                                   suffix=".yaml", dir=dname)
+                                   suffix=".yaml", dir=tdir.name)
         yamlfile2 = make_temp_file(b'yaml2: {bar: "example[5-8]"}',
-                                   suffix=".yaml", dir=dname)
+                                   suffix=".yaml", dir=tdir.name)
 
         try:
             # do not allow read access to yamlfile2
@@ -1875,4 +1879,4 @@ class GroupResolverYAMLTest(unittest.TestCase):
         finally:
             yamlfile1.close()
             yamlfile2.close()
-            os.rmdir(dname)
+            tdir.cleanup()
