@@ -206,9 +206,9 @@ class Worker(object):
         Return stream read buffer of current worker.
 
         Arguments:
-            node -- node name; can also be set to None for simple worker
-                    having worker.key defined (default is None)
-            sname -- stream name (default is 'stdout')
+        :param node: node name, can also be set to None for simple worker
+        having worker.key defined (default is None)
+        :param sname: stream name (default is 'stdout')
         """
         self._task_bound_check()
         return self.task._msg_by_source(self, node, sname)
@@ -463,6 +463,7 @@ class StreamWorker(Worker):
     it does not execute any external commands by itself. Rather, it
     should be pre-bound to "streams", ie. file(s) or file descriptor(s),
     using the two following methods:
+
         >>> worker.set_reader('stream1', fd1)
         >>> worker.set_writer('stream2', fd2)
 
@@ -492,12 +493,12 @@ class StreamWorker(Worker):
         """Add a readable stream to StreamWorker.
 
         Arguments:
-            sname   -- the name of the stream (string)
-            sfile   -- the stream file or file descriptor
-            retain  -- whether the stream retains engine client
-                       (default is True)
-            closefd -- whether to close fd when the stream is closed
-                       (default is True)
+        :param sname: the name of the stream (string)
+        :param sfile: the stream file or file descriptor
+        :param retain: whether the stream retains engine client
+        (default is True)
+        :param closefd: whether to close fd when the stream is closed
+        (default is True)
         """
         if not self.clients[0].registered:
             self.clients[0].streams.set_reader(sname, sfile, retain, closefd)
@@ -508,12 +509,12 @@ class StreamWorker(Worker):
         """Set a writable stream to StreamWorker.
 
         Arguments:
-            sname -- the name of the stream (string)
-            sfile -- the stream file or file descriptor
-            retain  -- whether the stream retains engine client
-                       (default is True)
-            closefd -- whether to close fd when the stream is closed
-                       (default is True)
+        :param sname: the name of the stream (string)
+        :param sfile: the stream file or file descriptor
+        :param retain: whether the stream retains engine client
+        (default is True)
+        :param closefd: whether to close fd when the stream is closed
+        (default is True)
         """
         if not self.clients[0].registered:
             self.clients[0].streams.set_writer(sname, sfile, retain, closefd)
@@ -585,9 +586,9 @@ class StreamWorker(Worker):
         Return stream read buffer of current worker.
 
         Arguments:
-            node -- node name; can also be set to None for simple worker
-                    having worker.key defined (default is None)
-            sname -- stream name (default is 'stdout')
+        :param node: node name, can also be set to None for simple worker
+        having worker.key defined (default is None)
+        :param sname: stream name (default is 'stdout')
         """
         return Worker.read(self, node or self.clients[0].key, sname)
 

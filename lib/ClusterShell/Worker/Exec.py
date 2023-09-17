@@ -72,7 +72,7 @@ class ExecClient(EngineClient):
     def __init__(self, node, command, worker, stderr, timeout, autoclose=False,
                  rank=None):
         """
-        Create an EngineClient-type instance to locally run `command'.
+        Create an EngineClient-type instance to locally run *command*.
 
         :param node: will be used as key.
         """

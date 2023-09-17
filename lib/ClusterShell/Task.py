@@ -144,6 +144,7 @@ class Task(object):
     the task associated thread):
 
         >>> task.resume()
+
     or:
 
         >>> task.run()
@@ -463,6 +464,7 @@ class Task(object):
         using this method and retrieve them with default().
 
         Task default_keys are:
+
           - "stderr": Boolean value indicating whether to enable
             stdout/stderr separation when using task.shell(), if not
             specified explicitly (default: False).
@@ -478,8 +480,8 @@ class Task(object):
           - "worker": Worker-based class used when spawning workers through
             shell()/run().
 
-        Threading considerations
-        ========================
+        Threading considerations:
+
           Unlike set_info(), when called from the task's thread or
           not, set_default() immediately updates the underlying
           dictionary in a thread-safe manner. This method doesn't
@@ -517,6 +519,7 @@ class Task(object):
             >>> task.set_info('debug', True)
 
         Task info_keys are:
+
           - "debug": Boolean value indicating whether to enable library
             debugging messages (default: False).
           - "print_debug": Debug messages processing function. This
@@ -535,8 +538,8 @@ class Task(object):
           - "tree_default:<key>": In tree mode, overrides the key <key>
             in Defaults (settings normally set in defaults.conf)
 
-        Threading considerations
-        ========================
+        Threading considerations:
+
           Unlike set_default(), the underlying info dictionary is only
           modified from the task's thread. So calling set_info() from
           another thread leads to queueing the request for late apply
@@ -559,6 +562,7 @@ class Task(object):
 
         The following optional parameters are passed to the underlying local
         or remote Worker constructor:
+
           - handler: EventHandler instance to notify (on event) -- default is
             no handler (None)
           - timeout: command timeout delay expressed in second using a floating
@@ -570,16 +574,16 @@ class Task(object):
           - stdin: enable stdin if set to True or prevent its use otherwise --
             default is True.
 
-        Local usage::
+        Local usage:
             task.shell(command [, key=key] [, handler=handler]
-                  [, timeout=secs] [, autoclose=enable_autoclose]
-                  [, stderr=enable_stderr][, stdin=enable_stdin]))
+            [, timeout=secs] [, autoclose=enable_autoclose]
+            [, stderr=enable_stderr][, stdin=enable_stdin]))
 
-        Distant usage::
+        Distant usage:
             task.shell(command, nodes=nodeset [, handler=handler]
-                  [, timeout=secs], [, autoclose=enable_autoclose]
-                  [, tree=None|False|True] [, remote=False|True]
-                  [, stderr=enable_stderr][, stdin=enable_stdin]))
+            [, timeout=secs], [, autoclose=enable_autoclose]
+            [, tree=None|False|True] [, remote=False|True]
+            [, stderr=enable_stderr][, stdin=enable_stdin]))
 
         Example:
 
@@ -713,21 +717,21 @@ class Task(object):
     def timer(self, fire, handler, interval=-1.0, autoclose=False):
         """
         Create a timer bound to this task that fires at a preset time
-        in the future by invoking the ev_timer() method of `handler'
+        in the future by invoking the ev_timer() method of *handler*
         (provided EventHandler object). Timers can fire either only
         once or repeatedly at fixed time intervals. Repeating timers
         can also have their next firing time manually adjusted.
 
-        The mandatory parameter `fire' sets the firing delay in seconds.
+        The mandatory parameter *fire* sets the firing delay in seconds.
 
-        The optional parameter `interval' sets the firing interval of
+        The optional parameter *interval* sets the firing interval of
         the timer. If not specified, the timer fires once and then is
         automatically invalidated.
 
         Time values are expressed in second using floating point
         values. Precision is implementation (and system) dependent.
 
-        The optional parameter `autoclose', if set to True, creates
+        The optional parameter *autoclose*, if set to True, creates
         an "autoclosing" timer: it will be automatically invalidated
         as soon as all other non-autoclosing task's objects (workers,
         ports, timers) have finished. Default value is False, which
@@ -1208,16 +1212,15 @@ class Task(object):
 
     def max_retcode(self):
         """
-        Get max return code encountered during last run
-            or None in the following cases:
-                - all commands timed out,
-                - no command-based worker was executed.
+        Get max return code encountered during last run or None in the
+        following cases:
 
-        How retcodes work
-        =================
-          If the process exits normally, the return code is its exit
-          status. If the process is terminated by a signal, the return
-          code is 128 + signal number.
+         - all commands timed out
+         - no command-based worker was executed
+
+        How do retcodes work? If the process exits normally, the return
+        code is its exit status. If the process is terminated by a
+        signal, the return code is 128 + signal number.
         """
         return self._max_rc
 
@@ -1261,13 +1264,11 @@ class Task(object):
         Iterate over return codes of command-based workers, returns a
         tuple (rc, keys).
 
-        Optional parameter match_keys add filtering on these keys.
+        Optional parameter *match_keys* add filtering on these keys.
 
-        How retcodes work
-        =================
-          If the process exits normally, the return code is its exit
-          status. If the process is terminated by a signal, the return
-          code is 128 + signal number.
+        How do retcodes work? If the process exits normally, the return
+        code is its exit status. If the process is terminated by a
+        signal, the return code is 128 + signal number.
         """
         if match_keys:
             # Use the items iterator for the underlying dict.
