@@ -96,7 +96,7 @@ class GroupSource(object):
 
         :param name: group source name
         :param groups: group to nodes dict
-        :param allgroups: optional _all groups_ result (string)
+        :param allgroups: optional "all groups" result (string)
         """
         self.name = name
         self.groups = groups or {} # we avoid the use of {} as default argument

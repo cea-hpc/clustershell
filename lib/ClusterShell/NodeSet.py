@@ -557,8 +557,8 @@ class NodeSetBase(object):
 
     def __ior__(self, other):
         """
-        Implements the |= operator. So ``s |= t`` returns nodeset s with
-        elements added from t. (Python version 2.5+ required)
+        Implements the ``|=`` operator. So ``s |= t`` returns nodeset s
+        with elements added from t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
         self.update(other)

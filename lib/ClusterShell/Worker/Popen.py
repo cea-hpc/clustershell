@@ -41,6 +41,7 @@ from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 class PopenClient(StreamClient):
 
     def __init__(self, worker, key, stderr, timeout, autoclose):
+        """PopenClient initializer"""
         StreamClient.__init__(self, worker, key, stderr, timeout, autoclose)
         self.popen = None
         self.rc = None
