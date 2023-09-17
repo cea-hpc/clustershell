@@ -14,9 +14,9 @@ jobs:
             python-version: '3.6'
     name: Tests with Python ${{ matrix.python-version }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -51,7 +51,7 @@ jobs:
     - name: Post to Slack
       if: always()  # could be changed to failure() if too verbose
       id: slack
-      uses: slackapi/slack-github-action@v1.15.0
+      uses: slackapi/slack-github-action@v1.23
       with:
         channel-id: 'C07GRMDK3'
         slack-message: "${{ github.workflow }} by ${{ github.actor }} on ${{ github.ref }} for Python ${{ matrix.python-version }}: ${{ job.status }}"
