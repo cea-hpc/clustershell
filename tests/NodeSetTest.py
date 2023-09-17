@@ -2030,11 +2030,6 @@ class NodeSetTest(unittest.TestCase):
         result = list(iter(ns1))
         self.assertEqual(result, ['da2c0', 'da2c1', 'da3c0', 'da3c1'])
 
-    def test_nd_iter(self):
-        ns1 = NodeSet("da[2-3]c[0-1]")
-        result = list(iter(ns1))
-        self.assertEqual(result, ['da2c0', 'da2c1', 'da3c0', 'da3c1'])
-
     def test_nd_nsiter(self):
         ns1 = NodeSet("da[2-3]c[0-1]")
         result = list(ns1.nsiter())
