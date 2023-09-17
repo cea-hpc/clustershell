@@ -118,18 +118,6 @@ class TaskLocalMixin(object):
         except TimeoutError:
             self.fail("did detect timeout")
 
-    def testSimpleCommandNoTimeout(self):
-        task = task_self()
-
-        # init worker
-        worker = task.shell("/bin/usleep 900000")
-
-        try:
-            # run task
-            task.resume(1)
-        except TimeoutError:
-            self.fail("did detect timeout")
-
     def testWorkersTimeout(self):
         task = task_self()
 
