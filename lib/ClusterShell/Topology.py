@@ -42,7 +42,12 @@ except ImportError:
     # Python 2 compat
     import ConfigParser as configparser
 
+import logging
+
 from ClusterShell.NodeSet import NodeSet
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TopologyError(Exception):
@@ -105,6 +110,7 @@ class TopologyNodeGroup(object):
         its parent
         """
         assert isinstance(child, TopologyNodeGroup)
+        assert len(child.nodeset) > 0, "empty nodeset in child"
 
         if child in self._children:
             return
@@ -347,7 +353,6 @@ class TopologyGraph(object):
         assert isinstance(src_ns, NodeSet)
         assert isinstance(dst_ns, NodeSet)
 
-        #print 'adding %s -> %s' % (str(src_ns), str(dst_ns))
         self._routing.add_route(TopologyRoute(src_ns, dst_ns))
 
     def dest(self, from_nodeset):
@@ -456,7 +461,17 @@ class TopologyParser(configparser.ConfigParser):
         """
         self.graph = TopologyGraph()
         for src, dst in self._topology:
-            self.graph.add_route(NodeSet(src), NodeSet(dst))
+            # GH#527: router and destination node sets may use NodeSet groups
+            # but we ignore any empty sets
+            src_ns = NodeSet(src)
+            if not src_ns:
+                LOGGER.debug('Failed to resolve router node set: %s', src)
+            dst_ns = NodeSet(dst)
+            if not dst_ns:
+                LOGGER.debug('Failed to resolve destination node set "%s" for' \
+                             'router node set %s', dst, src_ns)
+            if src_ns and dst_ns:
+                self.graph.add_route(src_ns, dst_ns)
 
     def tree(self, root, force_rebuild=False):
         """Return a previously generated propagation tree or build it if

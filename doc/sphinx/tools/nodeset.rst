@@ -910,6 +910,8 @@ like::
 A similar option is available with :ref:`clush-tool`, see
 :ref:`selecting all nodes with clush <clush-all-nodes>`.
 
+.. _node-wildcards:
+
 Node wildcards
 """"""""""""""
 
