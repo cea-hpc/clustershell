@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.abspath('../../lib'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx_rtd_theme']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -86,20 +86,13 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-os_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if os_rtd:
-    html_theme = 'default'
-else:
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
 
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -118,7 +111,7 @@ else:
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'clustershell-nautilus-logo200.png'
+html_logo = '_static/clustershell-nautilus-logo200.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -131,8 +124,9 @@ html_logo = 'clustershell-nautilus-logo200.png'
 html_static_path = ['_static']
 
 def setup(app):
-    # RTD does not line wrap CSV tables, so we override this behavior.
-    app.add_stylesheet("theme_overrides.css")
+    if 'READTHEDOCS' in os.environ:
+        # RTD does not line wrap CSV tables, so we override this behavior.
+        app.add_stylesheet("theme_overrides.css")
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
