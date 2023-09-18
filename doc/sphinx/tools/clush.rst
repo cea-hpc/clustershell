@@ -207,14 +207,16 @@ Configuration
 """""""""""""
 
 The system-wide library configuration file **/etc/clustershell/topology.conf**
-defines the routes of default command propagation tree. It is recommended that
-all connections between parent and children nodes are carefully
+defines available/preferred routes for the command propagation tree. It is
+recommended that all connections between parent and children nodes are carefully
 pre-configured, for example, to avoid any SSH warnings when connecting (if
 using the default SSH remote worker, of course).
 
 .. highlight:: ini
 
-The content of the topology.conf file should look like this::
+The file **topology.conf** is used to define a set of routes under a
+``[routes]`` section. Think of it as a routing table but for cluster
+commands. Node sets should be used when possible, for example::
 
   [routes]
   rio0: rio[10-13]
@@ -223,7 +225,7 @@ The content of the topology.conf file should look like this::
 
 .. highlight:: text
 
-This file defines the following topology graph::
+The example above defines the following topology graph::
 
     rio0
     |- rio[10-11]
@@ -231,6 +233,9 @@ This file defines the following topology graph::
     `- rio[12-13]
        `- rio[300-440]
 
+:ref:`nodeset-groups` and :ref:`node-wildcards` are supported in
+**topology.conf**, but any route definition with an empty node set
+is ignored (a message is printed in debug mode in that case).
 
 At runtime, ClusterShell will pick an initial propagation tree from this
 topology graph definition and the current root node. Multiple admin/root
