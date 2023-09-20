@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010-2015 CEA/DAM
+# Copyright (C) 2023 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -42,16 +43,9 @@ if sys.getdefaultencoding() == 'ascii':
 else:
     STRING_ENCODING = sys.getdefaultencoding()
 
-
-# Python 3 compat: wrappers for standard streams
+# Python 3 compat: wrapper for stdin
 def sys_stdin():
     return getattr(sys.stdin, 'buffer', sys.stdin)
-
-def sys_stdout():
-    return getattr(sys.stdout, 'buffer', sys.stdout)
-
-def sys_stderr():
-    return getattr(sys.stderr, 'buffer', sys.stderr)
 
 
 class Display(object):
@@ -106,7 +100,7 @@ class Display(object):
         # NO_COLOR takes precedence over CLI_COLORS. --color option always
         # takes precedence over any environment variable.
 
-        if options.whencolor is None:
+        if options.whencolor is None and color is not False:
             if (config is None) or (config.color == '' or config.color == 'auto'):
                 if 'NO_COLOR' not in os.environ:
                     color = self._has_cli_color()
@@ -122,8 +116,19 @@ class Display(object):
                 color = True
 
         self._color = color
-        self.out = sys_stdout()
-        self.err = sys_stderr()
+        # GH#528 enable line buffering
+        self.out = sys.stdout
+        try :
+            if not self.out.line_buffering:
+                self.out.reconfigure(line_buffering=True)
+        except AttributeError:  # < py3.7
+            pass
+        self.err = sys.stderr
+        try :
+            if not self.err.line_buffering:
+                self.err.reconfigure(line_buffering=True)
+        except AttributeError:  # < py3.7
+            pass
 
         if self._color:
             self.color_stdout_fmt = self.COLOR_STDOUT_FMT
@@ -198,7 +203,7 @@ class Display(object):
     def format_header(self, nodeset, indent=0):
         """Format nodeset-based header."""
         if not self.label:
-            return b""
+            return ""
         indstr = " " * indent
         nodecntstr = ""
         if self.verbosity >= VERB_STD and self.node_count and len(nodeset) > 1:
@@ -207,23 +212,25 @@ class Display(object):
             (indstr, self.SEP,
              indstr, self._format_nodeset(nodeset), nodecntstr,
              indstr, self.SEP))
-        return hdr.encode(STRING_ENCODING) + b'\n'
+        return hdr + '\n'
 
     def print_line(self, nodeset, line):
         """Display a line with optional label."""
+        linestr = line.decode(STRING_ENCODING, errors='replace') + '\n'
         if self.label:
             prefix = self.color_stdout_fmt % ("%s: " % nodeset)
-            self.out.write(prefix.encode(STRING_ENCODING) + line + b'\n')
+            self.out.write(prefix + linestr)
         else:
-            self.out.write(line + b'\n')
+            self.out.write(linestr)
 
     def print_line_error(self, nodeset, line):
         """Display an error line with optional label."""
+        linestr = line.decode(STRING_ENCODING, errors='replace') + '\n'
         if self.label:
             prefix = self.color_stderr_fmt % ("%s: " % nodeset)
-            self.err.write(prefix.encode(STRING_ENCODING) + line + b'\n')
+            self.err.write(prefix + linestr)
         else:
-            self.err.write(line + b'\n')
+            self.err.write(linestr)
 
     def print_gather(self, nodeset, obj):
         """Generic method for displaying nodeset/content according to current
@@ -242,7 +249,8 @@ class Display(object):
 
     def _print_content(self, nodeset, content):
         """Display a dshbak-like header block and content."""
-        self.out.write(self.format_header(nodeset) + bytes(content) + b'\n')
+        s = bytes(content).decode(STRING_ENCODING, errors='replace')
+        self.out.write(self.format_header(nodeset) + s + '\n')
 
     def _print_diff(self, nodeset, content):
         """Display unified diff between remote gathered outputs."""
@@ -275,7 +283,7 @@ class Display(object):
                 else:
                     output += line
                 output += '\n'
-            self.out.write(output.encode(STRING_ENCODING))
+            self.out.write(output)
 
     def _print_lines(self, nodeset, msg):
         """Display a MsgTree buffer by line with prefixed header."""
@@ -284,10 +292,12 @@ class Display(object):
             header = self.color_stdout_fmt % \
                         ("%s: " % self._format_nodeset(nodeset))
             for line in msg:
-                out.write(header.encode(STRING_ENCODING) + line + b'\n')
+                out.write(header + line.decode(STRING_ENCODING,
+                                               errors='replace') + '\n')
         else:
             for line in msg:
-                out.write(line + b'\n')
+                out.write(line.decode(STRING_ENCODING,
+                                      errors='replace') + '\n')
 
     def vprint(self, level, message):
         """Utility method to print a message if verbose level is high

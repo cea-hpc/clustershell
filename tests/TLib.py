@@ -29,14 +29,11 @@ class TBytesIO(BytesIO):
 
     def __init__(self, initial_bytes=None):
         if initial_bytes and type(initial_bytes) is not bytes:
-            initial_bytes = initial_bytes.encode('ascii')
+            initial_bytes = initial_bytes.encode()
         BytesIO.__init__(self, initial_bytes)
 
-    def write(self, b):
-        if type(b) is bytes:
-            BytesIO.write(self, b)
-        else:
-            BytesIO.write(self, b.encode('ascii'))
+    def write(self, s):
+        BytesIO.write(self, s.encode())
 
     def isatty(self):
         return False
@@ -104,8 +101,9 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
             # should be read in text mode for some tests (eg. Nodeset).
             sys.stdin = StringIO(stdin)
 
-    # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr() and when
-    # print() is used, TBytesIO does a conversion to ascii.
+    # Output: ClusterShell writes to stdout/stderr using strings, but the tests
+    # expect bytes. TBytesIO is a wrapper that does the conversion until we
+    # migrate all tests to string.
     sys.stdout = out = TBytesIO()
     sys.stderr = err = TBytesIO()
     sys.argv = args
