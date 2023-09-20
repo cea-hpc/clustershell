@@ -6,7 +6,7 @@
 import tempfile
 import unittest
 import os
-from io import BytesIO
+from io import StringIO
 
 from ClusterShell.CLI.Display import Display, THREE_CHOICES, VERB_STD
 from ClusterShell.CLI.OptionParser import OptionParser
@@ -61,8 +61,8 @@ class CLIDisplayTest(unittest.TestCase):
                     options.label = label
                     disp = Display(options)
                     # inhibit output
-                    disp.out = BytesIO()
-                    disp.err = BytesIO()
+                    disp.out = StringIO()
+                    disp.err = StringIO()
                     # test print_* methods...
                     disp.print_line(ns, b"foo bar")
                     disp.print_line_error(ns, b"foo bar")
@@ -103,8 +103,8 @@ list: echo all
 
             disp = Display(options, color=False)
             self.assertEqual(disp.regroup, True)
-            disp.out = BytesIO()
-            disp.err = BytesIO()
+            disp.out = StringIO()
+            disp.err = StringIO()
             self.assertEqual(disp.line_mode, False)
 
             ns = NodeSet("hostfoo")
@@ -112,7 +112,7 @@ list: echo all
             # nodeset.regroup() is performed by print_gather()
             disp.print_gather(ns, b"message0\nmessage1\n")
             self.assertEqual(disp.out.getvalue(),
-                b"---------------\n@all\n---------------\nmessage0\nmessage1\n\n")
+                "---------------\n@all\n---------------\nmessage0\nmessage1\n\n")
         finally:
             set_std_group_resolver(None)
 
@@ -131,3 +131,68 @@ list: echo all
         self.assertEqual(disp.maxrc, False)
         self.assertEqual(disp.node_count, True)
         self.assertEqual(disp.verbosity, VERB_STD)
+
+    def testDisplayDecodingErrors(self):
+        """test CLI.Display (decoding errors)"""
+        parser = OptionParser("dummy")
+        parser.install_display_options()
+        options, _ = parser.parse_args([])
+        disp = Display(options, color=False)
+        disp.out = StringIO()
+        disp.err = StringIO()
+        self.assertEqual(bool(disp.gather), False)
+        self.assertEqual(disp.line_mode, False)
+        ns = NodeSet("node")
+        disp.print_line(ns, b"message0\n\xf8message1\n")
+        self.assertEqual(disp.out.getvalue(),
+            "node: message0\n\ufffdmessage1\n\n")
+        disp.print_line_error(ns, b"message0\n\xf8message1\n")
+        self.assertEqual(disp.err.getvalue(),
+            "node: message0\n\ufffdmessage1\n\n")
+
+    def testDisplayDecodingErrorsGather(self):
+        """test CLI.Display (decoding errors, gather)"""
+        parser = OptionParser("dummy")
+        parser.install_display_options(dshbak_compat=True)
+        options, _ = parser.parse_args(["-b"])
+        disp = Display(options, color=False)
+        disp.out = StringIO()
+        disp.err = StringIO()
+        self.assertEqual(bool(disp.gather), True)
+        self.assertEqual(disp.line_mode, False)
+        ns = NodeSet("node")
+        disp._print_buffer(ns, b"message0\n\xf8message1\n")
+        self.assertEqual(disp.out.getvalue(),
+            "---------------\nnode\n---------------\nmessage0\n\ufffdmessage1\n\n")
+
+    def testDisplayDecodingErrorsLineMode(self):
+        """test CLI.Display (decoding errors, line mode)"""
+        parser = OptionParser("dummy")
+        parser.install_display_options(dshbak_compat=True)
+        options, _ = parser.parse_args(["-b", "-L"])
+        disp = Display(options, color=False)
+        disp.out = StringIO()
+        disp.err = StringIO()
+        self.assertEqual(bool(disp.gather), True)
+        self.assertEqual(disp.label, True)
+        self.assertEqual(disp.line_mode, True)
+        ns = NodeSet("node")
+        disp.print_gather(ns, [b"message0\n", b"\xf8message1\n"])
+        self.assertEqual(disp.out.getvalue(),
+            "node: message0\n\nnode: \ufffdmessage1\n\n")
+
+    def testDisplayDecodingErrorsLineModeNoLabel(self):
+        """test CLI.Display (decoding errors, line mode, no label)"""
+        parser = OptionParser("dummy")
+        parser.install_display_options(dshbak_compat=True)
+        options, _ = parser.parse_args(["-b", "-L", "-N"])
+        disp = Display(options, color=False)
+        disp.out = StringIO()
+        disp.err = StringIO()
+        self.assertEqual(bool(disp.gather), True)
+        self.assertEqual(disp.label, False)
+        self.assertEqual(disp.line_mode, True)
+        ns = NodeSet("node")
+        disp.print_gather(ns, [b"message0\n", b"\xf8message1\n"])
+        self.assertEqual(disp.out.getvalue(),
+            "message0\n\n\ufffdmessage1\n\n")
