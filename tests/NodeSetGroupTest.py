@@ -1814,7 +1814,6 @@ class GroupResolverYAMLTest(unittest.TestCase):
             yamlfile.close()
             tdir.cleanup()
 
-
     def test_wrong_autodir(self):
         """test wrong autodir (doesn't exist)"""
         f = make_temp_file(dedent("""
@@ -1880,3 +1879,29 @@ class GroupResolverYAMLTest(unittest.TestCase):
             yamlfile1.close()
             yamlfile2.close()
             tdir.cleanup()
+
+    def test_yaml_null_value(self):
+        """test null value in groups yaml file"""
+        tdir = make_temp_dir()
+        f = make_temp_file(dedent("""
+            [Main]
+            default: yaml
+            autodir: %s
+            """ % tdir.name).encode('ascii'))
+        yamlfile = make_temp_file(dedent("""
+            yaml:
+                c0: nid[0001-0032]
+                c1:
+                c0r7: nid[0017-0032]
+            """).encode('ascii'), suffix=".yaml", dir=tdir.name)
+        try:
+            res = GroupResolverConfig(f.name)
+            nodeset = NodeSet.fromall(resolver=res)
+            self.assertEqual(str(nodeset), "nid[0001-0032]")
+            nodeset = NodeSet("@c1", resolver=res)
+            self.assertEqual(len(nodeset), 0)
+            self.assertEqual(str(nodeset), "")
+        finally:
+            yamlfile.close()
+            tdir.cleanup()
+

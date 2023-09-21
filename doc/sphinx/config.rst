@@ -344,6 +344,10 @@ Here is an example of **/etc/clustershell/groups.d/cluster.yaml**::
         oss: 'oss[0-15]'
         rbh: 'rbh[1-2]'
 
+
+If you wish to define an empty group (with no nodes), you can either use an
+empty string ``''`` or any valid YAML null value (``null`` or ``~``).
+
 .. highlight:: console
 
 Testing the syntax of your group file can be quickly performed through the
