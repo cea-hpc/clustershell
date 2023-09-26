@@ -733,7 +733,7 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         worker.set_write_eof() # we only enabled stdin to send the password
     task.resume()
 
-def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
+def run_copy(task, sources, dests, ns, timeout, preserve_flag, display):
     """run copy command"""
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
@@ -748,31 +748,32 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
             display.vprint_err(VERB_QUIET,
                                'ERROR: file "%s" not found' % source)
             clush_exit(1, task)
-        task.copy(source, dest, ns, handler=copyhandler, timeout=timeout,
-                  preserve=preserve_flag)
+        task.copy(source, dests.pop(0), ns, handler=copyhandler,
+                  timeout=timeout, preserve=preserve_flag)
     task.resume()
 
-def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
+def run_rcopy(task, sources, dests, ns, timeout, preserve_flag, display):
     """run reverse copy command"""
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
 
     # Sanity checks
-    if not exists(dest):
-        display.vprint_err(VERB_QUIET,
-                           'ERROR: directory "%s" not found' % dest)
-        clush_exit(1, task)
-    if not isdir(dest):
-        display.vprint_err(VERB_QUIET,
-                           'ERROR: destination "%s" is not a directory' % dest)
-        clush_exit(1, task)
+    for dest in dests:
+        if not exists(dest):
+            display.vprint_err(VERB_QUIET,
+                               'ERROR: directory "%s" not found' % dest)
+            clush_exit(1, task)
+        if not isdir(dest):
+            display.vprint_err(VERB_QUIET,
+                               'ERROR: destination "%s" is not a directory' % dest)
+            clush_exit(1, task)
 
     copyhandler = CopyOutputHandler(display, True)
     if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
         copyhandler.runtimer_init(task, len(ns) * len(sources))
     for source in sources:
-        task.rcopy(source, dest, ns, handler=copyhandler, timeout=timeout,
-                   stderr=True, preserve=preserve_flag)
+        task.rcopy(source, dests.pop(0), ns, handler=copyhandler,
+                   timeout=timeout, stderr=True, preserve=preserve_flag)
     task.resume()
 
 def set_fdlimit(fd_max, display):
@@ -1122,15 +1123,24 @@ def main():
 
     if (options.copy or options.rcopy) and not args:
         parser.error("--[r]copy option requires at least one argument")
+    dest_paths = []
     if options.copy:
-        if not options.dest_path:
+        if options.dest_path:
+            for arg in args:
+                dest_paths.append(options.dest_path)
+        else:
             # append '/' to clearly indicate a directory for tree mode
-            options.dest_path = join(dirname(abspath(args[0])), '')
-        op = "copy sources=%s dest=%s" % (args, options.dest_path)
+            for arg in args:
+                dest_paths.append(join(dirname(abspath(arg)), ''))
+        op = "copy sources=%s dest=%s" % (args, dest_paths)
     elif options.rcopy:
-        if not options.dest_path:
-            options.dest_path = dirname(abspath(args[0]))
-        op = "rcopy sources=%s dest=%s" % (args, options.dest_path)
+        if options.dest_path:
+            for arg in args:
+                dest_paths.append(options.dest_path)
+        else:
+            for arg in args:
+                dest_paths.append(dirname(abspath(arg)))
+        op = "rcopy sources=%s dest=%s" % (args, dest_paths)
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
@@ -1147,10 +1157,10 @@ def main():
             print(Display.COLOR_RESULT_FMT % task.topology, end='')
             print(Display.COLOR_RESULT_FMT % '-' * 15)
         if options.copy:
-            run_copy(task, args, options.dest_path, nodeset_base, timeout,
+            run_copy(task, args, dest_paths, nodeset_base, timeout,
                      options.preserve_flag, display)
         elif options.rcopy:
-            run_rcopy(task, args, options.dest_path, nodeset_base, timeout,
+            run_rcopy(task, args, dest_paths, nodeset_base, timeout,
                       options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, timeout, display,

@@ -562,9 +562,12 @@ File copying mode
 ^^^^^^^^^^^^^^^^^
 
 When *clush* is started with  the ``-c``  or  ``--copy``  option, it will
-attempt to copy specified file and/or directory to the provided target cluster
-nodes. If the ``--dest`` option is specified, it will put the copied files
-or directory there.
+attempt to copy specified files and/or directories to the provided cluster
+nodes. The ``--dest`` option can be used to specify a single path where all
+the file(s) should be copied to on the target nodes.
+In the absence of ``--dest``, *clush* will attempt to copy each file or
+directory found in the command line to their same location on the target
+nodes.
 
 Here are some examples of file copying with *clush*::
 
@@ -572,8 +575,8 @@ Here are some examples of file copying with *clush*::
     `/tmp/foo' -> node[11-12]:`/tmp'
 
     $ clush -v -w node[11-12] --copy /tmp/foo /tmp/bar
-    `/tmp/bar' -> aury[11-12]:`/tmp'
-    `/tmp/foo' -> aury[11-12]:`/tmp'
+    `/tmp/bar' -> node[11-12]:`/tmp'
+    `/tmp/foo' -> node[11-12]:`/tmp'
 
     $ clush -v -w node[11-12] --copy /tmp/foo --dest /var/tmp/
     `/tmp/foo' -> node[11-12]:`/var/tmp/'
@@ -588,8 +591,8 @@ When *clush* is started with the ``--rcopy`` option, it will attempt to
 retrieve specified file and/or directory from provided cluster nodes. If the
 ``--dest`` option is specified, it must be a directory path where the files
 will be stored with their hostname appended. If the destination path is not
-specified, it will take the first file or dir basename directory as the local
-destination, example::
+specified, it will take each file or directory's parent directory as the
+local destination, for example::
 
     $ clush -v -w node[11-12] --rcopy /tmp/foo
     node[11-12]:`/tmp/foo' -> `/tmp'

@@ -6,7 +6,7 @@
 import codecs
 import errno
 import os
-from os.path import basename
+from os.path import basename, dirname
 import pwd
 import re
 import resource
@@ -183,28 +183,64 @@ class CLIClushTest_A(unittest.TestCase):
         """test clush (file copy)"""
         content = "%f" % time.time()
         content = content.encode()
-        f = make_temp_file(content)
-        self._clush_t(["-w", HOSTNAME, "-c", f.name], None, b"")
-        f.seek(0)
-        self.assertEqual(f.read(), content)
+        sf = make_temp_file(content)
+        self._clush_t(["-w", HOSTNAME, "-c", sf.name], None, b"")
+        sf.seek(0)
+        self.assertEqual(sf.read(), content)
         # test --dest option
         f2 = tempfile.NamedTemporaryFile()
-        self._clush_t(["-w", HOSTNAME, "-c", f.name, "--dest", f2.name], None,
+        self._clush_t(["-w", HOSTNAME, "-c", sf.name, "--dest", f2.name], None,
                       b"")
         f2.seek(0)
         self.assertEqual(f2.read(), content)
+        # test multi --dest (manual)
+        tdir = make_temp_dir()
+        sf2 = make_temp_file(b'second')
+        try:
+            f2 = tempfile.NamedTemporaryFile()
+            self._clush_t(["-w", HOSTNAME, "-c", sf.name, sf2.name, "--dest",
+                           tdir.name],
+                          None, b"")
+            with open(os.path.join(tdir.name, basename(sf.name)), 'rb') as chkf:
+                self.assertEqual(chkf.read(), content)
+            with open(os.path.join(tdir.name, basename(sf2.name)), 'rb') as chkf:
+                self.assertEqual(chkf.read(), b'second')
+        finally:
+            sf2.close()
+            tdir.cleanup()
+        # test multi --dest (auto)
+        tdir = make_temp_dir()
+        sf2 = make_temp_file(b'second', dir=tdir.name)
+        try:
+            f2 = tempfile.NamedTemporaryFile()
+            self._clush_t(["-w", HOSTNAME, "-c", sf.name, sf2.name], None,
+                          b"")
+            sf.seek(0)
+            sf2.seek(0)
+            self.assertEqual(sf.read(), content)
+            self.assertEqual(sf2.read(), b'second')
+        finally:
+            sf2.close()
+            tdir.cleanup()
         # test --user option
         f2 = tempfile.NamedTemporaryFile()
         self._clush_t(["--user", pwd.getpwuid(os.getuid())[0], "-w", HOSTNAME,
-                       "--copy", f.name, "--dest", f2.name], None, b"")
+                       "--copy", sf.name, "--dest", f2.name], None, b"")
         f2.seek(0)
         self.assertEqual(f2.read(), content)
         # test --rcopy
         self._clush_t(["--user", pwd.getpwuid(os.getuid())[0], "-w", HOSTNAME,
-                       "--rcopy", f.name, "--dest", os.path.dirname(f.name)],
+                       "--rcopy", sf.name, "--dest", dirname(sf.name)],
                       None, b"")
         f2.seek(0)
-        self.assertEqual(open("%s.%s" % (f.name, HOSTNAME), 'rb').read(),
+        self.assertEqual(open("%s.%s" % (sf.name, HOSTNAME), 'rb').read(),
+                         content)
+        # test --rcopy with implicit --dest
+        self._clush_t(["--user", pwd.getpwuid(os.getuid())[0], "-w", HOSTNAME,
+                       "--rcopy", sf.name],
+                      None, b"")
+        f2.seek(0)
+        self.assertEqual(open("%s.%s" % (sf.name, HOSTNAME), 'rb').read(),
                          content)
 
     def test_009_file_copy_tty(self):
