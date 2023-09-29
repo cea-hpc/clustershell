@@ -4,7 +4,7 @@ SOURCES := $(SRCDIR)/clush.conf.txt \
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.txt=%.5)
 
 %.5: ../../txt/%.txt
-	rst2man -v $< $@
+	rst2man $< $@
 
 all: $(OBJECTS)
 

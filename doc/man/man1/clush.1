@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2023-02-09" "1.9.1" "ClusterShell User Manual"
+.TH CLUSH 1 "2023-09-29" "1.9.2" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -164,9 +164,6 @@ optional \fBgroups.conf\fP(5) group source to use
 .TP
 .B \-n\fP,\fB  \-\-nostdin
 do not watch for possible input from stdin; this should be used when \fBclush\fP is run in the background (or in scripts).
-.TP
-.B \-\-sudo
-enable sudo password prompt: a prompt will ask for your sudo password and sudo will be used to run your commands on the target nodes. The password must be the same on all target nodes. The actual sudo command used by \fBclush\fP can be changed in \fBclush.conf\fP(5) or in command line using \fB\-O sudo_command="..."\fP\&. The configured \fBsudo_command\fP must be able to read a password on stdin followed by a new line (which is what \fBsudo \-S\fP does).
 .TP
 .BI \-\-groupsconf\fB= FILE
 use alternate config file for groups.conf(5)

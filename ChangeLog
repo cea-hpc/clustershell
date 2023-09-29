@@ -1,3 +1,17 @@
+2023-09-29 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9.2 released. The main changes are listed below.
+
+	* CLI: fix line buffering with Python 3 (#528)
+
+	* clush: fix --[r]copy dest when --dest is omitted (#525)
+
+	* NodeUtils: allow null values in cluster.yaml (#533)
+
+	* Topology: check that node groups/wildcards are non-empty (#527)
+
+	* rpm: xcat.conf.example missing (#526)
+
 2023-02-09 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.9.1 released. The main changes are listed below.

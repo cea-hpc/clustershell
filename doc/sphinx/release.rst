@@ -10,6 +10,32 @@ We are pleased to announce the availability of this new release, which comes
 with some exciting new features and improvements. We would like to thank
 everyone who participated in this release in a way or another.
 
+Version 1.9.2
+^^^^^^^^^^^^^
+
+This version contains a few bug fixes and improvements over 1.9.1:
+
+* :ref:`clush-tool`: and :ref:`clubak-tool`: We fixed the line-buffered
+  output with recent versions of Python 3 for the standard output and
+  standard error streams. A welcome consequence of this change is that
+  non-printable characters will now be displayed as �.
+
+* :ref:`clush-tool`: When multiple files or directories are specified as
+  arguments with ``--[r]copy``, and ``--dest`` is omitted, use each
+  argument's dirname for each destination, instead of the dirname of the
+  first argument only.
+
+* In YAML configuration files used for :ref:`group-file-based`, a valid
+  YAML null value (for example: ``null`` or ``~``) is now interpreted as
+  an empty node set.
+
+* Router and destination node sets defined in
+  :ref:`topology.conf <clush-tree-enabling>` may use
+  :ref:`nodeset-groups` and :ref:`node-wildcards` but any route
+  definition with an empty node set will now be ignored.
+
+For more details, please have a look at `GitHub Issues for 1.9.2 milestone`_.
+
 Version 1.9.1
 ^^^^^^^^^^^^^
 
@@ -716,6 +742,7 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.8.4 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.4
 .. _GitHub Issues for 1.9 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.9
 .. _GitHub Issues for 1.9.1 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.1
+.. _GitHub Issues for 1.9.2 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.2
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/
