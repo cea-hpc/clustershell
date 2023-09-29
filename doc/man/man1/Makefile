@@ -6,7 +6,7 @@ SOURCES := $(SRCDIR)/clubak.txt \
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.txt=%.1)
 
 %.1: ../../txt/%.txt
-	rst2man -v $< $@
+	rst2man $< $@
 
 all: $(OBJECTS)
 
