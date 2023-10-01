@@ -138,8 +138,8 @@
 
 	* EventHandler: reinstate ev_error and ev_timeout as deprecated (#377)
 
-	* nodeset/cluset CLI: allow litteral new line in -S, so both -S "\n"
-	and -S $'\n' will work
+	* nodeset/cluset CLI: allow literal new line in -S, so both -S "\n" and
+	-S $'\n' will work
 
 	* nodeset/cluset CLI: handle multiline shell arguments in options (#394)
 
@@ -565,7 +565,7 @@
 	CLUSTERSHELL_GW_LOG_DIR and CLUSTERSHELL_GW_LOG_LEVEL environment
 	variables from the root node.
 
-	* Communication.py: Messages are now transfered in xml payload instead of
+	* Communication.py: Messages are now transferred in xml payload instead of
 	'output' attribute for improved handling of multi-lines messages in
 	StdOutMessage and StdErrMessage.
 
@@ -1389,7 +1389,7 @@
 2009-12-09 A. Degremont  <aurelien.degremont@cea.fr>
 
 	* scripts/nodeset.py: Protect --separator from code injection and
-	handle gracefully incorrect separtor.
+	handle gracefully incorrect separator.
 
 2009-12-09 S. Thiell <stephane.thiell@cea.fr>
 
