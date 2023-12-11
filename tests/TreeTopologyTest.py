@@ -527,7 +527,7 @@ class TopologyWithGroupsTest(unittest.TestCase):
                            '- Controller-vm[2,30]\n'
             self.assertEqual(str(tree), display_ref1)
 
-    def testWildcardsUnresolvedDestionation(self):
+    def testWildcardsUnresolvedDestination(self):
         """test topology with node groups and wildcards (unresolved dest)"""
         with NamedTemporaryFile() as tmpfile:
             tmpfile.write(b'[routes]\n')
