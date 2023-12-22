@@ -102,20 +102,20 @@ class Defaults000NoConfigTest(unittest.TestCase):
         self.assertTrue(task.default("distant_worker") is WorkerSsh)
         task_terminate()
 
-        dname = make_temp_dir()
-        modfile = open(os.path.join(dname, 'OutOfTree.py'), 'w')
+        tdir = make_temp_dir()
+        modfile = open(os.path.join(tdir.name, 'OutOfTree.py'), 'w')
         modfile.write(dedent("""
             class OutOfTreeWorker(object):
                 pass
             WORKER_CLASS = OutOfTreeWorker"""))
         modfile.flush()
         modfile.close()
-        sys.path.append(dname)
+        sys.path.append(tdir.name)
         self.defaults.distant_workername = 'OutOfTree'
         task = task_self(self.defaults)
-        self.assertTrue(task.default("distant_worker").__name__ is 'OutOfTreeWorker')
+        self.assertEqual(task.default("distant_worker").__name__, 'OutOfTreeWorker')
         task_terminate()
-        shutil.rmtree(dname, ignore_errors=True)
+        tdir.cleanup()
 
     def test_005_misc_value_errors(self):
         """test Defaults misc value errors"""
@@ -213,6 +213,48 @@ class Defaults001ConfigTest(unittest.TestCase):
             grooming_delay: 0.5
             connect_timeout: 12.5
             command_timeout: 30.5""").encode('ascii'))
+        self.defaults = Defaults(filenames=[conf_test.name])
+        # nodeset
+        self.assertEqual(self.defaults.fold_axis, (-1,))
+        # task_default
+        self.assertTrue(self.defaults.stderr)
+        self.assertFalse(self.defaults.stdout_msgtree)
+        self.assertFalse(self.defaults.stderr_msgtree)
+        self.assertEqual(self.defaults.engine, 'select')
+        self.assertEqual(self.defaults.port_qlimit, 1000) # 1.8 compat
+        self.assertFalse(self.defaults.auto_tree)
+        self.assertEqual(self.defaults.local_workername, 'none')
+        self.assertEqual(self.defaults.distant_workername, 'pdsh')
+        # task_info
+        self.assertTrue(self.defaults.debug)
+        self.assertEqual(self.defaults.fanout, 256)
+        self.assertEqual(self.defaults.grooming_delay, 0.5)
+        self.assertEqual(self.defaults.connect_timeout, 12.5)
+
+    def test_003_engine(self):
+        """test Defaults config file (engine section)"""
+        conf_test = make_temp_file(dedent("""
+            [nodeset]
+            fold_axis: -1
+
+            [task.default]
+            stderr: true
+            stdout_msgtree: false
+            stderr_msgtree: false
+            engine: select
+            auto_tree: false
+            local_workername: none
+            distant_workername: pdsh
+
+            [task.info]
+            debug: true
+            fanout: 256
+            grooming_delay: 0.5
+            connect_timeout: 12.5
+            command_timeout: 30.5
+
+            [engine]
+            port_qlimit: 1000""").encode('ascii'))
         self.defaults = Defaults(filenames=[conf_test.name])
         # nodeset
         self.assertEqual(self.defaults.fold_axis, (-1,))

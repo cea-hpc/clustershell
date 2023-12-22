@@ -47,7 +47,7 @@ class PdshClient(ExecClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the commmand.
+        Build the shell command line to start the command.
         Return an array of command and arguments.
         """
         task = self.worker.task
@@ -236,7 +236,7 @@ class WorkerPdsh(ExecWorker):
 
     Known limitations:
       - write() is not supported by WorkerPdsh
-      - return codes == 0 are not garanteed when a timeout is used (rc > 0
+      - return codes == 0 are not guaranteed when a timeout is used (rc > 0
         are fine)
     """
 
@@ -254,8 +254,8 @@ class WorkerPdsh(ExecWorker):
         """
         Write data to process. Not supported with Pdsh worker.
         """
-        raise EngineClientNotSupportedError("writing is not supported by pdsh "
-                                            "worker")
+        raise EngineClientNotSupportedError("writing to stdin is not "
+                                            "supported by pdsh worker")
 
     def set_write_eof(self):
         """
@@ -264,7 +264,7 @@ class WorkerPdsh(ExecWorker):
 
         Not supported by PDSH Worker.
         """
-        raise EngineClientNotSupportedError("writing is not supported by pdsh "
-                                            "worker")
+        raise EngineClientNotSupportedError("writing to stdin is not "
+                                            "supported by pdsh worker")
 
 WORKER_CLASS = WorkerPdsh

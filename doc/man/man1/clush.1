@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2021-11-03" "1.8.4" "ClusterShell User Manual"
+.TH CLUSH 1 "2023-09-29" "1.9.2" "ClusterShell User Manual"
 .SH NAME
 clush \- execute shell commands on a cluster
 .
@@ -138,16 +138,19 @@ command for each node. \fB%h\fP or \fB%host\fP will be replaced by node name and
 .TP
 .B File copying mode ( \fB\-\-copy\fP )
 When \fBclush\fP is started with the \fB\-c\fP or \fB\-\-copy\fP option, it will
-attempt to copy specified \fIfile\fP and/or \fIdir\fP to the provided target
-cluster nodes.  If the \fB\-\-dest\fP option is specified, it will put the
-copied files there.
+attempt to copy specified \fIfiles\fP and/or \fIdirectories\fP to the provided
+cluster nodes.  The \fB\-\-dest\fP option can be used to specify a single
+path where all the file(s) should be copied to on the target nodes.
+In the absence of \fB\-\-dest\fP, \fBclush\fP will attempt to copy each file or
+directory found in the command line to their same location on the
+target nodes.
 .TP
 .B Reverse file copying mode ( \fB\-\-rcopy\fP )
 When \fBclush\fP is started with the \fB\-\-rcopy\fP option, it will attempt to
 retrieve specified \fIfile\fP and/or \fIdir\fP from provided cluster nodes. If the
 \fB\-\-dest\fP option is specified, it must be a directory path where the files
 will be stored with their hostname appended. If the destination path is not
-specified, it will take the first \fIfile\fP or \fIdir\fP basename directory as the
+specified, it will take each \fIfile\fP or \fIdirectory\fP\(aqs parent directory as the
 local destination.
 .UNINDENT
 .SH OPTIONS
@@ -156,7 +159,7 @@ local destination.
 .B \-\-version
 show \fBclush\fP version number and exit
 .TP
-.BI \-s \ GROUPSOURCE\fP,\fB \ \-\-groupsource\fB= GROUPSOURCE
+.BI \-s \ GROUPSOURCE\fR,\fB \ \-\-groupsource\fB= GROUPSOURCE
 optional \fBgroups.conf\fP(5) group source to use
 .TP
 .B \-n\fP,\fB  \-\-nostdin
@@ -168,7 +171,7 @@ use alternate config file for groups.conf(5)
 .BI \-\-conf\fB= FILE
 use alternate config file for clush.conf(5)
 .TP
-.BI \-O \ <KEY=VALUE>\fP,\fB \ \-\-option\fB= <KEY=VALUE>
+.BI \-O \ <KEY=VALUE>\fR,\fB \ \-\-option\fB= <KEY=VALUE>
 override any key=value \fBclush.conf\fP(5) options (repeat as needed)
 .UNINDENT
 .INDENT 0.0
@@ -185,13 +188,13 @@ exclude nodes from the node list
 .B \-a\fP,\fB  \-\-all
 run command on all nodes
 .TP
-.BI \-g \ GROUP\fP,\fB \ \-\-group\fB= GROUP
+.BI \-g \ GROUP\fR,\fB \ \-\-group\fB= GROUP
 run command on a group of nodes
 .TP
 .BI \-X \ GROUP
 exclude nodes from this group
 .TP
-.BI \-\-hostfile\fB= FILE\fP,\fB \ \-\-machinefile\fB= FILE
+.BI \-\-hostfile\fB= FILE\fR,\fB \ \-\-machinefile\fB= FILE
 path to a file containing a list of single hosts, node sets or node groups, separated by spaces and lines (may be specified multiple times, one per file)
 .TP
 .BI \-\-topology\fB= FILE
@@ -242,6 +245,12 @@ return the largest of command return codes
 .TP
 .B \-\-diff
 show diff between common outputs (find the best reference output by focusing on largest nodeset and also smaller command return code)
+.TP
+.BI \-\-outdir\fB= OUTDIR
+output directory for stdout files (OPTIONAL)
+.TP
+.BI \-\-errdir\fB= ERRDIR
+output directory for stderr files (OPTIONAL)
 .UNINDENT
 .TP
 .B File copying:
@@ -265,22 +274,25 @@ preserve modification times and modes
 .B Connection options:
 .INDENT 7.0
 .TP
-.BI \-f \ FANOUT\fP,\fB \ \-\-fanout\fB= FANOUT
-do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same \fIfanout\fP value is used on the head node and on each gateway (the \fIfanout\fP value is propagated). That is, if the \fIfanout\fP is \fB16\fP, each gateway will initate up to \fB16\fP connections to their target nodes at the same time. Default \fIfanout\fP value is defined in \fBclush.conf\fP(5).
+.BI \-f \ FANOUT\fR,\fB \ \-\-fanout\fB= FANOUT
+do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same \fIfanout\fP value is used on the head node and on each gateway (the \fIfanout\fP value is propagated). That is, if the \fIfanout\fP is \fB16\fP, each gateway will initiate up to \fB16\fP connections to their target nodes at the same time. Default \fIfanout\fP value is defined in \fBclush.conf\fP(5).
 .TP
-.BI \-l \ USER\fP,\fB \ \-\-user\fB= USER
+.BI \-l \ USER\fR,\fB \ \-\-user\fB= USER
 execute remote command as user
 .TP
-.BI \-o \ OPTIONS\fP,\fB \ \-\-options\fB= OPTIONS
+.BI \-o \ OPTIONS\fR,\fB \ \-\-options\fB= OPTIONS
 can be used to give ssh options, eg. \fB\-o "\-p 2022 \-i ~/.ssh/myidrsa"\fP; these options are added first to ssh and override default ones
 .TP
-.BI \-t \ CONNECT_TIMEOUT\fP,\fB \ \-\-connect_timeout\fB= CONNECT_TIMEOUT
+.BI \-t \ CONNECT_TIMEOUT\fR,\fB \ \-\-connect_timeout\fB= CONNECT_TIMEOUT
 limit time to connect to a node
 .TP
-.BI \-u \ COMMAND_TIMEOUT\fP,\fB \ \-\-command_timeout\fB= COMMAND_TIMEOUT
+.BI \-u \ COMMAND_TIMEOUT\fR,\fB \ \-\-command_timeout\fB= COMMAND_TIMEOUT
 limit time for command to run on the node
 .TP
-.BI \-R \ WORKER\fP,\fB \ \-\-worker\fB= WORKER
+.BI \-m \ MODE\fR,\fB \ \-\-mode\fB= MODE
+run mode; define MODEs in \fB<confdir>/*.conf\fP
+.TP
+.BI \-R \ WORKER\fR,\fB \ \-\-worker\fB= WORKER
 worker name to use for connection (\fBexec\fP, \fBssh\fP, \fBrsh\fP, \fBpdsh\fP, or the name of a Python worker module), default is \fBssh\fP
 .TP
 .BI \-\-remote\fB= REMOTE
@@ -375,8 +387,9 @@ Copy \fI/etc/motd\fP from remote nodes node[3\-5,62] to local \fI/tmp\fP directo
 .SH FILES
 .INDENT 0.0
 .TP
-.B \fI/etc/clustershell/clush.conf\fP
-System\-wide clush configuration file.
+.B \fI$CLUSTERSHELL_CFGDIR/clush.conf\fP
+Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
+\fI/etc/clustershell/clush.conf\fP is used instead.
 .TP
 .B \fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP
 User configuration file for clush. If $XDG_CONFIG_HOME is not defined,

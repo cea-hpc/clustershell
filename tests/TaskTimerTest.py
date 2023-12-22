@@ -170,20 +170,19 @@ class TaskTimerTest(unittest.TestCase):
             self.flags = 0
         def ev_start(self, worker):
             self.flags |= EV_START
-        def ev_read(self, worker):
+        def ev_read(self, worker, node, sname, msg):
             self.test.assertEqual(self.flags, EV_START)
             self.flags |= EV_READ
-        def ev_written(self, worker):
+        def ev_written(self, worker, node, sname, size):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_WRITTEN
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_HUP
-        def ev_timeout(self, worker):
+        def ev_close(self, worker, timedout):
             self.test.assertTrue(self.flags & EV_START)
-            self.flags |= EV_TIMEOUT
-        def ev_close(self, worker):
-            self.test.assertTrue(self.flags & EV_START)
+            if timedout:
+                self.flags |= EV_TIMEOUT
             self.flags |= EV_CLOSE
         def ev_timer(self, timer):
             self.flags |= EV_TIMER
@@ -213,20 +212,19 @@ class TaskTimerTest(unittest.TestCase):
             self.flags = 0
         def ev_start(self, worker):
             self.flags |= EV_START
-        def ev_read(self, worker):
+        def ev_read(self, worker, node, sname, msg):
             self.test.assertEqual(self.flags, EV_START)
             self.flags |= EV_READ
         def ev_written(self, worker):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_WRITTEN
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_HUP
-        def ev_timeout(self, worker):
+        def ev_close(self, worker, timedout):
             self.test.assertTrue(self.flags & EV_START)
-            self.flags |= EV_TIMEOUT
-        def ev_close(self, worker):
-            self.test.assertTrue(self.flags & EV_START)
+            if timedout:
+                self.flags |= EV_TIMEOUT
             self.flags |= EV_CLOSE
         def ev_timer(self, timer):
             self.flags |= EV_TIMER
@@ -257,20 +255,19 @@ class TaskTimerTest(unittest.TestCase):
             self.flags = 0
         def ev_start(self, worker):
             self.flags |= EV_START
-        def ev_read(self, worker):
+        def ev_read(self, worker, node, sname, msg):
             self.flags |= EV_READ
             self.timer.invalidate()
         def ev_written(self, worker):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_WRITTEN
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_HUP
-        def ev_timeout(self, worker):
+        def ev_close(self, worker, timedout):
             self.test.assertTrue(self.flags & EV_START)
-            self.flags |= EV_TIMEOUT
-        def ev_close(self, worker):
-            self.test.assertTrue(self.flags & EV_START)
+            if timedout:
+                self.flags |= EV_TIMEOUT
             self.flags |= EV_CLOSE
         def ev_timer(self, timer):
             self.flags |= EV_TIMER
@@ -326,20 +323,19 @@ class TaskTimerTest(unittest.TestCase):
             self.flags = 0
         def ev_start(self, worker):
             self.flags |= EV_START
-        def ev_read(self, worker):
+        def ev_read(self, worker, node, sname, msg):
             self.test.assertEqual(self.flags, EV_START)
             self.flags |= EV_READ
         def ev_written(self, worker):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_WRITTEN
-        def ev_hup(self, worker):
+        def ev_hup(self, worker, node, rc):
             self.test.assertTrue(self.flags & EV_START)
             self.flags |= EV_HUP
-        def ev_timeout(self, worker):
+        def ev_close(self, worker, timedout):
             self.test.assertTrue(self.flags & EV_START)
-            self.flags |= EV_TIMEOUT
-        def ev_close(self, worker):
-            self.test.assertTrue(self.flags & EV_START)
+            if timedout:
+                self.flags |= EV_TIMEOUT
             self.flags |= EV_CLOSE
             # set next fire delay, also disable previously setup interval
             # (timer will not repeat anymore)

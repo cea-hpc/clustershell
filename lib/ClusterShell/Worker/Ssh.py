@@ -38,7 +38,7 @@ class SshClient(ExecClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the ssh commmand.
+        Build the shell command line to start the ssh command.
         Return an array of command and arguments.
         """
 
@@ -86,7 +86,7 @@ class ScpClient(CopyClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the scp commmand.
+        Build the shell command line to start the scp command.
         Return an array of command and arguments.
         """
 
@@ -121,7 +121,7 @@ class ScpClient(CopyClient):
         # Disable passphrase/password querying
         # When used together with sshpass this must be overwritten
         # by a custom option to "-oBatchMode=no".
-        cmd_l.append("-oBatchMode=yes")
+        #cmd_l.append("-oBatchMode=yes")
 
 
         if self.reverse:

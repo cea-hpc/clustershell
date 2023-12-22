@@ -3,6 +3,158 @@
 Release Notes
 =============
 
+Version 1.9
+-----------
+
+We are pleased to announce the availability of this new release, which comes
+with some exciting new features and improvements. We would like to thank
+everyone who participated in this release in a way or another.
+
+Version 1.9.2
+^^^^^^^^^^^^^
+
+This version contains a few bug fixes and improvements over 1.9.1:
+
+* :ref:`clush-tool`: and :ref:`clubak-tool`: We fixed the line-buffered
+  output with recent versions of Python 3 for the standard output and
+  standard error streams. A welcome consequence of this change is that
+  non-printable characters will now be displayed as �.
+
+* :ref:`clush-tool`: When multiple files or directories are specified as
+  arguments with ``--[r]copy``, and ``--dest`` is omitted, use each
+  argument's dirname for each destination, instead of the dirname of the
+  first argument only.
+
+* In YAML configuration files used for :ref:`group-file-based`, a valid
+  YAML null value (for example: ``null`` or ``~``) is now interpreted as
+  an empty node set.
+
+* Router and destination node sets defined in
+  :ref:`topology.conf <clush-tree-enabling>` may use
+  :ref:`nodeset-groups` and :ref:`node-wildcards` but any route
+  definition with an empty node set will now be ignored.
+
+For more details, please have a look at `GitHub Issues for 1.9.2 milestone`_.
+
+Version 1.9.1
+^^^^^^^^^^^^^
+
+This version contains a few bug fixes and improvements over 1.9, mostly
+affecting packaging:
+
+* Allow ``clustershell`` to be installed as user in a ``venv`` using
+  ``pip install`` or using ``pip install --user`` with man pages. Root
+  installation using pip is now discouraged. If done, ``/usr/local`` is
+  likely to be used as the install prefix. See :ref:`install-python` for
+  more information.
+
+* :ref:`clush-tool`: ``$CFGDIR`` was broken if ``/etc/clustershell`` did not
+  exist
+
+* Add support for negative ranges in :class:`.RangeSet`.
+
+For more details, please have a look at `GitHub Issues for 1.9.1 milestone`_.
+
+Main changes in 1.9
+^^^^^^^^^^^^^^^^^^^
+
+Python support
+""""""""""""""
+
+.. warning:: Support for Python 2.6 has been dropped in this version.
+   Upgrading to Python 3 is highly recommended as Python 2 reached end of
+   life in 2020. See :ref:`install-requirements`.
+
+clush
+"""""
+
+* :ref:`clush-tool` has now support for :ref:`clush-modes` to support more
+  authentication use cases. A run mode has pre-defined
+  :ref:`clush.conf <clush-config>` settings with a given name, and can then
+  be activated with ``--mode=MODE``. We also added the new options
+  ``command_prefix`` and ``password_prompt`` (see
+  :ref:`clush.conf <clush-config>`). Two examples of run modes are included
+  and can be easily enabled:
+
+  * :ref:`password-based ssh authentication with sshpass <clush-sshpass>`
+
+  * :ref:`sudo password forwarding over stdin <clush-sudo>`
+
+.. note:: ``clush.conf`` comes with a new variable
+   :ref:`confdir <clush-config>` to specify where to look for run mode
+   configuration files. If you upgrade from 1.8.4 and want to use run modes,
+   make sure ``confdir`` is present in your ``clush.conf``.
+
+* :ref:`clush-tool`: add arguments ``--outdir=OUTDIR`` and
+  ``--errdir=ERRDIR``; similar to *pssh(1)*, it allows to save the standard
+  output (stdout) and/or error (stderr) of all remote commands to local
+  files. See :ref:`clush-outdir`.
+
+Node sets and node groups
+"""""""""""""""""""""""""
+
+.. warning:: To support mixed-length 0-padding ranges, version 1.9 introduces
+   changes in :class:`.RangeSet`'s API that might break existing code. If you
+   use :class:`.RangeSet` directly, see below for more information.
+
+* :class:`.NodeSet`, :class:`.RangeSet` and :class:`.RangeSetND` objects now
+  support sets with mixed length zero padding, meaning you can safely mix
+  ranges like ``2-3``, ``03-09`` and ``005-123``.
+  The following example with :ref:`nodeset-tool` shows that not only ``01``
+  and ``001`` are now seen as separate indexes, but it is also possible to mix
+  non-padded indexes like ``1`` with zero-padded indexes::
+
+    $ nodeset --fold node001 node1 node01
+    node[1,01,001]
+
+  See ``nodeset``'s :ref:`zero padding <nodeset-zeropadding>` for more examples.
+
+  :class:`.RangeSet` now internally manages indexes as strings with the zero
+  padding included. Prior to v1.9, indexes were stored as integers and zero
+  padding was a simple display feature of fixed length per :class:`.RangeSet`
+  object. If you are using this class directly in your code, please see the
+  :ref:`class-RangeSet` in the Programming Guide section for portability
+  recommendations (especially the new method :meth:`.RangeSet.intiter()`).
+
+.. note:: The :class:`.NodeSet` class API has NOT changed so as long as you do
+   not use :class:`.RangeSet` directly, you may safely upgrade to 1.9.
+
+* :ref:`nodeset-rawgroupnames`: the **@@** operator may be used in any node
+  set expression to manipulate group names as a node set::
+
+    $ nodeset -l -s rack
+    @rack:J1
+    @rack:J2
+    @rack:J3
+    $ nodeset -f @@rack
+    J[1-3]
+
+* :class:`.RangeSet`: multidimensional folding performance optimization,
+  useful for "xnames" on HPE Cray EX supercomputers that encode up to 5
+  dimensions.
+
+* :ref:`Slurm group bindings <group-slurm-bindings>`: filter out more Slurm
+  node state flags
+
+Configuration
+"""""""""""""
+
+* Introduce ``$CLUSTERSHELL_CFGDIR`` as an alternate location for
+  configuration files; useful on a cluster where ClusterShell is provided
+  as a user-facing tool installed on a shared file system (see
+  :ref:`clush-config`, :ref:`groups_config_conf` and :ref:`defaults-config`).
+
+Tree mode
+"""""""""
+
+* Fix start by implementing a proper asynchronous start for :class:`.TreeWorker`,
+  which is now only triggered when the engine actually starts.
+
+* Fix error with intermediate gateways
+
+For more details, please have a look at `GitHub Issues for 1.9 milestone`_.
+
+
 Version 1.8
 -----------
 
@@ -119,7 +271,7 @@ changes in 1.8.
 Finally, :ref:`cluset <cluset-tool>`/:ref:`nodeset <nodeset-tool>` have been
 improved by adding support for:
 
-* litteral new line in ``-S``
+* literal new line in ``-S``
 
 * multiline shell variables in options
 
@@ -564,8 +716,11 @@ versions.
 Configuration files
 """""""""""""""""""
 
-When ``$XDG_CONFIG_HOME`` is defined, ClusterShell will use it to search for
-additional configuration files.
+When ``$CLUSTERSHELL_CFGDIR`` or ``$XDG_CONFIG_HOME`` are defined,
+ClusterShell will use them to search for additional configuration files.
+
+If ``$CLUSTERSHELL_CFGDIR`` is not defined, the global configuration files will
+be searched for in `/etc/clustershell`
 
 PIP user installation support
 """""""""""""""""""""""""""""
@@ -585,6 +740,9 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.8.2 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.2
 .. _GitHub Issues for 1.8.3 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.3
 .. _GitHub Issues for 1.8.4 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.8.4
+.. _GitHub Issues for 1.9 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.9
+.. _GitHub Issues for 1.9.1 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.1
+.. _GitHub Issues for 1.9.2 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.2
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/

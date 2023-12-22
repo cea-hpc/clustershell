@@ -45,7 +45,10 @@ def _eh_sigspec_invoke_compat(method, argc_legacy, *args):
     """
     argc_actual = len(getfullargspec(method)[0])
     if argc_actual == argc_legacy:
-        # Use legacy signature (1.x)
+        # Use legacy signature (1.x) deprecated as of 1.9
+        warnings.warn("%s should use new %s() signature" % (method.__self__,
+                                                            method.__name__),
+                      DeprecationWarning)
         return method(*args[0:argc_legacy - 1])
     else:
         # Assume new signature (2.x)
@@ -53,7 +56,11 @@ def _eh_sigspec_invoke_compat(method, argc_legacy, *args):
 
 def _eh_sigspec_ev_read_17(ev_read):
     """Helper function to check whether ev_read has the old 1.7 signature."""
-    return len(getfullargspec(ev_read)[0]) == 2
+    if len(getfullargspec(ev_read)[0]) == 2:
+        warnings.warn("%s should use new ev_read() signature" % \
+                      ev_read.__self__, DeprecationWarning)
+        return True
+    return False
 
 
 class WorkerException(Exception):
@@ -121,11 +128,17 @@ class Worker(object):
         self.metarefcnt = 0
 
         # current_x public variables (updated at each event accordingly)
-        self.current_node = None    #: set to node in event handler
-        self.current_msg = None     #: set to stdout message in event handler
-        self.current_errmsg = None  #: set to stderr message in event handler
-        self.current_rc = 0         #: set to return code in event handler
-        self.current_sname = None   #: set to stream name in event handler
+
+        #: set to node in event handler; DEPRECATED: use :class:`.EventHandler` method argument **node**
+        self.current_node = None
+        #: set to stdout in event handler; DEPRECATED: use :class:`.EventHandler` method argument **msg** if ``sname==SNAME_STDOUT``
+        self.current_msg = None
+        #: set to stderr message in event handler; DEPRECATED: use :class:`.EventHandler` method argument **msg** if ``sname==SNAME_STDERR``
+        self.current_errmsg = None
+        #: set to return code in event handler; DEPRECATED: use :class:`.EventHandler` method argument **rc**
+        self.current_rc = 0
+        #: set to stream name in event handler; DEPRECATED: use :class:`.EventHandler` method argument **sname**
+        self.current_sname = None
 
     def _set_task(self, task):
         """Bind worker to task. Called by task.schedule()."""
@@ -178,24 +191,9 @@ class Worker(object):
         self.current_sname = sname
 
         if self.eh is not None:
-            _eh_sigspec_invoke_compat(self.eh.ev_written, 5, self, key, sname,
-                                      bytes_count)
+            self.eh.ev_written(self, key, sname, bytes_count)
 
     # Base getters
-
-    def last_read(self):
-        """
-        Get last read message from event handler.
-        [DEPRECATED] use current_msg
-        """
-        raise NotImplementedError("Derived classes must implement.")
-
-    def last_error(self):
-        """
-        Get last error message from event handler.
-        [DEPRECATED] use current_errmsg
-        """
-        raise NotImplementedError("Derived classes must implement.")
 
     def did_timeout(self):
         """Return whether this worker has aborted due to timeout."""
@@ -208,9 +206,9 @@ class Worker(object):
         Return stream read buffer of current worker.
 
         Arguments:
-            node -- node name; can also be set to None for simple worker
-                    having worker.key defined (default is None)
-            sname -- stream name (default is 'stdout')
+        :param node: node name, can also be set to None for simple worker
+        having worker.key defined (default is None)
+        :param sname: stream name (default is 'stdout')
         """
         self._task_bound_check()
         return self.task._msg_by_source(self, node, sname)
@@ -288,42 +286,6 @@ class DistantWorker(Worker):
         self.current_node = node
 
         self.task._timeout_add(self, node)
-
-    def last_node(self):
-        """
-        Get last node, useful to get the node in an EventHandler
-        callback like ev_read().
-        [DEPRECATED] use current_node
-        """
-        warnings.warn("use current_node instead", DeprecationWarning)
-        return self.current_node
-
-    def last_read(self):
-        """
-        Get last (node, buffer), useful in an EventHandler.ev_read()
-        [DEPRECATED] use (current_node, current_msg)
-        """
-        warnings.warn("use current_node and current_msg instead",
-                      DeprecationWarning)
-        return self.current_node, self.current_msg
-
-    def last_error(self):
-        """
-        Get last (node, error_buffer), useful in an EventHandler.ev_error()
-        [DEPRECATED] use (current_node, current_errmsg)
-        """
-        warnings.warn("use current_node and current_errmsg instead",
-                      DeprecationWarning)
-        return self.current_node, self.current_errmsg
-
-    def last_retcode(self):
-        """
-        Get last (node, rc), useful in an EventHandler.ev_hup()
-        [DEPRECATED] use (current_node, current_rc)
-        """
-        warnings.warn("use current_node and current_rc instead",
-                      DeprecationWarning)
-        return self.current_node, self.current_rc
 
     def node_buffer(self, node):
         """Get specific node buffer."""
@@ -501,6 +463,7 @@ class StreamWorker(Worker):
     it does not execute any external commands by itself. Rather, it
     should be pre-bound to "streams", ie. file(s) or file descriptor(s),
     using the two following methods:
+
         >>> worker.set_reader('stream1', fd1)
         >>> worker.set_writer('stream2', fd2)
 
@@ -530,12 +493,12 @@ class StreamWorker(Worker):
         """Add a readable stream to StreamWorker.
 
         Arguments:
-            sname   -- the name of the stream (string)
-            sfile   -- the stream file or file descriptor
-            retain  -- whether the stream retains engine client
-                       (default is True)
-            closefd -- whether to close fd when the stream is closed
-                       (default is True)
+        :param sname: the name of the stream (string)
+        :param sfile: the stream file or file descriptor
+        :param retain: whether the stream retains engine client
+        (default is True)
+        :param closefd: whether to close fd when the stream is closed
+        (default is True)
         """
         if not self.clients[0].registered:
             self.clients[0].streams.set_reader(sname, sfile, retain, closefd)
@@ -546,12 +509,12 @@ class StreamWorker(Worker):
         """Set a writable stream to StreamWorker.
 
         Arguments:
-            sname -- the name of the stream (string)
-            sfile -- the stream file or file descriptor
-            retain  -- whether the stream retains engine client
-                       (default is True)
-            closefd -- whether to close fd when the stream is closed
-                       (default is True)
+        :param sname: the name of the stream (string)
+        :param sfile: the stream file or file descriptor
+        :param retain: whether the stream retains engine client
+        (default is True)
+        :param closefd: whether to close fd when the stream is closed
+        (default is True)
         """
         if not self.clients[0].registered:
             self.clients[0].streams.set_writer(sname, sfile, retain, closefd)
@@ -606,6 +569,8 @@ class StreamWorker(Worker):
         # trigger timeout event (deprecated in 1.8+)
         # also use hasattr check because ev_timeout was missing in 1.8.0
         if self.eh and hasattr(self.eh, 'ev_timeout'):
+            warnings.warn("%s should use new ev_close() instead of " \
+                          "ev_timeout()" % self.eh, DeprecationWarning)
             self.eh.ev_timeout(self)
 
     def abort(self):
@@ -621,9 +586,9 @@ class StreamWorker(Worker):
         Return stream read buffer of current worker.
 
         Arguments:
-            node -- node name; can also be set to None for simple worker
-                    having worker.key defined (default is None)
-            sname -- stream name (default is 'stdout')
+        :param node: node name, can also be set to None for simple worker
+        having worker.key defined (default is None)
+        :param sname: stream name (default is 'stdout')
         """
         return Worker.read(self, node or self.clients[0].key, sname)
 
@@ -681,24 +646,6 @@ class WorkerSimple(StreamWorker):
         """Return the writer file descriptor as an integer."""
         return self.clients[0].streams['stdin'].fd
 
-    def last_read(self):
-        """
-        Get last read message.
-
-        [DEPRECATED] use current_msg
-        """
-        warnings.warn("use current_msg instead", DeprecationWarning)
-        return self.current_msg
-
-    def last_error(self):
-        """
-        Get last error message.
-
-        [DEPRECATED] use current_errmsg
-        """
-        warnings.warn("use current_errmsg instead", DeprecationWarning)
-        return self.current_errmsg
-
     def error(self):
         """Read worker error buffer."""
         return self.read(sname='stderr')
@@ -734,5 +681,4 @@ class WorkerSimple(StreamWorker):
 
         if self.eh is not None:
             # generate ev_written
-            _eh_sigspec_invoke_compat(self.eh.ev_written, 5, self, key, sname,
-                                      bytes_count)
+            self.eh.ev_written(self, key, sname, bytes_count)

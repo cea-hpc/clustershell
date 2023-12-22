@@ -96,7 +96,7 @@ class GroupSource(object):
 
         :param name: group source name
         :param groups: group to nodes dict
-        :param allgroups: optional _all groups_ result (string)
+        :param allgroups: optional "all groups" result (string)
         """
         self.name = name
         self.groups = groups or {} # we avoid the use of {} as default argument
@@ -329,11 +329,14 @@ class YAMLGroupLoader(object):
                 fmt = "%s: invalid content (group source '%s' is not a dict)"
                 raise GroupResolverConfigError(fmt % (self.filename, srcname))
 
-            for grp in groups:
+            for grp, grpnodes in groups.items():
                 if not isinstance(grp, basestring):
                     fmt = '%s: %s: group name %s not a string (add quotes?)'
                     raise GroupResolverConfigError(fmt % (self.filename,
                                                           srcname, grp))
+                # GH#533: interpret null value as empty set
+                if grpnodes is None:
+                    groups[grp] = ''
 
             if first:
                 self._groups[srcname] = groups

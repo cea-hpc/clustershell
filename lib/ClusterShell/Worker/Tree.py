@@ -20,7 +20,7 @@
 # This file is part of the ClusterShell library.
 
 """
-ClusterShell v2 tree propagation worker
+ClusterShell tree propagation worker
 """
 
 import base64
@@ -33,6 +33,7 @@ import tempfile
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.NodeSet import NodeSet
+from ClusterShell.Worker.EngineClient import EnginePort
 from ClusterShell.Worker.Worker import DistantWorker, WorkerError
 from ClusterShell.Worker.Worker import _eh_sigspec_invoke_compat
 from ClusterShell.Worker.Exec import ExecWorker
@@ -53,7 +54,6 @@ class MetaWorkerEventHandler(EventHandler):
         """
         self.logger.debug("MetaWorkerEventHandler: ev_start")
         self.metaworker._start_count += 1
-        self.metaworker._check_ini()  # also generate ev_pickup events
 
     def ev_read(self, worker, node, sname, msg):
         """
@@ -93,10 +93,6 @@ class MetaWorkerEventHandler(EventHandler):
             for node in NodeSet._fromlist1(worker.iter_keys_timeout()):
                 self.metaworker._on_node_timeout(node)
         self.metaworker._check_fini()
-        #self._completed += 1
-        #if self._completed >= self.grpcount:
-        #    metaworker = self.metaworker
-        #    metaworker.eh.ev_close(metaworker)
 
 
 class TreeWorker(DistantWorker):
@@ -110,6 +106,28 @@ class TreeWorker(DistantWorker):
     TAR_CMD_FMT = "tar -cf - -C '%s' " \
                   "--transform \"s,^\\([^/]*\\)[/]*,\\1.$(hostname -s)/,\" " \
                   "'%s' | base64 -w 65536"
+
+    class _IOPortHandler(EventHandler):
+        """
+        Special control port event handler used for:
+        * start the TreeWorker when the engine starts
+        * early write handling: write buffering and eof tracking
+        """
+        def __init__(self, treeworker):
+            EventHandler.__init__(self)
+            self.treeworker = treeworker
+
+        def ev_port_start(self, port):
+            """Event when port is registered."""
+            self.treeworker._start()
+
+        def ev_msg(self, port, msg):
+            """
+            Message received: call appropriate worker method.
+            Used for TreeWorker.write() and set_write_eof().
+            """
+            func, args = msg[0], msg[1:]
+            func(self.treeworker, *args)
 
     def __init__(self, nodes, handler, timeout, **kwargs):
         """
@@ -144,6 +162,7 @@ class TreeWorker(DistantWorker):
         self._child_count = 0
         self._target_count = 0
         self._has_timeout = False
+        self._started = False
 
         if self.command is None and self.source is None:
             raise ValueError("missing command or source parameter in "
@@ -190,21 +209,17 @@ class TreeWorker(DistantWorker):
         # gateway (string) -> active targets selection
         self.gwtargets = {}
 
-    def _set_task(self, task):
-        """
-        Bind worker to task. Called by task.schedule().
-        TreeWorker metaworker: override to schedule sub-workers.
-        """
-        ##if fanout is None:
-        ##    fanout = self.router.fanout
-        ##self.task.set_info('fanout', fanout)
+        # IO port
+        self._port = EnginePort(handler=TreeWorker._IOPortHandler(self),
+                                autoclose=True)
 
-        DistantWorker._set_task(self, task)
-        # Now bound to task - initalize router
-        self.topology = self.topology or task.topology
-        self.router = task._default_router(self.router)
+    def _start(self):
+        # Engine has started: initialize router
+        self.topology = self.topology or self.task.topology
+        self.router = self.task._default_router(self.router)
         self._launch(self.nodes)
         self._check_ini()
+        self._started = True
 
     def _launch(self, nodes):
         self.logger.debug("TreeWorker._launch on %s (fanout=%d)", nodes,
@@ -392,7 +407,7 @@ class TreeWorker(DistantWorker):
         """
         Access underlying engine clients.
         """
-        return []
+        return [self._port]
 
     def _on_remote_node_msgline(self, node, msg, sname, gateway):
         """remote msg received"""
@@ -462,6 +477,7 @@ class TreeWorker(DistantWorker):
 
     def _on_node_timeout(self, node):
         DistantWorker._on_node_timeout(self, node)
+        self.logger.debug("_on_node_timeout %s (%s)", node, self._close_count)
         self._close_count += 1
         self._has_timeout = True
 
@@ -506,8 +522,18 @@ class TreeWorker(DistantWorker):
             self.task._pchannel(gateway, self).write(nodes=targets, buf=buf,
                                                      worker=self)
 
+    def _set_write_eof_remote(self):
+        for gateway, targets in self.gwtargets.items():
+            assert len(targets) > 0
+            self.task._pchannel(gateway, self).set_write_eof(nodes=targets,
+                                                             worker=self)
+
     def write(self, buf):
         """Write to worker clients."""
+        if not self._started:
+            self._port.msg_send((TreeWorker.write, buf))
+            return
+
         osexc = None
         # Differentiate directly handled writes from remote ones
         for worker in self.workers:
@@ -526,13 +552,15 @@ class TreeWorker(DistantWorker):
         Tell worker to close its writer file descriptor once flushed. Do not
         perform writes after this call.
         """
+        if not self._started:
+            self._port.msg_send((TreeWorker.set_write_eof, ))
+            return
+
         # Differentiate directly handled EOFs from remote ones
         for worker in self.workers:
             worker.set_write_eof()
-        for gateway, targets in self.gwtargets.items():
-            assert len(targets) > 0
-            self.task._pchannel(gateway, self).set_write_eof(nodes=targets,
-                                                             worker=self)
+
+        self._set_write_eof_remote()
 
     def abort(self):
         """Abort processing any action by this worker."""

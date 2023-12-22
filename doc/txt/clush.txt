@@ -7,9 +7,9 @@ execute shell commands on a cluster
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2021-11-03
+:Date:   2023-09-29
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.4
+:Version: 1.9.2
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -110,16 +110,19 @@ Local execution ( ``--worker=exec`` or ``-R exec`` )
 
 File copying mode ( ``--copy`` )
   When ``clush`` is started with the ``-c`` or ``--copy`` option, it will
-  attempt to copy specified *file* and/or *dir* to the provided target
-  cluster nodes.  If the ``--dest`` option is specified, it will put the
-  copied files there.
+  attempt to copy specified *files* and/or *directories* to the provided
+  cluster nodes.  The ``--dest`` option can be used to specify a single
+  path where all the file(s) should be copied to on the target nodes.
+  In the absence of ``--dest``, ``clush`` will attempt to copy each file or
+  directory found in the command line to their same location on the
+  target nodes.
 
 Reverse file copying mode ( ``--rcopy`` )
   When ``clush`` is started with the ``--rcopy`` option, it will attempt to
   retrieve specified *file* and/or *dir* from provided cluster nodes. If the
   ``--dest`` option is specified, it must be a directory path where the files
   will be stored with their hostname appended. If the destination path is not
-  specified, it will take the first *file* or *dir* basename directory as the
+  specified, it will take each *file* or *directory*'s parent directory as the
   local destination.
 
 
@@ -162,6 +165,8 @@ Output behaviour:
   -S, --maxrc         return the largest of command return codes
   --color=WHENCOLOR   ``clush`` can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which takes precedence over CLICOLOR.  When ``--color`` option is used these environment variables are not taken into account. ``--color`` tells whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. *WHENCOLOR* is ``never``, ``always`` or ``auto`` (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
   --diff              show diff between common outputs (find the best reference output by focusing on largest nodeset and also smaller command return code)
+  --outdir=OUTDIR     output directory for stdout files (OPTIONAL)
+  --errdir=ERRDIR     output directory for stderr files (OPTIONAL)
 
 File copying:
   -c, --copy          copy local file or directory to remote nodes
@@ -173,7 +178,7 @@ File copying:
 
 Connection options:
   -f FANOUT, --fanout=FANOUT
-                      do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same *fanout* value is used on the head node and on each gateway (the *fanout* value is propagated). That is, if the *fanout* is **16**, each gateway will initate up to **16** connections to their target nodes at the same time. Default *fanout* value is defined in ``clush.conf``\(5).
+                      do not execute more than FANOUT commands at the same time, useful to limit resource usage. In tree mode, the same *fanout* value is used on the head node and on each gateway (the *fanout* value is propagated). That is, if the *fanout* is **16**, each gateway will initiate up to **16** connections to their target nodes at the same time. Default *fanout* value is defined in ``clush.conf``\(5).
   -l USER, --user=USER
                       execute remote command as user
   -o OPTIONS, --options=OPTIONS
@@ -182,6 +187,8 @@ Connection options:
                       limit time to connect to a node
   -u COMMAND_TIMEOUT, --command_timeout=COMMAND_TIMEOUT
                       limit time for command to run on the node
+  -m MODE, --mode=MODE
+                      run mode; define MODEs in ``<confdir>/*.conf``
   -R WORKER, --worker=WORKER
                       worker name to use for connection (``exec``, ``ssh``, ``rsh``, ``pdsh``, or the name of a Python worker module), default is ``ssh``
   --remote=REMOTE     whether to enable remote execution: in tree mode, 'yes' forces connections to the leaf nodes for execution, 'no' establishes connections up to the leaf parent nodes for execution (default is 'yes') 
@@ -278,8 +285,9 @@ Copy files
 FILES
 =====
 
-*/etc/clustershell/clush.conf*
-  System-wide clush configuration file.
+*$CLUSTERSHELL_CFGDIR/clush.conf*
+  Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
+  */etc/clustershell/clush.conf* is used instead.
 
 *$XDG_CONFIG_HOME/clustershell/clush.conf*
   User configuration file for clush. If $XDG_CONFIG_HOME is not defined,

@@ -10,7 +10,8 @@ benefits of using ClusterShell are to:
 * support an unified node groups syntax and external group access (see the
   :class:`.NodeSet` class),
 * significantly speed up initial cluster setup and daily administrative tasks
-  when using tools like :ref:`clush-tool` and :ref:`nodeset-tool`.
+  when using tools like :ref:`clush-tool` and :ref:`cluset-tool` /
+  :ref:`nodeset-tool`.
 
 Originally created by the HPC Linux system development team at CEA [#]_ HPC
 center in France, ClusterShell is designed around medium and long term ideas

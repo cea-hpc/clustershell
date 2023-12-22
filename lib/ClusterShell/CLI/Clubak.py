@@ -34,7 +34,7 @@ from ClusterShell.NodeSet import NodeSet, NodeSetParseError, std_group_resolver
 from ClusterShell.NodeSet import set_std_group_resolver_config
 
 from ClusterShell.CLI.Display import Display, THREE_CHOICES
-from ClusterShell.CLI.Display import sys_stdin, sys_stdout
+from ClusterShell.CLI.Display import sys_stdin
 from ClusterShell.CLI.Error import GENERIC_ERRORS, handle_generic_error
 from ClusterShell.CLI.OptionParser import OptionParser
 from ClusterShell.CLI.Utils import nodeset_cmpkey
@@ -55,40 +55,38 @@ def display_tree(tree, disp, out):
                 reldepth = reldepths[depth] = reldepth + offset
             nodeset = NodeSet.fromlist(keys)
             if line_mode:
-                out.write(str(nodeset).encode() + b':\n')
+                out.write(str(nodeset) + ':\n')
             else:
                 out.write(disp.format_header(nodeset, reldepth))
-        out.write(b' ' * reldepth + msgline + b'\n')
+        out.write(' ' * reldepth + bytes(msgline).decode(errors='replace')
+                  + '\n')
         togh = nchildren != 1
 
 def display(tree, disp, gather, trace_mode, enable_nodeset_key):
     """nicely display MsgTree instance `tree' content according to
     `disp' Display object and `gather' boolean flag"""
-    out = sys_stdout()
-    try:
-        if trace_mode:
-            display_tree(tree, disp, out)
+    if trace_mode:
+        display_tree(tree, disp, sys.stdout)
+        sys.stdout.flush()
+        return
+    if gather:
+        if enable_nodeset_key:
+            # lambda to create a NodeSet from keys returned by walk()
+            ns_getter = lambda x: NodeSet.fromlist(x[1])
+            for nodeset in sorted((ns_getter(item) for item in tree.walk()),
+                                  key=nodeset_cmpkey):
+                disp.print_gather(nodeset, tree[nodeset[0]])
         else:
-            if gather:
-                if enable_nodeset_key:
-                    # lambda to create a NodeSet from keys returned by walk()
-                    ns_getter = lambda x: NodeSet.fromlist(x[1])
-                    for nodeset in sorted((ns_getter(item) for item in tree.walk()),
-                                          key=nodeset_cmpkey):
-                        disp.print_gather(nodeset, tree[nodeset[0]])
-                else:
-                    for msg, key in tree.walk():
-                        disp.print_gather_keys(key, msg)
-            else:
-                if enable_nodeset_key:
-                    # nodes are automagically sorted by NodeSet
-                    for node in NodeSet.fromlist(tree.keys()).nsiter():
-                        disp.print_gather(node, tree[str(node)])
-                else:
-                    for key in tree.keys():
-                        disp.print_gather_keys([ key ], tree[key])
-    finally:
-        out.flush()
+            for msg, key in tree.walk():
+                disp.print_gather_keys(key, msg)
+    else:
+        if enable_nodeset_key:
+            # nodes are automagically sorted by NodeSet
+            for node in NodeSet.fromlist(tree.keys()).nsiter():
+                disp.print_gather(node, tree[str(node)])
+        else:
+            for key in tree.keys():
+                disp.print_gather_keys([ key ], tree[key])
 
 def clubak():
     """script subroutine"""
@@ -128,9 +126,11 @@ def clubak():
         try:
             linestripped = line.rstrip(b'\r\n')
             if options.verbose or options.debug:
-                sys_stdout().write(b'INPUT ' + linestripped + b'\n')
+                sys.stdout.write('INPUT ' +
+                                 linestripped.decode(errors='replace') + '\n')
             key, content = linestripped.split(separator, 1)
-            key = key.strip().decode()  # NodeSet requires encoded string
+            # NodeSet requires encoded string
+            key = key.strip().decode(errors='replace')
             if not key:
                 raise ValueError("no node found")
             if enable_nodeset_key is False:  # interpret-keys=never?
@@ -150,7 +150,8 @@ def clubak():
                 for node in keyset:
                     tree.add(node, content)
         except ValueError as ex:
-            raise ValueError('%s: "%s"' % (ex, linestripped.decode()))
+            raise ValueError('%s: "%s"' %
+                             (ex, linestripped.decode(errors='replace')))
 
     if fast_mode:
         # Messages per node have been aggregated, now add to tree one

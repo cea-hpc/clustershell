@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSET 1 "2022-03-19" "1.8.4" "ClusterShell User Manual"
+.TH CLUSET 1 "2023-09-29" "1.9.2" "ClusterShell User Manual"
 .SH NAME
 cluset \- compute advanced cluster node set operations
 .
@@ -59,7 +59,7 @@ show program\(aqs version number and exit
 .B \-h\fP,\fB  \-\-help
 show this help message and exit
 .TP
-.BI \-s \ GROUPSOURCE\fP,\fB \ \-\-groupsource\fB= GROUPSOURCE
+.BI \-s \ GROUPSOURCE\fR,\fB \ \-\-groupsource\fB= GROUPSOURCE
 optional \fBgroups.conf\fP(5) group source to use
 .TP
 .BI \-\-groupsconf\fB= FILE
@@ -92,13 +92,13 @@ list all active group sources (see \fBgroups.conf\fP(5))
 .B Operations:
 .INDENT 7.0
 .TP
-.BI \-x \ SUB_NODES\fP,\fB \ \-\-exclude\fB= SUB_NODES
+.BI \-x \ SUB_NODES\fR,\fB \ \-\-exclude\fB= SUB_NODES
 exclude specified set
 .TP
-.BI \-i \ AND_NODES\fP,\fB \ \-\-intersection\fB= AND_NODES
+.BI \-i \ AND_NODES\fR,\fB \ \-\-intersection\fB= AND_NODES
 calculate sets intersection
 .TP
-.BI \-X \ XOR_NODES\fP,\fB \ \-\-xor\fB= XOR_NODES
+.BI \-X \ XOR_NODES\fR,\fB \ \-\-xor\fB= XOR_NODES
 calculate symmetric difference between sets
 .UNINDENT
 .TP
@@ -124,14 +124,14 @@ working on numerical cluster ranges, eg. 1,5,18\-31
 .B \-G\fP,\fB  \-\-groupbase
 hide group source prefix (always \fI@groupname\fP)
 .TP
-.BI \-S \ SEPARATOR\fP,\fB \ \-\-separator\fB= SEPARATOR
+.BI \-S \ SEPARATOR\fR,\fB \ \-\-separator\fB= SEPARATOR
 separator string to use when expanding nodesets
 (default: \(aq \(aq)
 .TP
-.BI \-O \ FORMAT\fP,\fB \ \-\-output\-format\fB= FORMAT
+.BI \-O \ FORMAT\fR,\fB \ \-\-output\-format\fB= FORMAT
 output format (default: \(aq%s\(aq)
 .TP
-.BI \-I \ SLICE_RANGESET\fP,\fB \ \-\-slice\fB= SLICE_RANGESET
+.BI \-I \ SLICE_RANGESET\fR,\fB \ \-\-slice\fB= SLICE_RANGESET
 return sliced off result; examples of SLICE_RANGESET are "0" for simple index selection, or "1\-9/2,16" for complex rangeset selection
 .TP
 .BI \-\-split\fB= MAXSPLIT

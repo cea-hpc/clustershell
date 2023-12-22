@@ -1,7 +1,9 @@
+%if 0%{?rhel} < 9
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python2_sitelib: %global python2_sitelib %{python_sitelib}}
 %{!?__python: %global __python python}
 %{!?__python2: %global __python2 %{__python}}
+%endif
 
 %if 0%{?fedora} >= 22
 %{!?python2_pkgversion: %global python2_pkgversion 2}
@@ -21,7 +23,7 @@
 %{!?__python3: %global __python3 python3}
 %{!?python3_shortver: %global python3_shortver %(%{__python3} -c 'import sys; print(str(sys.version_info.major) + "." + str(sys.version_info.minor))')}
 
-%if 0%{?rhel} < 8 &&  0%{?suse_version} <= 1500
+%if 0%{?rhel} < 8 &&  0%{?sle_version} < 150400
 %define py2 1
 %endif
 
@@ -134,15 +136,6 @@ popd
 ln -s conf/groups.d/local.cfg %{buildroot}/%{_sysconfdir}/clustershell/groups
 %endif
 
-# man pages
-install -d %{buildroot}/%{_mandir}/{man1,man5}
-install -p -m 0644 doc/man/man1/clubak.1 %{buildroot}/%{_mandir}/man1/
-install -p -m 0644 doc/man/man1/cluset.1 %{buildroot}/%{_mandir}/man1/
-install -p -m 0644 doc/man/man1/clush.1 %{buildroot}/%{_mandir}/man1/
-install -p -m 0644 doc/man/man1/nodeset.1 %{buildroot}/%{_mandir}/man1/
-install -p -m 0644 doc/man/man5/clush.conf.5 %{buildroot}/%{_mandir}/man5/
-install -p -m 0644 doc/man/man5/groups.conf.5 %{buildroot}/%{_mandir}/man5/
-
 # vim addons
 %if 0%{?suse_version}
 %define vimdatadir %{_datadir}/vim/site
@@ -218,12 +211,15 @@ rm -rf %{buildroot}
 %{_mandir}/man5/clush.conf.5*
 %{_mandir}/man5/groups.conf.5*
 %dir %{_sysconfdir}/clustershell
+%dir %{_sysconfdir}/clustershell/clush.conf.d
 %dir %{_sysconfdir}/clustershell/groups.d
 %dir %{_sysconfdir}/clustershell/groups.conf.d
 %config(noreplace) %{_sysconfdir}/clustershell/clush.conf
 %config(noreplace) %{_sysconfdir}/clustershell/groups.conf
 %ghost %{_sysconfdir}/clustershell/groups
 %config(noreplace) %{_sysconfdir}/clustershell/groups.d/local.cfg
+%doc %{_sysconfdir}/clustershell/clush.conf.d/README
+%doc %{_sysconfdir}/clustershell/clush.conf.d/*.conf.example
 %doc %{_sysconfdir}/clustershell/groups.conf.d/README
 %doc %{_sysconfdir}/clustershell/groups.conf.d/*.conf.example
 %doc %{_sysconfdir}/clustershell/groups.d/README
@@ -234,6 +230,15 @@ rm -rf %{buildroot}
 %{vimdatadir}/syntax/groupsconf.vim
 
 %changelog
+* Fri Sep 29 2023 Stephane Thiell <sthiell@stanford.edu> 1.9.2-1
+- update to 1.9.2
+
+* Thu Feb  9 2023 Stephane Thiell <sthiell@stanford.edu> 1.9.1-1
+- update to 1.9.1
+
+* Fri Nov 25 2022 Stephane Thiell <sthiell@stanford.edu> 1.9-1
+- update to 1.9
+
 * Wed Nov  3 2021 Stephane Thiell <sthiell@stanford.edu> 1.8.4-1
 - update to 1.8.4
 

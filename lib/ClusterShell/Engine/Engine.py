@@ -140,7 +140,7 @@ class EngineBaseTimer(object):
         """
         Set the next firing delay in seconds for an EngineTimer object.
 
-        The optional parameter `interval' sets the firing interval
+        The optional parameter *interval* sets the firing interval
         of the timer. If not specified, the timer fires once and then
         is automatically invalidated.
 
@@ -686,7 +686,7 @@ class Engine(object):
         for port in self._ports:
             if not port.registered:
                 self._debug("START PORT %s" % port)
-                self.register(port)
+                self.register(port._start())
 
     def start_clients(self):
         """Start and register regular engine clients in respect of fanout."""

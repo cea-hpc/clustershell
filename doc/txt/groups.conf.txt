@@ -7,9 +7,9 @@ Configuration file for ClusterShell node groups
 -----------------------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2021-11-03
+:Date:   2023-09-29
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.4
+:Version: 1.9.2
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -22,7 +22,8 @@ following sources in the following order:
 
  1. user configuration file (*$XDG_CONFIG_HOME/clustershell/groups.conf*)
  2. local pip user installation (*$HOME/.local/etc/clustershell/groups.conf*)
- 3. system-wide configuration file (*/etc/clustershell/groups.conf*)
+ 3. Global configuration file (*$CLUSTERSHELL_CFGDIR/groups.conf*, defaults to
+    */etc/clustershell/groups.conf*)
 
 If no *groups.conf* is found, group support will be disabled.
 
@@ -159,13 +160,14 @@ Simple configuration file for local groups and slurm partitions binding.
 FILES
 =====
 
-*/etc/clustershell/groups.conf*
-  System-wide node groups configuration file.
+*$CLUSTERSHELL_CFGDIR/groups.conf* (defaults to */etc/clustershell/groups.conf*)
+  Global node groups configuration file.
 
-*/etc/clustershell/groups.conf.d/*
+*$CLUSTERSHELL_CFGDIR/groups.conf.d/* (defaults to
+  */etc/clustershell/groups.conf.d/*)
   Recommended directory for additional configuration files.
 
-*/etc/clustershell/groups.d/*
+*$CLUSTERSHELL_CFGDIR/groups.d/* (defaults to */etc/clustershell/groups.d/*)
   Recommended directory for *autodir*, where native group definition files
   (.yaml files) are found.
 

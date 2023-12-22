@@ -2,7 +2,7 @@
 #
 # Example of YAML groups config file with multiple sources.
 # ^^^^^^^
-# Here you can describe your cluster nodes and equipments using several
+# Here you can describe your cluster nodes and equipment using several
 # group sources.
 #
 # Example of group source use-cases are:

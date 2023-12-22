@@ -144,6 +144,7 @@ class Task(object):
     the task associated thread):
 
         >>> task.resume()
+
     or:
 
         >>> task.run()
@@ -155,7 +156,7 @@ class Task(object):
 
     A common need is to set a maximum delay for command execution, especially
     when the command time is not known. Doing this with ClusterShell Task is
-    very straighforward. To limit the execution time on each node, use the
+    very straightforward. To limit the execution time on each node, use the
     timeout parameter of shell() or run() methods to set a delay in seconds,
     like:
 
@@ -186,12 +187,16 @@ class Task(object):
         """Special task control port event handler.
         When a message is received on the port, call appropriate
         task method."""
+        def __init__(self, task):
+            EventHandler.__init__(self)
+            self.task = task
+
         def ev_msg(self, port, msg):
             """Message received: call appropriate task method."""
             # pull out function and its arguments from message
             func, (args, kwargs) = msg[0], msg[1:]
             # call task method
-            func(port.task, *args, **kwargs)
+            func(self.task, *args, **kwargs)
 
     class tasksyncmethod(object):
         """Class encapsulating a function that checks if the calling
@@ -254,7 +259,7 @@ class Task(object):
             self._cond.acquire()
             try:
                 self.suspend_count = min(self.suspend_count, 0)
-                self._cond.notifyAll()
+                self._cond.notify_all()
             finally:
                 self._cond.release()
 
@@ -320,9 +325,8 @@ class Task(object):
             self._reset()
 
             # special engine port for task method dispatching
-            self._dispatch_port = EnginePort(self,
-                                            handler=Task._SyncMsgHandler(),
-                                            autoclose=True)
+            self._dispatch_port = EnginePort(handler=Task._SyncMsgHandler(self),
+                                             autoclose=True)
             self._engine.add(self._dispatch_port)
 
             # set taskid used as Thread name
@@ -347,7 +351,7 @@ class Task(object):
     def _is_task_self(self):
         """Private method used by the library to check if the task is
         task_self(), but do not create any task_self() instance."""
-        return self.thread == threading.currentThread()
+        return self.thread == threading.current_thread()
 
     def default_excepthook(self, exc_type, exc_value, tb):
         """Default excepthook for a newly Task. When an exception is
@@ -460,6 +464,7 @@ class Task(object):
         using this method and retrieve them with default().
 
         Task default_keys are:
+
           - "stderr": Boolean value indicating whether to enable
             stdout/stderr separation when using task.shell(), if not
             specified explicitly (default: False).
@@ -475,8 +480,8 @@ class Task(object):
           - "worker": Worker-based class used when spawning workers through
             shell()/run().
 
-        Threading considerations
-        ========================
+        Threading considerations:
+
           Unlike set_info(), when called from the task's thread or
           not, set_default() immediately updates the underlying
           dictionary in a thread-safe manner. This method doesn't
@@ -514,6 +519,7 @@ class Task(object):
             >>> task.set_info('debug', True)
 
         Task info_keys are:
+
           - "debug": Boolean value indicating whether to enable library
             debugging messages (default: False).
           - "print_debug": Debug messages processing function. This
@@ -532,8 +538,8 @@ class Task(object):
           - "tree_default:<key>": In tree mode, overrides the key <key>
             in Defaults (settings normally set in defaults.conf)
 
-        Threading considerations
-        ========================
+        Threading considerations:
+
           Unlike set_default(), the underlying info dictionary is only
           modified from the task's thread. So calling set_info() from
           another thread leads to queueing the request for late apply
@@ -556,6 +562,7 @@ class Task(object):
 
         The following optional parameters are passed to the underlying local
         or remote Worker constructor:
+
           - handler: EventHandler instance to notify (on event) -- default is
             no handler (None)
           - timeout: command timeout delay expressed in second using a floating
@@ -567,16 +574,16 @@ class Task(object):
           - stdin: enable stdin if set to True or prevent its use otherwise --
             default is True.
 
-        Local usage::
+        Local usage:
             task.shell(command [, key=key] [, handler=handler]
-                  [, timeout=secs] [, autoclose=enable_autoclose]
-                  [, stderr=enable_stderr][, stdin=enable_stdin]))
+            [, timeout=secs] [, autoclose=enable_autoclose]
+            [, stderr=enable_stderr][, stdin=enable_stdin]))
 
-        Distant usage::
+        Distant usage:
             task.shell(command, nodes=nodeset [, handler=handler]
-                  [, timeout=secs], [, autoclose=enable_autoclose]
-                  [, tree=None|False|True] [, remote=False|True]
-                  [, stderr=enable_stderr][, stdin=enable_stdin]))
+            [, timeout=secs], [, autoclose=enable_autoclose]
+            [, tree=None|False|True] [, remote=False|True]
+            [, stderr=enable_stderr][, stdin=enable_stdin]))
 
         Example:
 
@@ -703,28 +710,28 @@ class Task(object):
         is not set, the task can only receive messages on the port by
         calling port.msg_recv().
         """
-        port = EnginePort(self, handler, autoclose)
+        port = EnginePort(handler, autoclose)
         self._add_port(port)
         return port
 
     def timer(self, fire, handler, interval=-1.0, autoclose=False):
         """
         Create a timer bound to this task that fires at a preset time
-        in the future by invoking the ev_timer() method of `handler'
+        in the future by invoking the ev_timer() method of *handler*
         (provided EventHandler object). Timers can fire either only
         once or repeatedly at fixed time intervals. Repeating timers
         can also have their next firing time manually adjusted.
 
-        The mandatory parameter `fire' sets the firing delay in seconds.
+        The mandatory parameter *fire* sets the firing delay in seconds.
 
-        The optional parameter `interval' sets the firing interval of
+        The optional parameter *interval* sets the firing interval of
         the timer. If not specified, the timer fires once and then is
         automatically invalidated.
 
         Time values are expressed in second using floating point
         values. Precision is implementation (and system) dependent.
 
-        The optional parameter `autoclose', if set to True, creates
+        The optional parameter *autoclose*, if set to True, creates
         an "autoclosing" timer: it will be automatically invalidated
         as soon as all other non-autoclosing task's objects (workers,
         ports, timers) have finished. Default value is False, which
@@ -780,7 +787,7 @@ class Task(object):
 
     def _resume(self):
         """Resume task - called from self thread."""
-        assert self.thread == threading.currentThread()
+        assert self.thread == threading.current_thread()
         try:
             try:
                 self._reset()
@@ -795,7 +802,7 @@ class Task(object):
             # task becomes joinable
             self._join_cond.acquire()
             self._suspend_cond.atomic_inc()
-            self._join_cond.notifyAll()
+            self._join_cond.notify_all()
             self._join_cond.release()
 
     def resume(self, timeout=None):
@@ -969,14 +976,14 @@ class Task(object):
         # termination (late join()s)
         # must be called after _terminated is set to True
         self._join_cond.acquire()
-        self._join_cond.notifyAll()
+        self._join_cond.notify_all()
         self._join_cond.release()
 
         # destroy task if needed
         if kill:
             Task._task_lock.acquire()
             try:
-                del Task._tasks[threading.currentThread()]
+                del Task._tasks[threading.current_thread()]
             finally:
                 Task._task_lock.release()
 
@@ -1205,16 +1212,15 @@ class Task(object):
 
     def max_retcode(self):
         """
-        Get max return code encountered during last run
-            or None in the following cases:
-                - all commands timed out,
-                - no command-based worker was executed.
+        Get max return code encountered during last run or None in the
+        following cases:
 
-        How retcodes work
-        =================
-          If the process exits normally, the return code is its exit
-          status. If the process is terminated by a signal, the return
-          code is 128 + signal number.
+         - all commands timed out
+         - no command-based worker was executed
+
+        How do retcodes work? If the process exits normally, the return
+        code is its exit status. If the process is terminated by a
+        signal, the return code is 128 + signal number.
         """
         return self._max_rc
 
@@ -1258,13 +1264,11 @@ class Task(object):
         Iterate over return codes of command-based workers, returns a
         tuple (rc, keys).
 
-        Optional parameter match_keys add filtering on these keys.
+        Optional parameter *match_keys* add filtering on these keys.
 
-        How retcodes work
-        =================
-          If the process exits normally, the return code is its exit
-          status. If the process is terminated by a signal, the return
-          code is 128 + signal number.
+        How do retcodes work? If the process exits normally, the return
+        code is its exit status. If the process is terminated by a
+        signal, the return code is 128 + signal number.
         """
         if match_keys:
             # Use the items iterator for the underlying dict.
@@ -1391,7 +1395,7 @@ def task_self(defaults=None):
     provided as a convenience is available in the top-level ClusterShell.Task
     package namespace.
     """
-    return Task(thread=threading.currentThread(), defaults=defaults)
+    return Task(thread=threading.current_thread(), defaults=defaults)
 
 def task_wait():
     """
@@ -1400,7 +1404,7 @@ def task_wait():
     convenience and is available in the top-level ClusterShell.Task package
     namespace.
     """
-    Task.wait(threading.currentThread())
+    Task.wait(threading.current_thread())
 
 def task_terminate():
     """

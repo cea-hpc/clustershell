@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2008-2016 CEA/DAM
-# Copyright (C) 2016-2021 Stephane Thiell <sthiell@stanford.edu>
+# Copyright (C) 2016-2023 Stephane Thiell <sthiell@stanford.edu>
 #
 # This file is part of ClusterShell.
 #
@@ -23,17 +23,10 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '1.8.4'
+VERSION = '1.9.2'
 
-# Default CFGDIR: in-prefix config install (rpmbuild or pip as user)
 CFGDIR = 'etc/clustershell'
-
-# Use system-wide CFGDIR instead when installing as root on Unix
-try:
-    if os.geteuid() == 0:
-        CFGDIR = '/etc/clustershell'
-except AttributeError:  # Windows?
-    pass
+MANDIR = 'share/man'
 
 # Dependencies (for pip install)
 REQUIRES = ['PyYAML']
@@ -46,14 +39,28 @@ setup(name='ClusterShell',
                    ['conf/clush.conf',
                     'conf/groups.conf',
                     'conf/topology.conf.example']),
+                  (os.path.join(CFGDIR, 'clush.conf.d'),
+                   ['conf/clush.conf.d/sshpass.conf.example',
+                    'conf/clush.conf.d/sudo.conf.example',
+                    'conf/clush.conf.d/README']),
                   (os.path.join(CFGDIR, 'groups.conf.d'),
                    ['conf/groups.conf.d/genders.conf.example',
                     'conf/groups.conf.d/slurm.conf.example',
+                    'conf/groups.conf.d/xcat.conf.example',
                     'conf/groups.conf.d/README']),
                   (os.path.join(CFGDIR, 'groups.d'),
                    ['conf/groups.d/cluster.yaml.example',
                     'conf/groups.d/local.cfg',
-                    'conf/groups.d/README'])],
+                    'conf/groups.d/README']),
+                  (os.path.join(MANDIR, 'man1'),
+                   ['doc/man/man1/clubak.1',
+                    'doc/man/man1/cluset.1',
+                    'doc/man/man1/clush.1',
+                    'doc/man/man1/nodeset.1']),
+                  (os.path.join(MANDIR, 'man5'),
+                   ['doc/man/man5/clush.conf.5',
+                    'doc/man/man5/groups.conf.5']),
+                    ],
       entry_points={'console_scripts':
                     ['clubak=ClusterShell.CLI.Clubak:main',
                      'cluset=ClusterShell.CLI.Nodeset:main',
@@ -63,9 +70,8 @@ setup(name='ClusterShell',
       author='Stephane Thiell',
       author_email='sthiell@stanford.edu',
       license='LGPLv2+',
-      url='http://clustershell.sourceforge.net/',
-      download_url='http://sourceforge.net/projects/clustershell/files/'
-                   'clustershell/%s/' % VERSION,
+      url='https://clustershell.readthedocs.io/',
+      download_url='https://github.com/cea-hpc/clustershell/archive/refs/tags/v%s.tar.gz' % VERSION,
       platforms=['GNU/Linux', 'BSD', 'MacOSX'],
       keywords=['clustershell', 'clush', 'clubak', 'nodeset'],
       description='ClusterShell library and tools',
@@ -79,7 +85,6 @@ setup(name='ClusterShell',
           "Operating System :: POSIX :: BSD",
           "Operating System :: POSIX :: Linux",
           "Programming Language :: Python",
-          "Programming Language :: Python :: 2.6",
           "Programming Language :: Python :: 2.7",
           "Programming Language :: Python :: 3",
           "Topic :: Software Development :: Libraries :: Python Modules",

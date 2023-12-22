@@ -52,7 +52,7 @@ class TaskMsgTreeTest(unittest.TestCase):
     def testHotEnablingMsgTree(self):
         """test TaskMsgTree enabling at runtime (v1.7)"""
         class HotEH2(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 worker.task.set_default("stdout_msgtree", True)
                 worker.task.shell("echo foo bar2") # default EH
         task = task_self()
@@ -67,7 +67,7 @@ class TaskMsgTreeTest(unittest.TestCase):
     def testHotDisablingMsgTree(self):
         """test TaskMsgTree disabling at runtime (v1.7)"""
         class HotEH2(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 worker.task.set_default("stdout_msgtree", False)
                 worker.task.shell("echo foo bar2") # default EH
         task = task_self()

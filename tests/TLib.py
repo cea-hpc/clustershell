@@ -5,8 +5,10 @@ Unit test library
 import os
 import socket
 import sys
-import tempfile
 import time
+
+from tempfile import mkstemp
+from tempfile import TemporaryFile, NamedTemporaryFile, TemporaryDirectory
 
 try:
     import configparser
@@ -27,14 +29,11 @@ class TBytesIO(BytesIO):
 
     def __init__(self, initial_bytes=None):
         if initial_bytes and type(initial_bytes) is not bytes:
-            initial_bytes = initial_bytes.encode('ascii')
+            initial_bytes = initial_bytes.encode()
         BytesIO.__init__(self, initial_bytes)
 
-    def write(self, b):
-        if type(b) is bytes:
-            BytesIO.write(self, b)
-        else:
-            BytesIO.write(self, b.encode('ascii'))
+    def write(self, s):
+        BytesIO.write(self, s.encode())
 
     def isatty(self):
         return False
@@ -55,15 +54,15 @@ def make_temp_filename(suffix=''):
     """Return a temporary name for a file."""
     if len(suffix) > 0 and suffix[0] != '-':
         suffix = '-' + suffix
-    fd, name = tempfile.mkstemp(suffix, prefix='cs-test-')
+    fd, name = mkstemp(suffix, prefix='cs-test-')
     os.close(fd)  # don't leak open fd
     return name
 
 def make_temp_file(text, suffix='', dir=None):
     """Create a temporary file with the provided text."""
     assert type(text) is bytes
-    tmp = tempfile.NamedTemporaryFile(prefix='cs-test-',
-                                      suffix=suffix, dir=dir)
+    tmp = NamedTemporaryFile(prefix='cs-test-',
+                             suffix=suffix, dir=dir)
     tmp.write(text)
     tmp.flush()
     return tmp
@@ -72,7 +71,8 @@ def make_temp_dir(suffix=''):
     """Create a temporary directory."""
     if len(suffix) > 0 and suffix[0] != '-':
         suffix = '-' + suffix
-    return tempfile.mkdtemp(suffix, prefix='cs-test-')
+    return TemporaryDirectory(suffix, prefix='cs-test-')
+
 
 #
 # CLI tests
@@ -93,7 +93,7 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
     if stdin is not None:
         if type(stdin) is bytes:
             # Use temporary file in Python 2 or with buffer (bytes) in Python 3
-            sys.stdin = tempfile.TemporaryFile()
+            sys.stdin = TemporaryFile()
             sys.stdin.write(stdin)
             sys.stdin.seek(0)  # ready to be read
         else:
@@ -101,8 +101,9 @@ def CLI_main(test, main, args, stdin, expected_stdout, expected_rc=0,
             # should be read in text mode for some tests (eg. Nodeset).
             sys.stdin = StringIO(stdin)
 
-    # Output: ClusterShell sends bytes to sys_stdout()/sys_stderr() and when
-    # print() is used, TBytesIO does a conversion to ascii.
+    # Output: ClusterShell writes to stdout/stderr using strings, but the tests
+    # expect bytes. TBytesIO is a wrapper that does the conversion until we
+    # migrate all tests to string.
     sys.stdout = out = TBytesIO()
     sys.stderr = err = TBytesIO()
     sys.argv = args

@@ -207,14 +207,16 @@ Configuration
 """""""""""""
 
 The system-wide library configuration file **/etc/clustershell/topology.conf**
-defines the routes of default command propagation tree. It is recommended that
-all connections between parent and children nodes are carefully
+defines available/preferred routes for the command propagation tree. It is
+recommended that all connections between parent and children nodes are carefully
 pre-configured, for example, to avoid any SSH warnings when connecting (if
 using the default SSH remote worker, of course).
 
 .. highlight:: ini
 
-The content of the topology.conf file should look like this::
+The file **topology.conf** is used to define a set of routes under a
+``[routes]`` section. Think of it as a routing table but for cluster
+commands. Node sets should be used when possible, for example::
 
   [routes]
   rio0: rio[10-13]
@@ -223,7 +225,7 @@ The content of the topology.conf file should look like this::
 
 .. highlight:: text
 
-This file defines the following topology graph::
+The example above defines the following topology graph::
 
     rio0
     |- rio[10-11]
@@ -231,6 +233,9 @@ This file defines the following topology graph::
     `- rio[12-13]
        `- rio[300-440]
 
+:ref:`nodeset-groups` and :ref:`node-wildcards` are supported in
+**topology.conf**, but any route definition with an empty node set
+is ignored (a message is printed in debug mode in that case).
 
 At runtime, ClusterShell will pick an initial propagation tree from this
 topology graph definition and the current root node. Multiple admin/root
@@ -322,7 +327,7 @@ variable::
 
     $ export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=/path/to/python3
 
-.. note:: It is highly recommended to have the same Python interpeter
+.. note:: It is highly recommended to have the same Python interpreter
    installed on all gateways and the root node.
 
 Debugging Tree mode
@@ -411,6 +416,22 @@ these criteria:
 #. lowest command return code (to discard failed commands)
 #. largest nodeset with the same output result
 #. otherwise the first nodeset is taken (ordered (1) by name and (2) lowest range indexes)
+
+.. _clush-outdir:
+
+Saving output in files
+""""""""""""""""""""""
+
+To save the standard output (stdout) and/or error (stderr) of all remote
+commands to local files identified with the node name in a given directory,
+use the options ``--outdir`` and/or ``--errdir``. Any directory that
+doesn't exist will be automatically created. These options provide a
+similar functionality as *pssh(1)*.
+
+For example, to save all logs from *journalctl(1)* in a local directory
+``/tmp/run1/stdout``, you could use::
+
+    $ clush -w node[40-42] --outdir=/tmp/run1/stdout/ journalctl >/dev/null
 
 Standard input bindings
 """""""""""""""""""""""
@@ -501,8 +522,8 @@ executed). These single-character interactive commands are detailed below:
 +------------------------------+-----------------------------------------------+
 | ``clush> !<COMMAND>``        | execute ``<COMMAND>`` on the local system     |
 +------------------------------+-----------------------------------------------+
-| ``clush> =``                 | toggle the ouput format (gathered or standard |
-|                              | mode)                                         |
+| ``clush> =``                 | toggle the output format (gathered or         |
+|                              | standard mode)                                |
 +------------------------------+-----------------------------------------------+
 
 To leave an interactive session, type ``quit`` or *Control-D*. As of version
@@ -535,13 +556,18 @@ The interactive mode and commands described above are subject to change and
 improvements in future releases. Feel free to open an enhancement `ticket`_ if
 you use the interactive mode and have some suggestions.
 
+.. _clush-copy:
+
 File copying mode
 ^^^^^^^^^^^^^^^^^
 
 When *clush* is started with  the ``-c``  or  ``--copy``  option, it will
-attempt to copy specified file and/or directory to the provided target cluster
-nodes. If the ``--dest`` option is specified, it will put the copied files
-or directory there.
+attempt to copy specified files and/or directories to the provided cluster
+nodes. The ``--dest`` option can be used to specify a single path where all
+the file(s) should be copied to on the target nodes.
+In the absence of ``--dest``, *clush* will attempt to copy each file or
+directory found in the command line to their same location on the target
+nodes.
 
 Here are some examples of file copying with *clush*::
 
@@ -549,11 +575,14 @@ Here are some examples of file copying with *clush*::
     `/tmp/foo' -> node[11-12]:`/tmp'
 
     $ clush -v -w node[11-12] --copy /tmp/foo /tmp/bar
-    `/tmp/bar' -> aury[11-12]:`/tmp'
-    `/tmp/foo' -> aury[11-12]:`/tmp'
+    `/tmp/bar' -> node[11-12]:`/tmp'
+    `/tmp/foo' -> node[11-12]:`/tmp'
 
     $ clush -v -w node[11-12] --copy /tmp/foo --dest /var/tmp/
     `/tmp/foo' -> node[11-12]:`/var/tmp/'
+
+.. note:: To copy a file to nodes under a different user, use the
+   ``--user=$USER`` option and **NOT** ``$USER@node[11-12]``.
 
 Reverse file copying mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -562,14 +591,117 @@ When *clush* is started with the ``--rcopy`` option, it will attempt to
 retrieve specified file and/or directory from provided cluster nodes. If the
 ``--dest`` option is specified, it must be a directory path where the files
 will be stored with their hostname appended. If the destination path is not
-specified, it will take the first file or dir basename directory as the local
-destination, example::
+specified, it will take each file or directory's parent directory as the
+local destination, for example::
 
     $ clush -v -w node[11-12] --rcopy /tmp/foo
     node[11-12]:`/tmp/foo' -> `/tmp'
 
     $ ls /tmp/foo.*
     /tmp/foo.node11  /tmp/foo.node12
+
+.. _clush-modes:
+
+Run modes
+^^^^^^^^^
+
+Since version 1.9, *clush* has support for run modes, which are special
+:ref:`clush.conf <clush-config>` settings with a given name. See
+:ref:`run mode configuration <clushmode-config>` for more details on how
+to install a run mode.
+
+This section describes how to use the run modes from the provided example
+files. To use an installed run mode, just use the ``--mode`` or ``-m``
+command line option followed by the mode name (eg. ``sudo``, ``sshpass``,
+etc.).
+
+.. _clush-sshpass:
+
+Run mode: sshpass
+"""""""""""""""""
+
+Since version 1.9, *clush* has support for password-based ssh authentication.
+It is implemented thanks to the external `sshpass`_ tool and provided sshpass run
+mode example. When using this run mode, you will be prompted for a password
+that will be forwarded to sshpass.  This could be convenient for example in a
+new environment to install ssh keys on a large number of servers.
+
+Make sure you have *sshpass(1)* installed on your operating system and install
+the sshpass run mode by creating ``sshpass.conf`` in ``clush.conf.d``::
+
+    $ cd /etc/clustershell/clush.conf.d  # or $CLUSTERSHELL_CFGDIR/clush.conf.d
+    $ cp sshpass.conf.example sshpass.conf
+
+Then, run *clush* with ``--mode=sshpass`` (or ``-m sshpass``) to activate this
+run mode. You will be prompted for a password that will be forwarded on stdin
+to sshpass to authenticate your ssh workers.
+
+The following example shows how to check the date on four servers with
+password-based ssh authentication::
+
+    $ clush -w n[1-2]c[01-02] --mode=sshpass -b date
+    Password: 
+    ---------------
+    n[1-2]c[01-02] (4)
+    ---------------
+    Thu Nov 17 16:08:04 PST 2022
+
+The following example shows how to install an ``authorized_keys`` file with
+the :ref:`clush-copy` and password-based ssh authentication on four nodes::
+
+    $ clush -w n[1-2]c[01-02] -m sshpass -v --copy ~/authorized_keys --dest ~/.ssh/authorized_keys
+    [sshpass] run mode activated
+    [sshpass] password prompt enabled
+    Password: 
+    `/home/user/authorized_keys' -> n[1-2]c[01-02]:`/home/user/.ssh/authorized_keys'
+
+.. _clush-sudo:
+
+Run mode: sudo
+""""""""""""""
+
+Since version 1.9, *clush* has support for `sudo`_ password forwarding over
+stdin. This may be useful in an environment that only allows sysadmins
+to perform interactive *sudo* work with password.
+
+.. warning:: In this section, it is assumed that *sudo* always requires a
+   password for the user on the target nodes. If *sudo* does NOT require
+   any password (i.e. **NOPASSWD** is specified in your sudoers file), you
+   do not need any extra options to run your *sudo* commands with *clush*.
+
+Make sure you have *sudo(8)* installed on your operating system. Then install
+the sudo run mode by creating ``sudo.conf`` in ``clush.conf.d``::
+
+    $ cd /etc/clustershell/clush.conf.d  # or $CLUSTERSHELL_CFGDIR/clush.conf.d
+    $ cp sudo.conf.example sudo.conf
+
+Then, run *clush* with ``--mode=sudo`` (or ``-m sudo``) to **enable a password
+prompt** to type your *sudo* password, then *sudo* (well, the ``command_prefix``
+from the sudo run mode – see below) will be used to run your commands on the
+target nodes. The password is broadcasted to all target nodes over *ssh(1)* (or
+via your :ref:`favorite worker <clush-worker>`) and as such, must be the same
+on all target nodes. It is not stored on disk at any time and only kept in
+memory during the duration of the *clush* command.  Thus, the password will be
+prompted every time you run *clush*. When you start *clush* in
+:ref:`interactive mode <clush-interactive>` along with ``--mode=sudo``, you can
+run multiple commands in that mode without having to type your password every
+time.
+
+When ``--mode=sudo`` is used, *clush* will run *sudo* for you on each target
+node, so your command itself should NOT start with ``sudo``. The actual *sudo*
+command used by *clush* can be changed in ``clush.conf.d/sudo.conf`` or
+in command line using ``-O command_prefix"..."``. The configured
+``command_prefix`` must be able to read a password on stdin followed by a new
+line (which is what ``sudo -S`` does).
+
+Usage example::
+
+    $ clush -w n[1-2]c[01-02] --mode=sudo -b id
+    Password: 
+    ---------------
+    n[1-2]c[01-02] (4)
+    ---------------
+    uid=0(root) gid=0(root) groups=0(root)
 
 Other options
 ^^^^^^^^^^^^^
@@ -615,9 +747,9 @@ By default, ClusterShell supports the following worker identifiers:
   rely on any external tool and provides command line placeholders described
   below:
 
-  * ``%h`` and ``%host`` are substitued with each *target hostname*
-  * ``%hosts`` is substitued with the full *target nodeset*
-  * ``%n`` and ``%rank`` are substitued with the remote *rank* (0 to n-1)
+  * ``%h`` and ``%host`` are substituted with each *target hostname*
+  * ``%hosts`` is substituted with the full *target nodeset*
+  * ``%n`` and ``%rank`` are substituted with the remote *rank* (0 to n-1)
 
   For example, the following would request the exec worker to locally run
   multiple *ipmitool* commands across the hosts foo[0-10] and automatically
@@ -638,6 +770,8 @@ By default, ClusterShell supports the following worker identifiers:
 Worker modules distributed outside of ClusterShell are also supported by
 specifying the case-sensitive full Python module name of a worker module.
 
+
+
 .. [#] LLNL parallel remote shell utility
    (https://computing.llnl.gov/linux/pdsh.html)
 
@@ -649,3 +783,6 @@ specifying the case-sensitive full Python module name of a worker module.
 .. _ticket: https://github.com/cea-hpc/clustershell/issues/new
 
 .. _this paper: https://www.kernel.org/doc/ols/2012/ols2012-thiell.pdf
+
+.. _sshpass: http://sshpass.sourceforge.net/
+.. _sudo: https://www.sudo.ws/

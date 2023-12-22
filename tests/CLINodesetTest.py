@@ -739,7 +739,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
         self._nodeset_t(["-s", "other", "-f", "*!*[033]"], None,
                         b"nova[030-032,034-489]\n")
         self._nodeset_t(["-s", "other", "--autostep=3", "-f", "*!*[033-099/2]"],
-                        None, b"nova[030-031,032-100/2,101-489]\n")
+                        None, b"nova[030-032,034-100/2,101-489]\n")
 
 
 class CLINodesetGroupResolverTest3(CLINodesetTestBase):
@@ -797,25 +797,25 @@ class CLINodesetGroupResolverConfigErrorTest(CLINodesetTestBase):
     """Unit test class for testing GroupResolverConfigError"""
 
     def setUp(self):
-        self.dname = make_temp_dir()
+        self.tdir = make_temp_dir()
         self.gconff = make_temp_file(dedent("""
             [Main]
             default: default
             autodir: %s
-            """ % self.dname).encode('ascii'))
+            """ % self.tdir.name).encode('ascii'))
         self.yamlf = make_temp_file(dedent("""
             default:
                 compute: 'foo'
             broken: i am not a dict
-            """).encode('ascii'), suffix=".yaml", dir=self.dname)
+            """).encode('ascii'), suffix=".yaml", dir=self.tdir.name)
 
         set_std_group_resolver(GroupResolverConfig(self.gconff.name))
 
     def tearDown(self):
         set_std_group_resolver(None)
-        self.gconff = None
-        self.yamlf = None
-        os.rmdir(self.dname)
+        self.yamlf.close()
+        self.gconff.close()
+        self.tdir.cleanup()
 
     def test_bad_yaml_config(self):
         """test nodeset with bad yaml config"""
