@@ -135,6 +135,8 @@ class TreeGatewayBaseTest(unittest.TestCase):
                 break
             self.assertTrue(type(xml_msg) is bytes)
             self.parser.feed(xml_msg)
+            if hasattr(self.parser, 'flush'):  # >=3.13 and backports
+                self.parser.flush()
 
         return self.xml_reader.pop_msg()
 
