@@ -27,15 +27,9 @@ For instance, ClusterShell is known to work on the following operating systems:
 
 * GNU/Linux
 
-  * Red Hat Enterprise Linux 7 (Python 2.7)
-
-  * Red Hat Enterprise Linux 8 (Python 3.6)
-
   * Red Hat Enterprise Linux 9 (Python 3.9)
 
   * Fedora 30 and above (Python 2.7 to 3.10+)
-
-  * Debian 10 "buster" (Python 3.7)
 
   * Debian 11 "bullseye" (Python 3.9)
 
@@ -68,21 +62,9 @@ ClusterShell packages as found in some common Linux distributions:
 | Operating        | System Python version used | Alternate Python support          |
 | System           | by the clustershell tools  | packaged (version-suffixed tools) |
 +==================+============================+===================================+
-| RHEL 7           | Python 2.7                 | Python 3.6                        |
-+------------------+----------------------------+-----------------------------------+
-| RHEL 8           | **Python 3.6**             |                                   |
-+------------------+----------------------------+-----------------------------------+
 | RHEL 9           | **Python 3.9**             |                                   |
 +------------------+----------------------------+-----------------------------------+
 | Fedora 36        | **Python 3.10**            |                                   |
-+------------------+----------------------------+-----------------------------------+
-| openSUSE Leap 15 | Python 2.7                 | Python 3.6                        |
-+------------------+----------------------------+-----------------------------------+
-| SUSE SLES 12     | Python 2.7                 | Python 3.4                        |
-+------------------+----------------------------+-----------------------------------+
-| SUSE SLES 15     | Python 2.7                 | Python 3.6                        |
-+------------------+----------------------------+-----------------------------------+
-| Ubuntu 18.04 LTS | **Python 3.6**             |                                   |
 +------------------+----------------------------+-----------------------------------+
 | Ubuntu 20.04 LTS | **Python 3.8**             |                                   |
 +------------------+----------------------------+-----------------------------------+

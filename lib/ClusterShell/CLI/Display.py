@@ -118,17 +118,11 @@ class Display(object):
         self._color = color
         # GH#528 enable line buffering
         self.out = sys.stdout
-        try :
-            if not self.out.line_buffering:
-                self.out.reconfigure(line_buffering=True)
-        except AttributeError:  # < py3.7
-            pass
+        if not self.out.line_buffering:
+            self.out.reconfigure(line_buffering=True)
         self.err = sys.stderr
-        try :
-            if not self.err.line_buffering:
-                self.err.reconfigure(line_buffering=True)
-        except AttributeError:  # < py3.7
-            pass
+        if not self.err.line_buffering:
+            self.err.reconfigure(line_buffering=True)
 
         if self._color:
             self.color_stdout_fmt = self.COLOR_STDOUT_FMT

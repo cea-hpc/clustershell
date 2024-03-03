@@ -85,11 +85,12 @@ setup(name='ClusterShell',
           "Operating System :: POSIX :: BSD",
           "Operating System :: POSIX :: Linux",
           "Programming Language :: Python",
-          "Programming Language :: Python :: 2.7",
           "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3 :: Only",
           "Topic :: Software Development :: Libraries :: Python Modules",
           "Topic :: System :: Clustering",
           "Topic :: System :: Distributed Computing"
       ],
+      python_requires='>=3.8',
       install_requires=REQUIRES,
      )
