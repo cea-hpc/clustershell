@@ -131,9 +131,12 @@ class TreeGatewayBaseTest(unittest.TestCase):
         while not self.xml_reader.msg_available():
             xml_msg = self.gateway.recv()
             if len(xml_msg) == 0:
-                return None
+                self.parser.close()
+                break
             self.assertTrue(type(xml_msg) is bytes)
             self.parser.feed(xml_msg)
+            if hasattr(self.parser, 'flush'):  # >=3.13 and backports
+                self.parser.flush()
 
         return self.xml_reader.pop_msg()
 
