@@ -39,3 +39,21 @@ map: squeue -h -u $GROUP -o "%N" -t R
 list: squeue -h -o "%u" -t R
 reverse: squeue -h -w $NODE -o "%u"
 cache_time: 60
+
+#
+# SLURM account bindings for running jobs
+#
+[slurmaccount,sa]
+map: squeue -h -A $GROUP -o "%N" -t R
+list: squeue -h -o "%a" -t R
+reverse: squeue -h -w $NODE -o "%a" 2>/dev/null || true
+cache_time: 60
+
+#
+# SLURM QOS bindings for running jobs
+#
+[slurmqos,sq]
+map: squeue -h -q $GROUP -o "%N" -t R
+list: squeue -h -o "%q" -t R
+reverse: squeue -h -w $NODE -o "%q" 2>/dev/null || true
+cache_time: 60
