@@ -7,9 +7,9 @@ Configuration file for ClusterShell node groups
 -----------------------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2021-11-03
+:Date:   2023-09-29
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.4
+:Version: 1.9.2
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 

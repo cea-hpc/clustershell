@@ -240,7 +240,7 @@ Example of a ``pp_jobs.py`` script::
     job_1 = job_server.submit(test_func,(),(),("os",))
     job_2 = job_server.submit(test_func,(),(),("os",))
 
-    # retrive the results
+    # retrieve the results
     print job_1()
     print job_2()
 

@@ -7,9 +7,9 @@ Configuration file for `clush`
 ------------------------------
 
 :Author: Stephane Thiell, <sthiell@stanford.edu>
-:Date:   2022-06-29
+:Date:   2023-09-29
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.8.4
+:Version: 1.9.2
 :Manual section: 5
 :Manual group: ClusterShell User Manual
 
@@ -45,10 +45,24 @@ fanout
   resources on the initiating hosts. In tree mode, the same `fanout` value is
   used on the head node and on each gateway (the `fanout` value is propagated).
   That is, if the `fanout` is **16** on the head node, each gateway will
-  initate up to **16** connections to their target nodes at the same time.
+  initiate up to **16** connections to their target nodes at the same time.
+confdir
+  Optional list of directory paths where clush should look for `.conf` files
+  which define run modes that can then be activated with ``--mode``. All other
+  clush config file settings defined here might be overridden in a run mode.
+  Each mode section should have a name prefixed by "mode:" to clearly identify
+  a section defining a mode. Duplicate modes are not allowed in those files.
+  Configuration files that are not readable by the current user are ignored.
+  The variable `$CFGDIR` is replaced by the path of the highest priority
+  configuration directory found (where clush.conf resides). The default confdir
+  value enables both system-wide and any installed user configuration (thanks
+  to `$CFGDIR`). Duplicate directory paths are ignored.
 connect_timeout
   Timeout in seconds to allow a connection to establish. This parameter is
   passed to ssh. If set to *0*, no timeout occurs.
+command_prefix
+  Command prefix. Generally used for specific run modes, for example to
+  implement ``sudo``\(8\) support.
 command_timeout
   Timeout in seconds to allow a command to complete since the connection has
   been established. This parameter is passed to ssh.  In addition, the
@@ -78,6 +92,10 @@ node_count
   header? (`yes`/`no`)
 maxrc
   Should ``clush`` return the largest of command return codes? (yes/no)
+password_prompt
+  Enable password prompt and password forwarding to stdin? (yes/no) Generally
+  used for specific run modes, for example to implement interactive
+  ``sudo``\(8\) support.
 verbosity
   Set the verbosity level: `0` (quiet), `1` (default), `2` (verbose) or more
   (debug).
@@ -99,8 +117,21 @@ rcp_path
   Same a rsh_path for rcp command. (Default is `rcp`)
 rsh_options
   Set additional options to pass to the underlying rsh/rcp command.
-sudo_command
-  sudo command for use with `--sudo`
+
+Run modes
+---------
+Since version 1.9, clush has support for run modes, which are special
+``clush.conf``\(5) settings with a given name. Two run modes are provided in
+example configuration files that can be copied and modified. They implement
+password-based authentication with ``sshpass``\(1\) and support of interactive
+``sudo``\(8\) with password.
+
+To use a run mode with ``clush --mode``, install a configuration file in one of
+``clush.conf``\(5)'s `confdir` (usually ``clush.conf.d``). Only configuration
+files ending in `.conf` are scanned. If the user running ``clush``\(1\) doesn't
+have read access to a configuration file, is it ignored. When ``--mode`` is
+specified, you can display all available run modes for the current user by
+enabling debug mode (``-d``).
 
 EXAMPLES
 ===========
@@ -119,6 +150,7 @@ Simple configuration file.
 | fd_max: 10240
 | maxrc: no
 | node_count: yes
+| confdir: /etc/clustershell/clush.conf.d
 |
 
 
@@ -127,7 +159,7 @@ FILES
 
 *$CLUSTERSHELL_CFGDIR/clush.conf*
   Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
-  */etc/slutershell/clush.conf* is used instead.
+  */etc/clustershell/clush.conf* is used instead.
 
 *$XDG_CONFIG_HOME/clustershell/clush.conf*
   User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
@@ -152,6 +184,6 @@ from *clush.conf*.  External commands whose outputs were used by ``clush``
 SEE ALSO
 ========
 
-``clush``\(1), ``groups.conf``\(5).
+``clush``\(1), ``groups.conf``\(5), ``sshpass``\(1\), ``sudo``\(8\).
 
 http://clustershell.readthedocs.org/

@@ -139,13 +139,30 @@ class RangeSet(set):
                 raise RangeSetParseError(subrange,
                                          "cannot convert string to integer")
 
+            begin_sign = end_sign = 1  # sign "scale factor"
+
             if baserange.find('-') < 0:
                 if step != 1:
                     raise RangeSetParseError(subrange, "invalid step usage")
                 begin = end = baserange
             else:
                 # ignore whitespaces in a range
-                begin, end = (n.strip() for n in baserange.split('-', 1))
+                try:
+                    begin, end = (n.strip() for n in baserange.split('-'))
+                    if not begin:  # single negative number "-5"
+                        begin = end
+                        begin_sign = end_sign = -1
+                except ValueError:
+                    try:
+                        # -0-3
+                        _, begin, end = (n.strip()
+                                         for n in baserange.split('-'))
+                        begin_sign = -1
+                    except ValueError:
+                        # -8--4
+                        _, begin, _, end = (n.strip()
+                                            for n in baserange.split('-'))
+                        begin_sign = end_sign = -1
 
             # compute padding and return node range info tuple
             try:
@@ -169,6 +186,7 @@ class RangeSet(set):
                 if (pad > 0 or endpad > 0) and len(begin) != len(end):
                     raise RangeSetParseError(subrange,
                                              "padding length mismatch")
+
                 stop = int(ends)
             except ValueError:
                 if len(subrange) == 0:
@@ -178,10 +196,14 @@ class RangeSet(set):
                 raise RangeSetParseError(subrange, msg)
 
             # check preconditions
-            if stop > 1e100 or start > stop or step < 1:
+            if pad > 0 and begin_sign < 0:
+                errmsg = "padding not supported in negative ranges"
+                raise RangeSetParseError(subrange, errmsg)
+
+            if stop > 1e100 or start * begin_sign > stop * end_sign or step < 1:
                 raise RangeSetParseError(subrange, "invalid values in range")
 
-            self.add_range(start, stop + 1, step, pad)
+            self.add_range(start * begin_sign, stop * end_sign + 1, step, pad)
 
     @classmethod
     def fromlist(cls, rnglist, autostep=None):
@@ -261,19 +283,16 @@ class RangeSet(set):
 
     def _sorted(self):
         """Get sorted list from inner set."""
-        # for mixed padding support, sort by both string length and index
-        return sorted(set.__iter__(self), key=lambda x: (len(x), x))
+        # For mixed padding support, sort by both string length and index
+        return sorted(set.__iter__(self),
+                      key=lambda x: (-len(x), int(x)) if x.startswith('-') \
+                                    else (len(x), x))
 
     def __iter__(self):
         """Iterate over each element in RangeSet, currently as integers, with
         no padding information.
         To guarantee future compatibility, please use the methods intiter()
         or striter() instead."""
-        return iter(self._sorted())
-
-    def intiter(self):
-        """Iterate over each element in RangeSet as integer.
-        Zero padding info is ignored."""
         return iter(self._sorted())
 
     def striter(self):
@@ -456,7 +475,7 @@ class RangeSet(set):
             if stepped or cur_step == 1:
                 yield slice(cur_start, last_idx + 1, cur_step), cur_pad if cur_padded else 0
             else:
-                for j in range(cur_start, idx + 1, cur_step):
+                for j in range(cur_start, last_idx + 1, cur_step):
                     yield slice(j, j + 1, 1), cur_pad if cur_padded else 0
 
     def _contiguous_slices(self):
@@ -1133,7 +1152,7 @@ class RangeSetND(object):
             #   (3) lower first index first
             #   (4) lower last index first
             return (-reduce(mul, [len(rg) for rg in rgvec]), \
-                    tuple((-len(rg), int(rg[0]), int(rg[-1])) for rg in rgvec))
+                    tuple((-len(rg), rg[0], rg[-1]) for rg in rgvec))
         self._veclist.sort(key=rgveckeyfunc)
 
     @precond_fold()
@@ -1181,72 +1200,23 @@ class RangeSetND(object):
         """Multivariate nD folding"""
         # PHASE 1: expand with respect to uniqueness
         self._fold_multivariate_expand()
-        self._sort()
         # PHASE 2: merge
         self._fold_multivariate_merge()
-        self._sort()
         self._dirty = False
 
     def _fold_multivariate_expand(self):
         """Multivariate nD folding: expand [phase 1]"""
-        max_length = sum([reduce(mul, [len(rg) for rg in rgvec]) \
-                                       for rgvec in self._veclist])
-        # Simple heuristic to make us faster
-        if len(self._veclist) * (len(self._veclist) - 1) / 2 > max_length * 10:
-            # *** nD full expand is preferred ***
-            self._veclist = [[RangeSet.fromone(i, autostep=self.autostep)
-                              for i in tvec]
-                             for tvec in set(self._iter())]
-            return
-
-        # *** nD compare algorithm is preferred ***
-        index1, index2 = 0, 1
-        while (index1 + 1) < len(self._veclist):
-            # use 2 references on iterator to compare items by couples
-            item1 = self._veclist[index1]
-            index2 = index1 + 1
-            index1 += 1
-            while index2 < len(self._veclist):
-                item2 = self._veclist[index2]
-                index2 += 1
-                new_item = None
-                disjoint = False
-                suppl = []
-                for pos, (rg1, rg2) in enumerate(zip(item1, item2)):
-                    if not rg1 & rg2:
-                        disjoint = True
-                        break
-
-                    if new_item is None:
-                        new_item = [None] * len(item1)
-
-                    if rg1 == rg2:
-                        new_item[pos] = rg1
-                    else:
-                        assert rg1 & rg2
-                        # intersection
-                        new_item[pos] = rg1 & rg2
-                        # create part 1
-                        if rg1 - rg2:
-                            item1_p = item1[0:pos] + [rg1 - rg2] + item1[pos+1:]
-                            suppl.append(item1_p)
-                        # create part 2
-                        if rg2 - rg1:
-                            item2_p = item2[0:pos] + [rg2 - rg1] + item2[pos+1:]
-                            suppl.append(item2_p)
-                if not disjoint:
-                    assert new_item is not None
-                    assert suppl is not None
-                    item1 = self._veclist[index1 - 1] = new_item
-                    index2 -= 1
-                    self._veclist.pop(index2)
-                    self._veclist += suppl
+        self._veclist = [[RangeSet.fromone(i, autostep=self.autostep)
+                          for i in tvec]
+                         for tvec in set(self._iter())]
 
     def _fold_multivariate_merge(self):
         """Multivariate nD folding: merge [phase 2]"""
-        chg = True
+        full = False  # try easy O(n) passes first
+        chg = True    # new pass (eg. after change on veclist)
         while chg:
             chg = False
+            self._sort()  # sort veclist before new pass
             index1, index2 = 0, 1
             while (index1 + 1) < len(self._veclist):
                 # use 2 references on iterator to compare items by couples
@@ -1288,6 +1258,16 @@ class RangeSetND(object):
                         item1 = self._veclist[index1 - 1] = new_item
                         index2 -= 1
                         self._veclist.pop(index2)
+                    elif not full:
+                        # easy pass so break to avoid scanning all
+                        # index2; advance with next index1 for now
+                        break
+            if not chg and not full:
+                # if no change was done during the last normal pass, we do a
+                # full O(n^2) pass. This pass is done only at the end in the
+                # hope that most vectors have already been merged by easy
+                # O(n) passes.
+                chg = full = True
 
     def __or__(self, other):
         """Return the union of two RangeSetNDs as a new RangeSetND.

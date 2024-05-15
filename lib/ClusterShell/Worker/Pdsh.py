@@ -47,7 +47,7 @@ class PdshClient(ExecClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the commmand.
+        Build the shell command line to start the command.
         Return an array of command and arguments.
         """
         task = self.worker.task
@@ -236,7 +236,7 @@ class WorkerPdsh(ExecWorker):
 
     Known limitations:
       - write() is not supported by WorkerPdsh
-      - return codes == 0 are not garanteed when a timeout is used (rc > 0
+      - return codes == 0 are not guaranteed when a timeout is used (rc > 0
         are fine)
     """
 

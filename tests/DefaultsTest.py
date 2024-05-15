@@ -102,20 +102,20 @@ class Defaults000NoConfigTest(unittest.TestCase):
         self.assertTrue(task.default("distant_worker") is WorkerSsh)
         task_terminate()
 
-        dname = make_temp_dir()
-        modfile = open(os.path.join(dname, 'OutOfTree.py'), 'w')
+        tdir = make_temp_dir()
+        modfile = open(os.path.join(tdir.name, 'OutOfTree.py'), 'w')
         modfile.write(dedent("""
             class OutOfTreeWorker(object):
                 pass
             WORKER_CLASS = OutOfTreeWorker"""))
         modfile.flush()
         modfile.close()
-        sys.path.append(dname)
+        sys.path.append(tdir.name)
         self.defaults.distant_workername = 'OutOfTree'
         task = task_self(self.defaults)
-        self.assertTrue(task.default("distant_worker").__name__ is 'OutOfTreeWorker')
+        self.assertEqual(task.default("distant_worker").__name__, 'OutOfTreeWorker')
         task_terminate()
-        shutil.rmtree(dname, ignore_errors=True)
+        tdir.cleanup()
 
     def test_005_misc_value_errors(self):
         """test Defaults misc value errors"""

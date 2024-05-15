@@ -200,7 +200,7 @@ def nodeset():
         print("WARNING: option group source \"%s\" ignored"
               % options.groupsource, file=sys.stderr)
 
-    # We want -s <groupsource> to act as a substition of default groupsource
+    # We want -s <groupsource> to act as a substitution of default groupsource
     # (ie. it's not necessary to prefix group names by this group source).
     if options.groupsource:
         group_resolver.default_source_name = options.groupsource

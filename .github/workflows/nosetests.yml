@@ -1,25 +1,29 @@
 name: ClusterShell nosetests
 
-on: [push, pull_request]
+on: [push, pull_request, merge_group]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [ '2.7', '3.6', '3.7', '3.8', '3.9' ]
+        os: [ubuntu-latest]
+        python-version: [ '3.7', '3.8', '3.9', '3.10', '3.11']
+        include:
+          - os: ubuntu-20.04
+            python-version: '3.6'
     name: Tests with Python ${{ matrix.python-version }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install coverage
-        pip install nose
+        pip install nose-py3
         pip install .
     - name: Allow us to SSH passwordless to localhost
       run: |
@@ -38,18 +42,68 @@ jobs:
       run: |
         sudo apt-get -y install pdsh
         sudo sh -c 'echo ssh > /etc/pdsh/rcmd_default'
+    - name: Post to Slack (start)
+      continue-on-error: true
+      id: slack-start
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        channel-id: 'C07GRMDK3'
+        payload: |
+          {
+            "text": "${{ github.workflow }}: Python ${{ matrix.python-version }} tests started (In Progress)",
+            "attachments": [
+              {
+                "color": "#ECB32D",
+                "fields": [
+                  {
+                    "title": "Branch",
+                    "short": true,
+                    "value": "${{ github.ref }}"
+                  },
+                  {
+                    "title": "Actor",
+                    "short": true,
+                    "value": "${{ github.actor }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
     - name: Run tests
       id: tests
       run: |
         python --version
         export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)
         nosetests -v --all-modules --with-coverage --cover-tests --cover-erase --cover-package=ClusterShell tests
-    - name: Post to Slack
-      if: always()  # could be changed to failure() if too verbose
-      id: slack
-      uses: slackapi/slack-github-action@v1.15.0
+    - name: Post to Slack (end)
+      if: always()
+      continue-on-error: true
+      id: slack-end
+      uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: 'C07GRMDK3'
-        slack-message: "${{ github.workflow }} by ${{ github.actor }} on ${{ github.ref }} for Python ${{ matrix.python-version }}: ${{ job.status }}"
+        update-ts: ${{ steps.slack-start.outputs.ts }}
+        payload: |
+          {
+            "text": "${{ github.workflow }}: Python ${{ matrix.python-version }} tests completed",
+            "attachments": [
+              {
+                "fields": [
+                  {
+                    "title": "Branch",
+                    "short": true,
+                    "value": "${{ github.ref }}"
+                  },
+                  {
+                    "title": "Status",
+                    "short": true,
+                    "value": "${{ job.status }}"
+                  }
+                ]
+              }
+            ]
+          }
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

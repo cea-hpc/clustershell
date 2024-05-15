@@ -13,8 +13,8 @@ You can use the following options in ~/.ssh/config:
 
 import os
 from os.path import basename, join
-import shutil
 import unittest
+import warnings
 
 from ClusterShell.NodeSet import NodeSet
 from ClusterShell.Task import task_self, task_terminate, task_wait
@@ -100,6 +100,7 @@ class TEventHandler(TEventHandlerBase):
             self.ev_timedout_cnt += 1
 
 
+@unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
 class TreeWorkerTest(unittest.TestCase):
     """
     TreeWorkerTest: test TreeWorker
@@ -132,7 +133,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_run_event_legacy(self):
         """test simple tree run with legacy EventHandler"""
         teh = TEventHandlerLegacy()
-        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+            self.assertEqual(len(w), 4)
         self.assertEqual(teh.ev_start_cnt, 1)
         self.assertEqual(teh.ev_pickup_cnt, 1)
         self.assertEqual(teh.ev_read_cnt, 1)
@@ -145,7 +149,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_run_event_legacy_timeout(self):
         """test simple tree run with legacy EventHandler with timeout"""
         teh = TEventHandlerLegacy()
-        self.task.run('sleep 10', nodes=NODE_DISTANT, handler=teh, timeout=0.5)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.task.run('sleep 10', nodes=NODE_DISTANT, handler=teh, timeout=0.5)
+            self.assertEqual(len(w), 2)
         self.assertEqual(teh.ev_start_cnt, 1)
         self.assertEqual(teh.ev_pickup_cnt, 1)
         self.assertEqual(teh.ev_read_cnt, 0)      # nothing to read
@@ -329,13 +336,15 @@ class TreeWorkerTest(unittest.TestCase):
 
         srcdir = make_temp_dir()
         destdir = make_temp_dir()
-        file1 = make_temp_file(b'Lorem Ipsum Unum', suffix=".txt", dir=srcdir)
-        file2 = make_temp_file(b'Lorem Ipsum Duo', suffix=".txt", dir=srcdir)
+        file1 = make_temp_file(b'Lorem Ipsum Unum', suffix=".txt",
+                               dir=srcdir.name)
+        file2 = make_temp_file(b'Lorem Ipsum Duo', suffix=".txt",
+                               dir=srcdir.name)
 
         try:
             # add '/' to dest so that distant does like the others
-            worker = self.task.copy(srcdir, destdir + '/', nodes=target,
-                                    handler=teh)
+            worker = self.task.copy(srcdir.name, destdir.name + '/',
+                                    nodes=target, handler=teh)
             self.task.run()
             self.assertEqual(teh.ev_start_cnt, 1)
             self.assertEqual(teh.ev_pickup_cnt, 1)
@@ -346,18 +355,16 @@ class TreeWorkerTest(unittest.TestCase):
             self.assertEqual(teh.ev_close_cnt, 1)
 
             # copy successful?
-            copy_dest = join(destdir, srcdir)
+            copy_dest = join(destdir.name, srcdir.name)
             with open(join(copy_dest, basename(file1.name)), 'rb') as rfile1:
                 self.assertEqual(rfile1.read(), b'Lorem Ipsum Unum')
             with open(join(copy_dest, basename(file2.name)), 'rb') as rfile2:
                 self.assertEqual(rfile2.read(), b'Lorem Ipsum Duo')
         finally:
-            # src
-            file1 = None
-            file2 = None
-            os.rmdir(srcdir)
-            # dest
-            shutil.rmtree(destdir)
+            file1.close()
+            file2.close()
+            srcdir.cleanup()
+            destdir.cleanup()
 
     def test_tree_copy_dir_distant(self):
         """test tree copy: directory, distant target"""
@@ -380,11 +387,14 @@ class TreeWorkerTest(unittest.TestCase):
 
         srcdir = make_temp_dir()
         destdir = make_temp_dir()
-        file1 = make_temp_file(b'Lorem Ipsum Unum', suffix=".txt", dir=srcdir)
-        file2 = make_temp_file(b'Lorem Ipsum Duo', suffix=".txt", dir=srcdir)
+        file1 = make_temp_file(b'Lorem Ipsum Unum', suffix=".txt",
+                               dir=srcdir.name)
+        file2 = make_temp_file(b'Lorem Ipsum Duo', suffix=".txt",
+                               dir=srcdir.name)
 
         try:
-            worker = self.task.rcopy(srcdir, destdir, nodes=target, handler=teh)
+            worker = self.task.rcopy(srcdir.name, destdir.name, nodes=target,
+                                     handler=teh)
             self.task.run()
             self.assertEqual(teh.ev_start_cnt, 1)
             self.assertEqual(teh.ev_pickup_cnt, 1)
@@ -397,18 +407,17 @@ class TreeWorkerTest(unittest.TestCase):
             # rcopy successful?
             if not dirsuffix:
                 dirsuffix = target
-            rcopy_dest = join(destdir, basename(srcdir) + '.' + dirsuffix)
+            rcopy_dest = join(destdir.name,
+                              basename(srcdir.name) + '.' + dirsuffix)
             with open(join(rcopy_dest, basename(file1.name)), 'rb') as rfile1:
                 self.assertEqual(rfile1.read(), b'Lorem Ipsum Unum')
             with open(join(rcopy_dest, basename(file2.name)), 'rb') as rfile2:
                 self.assertEqual(rfile2.read(), b'Lorem Ipsum Duo')
         finally:
-            # src
-            file1 = None
-            file2 = None
-            os.rmdir(srcdir)
-            # dest
-            shutil.rmtree(destdir)
+            file1.close()
+            file2.close()
+            srcdir.cleanup()
+            destdir.cleanup()
 
     def test_tree_rcopy_dir_distant(self):
         """test tree rcopy: directory, distant target"""

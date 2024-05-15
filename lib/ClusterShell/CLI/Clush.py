@@ -642,9 +642,9 @@ def ttyloop(task, nodeset, timeout, display, remote, trytree):
                     continue
                 if readline_avail:
                     readline.write_history_file(get_history_file())
-                if task.default("USER_sudo_command"):
-                    sudo_cmdl = shlex.split(task.default("USER_sudo_command"))
-                    cmd = "%s %s" % (' '.join(sudo_cmdl), cmd)
+                if task.default("USER_command_prefix"):
+                    prefix_cmdl = shlex.split(task.default("USER_command_prefix"))
+                    cmd = "%s %s" % (' '.join(prefix_cmdl), cmd)
                 run_command(task, cmd, ns, timeout, display, remote, trytree)
     return rc
 
@@ -719,20 +719,21 @@ def run_command(task, cmd, ns, timeout, display, remote, trytree):
         handler = DirectOutputHandler(display)
 
     stdin = task.default("USER_stdin_worker")      # stdin forwarding?
-    sudo_passwd = task.default("USER_sudo_passwd") # --sudo?
+    prompt_passwd = task.default("USER_password_prompt")  # from --mode
     worker = task.shell(cmd, nodes=ns, handler=handler, timeout=timeout,
-                        remote=remote, tree=trytree, stdin=stdin or sudo_passwd)
+                        remote=remote, tree=trytree,
+                        stdin=stdin or prompt_passwd is not None)
     if ns is None:
         worker.set_key('LOCAL')
-    if sudo_passwd:
-        worker.write(sudo_passwd.encode() + b'\n')
+    if prompt_passwd:
+        worker.write(prompt_passwd.encode() + b'\n')
     if stdin:
         bind_stdin(worker, display)
-    if sudo_passwd and not stdin:
-        worker.set_write_eof() # we only enabled stdin to send the sudo password
+    if prompt_passwd and not stdin:
+        worker.set_write_eof() # we only enabled stdin to send the password
     task.resume()
 
-def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
+def run_copy(task, sources, dests, ns, timeout, preserve_flag, display):
     """run copy command"""
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
@@ -747,31 +748,32 @@ def run_copy(task, sources, dest, ns, timeout, preserve_flag, display):
             display.vprint_err(VERB_QUIET,
                                'ERROR: file "%s" not found' % source)
             clush_exit(1, task)
-        task.copy(source, dest, ns, handler=copyhandler, timeout=timeout,
-                  preserve=preserve_flag)
+        task.copy(source, dests.pop(0), ns, handler=copyhandler,
+                  timeout=timeout, preserve=preserve_flag)
     task.resume()
 
-def run_rcopy(task, sources, dest, ns, timeout, preserve_flag, display):
+def run_rcopy(task, sources, dests, ns, timeout, preserve_flag, display):
     """run reverse copy command"""
     task.set_default("USER_running", True)
     task.set_default("USER_copies", len(sources))
 
     # Sanity checks
-    if not exists(dest):
-        display.vprint_err(VERB_QUIET,
-                           'ERROR: directory "%s" not found' % dest)
-        clush_exit(1, task)
-    if not isdir(dest):
-        display.vprint_err(VERB_QUIET,
-                           'ERROR: destination "%s" is not a directory' % dest)
-        clush_exit(1, task)
+    for dest in dests:
+        if not exists(dest):
+            display.vprint_err(VERB_QUIET,
+                               'ERROR: directory "%s" not found' % dest)
+            clush_exit(1, task)
+        if not isdir(dest):
+            display.vprint_err(VERB_QUIET,
+                               'ERROR: destination "%s" is not a directory' % dest)
+            clush_exit(1, task)
 
     copyhandler = CopyOutputHandler(display, True)
     if display.verbosity == VERB_STD or display.verbosity == VERB_VERB:
         copyhandler.runtimer_init(task, len(ns) * len(sources))
     for source in sources:
-        task.rcopy(source, dest, ns, handler=copyhandler, timeout=timeout,
-                   stderr=True, preserve=preserve_flag)
+        task.rcopy(source, dests.pop(0), ns, handler=copyhandler,
+                   timeout=timeout, stderr=True, preserve=preserve_flag)
     task.resume()
 
 def set_fdlimit(fd_max, display):
@@ -792,7 +794,7 @@ def set_fdlimit(fd_max, display):
             display.vprint_err(VERB_VERB, msgfmt % (rlim_max, exc))
 
 def ask_pass():
-    """Prompt for password (--sudo)"""
+    """Prompt for password (--mode with password_prompt=True)"""
     return getpass.getpass()
 
 def clush_exit(status, task=None):
@@ -849,8 +851,6 @@ def main():
 
     parser.add_option("-n", "--nostdin", action="store_true", dest="nostdin",
                       help="don't watch for possible input from stdin")
-    parser.add_option("--sudo", action="store_true", dest="sudo",
-                      help="enable sudo password prompt")
 
     parser.install_groupsconf_option()
     parser.install_clush_config_options()
@@ -1003,7 +1003,7 @@ def main():
     # Force user_interaction if Clush._f_user_interaction for test purposes
     user_interaction = hasattr(sys.modules[__name__], '_f_user_interaction')
     if not options.nostdin:
-        # Try user interaction: check for foreground ttys presence (ouput)
+        # Try user interaction: check for foreground ttys presence (output)
         stdout_isafgtty = sys.stdout.isatty() and \
             os.tcgetpgrp(sys.stdout.fileno()) == os.getpgrp()
         user_interaction |= stdin_isafgtty and stdout_isafgtty
@@ -1030,15 +1030,25 @@ def main():
     task.set_info("debug", config.verbosity >= VERB_DEBUG)
     task.set_info("fanout", config.fanout)
 
-    if options.sudo:
-        # keep sudo_command for interactive mode ttyloop()
-        task.set_default("USER_sudo_command", config.sudo_command)
-        sudo_cmdl = shlex.split(config.sudo_command)
-        display.vprint(VERB_DEBUG, "sudo command prefix: %s" % sudo_cmdl)
-        # prefix actual command with sudo command
-        args = sudo_cmdl + args
-        # prompt for sudo password
-        task.set_default("USER_sudo_passwd", ask_pass())
+    if options.mode:
+        display.vprint(VERB_DEBUG, "ClushConfig parsed: %s" % config.parsed)
+        display.vprint(VERB_DEBUG, "Available run modes: %s" % ' '.join(config.modes()))
+        config.set_mode(options.mode)
+        display.vprint(VERB_VERB, "[%s] run mode activated" % options.mode)
+
+    command_prefix = config.command_prefix
+    if command_prefix:
+        # keep command_prefix for interactive mode ttyloop()
+        task.set_default("USER_command_prefix", command_prefix)
+        prefix_cmdl = shlex.split(command_prefix)
+        display.vprint(VERB_VERB, "[%s] command prefix: %s" % \
+                       (options.mode, prefix_cmdl))
+        args = prefix_cmdl + args  # amend actual command with prefix
+
+    if config.password_prompt:
+        display.vprint(VERB_VERB, "[%s] password prompt enabled" % options.mode)
+        # prompt for password
+        task.set_default("USER_password_prompt", ask_pass())
 
     if options.worker:
         try:
@@ -1113,15 +1123,24 @@ def main():
 
     if (options.copy or options.rcopy) and not args:
         parser.error("--[r]copy option requires at least one argument")
+    dest_paths = []
     if options.copy:
-        if not options.dest_path:
+        if options.dest_path:
+            for arg in args:
+                dest_paths.append(options.dest_path)
+        else:
             # append '/' to clearly indicate a directory for tree mode
-            options.dest_path = join(dirname(abspath(args[0])), '')
-        op = "copy sources=%s dest=%s" % (args, options.dest_path)
+            for arg in args:
+                dest_paths.append(join(dirname(abspath(arg)), ''))
+        op = "copy sources=%s dest=%s" % (args, dest_paths)
     elif options.rcopy:
-        if not options.dest_path:
-            options.dest_path = dirname(abspath(args[0]))
-        op = "rcopy sources=%s dest=%s" % (args, options.dest_path)
+        if options.dest_path:
+            for arg in args:
+                dest_paths.append(options.dest_path)
+        else:
+            for arg in args:
+                dest_paths.append(dirname(abspath(arg)))
+        op = "rcopy sources=%s dest=%s" % (args, dest_paths)
     else:
         op = "command=\"%s\"" % ' '.join(args)
 
@@ -1138,10 +1157,10 @@ def main():
             print(Display.COLOR_RESULT_FMT % task.topology, end='')
             print(Display.COLOR_RESULT_FMT % '-' * 15)
         if options.copy:
-            run_copy(task, args, options.dest_path, nodeset_base, timeout,
+            run_copy(task, args, dest_paths, nodeset_base, timeout,
                      options.preserve_flag, display)
         elif options.rcopy:
-            run_rcopy(task, args, options.dest_path, nodeset_base, timeout,
+            run_rcopy(task, args, dest_paths, nodeset_base, timeout,
                       options.preserve_flag, display)
         else:
             run_command(task, ' '.join(args), nodeset_base, timeout, display,

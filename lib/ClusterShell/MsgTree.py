@@ -182,7 +182,7 @@ class MsgTree(object):
     def __init__(self, mode=MODE_DEFER):
         """MsgTree initializer
 
-        The `mode' parameter should be set to one of the following constant:
+        The *mode* parameter should be set to one of the following constant:
 
         MODE_DEFER: all messages are processed immediately, saving memory from
         duplicate message lines, but keys are associated to tree elements

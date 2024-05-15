@@ -1,3 +1,74 @@
+2023-09-29 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9.2 released. The main changes are listed below.
+
+	* CLI: fix line buffering with Python 3 (#528)
+
+	* clush: fix --[r]copy dest when --dest is omitted (#525)
+
+	* NodeUtils: allow null values in cluster.yaml (#533)
+
+	* Topology: check that node groups/wildcards are non-empty (#527)
+
+	* rpm: xcat.conf.example missing (#526)
+
+2023-02-09 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9.1 released. The main changes are listed below.
+
+	* clush: select proper last parsed config file (#511) (#512)
+
+	* setup.py: update download url and remove python 2.6 support (#508)
+
+	* setup.py: improvements for pip install and venv (#510)
+
+	* doc: correct typo 'sterr' (#513)
+
+	* Fix typos found with codespell (#514)
+
+	* RangeSet: support negative ranges (#515) (#518)
+
+	* RangeSet: remove duplicate intiter() definition (#519)
+
+2022-11-25 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9 released. The main changes are listed below.
+
+	* clush: add --mode support with sudo and sshpass examples (#198,#234,#423)
+
+	* clush: add same arguments '--outdir=OUTDIR' and '--errdir=ERRDIR' as
+	pssh (#470)
+
+	* clush: always close stdin stream of worker when it is not used (#478)
+
+	* clush: use daemon attribute instead of deprecated setDaemon() (#479)
+
+	* slurm.conf.example: filter out more Slurm node state flags (#469)
+
+	* NodeSet: add special notation @@source to expand group names (#468)
+
+	* RangeSet: nD folding optimization (#485)
+
+	* RangeSet: support ranges with zero padding of mixed lengths (#293, #473)
+
+	* RangeSet: add explicit intiter() method to iterate over integers (#476)
+
+	* EngineClient: EnginePort improvements, add event ev_port_start() (#481)
+
+	* Tree: fix start and bufferize early writes (#482)
+
+	* Tree: fix error with intermediate gateways (#471)
+
+	* Defaults: Introduce CLUSTERSHELL_CFGDIR (#483)
+
+	* Fix for python-3.10 (#484)
+
+	* Worker: deprecate old EventHandler method signatures (#358)
+
+	* Worker: remove old last_*() methods (#226)
+
+	* tests: misc. improvements (#110, #501, #502, 503)
+
 2021-11-03 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.8.4 released. The main changes are listed below.
@@ -67,8 +138,8 @@
 
 	* EventHandler: reinstate ev_error and ev_timeout as deprecated (#377)
 
-	* nodeset/cluset CLI: allow litteral new line in -S, so both -S "\n"
-	and -S $'\n' will work
+	* nodeset/cluset CLI: allow literal new line in -S, so both -S "\n" and
+	-S $'\n' will work
 
 	* nodeset/cluset CLI: handle multiline shell arguments in options (#394)
 
@@ -494,7 +565,7 @@
 	CLUSTERSHELL_GW_LOG_DIR and CLUSTERSHELL_GW_LOG_LEVEL environment
 	variables from the root node.
 
-	* Communication.py: Messages are now transfered in xml payload instead of
+	* Communication.py: Messages are now transferred in xml payload instead of
 	'output' attribute for improved handling of multi-lines messages in
 	StdOutMessage and StdErrMessage.
 
@@ -1318,7 +1389,7 @@
 2009-12-09 A. Degremont  <aurelien.degremont@cea.fr>
 
 	* scripts/nodeset.py: Protect --separator from code injection and
-	handle gracefully incorrect separtor.
+	handle gracefully incorrect separator.
 
 2009-12-09 S. Thiell <stephane.thiell@cea.fr>
 

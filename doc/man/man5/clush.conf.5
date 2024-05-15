@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH.CONF 5 "2022-06-29" "1.8.4" "ClusterShell User Manual"
+.TH CLUSH.CONF 5 "2023-09-29" "1.9.2" "ClusterShell User Manual"
 .SH NAME
 clush.conf \- Configuration file for clush
 .
@@ -44,7 +44,8 @@ user configuration file (\fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP)
 .IP 3. 3
 local pip user installation (\fI$HOME/.local/etc/clustershell/clush.conf\fP)
 .IP 4. 3
-system\-wide configuration file (\fI/etc/clustershell/clush.conf\fP)
+global configuration file (\fI$CLUSTERSHELL_CFGDIR/clush.conf\fP, defaults to
+\fI/etc/clustershell/clush.conf\fP)
 .UNINDENT
 .UNINDENT
 .UNINDENT
@@ -69,11 +70,27 @@ Size of the sliding window (fanout) of active commands for \fBclush\fP\&. This
 resources on the initiating hosts. In tree mode, the same \fIfanout\fP value is
 used on the head node and on each gateway (the \fIfanout\fP value is propagated).
 That is, if the \fIfanout\fP is \fB16\fP on the head node, each gateway will
-initate up to \fB16\fP connections to their target nodes at the same time.
+initiate up to \fB16\fP connections to their target nodes at the same time.
+.TP
+.B confdir
+Optional list of directory paths where clush should look for \fI\&.conf\fP files
+which define run modes that can then be activated with \fB\-\-mode\fP\&. All other
+clush config file settings defined here might be overridden in a run mode.
+Each mode section should have a name prefixed by "mode:" to clearly identify
+a section defining a mode. Duplicate modes are not allowed in those files.
+Configuration files that are not readable by the current user are ignored.
+The variable \fI$CFGDIR\fP is replaced by the path of the highest priority
+configuration directory found (where clush.conf resides). The default confdir
+value enables both system\-wide and any installed user configuration (thanks
+to \fI$CFGDIR\fP). Duplicate directory paths are ignored.
 .TP
 .B connect_timeout
 Timeout in seconds to allow a connection to establish. This parameter is
 passed to ssh. If set to \fI0\fP, no timeout occurs.
+.TP
+.B command_prefix
+Command prefix. Generally used for specific run modes, for example to
+implement \fBsudo\fP(8) support.
 .TP
 .B command_timeout
 Timeout in seconds to allow a command to complete since the connection has
@@ -110,6 +127,11 @@ header? (\fIyes\fP/\fIno\fP)
 .B maxrc
 Should \fBclush\fP return the largest of command return codes? (yes/no)
 .TP
+.B password_prompt
+Enable password prompt and password forwarding to stdin? (yes/no) Generally
+used for specific run modes, for example to implement interactive
+\fBsudo\fP(8) support.
+.TP
 .B verbosity
 Set the verbosity level: \fI0\fP (quiet), \fI1\fP (default), \fI2\fP (verbose) or more
 (debug).
@@ -139,10 +161,21 @@ Same a rsh_path for rcp command. (Default is \fIrcp\fP)
 .TP
 .B rsh_options
 Set additional options to pass to the underlying rsh/rcp command.
-.TP
-.B sudo_command
-sudo command for use with \fI\-\-sudo\fP
 .UNINDENT
+.SS Run modes
+.sp
+Since version 1.9, clush has support for run modes, which are special
+\fBclush.conf\fP(5) settings with a given name. Two run modes are provided in
+example configuration files that can be copied and modified. They implement
+password\-based authentication with \fBsshpass\fP(1) and support of interactive
+\fBsudo\fP(8) with password.
+.sp
+To use a run mode with \fBclush \-\-mode\fP, install a configuration file in one of
+\fBclush.conf\fP(5)\(aqs \fIconfdir\fP (usually \fBclush.conf.d\fP). Only configuration
+files ending in \fI\&.conf\fP are scanned. If the user running \fBclush\fP(1) doesn\(aqt
+have read access to a configuration file, is it ignored. When \fB\-\-mode\fP is
+specified, you can display all available run modes for the current user by
+enabling debug mode (\fB\-d\fP).
 .SH EXAMPLES
 .sp
 Simple configuration file.
@@ -157,14 +190,16 @@ color: auto
 fd_max: 10240
 maxrc: no
 node_count: yes
+confdir: /etc/clustershell/clush.conf.d
 
 .fi
 .sp
 .SH FILES
 .INDENT 0.0
 .TP
-.B \fI/etc/clustershell/clush.conf\fP
-System\-wide clush configuration file.
+.B \fI$CLUSTERSHELL_CFGDIR/clush.conf\fP
+Global clush configuration file. If $CLUSTERSHELL_CFGDIR is not defined,
+\fI/etc/clustershell/clush.conf\fP is used instead.
 .TP
 .B \fI$XDG_CONFIG_HOME/clustershell/clush.conf\fP
 User configuration file for clush. If $XDG_CONFIG_HOME is not defined,
@@ -184,7 +219,7 @@ from \fIclush.conf\fP\&.  External commands whose outputs were used by \fBclush\
 \fBgroups.conf\fP(5).
 .SH SEE ALSO
 .sp
-\fBclush\fP(1), \fBgroups.conf\fP(5).
+\fBclush\fP(1), \fBgroups.conf\fP(5), \fBsshpass\fP(1), \fBsudo\fP(8).
 .sp
 \fI\%http://clustershell.readthedocs.org/\fP
 .SH AUTHOR

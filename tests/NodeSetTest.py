@@ -144,7 +144,6 @@ class NodeSetTest(unittest.TestCase):
         self._assertNS("nova[2-5/a]", NodeSetParseRangeError)
         self._assertNS("nova[3/2]", NodeSetParseRangeError)
         self._assertNS("nova[3-/2]", NodeSetParseRangeError)
-        self._assertNS("nova[-3/2]", NodeSetParseRangeError)
         self._assertNS("nova[-/2]", NodeSetParseRangeError)
         self._assertNS("nova[4-a/2]", NodeSetParseRangeError)
         self._assertNS("nova[4-3/2]", NodeSetParseRangeError)
@@ -161,7 +160,6 @@ class NodeSetTest(unittest.TestCase):
         self._assertNS("nova[2-5/a]p0", NodeSetParseRangeError)
         self._assertNS("nova[3/2]p0", NodeSetParseRangeError)
         self._assertNS("nova[3-/2]p0", NodeSetParseRangeError)
-        self._assertNS("nova[-3/2]p0", NodeSetParseRangeError)
         self._assertNS("nova[-/2]p0", NodeSetParseRangeError)
         self._assertNS("nova[4-a/2]p0", NodeSetParseRangeError)
         self._assertNS("nova[4-3/2]p0", NodeSetParseRangeError)
@@ -177,7 +175,6 @@ class NodeSetTest(unittest.TestCase):
         self._assertNS("x4nova[2-5/a]p0", NodeSetParseRangeError)
         self._assertNS("x4nova[3/2]p0", NodeSetParseRangeError)
         self._assertNS("x4nova[3-/2]p0", NodeSetParseRangeError)
-        self._assertNS("x4nova[-3/2]p0", NodeSetParseRangeError)
         self._assertNS("x4nova[-/2]p0", NodeSetParseRangeError)
         self._assertNS("x4nova[4-a/2]p0", NodeSetParseRangeError)
         self._assertNS("x4nova[4-3/2]p0", NodeSetParseRangeError)
@@ -576,10 +573,13 @@ class NodeSetTest(unittest.TestCase):
         self.assertRaises(NodeSetParseError, str, n1)
         n1.fold_axis = range(2) # ok
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        self.assertEqual(n1, NodeSet("a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1"))
         n1.fold_axis = RangeSet("0-1") # ok
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        self.assertEqual(n1, NodeSet("a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1"))
         n1.fold_axis = (0, 1) # ok
         self.assertEqual(str(n1), "a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1")
+        self.assertEqual(n1, NodeSet("a[1,3]b2c0,a[1,3]b2c1,a2b[3-5]c1"))
 
     def testSimpleNodeSetUpdates(self):
         """test NodeSet simple nodeset-based update()"""
@@ -1517,7 +1517,7 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(ns1.__or__(ns2), NotImplemented)
         self.assertEqual(ns1.__sub__(ns2), NotImplemented)
         self.assertEqual(ns1.__xor__(ns2), NotImplemented)
-        # Should implicitely raises TypeError if the real operator
+        # Should implicitly raises TypeError if the real operator
         # version is invoked. To test that, we perform a manual check
         # as an additional function would be needed to check with
         # assertRaises():
@@ -2030,11 +2030,6 @@ class NodeSetTest(unittest.TestCase):
         result = list(iter(ns1))
         self.assertEqual(result, ['da2c0', 'da2c1', 'da3c0', 'da3c1'])
 
-    def test_nd_iter(self):
-        ns1 = NodeSet("da[2-3]c[0-1]")
-        result = list(iter(ns1))
-        self.assertEqual(result, ['da2c0', 'da2c1', 'da3c0', 'da3c1'])
-
     def test_nd_nsiter(self):
         ns1 = NodeSet("da[2-3]c[0-1]")
         result = list(ns1.nsiter())
@@ -2093,14 +2088,19 @@ class NodeSetTest(unittest.TestCase):
 
     def test_nd_fold(self):
         ns = NodeSet("da[2-3]c[1-2],da[3-4]c[3-4]")
-        self.assertEqual(str(ns), "da[2-3]c[1-2],da[3-4]c[3-4]")
+        self.assertEqual(ns, NodeSet("da[2-3]c[1-2],da[3-4]c[3-4]"))
+        self.assertEqual(str(ns), "da3c[1-4],da2c[1-2],da4c[3-4]")
         ns = NodeSet("da[2-3]c[1-2],da[3-4]c[2-3]")
+        self.assertEqual(ns, NodeSet("da[2-3]c[1-2],da[3-4]c[2-3]"))
         self.assertEqual(str(ns), "da3c[1-3],da2c[1-2],da4c[2-3]")
         ns = NodeSet("da[2-3]c[1-2],da[3-4]c[1-2]")
+        self.assertEqual(ns, NodeSet("da[2-3]c[1-2],da[3-4]c[1-2]"))
         self.assertEqual(str(ns), "da[2-4]c[1-2]")
         ns = NodeSet("da[2-3]c[1-2]p3,da[3-4]c[1-3]p3")
-        self.assertEqual(str(ns), "da[2-4]c[1-2]p3,da[3-4]c3p3")
+        self.assertEqual(ns, NodeSet("da[2-3]c[1-2]p3,da[3-4]c[1-3]p3"))
+        self.assertEqual(str(ns), "da[3-4]c[1-3]p3,da2c[1-2]p3")
         ns = NodeSet("da[2-3]c[1-2],da[2,5]c[2-3]")
+        self.assertEqual(ns, NodeSet("da[2-3]c[1-2],da[2,5]c[2-3]"))
         self.assertEqual(str(ns), "da2c[1-3],da3c[1-2],da5c[2-3]")
 
     def test_nd_issuperset(self):
@@ -2193,19 +2193,28 @@ class NodeSetTest(unittest.TestCase):
     def test_nd_nonoverlap(self):
         ns1 = NodeSet("a[0-2]b[1-3]c[4]")
         ns1.add("a[0-1]b[2-3]c[4-5]")
-        self.assertEqual(str(ns1), "a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4")
+        self.assertEqual(ns1, NodeSet("a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4"))
+        self.assertEqual(ns1, NodeSet("a2b[1-3]c4,a0b[1-2]c4,a0b3c[4-5],a1b[1-2]c4,a1b3c[4-5],a0b2c5,a1b2c5"))
+        self.assertEqual(str(ns1), "a[0-1]b[1-2]c4,a[0-1]b3c[4-5],a2b[1-3]c4,a[0-1]b2c5")
         self.assertEqual(len(ns1), 13)
 
         ns1 = NodeSet("a[0-1]b[2-3]c[4-5]")
         ns1.add("a[0-2]b[1-3]c[4]")
-        self.assertEqual(str(ns1), "a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4")
+        self.assertEqual(ns1, NodeSet("a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4"))
+        self.assertEqual(ns1, NodeSet("a2b[1-3]c4,a0b[1-2]c4,a0b3c[4-5],a1b[1-2]c4,a1b3c[4-5],a0b2c5,a1b2c5"))
+        self.assertEqual(str(ns1), "a[0-1]b[1-2]c4,a[0-1]b3c[4-5],a2b[1-3]c4,a[0-1]b2c5")
         self.assertEqual(len(ns1), 13)
 
         ns1 = NodeSet("a[0-2]b[1-3]c[4],a[0-1]b[2-3]c[4-5]")
-        self.assertEqual(str(ns1), "a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4")
+        self.assertEqual(ns1, NodeSet("a[0-2]b[1-3]c[4],a[0-1]b[2-3]c[4-5]"))
+        self.assertEqual(ns1, NodeSet("a2b[1-3]c4,a0b[1-2]c4,a0b3c[4-5],a1b[1-2]c4,a1b3c[4-5],a0b2c5,a1b2c5"))
+        self.assertEqual(ns1, NodeSet("a[0-2]b[1-3]c4,a[0-1]b[2-3]c5"))
+        self.assertEqual(str(ns1), "a[0-1]b[1-2]c4,a[0-1]b3c[4-5],a2b[1-3]c4,a[0-1]b2c5")
         self.assertEqual(len(ns1), 13)
 
         ns1 = NodeSet("a[0-2]b[1-3]c[4-6],a[0-1]b[2-3]c[4-5]")
+        self.assertEqual(ns1, NodeSet("a[0-2]b[1-3]c[4-6],a[0-1]b[2-3]c[4-5]"))
+        self.assertEqual(ns1, NodeSet("a[0-2]b[1-3]c[4-6]"))
         self.assertEqual(str(ns1), "a[0-2]b[1-3]c[4-6]")
         self.assertEqual(len(ns1), 3*3*3)
 
@@ -2223,13 +2232,14 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(ns1), (3*2*3)+(2*1*2))
 
         ns1 = NodeSet("a[0-2]b[2-3]c[4-6],a[0-1]b[1-3]c[4-5],a2b1c[4-6]")
-        self.assertEqual(str(ns1), "a[0-2]b[2-3]c[4-6],a[0-1]b1c[4-5],a2b1c[4-6]")
+        self.assertEqual(str(ns1), "a[0-1]b[2-3]c[4-6],a2b[1-3]c[4-6],a[0-1]b1c[4-5]")
         self.assertEqual(ns1, NodeSet("a[0-1]b[1-3]c[4-5],a[0-2]b[2-3]c6,a2b[2-3]c[4-5],a2b1c[4-6]"))
         self.assertEqual(ns1, NodeSet("a[0-2]b[2-3]c[4-6],a[0-1]b1c[4-5],a2b1c[4-6]"))
         self.assertEqual(len(ns1), (3*3*2)+1+(3*2*1))
         ns1.add("a1b1c6")
-        self.assertEqual(str(ns1), "a[0-2]b[2-3]c[4-6],a[0-1]b1c[4-5],a2b1c[4-6],a1b1c6")
+        self.assertEqual(str(ns1), "a[1-2]b[1-3]c[4-6],a0b[2-3]c[4-6],a0b1c[4-5]")
         self.assertEqual(ns1, NodeSet("a[0-2]b[2-3]c[4-6],a[0-1]b1c[4-5],a2b1c[4-6],a1b1c6"))
+        self.assertEqual(ns1, NodeSet("a[1-2]b[1-3]c[4-6],a0b[2-3]c[4-6],a0b1c[4-5]"))
         ns1.add("a0b1c6")
         self.assertEqual(str(ns1), "a[0-2]b[1-3]c[4-6]")
         self.assertEqual(ns1, NodeSet("a[0-2]b[1-3]c[4-6]"))
@@ -2254,7 +2264,10 @@ class NodeSetTest(unittest.TestCase):
         self.assertEqual(len(ns1.difference(ns2)), 6)
 
         ns1 = NodeSet("a[0-2]b[1-3]c[4],a[0-1]b[2-3]c[4-5]")
-        self.assertEqual(str(ns1), "a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4")
+        self.assertEqual(str(ns1), "a[0-1]b[1-2]c4,a[0-1]b3c[4-5],a2b[1-3]c4,a[0-1]b2c5")
+        self.assertEqual(ns1, NodeSet("a[0-2]b[1-3]c[4],a[0-1]b[2-3]c[4-5]"))
+        self.assertEqual(ns1, NodeSet("a[0-1]b[2-3]c[4-5],a[0-2]b1c4,a2b[2-3]c4"))
+        self.assertEqual(ns1, NodeSet("a2b[1-3]c4,a0b[1-2]c4,a0b3c[4-5],a1b[1-2]c4,a1b3c[4-5],a0b2c5,a1b2c5"))
 
         self.assertEqual(len(ns1), 3*3 + 2*2)
         ns2 = NodeSet("a[0-3]b[1]c[4-5]")
@@ -2267,7 +2280,7 @@ class NodeSetTest(unittest.TestCase):
 
         ns1 = NodeSet("a[0-3]b[1-5]c5")
         ns2 = NodeSet("a[0-2]b[2-4]c5")
-        self.assertEqual(str(ns1.difference(ns2)), "a[0-3]b[1,5]c5,a3b[2-4]c5")
+        self.assertEqual(str(ns1.difference(ns2)), "a[0-2]b[1,5]c5,a3b[1-5]c5")
 
         ns1 = NodeSet("a[0-3]b2c5")
         ns2 = NodeSet("a[0-2]b1c5")
@@ -2275,7 +2288,7 @@ class NodeSetTest(unittest.TestCase):
 
         ns1 = NodeSet("a[0-3]b[1-4]c[5]")
         ns2 = NodeSet("a[0-2]b1c5")
-        self.assertEqual(str(ns1.difference(ns2)), "a[0-3]b[2-4]c5,a3b1c5")
+        self.assertEqual(str(ns1.difference(ns2)), "a[0-2]b[2-4]c5,a3b[1-4]c5")
 
         ns1 = NodeSet("a[0-2]b[1-4]c5")
         ns2 = NodeSet("a[0-3]b[2-3]c5")
@@ -2308,7 +2321,7 @@ class NodeSetTest(unittest.TestCase):
         ns1 = NodeSet("a[1-10]b[1-10]")
         ns2 = NodeSet("a[5-20]b[5-20]")
         nsdiff = ns1.difference(ns2)
-        self.assertEqual(str(nsdiff), "a[1-10]b[1-4],a[1-4]b[5-10]")
+        self.assertEqual(str(nsdiff), "a[1-4]b[1-10],a[5-10]b[1-4]")
         self.assertEqual(nsdiff, NodeSet("a[1-4]b[1-10],a[1-10]b[1-4]")) # manually checked with overlap
 
         # node[1-100]x[1-10] -x node4x4
@@ -2340,7 +2353,7 @@ class NodeSetTest(unittest.TestCase):
         ns1 = NodeSet("a[2-3]b[0,3-4],a[6-10]b[0-2]")
         ns2 = NodeSet("a[3-6]b[2-3]")
         nsdiff = ns1.difference(ns2)
-        self.assertEqual(str(nsdiff), "a[7-10]b[0-2],a[2-3]b[0,4],a6b[0-1],a2b3")
+        self.assertEqual(str(nsdiff), "a[7-10]b[0-2],a2b[0,3-4],a3b[0,4],a6b[0-1]")
         self.assertEqual(nsdiff, NodeSet("a[7-10]b[0-2],a[2-3]b[0,4],a6b[0-1],a2b3"))
         self.assertEqual(nsdiff, NodeSet("a[2-3,6-10]b0,a[6-10]b1,a[7-10]b2,a2b3,a[2-3]b4")) # manually checked
 
@@ -2387,25 +2400,33 @@ class NodeSetTest(unittest.TestCase):
         first = NodeSet("a[2-3,5]b[1,4],a6b5")
         second = NodeSet("a[4-6]b[3-6]")
         first.symmetric_difference_update(second)
-        self.assertEqual(str(first), "a[4-6]b[3,6],a[2-3]b[1,4],a4b[4-5],a5b[1,5],a6b4")
+        self.assertEqual(str(first), "a[2-3]b[1,4],a4b[3-6],a5b[1,3,5-6],a6b[3-4,6]")
+        self.assertEqual(first, NodeSet("a[2-3]b[1,4],a4b[3-6],a5b[1,3,5-6],a6b[3-4,6]"))
         self.assertEqual(first, NodeSet("a[4-6]b[3,6],a[2-3]b[1,4],a4b[4-5],a5b[1,5],a6b4"))
 
         first = NodeSet("a[1-50]b[1-20]")
         second = NodeSet("a[40-60]b[10-30]")
         first.symmetric_difference_update(second)
-        self.assertEqual(str(first), "a[1-39]b[1-20],a[40-60]b[21-30],a[51-60]b[10-20],a[40-50]b[1-9]")
-        self.assertEqual(first, NodeSet("a[1-39]b[1-20],a[51-60]b[10-30],a[40-50]b[1-9,21-30]"))
+        self.assertEqual(str(first), "a[1-39]b[1-20],a[51-60]b[10-30],a[40-50]b[1-9,21-30]")
+        self.assertEqual(first, NodeSet("a[1-39]b[1-20],a[40-60]b[21-30],a[51-60]b[10-20],a[40-50]b[1-9]"))
 
-        first = NodeSet("artcore[3-999]p[1-99,500-598]")
-        second = NodeSet("artcore[1-2000]p[40-560]")
+        first = NodeSet("a[1-2]p[1-2]")
+        second = NodeSet("a[2-3]p[2-3]")
         first.symmetric_difference_update(second)
-        self.assertEqual(str(first), "artcore[1-2000]p[100-499],artcore[1-2,1000-2000]p[40-99,500-560],artcore[3-999]p[1-39,561-598]")
-        self.assertEqual(first, NodeSet("artcore[1-2000]p[100-499],artcore[1-2,1000-2000]p[40-99,500-560],artcore[3-999]p[1-39,561-598]"))
+        self.assertEqual(str(first), "a1p[1-2],a2p[1,3],a3p[2-3]")
+        self.assertEqual(first, NodeSet("a1p1,a1p2,a2p1,a2p3,a3p2,a3p3"))
+
+        first = NodeSet("a[3-29]p[1-9,50-58]")
+        second = NodeSet("a[1-110]p[4-56]")
+        first.symmetric_difference_update(second)
+        self.assertEqual(str(first), "a[1-2,30-110]p[4-56],a[3-29]p[1-3,10-49,57-58]")
+        self.assertEqual(first, NodeSet("a[1-2,30-110]p[4-56],a[3-29]p[1-3,10-49,57-58]"))
 
         ns1 = NodeSet("a[1-6]b4")
         ns2 = NodeSet("a5b[2-5]")
         ns1.symmetric_difference_update(ns2)
         self.assertEqual(str(ns1), "a[1-4,6]b4,a5b[2-3,5]")
+        self.assertEqual(ns1, NodeSet("a[1-4]b4,a5b[2-3,5],a6b4"))
         self.assertEqual(ns1, NodeSet("a[1-4,6]b4,a5b[2-3,5]"))
 
     def test_autostep(self):
@@ -2829,3 +2850,32 @@ class NodeSetTest(unittest.TestCase):
         # trailing 0 along with mixed lengths padding
         self._assertNS("[0-10]0", NodeSetParseRangeError)
         self._assertNS("0[0-10]0", NodeSetParseRangeError)
+
+    def test_negative_ranges(self):
+        # supported from 1.9.1 (#515)
+        n1 = NodeSet("n[-5]")
+        self.assertEqual(str(n1), "n-5")
+        self.assertEqual(len(n1), 1)
+        n1 = NodeSet("n[-1-0]")
+        self.assertEqual(str(n1), "n[-1-0]")
+        self.assertEqual(len(n1), 2)
+        n1 = NodeSet("n[-5-5]")
+        self.assertEqual(str(n1), "n[-5-5]")
+        self.assertEqual(len(n1), 2*5+1)
+        n1 = NodeSet("n[-12-12]")
+        self.assertEqual(str(n1), "n[-12-12]")
+        self.assertEqual(len(n1), 12*2+1)
+        n1 = NodeSet("n[-12,-10--9,-5--1,1-5]")
+        self.assertEqual(str(n1), "n[-12,-10--9,-5--1,1-5]")
+        self.assertEqual(len(n1), 13)
+        n1 = NodeSet("n[1-5,-12,-5--1,-10--9]")
+        self.assertEqual(str(n1), "n[-12,-10--9,-5--1,1-5]")
+        self.assertEqual(len(n1), 13)
+        n1 = NodeSet("n[1,-10,2-4,-12,5,-5,-4,-3,-9,-2--1]")
+        self.assertEqual(str(n1), "n[-12,-10--9,-5--1,1-5]")
+        self.assertEqual(len(n1), 13)
+        n1 = NodeSet("n[1,-10,2-4,-12],n[5,-5,-4,-3,-9,-2--1]")
+        self.assertEqual(str(n1), "n[-12,-10--9,-5--1,1-5]")
+        self.assertEqual(len(n1), 13)
+        # padding in negative range is not supported
+        self._assertNS("n[-001]", NodeSetParseRangeError)

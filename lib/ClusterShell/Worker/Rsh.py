@@ -44,7 +44,7 @@ class RshClient(ExecClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the rsh commmand.
+        Build the shell command line to start the rsh command.
         Return an array of command and arguments.
         """
         # Does not support 'connect_timeout'
@@ -94,7 +94,7 @@ class RcpClient(CopyClient):
 
     def _build_cmd(self):
         """
-        Build the shell command line to start the rcp commmand.
+        Build the shell command line to start the rcp command.
         Return an array of command and arguments.
         """
 

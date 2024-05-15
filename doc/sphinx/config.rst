@@ -3,37 +3,71 @@ Configuration
 
 .. highlight:: ini
 
-.. _clush-config:
-
 clush
 -----
 
-The following configuration file defines global default values for
-several *clush* tool parameters::
+.. _clush-config:
 
-    $CLUSTERSHELL_CFGDIR/clush.conf
-    
-If *$CLUSTERSHELL_CFGDIR* is not defined, */etc/clustershell/clush.conf* will
-be used,
+clush.conf
+^^^^^^^^^^
 
-*clush* settings might then be overridden (globally, or per user) if one of the
-following files is found, in priority order::
+The following configuration file defines system-wide default values for
+several ``clush`` tool parameters::
+
+    /etc/clustershell/clush.conf
+
+``clush`` settings might then be overridden (globally, or per user) if one of
+the following files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/clush.conf
     $HOME/.config/clustershell/clush.conf (only if $XDG_CONFIG_HOME is not defined)
+    {sys.prefix}/etc/clustershell/clush.conf
     $HOME/.local/etc/clustershell/clush.conf
     $HOME/.clush.conf (deprecated, for 1.6 compatibility only)
 
-The following table describes available *clush* config file settings.
+.. note:: The path using `sys.prefix`_ was added in version 1.9.1 and is
+   useful for Python virtual environments.
+
+In addition, if the environment variable ``$CLUSTERSHELL_CFGDIR`` is defined and
+valid, it will used instead. In such case, the following configuration file
+will be tried first for ``clush``::
+
+    $CLUSTERSHELL_CFGDIR/clush.conf
+
+The following table describes available ``clush`` config file settings.
 
 +-----------------+----------------------------------------------------+
 | Key             | Value                                              |
 +=================+====================================================+
-| fanout          | Size of the sliding window of *ssh(1)* connectors. |
+| fanout          | Size of the sliding window of connectors (eg. max  |
+|                 | number of *ssh(1)* allowed to run at the same      |
+|                 | time).                                             |
++-----------------+----------------------------------------------------+
+| confdir         | Optional list of directory paths where ``clush``   |
+|                 | should look for **.conf** files which define       |
+|                 | :ref:`run modes <clushmode-config>` that can then  |
+|                 | be activated with `--mode`. All other ``clush``    |
+|                 | config file settings defined in this table might   |
+|                 | be overridden in a run mode. Each mode section     |
+|                 | should have a name prefixed by "mode:" to clearly  |
+|                 | identify a section defining a mode. Duplicate      |
+|                 | modes are not allowed in those files.              |
+|                 | Configuration files that are not readable by the   |
+|                 | current user are ignored. The variable `$CFGDIR`   |
+|                 | is replaced by the path of the highest priority    |
+|                 | configuration directory found (where *clush.conf*  |
+|                 | resides). The default *confdir* value enables both |
+|                 | system-wide and any installed user configuration   |
+|                 | (thanks to `$CFGDIR`). Duplicate directory paths   |
+|                 | are ignored.                                       |
 +-----------------+----------------------------------------------------+
 | connect_timeout | Timeout in seconds to allow a connection to        |
 |                 | establish. This parameter is passed to *ssh(1)*.   |
 |                 | If set to 0, no timeout occurs.                    |
++-----------------+----------------------------------------------------+
+| command_prefix  | Command prefix. Generally used for specific        |
+|                 | :ref:`run modes <clush-modes>`, for example to     |
+|                 | implement *sudo(8)* support.                       |
 +-----------------+----------------------------------------------------+
 | command_timeout | Timeout in seconds to allow a command to complete  |
 |                 | since the connection has been established. This    |
@@ -53,26 +87,32 @@ The following table describes available *clush* config file settings.
 |                 | stderr, and cannot be modified.                    |
 +-----------------+----------------------------------------------------+
 | fd_max          | Maximum  number  of  open  file descriptors        |
-|                 | permitted per *clush* process (soft resource limit |
-|                 | for open files). This limit can never exceed the   |
-|                 | system (hard) limit. The *fd_max* (soft) and       |
+|                 | permitted per ``clush`` process (soft resource     |
+|                 | limit for open files). This limit can never exceed |
+|                 | the system (hard) limit. The *fd_max* (soft) and   |
 |                 | system (hard) limits should be high enough to      |
-|                 | run *clush*, although their values depend on       |
+|                 | run ``clush``, although their values depend on     |
 |                 | your fanout value.                                 |
 +-----------------+----------------------------------------------------+
 | history_size    | Set the maximum number of history entries saved in |
 |                 | the GNU readline history list. Negative values     |
 |                 | imply unlimited history file size.                 |
 +-----------------+----------------------------------------------------+
-| node_count      | Should *clush* display additional (node count)     |
+| node_count      | Should ``clush`` display additional (node count)   |
 |                 | information in buffer header? (yes/no)             |
 +-----------------+----------------------------------------------------+
-| maxrc           | Should *clush* return the largest of command       |
+| maxrc           | Should ``clush`` return the largest of command     |
 |                 | return codes? (yes/no)                             |
-|                 | If set to no (the default), *clush* exit status    |
+|                 | If set to no (the default), ``clush`` exit status  |
 |                 | gives no information about command return codes,   |
-|                 | but rather reports on *clush* execution itself     |
+|                 | but rather reports on ``clush`` execution itself   |
 |                 | (zero indicating a successful run).                |
++-----------------+----------------------------------------------------+
+| password_prompt | Enable password prompt and password forwarding to  |
+|                 | stdin? (yes/no)                                    |
+|                 | Generally used for specific                        |
+|                 | :ref:`run modes <clush-modes>`, for example to     |
+|                 | implement interactive *sudo(8)* support.           |
 +-----------------+----------------------------------------------------+
 | verbosity       | Set the verbosity level: 0 (quiet), 1 (default),   |
 |                 | 2 (verbose) or more (debug).                       |
@@ -104,10 +144,37 @@ The following table describes available *clush* config file settings.
 | rsh_options     | Set additional options to pass to the underlying   |
 |                 | rsh/rcp command.                                   |
 +-----------------+----------------------------------------------------+
-| sudo_command    | *sudo(8)* command for use with                     |
-|                 | :ref:`--sudo <clush-sudo>`                         |
-+-----------------+----------------------------------------------------+
 
+.. _clushmode-config:
+
+Run modes
+^^^^^^^^^
+
+Since version 1.9, ``clush`` has support for run modes, which are special
+:ref:`clush-config` settings with a given name. Two run modes are provided in
+example configuration files that can be copied and modified. They implement
+password-based authentication with *sshpass(1)* and support of interactive
+*sudo(8)* with password.
+
+To use a run mode with ``clush --mode``, install a configuration file in one
+of :ref:`clush-config`'s ``confdir`` (usually ``clush.conf.d``).  Only
+configuration files ending in **.conf** are scanned. If the user running
+``clush`` doesn't have read access to a configuration file, it is ignored.
+When ``--mode`` is specified, you can display all available run modes for
+the current user by enabling debug mode (``-d``).
+
+Example of a run mode configuration file (eg.
+``/etc/clustershell/clush.conf.d/sudo.conf``) to add support for interactive
+sudo::
+
+    [mode:sudo]
+    password_prompt: yes
+    command_prefix: /usr/bin/sudo -S -p "''"
+
+System administrators or users can easily create additional run modes by
+adding configuration files to :ref:`clush-config`'s ``confdir``.
+
+More details about using run modes can be found :ref:`here <clush-modes>`.
 
 .. _groups-config:
 
@@ -129,20 +196,27 @@ ClusterShell loads *groups.conf* configuration files that define how to
 obtain node groups configuration, ie. the way the library should access
 file-based or external node group **sources**.
 
-The following configuration file defines global default values for
+The following configuration file defines system-wide default values for
 *groups.conf*::
 
-    $CLUSTERSHELL_CFGDIR/groups.conf
-    
-If *$CLUSTERSHELL_CFGDIR* is not defined, */etc/clustershell/groups.conf* will
-be used,
+    /etc/clustershell/groups.conf
 
 *groups.conf* settings might then be overridden (globally, or per user) if one
 of the following files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/groups.conf
     $HOME/.config/clustershell/groups.conf (only if $XDG_CONFIG_HOME is not defined)
+    {sys.prefix}/etc/clustershell/groups.conf
     $HOME/.local/etc/clustershell/groups.conf
+
+.. note:: The path using `sys.prefix`_ was added in version 1.9.1 and is
+   useful for Python virtual environments.
+
+In addition, if the environment variable ``$CLUSTERSHELL_CFGDIR`` is defined and
+valid, it will used instead. In such case, the following configuration file
+will be tried first for *groups.conf*::
+
+    $CLUSTERSHELL_CFGDIR/groups.conf
 
 This makes possible for an user to have its own *node groups* configuration.
 If no readable configuration file is found, group support will be disabled but
@@ -269,6 +343,10 @@ Here is an example of **/etc/clustershell/groups.d/cluster.yaml**::
         mds: 'mds[1-4]'
         oss: 'oss[0-15]'
         rbh: 'rbh[1-2]'
+
+
+If you wish to define an empty group (with no nodes), you can either use an
+empty string ``''`` or any valid YAML null value (``null`` or ``~``).
 
 .. highlight:: console
 
@@ -551,17 +629,21 @@ in *defaults.conf*.
 
 The following configuration file defines ClusterShell system-wide defaults::
 
-    $CLUSTERSHELL_CFGDIR/defaults.conf
-
-If *$CLUSTERSHELL_CFGDIR* is not defined, */etc/clustershell/defaults.conf*
-will be used,
+    /etc/clustershell/defaults.conf
 
 *defaults.conf* settings might then be overridden (globally, or per user) if
 one of the following files is found, in priority order::
 
     $XDG_CONFIG_HOME/clustershell/defaults.conf
     $HOME/.config/clustershell/defaults.conf (only if $XDG_CONFIG_HOME is not defined)
+    {sys.prefix}/etc/clustershell/defaults.conf
     $HOME/.local/etc/clustershell/defaults.conf
+
+In addition, if the environment variable ``$CLUSTERSHELL_CFGDIR`` is defined and
+valid, it will used instead. In such case, the following configuration file
+will be tried first for ClusterShell defaults::
+
+    $CLUSTERSHELL_CFGDIR/defaults.conf
 
 Use case: rsh
 ^^^^^^^^^^^^^^
@@ -600,3 +682,4 @@ without error.
 
 .. _ConfigParser: http://docs.python.org/library/configparser.html
 .. _nodeset: https://xcat-docs.readthedocs.io/en/stable/guides/admin-guides/references/man8/nodeset.8.html
+.. _sys.prefix: https://docs.python.org/3/library/sys.html#sys.prefix

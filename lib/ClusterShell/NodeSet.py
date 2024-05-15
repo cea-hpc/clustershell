@@ -54,20 +54,19 @@ import re
 import string
 import sys
 
-# Python 3 compatibility
-try:
-    basestring
-except NameError:
-    basestring = str
-
 from ClusterShell.Defaults import config_paths, DEFAULTS
 import ClusterShell.NodeUtils as NodeUtils
 
 # Import all RangeSet module public objects
 from ClusterShell.RangeSet import RangeSet, RangeSetND, AUTOSTEP_DISABLED
-from ClusterShell.RangeSet import RangeSetException, RangeSetParseError
-from ClusterShell.RangeSet import RangeSetPaddingError
+from ClusterShell.RangeSet import RangeSetParseError
 
+
+# Python 3 compatibility
+try:
+    basestring
+except NameError:
+    basestring = str
 
 # Define default GroupResolver object used by NodeSet
 DEF_GROUPS_CONFIGS = config_paths('groups.conf')
@@ -558,8 +557,8 @@ class NodeSetBase(object):
 
     def __ior__(self, other):
         """
-        Implements the |= operator. So ``s |= t`` returns nodeset s with
-        elements added from t. (Python version 2.5+ required)
+        Implements the ``|=`` operator. So ``s |= t`` returns nodeset s
+        with elements added from t. (Python version 2.5+ required)
         """
         self._binary_sanity_check(other)
         self.update(other)

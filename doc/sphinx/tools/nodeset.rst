@@ -259,6 +259,8 @@ represented using the step syntax (57% of them)::
     node[1,3,5,7,34,39,99]
 
 
+.. _nodeset-zeropadding:
+
 Zero-padding
 ^^^^^^^^^^^^
 
@@ -674,11 +676,13 @@ Or, to list groups *from all available group sources*, use *-L* (or
 You can also use ``nodeset -ll`` or ``nodeset -LL`` to see each group's
 associated node sets.
 
+.. _nodeset-rawgroupnames:
+
 Listing group names in expressions
 """"""""""""""""""""""""""""""""""
 
-ClusterShell 1.8.5 introduces a new operator **@@** optionally followed by
-a source name (e.g. **@@source**) to access the list of *raw group names* of
+ClusterShell 1.9 introduces a new operator **@@** optionally followed by a
+source name (e.g. **@@source**) to access the list of *raw group names* of
 the source (without the **@** prefix). If no source is specified (as in *just*
 **@@**), the default group source is used (see :ref:`groups_config_conf`).
 The **@@** operator may be used in any node set expression to manipulate group
@@ -905,6 +909,8 @@ like::
 
 A similar option is available with :ref:`clush-tool`, see
 :ref:`selecting all nodes with clush <clush-all-nodes>`.
+
+.. _node-wildcards:
 
 Node wildcards
 """"""""""""""

@@ -25,7 +25,7 @@ def _test_print_debug(task, s):
     task.set_info("user_print_debug_last", s)
 
 class TaskLocalMixin(object):
-    """Mixin test case class: should be overrided and used in multiple
+    """Mixin test case class: should be overridden and used in multiple
     inheritance with unittest.TestCase"""
 
     def setUp(self):
@@ -115,18 +115,6 @@ class TaskLocalMixin(object):
         try:
             # run task
             task.resume(3)
-        except TimeoutError:
-            self.fail("did detect timeout")
-
-    def testSimpleCommandNoTimeout(self):
-        task = task_self()
-
-        # init worker
-        worker = task.shell("/bin/usleep 900000")
-
-        try:
-            # run task
-            task.resume(1)
         except TimeoutError:
             self.fail("did detect timeout")
 
@@ -436,7 +424,7 @@ class TaskLocalMixin(object):
 
     def testEscape(self):
         task = task_self()
-        worker = task.shell("export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'")
+        worker = task.shell(r"export CSTEST=foobar; /bin/echo \$CSTEST | sed 's/\ foo/bar/'")
         # execute
         task.resume()
         # read result
@@ -444,7 +432,7 @@ class TaskLocalMixin(object):
 
     def testEscape2(self):
         task = task_self()
-        worker = task.shell("export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'")
+        worker = task.shell(r"export CSTEST=foobar; /bin/echo $CSTEST | sed 's/\ foo/bar/'")
         # execute
         task.resume()
         # read result
@@ -568,14 +556,14 @@ class TaskLocalMixin(object):
 
         # retry
         task = task_self()
-        worker = task.shell("/bin/echo shouldnt see that")
+        worker = task.shell("/bin/echo should not see that")
         task.abort()
         self.assertEqual(task, task_self())
 
     def testTaskAbortHandler(self):
 
         class AbortOnReadTestHandler(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 self.has_ev_read = True
                 worker.task.abort()
                 assert False, "Shouldn't reach this line"
@@ -676,7 +664,7 @@ class TaskLocalMixin(object):
 
     def testSignalWorker(self):
         class TestSignalHandler(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 pid = int(worker.current_msg)
                 os.kill(pid, signal.SIGTERM)
         task = task_self()
@@ -689,7 +677,7 @@ class TaskLocalMixin(object):
             def __init__(self, target_worker=None):
                 self.target_worker = target_worker
                 self.counter = 0
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 self.counter += 1
                 if self.counter == 100:
                     worker.write(b"another thing to read\n")
@@ -741,7 +729,7 @@ class TaskLocalMixin(object):
             def ev_start(self, worker):
                 self.workers.append(worker)
 
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 run_cnt = sum(e.registered for w in self.workers
                               for e in w._engine_clients())
                 self.max_run_cnt = max(self.max_run_cnt, run_cnt)
@@ -847,7 +835,7 @@ class TaskLocalMixin(object):
 
     def testKBI(self):
         class TestKBI(EventHandler):
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 raise KeyboardInterrupt
         task = task_self()
         ok = False
@@ -983,9 +971,9 @@ class TaskLocalMixin(object):
             def __init__(self):
                 self.pickup_count = 0
                 self.hup_count = 0
-            def ev_pickup(self, worker):
+            def ev_pickup(self, worker, node):
                 self.pickup_count += 1
-            def ev_hup(self, worker):
+            def ev_hup(self, worker, node, rc):
                 self.hup_count += 1
 
         task = task_self()
@@ -1036,7 +1024,7 @@ class TaskLocalMixin(object):
             def __init__(self, worker2):
                 self.worker2 = worker2
 
-            def ev_read(self, worker):
+            def ev_read(self, worker, node, sname, msg):
                 worker.task.schedule(self.worker2)
 
         worker2 = StreamWorker(handler=None)

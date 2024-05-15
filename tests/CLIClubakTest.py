@@ -65,6 +65,11 @@ class CLIClubakTest(unittest.TestCase):
         self._clubak_t(["-v", "-b"], b"foo: bar\n", _outfmt_verb('foo'), 0)
         # no node count with -q
         self._clubak_t(["-q", "-b"], b"foo[1-5]: bar\n", _outfmt('foo[1-5]'), 0)
+        # non-printable characters replaced by the replacement character
+        self._clubak_t(["-L"], b"foo:\xffbar\n", "foo: \ufffdbar\n".encode(), 0)
+        self._clubak_t(["-d", "-L"], b"foo:\xf8bar\n",
+                       'INPUT foo:\ufffdbar\nfoo: \ufffdbar\n'.encode(), 0,
+                       b'line_mode=True gather=False tree_depth=1\n')
 
     def test_002_b(self):
         """test clubak (gather -b)"""
@@ -118,6 +123,8 @@ class CLIClubakTest(unittest.TestCase):
         """test clubak (tree mode --tree)"""
         self._clubak_t(["--tree"], b"foo: bar\n", _outfmt("foo"))
         self._clubak_t(["--tree", "-L"], b"foo: bar\n", b"foo:\n bar\n")
+        self._clubak_t(["--tree", "-L"], b"foo: \xf8bar\n",
+                       "foo:\n \ufffdbar\n".encode())
         stdin_buf = dedent("""foo1:bar
                               foo2:bar
                               foo1:moo

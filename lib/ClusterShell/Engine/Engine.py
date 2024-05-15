@@ -140,7 +140,7 @@ class EngineBaseTimer(object):
         """
         Set the next firing delay in seconds for an EngineTimer object.
 
-        The optional parameter `interval' sets the firing interval
+        The optional parameter *interval* sets the firing interval
         of the timer. If not specified, the timer fires once and then
         is automatically invalidated.
 

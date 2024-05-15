@@ -74,7 +74,6 @@ class RangeSetTest(unittest.TestCase):
         self.assertRaises(RangeSetParseError, RangeSet, "2-5/a")
         self.assertRaises(RangeSetParseError, RangeSet, "3/2")
         self.assertRaises(RangeSetParseError, RangeSet, "3-/2")
-        self.assertRaises(RangeSetParseError, RangeSet, "-3/2")
         self.assertRaises(RangeSetParseError, RangeSet, "-/2")
         self.assertRaises(RangeSetParseError, RangeSet, "4-a/2")
         self.assertRaises(RangeSetParseError, RangeSet, "4-3/2")
@@ -788,7 +787,7 @@ class RangeSetTest(unittest.TestCase):
         self.assertEqual(rg1.__or__(rg2), NotImplemented)
         self.assertEqual(rg1.__sub__(rg2), NotImplemented)
         self.assertEqual(rg1.__xor__(rg2), NotImplemented)
-        # Should implicitely raises TypeError if the real operator
+        # Should implicitly raises TypeError if the real operator
         # version is invoked. To test that, we perform a manual check
         # as an additional function would be needed to check with
         # assertRaises():
@@ -1263,3 +1262,74 @@ class RangeSetTest(unittest.TestCase):
         self.assertRaises(RangeSetParseError, RangeSet, "1,5,")
         self.assertRaises(RangeSetParseError, RangeSet, "1,5, ")
         self.assertRaises(RangeSetParseError, RangeSet, "1,5,, ")
+
+    def test_init_ranges(self):
+        """test RangeSet initialization with a range"""
+        r1 = RangeSet(range(5,7))
+        self.assertEqual(str(r1), "5-6")
+        self.assertEqual(len(r1), 2)
+
+    def test_init_negative_ranges(self):
+        """test RangeSet initialization with with negative ranges"""
+        # negative ranges (GH#515)
+        r1 = RangeSet(range(-1,1))
+        self.assertEqual(str(r1), "-1-0")
+        self.assertEqual(len(r1), 2)
+
+        r1 = RangeSet("-1-0")
+        self.assertEqual(str(r1), "-1-0")
+        self.assertEqual(len(r1), 2)
+
+        r1 = RangeSet(range(-5,7))
+        self.assertEqual(str(r1), "-5-6")
+        self.assertEqual(len(r1), 12)
+
+        r1 = RangeSet("-5-6")
+        self.assertEqual(str(r1), "-5-6")
+        self.assertEqual(len(r1), 12)
+
+        r1 = RangeSet(range(-9,-5))
+        self.assertEqual(str(r1), "-9--6")
+        self.assertEqual(len(r1), 4)
+
+        r1 = RangeSet("-9--6")
+        self.assertEqual(str(r1), "-9--6")
+        self.assertEqual(len(r1), 4)
+
+        r1 = RangeSet(range(-12,-5))
+        self.assertEqual(str(r1), "-12--6")
+        self.assertEqual(len(r1), 7)
+
+        r1 = RangeSet(range(-100,-30))
+        self.assertEqual(str(r1), "-100--31")
+        self.assertEqual(len(r1), 70)
+
+        r1 = RangeSet(range(-10,-2,2))
+        self.assertEqual(str(r1), "-10,-8,-6,-4")
+        self.assertEqual(len(r1), 4)
+
+        r1 = RangeSet(range(-3, -2))
+        self.assertEqual(str(r1), "-3")
+        self.assertEqual(len(r1), 1)
+
+        r1 = RangeSet("-3/2")
+        self.assertEqual(str(r1), "-3")
+        self.assertEqual(len(r1), 1)
+
+        r1 = RangeSet(range(-10,-2,2), autostep=3)
+        self.assertEqual(str(r1), "-10--4/2")
+        self.assertEqual(len(r1), 4)
+
+        r1 = RangeSet(['-30', '-20', '-28', '-29'])
+        self.assertEqual(str(r1), "-30--28,-20")
+        self.assertEqual(len(r1), 4)
+
+        r1 = RangeSet(['-31', '-20', '-27', '-29'])
+        self.assertEqual(str(r1), "-31,-29,-27,-20")
+        self.assertEqual(len(r1), 4)
+
+        # parsing of negative range with padding is not supported
+        self.assertRaises(RangeSetParseError, RangeSet, "-001")
+        self.assertRaises(RangeSetParseError, RangeSet, "-009")
+        self.assertRaises(RangeSetParseError, RangeSet, "-01-00")
+        self.assertRaises(RangeSetParseError, RangeSet, "-003--001")
