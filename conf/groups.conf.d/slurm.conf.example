@@ -19,7 +19,6 @@ reverse: sinfo -h -N -o "%R" -n $NODE
 map: scontrol -o show reservation $GROUP | grep -Po 'Nodes=\K[^ ]+'
 all: scontrol -o show reservation | grep -Po 'Nodes=\K[^ ]+'
 list: scontrol -o show reservation | grep -Po 'ReservationName=\K[^ ]+'
-reverse: scontrol -o show node $NODE | grep -Po 'ReservationName=\K[^ ]+' 2>/dev/null || true
 cache_time: 60
 
 #
