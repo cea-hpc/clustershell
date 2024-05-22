@@ -418,7 +418,8 @@ class RunTimer(EventHandler):
             # tree mode
             act_targets = NodeSet()
             for gw, (chan, metaworkers) in self.task.gateways.items():
-                act_targets.updaten(mw.gwtargets[gw] for mw in metaworkers)
+                act_targets.updaten(mw.gwtargets[gw].copy()
+                                    for mw in metaworkers)
             cnt = len(act_targets) + len(self.task._engine.clients()) - gwcnt
             gwinfo = ' gw %d' % gwcnt
         else:
@@ -597,8 +598,11 @@ def ttyloop(task, nodeset, timeout, display, remote, trytree):
                                    % (len(ns_reg), ns_reg, pending,
                                       len(gws), NodeSet._fromlist1(gws)))
             for gw, (chan, metaworkers) in task.gateways.items():
-                act_targets = NodeSet.fromlist(mw.gwtargets[gw]
-                                               for mw in metaworkers)
+                act_targets = NodeSet()
+                for mw in metaworkers:
+                    # Compute active targets using updaten() from a copy of the
+                    # original sets as they might be frequently modified
+                    act_targets.updaten(mw.gwtargets[gw].copy())
                 if act_targets:
                     display.vprint_err(VERB_QUIET,
                                        "clush: [tree] in progress(%d) on %s: %s"

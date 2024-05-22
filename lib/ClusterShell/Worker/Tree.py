@@ -351,7 +351,7 @@ class TreeWorker(DistantWorker):
 
         self._target_count += len(targets)
 
-        self.gwtargets.setdefault(str(gateway), NodeSet()).add(targets)
+        self.gwtargets.setdefault(str(gateway), set()).update(targets)
 
         # tar commands are built here and launched on targets
         if reverse:
@@ -377,7 +377,8 @@ class TreeWorker(DistantWorker):
 
         self._target_count += len(targets)
 
-        self.gwtargets.setdefault(str(gateway), NodeSet()).add(targets)
+        # GH#560: use set instead of NodeSet to keep track of active targets
+        self.gwtargets.setdefault(str(gateway), set()).update(targets)
 
         pchan = self.task._pchannel(gateway, self)
         pchan.shell(nodes=targets, command=cmd, worker=self, timeout=timeout,
@@ -396,8 +397,7 @@ class TreeWorker(DistantWorker):
         self.logger.debug("_relaunch on targets %s from previous_gateway %s",
                           targets, previous_gateway)
 
-        for target in targets:
-            self.gwtargets[previous_gateway].remove(target)
+        self.gwtargets[previous_gateway].difference_update(targets)
 
         self._check_fini(previous_gateway)
         self._target_count -= len(targets)
