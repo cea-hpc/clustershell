@@ -393,7 +393,7 @@ class TreeWorker(DistantWorker):
         previous_gateway must be defined. However, it is not guaranteed that
         the relaunch is going to be performed using gateways (that's a feature).
         """
-        targets = self.gwtargets[previous_gateway].copy()
+        targets = NodeSet.fromlist(self.gwtargets[previous_gateway])
         self.logger.debug("_relaunch on targets %s from previous_gateway %s",
                           targets, previous_gateway)
 
