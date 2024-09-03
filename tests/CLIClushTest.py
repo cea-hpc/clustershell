@@ -880,3 +880,28 @@ class CLIClushTest_D_StdinFIFO(unittest.TestCase):
         s = "%s: ok\n" % HOSTNAME
         self._clush_t(["-w", HOSTNAME, "-v", "echo ok"], None,
                       s.encode(), 0, b"")
+
+
+class CLIClushTest_E_Topology(unittest.TestCase):
+    """Unit test class for testing CLI/Clush.py with --topology"""
+
+    def setUp(self):
+        self.topofile = make_temp_file(dedent("""
+                        [Main]
+                        %s: localhost
+                        localhost: remote-node"""% HOSTNAME).encode())
+
+    def tearDown(self):
+        self.topofile = None
+
+    def _clush_t(self, args, stdin, expected_stdout, expected_rc=0,
+                 expected_stderr=None):
+        CLI_main(self, main, ['clush'] + args, stdin, expected_stdout,
+                 expected_rc, expected_stderr)
+
+    @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
+    def test_300_topology(self):
+        """test clush --topology"""
+        # GH#560: to detect set!=NodeSet for gwtargets
+        self._clush_t(["--topology", self.topofile.name,
+                       "-w", "remote-node", "-b", "-v", "sleep 1; echo ok"], None, b"", 0, b"")
