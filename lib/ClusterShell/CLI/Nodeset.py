@@ -136,8 +136,9 @@ def command_list(options, xset, group_resolver):
     if options.listall:
         # useful: sources[0] is always the default or selected source
         sources = group_resolver.sources()
-        # do not print name of default group source unless -s specified
-        if sources and not options.groupsource:
+        # do not print the name of the current group source (either the default
+        # or the one specified by -s)
+        if sources:
             sources[0] = None
     else:
         sources = [options.groupsource]

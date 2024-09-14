@@ -721,7 +721,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
         self._nodeset_t(["-GL"], None,
                         b"@bar\n@foo\n@moo\n@baz\n@norf\n@qux\n")
         self._nodeset_t(["--list-all", "-s", "other"], None,
-                        b"@other:baz\n@other:norf\n@other:qux\n@test:bar\n@test:foo\n@test:moo\n")
+                        b"@baz\n@norf\n@qux\n@test:bar\n@test:foo\n@test:moo\n")
         self._nodeset_t(["--list-all", "-G", "-s", "other"], None,
                         b"@baz\n@norf\n@qux\n@bar\n@foo\n@moo\n") # 'other' source first
 
