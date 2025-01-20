@@ -280,6 +280,10 @@ class OptionParser(optparse.OptionParser):
                           default=False,
                           help="list all active group sources (see "
                                "groups.conf(5))")
+        # special hidden command for bash completion scripts
+        optgrp.add_option("--completion", action="store_true",
+                          dest="completion",
+                          default=False, help=optparse.SUPPRESS_HELP)
         self.add_option_group(optgrp)
 
     def install_nodeset_operations(self):
