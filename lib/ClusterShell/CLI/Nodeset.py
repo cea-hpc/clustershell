@@ -132,7 +132,7 @@ def print_source_groups(source, level, xset, opts):
 
 def command_list(options, xset, group_resolver):
     """List command handler (-l/-ll/-lll/-L/-LL/-LLL)."""
-    list_level = options.list + options.listall
+    list_level = options.list + options.listall + options.completion
     if options.listall:
         # useful: sources[0] is always the default or selected source
         sources = group_resolver.sources()
@@ -175,7 +175,7 @@ def nodeset():
     cmdcount = int(options.count) + int(options.expand) + \
                int(options.fold) + int(bool(options.list)) + \
                int(bool(options.listall)) + int(options.regroup) + \
-               int(options.groupsources)
+               int(options.groupsources) + int(options.completion)
     if not cmdcount:
         parser.error("No command specified.")
     elif cmdcount > 1:
@@ -231,7 +231,9 @@ def nodeset():
         # Include all nodes from external node groups support.
         xset.update(NodeSet.fromall()) # uses default_source when set
 
-    if not args and not options.all and not (options.list or options.listall):
+    if not args and not options.all and not (options.list or
+                                             options.listall or
+                                             options.completion):
         # No need to specify '-' to read stdin in these cases
         process_stdin(xset.update, xset.__class__, autostep)
 
@@ -264,6 +266,17 @@ def nodeset():
     # The list command has a special handling
     if options.list > 0 or options.listall > 0:
         return command_list(options, xset, group_resolver)
+    elif options.completion:  # --completion is used for bash completion
+        # list group source prefixes unless source is already specified
+        if not options.groupsource:
+            for src in group_resolver.sources():
+                print("@%s:" % src)
+        # list groups in group source (similar to list)
+        command_list(options, None, group_resolver)
+        # then list nodes from the groups passed as argument, if any
+        if not xset:
+            return
+        options.expand = True
 
     # Interpret special characters (may raise SyntaxError)
     separator = eval('\'\'\'%s\'\'\'' % options.separator,

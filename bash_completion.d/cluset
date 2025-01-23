@@ -1,0 +1,79 @@
+# cluset bash completion
+#
+# to install in /usr/share/bash-completion/completions/ or ~/.local/share/bash-completion/completions/
+_cluset()
+{
+	# shellcheck disable=SC2034 # set/used by _init_completion
+	local cur prev words cword split
+	local word options="" skip=argv0 groupsource="" cleangroup=""
+
+	_init_completion -s -n : || return
+
+	# stop parsing if there had been any non-option before (or --)
+	for word in "${words[@]}"; do
+		case "$skip" in
+		"") ;;
+		groupsource)
+			groupsource="$word"
+			;& # fallthrough
+		*)
+			skip=""
+			continue
+			;;
+		esac
+		case "$word" in
+		"") ;;
+		--) return;;
+		# no-arg options
+		--version|-h|--help|-n|--nostdin|-a|--all|-q|--quiet|\
+		-v|--verbose|-d|--debug) ;;
+		# get source separately...
+		--groupsource=*) groupsource="${word#*=}";;
+		-s|--groupsource) skip=groupsource;;
+		# assume all the rest as options...
+		# options with = included in word
+		--*=*) ;;
+		-*) skip=any;;
+		*) return;; # was non-option
+		esac
+	done
+
+	case "$prev" in
+	-c|--count|-e|--expand|-f|--fold|\
+	-x|--exclude|-i|--intersection|-X|--xor)
+		case "$cur" in
+		*:*)
+			groupsource="${cur%%:*}"
+			groupsource="${groupsource#@}"
+			;;
+		*)
+			if [ -n "$groupsource" ]; then
+				cleangroup=1
+			fi
+			;;
+		esac
+		options="$(cluset ${groupsource:+-s "$groupsource"} --completion @*)"
+		if [ -n "$cleangroup" ]; then
+			options=${options//@"$groupsource":/@}
+		fi
+		;;
+	-s|--groupsource)
+		options=$(cluset --groupsources --quiet)
+		;;
+	# no-arg options
+	--version|-h|--help|-l|--list|-L|--list-all|-r|--regroup|\
+	--list-sources|--groupsources|-d|--debug|-q|--quiet|\
+	-R|--rangeset|-G|--groupbase|--contiguous) ;;
+	# any other option: just ignore.
+	-*)
+		return;;
+	esac
+	# get all options from help text... not 100% accurate but good enough.
+	[ -n "$options" ] || options="$(cluset --help | grep -oP -- '(?<=[ \t])(-[a-z]|--[^= \t]*)')"
+
+	# append space for everything that doesn't end in `:` (likely a groupsource)
+	mapfile -t COMPREPLY < <(compgen -W "$options" -- "$cur" | sed -e 's/[^:]$/& /')
+	# remove the prefix from COMPREPLY if $cur contains colons and
+	# COMP_WORDBREAKS splits on colons...
+	__ltrim_colon_completions "$cur"
+} && complete -o nospace -F _cluset ${BASH_SOURCE##*/}
