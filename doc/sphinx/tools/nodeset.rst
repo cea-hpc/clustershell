@@ -5,6 +5,12 @@ nodeset
 
 .. highlight:: console
 
+.. note:: The :ref:`cluset-tool` command is introduced in ClusterShell
+          version 1.7.3 as an alternative to the **nodeset** command to avoid
+          conflicts with the **nodeset** command from xCAT. Users are
+          encouraged to transition to using **cluset** for their
+          range/node/group set management tasks.
+
 The *nodeset* command enables easy manipulation of node sets, as well as
 node groups, at the command line level. As it is very user-friendly and
 efficient, the *nodeset* command can quickly improve traditional cluster
@@ -339,6 +345,8 @@ inside the brackets.
    range set is not compatible with **trailing** digits. For instance, this is
    **not** supported: ``node-00[1-6/2]0``
 
+.. _nodeset-arithmetic:
+
 Arithmetic operations
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -422,6 +430,8 @@ patterns" (inherited from :class:`.NodeSet` extended pattern feature, see
     
     $ nodeset -f node[1-9]^node[6-11]
     node[1-5,10-11]
+
+.. _nodeset-special:
 
 Special operations
 ^^^^^^^^^^^^^^^^^^
@@ -828,7 +838,8 @@ Arithmetic operations on node groups
 """"""""""""""""""""""""""""""""""""
 
 Arithmetic and special operations (as explained for node sets in
-nodeset-arithmetic and nodeset-special are also supported with node groups.
+:ref:`nodeset-arithmetic` and :ref:`nodeset-special` are also supported with
+node groups.
 Any group name can be used in lieu of a node set, where it will be substituted
 for all nodes in that group before processing requested operations. Some
 typical examples are::
@@ -909,8 +920,6 @@ like::
 
 A similar option is available with :ref:`clush-tool`, see
 :ref:`selecting all nodes with clush <clush-all-nodes>`.
-
-.. _node-wildcards:
 
 Node wildcards
 """"""""""""""
@@ -1000,8 +1009,8 @@ The following examples illustrate these last points::
 Arithmetic and special operations
 """""""""""""""""""""""""""""""""
 
-All arithmetic operations, as seen for node sets (cf. nodeset-arithmetic), are
-available for range sets, for example::
+All arithmetic operations, as seen for node sets (cf.
+:ref:`cluset-arithmetic`), are available for range sets, for example::
 
     $ nodeset -fR 1-14 -x 10-20
     1-9

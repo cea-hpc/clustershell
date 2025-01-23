@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH NODESET 1 "2023-09-29" "1.9.2" "ClusterShell User Manual"
-.SH NAME
-nodeset \- compute advanced nodeset operations
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "NODESET" "1" "2025-01-23" "1.9.3" "ClusterShell User Manual"
+.SH NAME
+nodeset \- compute advanced nodeset operations
 .SH SYNOPSIS
 .INDENT 0.0
 .INDENT 3.5
@@ -53,10 +53,10 @@ administration shell scripts.
 .INDENT 3.5
 .INDENT 0.0
 .TP
-.B \-\-version
+.B  \-\-version
 show program\(aqs version number and exit
 .TP
-.B \-h\fP,\fB  \-\-help
+.B  \-h\fP,\fB  \-\-help
 show this help message and exit
 .TP
 .BI \-s \ GROUPSOURCE\fR,\fB \ \-\-groupsource\fB= GROUPSOURCE
@@ -70,22 +70,25 @@ use alternate config file for groups.conf(5)
 .B Commands:
 .INDENT 7.0
 .TP
-.B \-c\fP,\fB  \-\-count
+.B  \-c\fP,\fB  \-\-count
 show number of nodes in nodeset(s)
 .TP
-.B \-e\fP,\fB  \-\-expand
+.B  \-e\fP,\fB  \-\-expand
 expand nodeset(s) to separate nodes (see also \-S \fISEPARATOR\fP)
 .TP
-.B \-f\fP,\fB  \-\-fold
+.B  \-f\fP,\fB  \-\-fold
 fold nodeset(s) (or separate nodes) into one nodeset
 .TP
-.B \-l\fP,\fB  \-\-list
+.B  \-l\fP,\fB  \-\-list
 list node groups, list node groups and nodes (\fB\-ll\fP) or list node groups, nodes and node count (\fB\-lll\fP). When no argument is specified at all, this command will list all node group names found in selected group source (see also \-s \fIGROUPSOURCE\fP). If any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually). Optionally for each group, the fraction of these nodes being member of the group may be displayed (with \fB\-ll\fP), and also member count/total group node count (with \fB\-lll\fP). If a single hyphen\-minus (\-) is given as a nodeset, it will be read from standard input.
 .TP
-.B \-r\fP,\fB  \-\-regroup
+.B  \-L\fP,\fB  \-\-list\-all
+list node groups from all group sources (\fB\-LL\fP shows nodes and \fB\-LLL\fP adds node count). Like \fB\-l\fP, if any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually).
+.TP
+.B  \-r\fP,\fB  \-\-regroup
 fold nodes using node groups (see \-s \fIGROUPSOURCE\fP)
 .TP
-.B \-\-groupsources
+.B  \-\-groupsources
 list all active group sources (see \fBgroups.conf\fP(5))
 .UNINDENT
 .TP
@@ -105,23 +108,23 @@ calculate symmetric difference between nodesets
 .B Options:
 .INDENT 7.0
 .TP
-.B \-a\fP,\fB  \-\-all
+.B  \-a\fP,\fB  \-\-all
 call external node groups support to display all nodes
 .TP
 .BI \-\-autostep\fB= AUTOSTEP
-enable a\-b/step style syntax when folding nodesets, value is min node count threshold (integer \(aq4\(aq, percentage \(aq50%\(aq or \(aqauto\(aq). If not specified, auto step is disabled (best for compatibility with other cluster tools. Example: autostep=4, "node2 node4 node6" folds in node[2,4,6] but autostep=3, "node2 node4 node6" folds in node[2\-6/2].
+enable a\-b/step style syntax when folding nodesets, value is min node count threshold (integer \(aq4\(aq, percentage \(aq50%\(aq or \(aqauto\(aq). If not specified, auto step is disabled (best for compatibility with other cluster tools. Example: autostep=4, \(dqnode2 node4 node6\(dq folds in node[2,4,6] but autostep=3, \(dqnode2 node4 node6\(dq folds in node[2\-6/2].
 .TP
-.B \-d\fP,\fB  \-\-debug
+.B  \-d\fP,\fB  \-\-debug
 output more messages for debugging purpose
 .TP
-.B \-q\fP,\fB  \-\-quiet
+.B  \-q\fP,\fB  \-\-quiet
 be quiet, print essential output only
 .TP
-.B \-R\fP,\fB  \-\-rangeset
+.B  \-R\fP,\fB  \-\-rangeset
 switch to RangeSet instead of NodeSet. Useful when
 working on numerical cluster ranges, eg. 1,5,18\-31
 .TP
-.B \-G\fP,\fB  \-\-groupbase
+.B  \-G\fP,\fB  \-\-groupbase
 hide group source prefix (always \fI@groupname\fP)
 .TP
 .BI \-S \ SEPARATOR\fR,\fB \ \-\-separator\fB= SEPARATOR
@@ -132,13 +135,13 @@ separator string to use when expanding nodesets
 output format (default: \(aq%s\(aq)
 .TP
 .BI \-I \ SLICE_RANGESET\fR,\fB \ \-\-slice\fB= SLICE_RANGESET
-return sliced off result; examples of SLICE_RANGESET are "0" for simple index selection, or "1\-9/2,16" for complex rangeset selection
+return sliced off result; examples of SLICE_RANGESET are \(dq0\(dq for simple index selection, or \(dq1\-9/2,16\(dq for complex rangeset selection
 .TP
 .BI \-\-split\fB= MAXSPLIT
 split result into a number of subsets
 .TP
-.B \-\-contiguous
-split result into contiguous subsets (ie. for nodeset, subsets will contain nodes with same pattern name and a contiguous range of indexes, like foobar[1\-100]; for rangeset, subsets with consists in contiguous index ranges)"""
+.B  \-\-contiguous
+split result into contiguous subsets (ie. for nodeset, subsets will contain nodes with same pattern name and a contiguous range of indexes, like foobar[1\-100]; for rangeset, subsets with consists in contiguous index ranges)\(dq\(dq\(dq
 .TP
 .BI \-\-axis\fB= RANGESET
 for nD nodesets, fold along provided axis only. Axis are indexed from 1 to n and can be specified here either using the rangeset syntax, eg. \(aq1\(aq, \(aq1\-2\(aq, \(aq1,3\(aq, or by a single negative number meaning that the indices is counted from the end. Because some nodesets may have several different dimensions, axis indices are silently truncated to fall in the allowed range.
@@ -225,7 +228,7 @@ node[0\-4,11\-13]
 .sp
 This computes a folded nodeset containing nodes found in group @gpu and @slurm:bigmem, but not in both, minus the nodes found in odd chassis groups from 1 to 9.
 .TP
-.B "All nodes" extension
+.B \(dqAll nodes\(dq extension
 The \fB@*\fP and \fB@SOURCE:*\fP special notations may be used in extended patterns to represent all nodes (in SOURCE) according to the \fIall\fP external shell command (see \fBgroups.conf\fP(5)) and are equivalent to:
 .INDENT 7.0
 .INDENT 3.5
@@ -493,17 +496,17 @@ node[1\-2,4,7\-8]
 .UNINDENT
 .sp
 \fBcluset\fP was added in 1.7.3 to avoid a conflict with xCAT\(aqs \fBnodeset\fP
-command and also to conform with ClusterShell\(aqs "clu*" command nomenclature.
+command and also to conform with ClusterShell\(aqs \(dqclu*\(dq command nomenclature.
 .SH SEE ALSO
 .sp
 \fBclubak\fP(1), \fBcluset\fP(1), \fBclush\fP(1), \fBgroups.conf\fP(5).
 .sp
-\fI\%http://clustershell.readthedocs.org/\fP
+ <http://clustershell.readthedocs.org/> 
 .SH BUG REPORTS
 .INDENT 0.0
 .TP
 .B Use the following URL to submit a bug report or feedback:
-\fI\%https://github.com/cea\-hpc/clustershell/issues\fP
+ <https://github.com/cea\-hpc/clustershell/issues> 
 .UNINDENT
 .SH AUTHOR
 Stephane Thiell <sthiell@stanford.edu>
