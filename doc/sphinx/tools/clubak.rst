@@ -39,7 +39,7 @@ Indeed, *clubak* formats text from standard input containing lines of the form
 with *pdsh* but provides additional features. For instance, *clubak* always
 displays its results sorted by node/nodeset.
 
-But you do not need to execute *clubak* when using *clush* as all output
+You do NOT need to execute *clubak* when using *clush* as all output
 formatting features are already included in *clush* (see *clush -b / -B / -L*
 examples, :ref:`clush-oneshot`). There are several advantages of having
 *clubak* features included in *clush*: for example, it is possible, with

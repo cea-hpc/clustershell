@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH GROUPS.CONF 5 "2023-09-29" "1.9.2" "ClusterShell User Manual"
-.SH NAME
-groups.conf \- Configuration file for ClusterShell node groups
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "GROUPS.CONF" "5" "2025-01-23" "1.9.3" "ClusterShell User Manual"
+.SH NAME
+groups.conf \- Configuration file for ClusterShell node groups
 .SH DESCRIPTION
 .sp
 The ClusterShell library obtains its node groups configuration from the
@@ -76,7 +76,7 @@ Configuration parameters of the \fBMain\fP section are described below.
 .TP
 .B default
 Specify the default group source (group namespace) used by the NodeSet parser
-when the user does not explicitly specify the group source (eg. "@io").
+when the user does not explicitly specify the group source (eg. \(dq@io\(dq).
 .TP
 .B confdir
 Optional list of directories where the ClusterShell library should look for
@@ -175,10 +175,10 @@ map: sed \-n \(aqs/^$GROUP:(.*)/1/p\(aq /etc/clustershell/groups
 list: sed \-n \(aqs/^\e(\fB[0\-9A\-Za\-z_\-]\fP*\e):.*/\e1/p\(aq /etc/clustershell/groups
 
 [slurm]
-map: sinfo \-h \-o "%N" \-p $GROUP
-all: sinfo \-h \-o "%N"
-list: sinfo \-h \-o "%P"
-reverse: sinfo \-h \-N \-o "%P" \-n $NODE
+map: sinfo \-h \-o \(dq%N\(dq \-p $GROUP
+all: sinfo \-h \-o \(dq%N\(dq
+list: sinfo \-h \-o \(dq%P\(dq
+reverse: sinfo \-h \-N \-o \(dq%P\(dq \-n $NODE
 .fi
 .sp
 .SH FILES
@@ -206,7 +206,7 @@ Local groups.conf user configuration file (default installation for pip \-\-user
 .sp
 \fBclubak\fP(1), \fBcluset\fP(1), \fBclush\fP(1), \fBnodeset\fP(1)
 .sp
-\fI\%http://clustershell.readthedocs.org/\fP
+ <http://clustershell.readthedocs.org/> 
 .SH AUTHOR
 Stephane Thiell, <sthiell@stanford.edu>
 .SH COPYRIGHT

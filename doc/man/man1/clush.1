@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH CLUSH 1 "2023-09-29" "1.9.2" "ClusterShell User Manual"
-.SH NAME
-clush \- execute shell commands on a cluster
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "CLUSH" "1" "2025-01-23" "1.9.3" "ClusterShell User Manual"
+.SH NAME
+clush \- execute shell commands on a cluster
 .SH SYNOPSIS
 .sp
 \fBclush\fP \fB\-a\fP | \fB\-g\fP \fIgroup\fP | \fB\-w\fP \fInodes\fP  [OPTIONS]
@@ -156,13 +156,13 @@ local destination.
 .SH OPTIONS
 .INDENT 0.0
 .TP
-.B \-\-version
+.B  \-\-version
 show \fBclush\fP version number and exit
 .TP
 .BI \-s \ GROUPSOURCE\fR,\fB \ \-\-groupsource\fB= GROUPSOURCE
 optional \fBgroups.conf\fP(5) group source to use
 .TP
-.B \-n\fP,\fB  \-\-nostdin
+.B  \-n\fP,\fB  \-\-nostdin
 do not watch for possible input from stdin; this should be used when \fBclush\fP is run in the background (or in scripts).
 .TP
 .BI \-\-groupsconf\fB= FILE
@@ -185,7 +185,7 @@ nodes where to run the command
 .BI \-x \ NODES
 exclude nodes from the node list
 .TP
-.B \-a\fP,\fB  \-\-all
+.B  \-a\fP,\fB  \-\-all
 run command on all nodes
 .TP
 .BI \-g \ GROUP\fR,\fB \ \-\-group\fB= GROUP
@@ -207,43 +207,43 @@ pick N node(s) at random in nodeset
 .B Output behaviour:
 .INDENT 7.0
 .TP
-.B \-q\fP,\fB  \-\-quiet
+.B  \-q\fP,\fB  \-\-quiet
 be quiet, print essential output only
 .TP
-.B \-v\fP,\fB  \-\-verbose
+.B  \-v\fP,\fB  \-\-verbose
 be verbose, print informative messages
 .TP
-.B \-d\fP,\fB  \-\-debug
+.B  \-d\fP,\fB  \-\-debug
 output more messages for debugging purpose
 .TP
-.B \-G\fP,\fB  \-\-groupbase
+.B  \-G\fP,\fB  \-\-groupbase
 do not display group source prefix
 .TP
-.B \-L
-disable header block and order output by nodes; if \-b/\-B is not specified, \fBclush\fP will wait for all commands to finish and then display aggregated output of commands with same return codes, ordered by node name; alternatively, when used in conjunction with \-b/\-B (eg. \-bL), \fBclush\fP will enable a "life gathering" of results by line, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
+.B  \-L
+disable header block and order output by nodes; if \-b/\-B is not specified, \fBclush\fP will wait for all commands to finish and then display aggregated output of commands with same return codes, ordered by node name; alternatively, when used in conjunction with \-b/\-B (eg. \-bL), \fBclush\fP will enable a \(dqlife gathering\(dq of results by line, such as the next line is displayed as soon as possible (eg. when all nodes have sent the line)
 .TP
-.B \-N
+.B  \-N
 disable labeling of command line
 .TP
-.B \-P\fP,\fB  \-\-progress
+.B  \-P\fP,\fB  \-\-progress
 show progress during command execution; if writing is performed to standard input, the live progress indicator will display the global bandwidth of data written to the target nodes
 .TP
-.B \-b\fP,\fB  \-\-dshbak
+.B  \-b\fP,\fB  \-\-dshbak
 display gathered results in a dshbak\-like way (note: it will only try to aggregate the output of commands with same return codes)
 .TP
-.B \-B
+.B  \-B
 like \-b but including standard error
 .TP
-.B \-r\fP,\fB  \-\-regroup
+.B  \-r\fP,\fB  \-\-regroup
 fold nodeset using node groups
 .TP
-.B \-S\fP,\fB  \-\-maxrc
+.B  \-S\fP,\fB  \-\-maxrc
 return the largest of command return codes
 .TP
 .BI \-\-color\fB= WHENCOLOR
 \fBclush\fP can use NO_COLOR, CLICOLOR and CLICOLOR_FORCE environment variables. NO_COLOR takes precedence over CLICOLOR_FORCE which takes precedence over CLICOLOR.  When \fB\-\-color\fP option is used these environment variables are not taken into account. \fB\-\-color\fP tells whether to use ANSI colors to surround node or nodeset prefix/header with escape sequences to display them in color on the terminal. \fIWHENCOLOR\fP is \fBnever\fP, \fBalways\fP or \fBauto\fP (which use color if standard output/error refer to a terminal). Colors are set to [34m (blue foreground text) for stdout and [31m (red foreground text) for stderr, and cannot be modified.
 .TP
-.B \-\-diff
+.B  \-\-diff
 show diff between common outputs (find the best reference output by focusing on largest nodeset and also smaller command return code)
 .TP
 .BI \-\-outdir\fB= OUTDIR
@@ -256,10 +256,10 @@ output directory for stderr files (OPTIONAL)
 .B File copying:
 .INDENT 7.0
 .TP
-.B \-c\fP,\fB  \-\-copy
+.B  \-c\fP,\fB  \-\-copy
 copy local file or directory to remote nodes
 .TP
-.B \-\-rcopy
+.B  \-\-rcopy
 copy file or directory from remote nodes
 .TP
 .BI \-\-dest\fB= DEST_PATH
@@ -267,7 +267,7 @@ destination file or directory on the nodes
 (optional: use the first source directory
 path when not specified)
 .TP
-.B \-p
+.B  \-p
 preserve modification times and modes
 .UNINDENT
 .TP
@@ -281,7 +281,7 @@ do not execute more than FANOUT commands at the same time, useful to limit resou
 execute remote command as user
 .TP
 .BI \-o \ OPTIONS\fR,\fB \ \-\-options\fB= OPTIONS
-can be used to give ssh options, eg. \fB\-o "\-p 2022 \-i ~/.ssh/myidrsa"\fP; these options are added first to ssh and override default ones
+can be used to give ssh options, eg. \fB\-o \(dq\-p 2022 \-i ~/.ssh/myidrsa\(dq\fP; these options are added first to ssh and override default ones
 .TP
 .BI \-t \ CONNECT_TIMEOUT\fR,\fB \ \-\-connect_timeout\fB= CONNECT_TIMEOUT
 limit time to connect to a node
@@ -408,12 +408,12 @@ File in which interactive \fBclush\fP command history is saved.
 .sp
 \fBclubak\fP(1), \fBcluset\fP(1), \fBnodeset\fP(1), \fBreadline\fP(3), \fBclush.conf\fP(5), \fBgroups.conf\fP(5).
 .sp
-\fI\%http://clustershell.readthedocs.org/\fP
+ <http://clustershell.readthedocs.org/> 
 .SH BUG REPORTS
 .INDENT 0.0
 .TP
 .B Use the following URL to submit a bug report or feedback:
-\fI\%https://github.com/cea\-hpc/clustershell/issues\fP
+ <https://github.com/cea\-hpc/clustershell/issues> 
 .UNINDENT
 .SH AUTHOR
 Stephane Thiell <sthiell@stanford.edu>
