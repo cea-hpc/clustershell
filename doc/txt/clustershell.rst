@@ -6,9 +6,6 @@ execution algorithms, as well as gathering results and merging identical
 outputs, or retrieving return codes. ClusterShell takes advantage of existing
 remote shell facilities already installed on your systems, like SSH.
 
-User tools
-----------
-
 ClusterShell provides clush, clubak and cluset/nodeset, convenient command-line
 tools that allow traditional shell scripts to benefit from some of the
 library's features:
