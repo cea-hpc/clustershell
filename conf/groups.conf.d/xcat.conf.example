@@ -8,10 +8,10 @@
 [xcat]
 
 # list the nodes in the specified node group
-map: lsdef -s -t node "$GROUP" | cut -d' ' -f1
+map: lsdef -s -t node "$GROUP" </dev/null | cut -d' ' -f1
 
 # list all the nodes defined in the xCAT tables
-all: lsdef -s -t node | cut -d' ' -f1
+all: lsdef -s -t node </dev/null | cut -d' ' -f1
 
 # list all groups
-list: lsdef -t group | cut -d' ' -f1
+list: lsdef -t group </dev/null | cut -d' ' -f1
