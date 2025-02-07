@@ -504,7 +504,28 @@ partitions named *kepler* and *pascal*::
 
 .. highlight:: ini
 
-The second section **slurmstate,st** defines a group source based on Slurm
+The second section **slurmresv,sr** defines a group source based on Slurm
+reservations. Each group is based on a different reservation and contains
+the nodes currently in that reservation::
+
+    [slurmresv,sr]
+    map: scontrol -o show reservation $GROUP | grep -Po 'Nodes=\K[^ ]+'
+    all: scontrol -o show reservation | grep -Po 'Nodes=\K[^ ]+'
+    list: scontrol -o show reservation | grep -Po 'ReservationName=\K[^ ]+'
+    cache_time: 60
+
+.. highlight:: console
+
+Example of use on a cluster having a reservation in place for an upcoming
+system maintenance::
+
+    $ nodeset -s slurmresv -l
+    @slurmresv:Maintenance_2025-02-04
+    $ clush -w @slurmresv:Maintenance_2025-02-04 uptime
+
+.. highlight:: ini
+
+The next section **slurmstate,st** defines a group source based on Slurm
 node states. Each group is based on a different state name and contains the
 nodes currently in that state::
 
@@ -530,7 +551,7 @@ are in the Slurm state *drained*::
 
 .. highlight:: ini
 
-The third section **slurmjob,sj** defines a group source based on Slurm jobs.
+The next section **slurmjob,sj** defines a group source based on Slurm jobs.
 Each group is based on a running job ID and contains the nodes currently
 allocated for this job::
 
@@ -540,7 +561,7 @@ allocated for this job::
     reverse: squeue -h -w $NODE -o "%i"
     cache_time: 60
 
-The fourth section **slurmuser,su** defines a group source based on Slurm users.
+The next section **slurmuser,su** defines a group source based on Slurm users.
 Each group is based on a username and contains the nodes currently
 allocated for jobs belonging to the username::
 
@@ -549,6 +570,8 @@ allocated for jobs belonging to the username::
     list: squeue -h -o "%u" -t R
     reverse: squeue -h -w $NODE -o "%i"
     cache_time: 60
+
+.. highlight:: console
 
 Example of use with :ref:`clush <clush-tool>` to execute a command on all nodes
 with running jobs of username::
@@ -561,12 +584,44 @@ of the default (3600s) to avoid caching results in memory for too long, because
 this group source is likely very dynamic (this is only useful for long-running
 processes, not one-shot commands).
 
+.. highlight:: ini
+
+The next section **slurmaccount,sa** defines a group source based on Slurm
+accounts. Each group is based on a account and contains the nodes where there
+are running jobs under this account::
+
+    [slurmaccount,sa]
+    map: squeue -h -A $GROUP -o "%N" -t R
+    list: squeue -h -o "%a" -t R
+    reverse: squeue -h -w $NODE -o "%a" 2>/dev/null || true
+    cache_time: 60
+
 .. highlight:: console
 
-You can then easily find nodes associated with a Slurm job ID::
+For example, to find all nodes that have running jobs from the account ``ruthm``::
 
-     $ nodeset -f @sj:686518
-     cluster-[0003,0005,0010,0012,0015,0017,0021,0055]
+    $ cluset -f @sa:ruthm
+    sh02-01n57,sh03-09n51,sh03-11n10
+
+.. highlight:: ini
+
+The next section **slurmqos,sq** defines a group source based on Slurm QoS.
+Each group is based on a qos and contains the nodes where there are running
+jobs under this qos::
+
+    [slurmqos,sq]
+    map: squeue -h -q $GROUP -o "%N" -t R
+    list: squeue -h -o "%q" -t R
+    reverse: squeue -h -w $NODE -o "%q" 2>/dev/null || true
+    cache_time: 60
+
+.. highlight:: console
+
+Then it is easy to find nodes currently running jobs in a specified qos, here
+in qos ``long`` for example::
+
+    $ cluset -f @slurmqos:long
+    sh02-01n[01-02,16-17,45,51,56],sh03-01n[02,29,61]
 
 .. _group-xcat-bindings:
 

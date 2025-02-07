@@ -10,6 +10,41 @@ We are pleased to announce the availability of this new release, which comes
 with some exciting new features and improvements. We would like to thank
 everyone who participated in this release in a way or another.
 
+
+Version 1.9.3
+^^^^^^^^^^^^^
+
+This version contains various performance improvements over 1.9.2, notably in
+tree mode, and introduces bash completion for command line tools.
+
+* Added bash completions for :ref:`clush-tool`,
+  :ref:`nodeset-tool`/:ref:`cluset-tool`
+
+  Demonstration of bash completions:
+
+  .. asciinema:: 699526
+
+* :ref:`Slurm group bindings <group-slurm-bindings>`: additional Slurm group
+  source definitions have been included to enhance Slurm interaction
+  capabilities (added ``slurmaccount``, ``slurmqos`` and ``slurmresv``).
+
+* :ref:`clush-tool` now uses ``set`` instead of :class:`.NodeSet` for runtime
+  progress information which improves performance.
+
+* Updated :ref:`tree mode <clush-tree>` to use ``set`` instead of
+  :class:`.NodeSet` for gateway tracking, optimizing performance for large
+  clusters.
+
+For more details, please have a look at `GitHub Issues for 1.9.3 milestone`_.
+
+.. warning:: While we are making our best effort to maintain Python 2
+   compatibility in ClusterShell 1.9.x, we no longer run tests for Python 2.
+   Therefore, functionality on Python 2 is not guaranteed and may break without
+   notice. For the best experience and continued support, it is strongly
+   recommended to use Python 3.
+
+.. note:: ClusterShell 1.9.3 has been tested with Python versions 3.6 to 3.13.
+
 Version 1.9.2
 ^^^^^^^^^^^^^
 
@@ -743,6 +778,7 @@ Please see :ref:`install-pip-user`.
 .. _GitHub Issues for 1.9 milestone: https://github.com/cea-hpc/clustershell/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A1.9
 .. _GitHub Issues for 1.9.1 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.1
 .. _GitHub Issues for 1.9.2 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.2
+.. _GitHub Issues for 1.9.3 milestone: https://github.com/cea-hpc/clustershell/issues?q=milestone%3A1.9.3
 .. _LGPL v2.1+: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 .. _CeCILL-C V1: http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
 .. _xCAT: https://xcat.org/

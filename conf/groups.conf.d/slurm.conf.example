@@ -13,6 +13,15 @@ list: sinfo -h -o "%R"
 reverse: sinfo -h -N -o "%R" -n $NODE
 
 #
+# SLURM node-reservation bindings
+#
+[slurmresv,sr]
+map: scontrol -o show reservation $GROUP | grep -Po 'Nodes=\K[^ ]+'
+all: scontrol -o show reservation | grep -Po 'Nodes=\K[^ ]+'
+list: scontrol -o show reservation | grep -Po 'ReservationName=\K[^ ]+'
+cache_time: 60
+
+#
 # SLURM state bindings
 #
 [slurmstate,st]
