@@ -592,7 +592,7 @@ class Task(object):
         >>> task.resume()
         """
 
-        handler = kwargs.get("handler", None)
+        handler = kwargs.get("handler", EventHandler())
         timeo = kwargs.get("timeout", None)
         autoclose = kwargs.get("autoclose", False)
         stderr = kwargs.get("stderr", self.default("stderr"))
