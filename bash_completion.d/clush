@@ -1,16 +1,43 @@
 # clush bash completion
 #
 # to install in /usr/share/bash-completion/completions/ or ~/.local/share/bash-completion/completions/
+_clush_command_or_file() {
+	# undo our nospace setting...
+	compopt +o nospace
+
+	# complete either files (copy mode) or commands (if target set)
+	case "$target_set,$mode" in
+	*,copy)
+		# available since bash-completion 2.12
+		if declare -F _comp_compgen_filedir >/dev/null; then
+			_comp_compgen_filedir
+		else
+			_filedir
+		fi
+		;;
+	1,command)
+		# available since bash-completion 2.12
+		if declare -F _comp_command_offset >/dev/null; then
+			_comp_command_offset "$i"
+		else
+			_command_offset "$i"
+		fi
+		;;
+	esac
+}
+
 _clush()
 {
 	# shellcheck disable=SC2034 # set/used by _init_completion
 	local cur prev words cword split
-	local word options="" compopts="" skip=argv0 groupsource="" cleangroup=""
+	local i word options="" compopts="" skip=argv0 groupsource="" cleangroup=""
+	local mode=command target_set=""
 
 	_init_completion -s -n : || return
 
 	# stop parsing if there had been any non-option before (or --)
-	for word in "${words[@]}"; do
+	for i in "${!words[@]}"; do
+		word="${words[i]}"
 		case "$skip" in
 		"") ;;
 		groupsource)
@@ -23,7 +50,13 @@ _clush()
 		esac
 		case "$word" in
 		"") ;;
-		--) return;;
+		--)
+			i=$((i+1))  # command from next word!
+			_clush_command_or_file
+			return
+			;;
+		-c|--copy|--rcopy) mode=copy;;
+		-w|-g|--group) target_set=1; skip=any;;
 		# no-arg options
 		--version|-h|--help|-n|--nostdin|-a|--all|-q|--quiet|\
 		-v|--verbose|-d|--debug) ;;
@@ -34,7 +67,12 @@ _clush()
 		# options with = included in word
 		--*=*) ;;
 		-*) skip=any;;
-		*) return;; # was non-option
+		*)
+			# likely non-option, in copy mode options like -w can come
+			# later so just skip, otherwise likely start of command
+			[ "$mode" = copy ] && continue
+			_clush_command_or_file
+			return;;
 		esac
 	done
 
@@ -54,6 +92,7 @@ _clush()
 		if [ "$prev" = "-w" ]; then
 			compopts="@*"  # include all nodes
 		fi
+		# shellcheck disable=SC2086 ## $compopts expanded on purpose
 		options="$(cluset ${groupsource:+-s "$groupsource"} --completion $compopts)"
 		if [ -n "$cleangroup" ]; then
 			options=${options//@"$groupsource":/@}
@@ -75,17 +114,28 @@ _clush()
 		;;
 	# no-arg options
 	--version|-h|--help|-n|--nostdin|-a|--all|-q|--quiet|\
-	-v|--verbose|-d|--debug) ;;
-	# any other option: just ignore.
+	-v|--verbose|-d|--debug|-c|--copy|--rcopy) ;;
+	# any other option: ignore next word (likely argument)
 	-*)
 		return;;
 	esac
-	# get all options from help text... not 100% accurate but good enough.
-	[ -n "$options" ] || options="$(clush --help | grep -oP -- '(?<=[ \t])(-[a-z]|--[^= \t]*)')"
+	# new option or no option:
+	if [ -z "$options" ]; then
+		case "$cur" in
+		-*)
+			# starts with dash - get all options from help text...
+			options="$(clush --help | grep -oP -- '(?<=[ \t])(-[a-z]|--[^= \t]*)')"
+			;;
+		*)
+			# otherwise complete command or file if appropriate and stop here
+			_clush_command_or_file
+			return
+		esac
+	fi
 
 	# append space for everything that doesn't end in `:` (likely a groupsource)
 	mapfile -t COMPREPLY < <(compgen -W "$options" -- "$cur" | sed -e 's/[^:]$/& /')
 	# remove the prefix from COMPREPLY if $cur contains colons and
 	# COMP_WORDBREAKS splits on colons...
 	__ltrim_colon_completions "$cur"
-} && complete -o nospace -F _clush ${BASH_SOURCE##*/}
+} && complete -o nospace -F _clush "${BASH_SOURCE##*/}"
