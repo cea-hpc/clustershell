@@ -46,6 +46,13 @@ import time
 from string import Template
 from subprocess import Popen, PIPE
 
+# compat with python 2.7, import directly above for 3.x
+try:
+    from subprocess import DEVNULL
+except ImportError:
+    DEVNULL = open(os.devnull, 'r')
+
+# compat with python 2.7, use str directly in 3.x
 try:
     basestring
 except NameError:
@@ -202,8 +209,8 @@ class UpcallGroupSource(GroupSource):
         """
         cmdline = Template(self.upcalls[cmdtpl]).safe_substitute(args)
         self.logger.debug("EXEC '%s'", cmdline)
-        proc = Popen(cmdline, stdout=PIPE, shell=True, cwd=self.cfgdir,
-                     universal_newlines=True)
+        proc = Popen(cmdline, stdin=DEVNULL, stdout=PIPE, shell=True,
+                     cwd=self.cfgdir, universal_newlines=True)
         output = proc.communicate()[0].strip()
         self.logger.debug("READ '%s'", output)
         if proc.returncode != 0:
