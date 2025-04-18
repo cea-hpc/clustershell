@@ -773,7 +773,7 @@ specifying the case-sensitive full Python module name of a worker module.
 
 
 .. [#] LLNL parallel remote shell utility
-   (https://computing.llnl.gov/linux/pdsh.html)
+   (https://software.llnl.gov/repo/#!/chaos/pdsh)
 
 .. _seq(1): http://linux.die.net/man/1/seq
 .. _Python unified diff:

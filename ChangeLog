@@ -1,3 +1,19 @@
+2025-01-23 S. Thiell <sthiell@stanford.edu>
+
+	* Version 1.9.3 released. The main changes are listed below.
+
+	* Added bash completions (#563)
+
+	* Communication: sax parser: add flush() after feed() (#556)
+
+	* Additional Slurm binding options (#558 and #561)
+
+	* clush: use set instead of NodeSet for runtime progress info (#562)
+
+	* Tree: Tree: use set instead of NodeSet for gwtargets tracking (#562)
+
+	* CLI/Nodeset: omit @source: prefix for cluset -s source -L (#563) (#570)
+
 2023-09-29 S. Thiell <sthiell@stanford.edu>
 
 	* Version 1.9.2 released. The main changes are listed below.

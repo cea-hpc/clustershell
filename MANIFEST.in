@@ -1,6 +1,7 @@
 include ChangeLog
 include README.md
 include COPYING.LGPLv2.1
+include bash_completion.d/*
 include conf/*.conf
 include conf/*.example
 include conf/clush.conf.d/README

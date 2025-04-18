@@ -27,6 +27,8 @@
 %define py2 1
 %endif
 
+%{!?bash_completions_dir: %global bash_completions_dir %{_datadir}/bash-completion/completions}
+
 %global srcname ClusterShell
 
 Name:           clustershell
@@ -149,6 +151,13 @@ install -p -m 0644 doc/extras/vim/syntax/clushconf.vim %{buildroot}/%{vimdatadir
 install -p -m 0644 doc/extras/vim/syntax/groupsconf.vim %{buildroot}/%{vimdatadir}/syntax/
 %{?suse_version:%fdupes %{buildroot}}
 
+install -d %{buildroot}%{bash_completions_dir}
+install -p -m 0644 bash_completion.d/cluset -t %{buildroot}%{bash_completions_dir}
+install -p -m 0644 bash_completion.d/clush -t %{buildroot}%{bash_completions_dir}
+pushd %{buildroot}%{bash_completions_dir}
+ln -s cluset nodeset
+popd
+
 %if 0%{?rhel}
 %clean
 rm -rf %{buildroot}
@@ -228,8 +237,14 @@ rm -rf %{buildroot}
 %{vimdatadir}/ftdetect/clustershell.vim
 %{vimdatadir}/syntax/clushconf.vim
 %{vimdatadir}/syntax/groupsconf.vim
+%{bash_completions_dir}/cluset
+%{bash_completions_dir}/clush
+%{bash_completions_dir}/nodeset
 
 %changelog
+* Thu Jan 23 2025 Stephane Thiell <sthiell@stanford.edu> 1.9.3-1
+- update to 1.9.3
+
 * Fri Sep 29 2023 Stephane Thiell <sthiell@stanford.edu> 1.9.2-1
 - update to 1.9.2
 

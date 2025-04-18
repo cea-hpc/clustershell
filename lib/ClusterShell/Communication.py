@@ -229,6 +229,8 @@ class Channel(EventHandler):
 
         try:
             self._parser.feed(msg + b'\n')
+            if hasattr(self._parser, 'flush'):  # GH#556
+                self._parser.flush()
         except SAXParseException as ex:
             self.logger.error("SAXParseException: %s: %s", ex.getMessage(), msg)
             # Warning: do not send malformed raw message back

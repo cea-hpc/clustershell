@@ -7,9 +7,9 @@ compute advanced nodeset operations
 -----------------------------------
 
 :Author: Stephane Thiell <sthiell@stanford.edu>
-:Date:   2023-09-29
+:Date:   2025-01-23
 :Copyright: GNU Lesser General Public License version 2.1 or later (LGPLv2.1+)
-:Version: 1.9.2
+:Version: 1.9.3
 :Manual section: 1
 :Manual group: ClusterShell User Manual
 
@@ -48,6 +48,7 @@ OPTIONS
     -e, --expand        expand nodeset(s) to separate nodes (see also -S *SEPARATOR*)
     -f, --fold          fold nodeset(s) (or separate nodes) into one nodeset
     -l, --list          list node groups, list node groups and nodes (``-ll``) or list node groups, nodes and node count (``-lll``). When no argument is specified at all, this command will list all node group names found in selected group source (see also -s *GROUPSOURCE*). If any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually). Optionally for each group, the fraction of these nodes being member of the group may be displayed (with ``-ll``), and also member count/total group node count (with ``-lll``). If a single hyphen-minus (-) is given as a nodeset, it will be read from standard input.
+    -L, --list-all      list node groups from all group sources (``-LL`` shows nodes and ``-LLL`` adds node count). Like ``-l``, if any nodesets are specified as argument, this command will find node groups these nodes belongs to (individually).
     -r, --regroup       fold nodes using node groups (see -s *GROUPSOURCE*)
     --groupsources      list all active group sources (see ``groups.conf``\(5))
 

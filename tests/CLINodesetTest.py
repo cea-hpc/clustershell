@@ -721,7 +721,7 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
         self._nodeset_t(["-GL"], None,
                         b"@bar\n@foo\n@moo\n@baz\n@norf\n@qux\n")
         self._nodeset_t(["--list-all", "-s", "other"], None,
-                        b"@other:baz\n@other:norf\n@other:qux\n@test:bar\n@test:foo\n@test:moo\n")
+                        b"@baz\n@norf\n@qux\n@test:bar\n@test:foo\n@test:moo\n")
         self._nodeset_t(["--list-all", "-G", "-s", "other"], None,
                         b"@baz\n@norf\n@qux\n@bar\n@foo\n@moo\n") # 'other' source first
 
@@ -740,6 +740,17 @@ class CLINodesetGroupResolverTest2(CLINodesetTestBase):
                         b"nova[030-032,034-489]\n")
         self._nodeset_t(["-s", "other", "--autostep=3", "-f", "*!*[033-099/2]"],
                         None, b"nova[030-032,034-100/2,101-489]\n")
+
+    def test_041_completion(self):
+        """test nodeset --completion"""
+        self._nodeset_t(["--completion"], None,
+                        b"@test:\n@other:\n@bar\n@foo\n@moo\n")
+        self._nodeset_t(["--completion", "node1", "node2"], None,
+                        b"@test:\n@other:\n@bar\n@foo\n@moo\nnode1 node2\n")
+        self._nodeset_t(["-s", "other", "--completion"], None,
+                        b"@other:baz\n@other:norf\n@other:qux\n")
+        self._nodeset_t(["-s", "other", "--completion", "node1", "node2"], None,
+                        b"@other:baz\n@other:norf\n@other:qux\nnode1 node2\n")
 
 
 class CLINodesetGroupResolverTest3(CLINodesetTestBase):
