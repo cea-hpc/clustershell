@@ -431,35 +431,32 @@ class TreeWorker(DistantWorker):
         """remote node closing with return code"""
         DistantWorker._on_node_close(self, node, rc)
         self.logger.debug("_on_remote_node_close %s %s via gw %s", node,
-                        self._close_count, gateway)
+                          self._close_count, gateway)
 
-        node_arr = []
         # finalize rcopy: extract tar data
         if self.source and self.reverse:
-            for bnode, buf in self._rcopy_bufs.items():
-                if bnode == node:
-                    node_arr.append(bnode)
-                    tarfileobj = self._rcopy_tars[bnode]
-                    if len(buf) > 0:
-                        self.logger.debug("flushing node %s buf %d bytes", bnode,
-                                        len(buf))
-                        tarfileobj.write(buf)
-                    tarfileobj.flush()
-                    tarfileobj.seek(0)
-                    tmptar = tarfile.open(fileobj=tarfileobj)
-                    try:
-                        self.logger.debug("%s extracting %d members in dest %s",
-                                        bnode, len(tmptar.getmembers()),
-                                        self.dest)
-                        tmptar.extractall(path=self.dest)
-                    except IOError as ex:
-                        self._on_remote_node_msgline(bnode, ex, 'stderr', gateway)
-                    finally:
-                        tmptar.close()
-
-            for item_node in node_arr:
-                del self._rcopy_bufs[item_node]
-                del self._rcopy_tars[item_node]
+            if node in self._rcopy_bufs:
+                buf = self._rcopy_bufs[node]
+                tarfileobj = self._rcopy_tars[node]
+                if len(buf) > 0:
+                    self.logger.debug("flushing node %s buf %d bytes", node,
+                                      len(buf))
+                    tarfileobj.write(buf)
+                tarfileobj.flush()
+                tarfileobj.seek(0)
+                tmptar = tarfile.open(fileobj=tarfileobj)
+                try:
+                    self.logger.debug("%s extracting %d members in dest %s",
+                                      node, len(tmptar.getmembers()), self.dest)
+                    tmptar.extractall(path=self.dest)
+                except IOError as ex:
+                    self._on_remote_node_msgline(node, ex, 'stderr', gateway)
+                finally:
+                    tmptar.close()
+                del self._rcopy_bufs[node]
+                del self._rcopy_tars[node]
+            else:
+                self.logger.debug("no rcopy buffer received from %s", node)
 
         self.gwtargets[str(gateway)].remove(node)
         self._close_count += 1
