@@ -435,10 +435,11 @@ class TreeWorker(DistantWorker):
 
         # finalize rcopy: extract tar data
         if self.source and self.reverse:
-            for bnode, buf in self._rcopy_bufs.items():
-                tarfileobj = self._rcopy_tars[bnode]
+            if node in self._rcopy_bufs:
+                buf = self._rcopy_bufs[node]
+                tarfileobj = self._rcopy_tars[node]
                 if len(buf) > 0:
-                    self.logger.debug("flushing node %s buf %d bytes", bnode,
+                    self.logger.debug("flushing node %s buf %d bytes", node,
                                       len(buf))
                     tarfileobj.write(buf)
                 tarfileobj.flush()
@@ -446,15 +447,16 @@ class TreeWorker(DistantWorker):
                 tmptar = tarfile.open(fileobj=tarfileobj)
                 try:
                     self.logger.debug("%s extracting %d members in dest %s",
-                                      bnode, len(tmptar.getmembers()),
-                                      self.dest)
+                                      node, len(tmptar.getmembers()), self.dest)
                     tmptar.extractall(path=self.dest)
                 except IOError as ex:
-                    self._on_remote_node_msgline(bnode, ex, 'stderr', gateway)
+                    self._on_remote_node_msgline(node, ex, 'stderr', gateway)
                 finally:
                     tmptar.close()
-            self._rcopy_bufs = {}
-            self._rcopy_tars = {}
+                del self._rcopy_bufs[node]
+                del self._rcopy_tars[node]
+            else:
+                self.logger.debug("no rcopy buffer received from %s", node)
 
         self.gwtargets[str(gateway)].remove(node)
         self._close_count += 1
