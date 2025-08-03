@@ -35,11 +35,17 @@ jobs:
       run: |
         sed -i "1iexport CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)" ~/.bashrc
         sed -i "2iexport PYTHONPATH=\$PYTHONPATH:$(realpath $pythonLocation/lib/python*/site-packages)" ~/.bashrc
-        head ~/.bashrc
+        head -2 ~/.bashrc
     - name: Install pdsh to test WorkerPdsh
       run: |
         sudo apt-get -y install pdsh
         sudo sh -c 'echo ssh > /etc/pdsh/rcmd_default'
+    - name: Add tests/bin to remote PATH
+      run: |
+        sed -i "1iexport PATH=$PWD/tests/bin:\$PATH" ~/.bashrc
+        head -1 ~/.bashrc
+        ssh 127.0.0.2 which hostname
+        ssh 127.0.0.2 hostname
     - name: Post to Slack (start)
       continue-on-error: true
       id: slack-start
