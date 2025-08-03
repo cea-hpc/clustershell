@@ -5,6 +5,10 @@ _clush_command_or_file() {
 	# undo our nospace setting...
 	compopt +o nospace
 
+	# skip if shortopt is set -- these helpers cannot "restore" shortopt at start of
+	# the completions they provide easily
+	[ -n "$shortopt" ] && return
+
 	# complete either files (copy mode) or commands (if target set)
 	case "$target_set,$mode" in
 	*,copy)
@@ -32,6 +36,7 @@ _clush()
 	local cur prev words cword split
 	local i word options="" compopts="" skip=argv0 groupsource="" cleangroup=""
 	local mode=command target_set=""
+	local shortopt=""
 
 	_init_completion -s -n : || return
 
@@ -75,6 +80,15 @@ _clush()
 			return;;
 		esac
 	done
+
+	# split short opts without space...
+	case "$cur" in
+	-[a-z]*)
+		shortopt="${cur:0:2}"
+		prev="$shortopt"
+		cur="${cur:2}"
+		;;
+	esac
 
 	case "$prev" in
 	-w|-x|-g|--group|-X)
@@ -134,7 +148,9 @@ _clush()
 	fi
 
 	# append space for everything that doesn't end in `:` (likely a groupsource)
-	mapfile -t COMPREPLY < <(compgen -W "$options" -- "$cur" | sed -e 's/[^:]$/& /')
+	mapfile -t COMPREPLY \
+		< <(compgen -W "$options" -- "$cur" \
+			| sed -e 's/[^:]$/& /' -e "s/^/$shortopt/")
 	# remove the prefix from COMPREPLY if $cur contains colons and
 	# COMP_WORDBREAKS splits on colons...
 	__ltrim_colon_completions "$cur"
