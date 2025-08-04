@@ -32,3 +32,4 @@ include doc/examples/*.py
 include doc/examples/defaults.conf-rsh
 include doc/epydoc/*.conf
 include tests/*.py
+include tests/bin/*

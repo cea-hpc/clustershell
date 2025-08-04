@@ -1,0 +1,4 @@
+#!/bin/bash
+# This is useful for simulating multiple nodes on localhost IPs,
+# such as 127.0.0.2, during testing scenarios.
+echo $SSH_CONNECTION | { IFS=' ' read -r _ _ IP _; echo "$IP"; }

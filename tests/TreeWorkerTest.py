@@ -28,8 +28,9 @@ from TLib import HOSTNAME, make_temp_dir, make_temp_file, make_temp_filename
 NODE_HEAD = HOSTNAME
 NODE_GATEWAY = 'localhost'
 NODE_DISTANT = '127.0.0.2'
-NODE_DIRECT = '127.0.0.3'
-NODE_FOREIGN = '127.0.0.4'
+NODE_DISTANT2 = '127.0.0.[2-3]'
+NODE_DIRECT = '127.0.0.4'
+NODE_FOREIGN = '127.0.0.5'
 
 
 class TEventHandlerBase(object):
@@ -105,7 +106,7 @@ class TreeWorkerTest(unittest.TestCase):
     """
     TreeWorkerTest: test TreeWorker
 
-        NODE_HEAD -> NODE_GATEWAY -> NODE_DISTANT
+        NODE_HEAD -> NODE_GATEWAY -> NODE_DISTANT2
                   -> NODE_DIRECT    [defined in topology]
                   -> NODE_FOREIGN   [not defined in topology]
 
@@ -120,7 +121,7 @@ class TreeWorkerTest(unittest.TestCase):
         # set task topology
         graph = TopologyGraph()
         graph.add_route(NodeSet(HOSTNAME), NodeSet(NODE_GATEWAY))
-        graph.add_route(NodeSet(NODE_GATEWAY), NodeSet(NODE_DISTANT))
+        graph.add_route(NodeSet(NODE_GATEWAY), NodeSet(NODE_DISTANT2))
         graph.add_route(NodeSet(HOSTNAME), NodeSet(NODE_DIRECT))
         # NODE_FOREIGN is not included
         self.task.topology = graph.to_tree(HOSTNAME)
@@ -254,12 +255,13 @@ class TreeWorkerTest(unittest.TestCase):
         if separate_thread:
             task_wait()
             task_cleanup()
+        target_cnt = len(NodeSet(target))
         self.assertEqual(teh.ev_start_cnt, 1)
-        self.assertEqual(teh.ev_pickup_cnt, 1)
-        self.assertEqual(teh.ev_read_cnt, 1)
-        self.assertEqual(teh.ev_written_cnt, 1)
-        self.assertEqual(teh.ev_written_sz, len('Lorem Ipsum'))
-        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, target_cnt)
+        self.assertEqual(teh.ev_read_cnt, target_cnt)
+        self.assertEqual(teh.ev_written_cnt, target_cnt)
+        self.assertEqual(teh.ev_written_sz, target_cnt * len('Lorem Ipsum'))
+        self.assertEqual(teh.ev_hup_cnt, target_cnt)
         self.assertEqual(teh.ev_timedout_cnt, 0)
         self.assertEqual(teh.ev_close_cnt, 1)
         self.assertEqual(teh.last_read, b'Lorem Ipsum')
@@ -267,6 +269,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_run_write_distant(self):
         """test tree run with write(), distant target"""
         self._tree_run_write(NODE_DISTANT)
+
+    def test_tree_run_write_distant2(self):
+        """test tree run with write(), distant 2 targets"""
+        self._tree_run_write(NODE_DISTANT2)
 
     def test_tree_run_write_direct(self):
         """test tree run with write(), direct target, in topology"""
@@ -283,6 +289,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_run_write_distant_mt(self):
         """test tree run with write(), distant target, separate thread"""
         self._tree_run_write(NODE_DISTANT, separate_thread=True)
+
+    def test_tree_run_write_distant2_mt(self):
+        """test tree run with write(), distant 2 targets, separate thread"""
+        self._tree_run_write(NODE_DISTANT2, separate_thread=True)
 
     def test_tree_run_write_direct_mt(self):
         """test tree run with write(), direct target, in topology, separate thread"""
@@ -303,11 +313,12 @@ class TreeWorkerTest(unittest.TestCase):
         try:
             worker = self.task.copy(srcf.name, dest, nodes=target, handler=teh)
             self.task.run()
+            target_cnt = len(NodeSet(target))
             self.assertEqual(teh.ev_start_cnt, 1)
-            self.assertEqual(teh.ev_pickup_cnt, 1)
+            self.assertEqual(teh.ev_pickup_cnt, target_cnt)
             self.assertEqual(teh.ev_read_cnt, 0)
             #self.assertEqual(teh.ev_written_cnt, 0)  # FIXME
-            self.assertEqual(teh.ev_hup_cnt, 1)
+            self.assertEqual(teh.ev_hup_cnt, target_cnt)
             self.assertEqual(teh.ev_timedout_cnt, 0)
             self.assertEqual(teh.ev_close_cnt, 1)
             with open(dest, 'r') as destf:
@@ -318,6 +329,10 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_copy_file_distant(self):
         """test tree copy: file, distant target"""
         self._tree_copy_file(NODE_DISTANT)
+
+    def test_tree_copy_file_distant2(self):
+        """test tree copy: file, distant 2 targets"""
+        self._tree_copy_file(NODE_DISTANT2)
 
     def test_tree_copy_file_direct(self):
         """test tree copy: file, direct target, in topology"""
@@ -346,11 +361,12 @@ class TreeWorkerTest(unittest.TestCase):
             worker = self.task.copy(srcdir.name, destdir.name + '/',
                                     nodes=target, handler=teh)
             self.task.run()
+            target_cnt = len(NodeSet(target))
             self.assertEqual(teh.ev_start_cnt, 1)
-            self.assertEqual(teh.ev_pickup_cnt, 1)
+            self.assertEqual(teh.ev_pickup_cnt, target_cnt)
             self.assertEqual(teh.ev_read_cnt, 0)
             #self.assertEqual(teh.ev_written_cnt, 0)  # FIXME
-            self.assertEqual(teh.ev_hup_cnt, 1)
+            self.assertEqual(teh.ev_hup_cnt, target_cnt)
             self.assertEqual(teh.ev_timedout_cnt, 0)
             self.assertEqual(teh.ev_close_cnt, 1)
 
@@ -370,6 +386,11 @@ class TreeWorkerTest(unittest.TestCase):
         """test tree copy: directory, distant target"""
         self._tree_copy_dir(NODE_DISTANT)
 
+    def test_tree_copy_dir_distant2(self):
+        """test tree copy: directory, distant 2 targets"""
+        self._tree_copy_dir(NODE_DISTANT2)
+
+
     def test_tree_copy_dir_direct(self):
         """test tree copy: directory, direct target, in topology"""
         self._tree_copy_dir(NODE_DIRECT)
@@ -382,37 +403,37 @@ class TreeWorkerTest(unittest.TestCase):
         """test tree copy: directory, gateway is target"""
         self._tree_copy_dir(NODE_GATEWAY)
 
-    def _tree_rcopy_dir(self, target, dirsuffix=None):
+    def _tree_rcopy_dir(self, target):
         teh = TEventHandler()
+
+        b1 = b'Lorem Ipsum Unum' * 100
+        b2 = b'Lorem Ipsum Duo' * 100
 
         srcdir = make_temp_dir()
         destdir = make_temp_dir()
-        file1 = make_temp_file(b'Lorem Ipsum Unum', suffix=".txt",
-                               dir=srcdir.name)
-        file2 = make_temp_file(b'Lorem Ipsum Duo', suffix=".txt",
-                               dir=srcdir.name)
+        file1 = make_temp_file(b1, suffix=".txt", dir=srcdir.name)
+        file2 = make_temp_file(b2, suffix=".txt", dir=srcdir.name)
 
         try:
             worker = self.task.rcopy(srcdir.name, destdir.name, nodes=target,
                                      handler=teh)
             self.task.run()
+            target_cnt = len(NodeSet(target))
             self.assertEqual(teh.ev_start_cnt, 1)
-            self.assertEqual(teh.ev_pickup_cnt, 1)
+            self.assertEqual(teh.ev_pickup_cnt, target_cnt)
             self.assertEqual(teh.ev_read_cnt, 0)
             #self.assertEqual(teh.ev_written_cnt, 0)  # FIXME
-            self.assertEqual(teh.ev_hup_cnt, 1)
+            self.assertEqual(teh.ev_hup_cnt, target_cnt)
             self.assertEqual(teh.ev_timedout_cnt, 0)
             self.assertEqual(teh.ev_close_cnt, 1)
 
             # rcopy successful?
-            if not dirsuffix:
-                dirsuffix = target
-            rcopy_dest = join(destdir.name,
-                              basename(srcdir.name) + '.' + dirsuffix)
-            with open(join(rcopy_dest, basename(file1.name)), 'rb') as rfile1:
-                self.assertEqual(rfile1.read(), b'Lorem Ipsum Unum')
-            with open(join(rcopy_dest, basename(file2.name)), 'rb') as rfile2:
-                self.assertEqual(rfile2.read(), b'Lorem Ipsum Duo')
+            for tgt in NodeSet(target):
+                rcopy_dest = join(destdir.name, basename(srcdir.name) + '.' + tgt)
+                with open(join(rcopy_dest, basename(file1.name)), 'rb') as rfile1:
+                    self.assertEqual(rfile1.read(), b1)
+                with open(join(rcopy_dest, basename(file2.name)), 'rb') as rfile2:
+                    self.assertEqual(rfile2.read(), b2)
         finally:
             file1.close()
             file2.close()
@@ -423,7 +444,11 @@ class TreeWorkerTest(unittest.TestCase):
         """test tree rcopy: directory, distant target"""
         # In distant tree mode, the returned result will include the
         # hostname of the distant host, not target name
-        self._tree_rcopy_dir(NODE_DISTANT, dirsuffix=HOSTNAME)
+        self._tree_rcopy_dir(NODE_DISTANT)
+
+    def test_tree_rcopy_dir_distant2(self):
+        """test tree rcopy: directory, distant 2 targets"""
+        self._tree_rcopy_dir(NODE_DISTANT2)
 
     def test_tree_rcopy_dir_direct(self):
         """test tree rcopy: directory, direct target, in topology"""
@@ -436,6 +461,54 @@ class TreeWorkerTest(unittest.TestCase):
     def test_tree_rcopy_dir_gateway(self):
         """test tree rcopy: directory, gateway is target"""
         self._tree_rcopy_dir(NODE_GATEWAY)
+
+    def _tree_rcopy_file(self, target):
+        teh = TEventHandler()
+
+        # The file needs to be large enough to test GH#545
+        b1 = b'Lorem Ipsum' * 1100000
+
+        srcdir = make_temp_dir()
+        destdir = make_temp_dir()
+        srcfile = make_temp_file(b1, suffix=".txt", dir=srcdir.name)
+
+        try:
+            worker = self.task.rcopy(srcfile.name, destdir.name, nodes=target, handler=teh)
+            self.task.run()
+            target_cnt = len(NodeSet(target))
+            self.assertEqual(teh.ev_start_cnt, 1)
+            self.assertEqual(teh.ev_pickup_cnt, target_cnt)
+            self.assertEqual(teh.ev_read_cnt, 0)
+            #self.assertEqual(teh.ev_written_cnt, 0)  # FIXME
+            self.assertEqual(teh.ev_hup_cnt, target_cnt)
+            self.assertEqual(teh.ev_timedout_cnt, 0)
+            self.assertEqual(teh.ev_close_cnt, 1)
+
+            # rcopy successful?
+            for tgt in NodeSet(target):
+                rcopy_dest = join(destdir.name, basename(srcfile.name) + '.' + tgt)
+                with open(rcopy_dest, 'rb') as tfile:
+                    self.assertEqual(tfile.read(), b1)
+        finally:
+            srcfile.close()
+            srcdir.cleanup()
+            destdir.cleanup()
+
+    def test_tree_rcopy_file_distant(self):
+        """test tree rcopy: file, distant target"""
+        self._tree_rcopy_file(NODE_DISTANT)
+
+    def test_tree_rcopy_file_distant2(self):
+        """test tree rcopy: file, distant 2 targets"""
+        self._tree_rcopy_file(NODE_DISTANT2)
+
+    def test_tree_rcopy_file_direct(self):
+        """test tree rcopy: file, direct target, in topology"""
+        self._tree_rcopy_file(NODE_DIRECT)
+
+    def test_tree_rcopy_file_foreign(self):
+        """test tree rcopy: file, direct target, not in topology"""
+        self._tree_rcopy_file(NODE_FOREIGN)
 
     def test_tree_worker_missing_arguments(self):
         """test TreeWorker with missing arguments"""
