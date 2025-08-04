@@ -430,8 +430,8 @@ class TreeWorker(DistantWorker):
     def _on_remote_node_close(self, node, rc, gateway):
         """remote node closing with return code"""
         DistantWorker._on_node_close(self, node, rc)
-        self.logger.debug("_on_remote_node_close %s %s via gw %s", node,
-                          self._close_count, gateway)
+        self.logger.debug("_on_remote_node_close %s %s via gw %s rc=%s", node,
+                          self._close_count, gateway, rc)
 
         # finalize rcopy: extract tar data
         if self.source and self.reverse:

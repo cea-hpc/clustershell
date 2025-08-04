@@ -394,6 +394,7 @@ class PropagationChannel(Channel):
 
     def ev_hup(self, worker, node, rc):
         """Channel command is closing"""
+        self.logger.debug("ev_hup gateway=%s %s", str(worker.nodes), self)
         self._rc = rc
 
     def ev_close(self, worker, timedout):
@@ -401,17 +402,24 @@ class PropagationChannel(Channel):
         # do not use worker buffer or rc accessors here as we doesn't use
         # common stream names
         gateway = str(worker.nodes)
-        self.logger.debug("ev_close gateway=%s %s", gateway, self)
-        self.logger.debug("ev_close rc=%s", self._rc) # may be None
+        self.logger.debug("ev_close gateway=%s rc=%s %s", gateway, self._rc,
+                          self)
 
-        # NOTE: self._rc may be None if the communication channel has aborted
-        if self._rc != 0:
-            self.logger.debug("error on gateway %s (setup=%s)", gateway,
-                              self.setup)
+        # NOTE: self._rc is set None when _we_ close the channel (abort)
+        if self._rc is None and not self.setup:
+            # aborting before the channel is setup is worth a warning
+            self.logger.warning("ev_close: rc=%s with channel not setup",
+                                self._rc)
+
+        if self._rc is not None and self._rc != 0:
+            # handle gateway channel error
+            self.logger.debug("error on gateway %s (rc=%s, setup=%s)", gateway,
+                              self._rc, self.setup)
             self.task.router.mark_unreachable(gateway)
             self.logger.debug("gateway %s now set as unreachable", gateway)
 
             if not self.setup:
-                # channel was not set up: we can safely repropagate commands
+                # channel was not set up: we can safely redistribute commands
+                self.logger.debug("channel was not set up: redistributing...")
                 for mw in set(self.task.gateways[gateway][1]):
                     mw._relaunch(gateway)
