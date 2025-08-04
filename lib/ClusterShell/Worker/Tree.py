@@ -394,13 +394,15 @@ class TreeWorker(DistantWorker):
         the relaunch is going to be performed using gateways (that's a feature).
         """
         targets = NodeSet.fromlist(self.gwtargets[previous_gateway])
-        self.logger.debug("_relaunch on targets %s from previous_gateway %s",
+        self.logger.debug("_relaunch on targets %s from previous gateway %s",
                           targets, previous_gateway)
-
         self.gwtargets[previous_gateway].difference_update(targets)
-
         self._check_fini(previous_gateway)
         self._target_count -= len(targets)
+        if self.eh is not None:
+            self.eh._ev_routing(self, { "event": "reroute",
+                                        "gateway": previous_gateway,
+                                        "targets": targets })
         self._launch(targets)
 
     def _engine_clients(self):
@@ -486,10 +488,14 @@ class TreeWorker(DistantWorker):
         self._close_count += 1
         self._has_timeout = True
 
+    def _on_routing_event(self, arg):
+        self.logger.debug("_on_routing_event %s", arg)
+        self.eh._ev_routing(self, arg)
+
     def _check_ini(self):
         self.logger.debug("TreeWorker: _check_ini (%d, %d)", self._start_count,
                           self._child_count)
-        if self.eh and self._start_count >= self._child_count:
+        if self.eh is not None and self._start_count >= self._child_count:
             # this part is called once
             self.eh.ev_start(self)
             # Blindly generate pickup events: this could maybe be improved, for

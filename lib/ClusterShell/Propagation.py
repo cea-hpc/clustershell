@@ -29,12 +29,12 @@ import logging
 
 from ClusterShell.Defaults import DEFAULTS
 from ClusterShell.NodeSet import NodeSet
-from ClusterShell.Communication import Channel
-from ClusterShell.Communication import ControlMessage, StdOutMessage
-from ClusterShell.Communication import StdErrMessage, RetcodeMessage
-from ClusterShell.Communication import StartMessage, EndMessage
-from ClusterShell.Communication import RoutedMessageBase, ErrorMessage
-from ClusterShell.Communication import ConfigurationMessage, TimeoutMessage
+from ClusterShell.Communication import (Channel, ControlMessage, StdOutMessage,
+                                        StdErrMessage, RetcodeMessage,
+                                        StartMessage, EndMessage,
+                                        RoutedMessageBase, ErrorMessage,
+                                        ConfigurationMessage, TimeoutMessage,
+                                        RoutingMessage)
 from ClusterShell.Topology import TopologyError
 
 
@@ -376,19 +376,17 @@ class PropagationChannel(Channel):
                 self.logger.debug("TimeoutMessage for %s", msg.nodes)
                 for node in NodeSet(msg.nodes):
                     metaworker._on_remote_node_timeout(node, self.gateway)
+            elif msg.type == RoutingMessage.ident:
+                self.logger.debug("RoutingMessage for %s (gw %s)", msg.targets,
+                                  msg.gateway)
+                metaworker._on_routing_event({ "event": msg.event,
+                                               "gateway": msg.gateway,
+                                               "targets": msg.targets })
         elif msg.type == ErrorMessage.ident:
             # tree runtime error, could generate a new event later
             raise TopologyError("%s: %s" % (self.gateway, msg.reason))
         else:
             self.logger.debug("recv_ctl: unhandled msg %s", msg)
-        """
-        return
-        if self.ptree.upchannel is not None:
-            self.logger.debug("_state_gather ->upchan %s" % msg)
-            self.ptree.upchannel.send(msg) # send to according event handler passed by shell()
-        else:
-            assert False
-        """
 
     def ev_hup(self, worker, node, rc):
         """Channel command is closing"""

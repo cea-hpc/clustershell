@@ -40,7 +40,7 @@ from ClusterShell.Worker.Tree import TreeWorker
 from ClusterShell.Communication import Channel, ConfigurationMessage, \
     ControlMessage, ACKMessage, ErrorMessage, StartMessage, EndMessage, \
     StdOutMessage, StdErrMessage, RetcodeMessage, TimeoutMessage, \
-    MessageProcessingError
+    RoutingMessage, MessageProcessingError
 
 
 def _gw_print_debug(task, line):
@@ -147,6 +147,14 @@ class TreeWorkerResponder(EventHandler):
             # finalize grooming
             self.ev_timer(None)
             self.timer.invalidate()
+
+    def _ev_routing(self, worker, arg):
+        """
+        Routing event (private). Called to indicate that a (meta)worker has just
+        updated one of its route path.
+        """
+        self.logger.debug("TreeWorkerResponder: ev_routing arg=%s", arg)
+        self.gwchan.send(RoutingMessage(**arg, srcid=self.srcwkr))
 
 
 class GatewayChannel(Channel):

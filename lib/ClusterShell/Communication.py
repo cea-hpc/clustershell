@@ -139,6 +139,7 @@ class XMLReader(ContentHandler):
             StdErrMessage.ident: StdErrMessage,
             RetcodeMessage.ident: RetcodeMessage,
             TimeoutMessage.ident: TimeoutMessage,
+            RoutingMessage.ident: RoutingMessage,
         }
         try:
             msg_type = attributes['type']
@@ -456,6 +457,19 @@ class TimeoutMessage(RoutedMessageBase):
         RoutedMessageBase.__init__(self, srcid)
         self.attr.update({'nodes': str})
         self.nodes = nodes
+
+class RoutingMessage(RoutedMessageBase):
+    """container message for routing notification"""
+    ident = 'RTR'
+
+    def __init__(self, event='', gateway='', targets='', srcid=0):
+        """
+        """
+        RoutedMessageBase.__init__(self, srcid)
+        self.attr.update({'event': str, 'gateway': str, 'targets': str})
+        self.event = event
+        self.gateway = gateway
+        self.targets = targets
 
 class StartMessage(Message):
     """message indicating the start of a channel communication"""
