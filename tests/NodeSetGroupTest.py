@@ -143,9 +143,9 @@ class NodeSetGroupTest(unittest.TestCase):
 
         source = UpcallGroupSource(
                     "simple",
-                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
-                    "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
-                    "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
+                    r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % test_groups1.name,
+                    r"sed -n 's/^all:\(.*\)/\1/p' %s" % test_groups1.name,
+                    r"sed -n 's/^\([0-9A-Za-z_-]*\):.*/\1/p' %s" % test_groups1.name,
                     None)
 
         # create custom resolver with default source
@@ -204,9 +204,9 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups1 = makeTestG1()
 
         source = UpcallGroupSource("simple",
-                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
-                                   "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups1.name,
-                                   "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups1.name,
+                                   r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % test_groups1.name,
+                                   r"sed -n 's/^all:\(.*\)/\1/p' %s" % test_groups1.name,
+                                   r"sed -n 's/^\([0-9A-Za-z_-]*\):.*/\1/p' %s" % test_groups1.name,
                                    None)
 
         res = GroupResolver(source)
@@ -219,7 +219,7 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups1 = makeTestG1()
 
         source = UpcallGroupSource("minimal",
-                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups1.name,
+                                   r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % test_groups1.name,
                                    None, None, None)
 
         # create custom resolver with default source
@@ -678,7 +678,7 @@ class NodeSetGroupTest(unittest.TestCase):
 
     def testConfigCrossRefs(self):
         """test groups config with cross references"""
-        f = make_temp_file(dedent("""
+        f = make_temp_file(dedent(r"""
             # A comment
 
             [Main]
@@ -688,10 +688,10 @@ class NodeSetGroupTest(unittest.TestCase):
             map: echo example[1-100]
 
             [other]
-            map: echo "foo: @local:foo" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
+            map: echo "foo: @local:foo" | sed -n 's/^$GROUP:\(.*\)/\1/p'
 
             [third]
-            map: printf "bar: @ref-rel\\nref-rel: @other:foo\\nref-all: @*\\n" | sed -n 's/^$GROUP:\(.*\)/\\1/p'
+            map: printf "bar: @ref-rel\\nref-rel: @other:foo\\nref-all: @*\\n" | sed -n 's/^$GROUP:\(.*\)/\1/p'
             list: echo bar
             """).encode('ascii'))
         res = GroupResolverConfig(f.name)
@@ -934,9 +934,9 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups4 = makeTestG4()
 
         source = UpcallGroupSource("simple",
-                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups4.name,
-                                   "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups4.name,
-                                   "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups4.name,
+                                   r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % test_groups4.name,
+                                   r"sed -n 's/^all:\(.*\)/\1/p' %s" % test_groups4.name,
+                                   r"sed -n 's/^\([0-9A-Za-z_-]*\):.*/\1/p' %s" % test_groups4.name,
                                    None)
 
         # create custom resolver with default source
@@ -1013,9 +1013,9 @@ class NodeSetGroupTest(unittest.TestCase):
         test_groups2 = makeTestG2()
 
         source = UpcallGroupSource("simple",
-                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups2.name,
+                                   r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % test_groups2.name,
                                    None,
-                                   "sed -n 's/^\([0-9A-Za-z_\%%-]*\):.*/\\1/p' %s"
+                                   r"sed -n 's/^\([0-9A-Za-z_\%%-]*\):.*/\1/p' %s"
                                    % test_groups2.name,
                                    None)
         res = GroupResolver(source)
@@ -1190,15 +1190,15 @@ class NodeSetGroup2GSTest(unittest.TestCase):
 
         # create 2 GroupSource objects
         default = UpcallGroupSource("default",
-                                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups1.name,
-                                    "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups1.name,
-                                    "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups1.name,
+                                    r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % self.test_groups1.name,
+                                    r"sed -n 's/^all:\(.*\)/\1/p' %s" % self.test_groups1.name,
+                                    r"sed -n 's/^\([0-9A-Za-z_-]*\):.*/\1/p' %s" % self.test_groups1.name,
                                     None)
 
         source2 = UpcallGroupSource("source2",
-                                    "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % self.test_groups2.name,
-                                    "sed -n 's/^all:\(.*\)/\\1/p' %s" % self.test_groups2.name,
-                                    "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % self.test_groups2.name,
+                                    r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % self.test_groups2.name,
+                                    r"sed -n 's/^all:\(.*\)/\1/p' %s" % self.test_groups2.name,
+                                    r"sed -n 's/^\([0-9A-Za-z_-]*\):.*/\1/p' %s" % self.test_groups2.name,
                                     None)
 
         resolver = GroupResolver(default)
@@ -1303,9 +1303,9 @@ class NodeSetRegroupTest(unittest.TestCase):
         test_reverse3 = makeTestR3()
 
         source = UpcallGroupSource("test",
-                                   "sed -n 's/^$GROUP:\(.*\)/\\1/p' %s" % test_groups3.name,
-                                   "sed -n 's/^all:\(.*\)/\\1/p' %s" % test_groups3.name,
-                                   "sed -n 's/^\([0-9A-Za-z_-]*\):.*/\\1/p' %s" % test_groups3.name,
+                                   r"sed -n 's/^$GROUP:\(.*\)/\1/p' %s" % test_groups3.name,
+                                   r"sed -n 's/^all:\(.*\)/\1/p' %s" % test_groups3.name,
+                                   r"sed -n 's/^\([0-9A-Za-z_-]*\):.*/\1/p' %s" % test_groups3.name,
                                    "awk -F: '/^$NODE:/ { gsub(\",\",\"\\n\",$2); print $2 }' %s" % test_reverse3.name)
 
         # create custom resolver with default source
