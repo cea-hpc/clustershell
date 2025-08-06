@@ -331,3 +331,41 @@ class StreamTest(unittest.TestCase):
 
         self.run_worker(worker)
         self.assertEqual(hdlr.check_close, 1)
+
+    def test_010_worker_abort_with_read_buffers(self):
+        """test StreamWorker abort() with read buffers"""
+        class TestH(EventHandler):
+            def __init__(self, testcase):
+                self.testcase = testcase
+                self.read_count = 0
+                self.timer_called = False
+                self.worker = None
+                self.wfd1 = None
+
+            def ev_timer(self, timer):
+                self.timer_called = True
+                self.worker.abort()
+
+            def ev_read(self, worker, node, sname, msg):
+                self.read_count += 1
+                os.write(self.wfd1, b"Some unterminated  data line")
+
+        # We want to test that a StreamWorker.abort() does not generate any
+        # additional ev_read events. This only works if timeout is not set.
+        # For a test with timeout, see test_004_timeout_on_open_stream().
+        hdlr = TestH(self)
+        worker = StreamWorker(handler=hdlr) # no timeout
+        hdlr.worker = worker
+        # Create pipe stream
+        rfd1, wfd1 = os.pipe()
+        hdlr.wfd1 = wfd1
+        worker.set_reader("pipe1", rfd1, closefd=False)
+        os.write(wfd1, b"Some terminated data line\n")
+        # TEST: Do not close wfd1 to simulate open stream
+        # We use an "external" timer to delay the abort() a bit
+        timer1 = task_self().timer(0.5, handler=hdlr)
+        self.run_worker(worker)
+        self.assertTrue(hdlr.timer_called)
+        self.assertEqual(hdlr.read_count, 1) # single line only
+        os.close(rfd1)
+        os.close(wfd1)
