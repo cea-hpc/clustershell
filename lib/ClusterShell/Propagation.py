@@ -253,8 +253,7 @@ class PropagationChannel(Channel):
         if msg.type == EndMessage.ident:
             #??#self.ptree.notify_close()
             self.logger.debug("got EndMessage; closing")
-            # abort worker (now working)
-            self.worker.abort()
+            self._close()
         elif msg.type == StdErrMessage.ident and msg.srcid == 0:
             # Handle error messages when channel is not established yet
             # or if messages are non-routed (eg. gateway-related)
@@ -423,3 +422,6 @@ class PropagationChannel(Channel):
                 self.logger.debug("channel was not set up: redistributing...")
                 for mw in set(self.task.gateways[gateway][1]):
                     mw._relaunch(gateway)
+
+        # update Task that we are closing
+        worker.task._pchannel_close(gateway, worker)
