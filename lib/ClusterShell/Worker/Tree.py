@@ -564,6 +564,18 @@ class TreeWorker(DistantWorker):
 
         self._set_write_eof_remote()
 
+    def _gateway_abort(self, gateway):
+        """Abort on gateway failure"""
+        if gateway not in self.gwtargets:
+            self.logger.warning("TreeWorker._gateway_abort %s not found",
+                                gateway)
+            return
+        targets = self.gwtargets[gateway]
+        self.logger.debug("TreeWorker._gateway_abort %s found: targets=%s",
+                          gateway, targets)
+        for target in NodeSet.fromlist(targets): # targets is a mutable list
+            self._on_remote_node_close(target, os.EX_PROTOCOL, gateway)
+
     def abort(self):
         """Abort processing any action by this worker."""
         # Not yet supported by TreeWorker

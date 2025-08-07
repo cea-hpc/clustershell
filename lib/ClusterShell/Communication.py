@@ -203,10 +203,9 @@ class Channel(EventHandler):
         xmlgen = XMLGenerator(self.worker, encoding=ENCODING)
         xmlgen.startElement('channel', {'version': __version__})
 
-    def _close(self):
+    def _close(self, abort=False):
         """close an already opened channel"""
-        send_endtag = self.opened
-        if send_endtag:
+        if self.opened and not abort:
             XMLGenerator(self.worker, encoding=ENCODING).endElement('channel')
         self.worker.abort()
         self.opened = self.setup = False

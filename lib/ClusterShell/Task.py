@@ -1365,8 +1365,10 @@ class Task(object):
     def _pchannel_release(self, gateway, metaworker):
         """Release propagation channel associated to gateway.
 
-        Lookup by gateway, decref associated metaworker set and release
-        channel worker if needed.
+        Lookup by gateway, decref associated metaworker set and abort channel
+        worker if not used anymore.
+
+        Called by TreeWorker._check_fini()
         """
         logger = logging.getLogger(__name__)
         logger.debug("pchannel_release %s %s", gateway, metaworker)
@@ -1381,11 +1383,29 @@ class Task(object):
             chanworker, metaworkers = self.gateways[gwstr]
             metaworkers.remove(metaworker)
             if len(metaworkers) == 0:
-                logger.debug("pchannel_release: destroying channel %s",
+                logger.debug("pchannel_release: closing channel %s",
                             chanworker.eh)
-                chanworker.abort()
-                # delete gateway reference
-                del self.gateways[gwstr]
+                # Call PropagationChannel._close() that will close the channel
+                # properly, update the opened/setup flags and abort the worker.
+                # We might be in an event handler and we want to make sure we
+                # ignore any pending messages from this gateway from now on.
+                chanworker.eh._close(abort=True)
+
+    def _pchannel_close(self, gateway, chanworker):
+        """A propagation channel is closing.
+
+        Perform necessary cleanup actions when a gateway channel is closing.
+
+        Called by PropagationChannel.ev_close().
+        """
+        logger = logging.getLogger(__name__)
+        logger.debug("pchannel_closing: %s", gateway)
+        chwrk, metaworkers = self.gateways[gateway]
+        assert chwrk is chanworker, (chwrk, chanworker)
+        metaworkers_copy = list(metaworkers)
+        for mw in metaworkers_copy:
+            mw._gateway_abort(gateway)
+        del self.gateways[gateway]
 
 
 def task_self(defaults=None):
