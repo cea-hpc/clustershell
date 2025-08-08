@@ -218,7 +218,6 @@ class Channel(EventHandler):
     def ev_read(self, worker, node, sname, msg):
         """channel has data to read"""
         # sname can be either SNAME_READER or self.SNAME_ERROR
-
         if sname == self.SNAME_ERROR:
             if self.initiator:
                 self.recv(StdErrMessage(node, msg))
