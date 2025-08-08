@@ -429,9 +429,13 @@ class TreeWorker(DistantWorker):
 
     def _on_remote_node_close(self, node, rc, gateway):
         """remote node closing with return code"""
-        DistantWorker._on_node_close(self, node, rc)
         self.logger.debug("_on_remote_node_close %s %s via gw %s rc=%s", node,
                           self._close_count, gateway, rc)
+
+        # this must be done first to avoid recursion via event handlers
+        self.gwtargets[str(gateway)].remove(node)
+
+        DistantWorker._on_node_close(self, node, rc)
 
         # finalize rcopy: extract tar data
         if self.source and self.reverse:
@@ -458,7 +462,6 @@ class TreeWorker(DistantWorker):
             else:
                 self.logger.debug("no rcopy buffer received from %s", node)
 
-        self.gwtargets[str(gateway)].remove(node)
         self._close_count += 1
         self._check_fini(gateway)
 
@@ -578,8 +581,11 @@ class TreeWorker(DistantWorker):
 
     def abort(self):
         """Abort processing any action by this worker."""
-        # Not yet supported by TreeWorker
-        raise NotImplementedError("see github issue #229")
+        self.logger.debug("abort %s" % self)
+        for worker in self.workers:
+            worker.abort()
+        for gateway in self.gwtargets.copy():
+            self._gateway_abort(gateway)
 
 
 # TreeWorker's former name (deprecated as of 1.8)

@@ -251,7 +251,6 @@ class PropagationChannel(Channel):
         """process incoming messages"""
         self.logger.debug("recv: %s", msg)
         if msg.type == EndMessage.ident:
-            #??#self.ptree.notify_close()
             self.logger.debug("got EndMessage; closing")
             self._close()
         elif msg.type == StdErrMessage.ident and msg.srcid == 0:

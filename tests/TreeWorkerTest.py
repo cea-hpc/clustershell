@@ -547,6 +547,172 @@ class TreeWorkerTest(TreeWorkerTestBase):
         """test TreeWorker former name (WorkerTree)"""
         self.assertEqual(TreeWorker, WorkerTree)
 
+    def test_tree_run_abort_on_start(self):
+        """test tree run abort on ev_start"""
+        class TEventAbortOnStartHandler(TEventHandler):
+            """Test Event Abort On Start Handler"""
+
+            def __init__(self, testcase):
+                TEventHandler.__init__(self)
+                self.testcase = testcase
+
+            def ev_start(self, worker):
+                TEventHandler.ev_start(self, worker)
+                worker.abort()
+
+            def ev_hup(self, worker, node, rc):
+                TEventHandler.ev_hup(self, worker, node, rc)
+                self.testcase.assertEqual(rc, os.EX_PROTOCOL)
+
+        teh = TEventAbortOnStartHandler(self)
+        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        self.assertEqual(teh.ev_start_cnt, 1)
+        #self.assertEqual(teh.ev_pickup_cnt, 0) # XXX to be improved
+        self.assertEqual(teh.ev_read_cnt, 0)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        self.assertEqual(teh.last_read, None)
+
+    def test_tree_run_abort_on_pickup(self):
+        """test tree run abort on ev_pickup"""
+        class TEventAbortOnPickupHandler(TEventHandler):
+            """Test Event Abort On Pickup Handler"""
+
+            def __init__(self, testcase):
+                TEventHandler.__init__(self)
+                self.testcase = testcase
+
+            def ev_pickup(self, worker, node):
+                TEventHandler.ev_pickup(self, worker, node)
+                worker.abort()
+
+            def ev_hup(self, worker, node, rc):
+                TEventHandler.ev_hup(self, worker, node, rc)
+                self.testcase.assertEqual(rc, os.EX_PROTOCOL)
+
+        teh = TEventAbortOnPickupHandler(self)
+        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        self.assertEqual(teh.ev_start_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, 1)
+        self.assertEqual(teh.ev_read_cnt, 0)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        self.assertEqual(teh.last_read, None)
+
+    def test_tree_run_abort_on_read(self):
+        """test tree run abort on ev_read"""
+        class TEventAbortOnReadHandler(TEventHandler):
+            """Test Event Abort On Start Handler"""
+
+            def __init__(self, testcase):
+                TEventHandler.__init__(self)
+                self.testcase = testcase
+
+            def ev_read(self, worker, node, sname, msg):
+                TEventHandler.ev_read(self, worker, node, sname, msg)
+                worker.abort()
+
+            def ev_hup(self, worker, node, rc):
+                TEventHandler.ev_hup(self, worker, node, rc)
+                self.testcase.assertEqual(rc, os.EX_PROTOCOL)
+
+        teh = TEventAbortOnReadHandler(self)
+        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        self.assertEqual(teh.ev_start_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, 1)
+        self.assertEqual(teh.ev_read_cnt, 1)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        self.assertEqual(teh.last_read, b'Lorem Ipsum')
+
+    def test_tree_run_abort_on_hup(self):
+        """test tree run abort on ev_hup"""
+        class TEventAbortOnHupHandler(TEventHandler):
+            """Test Event Abort On Hup Handler"""
+
+            def __init__(self, testcase):
+                TEventHandler.__init__(self)
+                self.testcase = testcase
+
+            def ev_hup(self, worker, node, rc):
+                TEventHandler.ev_hup(self, worker, node, rc)
+                worker.abort()
+
+        teh = TEventAbortOnHupHandler(self)
+        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        self.assertEqual(teh.ev_start_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, 1)
+        self.assertEqual(teh.ev_read_cnt, 1)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        self.assertEqual(teh.last_read, b'Lorem Ipsum')
+
+    def test_tree_run_abort_on_close(self):
+        """test tree run abort on ev_close"""
+        class TEventAbortOnCloseHandler(TEventHandler):
+            """Test Event Abort On Close Handler"""
+
+            def __init__(self, testcase):
+                TEventHandler.__init__(self)
+                self.testcase = testcase
+
+            def ev_close(self, worker, timedout):
+                TEventHandler.ev_close(self, worker, timedout)
+                self.testcase.assertEqual(type(worker), TreeWorker)
+                worker.abort()
+
+        teh = TEventAbortOnCloseHandler(self)
+        self.task.run('echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        self.assertEqual(teh.ev_start_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, 1)
+        self.assertEqual(teh.ev_read_cnt, 1)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        self.assertEqual(teh.last_read, b'Lorem Ipsum')
+
+    def test_tree_run_abort_on_timer(self):
+        """test tree run abort on timer"""
+        class TEventAbortOnTimerHandler(TEventHandler):
+            """Test Event Abort On Timer Handler"""
+
+            def __init__(self, testcase):
+                TEventHandler.__init__(self)
+                self.testcase = testcase
+                self.worker = None
+
+            def ev_timer(self, timer):
+                self.worker.abort()
+
+            def ev_hup(self, worker, node, rc):
+                TEventHandler.ev_hup(self, worker, node, rc)
+                self.testcase.assertEqual(rc, os.EX_PROTOCOL)
+
+        # Test abort from a timer's event handler
+        teh = TEventAbortOnTimerHandler(self)
+        # channel might take some time to set up; hard to time it
+        # we play it safe here and don't expect anything to read
+        teh.worker = self.task.shell('sleep 10; echo Lorem Ipsum', nodes=NODE_DISTANT, handler=teh)
+        timer1 = self.task.timer(3, handler=teh)
+        self.task.run()
+        self.assertEqual(teh.ev_start_cnt, 1)
+        self.assertEqual(teh.ev_pickup_cnt, 1)
+        self.assertEqual(teh.ev_read_cnt, 0)
+        self.assertEqual(teh.ev_written_cnt, 0)
+        self.assertEqual(teh.ev_hup_cnt, 1)
+        self.assertEqual(teh.ev_timedout_cnt, 0)
+        self.assertEqual(teh.ev_close_cnt, 1)
+        self.assertEqual(teh.last_read, None)
+
 
 @unittest.skipIf(HOSTNAME == 'localhost', "does not work with hostname set to 'localhost'")
 class TreeWorkerGW2Test(TreeWorkerTestBase):
