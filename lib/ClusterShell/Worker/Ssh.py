@@ -42,6 +42,7 @@ class SshClient(ExecClient):
         Return an array of command and arguments.
         """
 
+        self.command = self._replace_cmd()
         task = self.worker.task
         path = task.info("ssh_path") or "ssh"
         user = task.info("ssh_user")
