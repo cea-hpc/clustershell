@@ -307,7 +307,7 @@ SEE ALSO
 
 ``clubak``\(1), ``cluset``\(1), ``nodeset``\(1), ``readline``\(3), ``clush.conf``\(5), ``groups.conf``\(5).
 
-http://clustershell.readthedocs.org/
+https://clustershell.readthedocs.io/
 
 BUG REPORTS
 ===========

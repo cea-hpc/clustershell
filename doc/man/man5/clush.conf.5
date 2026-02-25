@@ -27,10 +27,13 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "CLUSH.CONF" "5" "2025-01-23" "1.9.3" "ClusterShell User Manual"
+.TH "CLUSH.CONF" 5 "2025-01-23" "1.9.3" "ClusterShell User Manual"
 .SH NAME
 clush.conf \- Configuration file for clush
 .SH DESCRIPTION
+.sp
+\fBclush\fP(1) configuration files are in Python\(aqs ConfigParser format.
+.SS Locations
 .sp
 \fBclush\fP(1) obtains configuration options from the following sources in the
 following order:
@@ -221,7 +224,11 @@ from \fIclush.conf\fP\&.  External commands whose outputs were used by \fBclush\
 .sp
 \fBclush\fP(1), \fBgroups.conf\fP(5), \fBsshpass\fP(1), \fBsudo\fP(8).
 .sp
- <http://clustershell.readthedocs.org/> 
+\fI\%https://clustershell.readthedocs.io/\fP
+.sp
+Python ConfigParser
+.sp
+\fI\%https://docs.python.org/3/library/configparser.html\fP
 .SH AUTHOR
 Stephane Thiell, <sthiell@stanford.edu>
 .SH COPYRIGHT

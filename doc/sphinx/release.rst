@@ -559,7 +559,7 @@ Main changes in 1.7
 ^^^^^^^^^^^^^^^^^^^
 
 This new version comes with a refreshed documentation, based on the Sphinx
-documentation generator, available on http://clustershell.readthedocs.org.
+documentation generator, available on https://clustershell.readthedocs.io.
 
 The main new features of version 1.7 are described below.
 

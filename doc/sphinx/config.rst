@@ -11,6 +11,11 @@ clush
 clush.conf
 ^^^^^^^^^^
 
+The *clush.conf* files are parsed with Python's `ConfigParser`_
+
+Locations
+"""""""""
+
 The following configuration file defines system-wide default values for
 several ``clush`` tool parameters::
 
@@ -33,6 +38,12 @@ valid, it will used instead. In such case, the following configuration file
 will be tried first for ``clush``::
 
     $CLUSTERSHELL_CFGDIR/clush.conf
+
+Settings
+""""""""
+
+Settings that apply to all ``clush`` :ref:`run modes <clushmode-config>` are
+contained within the ``[Main]`` section.
 
 The following table describes available ``clush`` config file settings.
 

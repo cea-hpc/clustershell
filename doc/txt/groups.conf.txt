@@ -184,4 +184,4 @@ SEE ALSO
 
 ``clubak``\(1), ``cluset``\(1), ``clush``\(1), ``nodeset``\(1)
 
-http://clustershell.readthedocs.org/
+https://clustershell.readthedocs.io/
