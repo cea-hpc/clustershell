@@ -16,7 +16,7 @@ from ClusterShell.Topology import *
 from ClusterShell.NodeSet import NodeSet, set_std_group_resolver
 from ClusterShell.NodeSet import set_std_group_resolver_config
 from ClusterShell.NodeUtils import GroupResolverConfig
-from TLib import make_temp_file
+from .TLib import make_temp_file
 
 
 class TopologyTest(unittest.TestCase):

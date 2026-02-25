@@ -6,7 +6,7 @@
 import resource
 import unittest
 
-from TLib import HOSTNAME
+from .TLib import HOSTNAME
 from ClusterShell.Task import *
 from ClusterShell.Worker.Pdsh import WorkerPdsh
 

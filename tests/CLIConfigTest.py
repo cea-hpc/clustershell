@@ -10,7 +10,7 @@ import tempfile
 from textwrap import dedent
 import unittest
 
-from TLib import *
+from .TLib import *
 
 from ClusterShell.CLI.Clush import set_fdlimit
 from ClusterShell.CLI.Config import ClushConfig, ClushConfigError

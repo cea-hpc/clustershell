@@ -7,7 +7,7 @@ import pwd
 import unittest
 import warnings
 
-from TLib import HOSTNAME, make_temp_filename, make_temp_dir
+from .TLib import HOSTNAME, make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import *
 from ClusterShell.Worker.Ssh import WorkerSsh

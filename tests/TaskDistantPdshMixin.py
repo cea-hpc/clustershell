@@ -3,7 +3,7 @@
 
 """Unit test for ClusterShell Task (distant, pdsh worker)"""
 
-from TLib import HOSTNAME, make_temp_filename, make_temp_dir
+from .TLib import HOSTNAME, make_temp_filename, make_temp_dir
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import *
 from ClusterShell.Worker.Worker import WorkerBadArgumentError

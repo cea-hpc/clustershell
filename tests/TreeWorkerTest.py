@@ -28,7 +28,7 @@ from ClusterShell.Task import Task, task_cleanup
 from ClusterShell.Topology import TopologyGraph
 from ClusterShell.Worker.Tree import TreeWorker, WorkerTree
 
-from TLib import HOSTNAME, make_temp_dir, make_temp_file, make_temp_filename
+from .TLib import HOSTNAME, make_temp_dir, make_temp_file, make_temp_filename
 
 
 NODE_HEAD = HOSTNAME

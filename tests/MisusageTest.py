@@ -5,7 +5,7 @@
 
 import unittest
 
-from TLib import HOSTNAME
+from .TLib import HOSTNAME
 from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Popen import WorkerPopen
 from ClusterShell.Worker.Ssh import WorkerSsh

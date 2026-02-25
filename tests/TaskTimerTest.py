@@ -8,7 +8,7 @@ import threading
 from time import sleep, time
 import unittest
 
-from TLib import HOSTNAME
+from .TLib import HOSTNAME
 from ClusterShell.Engine.Engine import EngineTimer, EngineIllegalOperationError
 from ClusterShell.Event import EventHandler
 from ClusterShell.Task import *

@@ -8,7 +8,7 @@ import random
 from textwrap import dedent
 import unittest
 
-from TLib import *
+from .TLib import *
 from ClusterShell.CLI.Nodeset import main
 
 from ClusterShell.NodeUtils import GroupResolverConfig

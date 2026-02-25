@@ -8,7 +8,7 @@ import sys
 from textwrap import dedent
 import unittest
 
-from TLib import *
+from .TLib import *
 
 # Wildcard import for testing purpose
 from ClusterShell.NodeSet import *

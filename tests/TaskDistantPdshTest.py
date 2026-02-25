@@ -11,7 +11,7 @@ from ClusterShell.Engine.Poll import EnginePoll
 from ClusterShell.Engine.EPoll import EngineEPoll
 from ClusterShell.Task import *
 
-from TaskDistantPdshMixin import TaskDistantPdshMixin
+from .TaskDistantPdshMixin import TaskDistantPdshMixin
 
 ENGINE_SELECT_ID = EngineSelect.identifier
 ENGINE_POLL_ID = EnginePoll.identifier

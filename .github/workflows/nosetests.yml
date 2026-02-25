@@ -1,4 +1,4 @@
-name: ClusterShell nosetests
+name: ClusterShell tests
 
 on: [push, pull_request, merge_group]
 
@@ -21,27 +21,36 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        set -euxo pipefail
         python -m pip install --upgrade pip
-        pip install coverage nose-py3 .
+        pip install coverage .
     - name: Allow us to SSH passwordless to localhost
       run: |
+        set -euxo pipefail
         chmod og-rw ~
         ssh-keygen -f ~/.ssh/id_rsa -N ""
         cp ~/.ssh/{id_rsa.pub,authorized_keys}
     - name: Avoid ssh "known hosts" warnings
       run: |
+        set -euxo pipefail
         printf '%s\n    %s\n    %s\n' 'Host *' 'StrictHostKeyChecking no' 'LogLevel ERROR' >> ~/.ssh/config
     - name: Set Python paths when sshing for gateway tests
       run: |
+        set -euxo pipefail
+        PYTHON_SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
         sed -i "1iexport CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)" ~/.bashrc
-        sed -i "2iexport PYTHONPATH=\$PYTHONPATH:$(realpath $pythonLocation/lib/python*/site-packages)" ~/.bashrc
-        head -2 ~/.bashrc
+        sed -i "2iexport PYTHONPATH=\$PYTHONPATH:$PYTHON_SITE_PACKAGES" ~/.bashrc
+        head -3 ~/.bashrc
+        ssh 127.0.0.2 'python -c "import ClusterShell; print(ClusterShell.__file__)"'
     - name: Install pdsh to test WorkerPdsh
       run: |
+        set -euxo pipefail
+        sudo apt-get update
         sudo apt-get -y install pdsh
         sudo sh -c 'echo ssh > /etc/pdsh/rcmd_default'
     - name: Add tests/bin to remote PATH
       run: |
+        set -euxo pipefail
         sed -i "1iexport PATH=$PWD/tests/bin:\$PATH" ~/.bashrc
         head -1 ~/.bashrc
         ssh 127.0.0.2 which hostname
@@ -78,9 +87,11 @@ jobs:
     - name: Run tests
       id: tests
       run: |
+        set -euxo pipefail
         python --version
         export CLUSTERSHELL_GW_PYTHON_EXECUTABLE=$(which python)
-        nosetests -v --all-modules --with-coverage --cover-tests --cover-erase --cover-package=ClusterShell tests
+        coverage run --branch --source=ClusterShell -m unittest discover -v -s tests -p '*Test.py' -t .
+        coverage report -m
     - name: Post to Slack (end)
       if: always()
       continue-on-error: true

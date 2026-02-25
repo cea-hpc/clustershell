@@ -20,7 +20,7 @@ import unittest
 
 from subprocess import Popen, PIPE
 
-from TLib import *
+from .TLib import *
 import ClusterShell.CLI.Clush
 from ClusterShell.CLI.Clush import main
 from ClusterShell.NodeSet import NodeSet
@@ -443,10 +443,11 @@ class CLIClushTest_A(unittest.TestCase):
         curdir = os.getcwd()
         try:
             os.chdir(tdir.name)
-            s = "Warning: using '-w %s' and local path '%s' exists, was it " \
-                "expanded by the shell?\n" % (HOSTNAME, HOSTNAME)
+            s = b"Warning: using '-w %s' and local path '%s' exists, was it " \
+                b"expanded by the shell?\n" % (HOSTNAME.encode(), HOSTNAME.encode())
+            # Use regex to match start of stderr, allowing for additional warnings
             self._clush_t(["-w", HOSTNAME, "echo", "ok"], None,
-                          self.output_ok, 0, s.encode())
+                          self.output_ok, 0, re.compile(re.escape(s)))
         finally:
             os.chdir(curdir)
             tfile.close()

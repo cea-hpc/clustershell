@@ -7,7 +7,7 @@ import re
 from textwrap import dedent
 import unittest
 
-from TLib import *
+from .TLib import *
 from ClusterShell.CLI.Clubak import main
 
 from ClusterShell.NodeSet import set_std_group_resolver, \

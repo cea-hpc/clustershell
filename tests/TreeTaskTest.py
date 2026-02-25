@@ -11,7 +11,7 @@ from ClusterShell.Propagation import RouteResolvingError
 from ClusterShell.Task import task_self
 from ClusterShell.Topology import TopologyError
 
-from TLib import HOSTNAME, make_temp_file
+from .TLib import HOSTNAME, make_temp_file
 
 # live logging with nosetests --nologcapture
 logging.basicConfig(level=logging.DEBUG)

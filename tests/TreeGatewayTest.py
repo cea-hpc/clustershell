@@ -19,7 +19,7 @@ from ClusterShell.Topology import TopologyGraph
 from ClusterShell.Worker.Tree import TreeWorker
 from ClusterShell.Worker.Worker import StreamWorker
 
-from TLib import HOSTNAME
+from .TLib import HOSTNAME
 
 # live logging with nosetests --nologcapture
 logging.basicConfig(level=logging.DEBUG)

@@ -6,7 +6,7 @@
 import os
 import unittest
 
-from TLib import HOSTNAME, make_temp_file, make_temp_filename, make_temp_dir
+from .TLib import HOSTNAME, make_temp_file, make_temp_filename, make_temp_dir
 
 from ClusterShell.Event import EventHandler
 from ClusterShell.Worker.Exec import ExecWorker, WorkerError

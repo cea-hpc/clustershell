@@ -10,7 +10,7 @@ import shutil
 from textwrap import dedent
 import unittest
 
-from TLib import make_temp_file, make_temp_dir
+from .TLib import make_temp_file, make_temp_dir
 
 from ClusterShell.Defaults import Defaults, _task_print_debug
 
