@@ -64,7 +64,7 @@ _clush()
 		-w|-g|--group) target_set=1; skip=any;;
 		# no-arg options
 		--version|-h|--help|-n|--nostdin|-a|--all|-q|--quiet|\
-		-v|--verbose|-d|--debug) ;;
+		-b|-B|-v|--verbose|-d|--debug) ;;
 		# get source separately...
 		--groupsource=*) groupsource="${word#*=}";;
 		-s|--groupsource) skip=groupsource;;
