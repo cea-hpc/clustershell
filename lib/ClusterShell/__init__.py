@@ -38,4 +38,4 @@ __version__ = '1.9.3'
 __version_info__ = tuple([ int(_n) for _n in __version__.split('.')])
 __date__    = '2025/01/23'
 __author__  = 'Stephane Thiell <sthiell@stanford.edu>'
-__url__     = 'http://clustershell.readthedocs.org/'
+__url__     = 'https://clustershell.readthedocs.io/'

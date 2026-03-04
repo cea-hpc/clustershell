@@ -17,6 +17,11 @@ Configuration file for `clush`
 DESCRIPTION
 ===========
 
+``clush``\(1) configuration files are in Python's ConfigParser format.
+
+Locations
+---------
+
 ``clush``\(1) obtains configuration options from the following sources in the
 following order:
 
@@ -186,4 +191,8 @@ SEE ALSO
 
 ``clush``\(1), ``groups.conf``\(5), ``sshpass``\(1\), ``sudo``\(8\).
 
-http://clustershell.readthedocs.org/
+https://clustershell.readthedocs.io/
+
+Python ConfigParser
+
+https://docs.python.org/3/library/configparser.html

@@ -34,7 +34,7 @@ Documentation
 
 Online documentation is available here:
 
-    http://clustershell.readthedocs.org/
+    https://clustershell.readthedocs.io/
 
 The Sphinx documentation source is available under the doc/sphinx directory.
 Type 'make' to see all available formats (you need Sphinx installed and
@@ -90,7 +90,7 @@ Web site:
 
 Online documentation:
 
-    http://clustershell.readthedocs.org/
+    https://clustershell.readthedocs.io/
 
 Github source repository:
 
