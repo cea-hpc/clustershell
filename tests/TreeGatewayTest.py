@@ -256,13 +256,18 @@ class TreeGatewayTest(TreeGatewayBaseTest):
     def test_err_unknown_msg(self):
         """test gateway unknown message"""
         self._check_channel_err('<message msgid="24" type="ABC"></message>',
-                                'Unknown message type',
+                                'Unknown message type ABC',
                                 openchan=False)
 
     def test_channel_err_unknown_msg(self):
         """test gateway channel unknown message"""
         self._check_channel_err('<message msgid="24" type="ABC"></message>',
-                                'Unknown message type')
+                                'Unknown message type ABC')
+
+    def test_channel_err_no_type_msg(self):
+        """test gateway channel message with no type"""
+        self._check_channel_err('<message msgid="24"></message>',
+                                'Unknown message with no type')
 
     def test_err_xml_malformed(self):
         """test gateway malformed xml message"""
