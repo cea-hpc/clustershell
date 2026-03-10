@@ -92,6 +92,35 @@ _clush()
 
 	case "$prev" in
 	-w|-x|-g|--group|-X)
+		local orig="$cur"
+		# split words (by ,-not-in-brackets and &)
+		# Note completions with & are mostly borked
+		while true; do
+			case "$cur" in
+			*"&"*)
+				# cannot handle & without some bash-completion-fu,
+				# because it tries to simplify &'s escaping and then
+				# fails as that splits commands... Just give up.
+				return
+				;;
+			*"["*"]"*,*)
+				# complete set, remove one word
+				cur="${cur#*,}"
+				;;
+			*"["*)
+				# open bracket: leave as is
+				break
+				;;
+			*,*)
+				# no brackets, remove one word
+				cur="${cur#*,}"
+				;;
+			*)
+				# nothing left to do
+				break
+				;;
+			esac
+		done
 		case "$cur" in
 		*:*)
 			groupsource="${cur%%:*}"
@@ -116,6 +145,11 @@ _clush()
 			options=${options//@/}
 			;;
 		esac
+		if [ "$orig" != "$cur" ]; then
+			local prefix=${orig%$cur}
+			options="$prefix${options//$'\n'/&"$prefix"}"
+			cur="$orig"
+		fi
 		;;
 	-s|--groupsource)
 		options=$(cluset --groupsources --quiet)
