@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools >= 77.0.3", "setuptools-scm[toml]"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clustershell"
+requires-python = ">=3.6"
+dependencies = [
+    "pyyaml"
+]
+dynamic = ["version"]
+
+authors = [
+    { name = "Stephane Thiell", email = "sthiell@stanford.eu" },
+]
+maintainers = [
+    { name = "Stephane Thiell" },
+    { name = "Aurelien Degremont" },
+    { name = "Henri Doreau" },
+    { name = "Dominique Martinet" },
+]
+description = "ClusterShell library and tools"
+readme = "doc/txt/clustershell.rst"
+license = "LGPLv2+"
+keywords = ['clustershell', 'clush', 'clubak', 'nodeset']
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: BSD",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Clustering",
+    "Topic :: System :: Distributed Computing"
+]
+
+[project.urls]
+Documentation = "https://clustershell.readthedocs.io/"
+Repository = "https://github.com/cea-hpc/clustershell.git"
+Issues = "https://github.com/cea-hpc/clustershell/issues"
+
+[project.scripts]
+clubak = "ClusterShell.CLI.Clubak:main"
+cluset = "ClusterShell.CLI.Nodeset:main"
+clush = "ClusterShell.CLI.Clush:main"
+nodeset = "ClusterShell.CLI.Nodeset:main"
+
+[tool.setuptools_scm]
+
+[tool.setuptools.packages.find]
+where = ["lib"]
+exclude = ["tests"]
