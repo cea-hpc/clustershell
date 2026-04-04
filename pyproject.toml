@@ -21,7 +21,7 @@ maintainers = [
 ]
 description = "ClusterShell library and tools"
 readme = "doc/txt/clustershell.rst"
-license = "LGPLv2+"
+license = "LGPL-2.0-or-later"
 keywords = ['clustershell', 'clush', 'clubak', 'nodeset']
 classifiers = [
     "Development Status :: 5 - Production/Stable",
