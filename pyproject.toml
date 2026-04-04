@@ -42,6 +42,7 @@ classifiers = [
 Documentation = "https://clustershell.readthedocs.io/"
 Repository = "https://github.com/cea-hpc/clustershell.git"
 Issues = "https://github.com/cea-hpc/clustershell/issues"
+Changelog = "https://github.com/cea-hpc/blob/master/ChangeLog"
 
 [project.scripts]
 clubak = "ClusterShell.CLI.Clubak:main"
