@@ -1,0 +1,77 @@
+name: Build EL10 RPMs
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Release name/tag (e.g., v1.9.0)'
+        required: true
+        type: string
+      draft_release:
+        description: 'Create as draft release'
+        required: false
+        type: boolean
+        default: true
+
+defaults:
+  run:
+    shell: bash -eux {0}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_rocky10_rpms:
+    name: Build Rockylinux 10 RPMs
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:10
+      #workaround, rocky10 by default not initializing PATH
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.release_name }}
+
+      - name: Install dependencies
+        run: |
+          dnf install -y epel-release rpm-build rpmdevtools python3-devel python3-setuptools
+
+      - name: Build RPMs for el10
+        run: |
+          ./mkrpm.sh el10
+
+      - name: Locate generated RPMs
+        run: |
+          echo "=== Source RPM ==="
+          find ~/rpmbuild/SRPMS -name "*.src.rpm" -type f
+          echo "=== Binary RPMs ==="
+          find ~/rpmbuild/RPMS -name "*.rpm" -type f
+
+      - name: Upload artifacts (SRPM and RPM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: clustershell-el10-rpm
+          path: |
+            ~/rpmbuild/RPMS/*/*.rpm
+          retention-days: 30
+
+      - name: Upload artifacts (SRPM and RPM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: clustershell-el10-srpm
+          path: |
+            ~/rpmbuild/SRPMS/*.src.rpm
+          retention-days: 30
+
+      - name: Create Release with RPMs only
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release_name }}
+          draft: ${{ github.event.inputs.draft_release }}
+          files: |
+            ~/rpmbuild/RPMS/*/*.rpm

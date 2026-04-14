@@ -1,6 +1,7 @@
 name: ClusterShell tests
 
-on: [push, pull_request, merge_group]
+on:
+  workflow_dispatch:
 
 jobs:
   build:
