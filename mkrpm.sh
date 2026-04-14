@@ -30,7 +30,7 @@ fi
 which python &>/dev/null && PYTHON=python || PYTHON=python3
 DIST=$1
 FORCE=${2:-no}
-VERS=$($PYTHON -c "import ClusterShell; print(ClusterShell.__version__)")
+VERS=$($PYTHON -c "import sys; sys.path.insert(0, 'lib'); import ClusterShell; print(ClusterShell.__version__)")
 PKGNAME=ClusterShell-$VERS
 
 echo "Building version $VERS for $DIST"
