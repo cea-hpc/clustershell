@@ -6,7 +6,6 @@ on:
       release_name:
         description: 'Release name/tag (e.g., v1.9.0)'
         required: true
-        type: string
       draft_release:
         description: 'Create as draft release'
         required: false
@@ -34,8 +33,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.release_name }}
 
       - name: Install dependencies
         run: |
